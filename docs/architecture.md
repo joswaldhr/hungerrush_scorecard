@@ -2,7 +2,8 @@
 
 ## Current state
 
-Phase 1 scaffold complete. No database migrations applied yet.
+Phase 2 in progress — connectors, sync service, and metric definitions built. Migrations 0001–0011 applied.
+Graph sync ran against live Azure AD: 359 profiles, 339 employees created from real org structure. ~250 service accounts (conference rooms, shared mailboxes, etc.) flagged as admin — needs cleanup in Phase 4.
 
 ## Stack
 
@@ -25,13 +26,13 @@ Two paths — the distinction governs every design decision:
 
 ## Domain model
 
-Tables (all pending migration `0001_core_tables.sql`):
+Tables (migrations 0001–0011 applied):
 
 | Table | Purpose |
 |---|---|
 | `profiles` | All system users (managers, senior managers, admins, employees with accounts) |
 | `employees` | People being coached; `manager_id` → `profiles.id` of their manager |
-| `metric_definitions` | Metric catalog: name, unit, source, coaching_prompt, direction |
+| `metric_definitions` | Metric catalog: name, unit, source, coaching_prompt, direction, display_order |
 | `metric_snapshots` | Weekly frozen metric values per employee |
 | `scorecard_sessions` | 1:1 session records |
 | `session_notes` | Notes written during a session |
@@ -51,6 +52,11 @@ visible_employee_ids() → setof uuid
 - `admin` → everyone
 
 Every table's SELECT policy uses this function. Hierarchy logic is never inlined in individual policies.
+
+Admin RLS policies use JWT claims instead of table queries to avoid recursion:
+- `(auth.jwt()->'app_metadata'->>'role') = 'admin'`
+- Role is synced from `profiles.role` to `auth.users.raw_app_meta_data` via trigger (migration 0010)
+- A guard trigger prevents non-`service_role` callers from changing their own role
 
 ## Shared package
 
@@ -74,3 +80,5 @@ Both `apps/web` and `apps/api` import from here.
 | 2026-06-24 | Drop all admin RLS policies — they self-reference profiles causing recursion; admin ops use service key; Phase 2 will re-add via JWT claims | `0007_drop_admin_policies.sql` |
 | 2026-06-24 | Table-level GRANTs for `authenticated` role on all tables + functions | `0008_grant_table_permissions.sql` |
 | 2026-06-25 | Table-level GRANTs for `service_role` on all tables + functions — needed for backend/seed operations | `0009_grant_service_role.sql` |
+| 2026-06-25 | JWT role claims: `guard_role_change()` prevents self-escalation, `sync_role_to_jwt()` copies profiles.role → auth.users.raw_app_meta_data, backfill for existing profiles | `0010_jwt_role_claims.sql` |
+| 2026-06-25 | Add `display_order` column to `metric_definitions`; seed 8 metrics (5 Zendesk, 3 Assembled) with coaching prompts | `0011_metric_definitions_seed.sql` |

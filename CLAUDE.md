@@ -5,6 +5,51 @@
 
 ---
 
+## Current Session Status
+
+**Last updated:** 2026-06-25 (session 3)
+
+### Completed this session
+- Assembled connector (`apps/api/src/connectors/assembled.ts`) — HTTP Basic auth, computes schedule_adherence/occupancy/handle_time from raw agent_states + activities endpoints, matches agents by email, stores platforms.zendesk in rawSource
+- Zendesk connector (`apps/api/src/connectors/zendesk.ts`) — REST v2, Basic auth ({email}/token:{token}), computes ticket_volume/first_reply_time/csat_score/sla_compliance/resolution_rate, batch metric_sets via show_many, graceful SLA degradation
+- Sync service (`apps/api/src/services/syncService.ts`) — `bootstrapAgentIds()` maps employees to Assembled/Zendesk agent IDs by email; `runSync(mode)` fetches metrics from both connectors per employee, writes to metric_snapshots idempotently (upsert for live, ignoreDuplicates for snapshot)
+- Scheduler added to `apps/api/src/index.ts` — node-cron: live refresh every 4h 6am–10pm UTC (`0 6,10,14,18,22 * * *`), weekly snapshot Sunday 23:59 UTC (`59 23 * * 0`)
+- Sync routes updated (`apps/api/src/routes/sync.ts`) — added `POST /api/sync/bootstrap` and `POST /api/sync/run`, router-level x-sync-key auth middleware
+- Migration 0011 (`metric_definitions_seed.sql`) — adds `display_order` column, seeds 8 metric definitions (5 Zendesk, 3 Assembled) with coaching prompts. Applied to live Supabase.
+- API response types created (`apps/api/src/types/assembled.ts`, `apps/api/src/types/zendesk.ts`)
+- Graph sync ran successfully against live Azure AD — 359 profiles updated, 339 employees created, ~250 service accounts flagged as admin, zero errors
+- Real HungerRush org structure now in database (replaces previous seed data)
+- Updated `docs/architecture.md` and `docs/metrics.md` with metric definitions, coaching prompts, and display formatting notes
+
+### Where we stopped
+About to run `POST /api/sync/bootstrap` to map employees to their Assembled and Zendesk agent IDs by email match. Server is running on port 3000.
+
+### Assembled API — confirmed working (session 2)
+- **Base URL:** `https://api.assembledhq.com/v0`
+- **Auth:** HTTP Basic (API key as username, empty password)
+- **`GET /v0/people`** — 77 agents, response keyed by UUID, includes `platforms.zendesk` for cross-referencing with Zendesk agent IDs
+- **`GET /v0/agents/state?agent_id=<uuid>&start_time=<unix>&end_time=<unix>`** — actual agent states (uses `agent_id` field, not `id`)
+- **`GET /v0/activities?agents[]=<uuid>&start_time=<unix>&end_time=<unix>`** — scheduled activities
+- **`GET /v0/activity_types`** — 17 types, each has `productive` boolean (only "Phone + Email" and "In/Out Calls" are productive)
+- **Reports endpoint** (`POST /v0/reports/adherence`) returns 400 with empty body — unusable, compute metrics from raw data instead
+- **All timestamps are Unix seconds** (not milliseconds)
+- **Pagination:** `limit`/`offset`, max 500
+
+### Metric computation strategy (Assembled)
+| Metric | Source | Computation |
+|---|---|---|
+| Schedule adherence | `activities` + `agent_states` | Overlap of actual productive states with scheduled productive activities / total scheduled productive time |
+| Occupancy | `agent_states` | Time in productive states / total logged-in time (excluding Offline) |
+| Handle time | `agent_states` | Average duration of individual customer-facing state entries |
+
+### Next actions (in order)
+1. Run `POST /api/sync/bootstrap` with x-sync-key header — maps employees to Assembled/Zendesk agent IDs
+2. Run `POST /api/sync/run` with x-sync-key header — pull first real metrics
+3. Verify real employees + metrics appear in dashboard
+4. Build admin config UI (`apps/web/src/features/admin/MetricConfigPage.tsx`)
+
+---
+
 ## What this is
 
 A coaching-first 1:1 scorecard tool for HungerRush managers. Weekly metric data from
@@ -174,6 +219,7 @@ export interface DataSourceConnector {
 SUPABASE_URL
 SUPABASE_SERVICE_KEY            # bypasses RLS — backend jobs only, never sent anywhere
 ZENDESK_SUBDOMAIN
+ZENDESK_EMAIL
 ZENDESK_API_TOKEN
 ASSEMBLED_API_KEY
 
@@ -251,13 +297,13 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | Phase | Description | Status | Exit criteria (done = all true) |
 |---|---|---|---|
 | 1 | Scaffold · shared package · Supabase · Microsoft SSO · RBAC | ✅ | A manager can log in via M365 and see an empty dashboard scoped to their reports |
-| 2 | Zendesk + Assembled connectors · sync job · admin config UI | ⬜ | Sync job populates real metrics for seeded employees on a schedule |
+| 2 | Zendesk + Assembled connectors · sync job · admin config UI | 🔄 | Sync job populates real metrics for seeded employees on a schedule |
 | 3 | Scorecard UI · KPI tiles · sparklines · coaching prompts · 1:1 notes | ⬜ | A manager can open an employee, see live metrics, and save 1:1 notes |
 | 4 | Senior manager rollup · employee sharing · PDF export · email nudge | ⬜ | A senior manager sees team trends; a manager can share a read-only card |
 | 5 | Polish · onboarding tour · PWA · audit log · load test · prod deploy | ⬜ | Pilot managers using it in production |
 
 **Current phase:** 2
-**Last session:** 2026-06-25 — Phase 1 complete. Fixed service_role grants (0009), seeded test data (7 profiles + 12 employees), verified SSO login + RLS scoping end-to-end. Dashboard shows all 12 employees for admin. Graph sync built but blocked on Azure app permissions (IT contacted). Next: Zendesk + Assembled connectors, sync job, admin config UI.
+**Last session:** 2026-06-25 (session 3) — Built Assembled + Zendesk connectors, sync service, scheduler, migration 0011 (8 metric definitions). Graph sync ran live — 359 profiles, 339 employees from Azure AD. Stopped before bootstrap + first real metric sync. See "Current Session Status" section at top for full details.
 
 ---
 
@@ -300,3 +346,8 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | 2026-06-24 | Dashboard reads employees directly via Supabase + RLS | No Express route for reads — RLS via visible_employee_ids() is the access control, per architecture principle |
 | 2026-06-25 | service_role needs explicit table GRANTs | Supabase default privileges don't always cover migration-created tables; migration 0009 adds ALL grants for service_role |
 | 2026-06-25 | Seed data instead of Graph sync for Phase 1 verification | Graph sync blocked on Azure app registration permissions (IT contacted); manual seed data unblocks testing |
+| 2026-06-25 | `display_order` integer instead of `weight` on metric_definitions | A weight column implies computing weighted composite scores, which violates the no-composite-score rule and would mislead future developers; display_order controls UI ordering only |
+| 2026-06-25 | JWT claims sync trigger for admin RLS | Profiles.role syncs to auth.users.raw_app_meta_data so RLS policies can check `(auth.jwt()->'app_metadata'->>'role')` without querying profiles — prerequisite for all admin policies going forward |
+| 2026-06-25 | Assembled /v0/people fetched per-employee during sync | Acceptable for current scale (~77 agents); cache within sync run before Phase 3 when real employee count increases |
+| 2026-06-25 | ~250 flagged admin accounts from Graph sync are service accounts | Conference rooms, shared mailboxes, integration users, external contacts — needs admin UI task in Phase 4 to mark non-person accounts inactive |
+| 2026-06-25 | Graph sync now runs against live Azure AD | IT granted User.Read.All + Directory.Read.All; 359 profiles, 339 employees created from real org structure; replaces seed data approach |
