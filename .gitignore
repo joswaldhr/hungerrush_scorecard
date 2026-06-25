@@ -6,6 +6,7 @@ apps/web/.env
 apps/web/.env.local
 apps/api/.env
 .supabase/
+supabase/.temp/
 dist/
 .DS_Store
 Thumbs.db
