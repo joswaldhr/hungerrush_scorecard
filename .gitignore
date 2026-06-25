@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.local
+.env*.local
+apps/web/.env
+apps/web/.env.local
+apps/api/.env
+.supabase/
+dist/
+.DS_Store
+Thumbs.db
+*.log
+KEYS.md
