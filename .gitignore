@@ -12,3 +12,7 @@ dist/
 Thumbs.db
 *.log
 KEYS.md
+tmp_*.ts
+tmp_*.js
+tmp_*.mjs
+.claude/
