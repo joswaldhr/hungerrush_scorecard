@@ -27,6 +27,7 @@ function createClient(): AxiosInstance {
 
 let cachedPeople: AssembledPerson[] | null = null;
 let cachedActivityTypes: AssembledActivityType[] | null = null;
+let cachedAllActivities: AssembledActivity[] | null = null;
 let cacheClient: AxiosInstance | null = null;
 let cacheExpiry = 0;
 
@@ -36,6 +37,7 @@ function getClient(): AxiosInstance {
     cacheClient = createClient();
     cachedPeople = null;
     cachedActivityTypes = null;
+    cachedAllActivities = null;
     cacheExpiry = now + 10 * 60 * 1000;
   }
   return cacheClient;
@@ -44,6 +46,7 @@ function getClient(): AxiosInstance {
 export function clearAssembledCache(): void {
   cachedPeople = null;
   cachedActivityTypes = null;
+  cachedAllActivities = null;
   cacheClient = null;
   cacheExpiry = 0;
 }
@@ -84,24 +87,17 @@ async function fetchAgentStates(
   return all;
 }
 
-async function fetchActivities(
+async function fetchAllActivities(
   client: AxiosInstance,
-  agentId: string,
   startTime: number,
-  endTime: number
+  endTime: number,
 ): Promise<AssembledActivity[]> {
-  const all: AssembledActivity[] = [];
-  let offset = 0;
-  for (;;) {
-    const response = await client.get<{ activities: Record<string, AssembledActivity> }>('/activities', {
-      params: { 'agents[]': agentId, start_time: startTime, end_time: endTime, limit: PAGE_LIMIT, offset },
-    });
-    const rawPage = Object.values(response.data.activities);
-    all.push(...rawPage.filter(a => a.agent_id === agentId));
-    if (rawPage.length < PAGE_LIMIT) break;
-    offset += PAGE_LIMIT;
-  }
-  return all;
+  if (cachedAllActivities) return cachedAllActivities;
+  const response = await client.get<{ activities: Record<string, AssembledActivity> }>('/activities', {
+    params: { start_time: startTime, end_time: endTime },
+  });
+  cachedAllActivities = Object.values(response.data.activities);
+  return cachedAllActivities;
 }
 
 // --- Interval math ---
@@ -212,11 +208,12 @@ export const assembledConnector: DataSourceConnector = {
       return [];
     }
 
-    const [states, activities, activityTypes] = await Promise.all([
+    const [states, allActivities, activityTypes] = await Promise.all([
       fetchAgentStates(client, agent.agent_id, startTime, endTime),
-      fetchActivities(client, agent.agent_id, startTime, endTime),
+      fetchAllActivities(client, startTime, endTime),
       getActivityTypes(client),
     ]);
+    const activities = allActivities.filter(a => a.agent_id === agent.agent_id);
 
     const productiveTypeIds = new Set<string>();
     const productiveStateNames = new Set<string>();
