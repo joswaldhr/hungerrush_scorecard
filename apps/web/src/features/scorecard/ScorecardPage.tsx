@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useEmployee } from '../../hooks/useEmployee';
@@ -5,6 +6,7 @@ import { useEmployeeMetrics } from '../../hooks/useEmployeeMetrics';
 import { useScorecardNotes } from '../../hooks/useScorecardNotes';
 import { KpiTile, KpiTileSkeleton } from '../../components/KpiTile';
 import { NotesPanel } from '../notes/NotesPanel';
+import { supabase } from '../../lib/supabase';
 
 function PageSkeleton() {
   return (
@@ -30,18 +32,18 @@ function PageSkeleton() {
 export function ScorecardPage() {
   const { employeeId } = useParams<{ employeeId: string }>();
   const { session, loading: authLoading } = useAuth();
-
-  if (!employeeId) return <Navigate to="/dashboard" replace />;
-
-  const { employee, loading: empLoading, error: empError } = useEmployee(employeeId);
-  const { metrics, loading: metricsLoading, error: metricsError } = useEmployeeMetrics(employeeId);
+  const { employee, loading: empLoading, error: empError } = useEmployee(employeeId ?? '');
+  const { metrics, loading: metricsLoading, error: metricsError } = useEmployeeMetrics(employeeId ?? '');
   const {
     sessions,
     loading: notesLoading,
     error: notesError,
     createSession,
     toggleActionItem,
-  } = useScorecardNotes(employeeId);
+  } = useScorecardNotes(employeeId ?? '');
+  const [shareStatus, setShareStatus] = useState<'idle' | 'sharing' | 'copied' | 'error'>('idle');
+
+  if (!employeeId) return <Navigate to="/dashboard" replace />;
 
   if (authLoading || empLoading) return <PageSkeleton />;
 
@@ -79,6 +81,28 @@ export function ScorecardPage() {
 
   const managerId = session.user.id;
 
+  const handleShare = async () => {
+    if (!employeeId) return;
+    setShareStatus('sharing');
+
+    const { data, error: insertError } = await supabase
+      .from('share_tokens')
+      .insert({ employee_id: employeeId, created_by: managerId })
+      .select('token')
+      .single();
+
+    if (insertError || !data) {
+      setShareStatus('error');
+      setTimeout(() => setShareStatus('idle'), 3000);
+      return;
+    }
+
+    const url = `${window.location.origin}/shared/${data.token as string}`;
+    await navigator.clipboard.writeText(url);
+    setShareStatus('copied');
+    setTimeout(() => setShareStatus('idle'), 3000);
+  };
+
   const currentWeekMetrics = metrics.filter(m => m.currentValue !== null);
   const lastWeekMetrics = metrics.filter(m => m.lastWeekValue !== null);
 
@@ -95,9 +119,28 @@ export function ScorecardPage() {
       </nav>
 
       <main className="max-w-5xl mx-auto p-6 space-y-8">
-        <div>
-          <h2 className="text-xl font-bold text-hr-navy">{employee.full_name}</h2>
-          <p className="text-sm text-slate-500">{employee.email}</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-hr-navy">{employee.full_name}</h2>
+            <p className="text-sm text-slate-500">{employee.email}</p>
+          </div>
+          <button
+            onClick={handleShare}
+            disabled={shareStatus === 'sharing'}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              shareStatus === 'copied'
+                ? 'bg-hr-green-light text-hr-green'
+                : shareStatus === 'error'
+                  ? 'bg-red-50 text-red-600'
+                  : 'bg-hr-green text-white hover:bg-hr-green-dark'
+            }`}
+            aria-label="Share scorecard with employee"
+          >
+            {shareStatus === 'idle' && 'Share'}
+            {shareStatus === 'sharing' && 'Creating link...'}
+            {shareStatus === 'copied' && 'Link copied!'}
+            {shareStatus === 'error' && 'Failed — try again'}
+          </button>
         </div>
 
         <section>

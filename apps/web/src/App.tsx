@@ -6,12 +6,14 @@ import { DashboardPage } from './features/scorecard/DashboardPage';
 import { ScorecardPage } from './features/scorecard/ScorecardPage';
 import { MetricConfigPage } from './features/admin/MetricConfigPage';
 import { RollupPage } from './features/scorecard/RollupPage';
+import { SharedScorecardPage } from './features/scorecard/SharedScorecardPage';
 
 export function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route path="/shared/:token" element={<SharedScorecardPage />} />
       <Route
         path="/dashboard"
         element={

@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cron from 'node-cron';
 import syncRoutes from './routes/sync';
+import shareRoutes from './routes/share';
 import { runSync } from './services/syncService';
 
 const app = express();
@@ -21,6 +22,7 @@ app.get('/health', (_req: Request, res: Response) => {
 });
 
 app.use('/api/sync', syncRoutes);
+app.use('/api/share', shareRoutes);
 
 const PORT = process.env['PORT'] ?? '3000';
 app.listen(Number(PORT), () => {
