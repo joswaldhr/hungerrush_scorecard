@@ -7,28 +7,29 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-06-27 (session 7)
+**Last updated:** 2026-06-27 (session 8)
 
 ### Completed this session
-- **Diagnosed KPI empty state** — confirmed NOT a bug. Abigail Molina (test employee) has `zendesk_agent_id: null`, `assembled_agent_id: null`. Only 65 of 351 employees have agent IDs and synced metrics. Date format verified matching: DB stores `period_start` as `"2026-06-22"` (date column), hook compares with `format(thisMonday, 'yyyy-MM-dd')` — identical format.
-- **Dashboard metrics filter** — `DashboardPage.tsx` now defaults to "Has metrics only" (65 employees), with toggle to show all (351). Each employee card shows green dot + "Data" or grey dot + "No data" indicator.
-- **useDirectReports enhanced** — parallel query fetches distinct `employee_id`s from `metric_snapshots`, returns `employeesWithMetrics: Set<string>` alongside employee list.
-- **Filtered empty state** — when a manager has no reports with metrics, shows message + link to switch to "Show all"
+- **Scorecard page working with real data** — KPI tiles display correct values for ticket_volume, first_reply_time, csat_score, resolution_rate. Sparklines render single data point (correct — only 1 week of snapshots exists).
+- **Null metric display fixed** — connectors now return `null` instead of `0` when no data exists (CSAT with zero ratings, Assembled with no WFM states, SLA with no policies). KpiTile shows metric-specific labels: "No ratings yet" (CSAT), "No schedule data" (Assembled), "Not configured" (SLA).
+- **Stale DB rows cleaned** — deleted 267 misleading zero-value rows (63 sla_compliance, 15 csat_score, 63 each schedule_adherence/occupancy/handle_time). 237 clean snapshots remain.
+- **1:1 notes and action items saving correctly** — scorecard sessions persist, action item checkboxes toggle and save.
+- **Dashboard metrics filter** — defaults to "Has metrics only" (65 employees with data indicators).
 
 ### DB state (confirmed 2026-06-27)
-- **504 snapshots** in `metric_snapshots` (was 441 in session 4 — sync may have run again)
+- **237 snapshots** in `metric_snapshots` (cleaned from 504 — stale zeros removed)
 - **65 employees** with agent IDs, **351 total employees**
-- **period_start:** all `"2026-06-22"` — Monday of the week the sync ran
-- **Date format confirmed:** PostgREST returns `date` column as `"YYYY-MM-DD"`, matching hook comparison
+- **Metrics with data:** ticket_volume (63), first_reply_time (63), resolution_rate (63), csat_score (48)
+- **Metrics with no data (null):** sla_compliance (no Zendesk SLA policies), schedule_adherence/occupancy/handle_time (no Assembled WFM data)
 
 ### Where we stopped
-Dashboard filter working. Need to test scorecard page with an employee who HAS metrics to verify KPI tiles render real data.
+Phase 3 complete. All exit criteria met.
 
 ### Next actions
-1. **Test scorecard with a metrics employee** — click an employee with a green "Data" indicator, verify KPI tiles show real values (7 metrics: ticket_volume, first_reply_time, csat_score, resolution_rate, schedule_adherence, occupancy, handle_time)
-2. **Verify sparklines** — only 1 week of data exists, so sparklines will show a single point. Confirm they render without error.
-3. **Test notes** — create a 1:1 session with notes + action items, verify save + persistence, toggle action item checkboxes
-4. **Phase 3 exit criteria** — a manager can open an employee, see live metrics, and save 1:1 notes
+1. **Phase 4: Senior manager rollup view** — aggregate trend direction across a manager's team (e.g. "6 of 8 metrics improving"), no individual composite scores
+2. **Employee sharing** — UUID v4 share tokens, 72-hour expiry, single-use, read-only scorecard view, audit_log entry
+3. **PDF export** — watermarked scorecard export with audit_log entry
+4. **Email nudge** — weekly manager reminder via Supabase email
 
 ### Assembled API — confirmed working (session 2, bugs fixed session 4)
 - **Base URL:** `https://api.assembledhq.com/v0`
@@ -297,12 +298,12 @@ To add anything not listed: stop · explain why · get explicit approval before 
 |---|---|---|---|
 | 1 | Scaffold · shared package · Supabase · Microsoft SSO · RBAC | ✅ | A manager can log in via M365 and see an empty dashboard scoped to their reports |
 | 2 | Zendesk + Assembled connectors · sync job · admin config UI | ✅ | Sync job populates real metrics for seeded employees on a schedule |
-| 3 | Scorecard UI · KPI tiles · sparklines · coaching prompts · 1:1 notes | 🔄 | A manager can open an employee, see live metrics, and save 1:1 notes |
+| 3 | Scorecard UI · KPI tiles · sparklines · coaching prompts · 1:1 notes | ✅ | A manager can open an employee, see live metrics, and save 1:1 notes |
 | 4 | Senior manager rollup · employee sharing · PDF export · email nudge | ⬜ | A senior manager sees team trends; a manager can share a read-only card |
 | 5 | Polish · onboarding tour · PWA · audit log · load test · prod deploy | ⬜ | Pilot managers using it in production |
 
-**Current phase:** 3
-**Last session:** 2026-06-27 (session 7) — Diagnosed KPI empty state (not a bug — test employee had no agent IDs). Added dashboard metrics filter defaulting to "Has metrics only" with data indicator dots. 504 snapshots confirmed, date format verified matching. Next: test scorecard with a metrics employee, verify sparklines render, test notes save.
+**Current phase:** 4
+**Last session:** 2026-06-27 (session 8) — Scorecard page confirmed working with real data. Fixed null metric display (connectors return null for no-data, KpiTile shows metric-specific labels). Cleaned 267 stale zero-value rows. 1:1 notes and action items verified saving. Phase 3 exit criteria met. Next: Phase 4 — senior manager rollup, employee sharing, PDF export, email nudge.
 
 ---
 
