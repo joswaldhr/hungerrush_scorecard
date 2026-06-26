@@ -22,11 +22,46 @@ function createClient(): AxiosInstance {
   });
 }
 
+// --- Per-sync-run cache ---
+// Populated on first call, cleared after 10 minutes (longer than any sync run).
+
+let cachedPeople: AssembledPerson[] | null = null;
+let cachedActivityTypes: AssembledActivityType[] | null = null;
+let cacheClient: AxiosInstance | null = null;
+let cacheExpiry = 0;
+
+function getClient(): AxiosInstance {
+  const now = Date.now();
+  if (!cacheClient || now > cacheExpiry) {
+    cacheClient = createClient();
+    cachedPeople = null;
+    cachedActivityTypes = null;
+    cacheExpiry = now + 10 * 60 * 1000;
+  }
+  return cacheClient;
+}
+
+export function clearAssembledCache(): void {
+  cachedPeople = null;
+  cachedActivityTypes = null;
+  cacheClient = null;
+  cacheExpiry = 0;
+}
+
 // --- API calls ---
 
-async function fetchPeople(client: AxiosInstance): Promise<AssembledPerson[]> {
-  const response = await client.get<Record<string, AssembledPerson>>('/people');
-  return Object.values(response.data);
+async function getPeople(client: AxiosInstance): Promise<AssembledPerson[]> {
+  if (cachedPeople) return cachedPeople;
+  const response = await client.get<{ people: Record<string, AssembledPerson> }>('/people?limit=500');
+  cachedPeople = Object.values(response.data.people);
+  return cachedPeople;
+}
+
+async function getActivityTypes(client: AxiosInstance): Promise<AssembledActivityType[]> {
+  if (cachedActivityTypes) return cachedActivityTypes;
+  const response = await client.get<{ activity_types: Record<string, AssembledActivityType> }>('/activity_types');
+  cachedActivityTypes = Object.values(response.data.activity_types);
+  return cachedActivityTypes;
 }
 
 async function fetchAgentStates(
@@ -58,20 +93,15 @@ async function fetchActivities(
   const all: AssembledActivity[] = [];
   let offset = 0;
   for (;;) {
-    const response = await client.get<{ activities: AssembledActivity[] }>('/activities', {
+    const response = await client.get<{ activities: Record<string, AssembledActivity> }>('/activities', {
       params: { 'agents[]': agentId, start_time: startTime, end_time: endTime, limit: PAGE_LIMIT, offset },
     });
-    const page = response.data.activities;
-    all.push(...page);
-    if (page.length < PAGE_LIMIT) break;
+    const rawPage = Object.values(response.data.activities);
+    all.push(...rawPage.filter(a => a.agent_id === agentId));
+    if (rawPage.length < PAGE_LIMIT) break;
     offset += PAGE_LIMIT;
   }
   return all;
-}
-
-async function fetchActivityTypes(client: AxiosInstance): Promise<AssembledActivityType[]> {
-  const response = await client.get<{ activity_types: AssembledActivityType[] }>('/activity_types');
-  return response.data.activity_types;
 }
 
 // --- Interval math ---
@@ -128,7 +158,7 @@ function computeScheduleAdherence(
   productiveTypeIds: Set<string>,
   productiveStateNames: Set<string>,
 ): number {
-  const scheduled = toIntervals(activities.filter(a => productiveTypeIds.has(a.activity_type_id)));
+  const scheduled = toIntervals(activities.filter(a => productiveTypeIds.has(a.type_id)));
   const actual = toIntervals(states.filter(s => productiveStateNames.has(s.state)));
   const scheduledTotal = totalDuration(scheduled);
   if (scheduledTotal === 0) return 0;
@@ -167,21 +197,25 @@ export const assembledConnector: DataSourceConnector = {
     periodStart: Date,
     periodEnd: Date,
   ): Promise<ConnectorMetricResult[]> {
-    const client = createClient();
+    const client = getClient();
     const startTime = Math.floor(periodStart.getTime() / 1000);
     const endTime = Math.floor(periodEnd.getTime() / 1000);
 
-    const people = await fetchPeople(client);
+    const people = await getPeople(client);
     const agent = people.find(p => p.email.toLowerCase() === agentId.toLowerCase());
     if (!agent) {
       console.warn(`[assembled] No agent found for email: ${agentId}`);
       return [];
     }
+    if (!agent.agent_id) {
+      console.warn(`[assembled] Agent ${agentId} has no agent_id — skipping`);
+      return [];
+    }
 
     const [states, activities, activityTypes] = await Promise.all([
-      fetchAgentStates(client, agent.id, startTime, endTime),
-      fetchActivities(client, agent.id, startTime, endTime),
-      fetchActivityTypes(client),
+      fetchAgentStates(client, agent.agent_id, startTime, endTime),
+      fetchActivities(client, agent.agent_id, startTime, endTime),
+      getActivityTypes(client),
     ]);
 
     const productiveTypeIds = new Set<string>();

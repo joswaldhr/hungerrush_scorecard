@@ -94,11 +94,11 @@ function computeAllMetrics(
   ticketVolume: number;
   firstReplyTime: number;
   csatScore: number;
-  slaCompliance: number;
+  slaCompliance: number | null;
   resolutionRate: number;
 } {
   if (tickets.length === 0) {
-    return { ticketVolume: 0, firstReplyTime: 0, csatScore: 0, slaCompliance: 0, resolutionRate: 0 };
+    return { ticketVolume: 0, firstReplyTime: 0, csatScore: 0, slaCompliance: null, resolutionRate: 0 };
   }
 
   const ticketVolume = tickets.length;
@@ -126,7 +126,7 @@ function computeAllMetrics(
   }
   const csatScore = roundPercent(good, rated);
 
-  let slaCompliance = 0;
+  let slaCompliance: number | null = null;
   if (slaTargetMinutes !== null && replySeconds.length > 0) {
     const targetSeconds = slaTargetMinutes * 60;
     const met = replySeconds.filter(s => s <= targetSeconds).length;

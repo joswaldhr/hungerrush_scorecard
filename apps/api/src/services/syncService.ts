@@ -15,24 +15,28 @@ function getSupabaseAdmin() {
   });
 }
 
-function getWeekBounds(offsetWeeks: number): { start: Date; end: Date } {
+function getCurrentWeekStart(): Date {
   const now = new Date();
   const day = now.getUTCDay();
   const mondayOffset = day === 0 ? -6 : 1 - day;
-
-  const start = new Date(Date.UTC(
+  return new Date(Date.UTC(
     now.getUTCFullYear(),
     now.getUTCMonth(),
-    now.getUTCDate() + mondayOffset + offsetWeeks * 7,
+    now.getUTCDate() + mondayOffset,
   ));
+}
 
+function getSyncBounds(mode: 'live' | 'snapshot'): { start: Date; end: Date } {
+  const start = getCurrentWeekStart();
+  if (mode === 'live') {
+    return { start, end: new Date() };
+  }
   const end = new Date(Date.UTC(
     start.getUTCFullYear(),
     start.getUTCMonth(),
     start.getUTCDate() + 6,
     23, 59, 59, 999,
   ));
-
   return { start, end };
 }
 
@@ -110,14 +114,6 @@ export async function bootstrapAgentIds(): Promise<BootstrapResult> {
 
 // --- Sync ---
 
-interface CollectedMetric {
-  employeeId: string;
-  metricKey: string;
-  value: number;
-  periodStart: Date;
-  periodEnd: Date;
-}
-
 export interface SyncResult {
   mode: 'live' | 'snapshot';
   employeeCount: number;
@@ -129,7 +125,7 @@ export interface SyncResult {
 
 export async function runSync(mode: 'live' | 'snapshot'): Promise<SyncResult> {
   const startedAt = Date.now();
-  const { start: periodStart, end: periodEnd } = getWeekBounds(mode === 'snapshot' ? -1 : 0);
+  const { start: periodStart, end: periodEnd } = getSyncBounds(mode);
   const errors: string[] = [];
 
   console.log(
@@ -153,24 +149,32 @@ export async function runSync(mode: 'live' | 'snapshot'): Promise<SyncResult> {
 
   console.log(`[sync] Found ${employees.length} employees with agent IDs`);
 
-  const collected: CollectedMetric[] = [];
+  let metricsCollected = 0;
+  let metricsWritten = 0;
+  const syncedAt = new Date().toISOString();
+  const pStart = periodStart.toISOString().substring(0, 10);
+  const pEnd = periodEnd.toISOString().substring(0, 10);
 
-  for (const emp of employees) {
+  for (const [i, emp] of employees.entries()) {
+    const empRows: Array<Record<string, unknown>> = [];
+
     if (emp.assembled_agent_id && assembledConnector.isAvailable) {
       try {
         const metrics = await assembledConnector.fetchAgentMetrics(
           String(emp.email), periodStart, periodEnd,
         );
         for (const m of metrics) {
-          collected.push({
-            employeeId: String(emp.id),
-            metricKey: m.metricKey,
+          if (m.value === null) continue;
+          empRows.push({
+            employee_id: String(emp.id),
+            metric_key: m.metricKey,
             value: m.value,
-            periodStart: m.periodStart,
-            periodEnd: m.periodEnd,
+            period_start: pStart,
+            period_end: pEnd,
+            synced_at: syncedAt,
           });
         }
-        console.log(`[sync] Assembled: ${String(emp.email)} → ${metrics.length} metrics`);
+        console.log(`[sync] [${i + 1}/${employees.length}] Assembled: ${String(emp.email)} → ${metrics.length} metrics`);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Unknown error';
         errors.push(`[assembled] ${String(emp.email)}: ${msg}`);
@@ -183,47 +187,37 @@ export async function runSync(mode: 'live' | 'snapshot'): Promise<SyncResult> {
           String(emp.zendesk_agent_id), periodStart, periodEnd,
         );
         for (const m of metrics) {
-          collected.push({
-            employeeId: String(emp.id),
-            metricKey: m.metricKey,
+          if (m.value === null) continue;
+          empRows.push({
+            employee_id: String(emp.id),
+            metric_key: m.metricKey,
             value: m.value,
-            periodStart: m.periodStart,
-            periodEnd: m.periodEnd,
+            period_start: pStart,
+            period_end: pEnd,
+            synced_at: syncedAt,
           });
         }
-        console.log(`[sync] Zendesk: ${String(emp.email)} → ${metrics.length} metrics`);
+        console.log(`[sync] [${i + 1}/${employees.length}] Zendesk: ${String(emp.email)} → ${metrics.length} metrics`);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Unknown error';
         errors.push(`[zendesk] ${String(emp.email)}: ${msg}`);
       }
     }
-  }
 
-  console.log(`[sync] Collected ${collected.length} metrics, writing to DB...`);
+    metricsCollected += empRows.length;
 
-  let metricsWritten = 0;
-
-  const rows = collected.map(r => ({
-    employee_id: r.employeeId,
-    metric_key: r.metricKey,
-    value: r.value,
-    period_start: r.periodStart.toISOString().substring(0, 10),
-    period_end: r.periodEnd.toISOString().substring(0, 10),
-    synced_at: new Date().toISOString(),
-  }));
-
-  for (let i = 0; i < rows.length; i += 100) {
-    const batch = rows.slice(i, i + 100);
-    const { error } = await supabase
-      .from('metric_snapshots')
-      .upsert(batch, {
-        onConflict: 'employee_id,metric_key,period_start',
-        ignoreDuplicates: mode === 'snapshot',
-      });
-    if (error) {
-      errors.push(`[db] Batch write failed: ${error.message}`);
-    } else {
-      metricsWritten += batch.length;
+    if (empRows.length > 0) {
+      const { error } = await supabase
+        .from('metric_snapshots')
+        .upsert(empRows, {
+          onConflict: 'employee_id,metric_key,period_start',
+          ignoreDuplicates: mode === 'snapshot',
+        });
+      if (error) {
+        errors.push(`[db] Write failed for ${String(emp.email)}: ${error.message}`);
+      } else {
+        metricsWritten += empRows.length;
+      }
     }
   }
 
@@ -236,5 +230,5 @@ export async function runSync(mode: 'live' | 'snapshot'): Promise<SyncResult> {
     console.error('[sync] Errors:', errors);
   }
 
-  return { mode, employeeCount: employees.length, metricsCollected: collected.length, metricsWritten, errors, durationSeconds };
+  return { mode, employeeCount: employees.length, metricsCollected, metricsWritten, errors, durationSeconds };
 }

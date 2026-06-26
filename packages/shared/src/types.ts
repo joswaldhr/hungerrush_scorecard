@@ -4,7 +4,7 @@
 export interface ConnectorMetricResult {
   employeeId: string;
   metricKey: string;
-  value: number;
+  value: number | null;
   unit: string;
   periodStart: Date;
   periodEnd: Date;

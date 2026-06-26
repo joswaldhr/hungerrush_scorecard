@@ -45,6 +45,14 @@ Never use red for a performance direction. Red is reserved for system errors onl
 | 7 | `occupancy` | Occupancy | percent | higher_is_better | Look at the balance between productive time and availability. Is the pace sustainable? Discuss what's growing well and where there's an opportunity to improve. |
 | 8 | `handle_time` | Average Handle Time | seconds | lower_is_better | Review how customer interaction efficiency is improving. What patterns from strong weeks can be applied more broadly? |
 
+## Sync windows and trend data
+
+Sync pulls one week at a time. Live sync covers Monday 00:00 UTC through the current
+timestamp; snapshot sync covers Monday 00:00 UTC through Sunday 23:59 UTC. Trend data
+is built from accumulated weekly snapshots — the connectors never pull more than one
+week of raw API data per run. Dashboard reads the last 4 weeks of `metric_snapshots`
+for sparklines.
+
 ## Display formatting notes
 
 - **`first_reply_time` and `handle_time`** are stored in seconds (matching connector output) but the frontend should display them formatted as minutes (e.g. 900 seconds → "15 min"). The `unit` field stays `seconds` in the DB — formatting is a UI concern.
