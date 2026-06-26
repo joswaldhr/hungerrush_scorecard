@@ -73,8 +73,9 @@ export function DashboardPage() {
         ) : (
           <div className="space-y-3">
             {employees.map((emp) => (
-              <div
+              <Link
                 key={emp.id}
+                to={`/scorecard/${emp.id}`}
                 className="flex items-center gap-4 p-4 bg-white rounded-lg hover:shadow-sm transition-shadow"
               >
                 <div className="h-10 w-10 bg-hr-green-light rounded-full flex items-center justify-center">
@@ -86,7 +87,7 @@ export function DashboardPage() {
                   <p className="font-medium text-hr-navy">{emp.full_name}</p>
                   <p className="text-sm text-slate-500">{emp.email}</p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

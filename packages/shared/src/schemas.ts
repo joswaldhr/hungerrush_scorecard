@@ -85,6 +85,17 @@ export const SessionNoteSchema = z.object({
 });
 export type SessionNote = z.infer<typeof SessionNoteSchema>;
 
+export const SessionActionItemSchema = z.object({
+  id: z.string().uuid(),
+  session_id: z.string().uuid(),
+  content: z.string(),
+  is_completed: z.boolean(),
+  created_by: z.string().uuid(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type SessionActionItem = z.infer<typeof SessionActionItemSchema>;
+
 export const ShareTokenSchema = z.object({
   id: z.string().uuid(),
   token: z.string().uuid(),

@@ -7,18 +7,24 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-06-26 (session 5)
+**Last updated:** 2026-06-26 (session 6)
 
 ### Completed this session
-- **Admin config UI built and working** — `MetricConfigPage.tsx`, `MetricCard.tsx`, `useMetricDefinitions.ts`
-- All 8 metrics displayed as editable cards sorted by `display_order`
-- Each card: editable display name, coaching prompt, display order, active toggle; read-only source, unit, direction
-- Admin-only route at `/admin/metrics` — non-admins redirected to dashboard via JWT role check
-- Admin nav link in dashboard, visible only when `app_metadata.role === 'admin'`
-- Added `display_order` to `MetricDefinitionSchema` in shared (was in DB from migration 0011 but missing from type)
-- Migration 0012: re-added admin UPDATE policy on `metric_definitions` using JWT claims (dropped in 0007, re-added with `auth.jwt()->'app_metadata'->>'role'`)
-- Skeleton loaders, empty state, amber error banners (no red), brand tokens throughout
-- **ENTRA_CLIENT_SECRET rotated** — `apps/api/.env` has the current value
+- **Scorecard page built** — `ScorecardPage.tsx` at `/scorecard/:employeeId`, employee name + email header, two data windows ("This Week So Far" / "Last Week (Completed)")
+- **KPI tiles built** — `KpiTile.tsx` with formatted values (seconds→min, percent, count), direction arrows, 4-week sparkline (recharts v3 LineChart), coaching prompts from DB, skeleton loaders
+- **1:1 notes workspace built** — `NotesPanel.tsx` with session date, notes textarea, structured action items (add/remove/toggle completion), save button, previous sessions list
+- **Action items table** — migration 0013 (`session_action_items`) with RLS scoped via scorecard_sessions → visible_employee_ids(), GRANTs for authenticated + service_role
+- **Navigation wired** — dashboard employee cards are now clickable `<Link>` elements → `/scorecard/:employeeId`
+- **Formatting utility** — `formatMetric.ts` in `apps/web/src/lib/`
+- **3 new hooks** — `useEmployee`, `useEmployeeMetrics`, `useScorecardNotes`
+- **Shared types** — added `SessionActionItemSchema` + `SessionActionItem` type
+- Migration 0013 applied to Supabase
+
+### Known issue — KPI tiles showing empty state
+- **Symptom:** scorecard page loads, employee header visible, but KPI tiles show "No metrics synced for this week yet" despite 441 snapshots in DB
+- **Suspected cause:** date range mismatch in `useEmployeeMetrics.ts` — the hook computes `thisMonday` via `startOfWeek(now, { weekStartsOn: 1 })` and filters `period_start === thisMondayStr`. If the stored snapshots use a different date format or the period_start doesn't exactly match the computed Monday string, no results match.
+- **Alternative cause:** RLS scoping — `metric_snapshots` SELECT policy uses `visible_employee_ids()` which requires the logged-in user to be the employee's manager. If the test user's profile doesn't have the correct manager relationship, RLS returns empty.
+- **Debugging approach:** query `metric_snapshots` directly in Supabase SQL editor to check actual `period_start` values and format, then compare against hook's computed date string
 
 ### Sync results (confirmed 2026-06-26, session 4)
 - **65 employees** with mapped agent IDs (bootstrap ran session 3)
@@ -29,13 +35,12 @@
 - **Metric averages:** ticket_volume ~94, first_reply_time ~9.4h, csat_score ~65%, resolution_rate ~88%
 
 ### Where we stopped
-Phase 2 is complete. All exit criteria met. Ready for Phase 3 — scorecard UI.
+Phase 3 UI is built but KPI tiles show empty. Need to diagnose the metrics display issue — likely a date format mismatch or RLS scoping problem in `useEmployeeMetrics.ts`.
 
-### Next actions (Phase 3)
-1. Employee scorecard view — click an employee from dashboard to see their metrics
-2. KPI tiles with value, unit, direction indicator, 4-week sparkline, coaching prompt, last-updated
-3. 1:1 session notes — create/edit/view notes tied to scorecard sessions
-4. Handle missing `sla_compliance` gracefully — show "Not configured" not an error
+### Next actions
+1. **Fix metrics display** — diagnose why `useEmployeeMetrics` returns no current week values. Check `period_start` format in DB vs computed `thisMondayStr` in the hook. Check RLS by querying as the logged-in user.
+2. **Test full flow** — verify KPI tiles show real values, sparklines render, notes save + persist, action items toggle
+3. **Phase 3 exit criteria** — a manager can open an employee, see live metrics, and save 1:1 notes
 
 ### Assembled API — confirmed working (session 2, bugs fixed session 4)
 - **Base URL:** `https://api.assembledhq.com/v0`
@@ -309,7 +314,7 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | 5 | Polish · onboarding tour · PWA · audit log · load test · prod deploy | ⬜ | Pilot managers using it in production |
 
 **Current phase:** 3
-**Last session:** 2026-06-26 (session 5) — Phase 2 complete. Built admin config UI (MetricConfigPage, MetricCard, useMetricDefinitions hook). Added display_order to shared schema, migration 0012 for admin RLS policy via JWT claims. All 8 metrics editable, admin-only routing confirmed working.
+**Last session:** 2026-06-26 (session 6) — Phase 3 started. Built scorecard page, KPI tiles with sparklines, 1:1 notes workspace with action items, 3 data hooks, formatting utility. Migration 0013 (session_action_items) applied. KPI tiles show empty state — suspected date format mismatch in useEmployeeMetrics or RLS scoping issue. See "Known issue" section at top.
 
 ---
 
@@ -362,3 +367,5 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | 2026-06-26 | Assembled /activities endpoint ignores limit/offset/agents[] — fetch once, cache, filter client-side | Endpoint returns all org activities (~1,558) regardless of params; pagination caused infinite loop; single fetch + cache across sync run eliminates 195+ redundant API calls |
 | 2026-06-26 | Admin config UI uses direct Supabase read/write with JWT-based RLS | No Express route — admin UPDATE policy on metric_definitions uses `auth.jwt()->'app_metadata'->>'role'` (migration 0012), avoiding the profile-query recursion that killed the original admin policies |
 | 2026-06-26 | ENTRA_CLIENT_SECRET rotated | Current value in apps/api/.env; previous secret expired or was rotated by IT |
+| 2026-06-26 | Action items stored as separate table (`session_action_items`) not JSONB | Structured completion tracking with individual row updates for checkbox toggle; RLS scoped through scorecard_sessions → visible_employee_ids(); cascade delete on session removal |
+| 2026-06-26 | Scorecard metrics fetched as single bulk query + client-side grouping | `get_metric_history()` DB function is per-metric (8 RPC calls per page load); single query for all snapshots in 4-week range + group by metric_key is 1 query total |
