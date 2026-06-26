@@ -3,6 +3,7 @@ import { LoginPage } from './features/auth/LoginPage';
 import { AuthCallback } from './features/auth/AuthCallback';
 import { AuthGuard } from './features/auth/AuthGuard';
 import { DashboardPage } from './features/scorecard/DashboardPage';
+import { MetricConfigPage } from './features/admin/MetricConfigPage';
 
 export function App() {
   return (
@@ -14,6 +15,14 @@ export function App() {
         element={
           <AuthGuard>
             <DashboardPage />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/admin/metrics"
+        element={
+          <AuthGuard>
+            <MetricConfigPage />
           </AuthGuard>
         }
       />

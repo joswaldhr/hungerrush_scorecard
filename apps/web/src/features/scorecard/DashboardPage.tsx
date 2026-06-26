@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useDirectReports } from '../../hooks/useDirectReports';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
@@ -27,6 +28,14 @@ export function DashboardPage() {
       <nav className="bg-hr-navy text-white px-6 py-4 flex items-center justify-between">
         <h1 className="text-lg font-bold">Manager Scorecard</h1>
         <div className="flex items-center gap-4">
+          {session?.user?.app_metadata?.['role'] === 'admin' && (
+            <Link
+              to="/admin/metrics"
+              className="text-sm text-slate-300 hover:text-white transition-colors"
+            >
+              Metrics Config
+            </Link>
+          )}
           <span className="text-sm text-slate-300">{session?.user.email}</span>
           <button
             onClick={handleSignOut}

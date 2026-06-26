@@ -96,3 +96,4 @@ Both `apps/web` and `apps/api` import from here.
 | 2026-06-25 | Table-level GRANTs for `service_role` on all tables + functions — needed for backend/seed operations | `0009_grant_service_role.sql` |
 | 2026-06-25 | JWT role claims: `guard_role_change()` prevents self-escalation, `sync_role_to_jwt()` copies profiles.role → auth.users.raw_app_meta_data, backfill for existing profiles | `0010_jwt_role_claims.sql` |
 | 2026-06-25 | Add `display_order` column to `metric_definitions`; seed 8 metrics (5 Zendesk, 3 Assembled) with coaching prompts | `0011_metric_definitions_seed.sql` |
+| 2026-06-26 | Re-add admin UPDATE policy on `metric_definitions` using JWT claims (`auth.jwt()->'app_metadata'->>'role'`); original profile-based policy dropped in 0007 | `0012_admin_metric_definitions_policy.sql` |

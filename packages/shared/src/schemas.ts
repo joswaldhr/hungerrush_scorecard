@@ -48,6 +48,7 @@ export const MetricDefinitionSchema = z.object({
   coaching_prompt: z.string(),
   direction: MetricDirectionSchema,
   is_active: z.boolean(),
+  display_order: z.number(),
   created_at: z.string(),
 });
 export type MetricDefinition = z.infer<typeof MetricDefinitionSchema>;
