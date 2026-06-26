@@ -153,31 +153,31 @@ function computeScheduleAdherence(
   activities: AssembledActivity[],
   productiveTypeIds: Set<string>,
   productiveStateNames: Set<string>,
-): number {
+): number | null {
   const scheduled = toIntervals(activities.filter(a => productiveTypeIds.has(a.type_id)));
   const actual = toIntervals(states.filter(s => productiveStateNames.has(s.state)));
   const scheduledTotal = totalDuration(scheduled);
-  if (scheduledTotal === 0) return 0;
+  if (scheduledTotal === 0) return null;
   return Math.round((overlapDuration(scheduled, actual) / scheduledTotal) * 10000) / 100;
 }
 
 function computeOccupancy(
   states: AssembledAgentState[],
   productiveStateNames: Set<string>,
-): number {
+): number | null {
   const loggedIn = toIntervals(states.filter(s => s.state !== 'Offline'));
   const productive = toIntervals(states.filter(s => productiveStateNames.has(s.state)));
   const loggedInTotal = totalDuration(loggedIn);
-  if (loggedInTotal === 0) return 0;
+  if (loggedInTotal === 0) return null;
   return Math.round((totalDuration(productive) / loggedInTotal) * 10000) / 100;
 }
 
 function computeHandleTime(
   states: AssembledAgentState[],
   productiveStateNames: Set<string>,
-): number {
+): number | null {
   const customerFacing = states.filter(s => productiveStateNames.has(s.state));
-  if (customerFacing.length === 0) return 0;
+  if (customerFacing.length === 0) return null;
   const seconds = customerFacing.reduce((sum, s) => sum + (s.end_time - s.start_time), 0);
   return Math.round(seconds / customerFacing.length);
 }

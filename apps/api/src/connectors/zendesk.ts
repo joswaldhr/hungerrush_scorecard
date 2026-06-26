@@ -93,12 +93,12 @@ function computeAllMetrics(
 ): {
   ticketVolume: number;
   firstReplyTime: number;
-  csatScore: number;
+  csatScore: number | null;
   slaCompliance: number | null;
   resolutionRate: number;
 } {
   if (tickets.length === 0) {
-    return { ticketVolume: 0, firstReplyTime: 0, csatScore: 0, slaCompliance: null, resolutionRate: 0 };
+    return { ticketVolume: 0, firstReplyTime: 0, csatScore: null, slaCompliance: null, resolutionRate: 0 };
   }
 
   const ticketVolume = tickets.length;
@@ -124,7 +124,7 @@ function computeAllMetrics(
       if (score === 'good') good++;
     }
   }
-  const csatScore = roundPercent(good, rated);
+  const csatScore = rated === 0 ? null : roundPercent(good, rated);
 
   let slaCompliance: number | null = null;
   if (slaTargetMinutes !== null && replySeconds.length > 0) {

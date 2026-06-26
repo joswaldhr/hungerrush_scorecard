@@ -41,9 +41,18 @@ export function KpiTileSkeleton() {
   );
 }
 
+const NULL_LABELS: Record<string, string> = {
+  sla_compliance: 'Not configured',
+  csat_score: 'No ratings yet',
+  schedule_adherence: 'No schedule data',
+  occupancy: 'No schedule data',
+  handle_time: 'No schedule data',
+};
+
 export function KpiTile({ definition, value, syncedAt, history }: KpiTileProps) {
   const directionArrow = definition.direction === 'higher_is_better' ? '↑' : '↓';
   const isConfigured = value !== null;
+  const nullLabel = NULL_LABELS[definition.key] ?? 'Not configured';
   const trendColor = getTrendColor(history, definition.direction);
 
   return (
@@ -60,7 +69,7 @@ export function KpiTile({ definition, value, syncedAt, history }: KpiTileProps) 
           {formatMetricValue(value, definition.unit)}
         </p>
       ) : (
-        <p className="text-lg text-slate-400">Not configured</p>
+        <p className="text-lg text-slate-400">{nullLabel}</p>
       )}
 
       {isConfigured && history.length > 0 && (
