@@ -2,7 +2,10 @@
 
 ## Current state
 
-Phase 2 in progress — connectors, sync service, and metric definitions built. Migrations 0001–0011 applied.
+Phase 2 nearly complete — data pipeline confirmed working, one item remaining (admin config UI). Migrations 0001–0011 applied.
+
+**Live sync results (2026-06-26):** 65 employees processed, 441 metrics written (3 Assembled + 4 Zendesk per employee), 0 errors, ~5 min duration. `sla_compliance` excluded — no SLA policies configured in Zendesk (value stored as null, not written to DB).
+
 Graph sync ran against live Azure AD: 359 profiles, 339 employees created from real org structure. ~250 service accounts (conference rooms, shared mailboxes, etc.) flagged as admin — needs cleanup in Phase 4.
 
 ## Stack
@@ -23,6 +26,17 @@ Two paths — the distinction governs every design decision:
 
 2. **Express backend** — for connectors, scheduled sync jobs, and anything that must hold an
    external API secret. Not a general-purpose API mirror of the database.
+
+## Sync pipeline
+
+| Connector | Metrics | Notes |
+|---|---|---|
+| Assembled | `schedule_adherence`, `occupancy`, `handle_time` | `/activities` endpoint ignores all filter/pagination params — connector fetches once per sync run and caches org-wide, filters client-side by `agent_id`. Uses `agent_id` field (not person `id`) for state queries. |
+| Zendesk | `ticket_volume`, `first_reply_time`, `csat_score`, `resolution_rate` | SLA compliance excluded (returns null) when no SLA policies configured. |
+| Forethought | — | Stub: `isAvailable: false`, returns `[]` |
+
+Schedule: live refresh every 4h 6am–10pm UTC, weekly snapshot Sunday 23:59 UTC.
+Weekly windows: live = Monday 00:00 UTC → now; snapshot = Monday 00:00 → Sunday 23:59:59 UTC.
 
 ## Domain model
 

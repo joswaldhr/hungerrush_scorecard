@@ -7,33 +7,36 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-06-25 (session 3)
+**Last updated:** 2026-06-26 (session 4)
 
 ### Completed this session
-- Assembled connector (`apps/api/src/connectors/assembled.ts`) — HTTP Basic auth, computes schedule_adherence/occupancy/handle_time from raw agent_states + activities endpoints, matches agents by email, stores platforms.zendesk in rawSource
-- Zendesk connector (`apps/api/src/connectors/zendesk.ts`) — REST v2, Basic auth ({email}/token:{token}), computes ticket_volume/first_reply_time/csat_score/sla_compliance/resolution_rate, batch metric_sets via show_many, graceful SLA degradation
-- Sync service (`apps/api/src/services/syncService.ts`) — `bootstrapAgentIds()` maps employees to Assembled/Zendesk agent IDs by email; `runSync(mode)` fetches metrics from both connectors per employee, writes to metric_snapshots idempotently (upsert for live, ignoreDuplicates for snapshot)
-- Scheduler added to `apps/api/src/index.ts` — node-cron: live refresh every 4h 6am–10pm UTC (`0 6,10,14,18,22 * * *`), weekly snapshot Sunday 23:59 UTC (`59 23 * * 0`)
-- Sync routes updated (`apps/api/src/routes/sync.ts`) — added `POST /api/sync/bootstrap` and `POST /api/sync/run`, router-level x-sync-key auth middleware
-- Migration 0011 (`metric_definitions_seed.sql`) — adds `display_order` column, seeds 8 metric definitions (5 Zendesk, 3 Assembled) with coaching prompts. Applied to live Supabase.
-- API response types created (`apps/api/src/types/assembled.ts`, `apps/api/src/types/zendesk.ts`)
-- Graph sync ran successfully against live Azure AD — 359 profiles updated, 339 employees created, ~250 service accounts flagged as admin, zero errors
-- Real HungerRush org structure now in database (replaces previous seed data)
-- Updated `docs/architecture.md` and `docs/metrics.md` with metric definitions, coaching prompts, and display formatting notes
+- **Live sync confirmed working** — 441 metrics written, 65 employees processed, 0 errors, ~5 min duration
+- Fixed Assembled connector (`assembled.ts`): activities endpoint ignores `agents[]`/`limit`/`offset` params — switched to single org-wide fetch with client-side agent_id filter and per-sync-run cache; fixed `activity_type_id` → `type_id` field name; fixed `agent.id` → `agent.agent_id` for state/activity queries
+- Fixed Zendesk connector (`zendesk.ts`): SLA compliance returns `null` instead of `0` when no SLA policies configured (HungerRush Zendesk has zero SLA policies)
+- Fixed sync service (`syncService.ts`): weekly window logic (live = Mon→now, snapshot = Mon→Sun 23:59 UTC); per-employee DB writes to prevent OOM; null metric values skipped
+- Updated `ConnectorMetricResult.value` to `number | null` in shared types
+- Updated `AssembledActivity` type: `activity_type_id` → `type_id`, added `agent_id` to `AssembledPerson`
+
+### Sync results (confirmed 2026-06-26)
+- **65 employees** with mapped agent IDs (bootstrap ran session 3)
+- **441 metrics written** = 63 employees × 7 metrics (3 Assembled + 4 Zendesk)
+- **2 employees** (james.oswald, geran.smith) have no Assembled `agent_id` — correctly skipped
+- **sla_compliance absent** — no SLA policies in Zendesk, null values not written to DB
+- **Period:** 2026-06-22 to 2026-06-26 (current week, Mon→now)
+- **Metric averages:** ticket_volume ~94, first_reply_time ~9.4h, csat_score ~65%, resolution_rate ~88%
 
 ### Where we stopped
-About to run `POST /api/sync/bootstrap` to map employees to their Assembled and Zendesk agent IDs by email match. Server is running on port 3000.
+Data pipeline is complete and confirmed. One Phase 2 item remaining: admin config UI.
 
-### Assembled API — confirmed working (session 2)
+### Assembled API — confirmed working (session 2, bugs fixed session 4)
 - **Base URL:** `https://api.assembledhq.com/v0`
 - **Auth:** HTTP Basic (API key as username, empty password)
-- **`GET /v0/people`** — 77 agents, response keyed by UUID, includes `platforms.zendesk` for cross-referencing with Zendesk agent IDs
-- **`GET /v0/agents/state?agent_id=<uuid>&start_time=<unix>&end_time=<unix>`** — actual agent states (uses `agent_id` field, not `id`)
-- **`GET /v0/activities?agents[]=<uuid>&start_time=<unix>&end_time=<unix>`** — scheduled activities
-- **`GET /v0/activity_types`** — 17 types, each has `productive` boolean (only "Phone + Email" and "In/Out Calls" are productive)
+- **`GET /v0/people`** — 77 agents, response keyed by UUID (`{ people: { uuid: {...} } }`), includes `platforms.zendesk` for cross-referencing. Person `id` ≠ `agent_id` — use `agent_id` for state/activity queries.
+- **`GET /v0/agents/state?agent_id=<uuid>&start_time=<unix>&end_time=<unix>`** — actual agent states (paginates correctly with `limit`/`offset`)
+- **`GET /v0/activities`** — returns ALL org activities regardless of `agents[]`, `limit`, `offset` params. Must fetch once and filter client-side by `agent_id`. Response is a dict (`{ activities: { uuid: {...} } }`). Activity field is `type_id` (not `activity_type_id`).
+- **`GET /v0/activity_types`** — 17 types (`{ activity_types: { uuid: {...} } }`), each has `productive` boolean (only "Phone + Email" and "In/Out Calls" are productive)
 - **Reports endpoint** (`POST /v0/reports/adherence`) returns 400 with empty body — unusable, compute metrics from raw data instead
 - **All timestamps are Unix seconds** (not milliseconds)
-- **Pagination:** `limit`/`offset`, max 500
 
 ### Metric computation strategy (Assembled)
 | Metric | Source | Computation |
@@ -43,10 +46,11 @@ About to run `POST /api/sync/bootstrap` to map employees to their Assembled and 
 | Handle time | `agent_states` | Average duration of individual customer-facing state entries |
 
 ### Next actions (in order)
-1. Run `POST /api/sync/bootstrap` with x-sync-key header — maps employees to Assembled/Zendesk agent IDs
-2. Run `POST /api/sync/run` with x-sync-key header — pull first real metrics
-3. Verify real employees + metrics appear in dashboard
-4. Build admin config UI (`apps/web/src/features/admin/MetricConfigPage.tsx`)
+1. Build admin config UI (`apps/web/src/features/admin/MetricConfigPage.tsx`) — final Phase 2 item
+2. Verify real employees + metrics appear in dashboard (Phase 3 kickoff)
+
+### Phase 3 frontend note
+`sla_compliance` will be absent from `metric_snapshots` when no Zendesk SLA policies are configured. Frontend must handle missing metrics gracefully — show "Not configured" not an error.
 
 ---
 
@@ -302,8 +306,8 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | 4 | Senior manager rollup · employee sharing · PDF export · email nudge | ⬜ | A senior manager sees team trends; a manager can share a read-only card |
 | 5 | Polish · onboarding tour · PWA · audit log · load test · prod deploy | ⬜ | Pilot managers using it in production |
 
-**Current phase:** 2
-**Last session:** 2026-06-25 (session 3) — Built Assembled + Zendesk connectors, sync service, scheduler, migration 0011 (8 metric definitions). Graph sync ran live — 359 profiles, 339 employees from Azure AD. Stopped before bootstrap + first real metric sync. See "Current Session Status" section at top for full details.
+**Current phase:** 2 (one item remaining: admin config UI)
+**Last session:** 2026-06-26 (session 4) — Fixed all connector bugs (Assembled activities filtering/caching, type_id field, SLA null handling, OOM fix). Live sync confirmed: 441 metrics across 65 employees, 0 errors. Data pipeline complete. See "Current Session Status" section at top for full details.
 
 ---
 
