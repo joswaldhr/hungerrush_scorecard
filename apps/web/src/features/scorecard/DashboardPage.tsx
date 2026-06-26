@@ -34,6 +34,15 @@ export function DashboardPage() {
       <nav className="bg-hr-navy text-white px-6 py-4 flex items-center justify-between">
         <h1 className="text-lg font-bold">Manager Scorecard</h1>
         <div className="flex items-center gap-4">
+          {(session?.user?.app_metadata?.['role'] === 'senior_manager' ||
+            session?.user?.app_metadata?.['role'] === 'admin') && (
+            <Link
+              to="/rollup"
+              className="text-sm text-slate-300 hover:text-white transition-colors"
+            >
+              Team Rollup
+            </Link>
+          )}
           {session?.user?.app_metadata?.['role'] === 'admin' && (
             <Link
               to="/admin/metrics"

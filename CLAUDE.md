@@ -208,7 +208,7 @@ export interface DataSourceConnector {
 - All scoping flows through one `SECURITY DEFINER` helper `visible_employee_ids()` that uses
   `auth.uid()` internally; every RLS policy references it (see DATABASE agent). Never inline
   hierarchy logic in individual policies — that is where scoping bugs hide.
-- Share tokens: UUID v4 · 72-hour expiry · single-use · every use written to `audit_log`
+- Share tokens: UUID v4 · 72-hour expiry · reusable until expiry · `used_at` records first access · every use written to `audit_log`
 
 ---
 
@@ -284,7 +284,7 @@ Two data windows shown on every scorecard, clearly labeled:
 ## Approved dependencies
 
 **Shared:** `zod` (schemas live here, imported by both apps)
-**Frontend:** `react react-dom react-router-dom @supabase/supabase-js tailwindcss @tailwindcss/forms recharts date-fns lucide-react vite @vitejs/plugin-react vite-plugin-pwa typescript`
+**Frontend:** `react react-dom react-router-dom @supabase/supabase-js tailwindcss @tailwindcss/forms recharts date-fns lucide-react jspdf vite @vitejs/plugin-react vite-plugin-pwa typescript`
 **Backend:** `express cors helmet express-rate-limit @supabase/supabase-js node-cron axios typescript tsx dotenv`
 **Testing:** `vitest @testing-library/react supertest`
 
@@ -362,3 +362,6 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | 2026-06-27 | Assembled 0% metrics are genuine no-data — display null not zero | WFM state tracking not active for any HungerRush agents; all 63 agents had zero states/activities; connectors now return null when denominator is 0, so "No schedule data" displays instead of misleading 0% |
 | 2026-06-27 | CSAT 0 means no ratings, not 0% satisfaction — connector returns null when rated count is 0 | `roundPercent(0, 0)` was returning 0; now returns null so UI shows "No ratings yet" instead of "0.0%" |
 | 2026-06-27 | Stale sla_compliance rows deleted — 63 rows with value=0 from a sync when SLA policies briefly existed | Zendesk confirms zero SLA policies; connector already returns null when no policies; cleanup prevents misleading display |
+| 2026-06-27 | Share tokens valid for full 72 hours, not single-use | Single-use caused bad UX if employee closed tab accidentally; `used_at` records first access timestamp but token stays valid until `expires_at` |
+| 2026-06-27 | Service accounts marked inactive via `is_active = false`, not deleted | Preserves audit trail and profile references; ~250 admin service accounts deactivated in migration 0014; real admins re-activated via Profile Management UI |
+| 2026-06-27 | `jspdf` approved for PDF export | Client-side PDF generation; minimal dependency; programmatic watermark control without a backend route |

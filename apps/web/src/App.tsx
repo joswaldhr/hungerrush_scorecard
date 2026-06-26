@@ -5,6 +5,7 @@ import { AuthGuard } from './features/auth/AuthGuard';
 import { DashboardPage } from './features/scorecard/DashboardPage';
 import { ScorecardPage } from './features/scorecard/ScorecardPage';
 import { MetricConfigPage } from './features/admin/MetricConfigPage';
+import { RollupPage } from './features/scorecard/RollupPage';
 
 export function App() {
   return (
@@ -16,6 +17,14 @@ export function App() {
         element={
           <AuthGuard>
             <DashboardPage />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/rollup"
+        element={
+          <AuthGuard>
+            <RollupPage />
           </AuthGuard>
         }
       />

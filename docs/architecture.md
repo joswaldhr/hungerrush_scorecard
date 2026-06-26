@@ -98,3 +98,4 @@ Both `apps/web` and `apps/api` import from here.
 | 2026-06-25 | Add `display_order` column to `metric_definitions`; seed 8 metrics (5 Zendesk, 3 Assembled) with coaching prompts | `0011_metric_definitions_seed.sql` |
 | 2026-06-26 | Re-add admin UPDATE policy on `metric_definitions` using JWT claims (`auth.jwt()->'app_metadata'->>'role'`); original profile-based policy dropped in 0007 | `0012_admin_metric_definitions_policy.sql` |
 | 2026-06-26 | Add `session_action_items` table for structured 1:1 action items with completion tracking; RLS scoped via scorecard_sessions → visible_employee_ids(); GRANTs for authenticated + service_role | `0013_session_action_items.sql` |
+| 2026-06-27 | Add `is_active` boolean to `profiles` (default true); mark ~250 service accounts inactive; update `visible_manager_ids()` to exclude inactive profiles; add JWT-based admin SELECT/UPDATE policies on profiles | `0014_profiles_is_active.sql` |
