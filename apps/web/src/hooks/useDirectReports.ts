@@ -4,26 +4,38 @@ import type { Employee } from '@scorecard/shared';
 
 export function useDirectReports() {
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [employeesWithMetrics, setEmployeesWithMetrics] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetch() {
-      const { data, error: err } = await supabase
-        .from('employees')
-        .select('*')
-        .order('full_name');
+    async function load() {
+      const [empRes, snapshotRes] = await Promise.all([
+        supabase
+          .from('employees')
+          .select('*')
+          .order('full_name'),
+        supabase
+          .from('metric_snapshots')
+          .select('employee_id'),
+      ]);
 
-      if (err) {
-        setError(err.message);
+      if (empRes.error) {
+        setError(empRes.error.message);
       } else {
-        setEmployees((data ?? []) as Employee[]);
+        setEmployees((empRes.data ?? []) as Employee[]);
       }
+
+      if (snapshotRes.data) {
+        const ids = new Set(snapshotRes.data.map((r: { employee_id: string }) => r.employee_id));
+        setEmployeesWithMetrics(ids);
+      }
+
       setLoading(false);
     }
 
-    fetch();
+    load();
   }, []);
 
-  return { employees, loading, error };
+  return { employees, employeesWithMetrics, loading, error };
 }

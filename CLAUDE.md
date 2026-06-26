@@ -7,40 +7,28 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-06-26 (session 6)
+**Last updated:** 2026-06-27 (session 7)
 
 ### Completed this session
-- **Scorecard page built** — `ScorecardPage.tsx` at `/scorecard/:employeeId`, employee name + email header, two data windows ("This Week So Far" / "Last Week (Completed)")
-- **KPI tiles built** — `KpiTile.tsx` with formatted values (seconds→min, percent, count), direction arrows, 4-week sparkline (recharts v3 LineChart), coaching prompts from DB, skeleton loaders
-- **1:1 notes workspace built** — `NotesPanel.tsx` with session date, notes textarea, structured action items (add/remove/toggle completion), save button, previous sessions list
-- **Action items table** — migration 0013 (`session_action_items`) with RLS scoped via scorecard_sessions → visible_employee_ids(), GRANTs for authenticated + service_role
-- **Navigation wired** — dashboard employee cards are now clickable `<Link>` elements → `/scorecard/:employeeId`
-- **Formatting utility** — `formatMetric.ts` in `apps/web/src/lib/`
-- **3 new hooks** — `useEmployee`, `useEmployeeMetrics`, `useScorecardNotes`
-- **Shared types** — added `SessionActionItemSchema` + `SessionActionItem` type
-- Migration 0013 applied to Supabase
+- **Diagnosed KPI empty state** — confirmed NOT a bug. Abigail Molina (test employee) has `zendesk_agent_id: null`, `assembled_agent_id: null`. Only 65 of 351 employees have agent IDs and synced metrics. Date format verified matching: DB stores `period_start` as `"2026-06-22"` (date column), hook compares with `format(thisMonday, 'yyyy-MM-dd')` — identical format.
+- **Dashboard metrics filter** — `DashboardPage.tsx` now defaults to "Has metrics only" (65 employees), with toggle to show all (351). Each employee card shows green dot + "Data" or grey dot + "No data" indicator.
+- **useDirectReports enhanced** — parallel query fetches distinct `employee_id`s from `metric_snapshots`, returns `employeesWithMetrics: Set<string>` alongside employee list.
+- **Filtered empty state** — when a manager has no reports with metrics, shows message + link to switch to "Show all"
 
-### Known issue — KPI tiles showing empty state
-- **Symptom:** scorecard page loads, employee header visible, but KPI tiles show "No metrics synced for this week yet" despite 441 snapshots in DB
-- **Suspected cause:** date range mismatch in `useEmployeeMetrics.ts` — the hook computes `thisMonday` via `startOfWeek(now, { weekStartsOn: 1 })` and filters `period_start === thisMondayStr`. If the stored snapshots use a different date format or the period_start doesn't exactly match the computed Monday string, no results match.
-- **Alternative cause:** RLS scoping — `metric_snapshots` SELECT policy uses `visible_employee_ids()` which requires the logged-in user to be the employee's manager. If the test user's profile doesn't have the correct manager relationship, RLS returns empty.
-- **Debugging approach:** query `metric_snapshots` directly in Supabase SQL editor to check actual `period_start` values and format, then compare against hook's computed date string
-
-### Sync results (confirmed 2026-06-26, session 4)
-- **65 employees** with mapped agent IDs (bootstrap ran session 3)
-- **441 metrics written** = 63 employees × 7 metrics (3 Assembled + 4 Zendesk)
-- **2 employees** (james.oswald, geran.smith) have no Assembled `agent_id` — correctly skipped
-- **sla_compliance absent** — no SLA policies in Zendesk, null values not written to DB
-- **Period:** 2026-06-22 to 2026-06-26 (current week, Mon→now)
-- **Metric averages:** ticket_volume ~94, first_reply_time ~9.4h, csat_score ~65%, resolution_rate ~88%
+### DB state (confirmed 2026-06-27)
+- **504 snapshots** in `metric_snapshots` (was 441 in session 4 — sync may have run again)
+- **65 employees** with agent IDs, **351 total employees**
+- **period_start:** all `"2026-06-22"` — Monday of the week the sync ran
+- **Date format confirmed:** PostgREST returns `date` column as `"YYYY-MM-DD"`, matching hook comparison
 
 ### Where we stopped
-Phase 3 UI is built but KPI tiles show empty. Need to diagnose the metrics display issue — likely a date format mismatch or RLS scoping problem in `useEmployeeMetrics.ts`.
+Dashboard filter working. Need to test scorecard page with an employee who HAS metrics to verify KPI tiles render real data.
 
 ### Next actions
-1. **Fix metrics display** — diagnose why `useEmployeeMetrics` returns no current week values. Check `period_start` format in DB vs computed `thisMondayStr` in the hook. Check RLS by querying as the logged-in user.
-2. **Test full flow** — verify KPI tiles show real values, sparklines render, notes save + persist, action items toggle
-3. **Phase 3 exit criteria** — a manager can open an employee, see live metrics, and save 1:1 notes
+1. **Test scorecard with a metrics employee** — click an employee with a green "Data" indicator, verify KPI tiles show real values (7 metrics: ticket_volume, first_reply_time, csat_score, resolution_rate, schedule_adherence, occupancy, handle_time)
+2. **Verify sparklines** — only 1 week of data exists, so sparklines will show a single point. Confirm they render without error.
+3. **Test notes** — create a 1:1 session with notes + action items, verify save + persistence, toggle action item checkboxes
+4. **Phase 3 exit criteria** — a manager can open an employee, see live metrics, and save 1:1 notes
 
 ### Assembled API — confirmed working (session 2, bugs fixed session 4)
 - **Base URL:** `https://api.assembledhq.com/v0`
@@ -314,7 +302,7 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | 5 | Polish · onboarding tour · PWA · audit log · load test · prod deploy | ⬜ | Pilot managers using it in production |
 
 **Current phase:** 3
-**Last session:** 2026-06-26 (session 6) — Phase 3 started. Built scorecard page, KPI tiles with sparklines, 1:1 notes workspace with action items, 3 data hooks, formatting utility. Migration 0013 (session_action_items) applied. KPI tiles show empty state — suspected date format mismatch in useEmployeeMetrics or RLS scoping issue. See "Known issue" section at top.
+**Last session:** 2026-06-27 (session 7) — Diagnosed KPI empty state (not a bug — test employee had no agent IDs). Added dashboard metrics filter defaulting to "Has metrics only" with data indicator dots. 504 snapshots confirmed, date format verified matching. Next: test scorecard with a metrics employee, verify sparklines render, test notes save.
 
 ---
 

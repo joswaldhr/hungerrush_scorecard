@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDirectReports } from '../../hooks/useDirectReports';
 import { useAuth } from '../../hooks/useAuth';
@@ -17,7 +18,12 @@ function EmployeeSkeleton() {
 
 export function DashboardPage() {
   const { session } = useAuth();
-  const { employees, loading, error } = useDirectReports();
+  const { employees, employeesWithMetrics, loading, error } = useDirectReports();
+  const [showOnlyWithMetrics, setShowOnlyWithMetrics] = useState(true);
+
+  const filteredEmployees = showOnlyWithMetrics
+    ? employees.filter(emp => employeesWithMetrics.has(emp.id))
+    : employees;
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -48,7 +54,33 @@ export function DashboardPage() {
       </nav>
 
       <main className="max-w-4xl mx-auto p-6">
-        <h2 className="text-xl font-bold text-hr-navy mb-6">Your Team</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-hr-navy">Your Team</h2>
+          {!loading && employees.length > 0 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowOnlyWithMetrics(true)}
+                className={`text-sm px-3 py-1 rounded-full transition-colors ${
+                  showOnlyWithMetrics
+                    ? 'bg-hr-green text-white'
+                    : 'bg-white text-slate-500 hover:bg-slate-100'
+                }`}
+              >
+                Has metrics ({employeesWithMetrics.size})
+              </button>
+              <button
+                onClick={() => setShowOnlyWithMetrics(false)}
+                className={`text-sm px-3 py-1 rounded-full transition-colors ${
+                  !showOnlyWithMetrics
+                    ? 'bg-hr-navy text-white'
+                    : 'bg-white text-slate-500 hover:bg-slate-100'
+                }`}
+              >
+                All ({employees.length})
+              </button>
+            </div>
+          )}
+        </div>
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-4">
@@ -62,33 +94,57 @@ export function DashboardPage() {
               <EmployeeSkeleton key={i} />
             ))}
           </div>
-        ) : employees.length === 0 ? (
+        ) : filteredEmployees.length === 0 ? (
           <div className="bg-white p-8 rounded-lg text-center">
-            <p className="text-slate-500 mb-2">No team members found yet.</p>
-            <p className="text-sm text-slate-400">
-              Ask your admin to run the org sync, or check back once your team
-              has been set up.
-            </p>
+            {employees.length === 0 ? (
+              <>
+                <p className="text-slate-500 mb-2">No team members found yet.</p>
+                <p className="text-sm text-slate-400">
+                  Ask your admin to run the org sync, or check back once your team
+                  has been set up.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-slate-500 mb-2">None of your team members have synced metrics yet.</p>
+                <p className="text-sm text-slate-400">
+                  Metrics appear after the data sync connects to Zendesk and Assembled.
+                </p>
+                <button
+                  onClick={() => setShowOnlyWithMetrics(false)}
+                  className="text-hr-green text-sm mt-3 hover:underline"
+                >
+                  Show all team members
+                </button>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
-            {employees.map((emp) => (
-              <Link
-                key={emp.id}
-                to={`/scorecard/${emp.id}`}
-                className="flex items-center gap-4 p-4 bg-white rounded-lg hover:shadow-sm transition-shadow"
-              >
-                <div className="h-10 w-10 bg-hr-green-light rounded-full flex items-center justify-center">
-                  <span className="text-hr-green font-medium text-lg">
-                    {emp.full_name.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <div>
-                  <p className="font-medium text-hr-navy">{emp.full_name}</p>
-                  <p className="text-sm text-slate-500">{emp.email}</p>
-                </div>
-              </Link>
-            ))}
+            {filteredEmployees.map((emp) => {
+              const hasMetrics = employeesWithMetrics.has(emp.id);
+              return (
+                <Link
+                  key={emp.id}
+                  to={`/scorecard/${emp.id}`}
+                  className="flex items-center gap-4 p-4 bg-white rounded-lg hover:shadow-sm transition-shadow"
+                >
+                  <div className="h-10 w-10 bg-hr-green-light rounded-full flex items-center justify-center">
+                    <span className="text-hr-green font-medium text-lg">
+                      {emp.full_name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-hr-navy">{emp.full_name}</p>
+                    <p className="text-sm text-slate-500">{emp.email}</p>
+                  </div>
+                  <div className="flex items-center gap-2" title={hasMetrics ? 'Metrics synced' : 'No data source connected'}>
+                    <span className={`h-2.5 w-2.5 rounded-full ${hasMetrics ? 'bg-hr-green' : 'bg-slate-300'}`} />
+                    <span className="text-xs text-slate-400">{hasMetrics ? 'Data' : 'No data'}</span>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
       </main>
