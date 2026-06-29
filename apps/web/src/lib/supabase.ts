@@ -13,9 +13,4 @@ if (!supabaseUrl || supabaseUrl === 'undefined' || !supabaseAnonKey || supabaseA
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    flowType: 'pkce',
-    detectSessionInUrl: true,
-  },
-});
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
