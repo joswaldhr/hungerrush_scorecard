@@ -1,6 +1,6 @@
 {
-  "buildCommand": "npm run build -w apps/web",
+  "buildCommand": "npm ci && npm run build -w apps/web",
   "outputDirectory": "apps/web/dist",
-  "installCommand": "npm ci",
+  "installCommand": "echo 'skip'",
   "framework": "vite"
 }
