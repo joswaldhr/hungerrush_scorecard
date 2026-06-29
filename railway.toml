@@ -1,0 +1,11 @@
+[build]
+builder = "nixpacks"
+
+[build.nixpacks]
+installCmd = "npm ci"
+buildCmd = "npm run build -w apps/api"
+
+[deploy]
+startCommand = "node apps/api/dist/index.js"
+healthcheckPath = "/health"
+healthcheckTimeout = 10
