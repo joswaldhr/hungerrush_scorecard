@@ -7,4 +7,13 @@ if (!supabaseUrl || supabaseUrl === 'undefined' || !supabaseAnonKey || supabaseA
   throw new Error('Missing or invalid Supabase env vars');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    detectSessionInUrl: true,
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+  global: {
+    fetch: (...args: Parameters<typeof fetch>) => fetch(...args),
+  },
+});
