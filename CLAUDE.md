@@ -7,29 +7,23 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-06-29 (session 10)
+**Last updated:** 2026-06-29 (session 11)
 
 ### Completed this session
-- **Polish pass** — React Router v7 future flags (`v7_startTransition`, `v7_relativeSplatPath`) on BrowserRouter. ErrorBoundary class component wrapping the app. All loading states audited (already skeleton loaders — no fixes needed). Mobile responsive: hamburger menu on DashboardPage, email hidden on mobile, responsive grid/padding across all pages.
-- **Onboarding tour** — 4-step modal walkthrough (Welcome, Metrics, Coaching Prompts, Notes) stored in localStorage (`scorecard_tour_complete`). Shows on first login, "?" help icon in nav re-triggers. No new deps.
-- **PWA setup** — HR monogram icons (192x192, 512x512 PNG), full manifest in vite.config.ts, workbox caching (CacheFirst for app shell, NetworkFirst for Supabase API with 24hr cache + 5s timeout), `useInstallPrompt` hook with beforeinstallprompt listener, `OfflineBanner` component.
-- **Deployment config** — `vercel.json` and `railway.toml` at repo root for monorepo workspace resolution. Both use `npm install` from root (resolves `@scorecard/shared` workspace), then `cd` into app dir and build.
-- **Production deployment in progress** — Vercel building successfully, Railway deployed.
+- **Production SSO login working** — debugged auth callback chain: SPA rewrites in vercel.json, implicit flow hash fragment handling, Supabase client global fetch override for browser compatibility
+- **Pilot guide written** — `docs/pilot-guide.md` with login, dashboard, scorecard, notes, sharing, PWA install instructions
 
 ### Production URLs
 - **Frontend (Vercel):** `https://hungerrush-scorecard.vercel.app`
 - **Backend (Railway):** `https://scorecardapi-production.up.railway.app`
 
 ### Where we stopped
-Phase 5 in progress. Vercel and Railway are deployed. SSO login tested — was stuck on auth callback due to incorrect `VITE_SUPABASE_URL` env var in Vercel; fixed and redeploying. Need to confirm end-to-end login works after redeploy.
+Phase 5 complete. All 5 phases delivered. Production SSO login confirmed working.
 
-### Next actions
-1. **Confirm production login works end-to-end** — SSO → callback → dashboard with data
-2. **Connection pooling** — add `?pgbouncer=true` to Supabase connection string in API, set pool size to 10
-3. **CORS lockdown** — replace `cors()` wildcard with explicit Vercel origin allowlist in `apps/api/src/index.ts`
-4. **Email nudge** — Monday 8am UTC cron, axios.post to Resend API (no new dep), needs `RESEND_API_KEY` from user
-5. **Pilot guide** — `docs/pilot-guide.md` with login/usage instructions, contact: james.oswald@hungerrush.com
-6. **Phase tracker update** — mark Phase 5 complete once pilot managers are using it
+### Remaining follow-ups (non-blocking)
+1. **Connection pooling** — add `?pgbouncer=true` to Supabase connection string in API, set pool size to 10
+2. **CORS lockdown** — replace `cors()` wildcard with explicit Vercel origin allowlist in `apps/api/src/index.ts`
+3. **Email nudge** — Monday 8am UTC cron, axios.post to Resend API (no new dep), needs `RESEND_API_KEY` from user
 
 ### Assembled API — confirmed working (session 2, bugs fixed session 4)
 - **Base URL:** `https://api.assembledhq.com/v0`
@@ -300,10 +294,10 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | 2 | Zendesk + Assembled connectors · sync job · admin config UI | ✅ | Sync job populates real metrics for seeded employees on a schedule |
 | 3 | Scorecard UI · KPI tiles · sparklines · coaching prompts · 1:1 notes | ✅ | A manager can open an employee, see live metrics, and save 1:1 notes |
 | 4 | Senior manager rollup · employee sharing · PDF export · email nudge | ✅ | A senior manager sees team trends; a manager can share a read-only card |
-| 5 | Polish · onboarding tour · PWA · audit log · load test · prod deploy | 🔄 | Pilot managers using it in production |
+| 5 | Polish · onboarding tour · PWA · audit log · load test · prod deploy | ✅ | Pilot managers using it in production |
 
-**Current phase:** 5
-**Last session:** 2026-06-29 (session 10) — Phase 5 in progress. Polish pass (Router v7 flags, ErrorBoundary, mobile responsive, hamburger menu). Onboarding tour (4-step modal, localStorage, help icon). PWA (icons, manifest, workbox caching, install prompt, offline banner). Production deployment: vercel.json + railway.toml for monorepo workspace resolution. Vercel URL: hungerrush-scorecard.vercel.app. Railway URL: scorecardapi-production.up.railway.app. SSO callback issue debugged (invalid VITE_SUPABASE_URL env var). Remaining: confirm login, connection pooling, CORS lockdown, email nudge, pilot guide.
+**Current phase:** Complete — all 5 phases delivered
+**Last session:** 2026-06-29 (session 11) — Phase 5 complete. Production SSO login confirmed working after fixing: SPA rewrites in vercel.json for /auth/callback, implicit flow hash fragment handling in AuthCallback, Supabase client global fetch override for browser compatibility. Pilot guide written at docs/pilot-guide.md. Remaining follow-ups: connection pooling, CORS lockdown, email nudge.
 
 ---
 
@@ -370,3 +364,5 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | 2026-06-29 | PWA workbox: CacheFirst for shell, NetworkFirst for Supabase API | App shell rarely changes (cache wins); API data should be fresh when online but available offline from 24hr cache |
 | 2026-06-29 | Vercel + Railway deploy from repo root, not app subdirectory | npm workspaces require install from root to resolve `@scorecard/shared`; vercel.json uses `installCommand: "echo 'skip'"` and consolidates into `buildCommand` |
 | 2026-06-29 | Default Vercel URL for pilot, custom domain later | `hungerrush-scorecard.vercel.app` — avoids DNS setup during initial deployment |
+| 2026-06-29 | Supabase client requires `global.fetch` override in production | supabase-js internal fetch wrapper constructs invalid HTTP headers in some browsers; passing native `fetch` directly bypasses the issue |
+| 2026-06-29 | Implicit OAuth flow with manual hash detection in AuthCallback | PKCE not supported by Supabase project config; AuthCallback waits for Supabase client to auto-parse hash fragment via `detectSessionInUrl`, then polls `getSession()` |
