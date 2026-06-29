@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm ci && npm run build -w apps/web",
+  "buildCommand": "npm install && cd apps/web && npm run build",
   "outputDirectory": "apps/web/dist",
   "installCommand": "echo 'skip'",
   "framework": "vite"
