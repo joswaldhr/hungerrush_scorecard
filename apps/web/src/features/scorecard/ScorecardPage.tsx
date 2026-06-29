@@ -20,8 +20,8 @@ function PageSkeleton() {
           <div className="h-6 bg-slate-200 rounded w-1/3" />
           <div className="h-4 bg-slate-200 rounded w-1/4" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {Array.from({ length: 4 }, (_, i) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }, (_, i) => (
             <KpiTileSkeleton key={i} />
           ))}
         </div>
@@ -140,8 +140,16 @@ export function ScorecardPage() {
     }
   };
 
-  const currentWeekMetrics = metrics.filter(m => m.currentValue !== null);
-  const lastWeekMetrics = metrics.filter(m => m.lastWeekValue !== null);
+  const currentWeekMetrics = metrics.filter(m => m.currentValue !== null && m.currentValue !== 0);
+  const lastWeekMetrics = metrics.filter(m => m.lastWeekValue !== null && m.lastWeekValue !== 0);
+  const allCurrentNull = metrics.every(m => m.currentValue === null || m.currentValue === 0);
+
+  const sortedMetrics = [...metrics].sort((a, b) => {
+    const aNull = a.currentValue === null || a.currentValue === 0;
+    const bNull = b.currentValue === null || b.currentValue === 0;
+    if (aNull !== bNull) return aNull ? 1 : -1;
+    return a.definition.display_order - b.definition.display_order;
+  });
 
   return (
     <div className="min-h-screen bg-hr-gray">
@@ -156,7 +164,7 @@ export function ScorecardPage() {
       </nav>
 
       <main className="max-w-5xl mx-auto p-6 space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
           <div>
             <h2 className="text-xl font-bold text-hr-navy">{employee.full_name}</h2>
             <p className="text-sm text-slate-500">{employee.email}</p>
@@ -170,7 +178,7 @@ export function ScorecardPage() {
                   ? 'bg-hr-green-light text-hr-green'
                   : exportStatus === 'error'
                     ? 'bg-red-50 text-red-600'
-                    : 'bg-white text-hr-navy border border-slate-200 hover:bg-slate-50'
+                    : 'text-slate-400 border border-slate-200 hover:text-slate-600 hover:border-slate-300'
               }`}
               aria-label="Export scorecard as PDF"
             >
@@ -187,7 +195,7 @@ export function ScorecardPage() {
                   ? 'bg-hr-green-light text-hr-green'
                   : shareStatus === 'error'
                     ? 'bg-red-50 text-red-600'
-                    : 'bg-hr-green text-white hover:bg-hr-green-dark'
+                    : 'text-hr-green border border-hr-green hover:bg-hr-green-light'
               }`}
               aria-label="Share scorecard with employee"
             >
@@ -207,8 +215,8 @@ export function ScorecardPage() {
             </div>
           )}
           {metricsLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Array.from({ length: 4 }, (_, i) => (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {Array.from({ length: 6 }, (_, i) => (
                 <KpiTileSkeleton key={i} />
               ))}
             </div>
@@ -220,17 +228,22 @@ export function ScorecardPage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {metrics.map(m => (
-                <KpiTile
-                  key={m.definition.id}
-                  definition={m.definition}
-                  value={m.currentValue}
-                  syncedAt={m.currentSyncedAt}
-                  history={m.history}
-                />
-              ))}
-            </div>
+            <>
+              {allCurrentNull && (
+                <p className="text-xs text-slate-400 mb-3">This week's data refreshes every 4 hours.</p>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {sortedMetrics.map(m => (
+                  <KpiTile
+                    key={m.definition.id}
+                    definition={m.definition}
+                    value={m.currentValue}
+                    syncedAt={m.currentSyncedAt}
+                    history={m.history}
+                  />
+                ))}
+              </div>
+            </>
           )}
         </section>
 
@@ -244,9 +257,9 @@ export function ScorecardPage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {metrics
-                .filter(m => m.lastWeekValue !== null)
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {lastWeekMetrics
+                .sort((a, b) => a.definition.display_order - b.definition.display_order)
                 .map(m => (
                   <KpiTile
                     key={m.definition.id}

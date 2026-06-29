@@ -10,7 +10,7 @@ export default {
         'hr-green': '#1D9E75',
         'hr-green-dark': '#0F6E56',
         'hr-green-light': '#E1F5EE',
-        'hr-gray': '#F5F5F4',
+        'hr-gray': '#EFEFED',
       },
     },
   },

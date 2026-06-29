@@ -14,8 +14,8 @@ function PageSkeleton() {
           <div className="h-6 bg-slate-200 rounded w-1/3" />
           <div className="h-4 bg-slate-200 rounded w-1/4" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {Array.from({ length: 4 }, (_, i) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }, (_, i) => (
             <KpiTileSkeleton key={i} />
           ))}
         </div>
@@ -124,7 +124,7 @@ function SharedScorecardContent({ token }: { token: string }) {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {metrics.map(m => (
                 <KpiTile
                   key={m.definition.id}
@@ -141,9 +141,9 @@ function SharedScorecardContent({ token }: { token: string }) {
         {metrics.some(m => m.lastWeekValue !== null) && (
           <section>
             <h3 className="text-lg font-bold text-hr-navy mb-4">Last Week (Completed)</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {metrics
-                .filter(m => m.lastWeekValue !== null)
+                .filter(m => m.lastWeekValue !== null && m.lastWeekValue !== 0)
                 .map(m => (
                   <KpiTile
                     key={m.definition.id}
