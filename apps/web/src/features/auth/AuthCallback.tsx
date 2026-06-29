@@ -2,14 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 
-function parseHashParams(hash: string): Record<string, string> {
-  const params: Record<string, string> = {};
-  const raw = hash.startsWith('#') ? hash.slice(1) : hash;
-  for (const pair of raw.split('&')) {
-    const [key, value] = pair.split('=');
-    if (key) params[decodeURIComponent(key)] = decodeURIComponent(value ?? '');
-  }
-  return params;
+function waitMs(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export function AuthCallback() {
@@ -19,45 +13,25 @@ export function AuthCallback() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        const hash = window.location.hash;
-        console.log('Auth callback hash present:', !!hash, 'length:', hash.length);
-
-        if (hash && hash.includes('access_token')) {
-          const params = parseHashParams(hash);
-          const accessToken = params['access_token'];
-          const refreshToken = params['refresh_token'];
-
-          if (!accessToken || !refreshToken) {
-            setError('Missing tokens in callback URL.');
-            return;
-          }
-
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-
-          if (sessionError) {
-            console.error('setSession failed:', sessionError);
-            setError(sessionError.message);
-            return;
-          }
-
-          navigate('/dashboard', { replace: true });
-          return;
-        }
-
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError) {
-          console.error('getSession failed:', sessionError);
-          setError(sessionError.message);
-          return;
-        }
-
+        const { data: { session } } = await supabase.auth.getSession();
         if (session) {
           navigate('/dashboard', { replace: true });
+          return;
+        }
+
+        await waitMs(1000);
+
+        const { data: { session: retrySession }, error: retryError } = await supabase.auth.getSession();
+        if (retryError) {
+          console.error('getSession retry failed:', retryError);
+          setError(retryError.message);
+          return;
+        }
+
+        if (retrySession) {
+          navigate('/dashboard', { replace: true });
         } else {
-          console.error('No session after callback. URL:', window.location.href);
+          console.error('No session after callback. Hash present:', !!window.location.hash);
           setError('No session received. Please try logging in again.');
         }
       } catch (err) {
