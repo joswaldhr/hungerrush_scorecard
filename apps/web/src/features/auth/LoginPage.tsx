@@ -13,7 +13,7 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen bg-hr-gray flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-sm max-w-md w-full text-center">
+      <div className="bg-white p-4 sm:p-8 rounded-lg shadow-sm max-w-md w-full text-center">
         <h1 className="text-2xl font-bold text-hr-navy mb-2">Manager Scorecard</h1>
         <p className="text-slate-500 mb-6">
           Sign in with your HungerRush Microsoft account to continue.

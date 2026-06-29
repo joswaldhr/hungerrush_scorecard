@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDirectReports } from '../../hooks/useDirectReports';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
+import { TourModal, useTour } from '../onboarding/TourModal';
+import { useInstallPrompt } from '../../hooks/useInstallPrompt';
+import { OfflineBanner } from '../../components/OfflineBanner';
 
 function EmployeeSkeleton() {
   return (
@@ -20,6 +23,21 @@ export function DashboardPage() {
   const { session } = useAuth();
   const { employees, employeesWithMetrics, loading, error } = useDirectReports();
   const [showOnlyWithMetrics, setShowOnlyWithMetrics] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const { showTour, openTour, closeTour } = useTour();
+  const { canInstall, install } = useInstallPrompt();
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [menuOpen]);
 
   const filteredEmployees = showOnlyWithMetrics
     ? employees.filter(emp => employeesWithMetrics.has(emp.id))
@@ -29,13 +47,19 @@ export function DashboardPage() {
     await supabase.auth.signOut();
   };
 
+  const role = session?.user?.app_metadata?.['role'] as string | undefined;
+  const showRollup = role === 'senior_manager' || role === 'admin';
+  const showAdmin = role === 'admin';
+  const hasNavLinks = showRollup || showAdmin;
+
   return (
     <div className="min-h-screen bg-hr-gray">
-      <nav className="bg-hr-navy text-white px-6 py-4 flex items-center justify-between">
+      <OfflineBanner />
+      <nav className="bg-hr-navy text-white px-4 sm:px-6 py-4 flex items-center justify-between">
         <h1 className="text-lg font-bold">Manager Scorecard</h1>
-        <div className="flex items-center gap-4">
-          {(session?.user?.app_metadata?.['role'] === 'senior_manager' ||
-            session?.user?.app_metadata?.['role'] === 'admin') && (
+
+        <div className="hidden sm:flex items-center gap-4">
+          {showRollup && (
             <Link
               to="/rollup"
               className="text-sm text-slate-300 hover:text-white transition-colors"
@@ -43,7 +67,7 @@ export function DashboardPage() {
               Team Rollup
             </Link>
           )}
-          {session?.user?.app_metadata?.['role'] === 'admin' && (
+          {showAdmin && (
             <>
               <Link
                 to="/admin/metrics"
@@ -59,6 +83,22 @@ export function DashboardPage() {
               </Link>
             </>
           )}
+          {canInstall && (
+            <button
+              onClick={install}
+              className="text-sm text-slate-300 hover:text-white transition-colors"
+              aria-label="Install app"
+            >
+              Install app
+            </button>
+          )}
+          <button
+            onClick={openTour}
+            className="h-6 w-6 rounded-full border border-slate-400 text-slate-300 hover:text-white hover:border-white text-xs font-bold transition-colors"
+            aria-label="Show tour"
+          >
+            ?
+          </button>
           <span className="text-sm text-slate-300">{session?.user.email}</span>
           <button
             onClick={handleSignOut}
@@ -67,6 +107,77 @@ export function DashboardPage() {
           >
             Sign out
           </button>
+        </div>
+
+        <div className="sm:hidden relative" ref={menuRef}>
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="p-1 text-slate-300 hover:text-white"
+            aria-label="Open menu"
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              {menuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+          {menuOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-hr-navy rounded-lg shadow-lg border border-slate-600 py-2 z-50">
+              {showRollup && (
+                <Link
+                  to="/rollup"
+                  className="block px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Team Rollup
+                </Link>
+              )}
+              {showAdmin && (
+                <>
+                  <Link
+                    to="/admin/metrics"
+                    className="block px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Metrics Config
+                  </Link>
+                  <Link
+                    to="/admin/exports"
+                    className="block px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Export Log
+                  </Link>
+                </>
+              )}
+              {hasNavLinks && <div className="border-t border-slate-600 my-1" />}
+              {canInstall && (
+                <button
+                  onClick={() => { setMenuOpen(false); install(); }}
+                  className="block w-full text-left px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700"
+                >
+                  Install app
+                </button>
+              )}
+              <button
+                onClick={() => { setMenuOpen(false); openTour(); }}
+                className="block w-full text-left px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700"
+              >
+                Help tour
+              </button>
+              <span className="block px-4 py-2 text-xs text-slate-400 truncate">
+                {session?.user.email}
+              </span>
+              <button
+                onClick={handleSignOut}
+                className="block w-full text-left px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700"
+              >
+                Sign out
+              </button>
+            </div>
+          )}
         </div>
       </nav>
 
@@ -165,6 +276,8 @@ export function DashboardPage() {
           </div>
         )}
       </main>
+
+      <TourModal open={showTour} onClose={closeTour} />
     </div>
   );
 }

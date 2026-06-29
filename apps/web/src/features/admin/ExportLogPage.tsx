@@ -89,14 +89,14 @@ export function ExportLogPage() {
 
   return (
     <div className="min-h-screen bg-hr-gray">
-      <nav className="bg-hr-navy text-white px-6 py-4 flex items-center justify-between">
+      <nav className="bg-hr-navy text-white px-4 sm:px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link to="/dashboard" className="text-sm text-slate-300 hover:text-white transition-colors">
             ← Dashboard
           </Link>
           <h1 className="text-lg font-bold">Export Log</h1>
         </div>
-        <span className="text-sm text-slate-300">{session.user.email}</span>
+        <span className="hidden sm:inline text-sm text-slate-300">{session.user.email}</span>
       </nav>
 
       <main className="max-w-5xl mx-auto p-6">

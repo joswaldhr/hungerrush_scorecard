@@ -54,7 +54,7 @@ export function ScorecardPage() {
   if (empError) {
     return (
       <div className="min-h-screen bg-hr-gray flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg text-center max-w-md">
+        <div className="bg-white p-4 sm:p-8 rounded-lg text-center max-w-md">
           <p className="text-slate-500 mb-2">Unable to load employee data.</p>
           <p className="text-sm text-slate-400">{empError}</p>
           <Link to="/dashboard" className="text-hr-green text-sm mt-4 inline-block hover:underline">
@@ -68,7 +68,7 @@ export function ScorecardPage() {
   if (!employee) {
     return (
       <div className="min-h-screen bg-hr-gray flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg text-center max-w-md">
+        <div className="bg-white p-4 sm:p-8 rounded-lg text-center max-w-md">
           <p className="text-slate-500 mb-2">Employee not found.</p>
           <p className="text-sm text-slate-400">
             They may not be on your team, or the link may be incorrect.
@@ -145,18 +145,18 @@ export function ScorecardPage() {
 
   return (
     <div className="min-h-screen bg-hr-gray">
-      <nav className="bg-hr-navy text-white px-6 py-4 flex items-center justify-between">
+      <nav className="bg-hr-navy text-white px-4 sm:px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link to="/dashboard" className="text-sm text-slate-300 hover:text-white transition-colors">
             ← Your Team
           </Link>
           <h1 className="text-lg font-bold">Employee Scorecard</h1>
         </div>
-        <span className="text-sm text-slate-300">{session.user.email}</span>
+        <span className="hidden sm:inline text-sm text-slate-300">{session.user.email}</span>
       </nav>
 
       <main className="max-w-5xl mx-auto p-6 space-y-8">
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold text-hr-navy">{employee.full_name}</h2>
             <p className="text-sm text-slate-500">{employee.email}</p>

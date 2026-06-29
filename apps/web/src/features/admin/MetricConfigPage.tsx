@@ -19,7 +19,7 @@ function MetricCardSkeleton() {
       </div>
       <div className="h-8 bg-slate-200 rounded w-full" />
       <div className="h-20 bg-slate-200 rounded" />
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="h-8 bg-slate-200 rounded" />
         <div className="h-4 bg-slate-200 rounded w-2/3" />
         <div className="h-4 bg-slate-200 rounded w-2/3" />
@@ -61,14 +61,14 @@ export function MetricConfigPage() {
 
   return (
     <div className="min-h-screen bg-hr-gray">
-      <nav className="bg-hr-navy text-white px-6 py-4 flex items-center justify-between">
+      <nav className="bg-hr-navy text-white px-4 sm:px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link to="/dashboard" className="text-sm text-slate-300 hover:text-white transition-colors">
             ← Dashboard
           </Link>
           <h1 className="text-lg font-bold">Metric Configuration</h1>
         </div>
-        <span className="text-sm text-slate-300">{session.user.email}</span>
+        <span className="hidden sm:inline text-sm text-slate-300">{session.user.email}</span>
       </nav>
 
       <main className="max-w-4xl mx-auto p-6">

@@ -114,9 +114,9 @@ export function RollupPage() {
 
   return (
     <div className="min-h-screen bg-hr-gray">
-      <nav className="bg-hr-navy text-white px-6 py-4 flex items-center justify-between">
+      <nav className="bg-hr-navy text-white px-4 sm:px-6 py-4 flex items-center justify-between">
         <h1 className="text-lg font-bold">Team Rollup</h1>
-        <span className="text-sm text-slate-300">{session.user.email}</span>
+        <span className="hidden sm:inline text-sm text-slate-300">{session.user.email}</span>
       </nav>
 
       <main className="max-w-6xl mx-auto p-6">
