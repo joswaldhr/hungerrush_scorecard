@@ -7,6 +7,7 @@ import { useScorecardNotes } from '../../hooks/useScorecardNotes';
 import { KpiTile, KpiTileSkeleton } from '../../components/KpiTile';
 import { NotesPanel } from '../notes/NotesPanel';
 import { supabase } from '../../lib/supabase';
+import { generateScorecardPdf } from '../../lib/pdfExport';
 
 function PageSkeleton() {
   return (
@@ -42,6 +43,7 @@ export function ScorecardPage() {
     toggleActionItem,
   } = useScorecardNotes(employeeId ?? '');
   const [shareStatus, setShareStatus] = useState<'idle' | 'sharing' | 'copied' | 'error'>('idle');
+  const [exportStatus, setExportStatus] = useState<'idle' | 'exporting' | 'done' | 'error'>('idle');
 
   if (!employeeId) return <Navigate to="/dashboard" replace />;
 
@@ -103,6 +105,41 @@ export function ScorecardPage() {
     setTimeout(() => setShareStatus('idle'), 3000);
   };
 
+  const handleExportPdf = async () => {
+    if (!employee || !employeeId) return;
+    setExportStatus('exporting');
+
+    try {
+      generateScorecardPdf(
+        employee.full_name,
+        employee.email,
+        metrics.map(m => ({ definition: m.definition, value: m.currentValue })),
+        session.user.email ?? '',
+      );
+
+      const apiUrl = import.meta.env.VITE_API_URL as string;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      if (apiUrl && accessToken) {
+        await fetch(`${apiUrl}/api/audit/export`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ employee_id: employeeId }),
+        });
+      }
+
+      setExportStatus('done');
+      setTimeout(() => setExportStatus('idle'), 3000);
+    } catch {
+      setExportStatus('error');
+      setTimeout(() => setExportStatus('idle'), 3000);
+    }
+  };
+
   const currentWeekMetrics = metrics.filter(m => m.currentValue !== null);
   const lastWeekMetrics = metrics.filter(m => m.lastWeekValue !== null);
 
@@ -124,23 +161,42 @@ export function ScorecardPage() {
             <h2 className="text-xl font-bold text-hr-navy">{employee.full_name}</h2>
             <p className="text-sm text-slate-500">{employee.email}</p>
           </div>
-          <button
-            onClick={handleShare}
-            disabled={shareStatus === 'sharing'}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              shareStatus === 'copied'
-                ? 'bg-hr-green-light text-hr-green'
-                : shareStatus === 'error'
-                  ? 'bg-red-50 text-red-600'
-                  : 'bg-hr-green text-white hover:bg-hr-green-dark'
-            }`}
-            aria-label="Share scorecard with employee"
-          >
-            {shareStatus === 'idle' && 'Share'}
-            {shareStatus === 'sharing' && 'Creating link...'}
-            {shareStatus === 'copied' && 'Link copied!'}
-            {shareStatus === 'error' && 'Failed — try again'}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExportPdf}
+              disabled={exportStatus === 'exporting'}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                exportStatus === 'done'
+                  ? 'bg-hr-green-light text-hr-green'
+                  : exportStatus === 'error'
+                    ? 'bg-red-50 text-red-600'
+                    : 'bg-white text-hr-navy border border-slate-200 hover:bg-slate-50'
+              }`}
+              aria-label="Export scorecard as PDF"
+            >
+              {exportStatus === 'idle' && 'Export PDF'}
+              {exportStatus === 'exporting' && 'Exporting...'}
+              {exportStatus === 'done' && 'Downloaded!'}
+              {exportStatus === 'error' && 'Failed — try again'}
+            </button>
+            <button
+              onClick={handleShare}
+              disabled={shareStatus === 'sharing'}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                shareStatus === 'copied'
+                  ? 'bg-hr-green-light text-hr-green'
+                  : shareStatus === 'error'
+                    ? 'bg-red-50 text-red-600'
+                    : 'bg-hr-green text-white hover:bg-hr-green-dark'
+              }`}
+              aria-label="Share scorecard with employee"
+            >
+              {shareStatus === 'idle' && 'Share'}
+              {shareStatus === 'sharing' && 'Creating link...'}
+              {shareStatus === 'copied' && 'Link copied!'}
+              {shareStatus === 'error' && 'Failed — try again'}
+            </button>
+          </div>
         </div>
 
         <section>

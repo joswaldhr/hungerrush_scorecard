@@ -44,12 +44,20 @@ export function DashboardPage() {
             </Link>
           )}
           {session?.user?.app_metadata?.['role'] === 'admin' && (
-            <Link
-              to="/admin/metrics"
-              className="text-sm text-slate-300 hover:text-white transition-colors"
-            >
-              Metrics Config
-            </Link>
+            <>
+              <Link
+                to="/admin/metrics"
+                className="text-sm text-slate-300 hover:text-white transition-colors"
+              >
+                Metrics Config
+              </Link>
+              <Link
+                to="/admin/exports"
+                className="text-sm text-slate-300 hover:text-white transition-colors"
+              >
+                Export Log
+              </Link>
+            </>
           )}
           <span className="text-sm text-slate-300">{session?.user.email}</span>
           <button

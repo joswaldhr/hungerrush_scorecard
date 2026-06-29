@@ -8,6 +8,7 @@ import rateLimit from 'express-rate-limit';
 import cron from 'node-cron';
 import syncRoutes from './routes/sync';
 import shareRoutes from './routes/share';
+import auditRoutes from './routes/audit';
 import { runSync } from './services/syncService';
 
 const app = express();
@@ -23,6 +24,7 @@ app.get('/health', (_req: Request, res: Response) => {
 
 app.use('/api/sync', syncRoutes);
 app.use('/api/share', shareRoutes);
+app.use('/api/audit', auditRoutes);
 
 const PORT = process.env['PORT'] ?? '3000';
 app.listen(Number(PORT), () => {

@@ -299,11 +299,11 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | 1 | Scaffold · shared package · Supabase · Microsoft SSO · RBAC | ✅ | A manager can log in via M365 and see an empty dashboard scoped to their reports |
 | 2 | Zendesk + Assembled connectors · sync job · admin config UI | ✅ | Sync job populates real metrics for seeded employees on a schedule |
 | 3 | Scorecard UI · KPI tiles · sparklines · coaching prompts · 1:1 notes | ✅ | A manager can open an employee, see live metrics, and save 1:1 notes |
-| 4 | Senior manager rollup · employee sharing · PDF export · email nudge | ⬜ | A senior manager sees team trends; a manager can share a read-only card |
+| 4 | Senior manager rollup · employee sharing · PDF export · email nudge | ✅ | A senior manager sees team trends; a manager can share a read-only card |
 | 5 | Polish · onboarding tour · PWA · audit log · load test · prod deploy | ⬜ | Pilot managers using it in production |
 
-**Current phase:** 4
-**Last session:** 2026-06-27 (session 8) — Scorecard page confirmed working with real data. Fixed null metric display (connectors return null for no-data, KpiTile shows metric-specific labels). Cleaned 267 stale zero-value rows. 1:1 notes and action items verified saving. Phase 3 exit criteria met. Next: Phase 4 — senior manager rollup, employee sharing, PDF export, email nudge.
+**Current phase:** 5
+**Last session:** 2026-06-29 (session 9) — Phase 4 complete. Service account cleanup (migration 0014: is_active column, ~250 service accounts marked inactive, visible_manager_ids() excludes inactive). Senior manager rollup view at /rollup with per-metric trend direction. Employee read-only share (72hr tokens, Express backend for unauthenticated read, audit_log on every access). PDF export with jspdf (watermark, coaching prompts, audit_log via Express). Admin export log page. Email nudge deferred to Phase 5. Note: PDF shows current week values which may be zero/null if sync hasn't run this week — correct behavior, not a bug.
 
 ---
 

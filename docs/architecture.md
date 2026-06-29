@@ -99,3 +99,4 @@ Both `apps/web` and `apps/api` import from here.
 | 2026-06-26 | Re-add admin UPDATE policy on `metric_definitions` using JWT claims (`auth.jwt()->'app_metadata'->>'role'`); original profile-based policy dropped in 0007 | `0012_admin_metric_definitions_policy.sql` |
 | 2026-06-26 | Add `session_action_items` table for structured 1:1 action items with completion tracking; RLS scoped via scorecard_sessions → visible_employee_ids(); GRANTs for authenticated + service_role | `0013_session_action_items.sql` |
 | 2026-06-27 | Add `is_active` boolean to `profiles` (default true); mark ~250 service accounts inactive; update `visible_manager_ids()` to exclude inactive profiles; add JWT-based admin SELECT/UPDATE policies on profiles | `0014_profiles_is_active.sql` |
+| 2026-06-29 | Re-add audit_log RLS policies using JWT claims (dropped in 0007); enables admin ExportLogPage to read audit_log directly via Supabase | `0015_audit_log_admin_policies.sql` |

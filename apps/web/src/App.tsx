@@ -5,6 +5,7 @@ import { AuthGuard } from './features/auth/AuthGuard';
 import { DashboardPage } from './features/scorecard/DashboardPage';
 import { ScorecardPage } from './features/scorecard/ScorecardPage';
 import { MetricConfigPage } from './features/admin/MetricConfigPage';
+import { ExportLogPage } from './features/admin/ExportLogPage';
 import { RollupPage } from './features/scorecard/RollupPage';
 import { SharedScorecardPage } from './features/scorecard/SharedScorecardPage';
 
@@ -43,6 +44,14 @@ export function App() {
         element={
           <AuthGuard>
             <MetricConfigPage />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/admin/exports"
+        element={
+          <AuthGuard>
+            <ExportLogPage />
           </AuthGuard>
         }
       />
