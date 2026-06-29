@@ -7,29 +7,29 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-06-27 (session 8)
+**Last updated:** 2026-06-29 (session 10)
 
 ### Completed this session
-- **Scorecard page working with real data** — KPI tiles display correct values for ticket_volume, first_reply_time, csat_score, resolution_rate. Sparklines render single data point (correct — only 1 week of snapshots exists).
-- **Null metric display fixed** — connectors now return `null` instead of `0` when no data exists (CSAT with zero ratings, Assembled with no WFM states, SLA with no policies). KpiTile shows metric-specific labels: "No ratings yet" (CSAT), "No schedule data" (Assembled), "Not configured" (SLA).
-- **Stale DB rows cleaned** — deleted 267 misleading zero-value rows (63 sla_compliance, 15 csat_score, 63 each schedule_adherence/occupancy/handle_time). 237 clean snapshots remain.
-- **1:1 notes and action items saving correctly** — scorecard sessions persist, action item checkboxes toggle and save.
-- **Dashboard metrics filter** — defaults to "Has metrics only" (65 employees with data indicators).
+- **Polish pass** — React Router v7 future flags (`v7_startTransition`, `v7_relativeSplatPath`) on BrowserRouter. ErrorBoundary class component wrapping the app. All loading states audited (already skeleton loaders — no fixes needed). Mobile responsive: hamburger menu on DashboardPage, email hidden on mobile, responsive grid/padding across all pages.
+- **Onboarding tour** — 4-step modal walkthrough (Welcome, Metrics, Coaching Prompts, Notes) stored in localStorage (`scorecard_tour_complete`). Shows on first login, "?" help icon in nav re-triggers. No new deps.
+- **PWA setup** — HR monogram icons (192x192, 512x512 PNG), full manifest in vite.config.ts, workbox caching (CacheFirst for app shell, NetworkFirst for Supabase API with 24hr cache + 5s timeout), `useInstallPrompt` hook with beforeinstallprompt listener, `OfflineBanner` component.
+- **Deployment config** — `vercel.json` and `railway.toml` at repo root for monorepo workspace resolution. Both use `npm install` from root (resolves `@scorecard/shared` workspace), then `cd` into app dir and build.
+- **Production deployment in progress** — Vercel building successfully, Railway deployed.
 
-### DB state (confirmed 2026-06-27)
-- **237 snapshots** in `metric_snapshots` (cleaned from 504 — stale zeros removed)
-- **65 employees** with agent IDs, **351 total employees**
-- **Metrics with data:** ticket_volume (63), first_reply_time (63), resolution_rate (63), csat_score (48)
-- **Metrics with no data (null):** sla_compliance (no Zendesk SLA policies), schedule_adherence/occupancy/handle_time (no Assembled WFM data)
+### Production URLs
+- **Frontend (Vercel):** `https://hungerrush-scorecard.vercel.app`
+- **Backend (Railway):** `https://scorecardapi-production.up.railway.app`
 
 ### Where we stopped
-Phase 3 complete. All exit criteria met.
+Phase 5 in progress. Vercel and Railway are deployed. SSO login tested — was stuck on auth callback due to incorrect `VITE_SUPABASE_URL` env var in Vercel; fixed and redeploying. Need to confirm end-to-end login works after redeploy.
 
 ### Next actions
-1. **Phase 4: Senior manager rollup view** — aggregate trend direction across a manager's team (e.g. "6 of 8 metrics improving"), no individual composite scores
-2. **Employee sharing** — UUID v4 share tokens, 72-hour expiry, single-use, read-only scorecard view, audit_log entry
-3. **PDF export** — watermarked scorecard export with audit_log entry
-4. **Email nudge** — weekly manager reminder via Supabase email
+1. **Confirm production login works end-to-end** — SSO → callback → dashboard with data
+2. **Connection pooling** — add `?pgbouncer=true` to Supabase connection string in API, set pool size to 10
+3. **CORS lockdown** — replace `cors()` wildcard with explicit Vercel origin allowlist in `apps/api/src/index.ts`
+4. **Email nudge** — Monday 8am UTC cron, axios.post to Resend API (no new dep), needs `RESEND_API_KEY` from user
+5. **Pilot guide** — `docs/pilot-guide.md` with login/usage instructions, contact: james.oswald@hungerrush.com
+6. **Phase tracker update** — mark Phase 5 complete once pilot managers are using it
 
 ### Assembled API — confirmed working (session 2, bugs fixed session 4)
 - **Base URL:** `https://api.assembledhq.com/v0`
@@ -300,10 +300,10 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | 2 | Zendesk + Assembled connectors · sync job · admin config UI | ✅ | Sync job populates real metrics for seeded employees on a schedule |
 | 3 | Scorecard UI · KPI tiles · sparklines · coaching prompts · 1:1 notes | ✅ | A manager can open an employee, see live metrics, and save 1:1 notes |
 | 4 | Senior manager rollup · employee sharing · PDF export · email nudge | ✅ | A senior manager sees team trends; a manager can share a read-only card |
-| 5 | Polish · onboarding tour · PWA · audit log · load test · prod deploy | ⬜ | Pilot managers using it in production |
+| 5 | Polish · onboarding tour · PWA · audit log · load test · prod deploy | 🔄 | Pilot managers using it in production |
 
 **Current phase:** 5
-**Last session:** 2026-06-29 (session 9) — Phase 4 complete. Service account cleanup (migration 0014: is_active column, ~250 service accounts marked inactive, visible_manager_ids() excludes inactive). Senior manager rollup view at /rollup with per-metric trend direction. Employee read-only share (72hr tokens, Express backend for unauthenticated read, audit_log on every access). PDF export with jspdf (watermark, coaching prompts, audit_log via Express). Admin export log page. Email nudge deferred to Phase 5. Note: PDF shows current week values which may be zero/null if sync hasn't run this week — correct behavior, not a bug.
+**Last session:** 2026-06-29 (session 10) — Phase 5 in progress. Polish pass (Router v7 flags, ErrorBoundary, mobile responsive, hamburger menu). Onboarding tour (4-step modal, localStorage, help icon). PWA (icons, manifest, workbox caching, install prompt, offline banner). Production deployment: vercel.json + railway.toml for monorepo workspace resolution. Vercel URL: hungerrush-scorecard.vercel.app. Railway URL: scorecardapi-production.up.railway.app. SSO callback issue debugged (invalid VITE_SUPABASE_URL env var). Remaining: confirm login, connection pooling, CORS lockdown, email nudge, pilot guide.
 
 ---
 
@@ -365,3 +365,8 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | 2026-06-27 | Share tokens valid for full 72 hours, not single-use | Single-use caused bad UX if employee closed tab accidentally; `used_at` records first access timestamp but token stays valid until `expires_at` |
 | 2026-06-27 | Service accounts marked inactive via `is_active = false`, not deleted | Preserves audit trail and profile references; ~250 admin service accounts deactivated in migration 0014; real admins re-activated via Profile Management UI |
 | 2026-06-27 | `jspdf` approved for PDF export | Client-side PDF generation; minimal dependency; programmatic watermark control without a backend route |
+| 2026-06-29 | Email nudge via axios.post to Resend API — no `resend` package | Single HTTP POST with existing `axios` dependency; free tier covers ~30 managers; Resend shared domain for pilot |
+| 2026-06-29 | Onboarding tour stored in localStorage, not DB | Per-device, no auth required to check; shows once per browser; "?" icon re-triggers; no migration needed |
+| 2026-06-29 | PWA workbox: CacheFirst for shell, NetworkFirst for Supabase API | App shell rarely changes (cache wins); API data should be fresh when online but available offline from 24hr cache |
+| 2026-06-29 | Vercel + Railway deploy from repo root, not app subdirectory | npm workspaces require install from root to resolve `@scorecard/shared`; vercel.json uses `installCommand: "echo 'skip'"` and consolidates into `buildCommand` |
+| 2026-06-29 | Default Vercel URL for pilot, custom domain later | `hungerrush-scorecard.vercel.app` — avoids DNS setup during initial deployment |
