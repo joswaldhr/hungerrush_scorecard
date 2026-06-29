@@ -7,18 +7,38 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-06-29 (session 11)
+**Last updated:** 2026-06-29 (session 12)
 
 ### Completed this session
-- **Production SSO login working** — debugged auth callback chain: SPA rewrites in vercel.json, implicit flow hash fragment handling, Supabase client global fetch override for browser compatibility
-- **Pilot guide written** — `docs/pilot-guide.md` with login, dashboard, scorecard, notes, sharing, PWA install instructions
+- **Production SSO login working** (session 11) — SPA rewrites in vercel.json, implicit flow hash fragment handling, Supabase client global fetch override for browser compatibility
+- **Pilot guide written** (session 11) — `docs/pilot-guide.md`
+- **Sprint 1: KPI tile redesign** (session 12) — complete and committed:
+  - KPI tile redesign — large `text-2xl font-medium` value, direction badge pills (`bg-[#E1F5EE]`/`bg-[#FAEEDA]`/`bg-slate-100`), 4-slot div sparklines with dashed placeholders, null/zero states with metric-specific labels, compact `p-3` padding
+  - Direction badge color logic: arrow direction matches `higher_is_better`/`lower_is_better`, color matches improving/attention
+  - Tile ordering — data tiles first (by `display_order`), null tiles pushed to end
+  - All-null banner: "This week's data refreshes every 4 hours." shown when all current week values are null/zero
+  - 3-column grid (`md:grid-cols-3`), darker page background `#EFEFED` (was `#F5F5F4`)
+  - Share button ghost style (`text-hr-green border border-hr-green`), Export PDF muted (`text-slate-400 border-slate-200`)
+  - Coaching prompt hidden by default, visible on tile hover (`group-hover`)
+  - Last Week section filters out null AND zero values
+  - Recharts dependency removed from KpiTile — plain divs only
 
 ### Production URLs
 - **Frontend (Vercel):** `https://hungerrush-scorecard.vercel.app`
 - **Backend (Railway):** `https://scorecardapi-production.up.railway.app`
 
 ### Where we stopped
-Phase 5 complete. All 5 phases delivered. Production SSO login confirmed working.
+UI/UX redesign in progress. Sprint 1 complete. Sprint 2 next.
+
+### Sprint 2 — dashboard upgrade (NEXT)
+1. **Search bar** — client-side filter by name/email
+2. **Top 2 metric previews** per employee row (ticket_volume + first_reply_time)
+3. **Sort toggle** — A-Z / Recent
+4. **Last synced indicator** below page title
+5. **Admin nav links** moved out of main nav entirely
+6. **Prev/next navigation** on ScorecardPage with position indicator "12 of 63"
+
+### Sprint 3 and 4 — pending (not scoped yet)
 
 ### Remaining follow-ups (non-blocking)
 1. **Connection pooling** — add `?pgbouncer=true` to Supabase connection string in API, set pool size to 10
@@ -296,8 +316,8 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | 4 | Senior manager rollup · employee sharing · PDF export · email nudge | ✅ | A senior manager sees team trends; a manager can share a read-only card |
 | 5 | Polish · onboarding tour · PWA · audit log · load test · prod deploy | ✅ | Pilot managers using it in production |
 
-**Current phase:** Complete — all 5 phases delivered
-**Last session:** 2026-06-29 (session 11) — Phase 5 complete. Production SSO login confirmed working after fixing: SPA rewrites in vercel.json for /auth/callback, implicit flow hash fragment handling in AuthCallback, Supabase client global fetch override for browser compatibility. Pilot guide written at docs/pilot-guide.md. Remaining follow-ups: connection pooling, CORS lockdown, email nudge.
+**Current phase:** Complete — all 5 phases delivered. Post-launch UI/UX redesign in progress.
+**Last session:** 2026-06-29 (session 12) — Sprint 1 KPI tile redesign complete: plain-div sparklines, direction badge pills, null/zero states, compact layout, 3-column grid, darker background, muted action buttons, tile ordering, all-null banner. Sprint 2 next: dashboard upgrade (search, metric previews, sort, prev/next nav).
 
 ---
 
