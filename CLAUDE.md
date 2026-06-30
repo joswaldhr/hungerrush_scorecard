@@ -7,38 +7,39 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-06-29 (session 12)
+**Last updated:** 2026-06-30 (session 13)
 
 ### Completed this session
-- **Production SSO login working** (session 11) — SPA rewrites in vercel.json, implicit flow hash fragment handling, Supabase client global fetch override for browser compatibility
-- **Pilot guide written** (session 11) — `docs/pilot-guide.md`
-- **Sprint 1: KPI tile redesign** (session 12) — complete and committed:
-  - KPI tile redesign — large `text-2xl font-medium` value, direction badge pills (`bg-[#E1F5EE]`/`bg-[#FAEEDA]`/`bg-slate-100`), 4-slot div sparklines with dashed placeholders, null/zero states with metric-specific labels, compact `p-3` padding
-  - Direction badge color logic: arrow direction matches `higher_is_better`/`lower_is_better`, color matches improving/attention
-  - Tile ordering — data tiles first (by `display_order`), null tiles pushed to end
-  - All-null banner: "This week's data refreshes every 4 hours." shown when all current week values are null/zero
-  - 3-column grid (`md:grid-cols-3`), darker page background `#EFEFED` (was `#F5F5F4`)
-  - Share button ghost style (`text-hr-green border border-hr-green`), Export PDF muted (`text-slate-400 border-slate-200`)
-  - Coaching prompt hidden by default, visible on tile hover (`group-hover`)
-  - Last Week section filters out null AND zero values
-  - Recharts dependency removed from KpiTile — plain divs only
+- **Sprint 1: KPI tile redesign** (session 12) — large values, direction badge pills, sparklines, null/zero states with metric-specific labels, tile ordering (data first), compact layout, 3-column grid, darker background, muted action buttons, coaching prompts on hover, Recharts removed
+- **Sprint 2: Dashboard upgrade** (session 13) — complete and committed:
+  - Search bar — client-side filter by name/email
+  - Metric previews per employee row — ticket_volume (count) + first_reply_time (auto-scaled to h/min) fetched in one bulk query via useDirectReports
+  - Sort toggle — A-Z (default) / Recent (by latest metric period_start), pill-style matching filter buttons
+  - Last synced timestamp below "Your Team" heading
+  - Prev/next navigation on ScorecardPage — arrow buttons with "X of Y" position indicator, employee list passed via React Router location.state, disabled on direct URL navigation
+  - Admin nav cleanup — removed Metrics Config and Export Log links from main nav; single muted "Admin" text link for admin users
+  - Auto-scaling time format in formatMetricValue — under 60 min shows "X.X min", 60+ min shows "X.Xh" (applies to first_reply_time and handle_time across all tiles and previews)
+  - Zero preview values show "—" instead of "0"
 
 ### Production URLs
 - **Frontend (Vercel):** `https://hungerrush-scorecard.vercel.app`
 - **Backend (Railway):** `https://scorecardapi-production.up.railway.app`
 
 ### Where we stopped
-UI/UX redesign in progress. Sprint 1 complete. Sprint 2 next.
+UI/UX redesign in progress. Sprint 1 and Sprint 2 complete. Sprint 3 next.
 
-### Sprint 2 — dashboard upgrade (NEXT)
-1. **Search bar** — client-side filter by name/email
-2. **Top 2 metric previews** per employee row (ticket_volume + first_reply_time)
-3. **Sort toggle** — A-Z / Recent
-4. **Last synced indicator** below page title
-5. **Admin nav links** moved out of main nav entirely
-6. **Prev/next navigation** on ScorecardPage with position indicator "12 of 63"
+### Sprint 3 — rollup redesign (NEXT)
+1. **Float managers with data to top** of the rollup table
+2. **Collapse no-data rows** to single cell: "No Zendesk or Assembled data"
+3. **Colored text for trend cells** — green/amber/slate text only, no pills
+4. **Week indicator** below page title
+5. **Drill-down to manager's team** — verify RLS is safe for admin first
 
-### Sprint 3 and 4 — pending (not scoped yet)
+### Sprint 4 — pending
+1. Typography polish
+2. Section spacing
+3. Login card redesign
+4. Remove console.logs
 
 ### Remaining follow-ups (non-blocking)
 1. **Connection pooling** — add `?pgbouncer=true` to Supabase connection string in API, set pool size to 10
@@ -317,7 +318,7 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | 5 | Polish · onboarding tour · PWA · audit log · load test · prod deploy | ✅ | Pilot managers using it in production |
 
 **Current phase:** Complete — all 5 phases delivered. Post-launch UI/UX redesign in progress.
-**Last session:** 2026-06-29 (session 12) — Sprint 1 KPI tile redesign complete: plain-div sparklines, direction badge pills, null/zero states, compact layout, 3-column grid, darker background, muted action buttons, tile ordering, all-null banner. Sprint 2 next: dashboard upgrade (search, metric previews, sort, prev/next nav).
+**Last session:** 2026-06-30 (session 13) — Sprint 2 dashboard upgrade complete: search bar, metric previews (ticket_volume + first_reply_time with auto-scaling h/min), sort toggle (A-Z/Recent), last synced timestamp, prev/next navigation on ScorecardPage via location.state, admin nav cleanup (muted "Admin" link replaces Metrics Config + Export Log). Sprint 3 next: rollup redesign.
 
 ---
 
@@ -386,3 +387,6 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | 2026-06-29 | Default Vercel URL for pilot, custom domain later | `hungerrush-scorecard.vercel.app` — avoids DNS setup during initial deployment |
 | 2026-06-29 | Supabase client requires `global.fetch` override in production | supabase-js internal fetch wrapper constructs invalid HTTP headers in some browsers; passing native `fetch` directly bypasses the issue |
 | 2026-06-29 | Implicit OAuth flow with manual hash detection in AuthCallback | PKCE not supported by Supabase project config; AuthCallback waits for Supabase client to auto-parse hash fragment via `detectSessionInUrl`, then polls `getSession()` |
+| 2026-06-30 | Auto-scaling time format for seconds-unit metrics | first_reply_time and handle_time values can be very large (business hours); formatMetricValue auto-scales: <60min shows "X.X min", ≥60min shows "X.Xh" |
+| 2026-06-30 | Dashboard metric previews via bulk query in useDirectReports | Single query fetches latest ticket_volume + first_reply_time for all visible employees; no per-employee queries; joined client-side by employee_id |
+| 2026-06-30 | Prev/next navigation via React Router location.state | Employee list passed from dashboard to ScorecardPage; no extra query; disabled gracefully on direct URL navigation |
