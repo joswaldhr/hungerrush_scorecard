@@ -7,39 +7,20 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-06-30 (session 13)
+**Last updated:** 2026-06-30 (session 14)
 
-### Completed this session
-- **Sprint 1: KPI tile redesign** (session 12) — large values, direction badge pills, sparklines, null/zero states with metric-specific labels, tile ordering (data first), compact layout, 3-column grid, darker background, muted action buttons, coaching prompts on hover, Recharts removed
-- **Sprint 2: Dashboard upgrade** (session 13) — complete and committed:
-  - Search bar — client-side filter by name/email
-  - Metric previews per employee row — ticket_volume (count) + first_reply_time (auto-scaled to h/min) fetched in one bulk query via useDirectReports
-  - Sort toggle — A-Z (default) / Recent (by latest metric period_start), pill-style matching filter buttons
-  - Last synced timestamp below "Your Team" heading
-  - Prev/next navigation on ScorecardPage — arrow buttons with "X of Y" position indicator, employee list passed via React Router location.state, disabled on direct URL navigation
-  - Admin nav cleanup — removed Metrics Config and Export Log links from main nav; single muted "Admin" text link for admin users
-  - Auto-scaling time format in formatMetricValue — under 60 min shows "X.X min", 60+ min shows "X.Xh" (applies to first_reply_time and handle_time across all tiles and previews)
-  - Zero preview values show "—" instead of "0"
+### Current state
+All 5 development phases and all 4 UI/UX redesign sprints are complete. The app is polished and ready for pilot manager rollout.
 
 ### Production URLs
 - **Frontend (Vercel):** `https://hungerrush-scorecard.vercel.app`
 - **Backend (Railway):** `https://scorecardapi-production.up.railway.app`
 
-### Where we stopped
-UI/UX redesign in progress. Sprint 1 and Sprint 2 complete. Sprint 3 next.
-
-### Sprint 3 — rollup redesign (NEXT)
-1. **Float managers with data to top** of the rollup table
-2. **Collapse no-data rows** to single cell: "No Zendesk or Assembled data"
-3. **Colored text for trend cells** — green/amber/slate text only, no pills
-4. **Week indicator** below page title
-5. **Drill-down to manager's team** — verify RLS is safe for admin first
-
-### Sprint 4 — pending
-1. Typography polish
-2. Section spacing
-3. Login card redesign
-4. Remove console.logs
+### UI/UX redesign sprints (all complete)
+- **Sprint 1:** KPI tile redesign — large values, direction badges, sparklines, null/zero states, tile ordering, compact 3-column grid, coaching prompts on hover
+- **Sprint 2:** Dashboard upgrade — search, metric previews, sort toggle, last synced, prev/next navigation, admin nav cleanup, auto-scaling time format
+- **Sprint 3:** Rollup redesign — data-first sorting, no-data collapse, trend chips with direction-aware colors, week indicator, drill-down to manager's team
+- **Sprint 4:** Typography polish — slate type scale for content headings/labels (hr-navy preserved for nav), section spacing, uppercase section headers on scorecard, notes panel wrapped in card with label, login card redesign (accent bar, rounded-xl, tighter layout)
 
 ### Remaining follow-ups (non-blocking)
 1. **Connection pooling** — add `?pgbouncer=true` to Supabase connection string in API, set pool size to 10
@@ -317,8 +298,8 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | 4 | Senior manager rollup · employee sharing · PDF export · email nudge | ✅ | A senior manager sees team trends; a manager can share a read-only card |
 | 5 | Polish · onboarding tour · PWA · audit log · load test · prod deploy | ✅ | Pilot managers using it in production |
 
-**Current phase:** Complete — all 5 phases delivered. Post-launch UI/UX redesign in progress.
-**Last session:** 2026-06-30 (session 13) — Sprint 2 dashboard upgrade complete: search bar, metric previews (ticket_volume + first_reply_time with auto-scaling h/min), sort toggle (A-Z/Recent), last synced timestamp, prev/next navigation on ScorecardPage via location.state, admin nav cleanup (muted "Admin" link replaces Metrics Config + Export Log). Sprint 3 next: rollup redesign.
+**Current phase:** Complete — all 5 phases delivered. All 4 UI/UX redesign sprints complete. Polished and ready for pilot manager rollout.
+**Last session:** 2026-06-30 (session 14) — Sprint 4 typography polish complete: slate type scale for content headings/labels across all 11 page components, uppercase section headers on scorecard, notes panel wrapped in bordered card, login card redesign. Three non-blocking follow-ups remain (connection pooling, CORS lockdown, email nudge).
 
 ---
 
