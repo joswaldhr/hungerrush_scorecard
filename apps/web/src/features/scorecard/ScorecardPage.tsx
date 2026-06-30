@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, Navigate, Link } from 'react-router-dom';
+import { useParams, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useEmployee } from '../../hooks/useEmployee';
 import { useEmployeeMetrics } from '../../hooks/useEmployeeMetrics';
@@ -32,6 +32,8 @@ function PageSkeleton() {
 
 export function ScorecardPage() {
   const { employeeId } = useParams<{ employeeId: string }>();
+  const location = useLocation();
+  const locationNavigate = useNavigate();
   const { session, loading: authLoading } = useAuth();
   const { employee, loading: empLoading, error: empError } = useEmployee(employeeId ?? '');
   const { metrics, loading: metricsLoading, error: metricsError } = useEmployeeMetrics(employeeId ?? '');
@@ -44,6 +46,16 @@ export function ScorecardPage() {
   } = useScorecardNotes(employeeId ?? '');
   const [shareStatus, setShareStatus] = useState<'idle' | 'sharing' | 'copied' | 'error'>('idle');
   const [exportStatus, setExportStatus] = useState<'idle' | 'exporting' | 'done' | 'error'>('idle');
+
+  const employeeIds = (location.state as { employeeIds?: string[] } | null)?.employeeIds ?? null;
+  const currentIndex = employeeIds && employeeId ? employeeIds.indexOf(employeeId) : -1;
+  const prevId = employeeIds && currentIndex > 0 ? employeeIds[currentIndex - 1] : null;
+  const nextId = employeeIds && currentIndex >= 0 && currentIndex < employeeIds.length - 1 ? employeeIds[currentIndex + 1] : null;
+  const positionLabel = employeeIds && currentIndex >= 0 ? `${currentIndex + 1} of ${employeeIds.length}` : null;
+
+  const goTo = (id: string) => {
+    locationNavigate(`/scorecard/${id}`, { state: { employeeIds } });
+  };
 
   if (!employeeId) return <Navigate to="/dashboard" replace />;
 
@@ -160,7 +172,38 @@ export function ScorecardPage() {
           </Link>
           <h1 className="text-lg font-bold">Employee Scorecard</h1>
         </div>
-        <span className="hidden sm:inline text-sm text-slate-300">{session.user.email}</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => prevId && goTo(prevId)}
+              disabled={!prevId}
+              className={`px-2 py-1 text-sm rounded transition-colors ${
+                prevId
+                  ? 'text-slate-300 hover:text-white'
+                  : 'text-slate-600 cursor-not-allowed'
+              }`}
+              aria-label="Previous employee"
+            >
+              ←
+            </button>
+            {positionLabel && (
+              <span className="text-xs text-slate-400">{positionLabel}</span>
+            )}
+            <button
+              onClick={() => nextId && goTo(nextId)}
+              disabled={!nextId}
+              className={`px-2 py-1 text-sm rounded transition-colors ${
+                nextId
+                  ? 'text-slate-300 hover:text-white'
+                  : 'text-slate-600 cursor-not-allowed'
+              }`}
+              aria-label="Next employee"
+            >
+              →
+            </button>
+          </div>
+          <span className="hidden sm:inline text-sm text-slate-300">{session.user.email}</span>
+        </div>
       </nav>
 
       <main className="max-w-5xl mx-auto p-6 space-y-8">

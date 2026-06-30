@@ -55,6 +55,6 @@ for sparklines.
 
 ## Display formatting notes
 
-- **`first_reply_time` and `handle_time`** are stored in seconds (matching connector output) but the frontend should display them formatted as minutes (e.g. 900 seconds → "15 min"). The `unit` field stays `seconds` in the DB — formatting is a UI concern.
+- **`first_reply_time` and `handle_time`** are stored in seconds (matching connector output). Display auto-scales: under 60 minutes shows minutes (e.g. 900 seconds → "15.0 min"), 60 minutes or more shows hours (e.g. 442414 seconds → "122.9h"). Values reflect business hours only (Zendesk `reply_time_in_minutes.business` field). The `unit` field stays `seconds` in the DB — formatting is a UI concern.
 - **`percent`** metrics are stored as 0–100, not 0–1. Display with one decimal place and a `%` suffix.
 - **`count`** metrics display as integers with no suffix.

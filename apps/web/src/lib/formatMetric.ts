@@ -7,6 +7,9 @@ export function formatMetricValue(
   switch (unit) {
     case 'seconds': {
       const minutes = value / 60;
+      if (minutes >= 60) {
+        return `${(minutes / 60).toFixed(1)}h`;
+      }
       return `${minutes.toFixed(1)} min`;
     }
     case 'percent':

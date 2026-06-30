@@ -1,11 +1,12 @@
-import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDirectReports } from '../../hooks/useDirectReports';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
 import { TourModal, useTour } from '../onboarding/TourModal';
 import { useInstallPrompt } from '../../hooks/useInstallPrompt';
 import { OfflineBanner } from '../../components/OfflineBanner';
+import { formatMetricValue } from '../../lib/formatMetric';
 
 function EmployeeSkeleton() {
   return (
@@ -21,12 +22,15 @@ function EmployeeSkeleton() {
 
 export function DashboardPage() {
   const { session } = useAuth();
-  const { employees, employeesWithMetrics, loading, error } = useDirectReports();
+  const { employees, employeesWithMetrics, previewMetrics, lastSyncedAt, loading, error } = useDirectReports();
   const [showOnlyWithMetrics, setShowOnlyWithMetrics] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [sortMode, setSortMode] = useState<'az' | 'recent'>('az');
   const { showTour, openTour, closeTour } = useTour();
   const { canInstall, install } = useInstallPrompt();
   const menuRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -39,9 +43,29 @@ export function DashboardPage() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [menuOpen]);
 
-  const filteredEmployees = showOnlyWithMetrics
-    ? employees.filter(emp => employeesWithMetrics.has(emp.id))
-    : employees;
+  const filteredEmployees = useMemo(() => {
+    let list = showOnlyWithMetrics
+      ? employees.filter(emp => employeesWithMetrics.has(emp.id))
+      : employees;
+
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter(emp =>
+        emp.full_name.toLowerCase().includes(q) || emp.email.toLowerCase().includes(q)
+      );
+    }
+
+    if (sortMode === 'recent') {
+      list = [...list].sort((a, b) => {
+        const aDate = previewMetrics.get(a.id)?.latestPeriodStart ?? '';
+        const bDate = previewMetrics.get(b.id)?.latestPeriodStart ?? '';
+        if (bDate !== aDate) return bDate.localeCompare(aDate);
+        return a.full_name.localeCompare(b.full_name);
+      });
+    }
+
+    return list;
+  }, [employees, employeesWithMetrics, showOnlyWithMetrics, search, sortMode, previewMetrics]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -50,7 +74,12 @@ export function DashboardPage() {
   const role = session?.user?.app_metadata?.['role'] as string | undefined;
   const showRollup = role === 'senior_manager' || role === 'admin';
   const showAdmin = role === 'admin';
-  const hasNavLinks = showRollup || showAdmin;
+
+  const employeeIds = useMemo(() => filteredEmployees.map(e => e.id), [filteredEmployees]);
+
+  const handleEmployeeClick = (employeeId: string) => {
+    navigate(`/scorecard/${employeeId}`, { state: { employeeIds } });
+  };
 
   return (
     <div className="min-h-screen bg-hr-gray">
@@ -68,20 +97,12 @@ export function DashboardPage() {
             </Link>
           )}
           {showAdmin && (
-            <>
-              <Link
-                to="/admin/metrics"
-                className="text-sm text-slate-300 hover:text-white transition-colors"
-              >
-                Metrics Config
-              </Link>
-              <Link
-                to="/admin/exports"
-                className="text-sm text-slate-300 hover:text-white transition-colors"
-              >
-                Export Log
-              </Link>
-            </>
+            <Link
+              to="/admin/metrics"
+              className="text-xs text-slate-400 hover:text-slate-200 transition-colors"
+            >
+              Admin
+            </Link>
           )}
           {canInstall && (
             <button
@@ -135,24 +156,15 @@ export function DashboardPage() {
                 </Link>
               )}
               {showAdmin && (
-                <>
-                  <Link
-                    to="/admin/metrics"
-                    className="block px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Metrics Config
-                  </Link>
-                  <Link
-                    to="/admin/exports"
-                    className="block px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Export Log
-                  </Link>
-                </>
+                <Link
+                  to="/admin/metrics"
+                  className="block px-4 py-2 text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-700"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Admin
+                </Link>
               )}
-              {hasNavLinks && <div className="border-t border-slate-600 my-1" />}
+              {(showRollup || showAdmin) && <div className="border-t border-slate-600 my-1" />}
               {canInstall && (
                 <button
                   onClick={() => { setMenuOpen(false); install(); }}
@@ -182,33 +194,74 @@ export function DashboardPage() {
       </nav>
 
       <main className="max-w-4xl mx-auto p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-hr-navy">Your Team</h2>
-          {!loading && employees.length > 0 && (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowOnlyWithMetrics(true)}
-                className={`text-sm px-3 py-1 rounded-full transition-colors ${
-                  showOnlyWithMetrics
-                    ? 'bg-hr-green text-white'
-                    : 'bg-white text-slate-500 hover:bg-slate-100'
-                }`}
-              >
-                Has metrics ({employeesWithMetrics.size})
-              </button>
-              <button
-                onClick={() => setShowOnlyWithMetrics(false)}
-                className={`text-sm px-3 py-1 rounded-full transition-colors ${
-                  !showOnlyWithMetrics
-                    ? 'bg-hr-navy text-white'
-                    : 'bg-white text-slate-500 hover:bg-slate-100'
-                }`}
-              >
-                All ({employees.length})
-              </button>
-            </div>
+        <div className="mb-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-hr-navy">Your Team</h2>
+            {!loading && employees.length > 0 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowOnlyWithMetrics(true)}
+                  className={`text-sm px-3 py-1 rounded-full transition-colors ${
+                    showOnlyWithMetrics
+                      ? 'bg-hr-green text-white'
+                      : 'bg-white text-slate-500 hover:bg-slate-100'
+                  }`}
+                >
+                  Has metrics ({employeesWithMetrics.size})
+                </button>
+                <button
+                  onClick={() => setShowOnlyWithMetrics(false)}
+                  className={`text-sm px-3 py-1 rounded-full transition-colors ${
+                    !showOnlyWithMetrics
+                      ? 'bg-hr-navy text-white'
+                      : 'bg-white text-slate-500 hover:bg-slate-100'
+                  }`}
+                >
+                  All ({employees.length})
+                </button>
+              </div>
+            )}
+          </div>
+          {lastSyncedAt && (
+            <p className="text-xs text-slate-400 mt-1">
+              Last synced {new Date(lastSyncedAt).toLocaleString()}
+            </p>
           )}
         </div>
+
+        {!loading && employees.length > 0 && (
+          <div className="flex items-center gap-3 mb-4">
+            <input
+              type="text"
+              placeholder="Search by name or email..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-hr-green focus:border-transparent"
+            />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSortMode('az')}
+                className={`text-sm px-3 py-1 rounded-full transition-colors ${
+                  sortMode === 'az'
+                    ? 'bg-[#1E2E4A] text-white'
+                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                A-Z
+              </button>
+              <button
+                onClick={() => setSortMode('recent')}
+                className={`text-sm px-3 py-1 rounded-full transition-colors ${
+                  sortMode === 'recent'
+                    ? 'bg-[#1E2E4A] text-white'
+                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                Recent
+              </button>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-4">
@@ -251,26 +304,44 @@ export function DashboardPage() {
           <div className="space-y-3">
             {filteredEmployees.map((emp) => {
               const hasMetrics = employeesWithMetrics.has(emp.id);
+              const preview = previewMetrics.get(emp.id);
               return (
-                <Link
+                <button
                   key={emp.id}
-                  to={`/scorecard/${emp.id}`}
-                  className="flex items-center gap-4 p-4 bg-white rounded-lg hover:shadow-sm transition-shadow"
+                  onClick={() => handleEmployeeClick(emp.id)}
+                  className="w-full flex items-center gap-4 p-4 bg-white rounded-lg hover:shadow-sm transition-shadow text-left"
                 >
-                  <div className="h-10 w-10 bg-hr-green-light rounded-full flex items-center justify-center">
+                  <div className="h-10 w-10 bg-hr-green-light rounded-full flex items-center justify-center flex-shrink-0">
                     <span className="text-hr-green font-medium text-lg">
                       {emp.full_name.charAt(0).toUpperCase()}
                     </span>
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <p className="font-medium text-hr-navy">{emp.full_name}</p>
-                    <p className="text-sm text-slate-500">{emp.email}</p>
+                    <p className="text-sm text-slate-500 truncate">{emp.email}</p>
                   </div>
-                  <div className="flex items-center gap-2" title={hasMetrics ? 'Metrics synced' : 'No data source connected'}>
-                    <span className={`h-2.5 w-2.5 rounded-full ${hasMetrics ? 'bg-hr-green' : 'bg-slate-300'}`} />
-                    <span className="text-xs text-slate-400">{hasMetrics ? 'Data' : 'No data'}</span>
-                  </div>
-                </Link>
+                  {hasMetrics && preview && (preview.ticket_volume !== null || preview.first_reply_time !== null) ? (
+                    <div className="hidden sm:flex items-center gap-4 text-right flex-shrink-0">
+                      {preview.ticket_volume !== null && (
+                        <div>
+                          <p className="text-xs text-slate-400">Tickets</p>
+                          <p className="text-sm font-medium text-hr-navy">{preview.ticket_volume === 0 ? '—' : formatMetricValue(preview.ticket_volume, 'count')}</p>
+                        </div>
+                      )}
+                      {preview.first_reply_time !== null && (
+                        <div>
+                          <p className="text-xs text-slate-400">First Reply</p>
+                          <p className="text-sm font-medium text-hr-navy">{preview.first_reply_time === 0 ? '—' : formatMetricValue(preview.first_reply_time, 'seconds')}</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2" title={hasMetrics ? 'Metrics synced' : 'No data source connected'}>
+                      <span className={`h-2.5 w-2.5 rounded-full ${hasMetrics ? 'bg-hr-green' : 'bg-slate-300'}`} />
+                      <span className="text-xs text-slate-400">{hasMetrics ? 'Data' : 'No data'}</span>
+                    </div>
+                  )}
+                </button>
               );
             })}
           </div>
