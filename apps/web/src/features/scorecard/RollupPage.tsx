@@ -3,31 +3,37 @@ import { useAuth } from '../../hooks/useAuth';
 import { useManagerRollup } from '../../hooks/useManagerRollup';
 import type { ManagerRollupRow, MetricTrend } from '../../hooks/useManagerRollup';
 
-function TrendChip({ label, trend }: { label: string; trend: MetricTrend }) {
-  const majorityDeclining = trend.declining > trend.improving;
-  const majorityImproving = trend.improving > trend.declining;
+const SHORT_NAMES: Record<string, string> = {
+  ticket_volume: 'Tickets',
+  first_reply_time: 'First Reply',
+  csat_score: 'CSAT',
+  sla_compliance: 'SLA',
+  resolution_rate: 'Resolution',
+  schedule_adherence: 'Adherence',
+  occupancy: 'Occupancy',
+  handle_time: 'Handle Time',
+};
 
-  let chipClass: string;
-  let count: number;
-  let arrow: string;
+function TrendChip({ metricKey, trend }: { metricKey: string; trend: MetricTrend }) {
+  const isPositive =
+    (trend.direction === 'higher_is_better' && trend.improving > trend.declining) ||
+    (trend.direction === 'lower_is_better' && trend.declining > trend.improving);
+  const isNegative =
+    (trend.direction === 'higher_is_better' && trend.declining > trend.improving) ||
+    (trend.direction === 'lower_is_better' && trend.improving > trend.declining);
 
-  if (majorityDeclining) {
-    chipClass = 'bg-[#FAEEDA] text-[#854F0B]';
-    count = trend.declining;
-    arrow = '↓';
-  } else if (majorityImproving) {
-    chipClass = 'bg-[#E1F5EE] text-[#0F6E56]';
-    count = trend.improving;
-    arrow = '↑';
-  } else {
-    chipClass = 'bg-slate-100 text-slate-500';
-    count = trend.improving;
-    arrow = '↑';
-  }
+  const chipClass = isPositive
+    ? 'bg-[#E1F5EE] text-[#0F6E56]'
+    : isNegative
+      ? 'bg-[#FAEEDA] text-[#854F0B]'
+      : 'bg-slate-100 text-slate-500';
+
+  const goodCount = trend.direction === 'lower_is_better' ? trend.declining : trend.improving;
+  const label = SHORT_NAMES[metricKey] ?? metricKey;
 
   return (
     <span className={`text-xs px-2 py-0.5 rounded-full ${chipClass}`}>
-      {label} {count}{arrow} of {trend.total}
+      {label} {goodCount} of {trend.total}
     </span>
   );
 }
@@ -116,7 +122,7 @@ export function RollupPage() {
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-xs text-slate-400 truncate">{row.manager.email}</span>
                       <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full whitespace-nowrap">
-                        {row.employeeCount} reports
+                        {`${row.employeeCount} report${row.employeeCount === 1 ? '' : 's'}`}
                       </span>
                     </div>
                   </div>
@@ -125,7 +131,7 @@ export function RollupPage() {
                       chips.map(def => {
                         const trend = row.trends[def.key];
                         if (!trend) return null;
-                        return <TrendChip key={def.key} label={def.name} trend={trend} />;
+                        return <TrendChip key={def.key} metricKey={def.key} trend={trend} />;
                       })
                     ) : (
                       <span className="text-xs text-slate-300">No data yet</span>

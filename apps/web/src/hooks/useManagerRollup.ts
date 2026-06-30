@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { startOfWeek, subWeeks, addDays, format } from 'date-fns';
+import { startOfWeek, subWeeks, format } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import type { Profile, Employee, MetricSnapshot, MetricDefinition } from '@scorecard/shared';
 
@@ -7,6 +7,7 @@ export interface MetricTrend {
   improving: number;
   declining: number;
   total: number;
+  direction: string;
 }
 
 export interface ManagerRollupRow {
@@ -153,7 +154,7 @@ export function useManagerRollup() {
             }
           }
 
-          trends[def.key] = { improving, declining, total };
+          trends[def.key] = { improving, declining, total, direction: def.direction };
         }
 
         return { manager, employeeCount: empIds.length, trends };
@@ -167,8 +168,10 @@ export function useManagerRollup() {
       });
 
       if (snapshots.length > 0) {
-        const weekEnd = addDays(thisMonday, 6);
-        setWeekRange(`Week of ${format(thisMonday, 'MMM d')} – ${format(weekEnd, 'MMM d')}`);
+        const sunday = new Date(thisMonday.getTime());
+        sunday.setDate(sunday.getDate() + 6);
+        const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+        setWeekRange(`Week of ${dateFmt.format(thisMonday)} – ${dateFmt.format(sunday)}`);
       }
 
       setDefinitions(defs);
