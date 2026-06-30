@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDirectReports } from '../../hooks/useDirectReports';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
@@ -31,6 +31,9 @@ export function DashboardPage() {
   const { canInstall, install } = useInstallPrompt();
   const menuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const managerFilter = searchParams.get('manager');
+  const managerName = searchParams.get('name');
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -44,9 +47,11 @@ export function DashboardPage() {
   }, [menuOpen]);
 
   const filteredEmployees = useMemo(() => {
-    let list = showOnlyWithMetrics
-      ? employees.filter(emp => employeesWithMetrics.has(emp.id))
-      : employees;
+    let list = managerFilter
+      ? employees.filter(emp => emp.manager_id === managerFilter)
+      : showOnlyWithMetrics
+        ? employees.filter(emp => employeesWithMetrics.has(emp.id))
+        : employees;
 
     if (search.trim()) {
       const q = search.trim().toLowerCase();
@@ -65,7 +70,7 @@ export function DashboardPage() {
     }
 
     return list;
-  }, [employees, employeesWithMetrics, showOnlyWithMetrics, search, sortMode, previewMetrics]);
+  }, [employees, employeesWithMetrics, showOnlyWithMetrics, search, sortMode, previewMetrics, managerFilter]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -194,10 +199,23 @@ export function DashboardPage() {
       </nav>
 
       <main className="max-w-4xl mx-auto p-6">
+        {managerFilter && (
+          <div className="bg-[#E1F5EE] border-b border-[#9FE1CB] px-4 py-2 text-sm flex items-center justify-between mb-4">
+            <span className="text-[#0F6E56] font-medium">
+              {`Viewing ${managerName ?? 'this manager'}'s team`}
+            </span>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="text-xs text-[#0F6E56] hover:underline"
+            >
+              ← All teams
+            </button>
+          </div>
+        )}
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-hr-navy">Your Team</h2>
-            {!loading && employees.length > 0 && (
+            {!loading && employees.length > 0 && !managerFilter && (
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowOnlyWithMetrics(true)}

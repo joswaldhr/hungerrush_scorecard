@@ -1,106 +1,62 @@
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useManagerRollup } from '../../hooks/useManagerRollup';
-import type { MetricTrend } from '../../hooks/useManagerRollup';
-import type { MetricDefinition } from '@scorecard/shared';
+import type { ManagerRollupRow, MetricTrend } from '../../hooks/useManagerRollup';
 
-function TrendCell({ trend }: { trend: MetricTrend }) {
-  if (trend.total === 0) {
-    return <span className="text-slate-400 text-sm">No data</span>;
+function TrendChip({ label, trend }: { label: string; trend: MetricTrend }) {
+  const majorityDeclining = trend.declining > trend.improving;
+  const majorityImproving = trend.improving > trend.declining;
+
+  let chipClass: string;
+  let count: number;
+  let arrow: string;
+
+  if (majorityDeclining) {
+    chipClass = 'bg-[#FAEEDA] text-[#854F0B]';
+    count = trend.declining;
+    arrow = '↓';
+  } else if (majorityImproving) {
+    chipClass = 'bg-[#E1F5EE] text-[#0F6E56]';
+    count = trend.improving;
+    arrow = '↑';
+  } else {
+    chipClass = 'bg-slate-100 text-slate-500';
+    count = trend.improving;
+    arrow = '↑';
   }
 
-  const neutral = trend.total - trend.improving - trend.declining;
-  const majorityImproving = trend.improving > trend.declining;
-  const majorityDeclining = trend.declining > trend.improving;
-
-  let colorClass = 'text-slate-400';
-  if (majorityImproving) colorClass = 'text-hr-green';
-  if (majorityDeclining) colorClass = 'text-amber-500';
-
   return (
-    <span className={`text-sm font-medium ${colorClass}`}>
-      {trend.improving} of {trend.total}
-      {neutral > 0 && (
-        <span className="text-slate-400 font-normal"> ({neutral} steady)</span>
-      )}
+    <span className={`text-xs px-2 py-0.5 rounded-full ${chipClass}`}>
+      {label} {count}{arrow} of {trend.total}
     </span>
   );
 }
 
 function TableSkeleton() {
   return (
-    <div className="bg-white rounded-lg overflow-hidden">
-      <div className="animate-pulse p-4 space-y-4">
-        {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="flex items-center gap-4">
-            <div className="h-4 bg-slate-200 rounded w-1/4" />
-            <div className="h-4 bg-slate-200 rounded w-12" />
-            <div className="h-4 bg-slate-200 rounded w-16" />
-            <div className="h-4 bg-slate-200 rounded w-16" />
-            <div className="h-4 bg-slate-200 rounded w-16" />
+    <div className="space-y-1">
+      {Array.from({ length: 4 }, (_, i) => (
+        <div key={i} className="animate-pulse flex items-center gap-4 px-4 py-3 bg-white rounded-lg">
+          <div className="w-[300px] flex-shrink-0 space-y-2">
+            <div className="h-4 bg-slate-200 rounded w-2/3" />
+            <div className="h-3 bg-slate-200 rounded w-1/2" />
           </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function RollupTable({
-  rows,
-  definitions,
-  onManagerClick,
-}: {
-  rows: ReturnType<typeof useManagerRollup>['rows'];
-  definitions: MetricDefinition[];
-  onManagerClick: (managerId: string) => void;
-}) {
-  return (
-    <div className="bg-white rounded-lg overflow-x-auto">
-      <table className="w-full text-left">
-        <thead>
-          <tr className="border-b border-slate-200">
-            <th className="px-4 py-3 text-sm font-semibold text-hr-navy">Manager</th>
-            <th className="px-4 py-3 text-sm font-semibold text-hr-navy text-center">Team</th>
-            {definitions.map(def => (
-              <th key={def.key} className="px-4 py-3 text-sm font-semibold text-hr-navy text-center">
-                {def.name}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(row => (
-            <tr
-              key={row.manager.id}
-              onClick={() => onManagerClick(row.manager.id)}
-              className="border-b border-slate-100 hover:bg-hr-green-light/50 cursor-pointer transition-colors"
-            >
-              <td className="px-4 py-3">
-                <p className="font-medium text-hr-navy">{row.manager.full_name}</p>
-                <p className="text-xs text-slate-500">{row.manager.email}</p>
-              </td>
-              <td className="px-4 py-3 text-center text-sm text-slate-600">
-                {row.employeeCount}
-              </td>
-              {definitions.map(def => (
-                <td key={def.key} className="px-4 py-3 text-center">
-                  <TrendCell trend={row.trends[def.key] ?? { improving: 0, declining: 0, total: 0 }} />
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          <div className="flex-1 flex gap-2">
+            <div className="h-6 bg-slate-200 rounded-full w-24" />
+            <div className="h-6 bg-slate-200 rounded-full w-28" />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
 
 export function RollupPage() {
   const { session, loading: authLoading } = useAuth();
-  const { rows, definitions, loading, error } = useManagerRollup();
+  const { rows, definitions, weekRange, loading, error } = useManagerRollup();
   const navigate = useNavigate();
 
-  if (authLoading) return <TableSkeleton />;
+  if (authLoading) return <div className="min-h-screen bg-hr-gray p-6"><TableSkeleton /></div>;
   if (!session) return <Navigate to="/login" replace />;
 
   const role = session.user.app_metadata?.['role'] as string | undefined;
@@ -108,8 +64,9 @@ export function RollupPage() {
     return <Navigate to="/dashboard" replace />;
   }
 
-  const handleManagerClick = (managerId: string) => {
-    navigate(`/dashboard?manager=${managerId}`);
+  const handleManagerClick = (row: ManagerRollupRow) => {
+    const params = new URLSearchParams({ manager: row.manager.id, name: row.manager.full_name });
+    navigate(`/dashboard?${params.toString()}`);
   };
 
   return (
@@ -119,11 +76,13 @@ export function RollupPage() {
         <span className="hidden sm:inline text-sm text-slate-300">{session.user.email}</span>
       </nav>
 
-      <main className="max-w-6xl mx-auto p-6">
+      <main className="max-w-4xl mx-auto p-6">
         <div className="mb-6">
-          <h2 className="text-xl font-bold text-hr-navy">Your Managers</h2>
-          <p className="text-sm text-slate-500 mt-1">
-            Trend shows how many team members are improving compared to last week
+          <h2 className="text-xl font-medium text-hr-navy">Your Managers</h2>
+          <p className="text-xs text-slate-400 mt-1">
+            {rows.length} managers
+            {weekRange ? ` · ${weekRange}` : ''}
+            {!weekRange && rows.length > 0 ? ' · Trend data builds after two weekly syncs' : ''}
           </p>
         </div>
 
@@ -143,11 +102,42 @@ export function RollupPage() {
             </p>
           </div>
         ) : (
-          <RollupTable
-            rows={rows}
-            definitions={definitions}
-            onManagerClick={handleManagerClick}
-          />
+          <div className="space-y-1">
+            {rows.map(row => {
+              const chips = definitions.filter(d => (row.trends[d.key]?.total ?? 0) > 0);
+              return (
+                <div
+                  key={row.manager.id}
+                  onClick={() => handleManagerClick(row)}
+                  className="group flex items-center bg-white rounded-lg px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors"
+                >
+                  <div className="w-[300px] flex-shrink-0 min-w-0">
+                    <p className="font-medium text-sm text-hr-navy truncate">{row.manager.full_name}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-slate-400 truncate">{row.manager.email}</span>
+                      <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full whitespace-nowrap">
+                        {row.employeeCount} reports
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex-1 flex flex-wrap gap-1.5 min-w-0">
+                    {chips.length > 0 ? (
+                      chips.map(def => {
+                        const trend = row.trends[def.key];
+                        if (!trend) return null;
+                        return <TrendChip key={def.key} label={def.name} trend={trend} />;
+                      })
+                    ) : (
+                      <span className="text-xs text-slate-300">No data yet</span>
+                    )}
+                  </div>
+                  <div className="ml-2 opacity-0 group-hover:opacity-100 text-slate-300 text-xs transition-opacity flex-shrink-0">
+                    &#8250;
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </main>
     </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { startOfWeek, subWeeks, format } from 'date-fns';
+import { startOfWeek, subWeeks, addDays, format } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import type { Profile, Employee, MetricSnapshot, MetricDefinition } from '@scorecard/shared';
 
@@ -20,6 +20,7 @@ export function useManagerRollup() {
   const [definitions, setDefinitions] = useState<MetricDefinition[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [weekRange, setWeekRange] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -158,6 +159,18 @@ export function useManagerRollup() {
         return { manager, employeeCount: empIds.length, trends };
       });
 
+      result.sort((a, b) => {
+        const aChips = Object.values(a.trends).filter(t => t.total > 0).length;
+        const bChips = Object.values(b.trends).filter(t => t.total > 0).length;
+        if (aChips !== bChips) return bChips - aChips;
+        return a.manager.full_name.localeCompare(b.manager.full_name);
+      });
+
+      if (snapshots.length > 0) {
+        const weekEnd = addDays(thisMonday, 6);
+        setWeekRange(`Week of ${format(thisMonday, 'MMM d')} – ${format(weekEnd, 'MMM d')}`);
+      }
+
       setDefinitions(defs);
       setRows(result);
       setLoading(false);
@@ -166,5 +179,5 @@ export function useManagerRollup() {
     load();
   }, []);
 
-  return { rows, definitions, loading, error };
+  return { rows, definitions, weekRange, loading, error };
 }
