@@ -68,7 +68,7 @@ export function TourModal({ open, onClose }: TourModalProps) {
       <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 sm:p-8">
         <div className="flex flex-col items-center text-center">
           <div className="mb-4">{current.icon}</div>
-          <h2 className="text-xl font-bold text-hr-navy mb-2">{current.title}</h2>
+          <h2 className="text-xl font-bold text-slate-800 mb-2">{current.title}</h2>
           <p className="text-slate-600 text-sm leading-relaxed">{current.body}</p>
         </div>
 

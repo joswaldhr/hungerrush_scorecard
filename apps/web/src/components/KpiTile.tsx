@@ -119,7 +119,7 @@ export function KpiTile({ definition, value, syncedAt, history }: KpiTileProps) 
       {isNull ? (
         <p className="text-base text-slate-400">{nullLabel}</p>
       ) : (
-        <p className="text-2xl font-medium text-hr-navy">
+        <p className="text-2xl font-medium text-slate-800">
           {formatMetricValue(value, definition.unit)}
         </p>
       )}

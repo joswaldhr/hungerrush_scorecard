@@ -9,7 +9,7 @@ function PageSkeleton() {
       <div className="bg-hr-navy text-white px-6 py-4">
         <div className="animate-pulse h-5 bg-slate-600 rounded w-48" />
       </div>
-      <main className="max-w-5xl mx-auto p-6 space-y-8">
+      <main className="max-w-5xl mx-auto p-6 sm:p-8 space-y-10">
         <div className="animate-pulse space-y-2">
           <div className="h-6 bg-slate-200 rounded w-1/3" />
           <div className="h-4 bg-slate-200 rounded w-1/4" />
@@ -51,19 +51,19 @@ function SharedScorecardContent({ token }: { token: string }) {
         <div className="bg-white p-8 rounded-lg text-center max-w-md">
           {errorType === 'expired' && (
             <>
-              <p className="text-lg font-medium text-hr-navy mb-2">Link Expired</p>
+              <p className="text-lg font-medium text-slate-800 mb-2">Link Expired</p>
               <p className="text-slate-500">{error}</p>
             </>
           )}
           {errorType === 'not_found' && (
             <>
-              <p className="text-lg font-medium text-hr-navy mb-2">Link Not Found</p>
+              <p className="text-lg font-medium text-slate-800 mb-2">Link Not Found</p>
               <p className="text-slate-500">{error}</p>
             </>
           )}
           {errorType === 'network' && (
             <>
-              <p className="text-lg font-medium text-hr-navy mb-2">Connection Error</p>
+              <p className="text-lg font-medium text-slate-800 mb-2">Connection Error</p>
               <p className="text-slate-500">{error}</p>
             </>
           )}
@@ -108,14 +108,14 @@ function SharedScorecardContent({ token }: { token: string }) {
         <h1 className="text-lg font-bold">HungerRush Scorecard</h1>
       </nav>
 
-      <main className="max-w-5xl mx-auto p-6 space-y-8">
+      <main className="max-w-5xl mx-auto p-6 sm:p-8 space-y-10">
         <div>
-          <h2 className="text-xl font-bold text-hr-navy">{employee.full_name}</h2>
+          <h2 className="text-xl font-bold text-slate-800">{employee.full_name}</h2>
           <p className="text-sm text-slate-500">{employee.email}</p>
         </div>
 
         <section>
-          <h3 className="text-lg font-bold text-hr-navy mb-4">This Week So Far</h3>
+          <h3 className="text-lg font-bold text-slate-800 mb-4">This Week So Far</h3>
           {currentWeekMetrics.length === 0 && metrics.every(m => m.currentValue === null) ? (
             <div className="bg-white p-6 rounded-lg text-center">
               <p className="text-slate-500 mb-1">No metrics synced for this week yet.</p>
@@ -140,7 +140,7 @@ function SharedScorecardContent({ token }: { token: string }) {
 
         {metrics.some(m => m.lastWeekValue !== null) && (
           <section>
-            <h3 className="text-lg font-bold text-hr-navy mb-4">Last Week (Completed)</h3>
+            <h3 className="text-lg font-bold text-slate-800 mb-4">Last Week (Completed)</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {metrics
                 .filter(m => m.lastWeekValue !== null && m.lastWeekValue !== 0)

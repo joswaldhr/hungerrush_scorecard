@@ -69,10 +69,10 @@ export function NotesPanel({
   return (
     <div className="space-y-8">
       <div className="bg-white rounded-lg p-6 space-y-4">
-        <h3 className="text-lg font-bold text-hr-navy">New 1:1 Session</h3>
+        <h3 className="text-lg font-bold text-slate-800">New 1:1 Session</h3>
 
         <div>
-          <label className="block text-sm font-medium text-hr-navy mb-1">Session Date</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Session Date</label>
           <input
             type="date"
             value={sessionDate}
@@ -82,7 +82,7 @@ export function NotesPanel({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-hr-navy mb-1">Notes</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Notes</label>
           <textarea
             value={noteContent}
             onChange={e => setNoteContent(e.target.value)}
@@ -93,7 +93,7 @@ export function NotesPanel({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-hr-navy mb-1">Action Items</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Action Items</label>
           <div className="space-y-2">
             {actionItems.map((item, i) => (
               <div key={i} className="flex items-center gap-2">
@@ -155,10 +155,10 @@ export function NotesPanel({
 
       {sessions.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-bold text-hr-navy">Previous Sessions</h3>
+          <h3 className="text-lg font-bold text-slate-800">Previous Sessions</h3>
           {sessions.map(session => (
             <div key={session.id} className="bg-white rounded-lg p-5 space-y-3">
-              <p className="text-sm font-medium text-hr-navy">
+              <p className="text-sm font-medium text-slate-700">
                 {format(parseISO(session.session_date), 'MMMM d, yyyy')}
               </p>
 

@@ -63,7 +63,7 @@ export function MetricCard({ metric, saving, onSave }: MetricCardProps) {
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-hr-navy mb-1">Display Name</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Display Name</label>
           <input
             type="text"
             value={name}
@@ -73,7 +73,7 @@ export function MetricCard({ metric, saving, onSave }: MetricCardProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-hr-navy mb-1">
+          <label className="block text-sm font-medium text-slate-700 mb-1">
             Coaching Prompt Template
           </label>
           <textarea
@@ -86,7 +86,7 @@ export function MetricCard({ metric, saving, onSave }: MetricCardProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-hr-navy mb-1">Display Order</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Display Order</label>
             <input
               type="number"
               value={displayOrder}

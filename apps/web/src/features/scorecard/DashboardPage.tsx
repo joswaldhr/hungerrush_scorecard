@@ -198,7 +198,7 @@ export function DashboardPage() {
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto p-6">
+      <main className="max-w-4xl mx-auto p-6 sm:p-8">
         {managerFilter && (
           <div className="bg-[#E1F5EE] border-b border-[#9FE1CB] px-4 py-2 text-sm flex items-center justify-between mb-4">
             <span className="text-[#0F6E56] font-medium">
@@ -214,7 +214,7 @@ export function DashboardPage() {
         )}
         <div className="mb-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-hr-navy">Your Team</h2>
+            <h2 className="text-xl font-bold text-slate-800">Your Team</h2>
             {!loading && employees.length > 0 && !managerFilter && (
               <div className="flex items-center gap-2">
                 <button
@@ -335,7 +335,7 @@ export function DashboardPage() {
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-hr-navy">{emp.full_name}</p>
+                    <p className="font-medium text-slate-800">{emp.full_name}</p>
                     <p className="text-sm text-slate-500 truncate">{emp.email}</p>
                   </div>
                   {hasMetrics && preview && (preview.ticket_volume !== null || preview.first_reply_time !== null) ? (
@@ -343,13 +343,13 @@ export function DashboardPage() {
                       {preview.ticket_volume !== null && (
                         <div>
                           <p className="text-xs text-slate-400">Tickets</p>
-                          <p className="text-sm font-medium text-hr-navy">{preview.ticket_volume === 0 ? '—' : formatMetricValue(preview.ticket_volume, 'count')}</p>
+                          <p className="text-sm font-medium text-slate-800">{preview.ticket_volume === 0 ? '—' : formatMetricValue(preview.ticket_volume, 'count')}</p>
                         </div>
                       )}
                       {preview.first_reply_time !== null && (
                         <div>
                           <p className="text-xs text-slate-400">First Reply</p>
-                          <p className="text-sm font-medium text-hr-navy">{preview.first_reply_time === 0 ? '—' : formatMetricValue(preview.first_reply_time, 'seconds')}</p>
+                          <p className="text-sm font-medium text-slate-800">{preview.first_reply_time === 0 ? '—' : formatMetricValue(preview.first_reply_time, 'seconds')}</p>
                         </div>
                       )}
                     </div>

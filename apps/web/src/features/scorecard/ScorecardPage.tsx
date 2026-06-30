@@ -15,7 +15,7 @@ function PageSkeleton() {
       <div className="bg-hr-navy text-white px-6 py-4">
         <div className="animate-pulse h-5 bg-slate-600 rounded w-48" />
       </div>
-      <main className="max-w-5xl mx-auto p-6 space-y-8">
+      <main className="max-w-5xl mx-auto p-6 sm:p-8 space-y-10">
         <div className="animate-pulse space-y-2">
           <div className="h-6 bg-slate-200 rounded w-1/3" />
           <div className="h-4 bg-slate-200 rounded w-1/4" />
@@ -206,10 +206,10 @@ export function ScorecardPage() {
         </div>
       </nav>
 
-      <main className="max-w-5xl mx-auto p-6 space-y-8">
+      <main className="max-w-5xl mx-auto p-6 sm:p-8 space-y-10">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-xl font-bold text-hr-navy">{employee.full_name}</h2>
+            <h2 className="text-xl font-bold text-slate-800">{employee.full_name}</h2>
             <p className="text-sm text-slate-500">{employee.email}</p>
           </div>
           <div className="flex items-center gap-2">
@@ -251,7 +251,7 @@ export function ScorecardPage() {
         </div>
 
         <section>
-          <h3 className="text-lg font-bold text-hr-navy mb-4">This Week So Far</h3>
+          <p className="text-xs font-medium uppercase tracking-wider text-slate-400 mb-4">This Week So Far</p>
           {metricsError && (
             <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-lg mb-4 text-sm">
               {metricsError}
@@ -291,7 +291,7 @@ export function ScorecardPage() {
         </section>
 
         <section>
-          <h3 className="text-lg font-bold text-hr-navy mb-4">Last Week (Completed)</h3>
+          <p className="text-xs font-medium uppercase tracking-wider text-slate-400 mb-4">Last Week (Completed)</p>
           {lastWeekMetrics.length === 0 ? (
             <div className="bg-white p-6 rounded-lg text-center">
               <p className="text-slate-500 mb-1">No completed snapshot for last week.</p>
@@ -316,7 +316,8 @@ export function ScorecardPage() {
           )}
         </section>
 
-        <section>
+        <div className="bg-white rounded-xl border border-slate-200 p-6 mt-8">
+          <p className="text-xs font-medium uppercase tracking-wider text-slate-400 mb-4">1:1 Notes</p>
           {notesError && (
             <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-lg mb-4 text-sm">
               {notesError}
@@ -329,7 +330,7 @@ export function ScorecardPage() {
             onSave={createSession}
             onToggleActionItem={toggleActionItem}
           />
-        </section>
+        </div>
       </main>
     </div>
   );

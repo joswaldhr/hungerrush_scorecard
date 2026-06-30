@@ -99,9 +99,9 @@ export function ExportLogPage() {
         <span className="hidden sm:inline text-sm text-slate-300">{session.user.email}</span>
       </nav>
 
-      <main className="max-w-5xl mx-auto p-6">
+      <main className="max-w-5xl mx-auto p-6 sm:p-8">
         <div className="mb-6">
-          <h2 className="text-xl font-bold text-hr-navy">PDF Export History</h2>
+          <h2 className="text-xl font-bold text-slate-800">PDF Export History</h2>
           <p className="text-sm text-slate-500 mt-1">
             All scorecard PDF exports with manager and timestamp
           </p>
@@ -127,9 +127,9 @@ export function ExportLogPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-slate-200">
-                  <th className="px-4 py-3 text-sm font-semibold text-hr-navy">Date</th>
-                  <th className="px-4 py-3 text-sm font-semibold text-hr-navy">Exported By</th>
-                  <th className="px-4 py-3 text-sm font-semibold text-hr-navy">Employee</th>
+                  <th className="px-4 py-3 text-sm font-semibold text-slate-700">Date</th>
+                  <th className="px-4 py-3 text-sm font-semibold text-slate-700">Exported By</th>
+                  <th className="px-4 py-3 text-sm font-semibold text-slate-700">Employee</th>
                 </tr>
               </thead>
               <tbody>

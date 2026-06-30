@@ -82,9 +82,9 @@ export function RollupPage() {
         <span className="hidden sm:inline text-sm text-slate-300">{session.user.email}</span>
       </nav>
 
-      <main className="max-w-4xl mx-auto p-6">
+      <main className="max-w-4xl mx-auto p-6 sm:p-8">
         <div className="mb-6">
-          <h2 className="text-xl font-medium text-hr-navy">Your Managers</h2>
+          <h2 className="text-xl font-medium text-slate-800">Your Managers</h2>
           <p className="text-xs text-slate-400 mt-1">
             {rows.length} managers
             {weekRange ? ` · ${weekRange}` : ''}
@@ -118,7 +118,7 @@ export function RollupPage() {
                   className="group flex items-center bg-white rounded-lg px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors"
                 >
                   <div className="w-[300px] flex-shrink-0 min-w-0">
-                    <p className="font-medium text-sm text-hr-navy truncate">{row.manager.full_name}</p>
+                    <p className="font-medium text-sm text-slate-800 truncate">{row.manager.full_name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-xs text-slate-400 truncate">{row.manager.email}</span>
                       <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full whitespace-nowrap">

@@ -71,7 +71,7 @@ export function MetricConfigPage() {
         <span className="hidden sm:inline text-sm text-slate-300">{session.user.email}</span>
       </nav>
 
-      <main className="max-w-4xl mx-auto p-6">
+      <main className="max-w-4xl mx-auto p-6 sm:p-8">
         <p className="text-slate-500 mb-6">
           Configure which metrics appear on scorecards, their display names, and coaching prompts.
         </p>
