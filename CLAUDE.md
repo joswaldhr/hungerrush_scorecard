@@ -7,10 +7,10 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-07-01 (session 15)
+**Last updated:** 2026-07-01 (session 17)
 
 ### Current state
-All 5 development phases and all 4 UI/UX redesign sprints are complete and committed to master. Full visual overhaul is in progress (uncommitted) — new design system, AppShell sidebar layout, warm sand/stone palette across all components.
+All 5 development phases, all 4 UI/UX redesign sprints, full layout redesign, and visual polish pass complete and pushed to master. AppLayout.tsx with left sidebar, bg-[#F7F6F3] content area for card contrast. Active visual review cycle in progress — screenshot-driven fixes.
 
 ### Production URLs
 - **Frontend (Vercel):** `https://hungerrush-scorecard.vercel.app`
@@ -22,11 +22,25 @@ All 5 development phases and all 4 UI/UX redesign sprints are complete and commi
 - **Sprint 3:** Rollup redesign — data-first sorting, no-data collapse, trend chips with direction-aware colors, week indicator, drill-down to manager's team
 - **Sprint 4:** Typography polish — slate type scale for content headings/labels (hr-navy preserved for nav), section spacing, uppercase section headers on scorecard, notes panel wrapped in card with label, login card redesign (accent bar, rounded-xl, tighter layout)
 
-### NEXT: Full layout redesign — replacing top nav with left sidebar (AppShell.tsx)
-- AppShell.tsx created with hr-navy sidebar (desktop), mobile drawer, role-based nav, theme toggle, sign out
-- New design system in tailwind.config.ts: warm sand/stone palette (hr-sand, hr-text-1/2/3), Inter font, 0.5px borders, custom shadows
-- All 13 page/component files rewritten with new visual system (visual only — zero logic changes)
-- Typecheck passes across all workspaces
+### Layout redesign (complete, committed to master)
+- AppShell.tsx deleted, replaced by AppLayout.tsx — 220px hr-navy left sidebar (desktop), hidden on mobile
+- Role-based nav: Users (dashboard), LayoutGrid (rollup, senior_manager+), SlidersHorizontal (metrics, admin), FileOutput (export log, admin)
+- User identity block with initials avatar, email, sign-out on hover
+- 52px white topbar with title, optional subtitle, and actions slot
+- All 6 authenticated pages migrated (Dashboard, Scorecard, Rollup, MetricConfig, ExportLog + SharedScorecard uses LogoMark export only)
+- LoginPage redesigned standalone (no sidebar) — navy brand mark, green accent bar, green CTA
+- Polish fixes: compact stats cards, employee list card border, metric preview min-width, KPI tile gap tightened
+- Latest commits: `1afa210` (layout redesign), `18a8717` (polish fixes)
+
+### Visual polish pass (session 17, committed to master)
+- AppLayout `<main>` given `bg-[#F7F6F3]` — white cards now have contrast against page background
+- Dashboard stats cards: label-on-top layout, `text-[24px]` value + green sub text inline via `flex items-baseline`, last-synced splits date/time
+- Employee list rows: `border-b border-[#F0EEE9] last:border-b-0`, `cursor-pointer`, `duration-100`
+- Metric preview columns: `gap-6 pr-2`, `min-w-[72px] text-right` per column
+- Null KPI tiles: `p-4 min-h-0`, sparkline hidden when null
+- Scorecard section labels: `mb-3 mt-2` for breathing room
+- Notes card wrapper confirmed: `bg-white rounded-xl border border-[#E8E6E1] p-5 mt-4` (was invisible before bg fix)
+- Latest commits: `ce91be7` → `3cacb65` → `43b9cc9` → `5a9411b`
 
 ### Remaining follow-ups (non-blocking)
 1. **Connection pooling** — add `?pgbouncer=true` to Supabase connection string in API, set pool size to 10
@@ -304,8 +318,8 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | 4 | Senior manager rollup · employee sharing · PDF export · email nudge | ✅ | A senior manager sees team trends; a manager can share a read-only card |
 | 5 | Polish · onboarding tour · PWA · audit log · load test · prod deploy | ✅ | Pilot managers using it in production |
 
-**Current phase:** Complete — all 5 phases delivered. All 4 UI/UX redesign sprints complete. Polished and ready for pilot manager rollout.
-**Last session:** 2026-06-30 (session 14) — Sprint 4 typography polish complete: slate type scale for content headings/labels across all 11 page components, uppercase section headers on scorecard, notes panel wrapped in bordered card, login card redesign. Three non-blocking follow-ups remain (connection pooling, CORS lockdown, email nudge).
+**Current phase:** Complete — all 5 phases delivered. All 4 UI/UX redesign sprints and full layout redesign complete. Pushed to production.
+**Last session:** 2026-07-01 (session 17) — Visual polish pass: added bg-[#F7F6F3] to AppLayout main content area (root cause of invisible white cards), redesigned stats cards (label-on-top, split timestamp, green sub text), employee row dividers + cursor, metric column spacing, null tile compaction, section label breathing room. Three non-blocking follow-ups remain (connection pooling, CORS lockdown, email nudge).
 
 ---
 
