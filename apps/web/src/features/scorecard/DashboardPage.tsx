@@ -112,27 +112,25 @@ export function DashboardPage() {
 
       {!loading && employees.length > 0 && !managerFilter && (
         <div className="grid grid-cols-3 gap-2">
-          <div className="bg-white rounded-xl border border-[#E8E6E1] py-3 px-5">
-            <div className="flex items-baseline gap-2">
-              <span className="text-[20px] font-medium text-slate-800">{employeesWithMetrics.size}</span>
-              <span className="text-[12px] text-slate-400">with metrics</span>
+          <div className="py-3 px-5 bg-white rounded-xl border border-[#E8E6E1]">
+            <p className="text-[11px] text-slate-400 mb-1">With metrics</p>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-[24px] font-medium text-slate-800 leading-none">{employeesWithMetrics.size}</span>
+              <span className="text-[12px] text-slate-400">{`of ${employees.length} total`}</span>
             </div>
-            <div className="text-[11px] text-[#1D9E75] mt-0.5">{`of ${employees.length} total`}</div>
           </div>
-          <div className="bg-white rounded-xl border border-[#E8E6E1] py-3 px-5">
-            <div className="flex items-baseline gap-2">
-              <span className="text-[20px] font-medium text-slate-800">{avgTickets ?? '—'}</span>
-              <span className="text-[12px] text-slate-400">avg tickets</span>
+          <div className="py-3 px-5 bg-white rounded-xl border border-[#E8E6E1]">
+            <p className="text-[11px] text-slate-400 mb-1">Avg tickets</p>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-[24px] font-medium text-slate-800 leading-none">{avgTickets ?? '—'}</span>
+              <span className="text-[12px] text-slate-400">this week</span>
             </div>
-            <div className="text-[11px] text-[#1D9E75] mt-0.5">this week</div>
           </div>
-          <div className="bg-white rounded-xl border border-[#E8E6E1] py-3 px-5">
-            <div className="flex items-baseline gap-2">
-              <span className="text-[20px] font-medium text-slate-800">
-                {lastSyncedAt ? format(new Date(lastSyncedAt), 'MMM d, h:mm a') : '—'}
-              </span>
-              <span className="text-[12px] text-slate-400">last synced</span>
-            </div>
+          <div className="py-3 px-5 bg-white rounded-xl border border-[#E8E6E1]">
+            <p className="text-[11px] text-slate-400 mb-1">Last synced</p>
+            <span className="text-[24px] font-medium text-slate-800 leading-none">
+              {lastSyncedAt ? format(new Date(lastSyncedAt), 'MMM d, h:mm a') : '—'}
+            </span>
           </div>
         </div>
       )}
