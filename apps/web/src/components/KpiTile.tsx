@@ -107,7 +107,7 @@ export function KpiTile({ definition, value, syncedAt, history }: KpiTileProps) 
   const valueColorClass = getValueColor(value);
 
   return (
-    <div className="bg-white border-half border-hr-base rounded-xl p-5 hover:shadow-card-hover hover:border-hr-strong transition-all duration-150 group">
+    <div className={`bg-white border-half border-hr-base rounded-xl ${isNull ? 'p-4 min-h-0' : 'p-5'} hover:shadow-card-hover hover:border-hr-strong transition-all duration-150 group`}>
       <div className="flex items-center justify-between mb-3">
         <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-hr-text-3">
           {definition.name}
@@ -128,9 +128,11 @@ export function KpiTile({ definition, value, syncedAt, history }: KpiTileProps) 
         </p>
       )}
 
-      <div className="mt-3">
-        <Sparkline history={history} />
-      </div>
+      {!isNull && (
+        <div className="mt-3">
+          <Sparkline history={history} />
+        </div>
+      )}
 
       <div className="hidden group-hover:block border-t border-half border-hr-base pt-3 mt-3">
         <p className="text-[11px] text-hr-text-3 leading-relaxed">{definition.coaching_prompt}</p>

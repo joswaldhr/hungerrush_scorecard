@@ -305,7 +305,7 @@ export function ScorecardPage() {
         )}
       </section>
 
-      <div className="bg-white rounded-xl border border-[#E8E6E1] p-5 mt-6">
+      <div className="bg-white rounded-xl border border-[#E8E6E1] p-5 mt-4">
         <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400 mb-4">1:1 Notes</p>
         {notesError && (
           <div className="bg-[#FFFBEB] border border-[#D97706]/20 text-[#D97706] p-4 rounded-xl mb-4 text-[13px]">
