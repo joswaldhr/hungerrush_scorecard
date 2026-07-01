@@ -10,7 +10,11 @@
 **Last updated:** 2026-07-01 (session 18)
 
 ### Current state
-All 5 development phases, all 4 UI/UX redesign sprints, full layout redesign, visual polish pass, and UX audit fixes (2 batches, 15 issues) complete and pushed to master. Full 8-dimension UX audit performed (navigation, interaction clarity, feedback, empty/error states, cognitive load, trust, mobile, routing). Two remaining audit items not yet addressed: mobile navigation (hamburger/drawer) and MetricConfigPage save success confirmation.
+All 5 development phases, all 4 UI/UX redesign sprints, full layout redesign (AppLayout with left sidebar, all pages migrated), visual polish pass, and UX audit fixes complete. App is pilot-ready at `hungerrush-scorecard.vercel.app`.
+
+**UX Batch 1:** save confirmation, error states in AppLayout, back to rollup, clickable breadcrumb, clipboard error handling, PDF audit decoupled, prev/next replace, offline banner auto-dismiss.
+**UX Batch 2:** sign out visible, login loading state, auth error styled, coaching prompts always visible, shared scorecard human context, sparkline label, date picker bounds.
+**Remaining:** mobile navigation (hamburger menu for screens under 1024px).
 
 ### Production URLs
 - **Frontend (Vercel):** `https://hungerrush-scorecard.vercel.app`
