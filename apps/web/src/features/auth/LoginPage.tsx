@@ -1,7 +1,11 @@
+import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 
 export function LoginPage() {
+  const [signingIn, setSigningIn] = useState(false);
+
   const handleLogin = async () => {
+    setSigningIn(true);
     await supabase.auth.signInWithOAuth({
       provider: 'azure',
       options: {
@@ -31,9 +35,10 @@ export function LoginPage() {
 
           <button
             onClick={handleLogin}
-            className="w-full bg-[#1D9E75] text-white rounded-lg py-2.5 text-[14px] font-medium hover:bg-[#0F6E56] transition-colors"
+            disabled={signingIn}
+            className="w-full bg-[#1D9E75] text-white rounded-lg py-2.5 text-[14px] font-medium hover:bg-[#0F6E56] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Sign in with Microsoft
+            {signingIn ? 'Signing in...' : 'Sign in with Microsoft'}
           </button>
         </div>
       </div>

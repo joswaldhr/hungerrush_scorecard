@@ -12,7 +12,7 @@ function PageSkeleton() {
     <div className="min-h-screen bg-[#F7F6F3]">
       <nav className="bg-[#1E2E4A] text-white px-6 py-4 flex items-center gap-3">
         <LogoMark size={24} />
-        <span className="text-[13px] font-medium text-white/80 tracking-tight">HungerRush Scorecard</span>
+        <span className="text-[13px] font-medium text-white/80 tracking-tight">Your Weekly Snapshot</span>
       </nav>
       <main className="max-w-5xl mx-auto px-5 py-8 sm:px-10 space-y-10">
         <div className="animate-pulse space-y-2">
@@ -111,7 +111,7 @@ function SharedScorecardContent({ token }: { token: string }) {
     <div className="min-h-screen bg-[#F7F6F3]">
       <nav className="bg-[#1E2E4A] text-white px-6 py-4 flex items-center gap-3">
         <LogoMark size={24} />
-        <span className="text-[13px] font-medium text-white/80 tracking-tight">HungerRush Scorecard</span>
+        <span className="text-[13px] font-medium text-white/80 tracking-tight">Your Weekly Snapshot</span>
       </nav>
 
       <main className="max-w-5xl mx-auto px-5 py-8 sm:px-10 space-y-10">
@@ -125,6 +125,12 @@ function SharedScorecardContent({ token }: { token: string }) {
             <h2 className="text-[17px] font-medium text-slate-800">{employee.full_name}</h2>
             <p className="text-[12px] text-slate-400">{employee.email}</p>
           </div>
+        </div>
+
+        <div className="bg-[#F0FDF4] border border-[#86EFAC] rounded-xl p-4 mb-5">
+          <p className="text-[13px] text-[#166534] leading-relaxed">
+            Your manager shared this snapshot of your recent metrics as a conversation starter for your 1:1. These numbers show momentum and growth opportunities — not a performance review.
+          </p>
         </div>
 
         <section>

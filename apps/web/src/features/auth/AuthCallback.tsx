@@ -45,15 +45,26 @@ export function AuthCallback() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-hr-gray flex items-center justify-center">
-        <div className="text-center max-w-md p-6">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button
-            onClick={() => navigate('/login', { replace: true })}
-            className="px-4 py-2 bg-hr-green text-white rounded hover:bg-hr-green-dark"
-          >
-            Back to login
-          </button>
+      <div className="min-h-screen bg-[#F7F6F3] flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl border border-[#E8E6E1] w-full max-w-sm overflow-hidden">
+          <div className="h-1 bg-[#1D9E75]" />
+          <div className="p-10">
+            <div className="w-9 h-9 rounded-lg bg-[#1E2E4A] flex items-center justify-center mx-auto mb-5">
+              <span className="text-white text-[14px] font-semibold">HR</span>
+            </div>
+            <h1 className="text-[20px] font-medium text-slate-800 text-center mb-4">
+              Sign-in failed
+            </h1>
+            <div className="bg-[#FFFBEB] border border-[#D97706]/20 text-[#92400E] rounded-lg p-3 text-[13px] mb-6">
+              {error}
+            </div>
+            <button
+              onClick={() => navigate('/login', { replace: true })}
+              className="w-full bg-[#1D9E75] text-white rounded-lg py-2.5 text-[14px] font-medium hover:bg-[#0F6E56] transition-colors"
+            >
+              Back to login
+            </button>
+          </div>
         </div>
       </div>
     );

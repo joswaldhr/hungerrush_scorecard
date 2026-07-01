@@ -116,7 +116,7 @@ export function AppLayout({ children, title, subtitle, actions }: AppLayoutProps
             </div>
             <button
               onClick={handleSignOut}
-              className="text-[11px] text-white/30 hover:text-white/60 opacity-0 group-hover:opacity-100 transition-opacity ml-auto"
+              className="text-[11px] text-white/30 hover:text-white/60 opacity-60 hover:opacity-100 transition-opacity ml-auto"
             >
               Sign out
             </button>

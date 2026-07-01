@@ -33,6 +33,8 @@ export function NotesPanel({
   onSave,
   onToggleActionItem,
 }: NotesPanelProps) {
+  const today = new Date().toISOString().split('T')[0];
+  const minDate = new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
   const [sessionDate, setSessionDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [noteContent, setNoteContent] = useState('');
   const [actionItems, setActionItems] = useState<string[]>([]);
@@ -80,6 +82,8 @@ export function NotesPanel({
           <input
             type="date"
             value={sessionDate}
+            min={minDate}
+            max={today}
             onChange={e => setSessionDate(e.target.value)}
             className="rounded-lg border-half border-hr-base text-sm text-hr-text-1 focus:ring-hr-green/20 focus:border-hr-green/40"
           />

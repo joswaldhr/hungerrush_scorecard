@@ -131,12 +131,15 @@ export function KpiTile({ definition, value, syncedAt, history }: KpiTileProps) 
       {!isNull && (
         <div className="mt-3">
           <Sparkline history={history} />
+          {history.length > 0 && (
+            <p className="text-[10px] text-slate-300 mt-1">4 weeks</p>
+          )}
         </div>
       )}
 
-      <div className="hidden group-hover:block border-t border-half border-hr-base pt-3 mt-3">
-        <p className="text-[11px] text-hr-text-3 leading-relaxed">{definition.coaching_prompt}</p>
-      </div>
+      <p className="text-[11px] text-slate-400 leading-relaxed mt-2 pt-2 border-t border-[#F0EEE9]">
+        {definition.coaching_prompt}
+      </p>
 
       {!isNull && syncedAt && (
         <p className="text-[11px] text-hr-text-3 mt-1">
