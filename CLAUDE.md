@@ -1,4 +1,6 @@
-# HungerRush Manager Scorecard — Project Bible
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 > Read this file in full before writing any code or making any architectural decision.
 > If a user request conflicts with anything here, flag it — do not silently override.
@@ -15,6 +17,42 @@ All 5 development phases, all 4 UI/UX redesign sprints, full layout redesign (Ap
 **UX Batch 1:** save confirmation, error states in AppLayout, back to rollup, clickable breadcrumb, clipboard error handling, PDF audit decoupled, prev/next replace, offline banner auto-dismiss.
 **UX Batch 2:** sign out visible, login loading state, auth error styled, coaching prompts always visible, shared scorecard human context, sparkline label, date picker bounds.
 **Remaining:** mobile navigation (hamburger menu for screens under 1024px).
+
+---
+
+## Development Commands
+
+npm workspaces monorepo — always run `npm install` from root.
+
+```bash
+# Install (from repo root — required for workspace resolution)
+npm install
+
+# Dev servers
+npm run dev:web          # Vite on http://localhost:5173 (frontend)
+npm run dev:api          # tsx watch (backend, needs .env in apps/api/)
+
+# Typecheck (all workspaces, or individually)
+npm run typecheck                                    # all 3
+npx tsc --noEmit --project apps/web/tsconfig.json    # web only
+npx tsc --noEmit --project apps/api/tsconfig.json    # api only
+npx tsc --noEmit --project packages/shared/tsconfig.json  # shared only
+
+# Build
+npm run build            # all workspaces
+npm run build -w apps/web    # web only (tsc + vite build → apps/web/dist/)
+npm run build -w apps/api    # api only (tsc → apps/api/dist/)
+
+# Tests
+npm run test             # all workspaces (vitest)
+npm run test -w apps/web     # web only
+npm run test -w apps/api     # api only
+
+# Lint (web only)
+npm run lint -w apps/web     # eslint src
+```
+
+**Deployment:** Vercel auto-deploys frontend from master (build uses `vercel.json` which runs `npm ci && npm run build -w apps/web`). Railway auto-deploys backend from master.
 
 ### Production URLs
 - **Frontend (Vercel):** `https://hungerrush-scorecard.vercel.app`
