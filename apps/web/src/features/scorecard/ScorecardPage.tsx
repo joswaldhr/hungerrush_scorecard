@@ -165,13 +165,13 @@ export function ScorecardPage() {
     }
   };
 
-  const currentWeekMetrics = metrics.filter(m => m.currentValue !== null && m.currentValue !== 0);
-  const lastWeekMetrics = metrics.filter(m => m.lastWeekValue !== null && m.lastWeekValue !== 0);
-  const allCurrentNull = metrics.every(m => m.currentValue === null || m.currentValue === 0);
+  const currentWeekMetrics = metrics.filter(m => m.currentValue !== null);
+  const lastWeekMetrics = metrics.filter(m => m.lastWeekValue !== null);
+  const allCurrentNull = metrics.every(m => m.currentValue === null);
 
   const sortedMetrics = [...metrics].sort((a, b) => {
-    const aNull = a.currentValue === null || a.currentValue === 0;
-    const bNull = b.currentValue === null || b.currentValue === 0;
+    const aNull = a.currentValue === null;
+    const bNull = b.currentValue === null;
     if (aNull !== bNull) return aNull ? 1 : -1;
     return a.definition.display_order - b.definition.display_order;
   });

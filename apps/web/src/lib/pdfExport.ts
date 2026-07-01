@@ -66,11 +66,12 @@ export function generateScorecardPdf(
     doc.text(m.definition.name, 14, y);
 
     // Value
-    const valueText = m.value !== null
+    const hasValue = m.value !== null && m.value !== 0;
+    const valueText = hasValue
       ? formatMetricValue(m.value, m.definition.unit)
       : 'No data';
     doc.setFontSize(11);
-    if (m.value !== null) {
+    if (hasValue) {
       doc.setTextColor(...GREEN);
     } else {
       doc.setTextColor(...GRAY);

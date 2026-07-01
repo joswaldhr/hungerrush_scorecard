@@ -214,7 +214,7 @@ export function DashboardPage() {
                       <div className="min-w-[72px] text-right">
                         <p className="text-[11px] text-slate-400">Tickets</p>
                         <p className="text-[13px] font-medium text-slate-700">
-                          {preview.ticket_volume === 0 ? '—' : formatMetricValue(preview.ticket_volume, 'count')}
+                          {formatMetricValue(preview.ticket_volume, 'count')}
                         </p>
                       </div>
                     )}
@@ -222,7 +222,7 @@ export function DashboardPage() {
                       <div className="min-w-[72px] text-right">
                         <p className="text-[11px] text-slate-400">First Reply</p>
                         <p className="text-[13px] font-medium text-slate-700">
-                          {preview.first_reply_time === 0 ? '—' : formatMetricValue(preview.first_reply_time, 'seconds')}
+                          {formatMetricValue(preview.first_reply_time, 'seconds')}
                         </p>
                       </div>
                     )}

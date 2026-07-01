@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { startOfWeek, format } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import type { Employee } from '@scorecard/shared';
 
@@ -18,6 +19,9 @@ export function useDirectReports() {
 
   useEffect(() => {
     async function load() {
+      const thisMonday = startOfWeek(new Date(), { weekStartsOn: 1 });
+      const thisMondayStr = format(thisMonday, 'yyyy-MM-dd');
+
       const [empRes, snapshotRes, previewRes] = await Promise.all([
         supabase
           .from('employees')
@@ -30,7 +34,7 @@ export function useDirectReports() {
           .from('metric_snapshots')
           .select('employee_id, metric_key, value, period_start, synced_at')
           .in('metric_key', ['ticket_volume', 'first_reply_time'])
-          .order('period_start', { ascending: false }),
+          .eq('period_start', thisMondayStr),
       ]);
 
       if (empRes.error) {

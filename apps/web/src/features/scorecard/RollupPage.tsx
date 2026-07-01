@@ -16,12 +16,8 @@ const SHORT_NAMES: Record<string, string> = {
 };
 
 function TrendChip({ metricKey, trend }: { metricKey: string; trend: MetricTrend }) {
-  const isPositive =
-    (trend.direction === 'higher_is_better' && trend.improving > trend.declining) ||
-    (trend.direction === 'lower_is_better' && trend.declining > trend.improving);
-  const isNegative =
-    (trend.direction === 'higher_is_better' && trend.declining > trend.improving) ||
-    (trend.direction === 'lower_is_better' && trend.improving > trend.declining);
+  const isPositive = trend.improving > trend.declining;
+  const isNegative = trend.declining > trend.improving;
 
   const chipClass = isPositive
     ? 'bg-[#E1F5EE] text-[#0F6E56] border border-[#1D9E75]/20'
@@ -29,7 +25,7 @@ function TrendChip({ metricKey, trend }: { metricKey: string; trend: MetricTrend
       ? 'bg-[#FFFBEB] text-[#D97706] border border-[#D97706]/20'
       : 'bg-[#F7F6F3] text-slate-400 border border-[#E8E6E1]';
 
-  const goodCount = trend.direction === 'lower_is_better' ? trend.declining : trend.improving;
+  const goodCount = trend.improving;
   const label = SHORT_NAMES[metricKey] ?? metricKey;
 
   return (

@@ -92,13 +92,13 @@ function computeAllMetrics(
   slaTargetMinutes: number | null,
 ): {
   ticketVolume: number;
-  firstReplyTime: number;
+  firstReplyTime: number | null;
   csatScore: number | null;
   slaCompliance: number | null;
-  resolutionRate: number;
+  resolutionRate: number | null;
 } {
   if (tickets.length === 0) {
-    return { ticketVolume: 0, firstReplyTime: 0, csatScore: null, slaCompliance: null, resolutionRate: 0 };
+    return { ticketVolume: 0, firstReplyTime: null, csatScore: null, slaCompliance: null, resolutionRate: null };
   }
 
   const ticketVolume = tickets.length;
@@ -113,7 +113,7 @@ function computeAllMetrics(
   const firstReplyTime =
     replySeconds.length > 0
       ? Math.round(replySeconds.reduce((a, b) => a + b, 0) / replySeconds.length)
-      : 0;
+      : null;
 
   let good = 0;
   let rated = 0;
@@ -134,7 +134,7 @@ function computeAllMetrics(
   }
 
   const resolved = tickets.filter(t => t.status === 'solved' || t.status === 'closed').length;
-  const resolutionRate = roundPercent(resolved, ticketVolume);
+  const resolutionRate = ticketVolume === 0 ? null : roundPercent(resolved, ticketVolume);
 
   return { ticketVolume, firstReplyTime, csatScore, slaCompliance, resolutionRate };
 }

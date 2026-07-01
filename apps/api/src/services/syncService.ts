@@ -211,7 +211,7 @@ export async function runSync(mode: 'live' | 'snapshot'): Promise<SyncResult> {
         .from('metric_snapshots')
         .upsert(empRows, {
           onConflict: 'employee_id,metric_key,period_start',
-          ignoreDuplicates: mode === 'snapshot',
+          ignoreDuplicates: false,
         });
       if (error) {
         errors.push(`[db] Write failed for ${String(emp.email)}: ${error.message}`);

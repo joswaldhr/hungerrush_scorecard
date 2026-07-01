@@ -16,7 +16,7 @@ function getTrend(
   history: Array<{ value: number }>,
   direction: string,
 ): TrendDirection {
-  if (value === null || value === 0) return 'neutral';
+  if (value === null) return 'neutral';
   if (history.length < 2) return 'neutral';
   const last = history[history.length - 1];
   if (!last) return 'neutral';
@@ -96,12 +96,12 @@ export function KpiTileSkeleton() {
 }
 
 function getValueColor(value: number | null): string {
-  if (value === null || value === 0) return 'text-hr-text-3';
+  if (value === null) return 'text-hr-text-3';
   return 'text-hr-text-1';
 }
 
 export function KpiTile({ definition, value, syncedAt, history }: KpiTileProps) {
-  const isNull = value === null || value === 0;
+  const isNull = value === null;
   const trend = getTrend(value, history, definition.direction);
   const nullLabel = NULL_LABELS[definition.key] ?? 'No data yet';
   const valueColorClass = getValueColor(value);

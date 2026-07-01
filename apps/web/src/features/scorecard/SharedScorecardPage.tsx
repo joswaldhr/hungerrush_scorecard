@@ -162,7 +162,7 @@ function SharedScorecardContent({ token }: { token: string }) {
             <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400 mb-4">Last Week (Completed)</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               {metrics
-                .filter(m => m.lastWeekValue !== null && m.lastWeekValue !== 0)
+                .filter(m => m.lastWeekValue !== null)
                 .map(m => (
                   <KpiTile
                     key={m.definition.id}
