@@ -111,18 +111,20 @@ export function DashboardPage() {
       )}
 
       {!loading && employees.length > 0 && !managerFilter && (
-        <div className="grid grid-cols-3 gap-3 mb-5">
-          <div className="bg-white rounded-xl border border-[#E8E6E1] p-4">
-            <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400">With metrics</p>
-            <p className="text-[20px] font-medium text-slate-800 mt-1">{employeesWithMetrics.size}</p>
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="bg-white rounded-xl border border-[#E8E6E1] py-3 px-4">
+            <p className="text-[11px] text-slate-400">With metrics</p>
+            <p className="text-[18px] font-medium text-slate-800">{employeesWithMetrics.size}</p>
+            <p className="text-[11px] text-[#1D9E75]">{`of ${employees.length} total`}</p>
           </div>
-          <div className="bg-white rounded-xl border border-[#E8E6E1] p-4">
-            <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400">Avg tickets</p>
-            <p className="text-[20px] font-medium text-slate-800 mt-1">{avgTickets ?? '—'}</p>
+          <div className="bg-white rounded-xl border border-[#E8E6E1] py-3 px-4">
+            <p className="text-[11px] text-slate-400">Avg tickets</p>
+            <p className="text-[18px] font-medium text-slate-800">{avgTickets ?? '—'}</p>
+            <p className="text-[11px] text-[#1D9E75]">this week</p>
           </div>
-          <div className="bg-white rounded-xl border border-[#E8E6E1] p-4">
-            <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400">Last synced</p>
-            <p className="text-[13px] font-medium text-slate-800 mt-1">
+          <div className="bg-white rounded-xl border border-[#E8E6E1] py-3 px-4">
+            <p className="text-[11px] text-slate-400">Last synced</p>
+            <p className="text-[18px] font-medium text-slate-800">
               {lastSyncedAt ? format(new Date(lastSyncedAt), 'MMM d, h:mm a') : '—'}
             </p>
           </div>
@@ -174,7 +176,7 @@ export function DashboardPage() {
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-[#E8E6E1]">
+        <div className="bg-white rounded-xl border border-[#E8E6E1] overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-[#F0EEE9]">
             <p className="text-[13px] font-medium text-slate-700">All members</p>
             <p className="text-[11px] text-slate-400">{filteredEmployees.length}</p>
@@ -200,16 +202,16 @@ export function DashboardPage() {
                 {hasMetrics && preview && (preview.ticket_volume !== null || preview.first_reply_time !== null) ? (
                   <div className="hidden sm:flex items-center gap-4 text-right flex-shrink-0">
                     {preview.ticket_volume !== null && (
-                      <div>
-                        <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400">Tickets</p>
+                      <div className="min-w-[80px]">
+                        <p className="text-[11px] text-slate-400">Tickets</p>
                         <p className="text-[13px] font-medium text-slate-700">
                           {preview.ticket_volume === 0 ? '—' : formatMetricValue(preview.ticket_volume, 'count')}
                         </p>
                       </div>
                     )}
                     {preview.first_reply_time !== null && (
-                      <div>
-                        <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400">First Reply</p>
+                      <div className="min-w-[80px]">
+                        <p className="text-[11px] text-slate-400">First Reply</p>
                         <p className="text-[13px] font-medium text-slate-700">
                           {preview.first_reply_time === 0 ? '—' : formatMetricValue(preview.first_reply_time, 'seconds')}
                         </p>

@@ -18,7 +18,7 @@ function PageSkeleton() {
           <div className="h-6 bg-slate-100 rounded w-1/3" />
           <div className="h-4 bg-slate-100 rounded w-1/4" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5">
           {Array.from({ length: 6 }, (_, i) => (
             <KpiTileSkeleton key={i} />
           ))}
@@ -245,7 +245,7 @@ export function ScorecardPage() {
           </div>
         )}
         {metricsLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5">
             {Array.from({ length: 6 }, (_, i) => (
               <KpiTileSkeleton key={i} />
             ))}
@@ -262,7 +262,7 @@ export function ScorecardPage() {
             {allCurrentNull && (
               <p className="text-[11px] text-slate-400 mb-3">This week's data refreshes every 4 hours.</p>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5">
               {sortedMetrics.map(m => (
                 <KpiTile
                   key={m.definition.id}
@@ -289,7 +289,7 @@ export function ScorecardPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5">
             {lastWeekMetrics
               .sort((a, b) => a.definition.display_order - b.definition.display_order)
               .map(m => (
