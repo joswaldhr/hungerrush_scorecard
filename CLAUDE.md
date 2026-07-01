@@ -7,17 +7,17 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-07-01 (session 17)
+**Last updated:** 2026-07-01 (session 18)
 
 ### Current state
-All 5 development phases, all 4 UI/UX redesign sprints, full layout redesign, and visual polish pass complete and pushed to master. AppLayout.tsx with left sidebar, bg-[#F7F6F3] content area for card contrast. Active visual review cycle in progress — screenshot-driven fixes.
+All 5 development phases, all 4 UI/UX redesign sprints, full layout redesign, visual polish pass, and UX audit fixes (2 batches, 15 issues) complete and pushed to master. Full 8-dimension UX audit performed (navigation, interaction clarity, feedback, empty/error states, cognitive load, trust, mobile, routing). Two remaining audit items not yet addressed: mobile navigation (hamburger/drawer) and MetricConfigPage save success confirmation.
 
 ### Production URLs
 - **Frontend (Vercel):** `https://hungerrush-scorecard.vercel.app`
 - **Backend (Railway):** `https://scorecardapi-production.up.railway.app`
 
 ### UI/UX redesign sprints (all complete, committed to master)
-- **Sprint 1:** KPI tile redesign — large values, direction badges, sparklines, null/zero states, tile ordering, compact 3-column grid, coaching prompts on hover
+- **Sprint 1:** KPI tile redesign — large values, direction badges, sparklines, null/zero states, tile ordering, compact 3-column grid, coaching prompts always visible
 - **Sprint 2:** Dashboard upgrade — search, metric previews, sort toggle, last synced, prev/next navigation, admin nav cleanup, auto-scaling time format
 - **Sprint 3:** Rollup redesign — data-first sorting, no-data collapse, trend chips with direction-aware colors, week indicator, drill-down to manager's team
 - **Sprint 4:** Typography polish — slate type scale for content headings/labels (hr-navy preserved for nav), section spacing, uppercase section headers on scorecard, notes panel wrapped in card with label, login card redesign (accent bar, rounded-xl, tighter layout)
@@ -25,7 +25,7 @@ All 5 development phases, all 4 UI/UX redesign sprints, full layout redesign, an
 ### Layout redesign (complete, committed to master)
 - AppShell.tsx deleted, replaced by AppLayout.tsx — 220px hr-navy left sidebar (desktop), hidden on mobile
 - Role-based nav: Users (dashboard), LayoutGrid (rollup, senior_manager+), SlidersHorizontal (metrics, admin), FileOutput (export log, admin)
-- User identity block with initials avatar, email, sign-out on hover
+- User identity block with initials avatar, email, sign-out always visible
 - 52px white topbar with title, optional subtitle, and actions slot
 - All 6 authenticated pages migrated (Dashboard, Scorecard, Rollup, MetricConfig, ExportLog + SharedScorecard uses LogoMark export only)
 - LoginPage redesigned standalone (no sidebar) — navy brand mark, green accent bar, green CTA
@@ -41,6 +41,32 @@ All 5 development phases, all 4 UI/UX redesign sprints, full layout redesign, an
 - Scorecard section labels: `mb-3 mt-2` for breathing room
 - Notes card wrapper confirmed: `bg-white rounded-xl border border-[#E8E6E1] p-5 mt-4` (was invisible before bg fix)
 - Latest commits: `ce91be7` → `3cacb65` → `43b9cc9` → `5a9411b`
+
+### UX audit fixes (session 18, committed to master)
+**Batch 1 (commit `c97472c`):**
+- NotesPanel: inline "Session saved" confirmation with 3s auto-dismiss
+- ScorecardPage: error/not-found states render inside AppLayout (sidebar stays visible)
+- ScorecardPage: "Your team" breadcrumb is clickable link to /dashboard; AppLayout title prop widened to ReactNode
+- ScorecardPage: clipboard.writeText wrapped in try/catch with fallback URL input on failure
+- ScorecardPage: PDF audit POST decoupled — audit failure no longer shows as export error
+- ScorecardPage: prev/next uses replace:true to avoid polluting browser history
+- DashboardPage: manager filter "All teams" link now navigates to /rollup instead of /dashboard
+- OfflineBanner: "Back online" banner auto-dismisses after 4 seconds
+
+**Batch 2 (commit `67f2dcd`):**
+- AppLayout: sign-out button always visible at opacity-60 (was opacity-0 hover-only)
+- LoginPage: "Signing in..." loading state + disabled button prevents double-click
+- AuthCallback: error state styled as branded card with amber warning (was raw red text)
+- KpiTile: coaching prompts always visible below sparkline (was hidden group-hover:block — invisible on touch)
+- KpiTile: sparkline "4 weeks" context label when history data exists
+- SharedScorecardPage: coaching-intent intro block before metrics; header changed to "Your Weekly Snapshot"
+- NotesPanel: date picker bounded to last 4 weeks through today
+
+**Not yet addressed from audit:**
+- Mobile navigation (hamburger/drawer for screens below 1024px) — requires new component
+- MetricConfigPage save success confirmation — minor, admin-only page
+- TourModal skip button + "?" icon to re-trigger tour
+- Trend chip notation on RollupPage (e.g., "3/5" → "3 of 5 ↑")
 
 ### Remaining follow-ups (non-blocking)
 1. **Connection pooling** — add `?pgbouncer=true` to Supabase connection string in API, set pool size to 10
@@ -318,8 +344,8 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | 4 | Senior manager rollup · employee sharing · PDF export · email nudge | ✅ | A senior manager sees team trends; a manager can share a read-only card |
 | 5 | Polish · onboarding tour · PWA · audit log · load test · prod deploy | ✅ | Pilot managers using it in production |
 
-**Current phase:** Complete — all 5 phases delivered. All 4 UI/UX redesign sprints and full layout redesign complete. Pushed to production.
-**Last session:** 2026-07-01 (session 17) — Visual polish pass: added bg-[#F7F6F3] to AppLayout main content area (root cause of invisible white cards), redesigned stats cards (label-on-top, split timestamp, green sub text), employee row dividers + cursor, metric column spacing, null tile compaction, section label breathing room. Three non-blocking follow-ups remain (connection pooling, CORS lockdown, email nudge).
+**Current phase:** Complete — all 5 phases delivered. All 4 UI/UX redesign sprints, full layout redesign, and UX audit fixes complete. Pushed to production.
+**Last session:** 2026-07-01 (session 18) — Full 8-dimension UX audit (26 issues found across navigation, interaction clarity, feedback, empty/error states, cognitive load, trust, mobile, routing). 15 issues fixed in 2 batches: notes save confirmation, error states inside AppLayout, clickable breadcrumb, clipboard error handling, PDF audit decoupling, prev/next history replace, rollup back link, offline banner auto-dismiss, sign-out visibility, login loading state, auth error styling, coaching prompts always visible, shared scorecard context, sparkline label, date picker bounds. 4 items deferred (mobile nav, metric config success, tour skip, trend chip notation).
 
 ---
 
@@ -391,3 +417,9 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | 2026-06-30 | Auto-scaling time format for seconds-unit metrics | first_reply_time and handle_time values can be very large (business hours); formatMetricValue auto-scales: <60min shows "X.X min", ≥60min shows "X.Xh" |
 | 2026-06-30 | Dashboard metric previews via bulk query in useDirectReports | Single query fetches latest ticket_volume + first_reply_time for all visible employees; no per-employee queries; joined client-side by employee_id |
 | 2026-06-30 | Prev/next navigation via React Router location.state | Employee list passed from dashboard to ScorecardPage; no extra query; disabled gracefully on direct URL navigation |
+| 2026-07-01 | Coaching prompts always visible, not hover-only | Touch devices (tablets in 1:1s) couldn't access hover; coaching prompts are the product's core value — hiding them behind hover contradicts the product philosophy |
+| 2026-07-01 | Prev/next uses replace:true instead of push | Clicking through 5 employees created 5 history entries; back button should return to dashboard, not replay each employee |
+| 2026-07-01 | PDF audit POST decoupled from export status | Audit endpoint failure was showing "Failed" to the user even though the PDF downloaded successfully; audit is fire-and-forget from the user's perspective |
+| 2026-07-01 | AppLayout title prop accepts ReactNode not just string | Enables clickable breadcrumb on ScorecardPage ("Your team → Name" where "Your team" is a Link) |
+| 2026-07-01 | SharedScorecardPage header changed to "Your Weekly Snapshot" | "HungerRush Scorecard" is an internal product name meaningless to employees; "Your Weekly Snapshot" is employee-facing and non-clinical |
+| 2026-07-01 | Clipboard fallback URL input on writeText failure | clipboard API can fail in background tabs or restricted contexts; fallback shows selectable URL so the share token isn't wasted |
