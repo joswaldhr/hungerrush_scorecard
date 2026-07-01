@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase';
 
 interface AppLayoutProps {
   children: ReactNode;
-  title: string;
+  title: ReactNode;
   subtitle?: string;
   actions?: ReactNode;
 }

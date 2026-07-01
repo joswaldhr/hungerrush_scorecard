@@ -43,6 +43,7 @@ export function ScorecardPage() {
     toggleActionItem,
   } = useScorecardNotes(employeeId ?? '');
   const [shareStatus, setShareStatus] = useState<'idle' | 'sharing' | 'copied' | 'error'>('idle');
+  const [shareFallbackUrl, setShareFallbackUrl] = useState<string | null>(null);
   const [exportStatus, setExportStatus] = useState<'idle' | 'exporting' | 'done' | 'error'>('idle');
 
   const employeeIds = (location.state as { employeeIds?: string[] } | null)?.employeeIds ?? null;
@@ -52,7 +53,7 @@ export function ScorecardPage() {
   const positionLabel = employeeIds && currentIndex >= 0 ? `${currentIndex + 1} of ${employeeIds.length}` : null;
 
   const goTo = (id: string) => {
-    locationNavigate(`/scorecard/${id}`, { state: { employeeIds } });
+    locationNavigate(`/scorecard/${id}`, { state: { employeeIds }, replace: true });
   };
 
   if (!employeeId) return <Navigate to="/dashboard" replace />;
@@ -63,31 +64,35 @@ export function ScorecardPage() {
 
   if (empError) {
     return (
-      <div className="min-h-screen bg-[#F7F6F3] flex items-center justify-center">
-        <div className="bg-white border border-[#E8E6E1] rounded-xl p-8 text-center max-w-md">
-          <p className="text-[13px] text-slate-700 mb-2">Unable to load employee data.</p>
-          <p className="text-[13px] text-slate-400">{empError}</p>
-          <Link to="/dashboard" className="text-[#1D9E75] text-[13px] mt-4 inline-block hover:underline">
-            Back to your team
-          </Link>
+      <AppLayout title="Your team">
+        <div className="flex items-center justify-center py-16">
+          <div className="bg-white border border-[#E8E6E1] rounded-xl p-8 text-center max-w-md">
+            <p className="text-[13px] text-slate-700 mb-2">Unable to load employee data.</p>
+            <p className="text-[13px] text-slate-400">{empError}</p>
+            <Link to="/dashboard" className="text-[#1D9E75] text-[13px] mt-4 inline-block hover:underline">
+              Back to your team
+            </Link>
+          </div>
         </div>
-      </div>
+      </AppLayout>
     );
   }
 
   if (!employee) {
     return (
-      <div className="min-h-screen bg-[#F7F6F3] flex items-center justify-center">
-        <div className="bg-white border border-[#E8E6E1] rounded-xl p-8 text-center max-w-md">
-          <p className="text-[13px] text-slate-700 mb-2">Employee not found.</p>
-          <p className="text-[13px] text-slate-400">
-            They may not be on your team, or the link may be incorrect.
-          </p>
-          <Link to="/dashboard" className="text-[#1D9E75] text-[13px] mt-4 inline-block hover:underline">
-            Back to your team
-          </Link>
+      <AppLayout title="Your team">
+        <div className="flex items-center justify-center py-16">
+          <div className="bg-white border border-[#E8E6E1] rounded-xl p-8 text-center max-w-md">
+            <p className="text-[13px] text-slate-700 mb-2">Employee not found.</p>
+            <p className="text-[13px] text-slate-400">
+              They may not be on your team, or the link may be incorrect.
+            </p>
+            <Link to="/dashboard" className="text-[#1D9E75] text-[13px] mt-4 inline-block hover:underline">
+              Back to your team
+            </Link>
+          </div>
         </div>
-      </div>
+      </AppLayout>
     );
   }
 
@@ -110,9 +115,15 @@ export function ScorecardPage() {
     }
 
     const url = `${window.location.origin}/shared/${data.token as string}`;
-    await navigator.clipboard.writeText(url);
-    setShareStatus('copied');
-    setTimeout(() => setShareStatus('idle'), 3000);
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareStatus('copied');
+      setShareFallbackUrl(null);
+      setTimeout(() => setShareStatus('idle'), 3000);
+    } catch {
+      setShareFallbackUrl(url);
+      setShareStatus('idle');
+    }
   };
 
   const handleExportPdf = async () => {
@@ -127,23 +138,27 @@ export function ScorecardPage() {
         session.user.email ?? '',
       );
 
-      const apiUrl = import.meta.env.VITE_API_URL as string;
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData.session?.access_token;
-
-      if (apiUrl && accessToken) {
-        await fetch(`${apiUrl}/api/audit/export`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({ employee_id: employeeId }),
-        });
-      }
-
       setExportStatus('done');
       setTimeout(() => setExportStatus('idle'), 3000);
+
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL as string;
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData.session?.access_token;
+
+        if (apiUrl && accessToken) {
+          await fetch(`${apiUrl}/api/audit/export`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({ employee_id: employeeId }),
+          });
+        }
+      } catch (auditErr) {
+        console.error('Audit log failed:', auditErr);
+      }
     } catch {
       setExportStatus('error');
       setTimeout(() => setExportStatus('idle'), 3000);
@@ -222,7 +237,13 @@ export function ScorecardPage() {
 
   return (
     <AppLayout
-      title={`Your team → ${employee.full_name}`}
+      title={
+        <>
+          <Link to="/dashboard" className="hover:text-[#1D9E75] cursor-pointer transition-colors">Your team</Link>
+          <span className="text-slate-400"> → </span>
+          {employee.full_name}
+        </>
+      }
       actions={headerActions}
     >
       <div className="flex items-center gap-3 mb-6">
@@ -236,6 +257,24 @@ export function ScorecardPage() {
           <p className="text-[12px] text-slate-400">{employee.email}</p>
         </div>
       </div>
+
+      {shareFallbackUrl && (
+        <div className="bg-white border border-[#E8E6E1] rounded-xl p-4 mb-4 flex items-center gap-3">
+          <input
+            type="text"
+            readOnly
+            value={shareFallbackUrl}
+            onFocus={e => e.target.select()}
+            className="flex-1 text-[12px] text-slate-600 bg-[#F7F6F3] border border-[#E8E6E1] rounded-lg px-3 py-1.5 outline-none"
+          />
+          <button
+            onClick={() => setShareFallbackUrl(null)}
+            className="text-[12px] text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       <section>
         <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400 mb-3 mt-2">This Week So Far</p>

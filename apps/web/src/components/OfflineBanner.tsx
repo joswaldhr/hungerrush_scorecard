@@ -6,11 +6,16 @@ export function OfflineBanner() {
   const [wasOffline, setWasOffline] = useState(false);
 
   useEffect(() => {
+    let dismissTimer: ReturnType<typeof setTimeout>;
     const goOffline = () => { setOffline(true); setWasOffline(true); };
-    const goOnline = () => setOffline(false);
+    const goOnline = () => {
+      setOffline(false);
+      dismissTimer = setTimeout(() => setWasOffline(false), 4000);
+    };
     window.addEventListener('offline', goOffline);
     window.addEventListener('online', goOnline);
     return () => {
+      clearTimeout(dismissTimer);
       window.removeEventListener('offline', goOffline);
       window.removeEventListener('online', goOnline);
     };

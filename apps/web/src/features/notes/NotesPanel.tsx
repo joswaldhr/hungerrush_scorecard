@@ -39,6 +39,7 @@ export function NotesPanel({
   const [newItem, setNewItem] = useState('');
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const handleAddItem = () => {
     if (!newItem.trim()) return;
@@ -61,6 +62,8 @@ export function NotesPanel({
       setNoteContent('');
       setActionItems([]);
       setNewItem('');
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
     }
     setSaving(false);
   };
@@ -138,6 +141,10 @@ export function NotesPanel({
             </div>
           </div>
         </div>
+
+        {saveSuccess && (
+          <p className="text-[#1D9E75] text-[12px]">Session saved</p>
+        )}
 
         {saveError && (
           <div className="bg-hr-amber-light border-half border-hr-amber/20 text-hr-amber p-3 rounded-xl text-sm">

@@ -101,11 +101,11 @@ export function DashboardPage() {
             {`Viewing ${managerName ?? 'this manager'}'s team`}
           </span>
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/rollup')}
             className="flex items-center gap-1 text-[12px] text-[#0F6E56] hover:underline"
           >
             <ArrowLeft size={12} />
-            All teams
+            Back to rollup
           </button>
         </div>
       )}
