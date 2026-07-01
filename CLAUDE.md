@@ -7,20 +7,26 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-06-30 (session 14)
+**Last updated:** 2026-07-01 (session 15)
 
 ### Current state
-All 5 development phases and all 4 UI/UX redesign sprints are complete. The app is polished and ready for pilot manager rollout.
+All 5 development phases and all 4 UI/UX redesign sprints are complete and committed to master. Full visual overhaul is in progress (uncommitted) — new design system, AppShell sidebar layout, warm sand/stone palette across all components.
 
 ### Production URLs
 - **Frontend (Vercel):** `https://hungerrush-scorecard.vercel.app`
 - **Backend (Railway):** `https://scorecardapi-production.up.railway.app`
 
-### UI/UX redesign sprints (all complete)
+### UI/UX redesign sprints (all complete, committed to master)
 - **Sprint 1:** KPI tile redesign — large values, direction badges, sparklines, null/zero states, tile ordering, compact 3-column grid, coaching prompts on hover
 - **Sprint 2:** Dashboard upgrade — search, metric previews, sort toggle, last synced, prev/next navigation, admin nav cleanup, auto-scaling time format
 - **Sprint 3:** Rollup redesign — data-first sorting, no-data collapse, trend chips with direction-aware colors, week indicator, drill-down to manager's team
 - **Sprint 4:** Typography polish — slate type scale for content headings/labels (hr-navy preserved for nav), section spacing, uppercase section headers on scorecard, notes panel wrapped in card with label, login card redesign (accent bar, rounded-xl, tighter layout)
+
+### NEXT: Full layout redesign — replacing top nav with left sidebar (AppShell.tsx)
+- AppShell.tsx created with hr-navy sidebar (desktop), mobile drawer, role-based nav, theme toggle, sign out
+- New design system in tailwind.config.ts: warm sand/stone palette (hr-sand, hr-text-1/2/3), Inter font, 0.5px borders, custom shadows
+- All 13 page/component files rewritten with new visual system (visual only — zero logic changes)
+- Typecheck passes across all workspaces
 
 ### Remaining follow-ups (non-blocking)
 1. **Connection pooling** — add `?pgbouncer=true` to Supabase connection string in API, set pool size to 10

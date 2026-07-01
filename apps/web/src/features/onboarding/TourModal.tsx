@@ -65,11 +65,11 @@ export function TourModal({ open, onClose }: TourModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-      <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 sm:p-8">
+      <div className="bg-white rounded-xl shadow-panel max-w-md w-full p-6 sm:p-8">
         <div className="flex flex-col items-center text-center">
           <div className="mb-4">{current.icon}</div>
-          <h2 className="text-xl font-bold text-slate-800 mb-2">{current.title}</h2>
-          <p className="text-slate-600 text-sm leading-relaxed">{current.body}</p>
+          <h2 className="text-xl font-semibold text-hr-text-1 mb-2">{current.title}</h2>
+          <p className="text-hr-text-2 text-sm leading-relaxed">{current.body}</p>
         </div>
 
         <div className="flex justify-center gap-1.5 mt-6">
@@ -77,7 +77,7 @@ export function TourModal({ open, onClose }: TourModalProps) {
             <span
               key={i}
               className={`h-2 w-2 rounded-full transition-colors ${
-                i === step ? 'bg-hr-green' : 'bg-slate-200'
+                i === step ? 'bg-hr-green' : 'bg-hr-sand-md'
               }`}
             />
           ))}
@@ -89,8 +89,8 @@ export function TourModal({ open, onClose }: TourModalProps) {
             disabled={step === 0}
             className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
               step === 0
-                ? 'text-slate-300 cursor-not-allowed'
-                : 'text-slate-600 hover:bg-slate-100'
+                ? 'text-hr-text-3 cursor-not-allowed'
+                : 'text-hr-text-2 hover:bg-hr-sand'
             }`}
           >
             Back
@@ -99,14 +99,14 @@ export function TourModal({ open, onClose }: TourModalProps) {
           {isLast ? (
             <button
               onClick={handleDone}
-              className="text-sm font-medium px-6 py-2 rounded-lg bg-hr-green text-white hover:bg-hr-green-dark transition-colors"
+              className="text-sm font-semibold px-6 py-2 rounded-lg bg-hr-green text-white hover:bg-hr-green-dark transition-colors"
             >
               Done
             </button>
           ) : (
             <button
               onClick={() => setStep(s => s + 1)}
-              className="text-sm font-medium px-6 py-2 rounded-lg bg-hr-green text-white hover:bg-hr-green-dark transition-colors"
+              className="text-sm font-semibold px-6 py-2 rounded-lg bg-hr-green text-white hover:bg-hr-green-dark transition-colors"
             >
               Next
             </button>

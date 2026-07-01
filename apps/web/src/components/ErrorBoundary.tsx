@@ -22,10 +22,10 @@ export class ErrorBoundary extends React.Component<Props, State> {
   override render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-hr-gray px-4">
+        <div className="min-h-screen flex items-center justify-center bg-hr-sand px-4">
           <div className="text-center max-w-md">
-            <h1 className="text-2xl font-semibold text-hr-navy mb-2">Something went wrong</h1>
-            <p className="text-slate-600 mb-6">
+            <h1 className="text-2xl font-semibold text-hr-text-1 mb-2">Something went wrong</h1>
+            <p className="text-hr-text-2 mb-6">
               An unexpected error occurred. Try reloading the page.
             </p>
             <button

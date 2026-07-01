@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, formatDistanceToNow } from 'date-fns';
+import { X } from 'lucide-react';
 import type { ScorecardSessionWithDetails } from '../../hooks/useScorecardNotes';
 
 interface NotesPanelProps {
@@ -18,9 +19,9 @@ interface NotesPanelProps {
 function NotesSkeleton() {
   return (
     <div className="animate-pulse space-y-4">
-      <div className="h-6 bg-slate-200 rounded w-1/4" />
-      <div className="h-24 bg-slate-200 rounded" />
-      <div className="h-10 bg-slate-200 rounded w-1/3" />
+      <div className="h-6 bg-hr-sand-md rounded w-1/4" />
+      <div className="h-24 bg-hr-sand-md rounded" />
+      <div className="h-10 bg-hr-sand-md rounded w-1/3" />
     </div>
   );
 }
@@ -68,44 +69,48 @@ export function NotesPanel({
 
   return (
     <div className="space-y-8">
-      <div className="bg-white rounded-lg p-6 space-y-4">
-        <h3 className="text-lg font-bold text-slate-800">New 1:1 Session</h3>
-
+      <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Session Date</label>
+          <label className="text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-text-3 mb-1.5 block">
+            Session Date
+          </label>
           <input
             type="date"
             value={sessionDate}
             onChange={e => setSessionDate(e.target.value)}
-            className="rounded-md border-slate-300 text-sm focus:border-hr-green focus:ring-hr-green"
+            className="rounded-lg border-half border-hr-base text-sm text-hr-text-1 focus:ring-hr-green/20 focus:border-hr-green/40"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Notes</label>
+          <label className="text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-text-3 mb-1.5 block">
+            Notes
+          </label>
           <textarea
             value={noteContent}
             onChange={e => setNoteContent(e.target.value)}
             rows={4}
-            placeholder="What did you discuss? What's going well? Where are there opportunities to grow?"
-            className="w-full rounded-md border-slate-300 text-sm focus:border-hr-green focus:ring-hr-green"
+            placeholder="What do you want to cover in this 1:1?"
+            className="w-full rounded-lg border-half border-hr-base text-sm text-hr-text-1 placeholder:text-hr-text-3 focus:ring-hr-green/20 focus:border-hr-green/40"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Action Items</label>
+          <label className="text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-text-3 mb-1.5 block">
+            Action Items
+          </label>
           <div className="space-y-2">
             {actionItems.map((item, i) => (
               <div key={i} className="flex items-center gap-2">
-                <span className="flex-1 text-sm text-slate-700 bg-hr-gray px-3 py-1.5 rounded">
+                <span className="flex-1 text-sm text-hr-text-1 bg-hr-sand px-3 py-1.5 rounded-lg">
                   {item}
                 </span>
                 <button
                   onClick={() => handleRemoveItem(i)}
-                  className="text-slate-400 hover:text-slate-600 text-sm px-2"
+                  className="text-hr-text-3 hover:text-hr-text-1 p-1 rounded transition-colors"
                   aria-label={`Remove action item: ${item}`}
                 >
-                  ×
+                  <X size={14} />
                 </button>
               </div>
             ))}
@@ -121,12 +126,12 @@ export function NotesPanel({
                   }
                 }}
                 placeholder="Add an action item..."
-                className="flex-1 rounded-md border-slate-300 text-sm focus:border-hr-green focus:ring-hr-green"
+                className="flex-1 rounded-lg border-half border-hr-base text-sm text-hr-text-1 placeholder:text-hr-text-3 focus:ring-hr-green/20 focus:border-hr-green/40"
               />
               <button
                 onClick={handleAddItem}
                 disabled={!newItem.trim()}
-                className="px-3 py-2 text-sm rounded-md border border-hr-green text-hr-green hover:bg-hr-green-light transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-3 py-2 text-sm rounded-lg border-half border-hr-green/30 text-hr-green hover:bg-hr-green-light transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Add
               </button>
@@ -135,7 +140,7 @@ export function NotesPanel({
         </div>
 
         {saveError && (
-          <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-lg text-sm">
+          <div className="bg-hr-amber-light border-half border-hr-amber/20 text-hr-amber p-3 rounded-xl text-sm">
             {saveError}
           </div>
         )}
@@ -143,34 +148,34 @@ export function NotesPanel({
         <button
           onClick={handleSave}
           disabled={saving || (!noteContent.trim() && actionItems.length === 0)}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             !saving && (noteContent.trim() || actionItems.length > 0)
-              ? 'bg-hr-green text-white hover:bg-hr-green-dark'
-              : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+              ? 'bg-hr-navy text-white hover:bg-hr-navy-deep'
+              : 'bg-hr-sand-md text-hr-text-3 cursor-not-allowed'
           }`}
         >
-          {saving ? 'Saving…' : 'Save Session'}
+          {saving ? 'Saving...' : 'Save Session'}
         </button>
       </div>
 
       {sessions.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-bold text-slate-800">Previous Sessions</h3>
+        <div className="space-y-3">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-text-3">Previous Sessions</p>
           {sessions.map(session => (
-            <div key={session.id} className="bg-white rounded-lg p-5 space-y-3">
-              <p className="text-sm font-medium text-slate-700">
-                {format(parseISO(session.session_date), 'MMMM d, yyyy')}
+            <div key={session.id} className="bg-hr-sand rounded-xl p-5 space-y-3">
+              <p className="text-sm font-medium text-hr-text-1" title={format(parseISO(session.session_date), 'MMMM d, yyyy')}>
+                {formatDistanceToNow(parseISO(session.session_date), { addSuffix: true })}
               </p>
 
               {session.notes.map(note => (
-                <p key={note.id} className="text-sm text-slate-600 whitespace-pre-wrap">
+                <p key={note.id} className="text-sm text-hr-text-2 whitespace-pre-wrap">
                   {note.content}
                 </p>
               ))}
 
               {session.action_items.length > 0 && (
                 <div className="space-y-1.5">
-                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-text-3">
                     Action Items
                   </p>
                   {session.action_items.map(item => (
@@ -179,11 +184,11 @@ export function NotesPanel({
                         type="checkbox"
                         checked={item.is_completed}
                         onChange={e => onToggleActionItem(item.id, e.target.checked)}
-                        className="rounded border-slate-300 text-hr-green focus:ring-hr-green"
+                        className="rounded border-hr-base text-hr-green focus:ring-hr-green/20"
                       />
                       <span
                         className={`text-sm ${
-                          item.is_completed ? 'line-through text-slate-400' : 'text-slate-700'
+                          item.is_completed ? 'line-through text-hr-text-3' : 'text-hr-text-1'
                         }`}
                       >
                         {item.content}

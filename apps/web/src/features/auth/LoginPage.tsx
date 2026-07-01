@@ -12,18 +12,26 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-hr-gray flex items-center justify-center px-4">
-      <div className="bg-white rounded-xl shadow-md max-w-sm w-full overflow-hidden">
-        <div className="h-1.5 bg-hr-green" />
-        <div className="p-8 sm:p-10 text-center">
-          <h1 className="text-2xl font-bold text-slate-800 mb-1">Manager Scorecard</h1>
-          <p className="text-sm text-slate-400 mb-8">
-            Sign in with your HungerRush Microsoft account
+    <div className="min-h-screen bg-[#F7F6F3] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl border border-[#E8E6E1] w-full max-w-sm overflow-hidden">
+        <div className="h-1 bg-[#1D9E75]" />
+
+        <div className="p-10">
+          <div className="w-9 h-9 rounded-lg bg-[#1E2E4A] flex items-center justify-center mx-auto mb-5">
+            <span className="text-white text-[14px] font-semibold">HR</span>
+          </div>
+
+          <h1 className="text-[20px] font-medium text-slate-800 text-center">
+            Manager Scorecard
+          </h1>
+
+          <p className="text-[13px] text-slate-400 text-center mt-1.5 mb-7">
+            Sign in with your HungerRush Microsoft account to continue.
           </p>
+
           <button
             onClick={handleLogin}
-            className="w-full bg-hr-green text-white py-3 px-6 rounded-lg font-medium hover:bg-hr-green-dark transition-colors"
-            aria-label="Sign in with Microsoft"
+            className="w-full bg-[#1D9E75] text-white rounded-lg py-2.5 text-[14px] font-medium hover:bg-[#0F6E56] transition-colors"
           >
             Sign in with Microsoft
           </button>

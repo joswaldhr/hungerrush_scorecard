@@ -1,4 +1,4 @@
-import { format, parseISO } from 'date-fns';
+import { formatDistanceToNow, parseISO } from 'date-fns';
 import { formatMetricValue } from '../lib/formatMetric';
 import type { MetricDefinition } from '@scorecard/shared';
 
@@ -31,9 +31,9 @@ function getTrend(
 }
 
 const BADGE_STYLES: Record<TrendDirection, string> = {
-  improving: 'bg-[#E1F5EE] text-[#0F6E56]',
-  attention: 'bg-[#FAEEDA] text-[#854F0B]',
-  neutral: 'bg-slate-100 text-slate-400',
+  improving: 'bg-hr-green-light text-hr-green-dark border-half border-hr-green/20',
+  attention: 'bg-hr-amber-light text-hr-amber border-half border-hr-amber/20',
+  neutral: 'bg-hr-sand text-hr-text-3 border-half border-hr-base',
 };
 
 function getBadgeLabel(trend: TrendDirection, direction: string): string {
@@ -68,7 +68,7 @@ function Sparkline({ history }: { history: Array<{ value: number }> }) {
           return (
             <div
               key={i}
-              className="w-2 h-full border border-dashed border-slate-200 rounded-sm bg-transparent"
+              className="w-2 h-full border border-dashed border-hr-sand-md rounded-sm bg-transparent"
             />
           );
         }
@@ -76,7 +76,7 @@ function Sparkline({ history }: { history: Array<{ value: number }> }) {
         return (
           <div
             key={i}
-            className="w-2 bg-[#1D9E75] rounded-sm"
+            className="w-2 bg-hr-green rounded-sm"
             style={{ height: `${heightPct}%`, minHeight: '4px' }}
           />
         );
@@ -87,52 +87,58 @@ function Sparkline({ history }: { history: Array<{ value: number }> }) {
 
 export function KpiTileSkeleton() {
   return (
-    <div className="animate-pulse bg-white rounded-lg border border-slate-200 p-3 space-y-2">
-      <div className="flex items-center justify-between">
-        <div className="h-3 bg-slate-200 rounded w-1/3" />
-        <div className="h-5 bg-slate-200 rounded-full w-8" />
-      </div>
-      <div className="h-7 bg-slate-200 rounded w-1/2" />
-      <div className="flex items-end gap-1 h-8">
-        {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="w-2 bg-slate-200 rounded-sm h-full" />
-        ))}
-      </div>
+    <div className="bg-white border-half border-hr-base rounded-xl p-5 animate-pulse">
+      <div className="h-2.5 bg-hr-sand-md rounded w-1/2 mb-4" />
+      <div className="h-8 bg-hr-sand-md rounded w-2/3 mb-2" />
+      <div className="h-2 bg-hr-sand-md rounded w-1/3" />
     </div>
   );
+}
+
+function getValueColor(value: number | null): string {
+  if (value === null || value === 0) return 'text-hr-text-3';
+  return 'text-hr-text-1';
 }
 
 export function KpiTile({ definition, value, syncedAt, history }: KpiTileProps) {
   const isNull = value === null || value === 0;
   const trend = getTrend(value, history, definition.direction);
-  const nullLabel = NULL_LABELS[definition.key] ?? 'No data';
+  const nullLabel = NULL_LABELS[definition.key] ?? 'No data yet';
+  const valueColorClass = getValueColor(value);
 
   return (
-    <div className="group bg-white rounded-lg border border-slate-200 p-3 space-y-1 transition-colors hover:border-slate-300">
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-slate-400">{definition.name}</span>
+    <div className="bg-white border-half border-hr-base rounded-xl p-5 hover:shadow-card-hover hover:border-hr-strong transition-all duration-150 group">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-hr-text-3">
+          {definition.name}
+        </p>
         <span className={`text-xs px-2 py-0.5 rounded-full ${BADGE_STYLES[trend]}`}>
           {getBadgeLabel(trend, definition.direction)}
         </span>
       </div>
 
       {isNull ? (
-        <p className="text-base text-slate-400">{nullLabel}</p>
+        <>
+          <p className="text-3xl font-semibold tracking-[-0.025em] leading-none text-hr-text-3 mb-1.5">—</p>
+          <p className="text-[11px] text-hr-text-3">{nullLabel}</p>
+        </>
       ) : (
-        <p className="text-2xl font-medium text-slate-800">
+        <p className={`text-3xl font-semibold tracking-[-0.025em] leading-none mb-1.5 ${valueColorClass}`}>
           {formatMetricValue(value, definition.unit)}
         </p>
       )}
 
-      <Sparkline history={history} />
+      <div className="mt-3">
+        <Sparkline history={history} />
+      </div>
 
-      <div className="hidden group-hover:block border-t border-slate-100 pt-2">
-        <p className="text-xs text-slate-400">{definition.coaching_prompt}</p>
+      <div className="hidden group-hover:block border-t border-half border-hr-base pt-3 mt-3">
+        <p className="text-[11px] text-hr-text-3 leading-relaxed">{definition.coaching_prompt}</p>
       </div>
 
       {!isNull && syncedAt && (
-        <p className="text-xs text-slate-400">
-          Updated {format(parseISO(syncedAt), 'MMM d, h:mm a')}
+        <p className="text-[11px] text-hr-text-3 mt-1">
+          Synced {formatDistanceToNow(parseISO(syncedAt), { addSuffix: true })}
         </p>
       )}
     </div>

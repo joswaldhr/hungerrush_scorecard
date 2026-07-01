@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Navigate, Link } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
+import { AppLayout } from '../../components/AppLayout';
 
 interface ExportLogEntry {
   id: string;
@@ -16,13 +17,13 @@ interface ExportLogEntry {
 
 function TableSkeleton() {
   return (
-    <div className="bg-white rounded-lg overflow-hidden">
+    <div className="bg-white rounded-xl border border-[#E8E6E1] overflow-hidden">
       <div className="animate-pulse p-4 space-y-4">
         {Array.from({ length: 5 }, (_, i) => (
           <div key={i} className="flex items-center gap-4">
-            <div className="h-4 bg-slate-200 rounded w-1/4" />
-            <div className="h-4 bg-slate-200 rounded w-1/4" />
-            <div className="h-4 bg-slate-200 rounded w-1/4" />
+            <div className="h-4 bg-slate-100 rounded w-1/4" />
+            <div className="h-4 bg-slate-100 rounded w-1/4" />
+            <div className="h-4 bg-slate-100 rounded w-1/4" />
           </div>
         ))}
       </div>
@@ -79,7 +80,13 @@ export function ExportLogPage() {
     load();
   }, []);
 
-  if (authLoading) return <TableSkeleton />;
+  if (authLoading) {
+    return (
+      <AppLayout title="Export log">
+        <TableSkeleton />
+      </AppLayout>
+    );
+  }
   if (!session) return <Navigate to="/login" replace />;
 
   const role = session.user.app_metadata?.['role'] as string | undefined;
@@ -88,69 +95,54 @@ export function ExportLogPage() {
   }
 
   return (
-    <div className="min-h-screen bg-hr-gray">
-      <nav className="bg-hr-navy text-white px-4 sm:px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link to="/dashboard" className="text-sm text-slate-300 hover:text-white transition-colors">
-            ← Dashboard
-          </Link>
-          <h1 className="text-lg font-bold">Export Log</h1>
-        </div>
-        <span className="hidden sm:inline text-sm text-slate-300">{session.user.email}</span>
-      </nav>
+    <AppLayout title="Export log">
+      <p className="text-[13px] text-slate-500 mb-6">
+        All scorecard PDF exports with manager and timestamp
+      </p>
 
-      <main className="max-w-5xl mx-auto p-6 sm:p-8">
-        <div className="mb-6">
-          <h2 className="text-xl font-bold text-slate-800">PDF Export History</h2>
-          <p className="text-sm text-slate-500 mt-1">
-            All scorecard PDF exports with manager and timestamp
+      {error && (
+        <div className="bg-[#FFFBEB] border border-[#D97706]/20 text-[#D97706] p-4 rounded-xl mb-4 text-[13px]">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <TableSkeleton />
+      ) : entries.length === 0 ? (
+        <div className="bg-white rounded-xl border border-[#E8E6E1] p-12 text-center">
+          <p className="text-[13px] text-slate-700 mb-2">No exports yet.</p>
+          <p className="text-[13px] text-slate-400">
+            PDF exports will appear here once a manager exports a scorecard.
           </p>
         </div>
-
-        {error && (
-          <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-lg mb-4 text-sm">
-            {error}
-          </div>
-        )}
-
-        {loading ? (
-          <TableSkeleton />
-        ) : entries.length === 0 ? (
-          <div className="bg-white p-8 rounded-lg text-center">
-            <p className="text-slate-500 mb-2">No exports yet.</p>
-            <p className="text-sm text-slate-400">
-              PDF exports will appear here once a manager exports a scorecard.
-            </p>
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="px-4 py-3 text-sm font-semibold text-slate-700">Date</th>
-                  <th className="px-4 py-3 text-sm font-semibold text-slate-700">Exported By</th>
-                  <th className="px-4 py-3 text-sm font-semibold text-slate-700">Employee</th>
+      ) : (
+        <div className="bg-white rounded-xl border border-[#E8E6E1] overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-[#E8E6E1]">
+                <th className="px-4 py-3 text-[10px] font-semibold tracking-widest uppercase text-slate-400">Date</th>
+                <th className="px-4 py-3 text-[10px] font-semibold tracking-widest uppercase text-slate-400">Exported By</th>
+                <th className="px-4 py-3 text-[10px] font-semibold tracking-widest uppercase text-slate-400">Employee</th>
+              </tr>
+            </thead>
+            <tbody>
+              {entries.map(entry => (
+                <tr key={entry.id} className="border-b border-[#F0EEE9] last:border-0 hover:bg-[#FAFAF8] transition-colors">
+                  <td className="px-4 py-3 text-[13px] text-slate-700">
+                    {format(parseISO(entry.created_at), 'MMM d, yyyy h:mm a')}
+                  </td>
+                  <td className="px-4 py-3 text-[13px] text-slate-700">
+                    {entry.actor_email}
+                  </td>
+                  <td className="px-4 py-3 text-[13px] text-slate-700">
+                    {entry.employee_name}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {entries.map(entry => (
-                  <tr key={entry.id} className="border-b border-slate-100">
-                    <td className="px-4 py-3 text-sm text-slate-600">
-                      {format(parseISO(entry.created_at), 'MMM d, yyyy h:mm a')}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-slate-600">
-                      {entry.actor_email}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-slate-600">
-                      {entry.employee_name}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </main>
-    </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </AppLayout>
   );
 }
