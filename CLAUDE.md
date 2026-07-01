@@ -9,13 +9,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current Session Status
 
-**Last updated:** 2026-07-01 (session 18)
+**Last updated:** 2026-07-01 (session 19)
 
 ### Current state
-All 5 development phases, all 4 UI/UX redesign sprints, full layout redesign (AppLayout with left sidebar, all pages migrated), visual polish pass, and UX audit fixes complete. App is pilot-ready at `hungerrush-scorecard.vercel.app`.
+All 5 development phases, all 4 UI/UX redesign sprints, full layout redesign, visual polish pass, UX audit fixes, and data integrity audit complete. App is pilot-ready at `hungerrush-scorecard.vercel.app`.
 
-**UX Batch 1:** save confirmation, error states in AppLayout, back to rollup, clickable breadcrumb, clipboard error handling, PDF audit decoupled, prev/next replace, offline banner auto-dismiss.
-**UX Batch 2:** sign out visible, login loading state, auth error styled, coaching prompts always visible, shared scorecard human context, sparkline label, date picker bounds.
+**Session 19 — Data integrity audit:** 11-dimension audit across all data paths from API call to screen pixel. 5 fixes shipped:
+1. **TrendChip direction inversion** (CRITICAL) — RollupPage was showing opposite color/direction for lower_is_better metrics; simplified to use pre-computed `improving`/`declining` counts from `useManagerRollup`
+2. **Connector null-vs-zero** — Zendesk connector returned 0 for no-data (zero tickets, no replies, no resolved); now returns null. Removed 8 `|| value === 0` UI workarounds across KpiTile, ScorecardPage, SharedScorecardPage, DashboardPage
+3. **PDF zero guard** — `pdfExport.ts` now treats value 0 as "No data" for stale DB rows predating the null fix
+4. **Dashboard preview date filter** — `useDirectReports` preview query now filters to current week's Monday, matching scorecard page behavior
+5. **Snapshot correction** — `syncService.ts` changed `ignoreDuplicates: true` to `false` so re-syncs update stale values
+
 **Remaining:** mobile navigation (hamburger menu for screens under 1024px).
 
 ---
@@ -114,6 +119,14 @@ npm run lint -w apps/web     # eslint src
 1. **Connection pooling** — add `?pgbouncer=true` to Supabase connection string in API, set pool size to 10
 2. **CORS lockdown** — replace `cors()` wildcard with explicit Vercel origin allowlist in `apps/api/src/index.ts`
 3. **Email nudge** — Monday 8am UTC cron, axios.post to Resend API (no new dep), needs `RESEND_API_KEY` from user
+4. **Zendesk `updated` date filter** (HIGH) — `searchTickets` uses `updated>=${start}` which includes tickets updated but not created in the period; stale reply times contaminate first_reply_time averages. Switch to `created>=${start}` or filter post-fetch by `created_at`.
+5. **UTC vs local timezone week boundary** (MEDIUM) — backend computes Monday via `Date.UTC`, frontend uses `date-fns startOfWeek` (local time). Managers in non-UTC zones may see a period_start mismatch near week boundaries.
+6. **No auto-refresh** (MEDIUM) — data loads once on mount; no polling or refetch mechanism. Stale data if manager keeps tab open during a sync cycle.
+7. **Assembled productiveStateNames assumption** (MEDIUM) — connector builds productive state names from activity_type names, but hasn't verified these match actual agent state strings from `/agents/state`
+8. **SLA policy fetched per-employee** (MEDIUM) — Zendesk SLA policies fetched 63x per sync run instead of once and cached
+9. **"Last Week" trend badge shows current-week direction** (MEDIUM) — KPI tiles in the "Last Week" section display trend computed from current-week data, not last-week trend
+10. **Partial sync failure creates silent data-age gap** (MEDIUM) — if one connector fails for an employee, that employee's other metrics still update, creating inconsistent data freshness with no indicator
+11. **Mobile navigation** — hamburger/drawer for screens below 1024px (deferred from session 18)
 
 ### Assembled API — confirmed working (session 2, bugs fixed session 4)
 - **Base URL:** `https://api.assembledhq.com/v0`
@@ -386,8 +399,8 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | 4 | Senior manager rollup · employee sharing · PDF export · email nudge | ✅ | A senior manager sees team trends; a manager can share a read-only card |
 | 5 | Polish · onboarding tour · PWA · audit log · load test · prod deploy | ✅ | Pilot managers using it in production |
 
-**Current phase:** Complete — all 5 phases delivered. All 4 UI/UX redesign sprints, full layout redesign, and UX audit fixes complete. Pushed to production.
-**Last session:** 2026-07-01 (session 18) — Full 8-dimension UX audit (26 issues found across navigation, interaction clarity, feedback, empty/error states, cognitive load, trust, mobile, routing). 15 issues fixed in 2 batches: notes save confirmation, error states inside AppLayout, clickable breadcrumb, clipboard error handling, PDF audit decoupling, prev/next history replace, rollup back link, offline banner auto-dismiss, sign-out visibility, login loading state, auth error styling, coaching prompts always visible, shared scorecard context, sparkline label, date picker bounds. 4 items deferred (mobile nav, metric config success, tour skip, trend chip notation).
+**Current phase:** Complete — all 5 phases delivered. All 4 UI/UX redesign sprints, full layout redesign, UX audit fixes, and data integrity audit complete. Pushed to production.
+**Last session:** 2026-07-01 (session 19) — 11-dimension data integrity audit across all data paths (connectors → sync → DB → hooks → display). Found 16 issues; fixed top 5 in priority order: TrendChip direction inversion (CRITICAL — senior managers got exactly-wrong signals for lower_is_better metrics), connector null-vs-zero compound bug (root cause + 8 UI workaround removals), PDF zero guard, dashboard preview date filter, snapshot correction enablement. 11 unfixed findings documented in remaining follow-ups (items 4–10).
 
 ---
 
@@ -465,3 +478,8 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | 2026-07-01 | AppLayout title prop accepts ReactNode not just string | Enables clickable breadcrumb on ScorecardPage ("Your team → Name" where "Your team" is a Link) |
 | 2026-07-01 | SharedScorecardPage header changed to "Your Weekly Snapshot" | "HungerRush Scorecard" is an internal product name meaningless to employees; "Your Weekly Snapshot" is employee-facing and non-clinical |
 | 2026-07-01 | Clipboard fallback URL input on writeText failure | clipboard API can fail in background tabs or restricted contexts; fallback shows selectable URL so the share token isn't wasted |
+| 2026-07-01 | Connectors return null (not 0) for no-data scenarios | Zero is a valid metric value (e.g., 0 tickets); returning 0 for "no data" caused compound bugs — UI added `|| value === 0` workarounds that then hid legitimate zeros. Null means "no data", zero means "measured zero". |
+| 2026-07-01 | TrendChip uses pre-computed improving/declining directly | `useManagerRollup` already accounts for direction when computing improving/declining counts; TrendChip was double-applying direction logic, inverting colors for lower_is_better metrics |
+| 2026-07-01 | Snapshot upsert uses `ignoreDuplicates: false` | Previous `true` setting prevented corrections on re-sync — if a connector initially wrote a wrong value, subsequent syncs couldn't update it. The upsert key (employee_id, metric_key, period_start) already prevents true duplicates |
+| 2026-07-01 | Dashboard preview query filtered to current week Monday | Previously fetched latest snapshot regardless of period_start, creating mismatch with scorecard page which filters to current week. Now both use `period_start = thisMondayStr` |
+| 2026-07-01 | PDF export treats value 0 as "No data" | Guard against stale DB rows written before the null fix; once old zero-value rows age out of the 4-week window, this guard becomes redundant but harmless |
