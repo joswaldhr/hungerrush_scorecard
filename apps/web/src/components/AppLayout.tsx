@@ -132,7 +132,7 @@ export function AppLayout({ children, title, subtitle, actions }: AppLayoutProps
           </div>
           <div className="ml-auto flex items-center gap-3 flex-shrink-0">{actions}</div>
         </header>
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-6 bg-[#F7F6F3]">{children}</main>
       </div>
     </div>
   );
