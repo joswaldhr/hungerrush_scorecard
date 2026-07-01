@@ -112,25 +112,30 @@ export function DashboardPage() {
 
       {!loading && employees.length > 0 && !managerFilter && (
         <div className="grid grid-cols-3 gap-2">
-          <div className="py-3 px-5 bg-white rounded-xl border border-[#E8E6E1]">
-            <p className="text-[11px] text-slate-400 mb-1">With metrics</p>
-            <div className="flex items-baseline gap-1.5">
+          <div className="py-4 px-5 bg-white rounded-xl border border-[#E8E6E1]">
+            <p className="text-[11px] text-slate-400 mb-1.5">With metrics</p>
+            <div className="flex items-baseline gap-2">
               <span className="text-[24px] font-medium text-slate-800 leading-none">{employeesWithMetrics.size}</span>
-              <span className="text-[12px] text-slate-400">{`of ${employees.length} total`}</span>
+              <span className="text-[12px] text-[#1D9E75]">{`of ${employees.length} total`}</span>
             </div>
           </div>
-          <div className="py-3 px-5 bg-white rounded-xl border border-[#E8E6E1]">
-            <p className="text-[11px] text-slate-400 mb-1">Avg tickets</p>
-            <div className="flex items-baseline gap-1.5">
+          <div className="py-4 px-5 bg-white rounded-xl border border-[#E8E6E1]">
+            <p className="text-[11px] text-slate-400 mb-1.5">Avg tickets</p>
+            <div className="flex items-baseline gap-2">
               <span className="text-[24px] font-medium text-slate-800 leading-none">{avgTickets ?? '—'}</span>
-              <span className="text-[12px] text-slate-400">this week</span>
+              <span className="text-[12px] text-[#1D9E75]">this week</span>
             </div>
           </div>
-          <div className="py-3 px-5 bg-white rounded-xl border border-[#E8E6E1]">
-            <p className="text-[11px] text-slate-400 mb-1">Last synced</p>
-            <span className="text-[24px] font-medium text-slate-800 leading-none">
-              {lastSyncedAt ? format(new Date(lastSyncedAt), 'MMM d, h:mm a') : '—'}
-            </span>
+          <div className="py-4 px-5 bg-white rounded-xl border border-[#E8E6E1]">
+            <p className="text-[11px] text-slate-400 mb-1.5">Last synced</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-[24px] font-medium text-slate-800 leading-none">
+                {lastSyncedAt ? format(new Date(lastSyncedAt), 'MMM d') : '—'}
+              </span>
+              <span className="text-[12px] text-[#1D9E75]">
+                {lastSyncedAt ? format(new Date(lastSyncedAt), 'h:mm a') : ''}
+              </span>
+            </div>
           </div>
         </div>
       )}
@@ -192,7 +197,7 @@ export function DashboardPage() {
               <button
                 key={emp.id}
                 onClick={() => handleEmployeeClick(emp.id)}
-                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#FAFAF8] transition-colors text-left border-b border-[#F0EEE9] last:border-0"
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#FAFAF8] cursor-pointer transition-colors duration-100 text-left border-b border-[#F0EEE9] last:border-b-0"
               >
                 <div className="h-8 w-8 bg-[#E1F5EE] rounded-full flex items-center justify-center flex-shrink-0">
                   <span className="text-[#0F6E56] font-semibold text-sm">
@@ -204,9 +209,9 @@ export function DashboardPage() {
                   <p className="text-[11px] text-slate-400 truncate">{emp.email}</p>
                 </div>
                 {hasMetrics && preview && (preview.ticket_volume !== null || preview.first_reply_time !== null) ? (
-                  <div className="hidden sm:flex items-center gap-4 text-right flex-shrink-0 pr-4 pl-6 border-l border-[#F0EEE9]">
+                  <div className="hidden sm:flex items-center gap-6 pr-2">
                     {preview.ticket_volume !== null && (
-                      <div className="min-w-[80px]">
+                      <div className="min-w-[72px] text-right">
                         <p className="text-[11px] text-slate-400">Tickets</p>
                         <p className="text-[13px] font-medium text-slate-700">
                           {preview.ticket_volume === 0 ? '—' : formatMetricValue(preview.ticket_volume, 'count')}
@@ -214,7 +219,7 @@ export function DashboardPage() {
                       </div>
                     )}
                     {preview.first_reply_time !== null && (
-                      <div className="min-w-[80px]">
+                      <div className="min-w-[72px] text-right">
                         <p className="text-[11px] text-slate-400">First Reply</p>
                         <p className="text-[13px] font-medium text-slate-700">
                           {preview.first_reply_time === 0 ? '—' : formatMetricValue(preview.first_reply_time, 'seconds')}

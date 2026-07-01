@@ -238,7 +238,7 @@ export function ScorecardPage() {
       </div>
 
       <section>
-        <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400 mb-4">This Week So Far</p>
+        <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400 mb-3 mt-2">This Week So Far</p>
         {metricsError && (
           <div className="bg-[#FFFBEB] border border-[#D97706]/20 text-[#D97706] p-4 rounded-xl mb-4 text-[13px]">
             {metricsError}
@@ -280,7 +280,7 @@ export function ScorecardPage() {
       <div className="border-t border-[#F0EEE9] my-8" />
 
       <section>
-        <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400 mb-4">Last Week (Completed)</p>
+        <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400 mb-3 mt-2">Last Week (Completed)</p>
         {lastWeekMetrics.length === 0 ? (
           <div className="bg-white rounded-xl border border-[#E8E6E1] p-6 text-center">
             <p className="text-[13px] text-slate-700 mb-1">No completed snapshot for last week.</p>
