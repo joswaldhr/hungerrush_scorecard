@@ -7,19 +7,17 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-07-02 (session 21)
+**Last updated:** 2026-07-02 (session 22)
 
 - All 5 phases, 4 UI/UX sprints, layout redesign, and data integrity audit complete — pilot-ready
 - Production: `hungerrush-scorecard.vercel.app` (frontend) · `scorecardapi-production.up.railway.app` (backend)
-- **Session 21:** No code changes — data model Q&A. Confirmed: Dashboard lists `employees` (coached agents, RLS-scoped); managers appear on `/rollup` (profiles with assigned employees, admin/senior_manager only); 105 unmatched employees are expected (non-support, no Zendesk account). Attempted to add Playwright MCP server — `claude` CLI not on PATH in Bash/PowerShell and not in common install dirs; unresolved, retry from user's own terminal: `claude mcp add playwright -- npx @playwright/mcp@latest`
-- **Session 20:** CLAUDE.md trimmed from 486→342 lines. Agent matching expanded — direct Zendesk email matching added to `bootstrapAgentIds()`, coverage went from 63→246 employees (of 351). Daily bootstrap cron at 05:00 UTC. 105 unmatched employees are non-support roles (no Zendesk account).
-- **Next up:** UI/UX visual overhaul — design brief prepared for Claude Design, ready for prototyping
-- **Remaining feature:** mobile navigation (hamburger menu for screens < 1024px)
-- **Remaining hardening:** connection pooling (`?pgbouncer=true`), CORS lockdown, email nudge (needs `RESEND_API_KEY`)
-- **Known data issue:** Zendesk `searchTickets` uses `updated>=` — stale reply times from reworked tickets contaminate first_reply_time averages
-- **Known data issue:** UTC vs local timezone week boundary mismatch near week edges
-- **Known perf issue:** Zendesk SLA policies fetched per-employee (63x → now 246x) instead of cached once per sync
-- **Known data issue:** "Last Week" trend badge computed from current-week data, not last-week trend
+- **Session 22 (Phase 0 of production-grade refactor):** Full codebase audit, no code changes. `docs/refactor-plan.md` committed — the cross-session source of truth for Phases 1–2 (metric modularity → fluff removal/hardening → hand off to design implementation). Read it before any refactor work. Key new findings: (1) all `occupancy`/`schedule_adherence` values ever written are 0 — Assembled productive-state name mapping matches nothing (249 misleading rows); (2) frontend snapshot queries silently truncate at PostgREST's 1000-row default — dashboard "has data" flags and rollup chips are wrong in prod today and worsen weekly; (3) `ALLOWED_ORIGIN` is set in Railway but ignored — `cors()` has no options; (4) `?pgbouncer=true` hardening item is N/A (supabase-js is HTTP/PostgREST; nothing opens direct pg connections). Awaiting user approval of the plan before Phase 1A.
+- **Session 21:** No code changes — data model Q&A. Playwright MCP install unresolved (`claude` CLI not on PATH); retry from user's terminal: `claude mcp add playwright -- npx @playwright/mcp@latest`
+- **Session 20:** Agent matching expanded — coverage 63→246 employees (of 351). Daily bootstrap cron at 05:00 UTC. 105 unmatched are non-support roles.
+- **Next up:** Phase 1A of `docs/refactor-plan.md` (tests + backup/dump scripts + read-path truncation fix), pending plan approval
+- **Remaining feature:** mobile navigation (hamburger menu for screens < 1024px) — recorded as gap S1 in refactor plan, owned by Phase 3 design
+- **Remaining hardening:** CORS lockdown (refactor plan commit 16), email nudge (needs `RESEND_API_KEY`); connection pooling item retired — see pgbouncer finding in refactor plan
+- **Known data/logic issues:** now tracked with classifications in `docs/refactor-plan.md` §f (L1–L14) — the four previously listed here plus sparkline calendar gap, Assembled zero-writes, 1000-row truncation, PDF zero treatment, and others
 
 ---
 
