@@ -7,10 +7,11 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-07-02 (session 20)
+**Last updated:** 2026-07-02 (session 21)
 
 - All 5 phases, 4 UI/UX sprints, layout redesign, and data integrity audit complete — pilot-ready
 - Production: `hungerrush-scorecard.vercel.app` (frontend) · `scorecardapi-production.up.railway.app` (backend)
+- **Session 21:** No code changes — data model Q&A. Confirmed: Dashboard lists `employees` (coached agents, RLS-scoped); managers appear on `/rollup` (profiles with assigned employees, admin/senior_manager only); 105 unmatched employees are expected (non-support, no Zendesk account). Attempted to add Playwright MCP server — `claude` CLI not on PATH in Bash/PowerShell and not in common install dirs; unresolved, retry from user's own terminal: `claude mcp add playwright -- npx @playwright/mcp@latest`
 - **Session 20:** CLAUDE.md trimmed from 486→342 lines. Agent matching expanded — direct Zendesk email matching added to `bootstrapAgentIds()`, coverage went from 63→246 employees (of 351). Daily bootstrap cron at 05:00 UTC. 105 unmatched employees are non-support roles (no Zendesk account).
 - **Next up:** UI/UX visual overhaul — design brief prepared for Claude Design, ready for prototyping
 - **Remaining feature:** mobile navigation (hamburger menu for screens < 1024px)
