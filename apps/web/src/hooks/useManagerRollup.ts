@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { startOfWeek, subWeeks, format } from 'date-fns';
 import { supabase } from '../lib/supabase';
+import { fetchAllPages } from '../lib/fetchAllPages';
 import type { Profile, Employee, MetricSnapshot, MetricDefinition } from '@scorecard/shared';
 
 export interface MetricTrend {
@@ -86,13 +87,20 @@ export function useManagerRollup() {
         employeesByManager.set(emp.manager_id, list);
       }
 
-      // Fetch snapshots for current and last week
+      // Fetch snapshots for current and last week — paginated (L7: PostgREST caps
+      // unpaginated selects at 1,000 rows; this query already exceeds that in prod).
       const allEmployeeIds = employees.map(e => e.id);
-      const snapshotsRes = await supabase
-        .from('metric_snapshots')
-        .select('employee_id, metric_key, value, period_start')
-        .in('employee_id', allEmployeeIds)
-        .in('period_start', [thisMondayStr, lastMondayStr]);
+      const snapshotsRes = await fetchAllPages<
+        Pick<MetricSnapshot, 'employee_id' | 'metric_key' | 'value' | 'period_start'>
+      >((from, to) =>
+        supabase
+          .from('metric_snapshots')
+          .select('employee_id, metric_key, value, period_start')
+          .in('employee_id', allEmployeeIds)
+          .in('period_start', [thisMondayStr, lastMondayStr])
+          .order('id')
+          .range(from, to),
+      );
 
       if (snapshotsRes.error) {
         setError(snapshotsRes.error.message);
@@ -100,7 +108,7 @@ export function useManagerRollup() {
         return;
       }
 
-      const snapshots = (snapshotsRes.data ?? []) as Pick<MetricSnapshot, 'employee_id' | 'metric_key' | 'value' | 'period_start'>[];
+      const snapshots = snapshotsRes.data ?? [];
 
       // Index snapshots: employeeId -> metricKey -> { thisWeek, lastWeek }
       const snapshotIndex = new Map<string, Map<string, { thisWeek: number | null; lastWeek: number | null }>>();
