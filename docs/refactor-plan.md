@@ -15,7 +15,7 @@
 | Phase | Session | Status |
 |---|---|---|
 | 0 — Audit & plan | 22 | ✅ Complete — approved by user 2026-07-02, pushed `19c55e1` |
-| 1A — Safety nets: tests, backup/dump scripts, truncation fix | 22 | 🔄 In progress |
+| 1A — Safety nets: tests, backup/dump scripts, truncation fix | 22 | ✅ Complete — `77d3028` (52 characterization tests), `b044a6f` (paginated scripts + first backup: 1,104 rows verified), `df71938` (L7 fix), `81194d9` (lint config repair). Pending: user visual check of dashboard/rollup post-deploy |
 | 1B — Metric registry refactor + parity + deploy watch | — | Not started |
 | 1C — Logic fixes (one commit each) + approved data correction | — | Not started |
 | 2 — Fluff removal & hardening | — | Not started |
@@ -189,6 +189,22 @@ coherent unit per commit · never start a new phase above ~60% context — hand 
 | 3 | **FIX-EARLY L7** (read-path truncation — justification in section f): bound `useDirectReports` snapshot queries to current+last week and page/window the rollup query | User screenshots dashboard "With metrics" count = 247 and rollup chips populated; counts cross-checked against a read-only script |
 
 Session boundary. Commit 3 is frontend-only and outside the sync parity surface — safe before the refactor.
+
+**1A execution notes (session 22):**
+- Judgment call: "has data" on the dashboard now means *has a snapshot in the current or last
+  week* (previously: ever — but that query was unbounded AND silently truncated). Bounded forever
+  and matches the preview window. If a manager asks why a long-idle employee shows "No data",
+  this is why.
+- Extra commit `81194d9` (not in the original table): `npm run lint` had been failing with 51
+  false positives — flat config lacked browser globals and ran core `no-undef`/`no-unused-vars`
+  on TS. Disabled those two core rules (tsc + `@typescript-eslint/no-unused-vars` are the
+  authorities). No real signal suppressed; lint is now a usable gate for 1B+.
+- `scripts/tsconfig.json` added so scripts typecheck via `npx tsc -p scripts` (not wired into
+  the workspace typecheck — scripts aren't a workspace; run it manually when touching scripts).
+- The first `dump-week-metrics.ts` run caught an arithmetic error in this plan's §e totals
+  (304/800 → corrected to 367/737). The instrument works.
+- User's "~1,700 rows current week" estimate was high — actual 737 (null-skips mean not every
+  employee×metric produces a row). Pagination handles either.
 
 ### Phase 1B — Registry refactor (1 session, the riskiest one)
 
