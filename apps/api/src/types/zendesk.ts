@@ -48,3 +48,16 @@ export interface ZendeskSlaPolicy {
 export interface ZendeskSlaPoliciesResponse {
   sla_policies: ZendeskSlaPolicy[];
 }
+
+export interface ZendeskUser {
+  id: number;
+  email: string;
+  active: boolean;
+}
+
+export interface ZendeskUsersResponse {
+  users: ZendeskUser[];
+  next_page: string | null;
+  meta?: { has_more: boolean };
+  links?: { next: string | null };
+}

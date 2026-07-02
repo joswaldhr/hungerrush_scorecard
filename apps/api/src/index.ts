@@ -9,7 +9,7 @@ import cron from 'node-cron';
 import syncRoutes from './routes/sync';
 import shareRoutes from './routes/share';
 import auditRoutes from './routes/audit';
-import { runSync } from './services/syncService';
+import { bootstrapAgentIds, runSync } from './services/syncService';
 
 const app = express();
 
@@ -29,6 +29,20 @@ app.use('/api/audit', auditRoutes);
 const PORT = process.env['PORT'] ?? '3000';
 app.listen(Number(PORT), () => {
   console.log(`[api] Listening on port ${PORT}`);
+
+  cron.schedule('0 5 * * *', async () => {
+    console.log('[cron] Starting daily agent ID bootstrap');
+    try {
+      const result = await bootstrapAgentIds();
+      console.log(
+        `[cron] Bootstrap complete: ${result.assembledMatched + result.zendeskDirectMatched} matched, ` +
+        `${result.deactivated} deactivated, ${result.errors.length} errors`,
+      );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      console.error('[cron] Bootstrap failed:', message);
+    }
+  }, { timezone: 'UTC' });
 
   cron.schedule('0 6,10,14,18,22 * * *', async () => {
     console.log('[cron] Starting live refresh sync');

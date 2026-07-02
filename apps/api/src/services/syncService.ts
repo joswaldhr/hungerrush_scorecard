@@ -1,6 +1,8 @@
 import axios from 'axios';
+import type { AxiosInstance } from 'axios';
 import { createClient } from '@supabase/supabase-js';
 import type { AssembledPerson } from '../types/assembled';
+import type { ZendeskUser, ZendeskUsersResponse } from '../types/zendesk';
 import { assembledConnector } from '../connectors/assembled';
 import { zendeskConnector } from '../connectors/zendesk';
 
@@ -40,33 +42,68 @@ function getSyncBounds(mode: 'live' | 'snapshot'): { start: Date; end: Date } {
   return { start, end };
 }
 
+// --- Zendesk user fetch ---
+
+function createZendeskClient(): AxiosInstance {
+  const subdomain = process.env['ZENDESK_SUBDOMAIN'];
+  const email = process.env['ZENDESK_EMAIL'];
+  const token = process.env['ZENDESK_API_TOKEN'];
+  if (!subdomain || !email || !token) {
+    throw new Error('ZENDESK_SUBDOMAIN, ZENDESK_EMAIL, and ZENDESK_API_TOKEN must be set');
+  }
+  return axios.create({
+    baseURL: `https://${subdomain}.zendesk.com/api/v2`,
+    auth: { username: `${email}/token`, password: token },
+  });
+}
+
+async function fetchAllZendeskAgents(): Promise<ZendeskUser[]> {
+  const client = createZendeskClient();
+  const agents: ZendeskUser[] = [];
+  let url: string | null = '/users.json?role=agent&page[size]=100';
+
+  while (url) {
+    const resp: { data: ZendeskUsersResponse } = await client.get(url);
+    agents.push(...resp.data.users);
+    // Cursor pagination (page[size]) uses meta/links; offset uses next_page
+    if (resp.data.meta?.has_more && resp.data.links?.next) {
+      url = resp.data.links.next;
+    } else {
+      url = resp.data.next_page;
+    }
+  }
+
+  return agents;
+}
+
 // --- Bootstrap ---
 
 export interface BootstrapResult {
-  matched: number;
+  assembledMatched: number;
+  zendeskDirectMatched: number;
+  deactivated: number;
+  noZendeskAccount: number;
   unmatched: number;
   updated: number;
   errors: string[];
 }
 
 export async function bootstrapAgentIds(): Promise<BootstrapResult> {
-  const result: BootstrapResult = { matched: 0, unmatched: 0, updated: 0, errors: [] };
-
-  const apiKey = process.env['ASSEMBLED_API_KEY'];
-  if (!apiKey) throw new Error('ASSEMBLED_API_KEY is not set');
-
-  console.log('[bootstrap] Fetching agents from Assembled...');
-  const { data: rawData } = await axios.get<{ people: Record<string, AssembledPerson> }>(
-    'https://api.assembledhq.com/v0/people?limit=500',
-    { auth: { username: apiKey, password: '' } },
-  );
-  const people = Object.values(rawData.people);
-  console.log(`[bootstrap] Found ${people.length} agents in Assembled`);
+  const startedAt = Date.now();
+  const result: BootstrapResult = {
+    assembledMatched: 0,
+    zendeskDirectMatched: 0,
+    deactivated: 0,
+    noZendeskAccount: 0,
+    unmatched: 0,
+    updated: 0,
+    errors: [],
+  };
 
   const supabase = getSupabaseAdmin();
   const { data: employees, error: empError } = await supabase
     .from('employees')
-    .select('id, email');
+    .select('id, email, zendesk_agent_id, assembled_agent_id');
 
   if (empError) throw new Error(`Failed to fetch employees: ${empError.message}`);
   if (!employees || employees.length === 0) {
@@ -74,17 +111,27 @@ export async function bootstrapAgentIds(): Promise<BootstrapResult> {
     return result;
   }
 
+  console.log(`[bootstrap] Starting — ${employees.length} employees to process`);
+
+  // --- Pass 1: Assembled matching (unchanged logic) ---
+
+  const apiKey = process.env['ASSEMBLED_API_KEY'];
+  if (!apiKey) throw new Error('ASSEMBLED_API_KEY is not set');
+
+  const { data: rawData } = await axios.get<{ people: Record<string, AssembledPerson> }>(
+    'https://api.assembledhq.com/v0/people?limit=500',
+    { auth: { username: apiKey, password: '' } },
+  );
+  const people = Object.values(rawData.people);
+
   const peopleByEmail = new Map(
     people.map(p => [p.email.toLowerCase(), p]),
   );
 
   for (const emp of employees) {
     const agent = peopleByEmail.get(String(emp.email).toLowerCase());
-    if (!agent) {
-      result.unmatched++;
-      continue;
-    }
-    result.matched++;
+    if (!agent) continue;
+    result.assembledMatched++;
 
     const updates: Record<string, string> = {
       assembled_agent_id: agent.id,
@@ -100,15 +147,105 @@ export async function bootstrapAgentIds(): Promise<BootstrapResult> {
       .eq('id', emp.id);
 
     if (error) {
-      result.errors.push(`Update failed for ${String(emp.email)}: ${error.message}`);
+      result.errors.push(`[assembled] Update failed for ${String(emp.email)}: ${error.message}`);
     } else {
       result.updated++;
     }
   }
 
+  console.log(`[bootstrap] Assembled: ${result.assembledMatched} matched`);
+
+  // --- Pass 2: Direct Zendesk email matching ---
+
+  const allZdAgents = await fetchAllZendeskAgents();
+
+  const activeZdByEmail = new Map<string, number>();
+  const deactivatedZdIds = new Set<string>();
+
+  for (const agent of allZdAgents) {
+    if (agent.active) {
+      activeZdByEmail.set(agent.email.toLowerCase(), agent.id);
+    } else {
+      deactivatedZdIds.add(String(agent.id));
+    }
+  }
+
+  // Re-fetch employees to pick up assembled pass updates
+  const { data: refreshed, error: refreshErr } = await supabase
+    .from('employees')
+    .select('id, email, zendesk_agent_id');
+
+  if (refreshErr) throw new Error(`Failed to refresh employees: ${refreshErr.message}`);
+  const currentEmployees = refreshed ?? [];
+
+  for (const emp of currentEmployees) {
+    if (emp.zendesk_agent_id) continue;
+
+    const zdId = activeZdByEmail.get(String(emp.email).toLowerCase());
+    if (zdId === undefined) continue;
+
+    result.zendeskDirectMatched++;
+
+    const { error } = await supabase
+      .from('employees')
+      .update({
+        zendesk_agent_id: String(zdId),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', emp.id);
+
+    if (error) {
+      result.errors.push(`[zendesk] Update failed for ${String(emp.email)}: ${error.message}`);
+    } else {
+      result.updated++;
+    }
+  }
+
+  console.log(`[bootstrap] Zendesk direct: ${result.zendeskDirectMatched} new matches`);
+
+  // --- Pass 3: Deactivation cleanup ---
+
+  for (const emp of currentEmployees) {
+    if (!emp.zendesk_agent_id) continue;
+    if (!deactivatedZdIds.has(String(emp.zendesk_agent_id))) continue;
+
+    result.deactivated++;
+
+    const { error } = await supabase
+      .from('employees')
+      .update({
+        zendesk_agent_id: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', emp.id);
+
+    if (error) {
+      result.errors.push(`[deactivation] Clear failed for ${String(emp.email)}: ${error.message}`);
+    } else {
+      result.updated++;
+    }
+  }
+
+  console.log(`[bootstrap] Deactivated: ${result.deactivated} cleared`);
+
+  // --- Summary ---
+
+  const allZdEmails = new Set(allZdAgents.map(a => a.email.toLowerCase()));
+  result.noZendeskAccount = employees.filter(
+    e => !allZdEmails.has(String(e.email).toLowerCase()),
+  ).length;
+  result.unmatched = result.noZendeskAccount;
+
+  console.log(`[bootstrap] No Zendesk account: ${result.noZendeskAccount} employees (likely non-support roles)`);
+
+  const totalWithZd = employees.length - result.noZendeskAccount - result.deactivated;
+  const durationMs = Date.now() - startedAt;
   console.log(
-    `[bootstrap] Done: ${result.matched} matched, ${result.unmatched} unmatched, ${result.updated} updated`,
+    `[bootstrap] Done in ${(durationMs / 1000).toFixed(1)}s — ` +
+    `${totalWithZd} total matched, ${result.noZendeskAccount} no account, ` +
+    `${result.deactivated} deactivated, ${result.errors.length} errors`,
   );
+
   return result;
 }
 
