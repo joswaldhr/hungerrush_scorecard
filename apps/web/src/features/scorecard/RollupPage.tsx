@@ -1,9 +1,12 @@
 import { Navigate, useNavigate } from 'react-router-dom';
+import { METRIC_SPECS } from '@scorecard/shared';
 import { useAuth } from '../../hooks/useAuth';
 import { useManagerRollup } from '../../hooks/useManagerRollup';
 import { AppLayout } from '../../components/AppLayout';
 import type { ManagerRollupRow, MetricTrend } from '../../hooks/useManagerRollup';
 
+// Chip labels live in METRIC_SPECS (packages/shared) as of Phase 1B — this map is the
+// fallback until Phase 3 rewires components (docs/refactor-plan.md D10/S11).
 const SHORT_NAMES: Record<string, string> = {
   ticket_volume: 'Tickets',
   first_reply_time: 'First Reply',
@@ -26,7 +29,7 @@ function TrendChip({ metricKey, trend }: { metricKey: string; trend: MetricTrend
       : 'bg-[#F7F6F3] text-slate-400 border border-[#E8E6E1]';
 
   const goodCount = trend.improving;
-  const label = SHORT_NAMES[metricKey] ?? metricKey;
+  const label = METRIC_SPECS[metricKey]?.shortLabel ?? SHORT_NAMES[metricKey] ?? metricKey;
 
   return (
     <span className={`text-[11px] px-2 py-0.5 rounded-full ${chipClass}`}>

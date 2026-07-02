@@ -1,6 +1,6 @@
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { formatMetricValue } from '../lib/formatMetric';
-import type { MetricDefinition } from '@scorecard/shared';
+import { METRIC_SPECS, type MetricDefinition } from '@scorecard/shared';
 
 interface KpiTileProps {
   definition: MetricDefinition;
@@ -45,6 +45,8 @@ function getBadgeLabel(trend: TrendDirection, direction: string): string {
   return direction === 'higher_is_better' ? '↓' : '↑';
 }
 
+// Null-label copy lives in METRIC_SPECS (packages/shared) as of Phase 1B — this map is
+// the fallback until Phase 3 rewires components (docs/refactor-plan.md D10/S11).
 const NULL_LABELS: Record<string, string> = {
   sla_compliance: 'Not configured',
   csat_score: 'No ratings yet',
@@ -104,7 +106,8 @@ function getValueColor(value: number | null): string {
 export function KpiTile({ definition, value, syncedAt, history }: KpiTileProps) {
   const isNull = value === null;
   const trend = getTrend(value, history, definition.direction);
-  const nullLabel = NULL_LABELS[definition.key] ?? 'No data yet';
+  const nullLabel =
+    METRIC_SPECS[definition.key]?.nullLabel ?? NULL_LABELS[definition.key] ?? 'No data yet';
   const valueColorClass = getValueColor(value);
 
   return (

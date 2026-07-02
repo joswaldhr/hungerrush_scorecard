@@ -1,12 +1,13 @@
 import axios from 'axios';
 import type { AxiosInstance } from 'axios';
-import type { DataSourceConnector, ConnectorMetricResult } from '@scorecard/shared';
+import type { DataSourceConnector } from '@scorecard/shared';
+import type { AssembledWeekData } from '../metrics/types';
 import type {
   AssembledPerson,
   AssembledAgentState,
   AssembledActivity,
   AssembledActivityType,
-} from '../types/assembled.js';
+} from '../types/assembled';
 
 const BASE_URL = 'https://api.assembledhq.com/v0';
 const PAGE_LIMIT = 500;
@@ -22,49 +23,16 @@ function createClient(): AxiosInstance {
   });
 }
 
-// --- Per-sync-run cache ---
-// Populated on first call, cleared after 10 minutes (longer than any sync run).
-
-let cachedPeople: AssembledPerson[] | null = null;
-let cachedActivityTypes: AssembledActivityType[] | null = null;
-let cachedAllActivities: AssembledActivity[] | null = null;
-let cacheClient: AxiosInstance | null = null;
-let cacheExpiry = 0;
-
-function getClient(): AxiosInstance {
-  const now = Date.now();
-  if (!cacheClient || now > cacheExpiry) {
-    cacheClient = createClient();
-    cachedPeople = null;
-    cachedActivityTypes = null;
-    cachedAllActivities = null;
-    cacheExpiry = now + 10 * 60 * 1000;
-  }
-  return cacheClient;
-}
-
-export function clearAssembledCache(): void {
-  cachedPeople = null;
-  cachedActivityTypes = null;
-  cachedAllActivities = null;
-  cacheClient = null;
-  cacheExpiry = 0;
-}
-
 // --- API calls ---
 
 async function getPeople(client: AxiosInstance): Promise<AssembledPerson[]> {
-  if (cachedPeople) return cachedPeople;
   const response = await client.get<{ people: Record<string, AssembledPerson> }>('/people?limit=500');
-  cachedPeople = Object.values(response.data.people);
-  return cachedPeople;
+  return Object.values(response.data.people);
 }
 
 async function getActivityTypes(client: AxiosInstance): Promise<AssembledActivityType[]> {
-  if (cachedActivityTypes) return cachedActivityTypes;
   const response = await client.get<{ activity_types: Record<string, AssembledActivityType> }>('/activity_types');
-  cachedActivityTypes = Object.values(response.data.activity_types);
-  return cachedActivityTypes;
+  return Object.values(response.data.activity_types);
 }
 
 async function fetchAgentStates(
@@ -87,135 +55,53 @@ async function fetchAgentStates(
   return all;
 }
 
+// The /activities endpoint ignores agents[]/limit/offset and returns all org activities
+// regardless of params (see CLAUDE.md decisions log) — fetched once per run in
+// prepareRun, filtered by agent_id in fetchWeekData.
 async function fetchAllActivities(
   client: AxiosInstance,
   startTime: number,
   endTime: number,
 ): Promise<AssembledActivity[]> {
-  if (cachedAllActivities) return cachedAllActivities;
   const response = await client.get<{ activities: Record<string, AssembledActivity> }>('/activities', {
     params: { start_time: startTime, end_time: endTime },
   });
-  cachedAllActivities = Object.values(response.data.activities);
-  return cachedAllActivities;
+  return Object.values(response.data.activities);
 }
 
-// --- Interval math ---
+// --- Connector (fetcher — metric computation lives in apps/api/src/metrics/) ---
+// The former module-level 10-minute cache is gone: the run context IS the per-run cache,
+// created once by the sync and passed into every fetchWeekData call.
 
-interface TimeInterval {
-  start: number;
-  end: number;
+export interface AssembledRunContext {
+  client: AxiosInstance;
+  peopleByEmail: Map<string, AssembledPerson>;
+  allActivities: AssembledActivity[];
+  productiveTypeIds: Set<string>;
+  productiveStateNames: Set<string>;
 }
 
-// Interval math + compute functions exported for characterization tests (Phase 1A) —
-// they move to apps/api/src/metrics/ in Phase 1B.
-export function mergeIntervals(intervals: TimeInterval[]): TimeInterval[] {
-  if (intervals.length === 0) return [];
-  const sorted = [...intervals].sort((a, b) => a.start - b.start);
-  const first = sorted[0]!;
-  const merged: TimeInterval[] = [{ start: first.start, end: first.end }];
-  for (let i = 1; i < sorted.length; i++) {
-    const current = sorted[i]!;
-    const last = merged[merged.length - 1]!;
-    if (current.start <= last.end) {
-      last.end = Math.max(last.end, current.end);
-    } else {
-      merged.push({ start: current.start, end: current.end });
-    }
-  }
-  return merged;
-}
-
-export function totalDuration(intervals: TimeInterval[]): number {
-  return mergeIntervals(intervals).reduce((sum, iv) => sum + (iv.end - iv.start), 0);
-}
-
-export function overlapDuration(a: TimeInterval[], b: TimeInterval[]): number {
-  const mergedA = mergeIntervals(a);
-  const mergedB = mergeIntervals(b);
-  let total = 0;
-  for (const ia of mergedA) {
-    for (const ib of mergedB) {
-      const start = Math.max(ia.start, ib.start);
-      const end = Math.min(ia.end, ib.end);
-      if (end > start) total += end - start;
-    }
-  }
-  return total;
-}
-
-// --- Metric computation ---
-
-function toIntervals(items: Array<{ start_time: number; end_time: number }>): TimeInterval[] {
-  return items.map(i => ({ start: i.start_time, end: i.end_time }));
-}
-
-export function computeScheduleAdherence(
-  states: AssembledAgentState[],
-  activities: AssembledActivity[],
-  productiveTypeIds: Set<string>,
-  productiveStateNames: Set<string>,
-): number | null {
-  const scheduled = toIntervals(activities.filter(a => productiveTypeIds.has(a.type_id)));
-  const actual = toIntervals(states.filter(s => productiveStateNames.has(s.state)));
-  const scheduledTotal = totalDuration(scheduled);
-  if (scheduledTotal === 0) return null;
-  return Math.round((overlapDuration(scheduled, actual) / scheduledTotal) * 10000) / 100;
-}
-
-export function computeOccupancy(
-  states: AssembledAgentState[],
-  productiveStateNames: Set<string>,
-): number | null {
-  const loggedIn = toIntervals(states.filter(s => s.state !== 'Offline'));
-  const productive = toIntervals(states.filter(s => productiveStateNames.has(s.state)));
-  const loggedInTotal = totalDuration(loggedIn);
-  if (loggedInTotal === 0) return null;
-  return Math.round((totalDuration(productive) / loggedInTotal) * 10000) / 100;
-}
-
-export function computeHandleTime(
-  states: AssembledAgentState[],
-  productiveStateNames: Set<string>,
-): number | null {
-  const customerFacing = states.filter(s => productiveStateNames.has(s.state));
-  if (customerFacing.length === 0) return null;
-  const seconds = customerFacing.reduce((sum, s) => sum + (s.end_time - s.start_time), 0);
-  return Math.round(seconds / customerFacing.length);
-}
-
-// --- Connector ---
-
-export const assembledConnector: DataSourceConnector = {
+export const assembledConnector: DataSourceConnector<AssembledRunContext, AssembledWeekData> = {
   name: 'assembled',
   isAvailable: true,
 
-  async fetchAgentMetrics(
-    agentId: string,
-    periodStart: Date,
-    periodEnd: Date,
-  ): Promise<ConnectorMetricResult[]> {
-    const client = getClient();
+  async prepareRun(periodStart: Date, periodEnd: Date): Promise<AssembledRunContext> {
+    const client = createClient();
     const startTime = Math.floor(periodStart.getTime() / 1000);
     const endTime = Math.floor(periodEnd.getTime() / 1000);
 
-    const people = await getPeople(client);
-    const agent = people.find(p => p.email.toLowerCase() === agentId.toLowerCase());
-    if (!agent) {
-      console.warn(`[assembled] No agent found for email: ${agentId}`);
-      return [];
-    }
-    if (!agent.agent_id) {
-      console.warn(`[assembled] Agent ${agentId} has no agent_id — skipping`);
-      return [];
-    }
-
-    const [states, allActivities, activityTypes] = await Promise.all([
-      fetchAgentStates(client, agent.agent_id, startTime, endTime),
-      fetchAllActivities(client, startTime, endTime),
+    const [people, activityTypes, allActivities] = await Promise.all([
+      getPeople(client),
       getActivityTypes(client),
+      fetchAllActivities(client, startTime, endTime),
     ]);
-    const activities = allActivities.filter(a => a.agent_id === agent.agent_id);
+
+    // First person wins on duplicate emails — same as the old .find() lookup.
+    const peopleByEmail = new Map<string, AssembledPerson>();
+    for (const p of people) {
+      const key = p.email.toLowerCase();
+      if (!peopleByEmail.has(key)) peopleByEmail.set(key, p);
+    }
 
     const productiveTypeIds = new Set<string>();
     const productiveStateNames = new Set<string>();
@@ -226,27 +112,37 @@ export const assembledConnector: DataSourceConnector = {
       }
     }
 
-    const adherence = computeScheduleAdherence(states, activities, productiveTypeIds, productiveStateNames);
-    const occupancy = computeOccupancy(states, productiveStateNames);
-    const handleTime = computeHandleTime(states, productiveStateNames);
+    return { client, peopleByEmail, allActivities, productiveTypeIds, productiveStateNames };
+  },
 
-    const rawSource: Record<string, unknown> = {
-      assembledAgentId: agent.id,
-      assembledAgentName: agent.name,
-      stateCount: states.length,
-      activityCount: activities.length,
-    };
-    if (agent.platforms?.zendesk) {
-      rawSource['zendeskAgentId'] = agent.platforms.zendesk;
+  async fetchWeekData(
+    email: string,
+    periodStart: Date,
+    periodEnd: Date,
+    run: AssembledRunContext,
+  ): Promise<AssembledWeekData | null> {
+    const agent = run.peopleByEmail.get(email.toLowerCase());
+    if (!agent) {
+      console.warn(`[assembled] No agent found for email: ${email}`);
+      return null;
+    }
+    if (!agent.agent_id) {
+      console.warn(`[assembled] Agent ${email} has no agent_id — skipping`);
+      return null;
     }
 
-    const base = { employeeId: agentId, periodStart, periodEnd };
+    const startTime = Math.floor(periodStart.getTime() / 1000);
+    const endTime = Math.floor(periodEnd.getTime() / 1000);
 
-    return [
-      { ...base, metricKey: 'schedule_adherence', value: adherence, unit: 'percent', rawSource: { ...rawSource } },
-      { ...base, metricKey: 'occupancy', value: occupancy, unit: 'percent', rawSource: { ...rawSource } },
-      { ...base, metricKey: 'handle_time', value: handleTime, unit: 'seconds', rawSource: { ...rawSource } },
-    ];
+    const states = await fetchAgentStates(run.client, agent.agent_id, startTime, endTime);
+    const activities = run.allActivities.filter(a => a.agent_id === agent.agent_id);
+
+    return {
+      states,
+      activities,
+      productiveTypeIds: run.productiveTypeIds,
+      productiveStateNames: run.productiveStateNames,
+    };
   },
 
   async testConnection(): Promise<{ ok: boolean; error?: string }> {

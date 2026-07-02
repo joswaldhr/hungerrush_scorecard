@@ -3,8 +3,9 @@ import type { AxiosInstance } from 'axios';
 import { createClient } from '@supabase/supabase-js';
 import type { AssembledPerson } from '../types/assembled';
 import type { ZendeskUser, ZendeskUsersResponse } from '../types/zendesk';
-import { assembledConnector } from '../connectors/assembled';
-import { zendeskConnector } from '../connectors/zendesk';
+import { assembledConnector, type AssembledRunContext } from '../connectors/assembled';
+import { zendeskConnector, type ZendeskRunContext } from '../connectors/zendesk';
+import { ALL_METRICS, ASSEMBLED_METRICS, ZENDESK_METRICS } from '../metrics/registry';
 
 // --- Helpers ---
 
@@ -272,6 +273,34 @@ export async function runSync(mode: 'live' | 'snapshot'): Promise<SyncResult> {
 
   const supabase = getSupabaseAdmin();
 
+  // Registry ∩ is_active drives the sync (Phase 1B): a metric is synced only when it
+  // has both a registry module and an active metric_definitions row. Toggling
+  // is_active in the admin UI starts/stops sync and display with no deploy.
+  const { data: defs, error: defError } = await supabase
+    .from('metric_definitions')
+    .select('key')
+    .eq('is_active', true);
+
+  if (defError) throw new Error(`Failed to fetch metric definitions: ${defError.message}`);
+  const activeKeys = new Set((defs ?? []).map(d => String(d.key)));
+
+  const registryKeys = new Set(ALL_METRICS.map(m => m.spec.key));
+  for (const key of activeKeys) {
+    if (!registryKeys.has(key)) {
+      console.warn(
+        `[sync] Active metric '${key}' has no registry module — skipped ` +
+        `(add apps/api/src/metrics/${key}.ts and register it; see docs/metrics.md)`,
+      );
+    }
+  }
+
+  const activeAssembled = ASSEMBLED_METRICS.filter(m => activeKeys.has(m.spec.key));
+  const activeZendesk = ZENDESK_METRICS.filter(m => activeKeys.has(m.spec.key));
+  console.log(
+    `[sync] Active metrics: zendesk ${activeZendesk.length}/${ZENDESK_METRICS.length}, ` +
+    `assembled ${activeAssembled.length}/${ASSEMBLED_METRICS.length}`,
+  );
+
   const { data: employees, error: empError } = await supabase
     .from('employees')
     .select('id, email, zendesk_agent_id, assembled_agent_id')
@@ -286,6 +315,28 @@ export async function runSync(mode: 'live' | 'snapshot'): Promise<SyncResult> {
 
   console.log(`[sync] Found ${employees.length} employees with agent IDs`);
 
+  // Run-scoped data fetched once per source — skipped entirely when a source has no
+  // active metrics (with all three Assembled metrics inactive, no Assembled API calls).
+  let assembledRun: AssembledRunContext | null = null;
+  if (activeAssembled.length > 0 && assembledConnector.isAvailable) {
+    try {
+      assembledRun = await assembledConnector.prepareRun(periodStart, periodEnd);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      errors.push(`[assembled] prepareRun failed — source skipped this run: ${msg}`);
+    }
+  }
+
+  let zendeskRun: ZendeskRunContext | null = null;
+  if (activeZendesk.length > 0 && zendeskConnector.isAvailable) {
+    try {
+      zendeskRun = await zendeskConnector.prepareRun(periodStart, periodEnd);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      errors.push(`[zendesk] prepareRun failed — source skipped this run: ${msg}`);
+    }
+  }
+
   let metricsCollected = 0;
   let metricsWritten = 0;
   const syncedAt = new Date().toISOString();
@@ -295,46 +346,53 @@ export async function runSync(mode: 'live' | 'snapshot'): Promise<SyncResult> {
   for (const [i, emp] of employees.entries()) {
     const empRows: Array<Record<string, unknown>> = [];
 
-    if (emp.assembled_agent_id && assembledConnector.isAvailable) {
+    if (emp.assembled_agent_id && assembledRun) {
       try {
-        const metrics = await assembledConnector.fetchAgentMetrics(
-          String(emp.email), periodStart, periodEnd,
+        const data = await assembledConnector.fetchWeekData(
+          String(emp.email), periodStart, periodEnd, assembledRun,
         );
-        for (const m of metrics) {
-          if (m.value === null) continue;
-          empRows.push({
-            employee_id: String(emp.id),
-            metric_key: m.metricKey,
-            value: m.value,
-            period_start: pStart,
-            period_end: pEnd,
-            synced_at: syncedAt,
-          });
+        if (data) {
+          for (const metric of activeAssembled) {
+            const value = metric.compute(data);
+            if (value === null) continue;
+            empRows.push({
+              employee_id: String(emp.id),
+              metric_key: metric.spec.key,
+              value,
+              period_start: pStart,
+              period_end: pEnd,
+              synced_at: syncedAt,
+            });
+          }
         }
-        console.log(`[sync] [${i + 1}/${employees.length}] Assembled: ${String(emp.email)} → ${metrics.length} metrics`);
+        console.log(`[sync] [${i + 1}/${employees.length}] Assembled: ${String(emp.email)} → ${empRows.length} rows`);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Unknown error';
         errors.push(`[assembled] ${String(emp.email)}: ${msg}`);
       }
     }
 
-    if (emp.zendesk_agent_id && zendeskConnector.isAvailable) {
+    if (emp.zendesk_agent_id && zendeskRun) {
+      const beforeZendesk = empRows.length;
       try {
-        const metrics = await zendeskConnector.fetchAgentMetrics(
-          String(emp.zendesk_agent_id), periodStart, periodEnd,
+        const data = await zendeskConnector.fetchWeekData(
+          String(emp.zendesk_agent_id), periodStart, periodEnd, zendeskRun,
         );
-        for (const m of metrics) {
-          if (m.value === null) continue;
-          empRows.push({
-            employee_id: String(emp.id),
-            metric_key: m.metricKey,
-            value: m.value,
-            period_start: pStart,
-            period_end: pEnd,
-            synced_at: syncedAt,
-          });
+        if (data) {
+          for (const metric of activeZendesk) {
+            const value = metric.compute(data);
+            if (value === null) continue;
+            empRows.push({
+              employee_id: String(emp.id),
+              metric_key: metric.spec.key,
+              value,
+              period_start: pStart,
+              period_end: pEnd,
+              synced_at: syncedAt,
+            });
+          }
         }
-        console.log(`[sync] [${i + 1}/${employees.length}] Zendesk: ${String(emp.email)} → ${metrics.length} metrics`);
+        console.log(`[sync] [${i + 1}/${employees.length}] Zendesk: ${String(emp.email)} → ${empRows.length - beforeZendesk} rows`);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Unknown error';
         errors.push(`[zendesk] ${String(emp.email)}: ${msg}`);
