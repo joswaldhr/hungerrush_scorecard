@@ -7,15 +7,17 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-07-01 (session 19)
+**Last updated:** 2026-07-02 (session 20)
 
 - All 5 phases, 4 UI/UX sprints, layout redesign, and data integrity audit complete — pilot-ready
 - Production: `hungerrush-scorecard.vercel.app` (frontend) · `scorecardapi-production.up.railway.app` (backend)
+- **Session 20:** CLAUDE.md trimmed from 486→342 lines. Agent matching expanded — direct Zendesk email matching added to `bootstrapAgentIds()`, coverage went from 63→246 employees (of 351). Daily bootstrap cron at 05:00 UTC. 105 unmatched employees are non-support roles (no Zendesk account).
+- **Next up:** UI/UX visual overhaul — design brief prepared for Claude Design, ready for prototyping
 - **Remaining feature:** mobile navigation (hamburger menu for screens < 1024px)
 - **Remaining hardening:** connection pooling (`?pgbouncer=true`), CORS lockdown, email nudge (needs `RESEND_API_KEY`)
 - **Known data issue:** Zendesk `searchTickets` uses `updated>=` — stale reply times from reworked tickets contaminate first_reply_time averages
 - **Known data issue:** UTC vs local timezone week boundary mismatch near week edges
-- **Known perf issue:** Zendesk SLA policies fetched per-employee (63x) instead of cached once per sync
+- **Known perf issue:** Zendesk SLA policies fetched per-employee (63x → now 246x) instead of cached once per sync
 - **Known data issue:** "Last Week" trend badge computed from current-week data, not last-week trend
 
 ---
@@ -332,6 +334,9 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | Coaching prompts always visible, not hover-only | Touch devices can't hover; coaching prompts are the product's core value |
 | Auto-scaling time format for seconds-unit metrics | formatMetricValue: <60min → "X.X min", ≥60min → "X.Xh" |
 | Zendesk `searchTickets` uses `updated>=` date filter | Includes tickets updated but not created in period; known caveat, stale reply times can contaminate averages |
+| Bootstrap matches via Assembled first, then direct Zendesk email matching | Assembled has only 76 people; direct Zendesk pass covers 246/351 employees; 105 are non-support with no Zendesk account |
+| Zendesk Users API uses cursor pagination (`meta.has_more` + `links.next`), not `next_page` | `page[size]=100` triggers cursor mode; `next_page` is null; must check `meta.has_more` and follow `links.next` |
+| Bootstrap runs daily at 05:00 UTC via cron, before first metric sync at 06:00 | Ensures new hires and role changes are matched before metrics flow; deactivated agents get zendesk_agent_id cleared |
 
 ### Assembled metric computation (when WFM activates)
 
