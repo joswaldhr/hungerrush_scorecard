@@ -267,7 +267,11 @@ all 247 produced a `ticket_volume` row for week 2026-06-29. 65 have `assembled_a
 | schedule_adherence | 123 | 62 | 61 |
 | occupancy | 126 | 63 | 63 |
 | handle_time | 0 | 0 | 0 |
-| **TOTAL** | **1,104** | 304 | 800 |
+| **TOTAL** | **1,104** | 367 | 737 |
+
+*(Correction, same day: the per-week totals originally read 304/800 — arithmetic slip summing the
+per-metric column, caught by the first `dump-week-metrics.ts` run: 367 and 737, verified against
+server-side exact counts. Per-metric numbers were and are correct.)*
 
 Reading the state:
 - **Only two weeks of data exist** (range 2026-06-22..2026-06-29). Sparklines have ≤2 bars; rollup trends only compute for the original 63 employees (the 184 newly matched have no last-week row and will get their first complete pair after Sunday 2026-07-05's snapshot). Expected, self-healing.

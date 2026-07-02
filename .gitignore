@@ -12,6 +12,8 @@ dist/
 Thumbs.db
 *.log
 KEYS.md
+scripts/backups/
+scripts/dumps/
 tmp_*.ts
 tmp_*.js
 tmp_*.mjs
