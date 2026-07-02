@@ -15,16 +15,29 @@
 | Phase | Session | Status |
 |---|---|---|
 | 0 — Audit & plan | 22 | ✅ Complete — approved by user 2026-07-02, pushed `19c55e1` |
-| 1A — Safety nets: tests, backup/dump scripts, truncation fix | 22 | ✅ Complete — `77d3028` (52 characterization tests), `b044a6f` (paginated scripts + first backup: 1,104 rows verified), `df71938` (L7 fix), `81194d9` (lint config repair). **User verified in prod:** dashboard "With metrics 247 of 351" ✓, rollup chips populated ✓ (screenshots 2026-07-02). Rollup screenshots also confirmed L6 visually (all-zero Adherence/Occupancy chips) and L1 (First Reply 117h) |
+| 1A — Safety nets: tests, backup/dump scripts, truncation fix | 22 | ✅ **CLOSED** — `77d3028` (52 characterization tests), `b044a6f` (paginated scripts + first backup: 1,104 rows verified), `df71938` (L7 fix), `81194d9` (lint config repair). User verified in prod: dashboard "With metrics 247 of 351" ✓, rollup chips populated ✓. Side discovery: admin metric-config saves broken (S4 root cause: missing GRANT UPDATE); 4 metrics set inactive via audited service-key write, confirmed in DB. 1B is unblocked |
 | 1B — Metric registry refactor + parity + deploy watch | — | Not started |
 | 1C — Logic fixes (one commit each) + approved data correction | — | Not started |
 | 2 — Fluff removal & hardening | — | Not started |
 | 3 — Design implementation | — | Separate prompt, blocked on 2 |
 
-**⚠️ Standing reminder (do not lose):** after 1C commit 10 + correction 10b land, remind the user
-to re-enable `occupancy` and `schedule_adherence` in the admin UI. The user toggled them (plus
-`sla_compliance` and `handle_time`) `is_active = false` on 2026-07-02 so scorecards stop showing
-false 0.0% during the refactor.
+**⚠️ Standing reminder (do not lose):** all four of `sla_compliance`, `handle_time`, `occupancy`,
+`schedule_adherence` were set `is_active = false` on 2026-07-02 (via service key — the admin UI
+save path was broken, see S4; intervention audited in `audit_log`). Re-enablement policy (user):
+- `occupancy` + `schedule_adherence`: **RE-ENABLE after 1C commit 10 (state-matching fix) + 10b
+  (data correction)** — remind the user at that point.
+- `sla_compliance` + `handle_time`: **STAY OFF until their data sources exist** (SLA policies
+  configured in Zendesk; Assembled WFM state mapping actually producing matches). Do not re-enable
+  as part of 1C.
+
+**Pre-registered 1B parity expectation for the four toggled metrics** (user-requested; phrasing
+mechanically corrected — the user's note said their rows would be "absent from the new dump,"
+but both dumps read DB state and upsert never deletes, so the stale rows appear in BOTH dumps):
+- The diff shows **zero lines** for `sla_compliance`/`handle_time`/`occupancy`/`schedule_adherence`.
+- The toggle is visible as ~124 fewer written rows in the NEW sync's logs and stale `synced_at`
+  on those rows. Explained-by-toggle, not a parity failure.
+- Flip side: if the diff DOES show changed/added lines for any of those four keys, something is
+  actually wrong (the new sync wrote an inactive metric) — stop and investigate before pushing.
 
 **Verification note:** Playwright MCP is not connected (session 21's install attempt unresolved).
 Claude-in-Chrome tools exist but depend on the user's live browser session. Until that changes,
@@ -160,7 +173,7 @@ before push. Logic fixes land only after parity, one commit each. Detailed seque
 | S1 | **No navigation below 1024px** — sidebar is `hidden lg:flex`, no hamburger, no alternative | `AppLayout.tsx:70` | 3 (design project owns nav chrome) — but the *requirement* is recorded here so it can't be dropped |
 | S2 | OfflineBanner mounted only on DashboardPage — offline state invisible on scorecard/rollup/admin pages | `DashboardPage.tsx:96` | 2 (move into AppLayout) |
 | S3 | TourModal has no skip/close: no X, no backdrop click, no Esc; `closeTour` doesn't persist, so navigating away resurrects the tour every dashboard visit until Done is clicked. Also no focus trap / `aria-modal` | `TourModal.tsx` | 2 (behavioral: any close persists dismissal; Esc/backdrop close) |
-| S4 | MetricConfig save has no success feedback (button silently re-disables); errors render at page top, far from the card that failed. **Production incident 2026-07-02:** the admin toggled 4 metrics inactive and believed it saved — the switch only mutates local state until that card's Save is clicked, and nothing confirms either way. DB showed all 8 still active. This gap has now cost a real workflow; treat as the first Phase 2 UX commit | `MetricCard.tsx:117-136`, `MetricConfigPage.tsx:54-62` | 2 |
+| S4 | **SCOPE EXPANDED (user, 2026-07-02): "fix save + add confirmation."** The admin metric-config save path is BROKEN, not just feedback-less. Root cause: migration `0008` granted `authenticated` only SELECT on `metric_definitions`; `0012` added the JWT admin-UPDATE policy but no one added the table-level GRANT — Postgres checks table privileges before RLS, so every browser UPDATE dies with 42501. The error banner renders at page top while the toggled cards sit below the fold, so two rounds of explicit Save clicks looked successful and persisted nothing. Interim: the 4 flags were set via service key (user-approved, audited in `audit_log` as `metric_config_service_override`). Phase 2 fix: migration `0016_grant_metric_definitions_update.sql` (`GRANT UPDATE ON metric_definitions TO authenticated`) + per-card save success/error feedback, then re-verify a toggle through the UI end-to-end. First Phase 2 commit | `supabase/migrations/0008_grant_table_permissions.sql:10`, `MetricCard.tsx:117-136`, `MetricConfigPage.tsx:54-62` | 2 |
 | S5 | Hooks swallow errors: useDirectReports ignores `snapshotRes.error` / `previewRes.error` (sections silently empty); useEmployee keeps stale data on error; no hook exposes refetch; patterns inconsistent across all 8 hooks | `useDirectReports.ts:46-51`, `useEmployee.ts:19-24` | 2 (one consistent hook result contract) |
 | S6 | Auth checked 3 different ways — AuthGuard wraps routes, but ScorecardPage/RollupPage/ExportLogPage/MetricConfigPage each re-implement session/role checks inline; useAuth is called per-component (2+ subscriptions per view) | `App.tsx`, each page | 2 (AuthProvider context + role-aware guard; single pattern) |
 | S7 | RollupPage manager cards are clickable `<div>`s — no keyboard access, no role, no focus ring | `RollupPage.tsx:107-111` | 2 (make it a button; dashboard rows already are) |
