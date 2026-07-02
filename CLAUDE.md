@@ -116,7 +116,8 @@ frontend/backend contract drift — both apps import types and Zod schemas from 
 ├── packages/
 │   └── shared/src/
 │       ├── types.ts          ALL shared domain types — single source of truth
-│       └── schemas.ts        Zod schemas; TS types inferred from these (z.infer)
+│       ├── schemas.ts        Zod schemas; TS types inferred from these (z.infer)
+│       └── metricSpec.ts     MetricSpec + METRIC_SPECS — code-side metric identity/labels
 ├── apps/
 │   ├── web/src/
 │   │   ├── components/        shared UI components
@@ -125,7 +126,8 @@ frontend/backend contract drift — both apps import types and Zod schemas from 
 │   │   ├── lib/               supabase client · utils · constants
 │   │   └── types/             web-ONLY types (props, UI state) — domain types come from shared
 │   └── api/src/
-│       ├── connectors/        one file per source, all implement DataSourceConnector
+│       ├── connectors/        one file per source, all implement DataSourceConnector (fetchers)
+│       ├── metrics/           one module per metric (spec + pure compute) + boring registry
 │       ├── routes/            thin handlers — validate → call service → return
 │       ├── services/          all business logic
 │       ├── middleware/        auth · rate limiting · error handling
@@ -147,28 +149,28 @@ frontend/backend contract drift — both apps import types and Zod schemas from 
 
 ## Connector interface — sacred, never change without updating all three connectors
 
-Lives in `packages/shared/src/types.ts` so both apps can reference the result shape.
+Lives in `packages/shared/src/types.ts`. Evolved in Phase 1B (2026-07-02) from
+compute-shape to fetch-shape — connectors fetch raw week data; the metric modules in
+`apps/api/src/metrics/` compute from it (`ConnectorMetricResult` retired with that change).
 
 ```typescript
-export interface ConnectorMetricResult {
-  employeeId: string;
-  metricKey: string;
-  value: number;
-  unit: string;
-  periodStart: Date;
-  periodEnd: Date;
-  rawSource: Record<string, unknown>;
-}
-
-export interface DataSourceConnector {
+export interface DataSourceConnector<TRunContext, TWeekData> {
   name: string;
   isAvailable: boolean;
-  fetchAgentMetrics(agentId: string, periodStart: Date, periodEnd: Date): Promise<ConnectorMetricResult[]>;
+  // Run-scoped data fetched once per sync run (SLA target, org-wide activities),
+  // passed back into every fetchWeekData call.
+  prepareRun(periodStart: Date, periodEnd: Date): Promise<TRunContext>;
+  // One agent's raw week data; null = agent unknown to this source (no write, not an error).
+  fetchWeekData(agentRef: string, periodStart: Date, periodEnd: Date, run: TRunContext): Promise<TWeekData | null>;
   testConnection(): Promise<{ ok: boolean; error?: string }>;
 }
 ```
 
-**Forethought stub:** `isAvailable: false` · returns `[]` · never throws · logs a warning only
+The sync writes **registry ∩ `is_active`** — a metric is collected only when it has both a
+registry module and an active `metric_definitions` row; a source with no active metrics is
+skipped entirely. Adding a metric: recipe in `docs/metrics.md`.
+
+**Forethought stub:** `isAvailable: false` · `fetchWeekData` returns `null` · never throws · logs a warning only
 
 ---
 
@@ -336,6 +338,10 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | Bootstrap matches via Assembled first, then direct Zendesk email matching | Assembled has only 76 people; direct Zendesk pass covers 246/351 employees; 105 are non-support with no Zendesk account |
 | Zendesk Users API uses cursor pagination (`meta.has_more` + `links.next`), not `next_page` | `page[size]=100` triggers cursor mode; `next_page` is null; must check `meta.has_more` and follow `links.next` |
 | Bootstrap runs daily at 05:00 UTC via cron, before first metric sync at 06:00 | Ensures new hires and role changes are matched before metrics flow; deactivated agents get zendesk_agent_id cleared |
+| Connector interface evolved to fetch-shape (prepareRun + fetchWeekData); metric math lives in apps/api/src/metrics/ registry | Adding a metric used to touch 6+ files incl. UI components; now spec + module + registry line + migration, zero sync-logic change (Phase 1B, parity-verified) |
+| ConnectorMetricResult retired; sync builds DB rows from compute() outputs | Its unit/rawSource fields were computed then discarded (F13); unit/labels come from metric_definitions + METRIC_SPECS at render |
+| is_active gates sync, not just display; a source with zero active metrics is skipped entirely | Admin toggle starts/stops collection with no deploy; avoids pointless API calls (all 3 Assembled metrics are currently inactive → no Assembled calls) |
+| MetricSpec owns code-side identity + nullLabel/shortLabel; DB owns name/coaching_prompt/display_order/is_active | No overlap, no drift; kills the per-component hardcoded label maps (D10/S11) |
 
 ### Assembled metric computation (when WFM activates)
 

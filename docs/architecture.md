@@ -29,11 +29,20 @@ Two paths — the distinction governs every design decision:
 
 ## Sync pipeline
 
+Since Phase 1B (2026-07-02) the sync is registry-driven. Metric math lives in
+`apps/api/src/metrics/` (one module per metric: `spec` + pure `compute`); connectors are
+thin fetchers returning one source's raw week data. `runSync` reads
+`metric_definitions WHERE is_active = true` and writes **registry ∩ is_active** — a
+source with no active metrics is skipped entirely (no API calls). Per-run data (Zendesk
+SLA target, Assembled org-wide people/activity-types/activities) is fetched once in the
+connector's `prepareRun` and passed into every `fetchWeekData` call. Recipe for adding a
+metric: `docs/metrics.md`.
+
 | Connector | Metrics | Notes |
 |---|---|---|
-| Assembled | `schedule_adherence`, `occupancy`, `handle_time` | `/activities` endpoint ignores all filter/pagination params — connector fetches once per sync run and caches org-wide, filters client-side by `agent_id`. Uses `agent_id` field (not person `id`) for state queries. |
-| Zendesk | `ticket_volume`, `first_reply_time`, `csat_score`, `resolution_rate` | SLA compliance excluded (returns null) when no SLA policies configured. |
-| Forethought | — | Stub: `isAvailable: false`, returns `[]` |
+| Assembled | `schedule_adherence`, `occupancy`, `handle_time` | `/activities` endpoint ignores all filter/pagination params — fetched org-wide once per run in `prepareRun`, filtered client-side by `agent_id`. Uses `agent_id` field (not person `id`) for state queries. |
+| Zendesk | `ticket_volume`, `first_reply_time`, `csat_score`, `resolution_rate`, `sla_compliance` | SLA compliance computes to null (no row written) while no SLA policies are configured in Zendesk. |
+| Forethought | — | Stub: `isAvailable: false`, `fetchWeekData` returns `null` |
 
 Schedule: live refresh every 4h 6am–10pm UTC, weekly snapshot Sunday 23:59 UTC.
 Weekly windows: live = Monday 00:00 UTC → now; snapshot = Monday 00:00 → Sunday 23:59:59 UTC.
@@ -76,7 +85,10 @@ Admin RLS policies use JWT claims instead of table queries to avoid recursion:
 
 `@scorecard/shared` (`packages/shared/src/`) is the single source of truth for:
 - Domain types (inferred from Zod schemas via `z.infer`)
-- `ConnectorMetricResult` and `DataSourceConnector` interfaces (connector contract)
+- `DataSourceConnector<TRunContext, TWeekData>` interface (connector contract, fetch-shape
+  since Phase 1B; `ConnectorMetricResult` retired — connectors no longer compute metrics)
+- `MetricSpec` + `METRIC_SPECS` (code-side metric identity and UI labels; consumed by the
+  api metric registry and the web components)
 
 Both `apps/web` and `apps/api` import from here.
 
@@ -100,3 +112,4 @@ Both `apps/web` and `apps/api` import from here.
 | 2026-06-26 | Add `session_action_items` table for structured 1:1 action items with completion tracking; RLS scoped via scorecard_sessions → visible_employee_ids(); GRANTs for authenticated + service_role | `0013_session_action_items.sql` |
 | 2026-06-27 | Add `is_active` boolean to `profiles` (default true); mark ~250 service accounts inactive; update `visible_manager_ids()` to exclude inactive profiles; add JWT-based admin SELECT/UPDATE policies on profiles | `0014_profiles_is_active.sql` |
 | 2026-06-29 | Re-add audit_log RLS policies using JWT claims (dropped in 0007); enables admin ExportLogPage to read audit_log directly via Supabase | `0015_audit_log_admin_policies.sql` |
+| 2026-07-02 | Phase 1B metric registry (no schema change): metric math moved to `apps/api/src/metrics/`, connectors become fetchers, sync writes registry ∩ `is_active` | — |
