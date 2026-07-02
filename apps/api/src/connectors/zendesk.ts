@@ -86,7 +86,8 @@ function roundPercent(numerator: number, denominator: number): number {
   return Math.round((numerator / denominator) * 10000) / 100;
 }
 
-function computeAllMetrics(
+// Exported for characterization tests (Phase 1A) — moves to apps/api/src/metrics/ in Phase 1B.
+export function computeAllMetrics(
   tickets: ZendeskTicket[],
   metricSets: Map<number, ZendeskTicketMetricSet>,
   slaTargetMinutes: number | null,

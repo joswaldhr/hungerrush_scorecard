@@ -11,7 +11,8 @@ interface KpiTileProps {
 
 type TrendDirection = 'improving' | 'attention' | 'neutral';
 
-function getTrend(
+// Exported for characterization tests (Phase 1A).
+export function getTrend(
   value: number | null,
   history: Array<{ value: number }>,
   direction: string,

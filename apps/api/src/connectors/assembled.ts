@@ -107,7 +107,9 @@ interface TimeInterval {
   end: number;
 }
 
-function mergeIntervals(intervals: TimeInterval[]): TimeInterval[] {
+// Interval math + compute functions exported for characterization tests (Phase 1A) —
+// they move to apps/api/src/metrics/ in Phase 1B.
+export function mergeIntervals(intervals: TimeInterval[]): TimeInterval[] {
   if (intervals.length === 0) return [];
   const sorted = [...intervals].sort((a, b) => a.start - b.start);
   const first = sorted[0]!;
@@ -124,11 +126,11 @@ function mergeIntervals(intervals: TimeInterval[]): TimeInterval[] {
   return merged;
 }
 
-function totalDuration(intervals: TimeInterval[]): number {
+export function totalDuration(intervals: TimeInterval[]): number {
   return mergeIntervals(intervals).reduce((sum, iv) => sum + (iv.end - iv.start), 0);
 }
 
-function overlapDuration(a: TimeInterval[], b: TimeInterval[]): number {
+export function overlapDuration(a: TimeInterval[], b: TimeInterval[]): number {
   const mergedA = mergeIntervals(a);
   const mergedB = mergeIntervals(b);
   let total = 0;
@@ -148,7 +150,7 @@ function toIntervals(items: Array<{ start_time: number; end_time: number }>): Ti
   return items.map(i => ({ start: i.start_time, end: i.end_time }));
 }
 
-function computeScheduleAdherence(
+export function computeScheduleAdherence(
   states: AssembledAgentState[],
   activities: AssembledActivity[],
   productiveTypeIds: Set<string>,
@@ -161,7 +163,7 @@ function computeScheduleAdherence(
   return Math.round((overlapDuration(scheduled, actual) / scheduledTotal) * 10000) / 100;
 }
 
-function computeOccupancy(
+export function computeOccupancy(
   states: AssembledAgentState[],
   productiveStateNames: Set<string>,
 ): number | null {
@@ -172,7 +174,7 @@ function computeOccupancy(
   return Math.round((totalDuration(productive) / loggedInTotal) * 10000) / 100;
 }
 
-function computeHandleTime(
+export function computeHandleTime(
   states: AssembledAgentState[],
   productiveStateNames: Set<string>,
 ): number | null {
