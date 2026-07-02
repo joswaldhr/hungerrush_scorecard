@@ -19,7 +19,10 @@ app.use(express.json());
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
 
 app.get('/health', (_req: Request, res: Response) => {
-  res.json({ ok: true });
+  // sha identifies the running artifact (Railway injects RAILWAY_GIT_COMMIT_SHA) —
+  // added 2026-07-02 after a deploy incident where the GitHub commit status said
+  // success while an older rolled-back container was still serving and firing crons.
+  res.json({ ok: true, sha: process.env['RAILWAY_GIT_COMMIT_SHA'] ?? null });
 });
 
 app.use('/api/sync', syncRoutes);

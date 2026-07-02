@@ -8,6 +8,7 @@ buildCmd = "cd apps/api && npm run build"
 [deploy]
 # tsx (prod dependency) runs the TS source directly — @scorecard/shared is consumed as
 # TypeScript source, which plain `node dist/` cannot require (Phase 1B runtime finding).
-startCommand = "npm start -w apps/api"
+# Invoke the tsx binary directly: no npm-workspace resolution in the boot path.
+startCommand = "./node_modules/.bin/tsx apps/api/src/index.ts"
 healthcheckPath = "/health"
 healthcheckTimeout = 10
