@@ -49,6 +49,11 @@ export default [
       },
     },
     rules: {
+      // Core rules that misfire on TypeScript: tsc already catches undefined
+      // identifiers (incl. browser globals), and the TS plugin rule below
+      // handles unused vars with type-signature awareness.
+      'no-undef': 'off',
+      'no-unused-vars': 'off',
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       'react-hooks/rules-of-hooks': 'error',
