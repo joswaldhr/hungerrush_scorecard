@@ -14,12 +14,17 @@
 
 | Phase | Session | Status |
 |---|---|---|
-| 0 — Audit & plan | 22 | ✅ Complete (this document) |
-| 1A — Safety nets: tests, backup/dump scripts, truncation fix | — | Not started |
+| 0 — Audit & plan | 22 | ✅ Complete — approved by user 2026-07-02, pushed `19c55e1` |
+| 1A — Safety nets: tests, backup/dump scripts, truncation fix | 22 | 🔄 In progress |
 | 1B — Metric registry refactor + parity + deploy watch | — | Not started |
-| 1C — Logic fixes (one commit each) | — | Not started |
+| 1C — Logic fixes (one commit each) + approved data correction | — | Not started |
 | 2 — Fluff removal & hardening | — | Not started |
 | 3 — Design implementation | — | Separate prompt, blocked on 2 |
+
+**⚠️ Standing reminder (do not lose):** after 1C commit 10 + correction 10b land, remind the user
+to re-enable `occupancy` and `schedule_adherence` in the admin UI. The user toggled them (plus
+`sla_compliance` and `handle_time`) `is_active = false` on 2026-07-02 so scorecards stop showing
+false 0.0% during the refactor.
 
 **Verification note:** Playwright MCP is not connected (session 21's install attempt unresolved).
 Claude-in-Chrome tools exist but depend on the user's live browser session. Until that changes,
@@ -180,7 +185,7 @@ coherent unit per commit · never start a new phase above ~60% context — hand 
 | Commit | Content | Verify |
 |---|---|---|
 | 1 | Test infra: `vitest run` scripts; export existing compute functions from connectors (no behavior change); **characterization tests** pinning CURRENT behavior — per metric: fixture→expected, empty→null (or 0 for ticket_volume), single item, zero-vs-null, lower_is_better, and the known-buggy behaviors as explicitly-labeled `// PRESERVE-FOR-PARITY` cases (e.g. occupancy returns 0 when no state names match) | `npm run test` green; typecheck green |
-| 2 | `scripts/backup-snapshots.ts` (full table → timestamped CSV) + `scripts/dump-week-metrics.ts` (current week `employee_id\|metric_key\|value`, sorted). Run backup immediately; commit scripts (not the CSV) | CSV row count = live count (1,104 as of Phase 0) |
+| 2 | `scripts/backup-snapshots.ts` (full table → timestamped CSV) + `scripts/dump-week-metrics.ts` (current week `employee_id\|metric_key\|value`, sorted). **HARD REQUIREMENT (user, 2026-07-02): both scripts explicitly paginate past PostgREST's 1,000-row default and print row counts in every output** — otherwise the parity baseline is truncated by the very bug in L7 and the diff could pass on incomplete data. Fetched count is verified against a server-side `count: 'exact'` head query. Run backup immediately; commit scripts (not the CSV) | Printed row count = server-side exact count |
 | 3 | **FIX-EARLY L7** (read-path truncation — justification in section f): bound `useDirectReports` snapshot queries to current+last week and page/window the rollup query | User screenshots dashboard "With metrics" count = 247 and rollup chips populated; counts cross-checked against a read-only script |
 
 Session boundary. Commit 3 is frontend-only and outside the sync parity surface — safe before the refactor.
@@ -198,8 +203,15 @@ Session boundary. Commit 3 is frontend-only and outside the sync parity surface 
 3. Run OLD sync (checkout pre-refactor commit or run against prod API `/api/sync/run`), dump baseline.
 4. Run NEW sync back-to-back, dump again, diff.
 5. Required: identical, or every line explained by fresher source data (live APIs move between runs — expect small drift in reply-time averages for agents with new activity; zero drift for agents with no new tickets).
-6. **Show the user the diff before pushing.**
-7. After push: **post-deploy watch** — wait for the next scheduled Railway sync; verify logs show ~247 employees processed, 0 unexplained errors, snapshot counts consistent. Phase 1C does not start until this passes.
+6. **Explained-by-toggle (user action 2026-07-02):** `sla_compliance`, `handle_time`, `occupancy`,
+   `schedule_adherence` were toggled `is_active = false` in the admin UI. The OLD sync ignores
+   `is_active` and keeps re-writing occupancy/adherence 0-rows every 4h until 1B deploys; the NEW
+   sync skips inactive metrics. Because upsert never deletes, the dump-level diff shows **no line
+   changes** for those keys — the toggle manifests as (a) lower written-row counts in NEW sync
+   logs (~124 fewer rows/run) and (b) stale `synced_at` on those rows. Do not mistake either for
+   a parity failure.
+7. **Show the user the diff before pushing.**
+8. After push: **post-deploy watch** — wait for the next scheduled Railway sync; verify logs show ~247 employees processed, 0 unexplained errors, snapshot counts consistent. Phase 1C does not start until this passes.
 
 Session boundary.
 
@@ -211,10 +223,11 @@ correct behavior, (2) fix, (3) re-run sync, (4) report exactly which values chan
 | Commit | Fix | Expected diff |
 |---|---|---|
 | 6 | L2 UTC week boundary — shared week util replaces all 5 sites | No DB diff (read-path + sync agree on the same Monday; user near week edges sees correct week) |
-| 7 | L1 stale-ticket contamination — reply-time/SLA/CSAT computed only from tickets **created** in period (`ticket.created_at` already fetched); ticket_volume stays updated-in-period (product intent: activity) — **confirm split with user before this commit** | first_reply_time drops sharply for agents with reworked old tickets (Phase 0 saw max 601,127s ≈ 167h) |
+| 7 | L1 stale-ticket contamination — **split APPROVED by user 2026-07-02**: first_reply_time and resolution_rate computed only from tickets **created** in period (`ticket.created_at` already fetched); ticket_volume stays updated-in-period (activity semantics). **CSAT**: first check whether Zendesk supports counting ratings *submitted* this week (`satisfaction_ratings` endpoint with a time filter) — the truer semantic; if it materially complicates the fetcher, fall back to created-this-week and document the tradeoff in docs/metrics.md either way | first_reply_time drops sharply for agents with reworked old tickets (Phase 0 saw max 601,127s ≈ 167h) |
 | 8 | L4 Last-week trend badge — Last Week tiles receive history truncated to ≤ last week | UI-only |
 | 9 | L5 Sparkline calendar slots — map history to 4 calendar-week positions | UI-only |
-| 10 | L6 Assembled zero-writes — empty productive-state intersection returns null for all three assembled metrics (not 0%) | New syncs stop writing 0s; **existing 249 zero rows need the user's call — see Open Questions** |
+| 10 | L6 Assembled zero-writes — empty productive-state intersection returns null for all three assembled metrics (not 0%) | New syncs stop writing 0s |
+| 10b | **Data correction — APPROVED by user 2026-07-02**, sequenced immediately AFTER commit 10 (deleting earlier would let the still-broken connector re-write 0s at the next 4-hour cron; note the OLD sync also ignores `is_active`, so the toggle alone doesn't stop the writes — commit 10 must be deployed first). Mechanics: timestamped CSV backup → delete the `occupancy`/`schedule_adherence` rows with `value = 0` → log the correction to `audit_log`. Null = no row in this schema, matching `handle_time` | ~249+ zero rows removed (count grows until commit 10 deploys — re-count at execution) |
 | 11 | L8 PDF zero treatment — 0 renders as a value, only null renders "No data" | PDF-only |
 
 Session boundary. (If context allows, 1C can absorb into 1B's session; plan for separate.)
@@ -289,15 +302,17 @@ fix as its own 1C commit. **FIX-EARLY** = read-path bug outside the sync parity 
 | L13 | graphSync counts creates-vs-updates via `status === 201` on upsert (unreliable in supabase-js) — logging accuracy only | `graphSync.ts:266` | WONTFIX (cosmetic logging) |
 | L14 | `share.ts` comment claims "current week only" but fetches all snapshots — behavior is actually what the shared page needs (history for sparklines); the comment lies | `routes/share.ts:89` | Fix comment in Phase 2 |
 
-## Open questions for the user (non-blocking; answer before the referenced commit)
+## Open questions — ALL ANSWERED by user 2026-07-02
 
-1. **The 249 zero-value assembled rows** (L6): constraint 7 says historical snapshots are never
-   deleted or destructively migrated — but these rows are *wrong data*, not history. Options:
-   (a) leave them (tiles show 0.0% until WFM activates properly), (b) approved one-time correction
-   script (backup first, delete the 249 `occupancy`/`schedule_adherence` rows whose value = 0,
-   logged to audit_log). Needed before commit 10 fully lands its value.
-2. **Ticket-volume semantics** (L1/commit 7): keep volume = "tickets *touched* this week"
-   (updated-filter) while reply-time/csat/resolution move to "tickets *created* this week"? That
-   split matches coaching intent (activity vs. responsiveness) but should be a deliberate call.
-3. **`sla_compliance` + `handle_time`**: both have zero rows ever. After 1B, toggling them
-   `is_active = false` in the admin UI declutters every scorecard with no deploy. Recommend yes.
+1. **Zero-value assembled rows: correction APPROVED** — executed as commit 10b (see 1C table),
+   sequenced after the state-matching fix so the broken connector can't re-write 0s.
+   **Constraint 7 clarified by the user:** it protects *real history*, not measured-wrong values.
+   Any such correction requires (a) the user's explicit approval and (b) a timestamped backup —
+   this one has both. Future sessions: never generalize this into casual snapshot deletion.
+2. **Semantics split APPROVED** for `first_reply_time` and `resolution_rate` (created-this-week);
+   `ticket_volume` stays updated-this-week. CSAT: investigate ratings-submitted-this-week first
+   (see commit 7); created-this-week is the accepted fallback; document tradeoff in docs/metrics.md.
+3. **Toggles done by user 2026-07-02** in the admin UI: `sla_compliance`, `handle_time`,
+   `occupancy`, `schedule_adherence` all set `is_active = false`. The last two are temporary —
+   see the standing reminder at the top: re-enable after 1C commit 10 + 10b. Their absence from
+   sync writes appears in the 1B parity run as explained-by-toggle (protocol step 6).
