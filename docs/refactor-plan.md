@@ -439,6 +439,14 @@ Reading the state:
 
 ## f½) Phase 3 design source & decision record (accepted by user 2026-07-02)
 
+> **⚠️ SUPERSEDED 2026-07-06 — Cadence v2 is now THE Phase 3 design source:**
+> `docs/design/hungerrush-cadence/` (`cadence-v2.jsx` + `ADOPTION.md`, adopted with four
+> user decisions: full Cadence BEFORE the demo; coral attention accent sanctioned;
+> flags-only coaching engine in Phase 3; Cadence trend semantics — current vs prior-period
+> average, ±6%, band metrics — replace the ±2% decision below). This section stays as
+> history; where it conflicts with ADOPTION.md, ADOPTION.md wins. Phase 2 remains the
+> Phase 3 prerequisite (S5 hook contract is load-bearing for Cadence's per-source states).
+
 **Source bundle:** `docs/design/hungerrush-scorecard-ui/` — Claude Design export (prototype
 HTML/CSS/JS + HungerRush design system tokens). Reviewed file-by-file in session 23; review
 verdict accepted. The prototype runtime (`support.js`, `_ds_bundle.js`, manifest) never ships.
