@@ -3,16 +3,29 @@ import { supabase } from '../../lib/supabase';
 
 export function LoginPage() {
   const [signingIn, setSigningIn] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async () => {
     setSigningIn(true);
-    await supabase.auth.signInWithOAuth({
-      provider: 'azure',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        scopes: 'email profile openid',
-      },
-    });
+    setError(null);
+    // On success this navigates away to Microsoft; the states below only matter
+    // when the redirect never fires (S9 — button used to stay stuck on "Signing in...").
+    try {
+      const { error: err } = await supabase.auth.signInWithOAuth({
+        provider: 'azure',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          scopes: 'email profile openid',
+        },
+      });
+      if (err) {
+        setError(err.message);
+        setSigningIn(false);
+      }
+    } catch {
+      setError('Sign-in could not start. Check your connection and try again.');
+      setSigningIn(false);
+    }
   };
 
   return (
@@ -32,6 +45,12 @@ export function LoginPage() {
           <p className="text-[13px] text-slate-400 text-center mt-1.5 mb-7">
             Sign in with your HungerRush Microsoft account to continue.
           </p>
+
+          {error && (
+            <div className="bg-[#FFFBEB] border border-[#D97706]/20 text-[#92400E] rounded-lg p-3 text-[13px] mb-4">
+              {error}
+            </div>
+          )}
 
           <button
             onClick={handleLogin}

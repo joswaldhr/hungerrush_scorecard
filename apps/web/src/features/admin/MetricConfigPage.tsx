@@ -27,17 +27,22 @@ function MetricCardSkeleton() {
 // Access control: AuthGuard in App.tsx gates this route to admin (S6).
 export function MetricConfigPage() {
   const { metrics, loading, error, updateMetric } = useMetricDefinitions();
-  const [savingId, setSavingId] = useState<string | null>(null);
+  // Save feedback lives on the card's own button — a page-top banner alone was how
+  // S4's broken saves looked successful with the card below the fold.
+  const [saveState, setSaveState] = useState<{ id: string; state: 'saving' | 'saved' | 'error' } | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const handleSave = async (id: string, updates: MetricUpdates) => {
-    setSavingId(id);
+    setSaveState({ id, state: 'saving' });
     setSaveError(null);
     const result = await updateMetric(id, updates);
-    if (!result.ok) {
+    if (result.ok) {
+      setSaveState({ id, state: 'saved' });
+    } else {
       setSaveError(result.error ?? 'Failed to save');
+      setSaveState({ id, state: 'error' });
     }
-    setSavingId(null);
+    setTimeout(() => setSaveState(current => (current?.id === id ? null : current)), 3000);
   };
 
   return (
@@ -77,7 +82,7 @@ export function MetricConfigPage() {
             <MetricCard
               key={metric.id}
               metric={metric}
-              saving={savingId === metric.id}
+              saveState={saveState?.id === metric.id ? saveState.state : 'idle'}
               onSave={handleSave}
             />
           ))}
