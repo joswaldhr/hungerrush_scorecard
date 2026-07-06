@@ -21,7 +21,7 @@
 - [ ] `GET /health` on the API returns the sha of the release master tip (the only trustworthy deploy check)
 - [ ] All migrations through the release are applied in the SQL editor (0017 executive + 0018 title included)
 - [ ] Adam's role is `executive` in `profiles` AND he has signed in fresh since the change (JWT claims update only at sign-in / token refresh)
-- [ ] `employees.title` is populated (any 05:00 UTC bootstrap after the W2 deploy backfills it)
+- [ ] `employees.title` is populated (the org sync `POST /api/sync/org` run in the W2 post-merge steps backfills it — the daily 05:00 cron does not)
 - [ ] Metric data is fresh: last cron stamp within 4h (check Railway logs `[cron]`, or a current-window-only stamp count — historical `synced_at` window-counting is invalid)
 - [ ] A test share link created earlier than 72h ago is confirmed EXPIRED (share-expiry behaves)
 

@@ -18,20 +18,23 @@
   transaction); assignment is a separate audited service-key write
   (`scripts/set-adam-executive.ts`, dry-run verified: adam.seow@hungerrush.com,
   senior_manager today; org scope 87 active manager-role profiles / 351 employees).
-  **graphSync now preserves manually-assigned executives** — without this the 05:00 bootstrap
-  would reclassify Adam back to senior_manager within a day. Frontend gates add executive
-  beside senior_manager (AppLayout rollup nav, RollupPage); admin gates untouched.
+  **graphSync now preserves manually-assigned executives** — without this the next org-sync
+  run (`POST /api/sync/org`, manual trigger; NOT on the daily cron — the 05:00 job only
+  matches agent IDs) would silently reclassify Adam back to senior_manager. Frontend gates
+  add executive beside senior_manager (AppLayout rollup nav, RollupPage); admin gates untouched.
   `employees.title` (`0018` + graphSync `jobTitle` mapping + scorecard-header line; backfills
-  at first post-deploy bootstrap). CLAUDE.md amendments: philosophy (visual/tonal frame),
+  at the first post-deploy org sync). CLAUDE.md amendments: philosophy (visual/tonal frame),
   coral `#C4553A` attention accent (Cadence), Cadence trend semantics, executive in RBAC rules
   + decisions log. `docs/demo-smoke-checklist.md` written (executed on the Cadence UI at the
   demo; **Normando Bonadia Jr decision carried there — confirm with Alex, don't pre-implement**).
   RLS claim-simulation probe: `scripts/rls-probe-executive.sql` (temp-promote inside a rolled-back
   transaction; asserts org-wide visibility AND admin-policy exclusion). Tests 79 green,
   typecheck + lint clean. **Post-PR order (in the PR body): apply 0017 → 0018 → run probe →
-  merge → `/health` sha → `set-adam-executive.ts --execute` → Adam's JWT updates at his next
-  sign-in.** Housekeeping: PR carries forward `6d67202` + `5eb6ffe` (session-25 close-out +
-  Cadence adoption records) — they were committed after PR #1 merged and never reached master.
+  merge → `/health` sha → `set-adam-executive.ts --execute` → trigger `POST /api/sync/org`
+  (backfills titles AND live-verifies the executive guard: Adam must still be executive
+  after it) → Adam's JWT updates at his next sign-in.** Housekeeping: PR carries forward
+  `6d67202` + `5eb6ffe` (session-25 close-out + Cadence adoption records) — they were
+  committed after PR #1 merged and never reached master.
 - **Session 25 (refactor Phase 1C — CLOSED, deployed and executed 2026-07-06):** all of §d
   live in prod at master `b255976` (PR #1; `/health` sha verified 17:46 UTC). `54722f6` commit 6
   (L2 — `week.ts` in shared, all 5 sites), `3e51a0f` commit 7 (L1 — frt/resolution from
@@ -424,7 +427,7 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | Cadence v2 (`docs/design/hungerrush-cadence/`) adopted as sole Phase 3 design source; demo resequenced AFTER its implementation; coral #C4553A sanctioned as the attention accent (true red stays system-errors-only); coaching engine ships flags-only (context fields fast-follow); trend semantics = current vs prior-period average, ±6%, band metrics, sparse ⇒ "new" | User decisions 2026-07-06 at design review — ADOPTION.md is the binding record; supersedes the 2026-07-02 design bundle and its ±2% trend decision |
 | `executive` role (W2): enum value + `visible_manager_ids()` branch (all active manager-role profiles org-wide, `executive` included) + JWT-claims profiles SELECT policy; admin policies untouched; assigned ONLY by audited service-key write; graph sync never produces or overwrites it | Adam Seow needs org-wide data visibility without admin pages; James stays the only admin; a profiles policy must never call a function that reads profiles (0004–0006 recursion), so the policy is JWT-based like 0014's |
 | Migration 0017 only ADDs the enum value; the role assignment is a separate later write; all 'executive' comparisons in SQL are text (`role::text`, plpgsql text vars, JWT strings) | A new Postgres enum value cannot be used as an enum datum in the transaction that adds it, and James applies migrations as one SQL-editor paste |
-| `employees.title` (nullable) mapped from Azure AD `jobTitle` by the daily graph sync (0018) | Master-list "Role" row; renders under the name in the scorecard header and feeds the Cadence header directly; null = not known, per the null-vs-zero rule |
+| `employees.title` (nullable) mapped from Azure AD `jobTitle` by the org graph sync (0018; `POST /api/sync/org` manual trigger — the daily 05:00 cron only matches agent IDs, it never writes roles or titles) | Master-list "Role" row; renders under the name in the scorecard header and feeds the Cadence header directly; null = not known, per the null-vs-zero rule |
 
 ### Assembled metric computation (when WFM activates)
 

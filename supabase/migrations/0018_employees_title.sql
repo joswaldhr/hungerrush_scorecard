@@ -5,8 +5,9 @@
 -- feeds the Cadence header in Phase 3.
 --
 -- Additive and nullable: null = title not known (Azure AD jobTitle unset or
--- the row predates the sync mapping). Existing rows backfill at the next
--- 05:00 UTC bootstrap after the code deploy.
+-- the row predates the sync mapping). Existing rows backfill at the next org
+-- sync after the code deploy (POST /api/sync/org — manual trigger; the daily
+-- 05:00 cron only matches agent IDs and does not write titles or roles).
 
 alter table employees add column title text;
 

@@ -25,8 +25,9 @@
 scope, not a refactor phase):** `executive` role (0017: enum value + `visible_manager_ids()`
 executive branch + JWT-claims profiles SELECT policy; assigned only by audited service-key
 write, `scripts/set-adam-executive.ts`; **graphSync now preserves manually-assigned
-executives** — the 05:00 bootstrap reclassifies roles daily and would otherwise revert Adam
-within a day) and `employees.title` (0018 + graphSync `jobTitle` mapping). Phase 2 scope is
+executives** — the org sync (`POST /api/sync/org`, manual trigger; the 05:00 cron only
+matches agent IDs) reclassifies roles on every run and would otherwise silently revert Adam
+at its next trigger) and `employees.title` (0018 + graphSync `jobTitle` mapping). Phase 2 scope is
 unchanged, with one addition: **S6's auth consolidation must include `executive` in its role
 model** (the role now appears beside senior_manager in AppLayout and RollupPage gates).
 

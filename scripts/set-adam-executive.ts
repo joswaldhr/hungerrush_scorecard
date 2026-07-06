@@ -5,9 +5,10 @@
 //
 // Sequencing — run --execute only after BOTH:
 //   1. migration 0017 is applied (the enum value must exist), and
-//   2. the W2 PR is deployed (verify GET /health sha) — the pre-W2 graph sync
-//      reclassifies Adam to senior_manager at the next 05:00 UTC bootstrap;
-//      the W2 code preserves manually-assigned executives.
+//   2. the W2 PR is deployed (verify GET /health sha) — the pre-W2 org sync
+//      (POST /api/sync/org, manual trigger) would reclassify Adam back to
+//      senior_manager at its next run; the W2 code preserves manually-assigned
+//      executives.
 // Adam's JWT carries the new role only after his next sign-in or token refresh.
 //
 // Usage: npx tsx scripts/set-adam-executive.ts [--execute]

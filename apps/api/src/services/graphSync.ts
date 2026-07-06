@@ -246,7 +246,7 @@ export async function syncOrgStructure(): Promise<SyncResult> {
   // Pass 2: upsert profiles with correct role (manager_id set in pass 3).
   // Classification can never produce 'executive' — it is assigned only via an
   // audited service-key write — so an existing executive keeps that role
-  // instead of being reclassified every bootstrap.
+  // instead of being reclassified on the next org-sync run.
   const { data: executiveRows, error: executiveErr } = await supabase
     .from('profiles')
     .select('id')
