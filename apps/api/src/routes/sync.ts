@@ -5,8 +5,13 @@ import { bootstrapAgentIds, runSync } from '../services/syncService';
 
 const router = Router();
 
+// Manual-trigger auth: a dedicated shared secret, NOT the service key — the RLS-bypass
+// key must never double as an HTTP credential (Phase 2, approved decision b). The
+// explicit !expected guard means an unset var fails closed instead of comparing
+// undefined === undefined and letting header-less requests through.
 router.use((req: Request, res: Response, next: NextFunction) => {
-  if (req.headers['x-sync-key'] !== process.env['SUPABASE_SERVICE_KEY']) {
+  const expected = process.env['SYNC_TRIGGER_KEY'];
+  if (!expected || req.headers['x-sync-key'] !== expected) {
     res.status(403).json({ error: 'Forbidden' });
     return;
   }

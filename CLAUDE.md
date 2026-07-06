@@ -287,10 +287,12 @@ skipped entirely. Adding a metric: recipe in `docs/metrics.md`.
 # Railway (backend — never expose to the frontend)
 SUPABASE_URL
 SUPABASE_SERVICE_KEY            # bypasses RLS — backend jobs only, never sent anywhere
+SYNC_TRIGGER_KEY                # x-sync-key secret for manual /api/sync/* triggers (Phase 2 — the service key must never double as an HTTP credential)
 ZENDESK_SUBDOMAIN
 ZENDESK_EMAIL
 ZENDESK_API_TOKEN
 ASSEMBLED_API_KEY
+ALLOWED_ORIGIN                  # CORS allowlist origin, e.g. https://hungerrush-scorecard.vercel.app (wired in Phase 2 commit 16)
 
 # Vercel (frontend — VITE_ prefix ONLY for these three)
 VITE_SUPABASE_URL
