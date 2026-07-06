@@ -65,8 +65,8 @@ export function generateScorecardPdf(
     doc.setTextColor(...NAVY);
     doc.text(m.definition.name, 14, y);
 
-    // Value
-    const hasValue = m.value !== null && m.value !== 0;
+    // Value — 0 is a measured value (L8 fix, commit 11); only null means "No data".
+    const hasValue = m.value !== null;
     const valueText = hasValue
       ? formatMetricValue(m.value, m.definition.unit)
       : 'No data';
