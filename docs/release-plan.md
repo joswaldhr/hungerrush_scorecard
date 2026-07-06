@@ -64,14 +64,20 @@ Phase 2 per refactor plan (S4 already pulled to 1C; S5 refresh support is a desi
 
 ## Sequencing summary
 
+> **RESEQUENCED 2026-07-06 (user decision at Cadence adoption — see
+> `docs/design/hungerrush-cadence/ADOPTION.md`): the demo now comes AFTER the Cadence
+> design implementation.** W0 ✅ and W1 ✅ are done; the live order from here:
+
 | Order | What | Session |
 |---|---|---|
-| 1 | W0 cron reliability (user dashboard + fixes if needed) | current/short |
-| 2 | W1 = Phase 1C + 0016 | fresh session |
-| 3 | W2 release readiness | fresh session |
-| 4 | **SMALL RELEASE / demo to the four** | user + smoke checklist |
-| 5 | W3/W4 metric expansion batches | 1–2 sessions |
-| 6 | W5 when WFM mapping lands · W7 Phase 2 → Phase 3 | per refactor plan |
+| ~~1~~ | ~~W0 cron reliability~~ ✅ resolved (false alarm) | done |
+| ~~2~~ | ~~W1 = Phase 1C + 0016~~ ✅ deployed + corrections executed | done (session 25) |
+| 3 | W2 release readiness (executive role, employees.title, philosophy amendment incl. coral rule, smoke checklist) | fresh session |
+| 4 | Phase 2 hardening (refactor plan commits 12–17 — S5 is the Cadence prerequisite) | fresh session |
+| 5 | **Phase 3 = Cadence implementation** (est. 2–3 sessions; scope in ADOPTION.md) | fresh sessions |
+| 6 | **SMALL RELEASE / demo to the four** (on the Cadence UI) | user + smoke checklist |
+| 7 | W3/W4 metric expansion batches | 1–2 sessions |
+| 8 | W5 when WFM mapping lands | per refactor plan |
 
 ## Master-list disposition (talking points for Alex/Barb)
 
