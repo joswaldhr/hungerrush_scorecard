@@ -25,6 +25,17 @@ apps/web/tailwind.config.ts  only when orchestrated
 you do not need an Express route to read data. Never call the API for something a direct query
 covers. Never fetch in a component body.
 
+**Hook result contract (S5, Phase 2 — every data hook, no exceptions):** return
+`{ ...dataFields, loading, error, refetch }` where `error: string | null` is safe to render
+(never silently swallow a query error — surface the first failure even when other queries in
+the same hook succeeded) and `refetch: () => Promise<void>` re-runs the fetch. Rules:
+a failed refetch KEEPS the last good data (Cadence renders "unreachable — showing last sync"
+from exactly this state plus `synced_at` age); a changed query key (e.g. employeeId) RESETS
+data before loading so an error can never strand the previous key's data on screen; every
+load starts by clearing `error`. Auth is not a data hook — session/role come from
+`useAuth()` (AuthProvider context), and route access lives in `AuthGuard roles={[...]}`
+only. Pages never re-implement session or role checks.
+
 **Domain types:** import from `packages/shared`. Only put props/UI-state types in `apps/web/src/types/`.
 
 **Feature folders:** each feature gets `index.tsx` + `components/` + `hooks/` — no flat files.

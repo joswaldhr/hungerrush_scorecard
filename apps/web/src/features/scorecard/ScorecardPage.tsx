@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import { currentWeekStartUtc, weeksBeforeUtc, weekStartStr } from '@scorecard/shared';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../auth/AuthProvider';
 import { useEmployee } from '../../hooks/useEmployee';
 import { useEmployeeMetrics } from '../../hooks/useEmployeeMetrics';
 import { useScorecardNotes } from '../../hooks/useScorecardNotes';
@@ -34,7 +34,7 @@ export function ScorecardPage() {
   const { employeeId } = useParams<{ employeeId: string }>();
   const location = useLocation();
   const locationNavigate = useNavigate();
-  const { session, loading: authLoading } = useAuth();
+  const { session } = useAuth();
   const { employee, loading: empLoading, error: empError } = useEmployee(employeeId ?? '');
   const { metrics, loading: metricsLoading, error: metricsError } = useEmployeeMetrics(employeeId ?? '');
   const {
@@ -60,9 +60,10 @@ export function ScorecardPage() {
 
   if (!employeeId) return <Navigate to="/dashboard" replace />;
 
-  if (authLoading || empLoading) return <PageSkeleton />;
+  if (empLoading) return <PageSkeleton />;
 
-  if (!session) return <Navigate to="/login" replace />;
+  // AuthGuard owns session/role access (S6) — this narrows the type for the code below.
+  if (!session) return null;
 
   if (empError) {
     return (

@@ -1,6 +1,5 @@
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { METRIC_SPECS } from '@scorecard/shared';
-import { useAuth } from '../../hooks/useAuth';
 import { useManagerRollup } from '../../hooks/useManagerRollup';
 import { AppLayout } from '../../components/AppLayout';
 import type { ManagerRollupRow, MetricTrend } from '../../hooks/useManagerRollup';
@@ -58,28 +57,14 @@ function CardSkeleton() {
   );
 }
 
+// Access control: AuthGuard in App.tsx gates this route to senior_manager/executive/admin (S6).
 export function RollupPage() {
-  const { session, loading: authLoading } = useAuth();
   const { rows, definitions, weekRange, loading, error } = useManagerRollup();
   const navigate = useNavigate();
 
   const subtitleText = rows.length > 0
     ? `${rows.length} managers${weekRange ? ` · ${weekRange}` : ' · Trend data builds after two weekly syncs'}`
     : undefined;
-
-  if (authLoading) {
-    return (
-      <AppLayout title="Team rollup" subtitle={subtitleText}>
-        <CardSkeleton />
-      </AppLayout>
-    );
-  }
-  if (!session) return <Navigate to="/login" replace />;
-
-  const role = session.user.app_metadata?.['role'] as string | undefined;
-  if (role !== 'senior_manager' && role !== 'executive' && role !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
-  }
 
   const handleManagerClick = (row: ManagerRollupRow) => {
     const params = new URLSearchParams({ manager: row.manager.id, name: row.manager.full_name });

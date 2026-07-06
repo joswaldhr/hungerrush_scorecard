@@ -4,7 +4,6 @@ import { format } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
 import { useDirectReports } from '../../hooks/useDirectReports';
 import { TourModal, useTour } from '../onboarding/TourModal';
-import { OfflineBanner } from '../../components/OfflineBanner';
 import { AppLayout } from '../../components/AppLayout';
 import { formatMetricValue } from '../../lib/formatMetric';
 import { getInitials } from '../../lib/initials';
@@ -94,8 +93,6 @@ export function DashboardPage() {
 
   return (
     <AppLayout title="Your team" actions={topActions}>
-      <OfflineBanner />
-
       {managerFilter && (
         <div className="bg-[#E1F5EE] border border-[#1D9E75]/20 rounded-xl px-4 py-3 flex items-center justify-between mb-5">
           <span className="text-[13px] text-[#0F6E56] font-medium">

@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
 import { useMetricDefinitions, type MetricUpdates } from '../../hooks/useMetricDefinitions';
 import { MetricCard } from './components/MetricCard';
 import { AppLayout } from '../../components/AppLayout';
@@ -26,27 +24,11 @@ function MetricCardSkeleton() {
   );
 }
 
+// Access control: AuthGuard in App.tsx gates this route to admin (S6).
 export function MetricConfigPage() {
-  const { session, loading: authLoading } = useAuth();
   const { metrics, loading, error, updateMetric } = useMetricDefinitions();
   const [savingId, setSavingId] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
-
-  if (authLoading) {
-    return (
-      <AppLayout title="Metrics">
-        <div className="space-y-4">
-          {Array.from({ length: 4 }, (_, i) => (
-            <MetricCardSkeleton key={i} />
-          ))}
-        </div>
-      </AppLayout>
-    );
-  }
-
-  if (!session || session.user.app_metadata?.['role'] !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
-  }
 
   const handleSave = async (id: string, updates: MetricUpdates) => {
     setSavingId(id);

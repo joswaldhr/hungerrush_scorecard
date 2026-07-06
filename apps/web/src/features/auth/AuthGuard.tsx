@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import type { Role } from '@scorecard/shared';
+import { useAuth } from './AuthProvider';
 
 function AuthSkeleton() {
   return (
@@ -13,11 +14,19 @@ function AuthSkeleton() {
   );
 }
 
-export function AuthGuard({ children }: { children: ReactNode }) {
-  const { session, loading } = useAuth();
+interface AuthGuardProps {
+  children: ReactNode;
+  /** When set, only these roles may enter; others are sent to /dashboard. */
+  roles?: Role[];
+}
+
+// The one route guard (S6): session check, and role check where a route needs one.
+export function AuthGuard({ children, roles }: AuthGuardProps) {
+  const { session, loading, role } = useAuth();
 
   if (loading) return <AuthSkeleton />;
   if (!session) return <Navigate to="/login" replace />;
+  if (roles && (!role || !roles.includes(role))) return <Navigate to="/dashboard" replace />;
 
   return <>{children}</>;
 }

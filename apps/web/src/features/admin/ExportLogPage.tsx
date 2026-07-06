@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
-import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
 import { AppLayout } from '../../components/AppLayout';
 
@@ -31,8 +29,8 @@ function TableSkeleton() {
   );
 }
 
+// Access control: AuthGuard in App.tsx gates this route to admin (S6).
 export function ExportLogPage() {
-  const { session, loading: authLoading } = useAuth();
   const [entries, setEntries] = useState<ExportLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -79,20 +77,6 @@ export function ExportLogPage() {
 
     load();
   }, []);
-
-  if (authLoading) {
-    return (
-      <AppLayout title="Export log">
-        <TableSkeleton />
-      </AppLayout>
-    );
-  }
-  if (!session) return <Navigate to="/login" replace />;
-
-  const role = session.user.app_metadata?.['role'] as string | undefined;
-  if (role !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
-  }
 
   return (
     <AppLayout title="Export log">

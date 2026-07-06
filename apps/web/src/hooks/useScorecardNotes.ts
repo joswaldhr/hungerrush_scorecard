@@ -18,6 +18,7 @@ export function useScorecardNotes(employeeId: string) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchSessions = useCallback(async () => {
+    setError(null);
     const fourWeeksAgo = format(subWeeks(new Date(), 4), 'yyyy-MM-dd');
 
     const { data, error: err } = await supabase
@@ -41,6 +42,9 @@ export function useScorecardNotes(employeeId: string) {
   }, [employeeId]);
 
   useEffect(() => {
+    // New employeeId: drop the previous employee's sessions (see useEmployee).
+    setSessions([]);
+    setLoading(true);
     fetchSessions();
   }, [fetchSessions]);
 
@@ -116,5 +120,5 @@ export function useScorecardNotes(employeeId: string) {
     [],
   );
 
-  return { sessions, loading, error, createSession, toggleActionItem };
+  return { sessions, loading, error, refetch: fetchSessions, createSession, toggleActionItem };
 }
