@@ -40,6 +40,7 @@ export function makeRating(
 export function makeMetricSet(
   ticketId: number,
   businessReplyMinutes: number | null,
+  calendarReplyMinutes?: number,
 ): ZendeskTicketMetricSet {
   return {
     id: ticketId * 1000,
@@ -47,7 +48,10 @@ export function makeMetricSet(
     reply_time_in_minutes:
       businessReplyMinutes === null
         ? null
-        : { calendar: businessReplyMinutes * 2, business: businessReplyMinutes },
+        : {
+            calendar: calendarReplyMinutes ?? businessReplyMinutes * 2,
+            business: businessReplyMinutes,
+          },
     full_resolution_time_in_minutes: null,
   };
 }

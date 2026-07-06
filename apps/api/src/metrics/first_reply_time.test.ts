@@ -66,10 +66,22 @@ describe('first_reply_time', () => {
     expect(compute(zendeskWeek({ tickets, metricSets }))).toBe(900);
   });
 
-  it('PRESERVE-FOR-PARITY (L11): business time 0 is included and drags the average down', () => {
-    // A reply outside business hours records business: 0 — the object is truthy, so 0 is pushed.
+  it('L11 fix: an off-hours reply (business 0, calendar > 0) is excluded from the average', () => {
+    // It used to enter as a fake instant reply and drag the average toward zero.
     const tickets = [makeTicket({ id: 1 }), makeTicket({ id: 2 })];
-    const metricSets = metricSetMap([makeMetricSet(1, 0), makeMetricSet(2, 10)]);
+    const metricSets = metricSetMap([makeMetricSet(1, 0, 670), makeMetricSet(2, 10)]);
+    expect(compute(zendeskWeek({ tickets, metricSets }))).toBe(600);
+  });
+
+  it('L11 fix: a genuinely instant reply (business 0, calendar 0) still counts as measured zero', () => {
+    const tickets = [makeTicket({ id: 1 }), makeTicket({ id: 2 })];
+    const metricSets = metricSetMap([makeMetricSet(1, 0, 0), makeMetricSet(2, 10)]);
     expect(compute(zendeskWeek({ tickets, metricSets }))).toBe(300);
+  });
+
+  it('L11 fix: null when every reply was off-hours (no measurable business time)', () => {
+    const tickets = [makeTicket({ id: 1 })];
+    const metricSets = metricSetMap([makeMetricSet(1, 0, 500)]);
+    expect(compute(zendeskWeek({ tickets, metricSets }))).toBeNull();
   });
 });

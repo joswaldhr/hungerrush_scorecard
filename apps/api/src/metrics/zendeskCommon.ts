@@ -20,20 +20,23 @@ export function ticketsCreatedInPeriod(data: ZendeskWeekData): ZendeskTicket[] {
   });
 }
 
-// PRESERVE-FOR-PARITY (L11): a reply outside business hours records business: 0 —
-// the reply_time_in_minutes object is truthy, so the 0 is pushed and drags averages down.
-// Takes the ticket list explicitly so callers choose the semantics: first_reply_time
-// passes created-in-period tickets, sla_compliance passes the full updated set.
+// Business-hours reply seconds per ticket. Takes the ticket list explicitly so
+// callers choose the semantics: first_reply_time passes created-in-period tickets,
+// sla_compliance passes the full updated set.
+// L11 fix (commit 7b): business: 0 with calendar > 0 means the first reply happened
+// entirely OUTSIDE business hours — there is no meaningful business-time measurement,
+// so the ticket is excluded (it used to enter averages as a fake instant reply and
+// auto-pass SLA). business: 0 with calendar: 0 is a genuinely instant reply and stays.
 export function collectReplySeconds(
   tickets: ZendeskTicket[],
   metricSets: Map<number, ZendeskTicketMetricSet>,
 ): number[] {
   const replySeconds: number[] = [];
   for (const t of tickets) {
-    const ms = metricSets.get(t.id);
-    if (ms?.reply_time_in_minutes) {
-      replySeconds.push(ms.reply_time_in_minutes.business * 60);
-    }
+    const reply = metricSets.get(t.id)?.reply_time_in_minutes;
+    if (!reply) continue;
+    if (reply.business === 0 && reply.calendar > 0) continue;
+    replySeconds.push(reply.business * 60);
   }
   return replySeconds;
 }
