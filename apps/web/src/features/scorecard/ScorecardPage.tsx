@@ -256,6 +256,7 @@ export function ScorecardPage() {
         </div>
         <div>
           <h2 className="text-[17px] font-medium text-slate-800">{employee.full_name}</h2>
+          {employee.title && <p className="text-[12px] text-slate-500">{employee.title}</p>}
           <p className="text-[12px] text-slate-400">{employee.email}</p>
         </div>
       </div>

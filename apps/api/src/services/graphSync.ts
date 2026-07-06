@@ -6,6 +6,7 @@ interface GraphUser {
   displayName: string;
   mail: string | null;
   userPrincipalName: string;
+  jobTitle?: string | null; // Graph omits null-valued properties from $select responses
 }
 
 interface GraphListResponse {
@@ -21,6 +22,7 @@ interface OrgMember {
   graphId: string;
   email: string;
   fullName: string;
+  title: string | null;
   managerGraphId: string | null;
 }
 
@@ -70,7 +72,7 @@ async function getGraphToken(): Promise<string> {
 async function fetchAllGraphUsers(token: string): Promise<GraphUser[]> {
   const users: GraphUser[] = [];
   let url: string | null =
-    'https://graph.microsoft.com/v1.0/users?$select=id,displayName,mail,userPrincipalName&$top=999&$filter=accountEnabled eq true';
+    'https://graph.microsoft.com/v1.0/users?$select=id,displayName,mail,userPrincipalName,jobTitle&$top=999&$filter=accountEnabled eq true';
 
   while (url) {
     const res: { data: GraphListResponse } = await axios.get(url, {
@@ -189,6 +191,7 @@ export async function syncOrgStructure(): Promise<SyncResult> {
     graphId: u.id,
     email: (u.mail ?? u.userPrincipalName).toLowerCase(),
     fullName: u.displayName,
+    title: u.jobTitle ?? null,
     managerGraphId: managerMap.get(u.id) ?? null,
   }));
 
@@ -240,7 +243,21 @@ export async function syncOrgStructure(): Promise<SyncResult> {
     }
   }
 
-  // Pass 2: upsert profiles with correct role (manager_id set in pass 3)
+  // Pass 2: upsert profiles with correct role (manager_id set in pass 3).
+  // Classification can never produce 'executive' — it is assigned only via an
+  // audited service-key write — so an existing executive keeps that role
+  // instead of being reclassified every bootstrap.
+  const { data: executiveRows, error: executiveErr } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('role', 'executive');
+  if (executiveErr) {
+    console.warn(
+      `[graph-sync] Executive lookup failed (${executiveErr.message}) — role preservation skipped this run`,
+    );
+  }
+  const executiveIds = new Set((executiveRows ?? []).map((r) => String(r.id)));
+
   for (const member of profileMembers) {
     const profileId = graphToProfileId.get(member.graphId);
     if (!profileId) continue;
@@ -254,7 +271,7 @@ export async function syncOrgStructure(): Promise<SyncResult> {
         id: profileId,
         email: member.email,
         full_name: member.fullName,
-        role,
+        ...(executiveIds.has(profileId) ? {} : { role }),
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'id' },
@@ -302,6 +319,7 @@ export async function syncOrgStructure(): Promise<SyncResult> {
           .from('employees')
           .update({
             full_name: emp.fullName,
+            title: emp.title,
             manager_id: managerProfileId,
             updated_at: new Date().toISOString(),
           })
@@ -311,6 +329,7 @@ export async function syncOrgStructure(): Promise<SyncResult> {
         const { error } = await supabase.from('employees').insert({
           full_name: emp.fullName,
           email: emp.email,
+          title: emp.title,
           manager_id: managerProfileId,
         });
         if (error) {

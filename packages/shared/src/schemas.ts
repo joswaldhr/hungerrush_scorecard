@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 // --- Enums ---
 
-export const RoleSchema = z.enum(['admin', 'senior_manager', 'manager', 'employee']);
+export const RoleSchema = z.enum(['admin', 'executive', 'senior_manager', 'manager', 'employee']);
 export type Role = z.infer<typeof RoleSchema>;
 
 export const MetricSourceSchema = z.enum(['zendesk', 'assembled', 'forethought']);
@@ -32,6 +32,7 @@ export const EmployeeSchema = z.object({
   full_name: z.string(),
   email: z.string().email(),
   manager_id: z.string().uuid(),
+  title: z.string().nullable(),
   zendesk_agent_id: z.string().nullable(),
   assembled_agent_id: z.string().nullable(),
   created_at: z.string(),
