@@ -32,9 +32,9 @@ removed — halves Railway spend. **No release blocker exists. W1 can start imme
 ### W1 — Phase 1C logic fixes (FRESH SESSION — unchanged scope + one addition)
 Exactly as `docs/refactor-plan.md` §d (commits 6–11 + 10b), plus: **pull migration `0016_grant_metric_definitions_update.sql` forward into 1C** so the admin UI save path works (S4) — needed both for the occupancy/adherence re-enable step AND for W3's activate-by-toggle rollout. Rationale for 1C before the release: commit 7's created-in-period split removes the L1 contamination (601k-second reply times) — exactly the numbers metrics-savvy managers will scrutinize; commit 10+10b clean the misleading 0% tiles.
 
-### W2 — Release readiness (1 session) — ✅ CODE COMPLETE session 26 (2026-07-06)
+### W2 — Release readiness (1 session) — ✅ CODE COMPLETE session 26 (2026-07-06, PR #3)
 
-> Delivered in the W2 PR: items 1–5 below (executive role incl. a graph-sync guard so an
+> Delivered in PR #3: items 1–5 below (executive role incl. a graph-sync guard so an
 > org-sync run never reclassifies a manually-assigned executive; `employees.title` +
 > header line; CLAUDE.md philosophy/coral/trend amendments; `docs/demo-smoke-checklist.md`
 > with the Normando decision carried to demo day). Remaining are James's steps in the PR
@@ -82,7 +82,7 @@ Phase 2 per refactor plan (S4 already pulled to 1C; S5 refresh support is a desi
 |---|---|---|
 | ~~1~~ | ~~W0 cron reliability~~ ✅ resolved (false alarm) | done |
 | ~~2~~ | ~~W1 = Phase 1C + 0016~~ ✅ deployed + corrections executed | done (session 25) |
-| ~~3~~ | ~~W2 release readiness (executive role, employees.title, philosophy amendment incl. coral rule, smoke checklist)~~ ✅ code complete session 26 — PR open, James's SQL/merge/Adam steps in the PR body | done (session 26) |
+| ~~3~~ | ~~W2 release readiness (executive role, employees.title, philosophy amendment incl. coral rule, smoke checklist)~~ ✅ code complete session 26 — PR #3, James's SQL/merge/Adam steps in the PR body | done (session 26) |
 | 4 | Phase 2 hardening (refactor plan commits 12–17 — S5 is the Cadence prerequisite; S6 role checks must include `executive`) | fresh session |
 | 5 | **Phase 3 = Cadence implementation** (est. 2–3 sessions; scope in ADOPTION.md) | fresh sessions |
 | 6 | **SMALL RELEASE / demo to the four** (on the Cadence UI) | user + smoke checklist |
