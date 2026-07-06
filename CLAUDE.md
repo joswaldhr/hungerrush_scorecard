@@ -7,33 +7,57 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-07-06 (session 25)
+**Last updated:** 2026-07-06 (session 26)
 
 - All 5 phases, 4 UI/UX sprints, layout redesign, and data integrity audit complete — pilot-ready
 - Production: `hungerrush-scorecard.vercel.app` (frontend) · `scorecardapi-production.up.railway.app` (backend)
-- **Session 25 (refactor Phase 1C — CODE COMPLETE, awaiting user review → push):** all of §d
-  landed on branch `claude/vigorous-chatterjee-4211cf`: `54722f6` commit 6 (L2 — `week.ts` in
-  shared, all 5 sites), `3e51a0f` commit 7 (L1 — frt/resolution from created-in-period tickets;
-  **csat from ratings SUBMITTED in period** via `satisfaction_ratings?score=received`, org-fetch
-  once per run — investigation verdict: viable, 2 pages/week, no fallback needed), `4a344e1`
-  commit 7b (L11 decided: business:0/calendar>0 off-hours replies excluded from averages; 0/0
-  instant replies stay), `112ec75` commit 8 (L4), `9c9ca5e` commit 9 (L5 calendar-mapped
-  sparkline slots, last-week tiles anchor at last Monday), `63e2497` migration 0016 (S4 GRANT,
-  pulled forward per release plan W1 — **user applies via SQL editor**), `64126ad` commit 10
-  (L6 — empty productive-state intersection ⇒ null), `2a7d4ba` commit 11 (L8 PDF zeros),
-  `5becfe2` 10b script (dry-run re-count: **249 zero rows**, 100% of occupancy+adherence rows,
-  weeks Jun 22+29 only). Tests 56→79; build/lint/typecheck green. Every sync-affecting fix
-  verified against prod with stash-controlled back-to-back syncs — diffs categorized per key,
-  spot re-derivations (640,726s→0 etc.) in refactor-plan 1C execution notes. **NEW FINDING:
-  deploy-week stale rows** (rows new semantics stops writing keep old values; 138 at
-  verification) — sweep decision (a/b) in the 1C notes. **Post-push checklist lives in
-  refactor-plan 1C execution notes**: push → `/health` sha → user applies 0016 → backup +
-  10b `--execute` → user re-enables occupancy+adherence in admin UI (= S4 e2e test) →
-  stale-row decision → watch next cron via Railway logs.
+- **Session 26 (W2 release readiness — CODE COMPLETE, PR #3 open; James's steps remain):**
+  `executive` role end-to-end: `0017` adds the enum value + `visible_manager_ids()` executive
+  branch (all active manager-role profiles org-wide, `executive` included) + JWT-claims
+  `profiles_select_executive` policy — the migration only ADDs the value (unusable in its own
+  transaction); assignment is a separate audited service-key write
+  (`scripts/set-adam-executive.ts`, dry-run verified: adam.seow@hungerrush.com,
+  senior_manager today; org scope 87 active manager-role profiles / 351 employees).
+  **graphSync now preserves manually-assigned executives** — without this the next org-sync
+  run (`POST /api/sync/org`, manual trigger; NOT on the daily cron — the 05:00 job only
+  matches agent IDs) would silently reclassify Adam back to senior_manager. Frontend gates
+  add executive beside senior_manager (AppLayout rollup nav, RollupPage); admin gates untouched.
+  `employees.title` (`0018` + graphSync `jobTitle` mapping + scorecard-header line; backfills
+  at the first post-deploy org sync). CLAUDE.md amendments: philosophy (visual/tonal frame),
+  coral `#C4553A` attention accent (Cadence), Cadence trend semantics, executive in RBAC rules
+  + decisions log. `docs/demo-smoke-checklist.md` written (executed on the Cadence UI at the
+  demo; **Normando Bonadia Jr decision carried there — confirm with Alex, don't pre-implement**).
+  RLS claim-simulation probe: `scripts/rls-probe-executive.sql` (temp-promote inside a rolled-back
+  transaction; asserts org-wide visibility AND admin-policy exclusion). Tests 79 green,
+  typecheck + lint clean. **Post-PR order (in the PR body): apply 0017 → 0018 → run probe →
+  merge → `/health` sha → `set-adam-executive.ts --execute` → trigger `POST /api/sync/org`
+  (backfills titles AND live-verifies the executive guard: Adam must still be executive
+  after it) → Adam's JWT updates at his next sign-in.** Housekeeping: PR carries forward
+  `6d67202` + `5eb6ffe` (session-25 close-out + Cadence adoption records) — they were
+  committed after PR #1 merged and never reached master.
+- **Session 25 (refactor Phase 1C — CLOSED, deployed and executed 2026-07-06):** all of §d
+  live in prod at master `b255976` (PR #1; `/health` sha verified 17:46 UTC). `54722f6` commit 6
+  (L2 — `week.ts` in shared, all 5 sites), `3e51a0f` commit 7 (L1 — frt/resolution from
+  created-in-period tickets; **csat from ratings SUBMITTED in period** via
+  `satisfaction_ratings?score=received`, org-fetch once per run), `4a344e1` commit 7b (L11:
+  business:0/calendar>0 off-hours replies excluded; 0/0 instant replies stay), `112ec75` commit 8
+  (L4), `9c9ca5e` commit 9 (L5 calendar-mapped sparklines), `63e2497` migration 0016 (**applied
+  by user via SQL editor**), `64126ad` commit 10 (L6 — empty productive-state intersection ⇒
+  null), `2a7d4ba` commit 11 (L8 PDF zeros), `5becfe2`+`063add2` correction scripts. Tests
+  56→79. Verification: stash-controlled back-to-back prod syncs per fix (re-derivation tables in
+  refactor-plan 1C notes). **Data corrections executed, both audited in `audit_log`**: 10b
+  deleted 249 occupancy/adherence zero rows (weeks Jun 22+29); the deploy-week stale-semantics
+  sweep deleted 123 old-semantics frt/resolution/csat rows after the 18:00 cron — week
+  2026-07-06 is single-stamp, zero stale. **First new-code cron verified DB-side** (18:00:02
+  stamp: 381 rows — tv 249 / resolution 63 / frt 58 / csat 11; Assembled re-enabled, wrote 0
+  rows / 0 zeros = correct L6 null until WFM mapping matches). **S4 CLOSED, user-verified**:
+  occupancy+adherence re-enabled through the admin UI, save held after reload. Historical
+  completed weeks (Jun 22/29) keep old-semantics values by design (constraint 7) — expect
+  frt/resolution/csat trend baselines to shift semantics at the Jul 12 snapshot.
 - **Session 23 (refactor Phase 1B — CLOSED):** Metric registry refactor live in prod at `fd00d99`. `7113691`: MetricSpec + METRIC_SPECS in shared; `apps/api/src/metrics/` one module per metric (computes moved verbatim, L6/L9/L11 pinned); boring registry; connectors → fetch-shape (`prepareRun` + `fetchWeekData`, all three together; ConnectorMetricResult retired); **sync writes registry ∩ `is_active`** (a source with no active metrics is skipped — currently zero Assembled API calls); KpiTile/RollupPage labels from METRIC_SPECS. `9b7cda4`: add-a-metric recipe in docs/metrics.md. Tests 52→56 (composite empty-input decomposed per metric; expectations unchanged). **Parity PASS, user-verified**: 741-row dumps identical except 54 live-drift changes on 17 employees; 0 lines + 0 writes for the 4 toggled keys; Zendesk write counts identical (615). **Deploy incident resolved** (`cc54eb9`+`fd00d99`+`91084f9`): first runtime value import from shared broke `node dist/` boot; two failed deploys left a **rolled-back old container serving while the GitHub status said success** (18:00 cron ran old code). Api now boots via `./node_modules/.bin/tsx apps/api/src/index.ts` — **railway.toml `startCommand` is the authoritative boot path** — and `/health` returns the running `sha` (the only trustworthy deploy check). Post-deploy watch (extended to 2026-07-06): every run that executed ran new code cleanly (0 toggled-key writes; Sunday snapshot froze week Jun 29, 626 rows; Mon 05:00 bootstrap + 14:00 live clean) — **but ~18 scheduled live syncs Jul 2 22:00 → Jul 6 10:00 never executed: OPEN cron-reliability issue, Railway-side, tracked at the top of the refactor plan (user must check dashboard: app-sleep, restarts, memory)**.
 - **Session 22 (refactor Phases 0 + 1A):** Phase 0 audit approved (`docs/refactor-plan.md` — read it before ANY refactor work; cross-session source of truth). 1A: characterization tests; paginated backup/dump scripts; L7 fixed; ESLint repaired. Four metrics set inactive 2026-07-02 (audited service-key write; admin UI saves broken — S4). Data correction approved → 1C commit 10b; semantics split approved (commit 7).
 - **Session 20–21:** Agent matching 63→246/351 (105 unmatched are non-support); daily bootstrap cron 05:00 UTC. Playwright MCP install unresolved.
-- **Next up — `docs/release-plan.md` is the approved sequencing (2026-07-06), it wraps the refactor plan:** ~~W0 cron reliability~~ **RESOLVED — false alarm** (Railway logs prove every cron fired on time since `91084f9`; the DB per-window counting method was invalid — `synced_at` is last-writer-wins; verify crons via Railway logs or current-window-only counts; vestigial `@scorecard/web` Railway service removed) → ~~W1 = Phase 1C + `0016`~~ **CODE COMPLETE session 25 — pending: user diff review, push, and the post-push checklist (refactor-plan 1C execution notes)** → W2 release readiness (FRESH SESSION after the 1C checklist clears: `executive` role for Adam Seow — James stays the only admin; `employees.title`; philosophy amendment; smoke checklist) → **small release demo to Alex Smith / Barb Maenza / Mike Pacilio / Adam Seow** → W3/W4 metric expansion (Zendesk Talk calls, backlog, tickets_assigned) → W5 Assembled hours → W7 Phase 2/3. Master-list disposition table for Alex/Barb is in the release plan. Philosophy clarification (user, 2026-07-06): coaching-first = visual/tonal frame; negative-direction metrics are in-scope content; no red / coaching language / no composites / no rank unchanged. Verification cautions that remain true for every future sync validation: verify completion DB-side (Railway proxy kills HTTP at 300s), trust only `GET /health` → `sha` for deploys (GitHub statuses post success for watch-path-skipped commits), and verify crons via Railway logs (`[cron]`) — historical `synced_at` window-counting is invalid.
+- **Next up — `docs/release-plan.md` is the approved sequencing (2026-07-06), it wraps the refactor plan:** ~~W0 cron reliability~~ **RESOLVED — false alarm** (Railway logs prove every cron fired on time since `91084f9`; the DB per-window counting method was invalid — `synced_at` is last-writer-wins; verify crons via Railway logs or current-window-only counts; vestigial `@scorecard/web` Railway service removed) → ~~W1 = Phase 1C + `0016`~~ **DONE session 25 (2026-07-06) — deployed, corrections executed, S4 closed** → **RESEQUENCED 2026-07-06: Cadence v2 (`docs/design/hungerrush-cadence/` — ADOPTION.md is the decision record) replaces the old Phase 3 design source, and the demo moves AFTER its implementation.** New order: W2 → Phase 2 hardening → Phase 3 = Cadence (2–3 sessions) → demo → W3/W4 → W5. → ~~W2 release readiness~~ **CODE COMPLETE session 26 (2026-07-06) — PR #3 open, James's steps in the PR body (apply 0017+0018 → probe → merge → `/health` → Adam script); James stays the only admin** → **Phase 2 hardening (FRESH SESSION, clear to start once the W2 PR is merged: refactor plan commits 12–17; S5 hook contract is the Cadence prerequisite; S6 role checks must include `executive`)** → Phase 3 = Cadence → **small release demo to Alex Smith / Barb Maenza / Mike Pacilio / Adam Seow** (run `docs/demo-smoke-checklist.md`; Normando decision confirmed with Alex there) → W3/W4 metric expansion (Zendesk Talk calls, backlog, tickets_assigned) → W5 Assembled hours. Master-list disposition table for Alex/Barb is in the release plan. Philosophy clarification (user, 2026-07-06): coaching-first = visual/tonal frame; negative-direction metrics are in-scope content; no red / coaching language / no composites / no rank unchanged. Verification cautions that remain true for every future sync validation: verify completion DB-side (Railway proxy kills HTTP at 300s), trust only `GET /health` → `sha` for deploys (GitHub statuses post success for watch-path-skipped commits), and verify crons via Railway logs (`[cron]`) — historical `synced_at` window-counting is invalid.
 - **Remaining feature:** mobile navigation (hamburger menu for screens < 1024px) — recorded as gap S1 in refactor plan, owned by Phase 3 design
 - **Remaining hardening:** CORS lockdown (refactor plan commit 16), email nudge (needs `RESEND_API_KEY`); connection pooling item retired — see pgbouncer finding in refactor plan
 - **Known data/logic issues:** now tracked with classifications in `docs/refactor-plan.md` §f (L1–L14) — the four previously listed here plus sparkline calendar gap, Assembled zero-writes, 1000-row truncation, PDF zero treatment, and others
@@ -99,6 +123,11 @@ npm run lint -w apps/web     # eslint src
 ## What this is
 
 A coaching-first 1:1 scorecard tool for HungerRush managers. Weekly metric data from Zendesk and Assembled surfaces in a clean UI managers use during 1:1 conversations. The philosophy is growth and momentum — never judgment or punishment.
+
+**Philosophy amendment (user, 2026-07-06 — W2):** coaching-first governs the **visual/tonal
+frame, not the content**. Negative-direction metrics (missed/declined calls, backlog, SLA
+breach framing) are in-scope content — surfaced supportively as things to discuss, never
+punitively. No composite scores, no rank, and the coaching-language rules are unchanged.
 
 ---
 
@@ -227,9 +256,12 @@ skipped entirely. Adding a metric: recipe in `docs/metrics.md`.
 - Microsoft 365 SSO only via Supabase Auth — never build a password flow
 - **Access control lives in RLS first.** Direct Supabase reads are governed by row-level policies.
   Express routes that wrap connector/job logic additionally validate the JWT in middleware.
-- Role hierarchy: `admin` > `senior_manager` > `manager` > `employee`
+- Role hierarchy: `admin` > `executive` > `senior_manager` > `manager` > `employee`
 - Managers fetch only their own direct reports
 - Senior managers see one level down (their managers' reports) — NOT the whole company
+- Executives (added W2, 2026-07-06) see every active manager's team org-wide — admin-like DATA
+  visibility only; admin pages and admin policies stay closed to them. The role is assigned
+  only by audited service-key write (graph sync classification never produces or overwrites it)
 - All scoping flows through one `SECURITY DEFINER` helper `visible_employee_ids()` that uses
   `auth.uid()` internally; every RLS policy references it (see DATABASE agent). Never inline
   hierarchy logic in individual policies — that is where scoping bugs hide.
@@ -276,8 +308,11 @@ hr-gray:        #F5F5F4   page background
 ```
 
 **Performance state colors:** amber-500 for attention · hr-green for positive · slate-400 for neutral
-**Never use red for any performance state.** (Red is allowed only for genuine system errors —
-failed save, lost connection — never for an employee's metrics.)
+**Never use red for any performance state — AMENDED 2026-07-06 (Cadence adoption):** coral
+`#C4553A` (warm terracotta) is the one sanctioned attention accent for performance states,
+always framed as "discuss", never "alarm". True red stays reserved for genuine system errors —
+failed save, lost connection — never for an employee's metrics. The coral token ships with the
+Phase 3 Cadence token swap; until that lands, the amber convention above stands in the shipped UI.
 
 **Every KPI tile must show:** metric name (from DB) · value + unit · trend/status indicator ·
 4-week sparkline · coaching prompt (from DB). Last-updated timestamp: a section-level "synced"
@@ -305,6 +340,13 @@ Two data windows shown on every scorecard, clearly labeled:
 - Aggregate *trend direction* IS allowed and is necessary for the senior manager rollup —
   e.g. "6 of 8 of this team's metrics are improving this month." This points attention without
   ranking a person. Trend direction is computed, never stored as a grade.
+
+**Trend semantics (adopted 2026-07-06 — Cadence, supersedes all earlier trend definitions):**
+ONE definition everywhere — current value vs the **prior-period average**, ±6% steady
+threshold, direction-aware, band metrics supported (healthy range, not a direction), sparse
+history (<4 points) = "new" state (trends unlock at week 4). Applies to tiles/rows, rollup
+chips, and frozen last-week views alike. Implementation lands in Phase 3 (Cadence); the
+shipped UI keeps its current trend computations until then.
 
 ---
 
@@ -382,6 +424,10 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | Zendesk week semantics split (1C commit 7): ticket_volume = updated-in-period; first_reply_time + resolution_rate = created-in-period; csat_score = ratings SUBMITTED in period via `satisfaction_ratings?score=received` (org-fetch once per run, grouped by assignee, end_time clamped to now−90s) | Reworked old tickets contaminated weekly quality metrics (~167h reply averages, L1); the ratings endpoint gives the truer csat semantic for one extra call chain per run — full table in docs/metrics.md |
 | Off-hours replies (business:0 AND calendar>0) excluded from reply-time averages; instant replies (0/0) stay as measured zeros (1C commit 7b) | Zendesk records business:0 for replies outside business hours — they entered averages as fake instant replies and auto-passed SLA (L11) |
 | Empty productive-state intersection ⇒ null for occupancy and schedule_adherence; zero OVERLAP with matching states stays a measured 0 for adherence (1C commit 10) | Enforces the null-vs-zero decision: an unmapped state taxonomy is "no measurement", not 0% — prod wrote 249 misleading zero rows this way (corrected by 10b) |
+| Cadence v2 (`docs/design/hungerrush-cadence/`) adopted as sole Phase 3 design source; demo resequenced AFTER its implementation; coral #C4553A sanctioned as the attention accent (true red stays system-errors-only); coaching engine ships flags-only (context fields fast-follow); trend semantics = current vs prior-period average, ±6%, band metrics, sparse ⇒ "new" | User decisions 2026-07-06 at design review — ADOPTION.md is the binding record; supersedes the 2026-07-02 design bundle and its ±2% trend decision |
+| `executive` role (W2): enum value + `visible_manager_ids()` branch (all active manager-role profiles org-wide, `executive` included) + JWT-claims profiles SELECT policy; admin policies untouched; assigned ONLY by audited service-key write; graph sync never produces or overwrites it | Adam Seow needs org-wide data visibility without admin pages; James stays the only admin; a profiles policy must never call a function that reads profiles (0004–0006 recursion), so the policy is JWT-based like 0014's |
+| Migration 0017 only ADDs the enum value; the role assignment is a separate later write; all 'executive' comparisons in SQL are text (`role::text`, plpgsql text vars, JWT strings) | A new Postgres enum value cannot be used as an enum datum in the transaction that adds it, and James applies migrations as one SQL-editor paste |
+| `employees.title` (nullable) mapped from Azure AD `jobTitle` by the org graph sync (0018; `POST /api/sync/org` manual trigger — the daily 05:00 cron only matches agent IDs, it never writes roles or titles) | Master-list "Role" row; renders under the name in the scorecard header and feeds the Cadence header directly; null = not known, per the null-vs-zero rule |
 
 ### Assembled metric computation (when WFM activates)
 

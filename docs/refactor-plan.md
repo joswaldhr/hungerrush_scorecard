@@ -17,9 +17,19 @@
 | 0 — Audit & plan | 22 | ✅ Complete — approved by user 2026-07-02, pushed `19c55e1` |
 | 1A — Safety nets: tests, backup/dump scripts, truncation fix | 22 | ✅ **CLOSED** — `77d3028` (52 characterization tests), `b044a6f` (paginated scripts + first backup: 1,104 rows verified), `df71938` (L7 fix), `81194d9` (lint config repair). User verified in prod: dashboard "With metrics 247 of 351" ✓, rollup chips populated ✓. Side discovery: admin metric-config saves broken (S4 root cause: missing GRANT UPDATE); 4 metrics set inactive via audited service-key write, confirmed in DB. 1B is unblocked |
 | 1B — Metric registry refactor + parity + deploy watch | 23 | ✅ **CLOSED** — `7113691` (commit 4: MetricSpec in shared · one module per metric · fetch-shape connectors · sync = registry ∩ is_active · 56 tests green), `9b7cda4` (commit 5: add-a-metric recipe + contract docs), `cc54eb9` + `fd00d99` (deploy fix: tsx prod runtime — see 1B execution notes). **Parity PASS, user-verified 2026-07-02**: dumps A/B 741 rows each, 0 added/removed, 0 lines + 0 writes for the 4 toggled keys, 54 value changes = 17 employees of Zendesk drift in the 13-min inter-run gap (every resolution_rate change re-derived exactly); Zendesk write counts identical old-vs-new (615). Post-deploy watch: code verified — every run that executed post-deploy ran new code (0 toggled-key writes over 4 days; Sunday snapshot 2026-07-05 23:59 froze week Jun 29 with 626 rows; Mon 2026-07-06 bootstrap 05:00 + live sync 14:00 clean, tv=249). **NEW OPEN ISSUE found by the watch: ~18 scheduled live syncs Jul 2 22:00 → Jul 6 10:00 never executed** — see cron-reliability block below the table |
-| 1C — Logic fixes (one commit each) + approved data correction | 25 | ✅ **Code complete, verified pre-push, AWAITING user review → push** — `54722f6` (6/L2 shared week util), `3e51a0f` (7/L1 created-in-period split + csat submitted-in-period), `4a344e1` (7b/L11 off-hours reply exclusion — split out as its own commit), `112ec75` (8/L4), `9c9ca5e` (9/L5 calendar sparkline), `63e2497` (0016 pulled forward per release plan W1), `64126ad` (10/L6 nulls), `2a7d4ba` (11/L8 PDF zeros), `5becfe2` (10b script; dry-run 249 zero rows re-counted). Tests 56→79, build+lint+typecheck green. Every sync-affecting fix verified against prod with stash-controlled back-to-back old-vs-new syncs (~3-min drift gaps), diffs categorized per key + spot re-derivation tables. Post-push checklist in the 1C execution notes below |
+| 1C — Logic fixes (one commit each) + approved data correction | 25 | ✅ **CLOSED — deployed and executed 2026-07-06** — commits `54722f6` (6/L2), `3e51a0f` (7/L1 + csat submitted-in-period), `4a344e1` (7b/L11), `112ec75` (8/L4), `9c9ca5e` (9/L5), `63e2497` (0016), `64126ad` (10/L6), `2a7d4ba` (11/L8), `5becfe2`+`063add2` (correction scripts). Tests 56→79. Merged via PR #1 → master `b255976`, serving sha verified via `/health` 17:46 UTC. **0016 applied by user** (SQL editor). **10b executed 17:47**: 249 zero rows deleted (occ 126 / adh 123), audited. **18:00 cron = first new-code run, verified DB-side**: 381 rows on one stamp — tv 249, resolution 63, frt 58, csat 11; Assembled ran re-enabled and wrote 0 rows / 0 zeros (L6 null behavior). **Stale-semantics sweep executed 18:04**: 123 old-semantics rows deleted (frt 63 / resolution 58 / csat 2), audited; week 2026-07-06 now single-stamp, zero stale. **S4 verified end-to-end by user**: admin-UI re-enable of occupancy+adherence saved, held after reload |
 | 2 — Fluff removal & hardening | — | Not started |
 | 3 — Design implementation | — | Separate prompt, blocked on 2 |
+
+**W2 release readiness landed between 1C and Phase 2 (session 26, 2026-07-06 — release-plan
+scope, not a refactor phase):** `executive` role (0017: enum value + `visible_manager_ids()`
+executive branch + JWT-claims profiles SELECT policy; assigned only by audited service-key
+write, `scripts/set-adam-executive.ts`; **graphSync now preserves manually-assigned
+executives** — the org sync (`POST /api/sync/org`, manual trigger; the 05:00 cron only
+matches agent IDs) reclassifies roles on every run and would otherwise silently revert Adam
+at its next trigger) and `employees.title` (0018 + graphSync `jobTitle` mapping). Phase 2 scope is
+unchanged, with one addition: **S6's auth consolidation must include `executive` in its role
+model** (the role now appears beside senior_manager in AppLayout and RollupPage gates).
 
 **✅ RESOLVED 2026-07-06 — the "cron reliability" issue was a FALSE ALARM (measurement
 artifact), confirmed by Railway runtime logs the user pulled:** every scheduled run since the
@@ -42,18 +52,15 @@ modified" WITHOUT deploying — this retro-explains the `fd00d99` 14-second phan
 old-code cron, the LAST old-code run). Deploy-verification rule: **read the status
 description, not just the state — then trust only `/health` sha.**
 
-**⚠️ Standing reminder (do not lose):** all four of `sla_compliance`, `handle_time`, `occupancy`,
-`schedule_adherence` were set `is_active = false` on 2026-07-02 (via service key — the admin UI
-save path was broken, see S4; intervention audited in `audit_log`). Since 1B deployed, `is_active`
-gates sync too: these four are not written at all (verified in the 1B parity run + deploy watch).
-Re-enablement policy (user):
-- `occupancy` + `schedule_adherence`: **RE-ENABLE after 1C commit 10 (state-matching fix) + 10b
-  (data correction)** — remind the user at that point. Order dependency confirmed by user
-  2026-07-02: commit 10 FIRST, then the 10b sweep (all zero rows written through 1B-deploy day),
-  then re-enable.
+**⚠️ Standing reminder (updated 2026-07-06):** four metrics were set `is_active = false` on
+2026-07-02 (via service key — the admin UI save path was broken, see S4).
+- `occupancy` + `schedule_adherence`: **✅ RE-ENABLED by the user 2026-07-06 through the admin
+  UI** after commit 10 deployed + the 10b sweep ran — that save held after reload, closing S4
+  end-to-end. With the L6 fix they write real values or NO rows (never 0%); rows stay absent
+  until the Assembled WFM state mapping produces matches (the W5 gate — first post-re-enable
+  cron wrote 0 rows, as expected).
 - `sla_compliance` + `handle_time`: **STAY OFF until their data sources exist** (SLA policies
-  configured in Zendesk; Assembled WFM state mapping actually producing matches). Do not re-enable
-  as part of 1C.
+  configured in Zendesk; Assembled WFM state mapping actually producing matches).
 - **✅ Order-of-operations conflict RESOLVED (release plan W1, executed in 1C session 25):**
   `0016_grant_metric_definitions_update.sql` was pulled forward into 1C (`63e2497`). The user
   applies it in the Supabase SQL editor (no CLI access token in the session env; same
@@ -370,14 +377,14 @@ correct behavior, (2) fix, (3) re-run sync, (4) report exactly which values chan
   (124), none in the current week. `scripts/correct-assembled-zeros.ts` executes the sweep;
   `--execute` refuses without a <15-min-old backup and writes `metric_snapshot_correction`
   to audit_log.
-- **Post-push checklist (in order):** (1) push → Railway deploy → verify `GET /health` sha
-  equals the pushed SHA (read the GitHub status description only as an early signal);
-  (2) user applies 0016 in the Supabase SQL editor; (3) fresh backup + 10b `--execute`;
-  (4) user re-enables occupancy + schedule_adherence in the admin UI — the save going
-  through IS the S4 end-to-end verification; (5) decide the deploy-week stale-row sweep (a/b
-  above); (6) watch the next cron via Railway logs (`[cron]` filter) — expect frt/resolution
-  written only for created-in-period agents, csat from ratings, occupancy/adherence rows
-  appearing only if the WFM state mapping produces matches (L6 null otherwise).
+- **Post-push checklist — ALL EXECUTED 2026-07-06 (18:10 UTC):** (1) merged via PR #1, master
+  `b255976`, `/health` sha verified 17:46; (2) 0016 applied by user, `has_table_privilege`
+  true; (3) 10b executed 17:47 — 249 rows deleted, audited; (4) user re-enabled
+  occupancy + adherence via admin UI, save held after reload — **S4 closed**; (5) stale-row
+  option (a) chosen (user delegated) and executed 18:04 after the 18:00 cron — 123 rows
+  deleted, audited; week 2026-07-06 is single-stamp, zero stale; (6) 18:00 cron verified
+  DB-side: 381 rows on one stamp (tv 249 / resolution 63 / frt 58 / csat 11), Assembled ran
+  re-enabled and wrote 0 rows / 0 zeros (correct L6 null behavior).
 - Untouched by classification: L9 (folded in 1B), L10 (warn shipped in 1B), L12 (WONTFIX,
   Phase 3 revisits), L13 (WONTFIX), L14 (Phase 2 comment fix).
 
@@ -441,6 +448,14 @@ Reading the state:
 ---
 
 ## f½) Phase 3 design source & decision record (accepted by user 2026-07-02)
+
+> **⚠️ SUPERSEDED 2026-07-06 — Cadence v2 is now THE Phase 3 design source:**
+> `docs/design/hungerrush-cadence/` (`cadence-v2.jsx` + `ADOPTION.md`, adopted with four
+> user decisions: full Cadence BEFORE the demo; coral attention accent sanctioned;
+> flags-only coaching engine in Phase 3; Cadence trend semantics — current vs prior-period
+> average, ±6%, band metrics — replace the ±2% decision below). This section stays as
+> history; where it conflicts with ADOPTION.md, ADOPTION.md wins. Phase 2 remains the
+> Phase 3 prerequisite (S5 hook contract is load-bearing for Cadence's per-source states).
 
 **Source bundle:** `docs/design/hungerrush-scorecard-ui/` — Claude Design export (prototype
 HTML/CSS/JS + HungerRush design system tokens). Reviewed file-by-file in session 23; review

@@ -77,7 +77,7 @@ export function RollupPage() {
   if (!session) return <Navigate to="/login" replace />;
 
   const role = session.user.app_metadata?.['role'] as string | undefined;
-  if (role !== 'senior_manager' && role !== 'admin') {
+  if (role !== 'senior_manager' && role !== 'executive' && role !== 'admin') {
     return <Navigate to="/dashboard" replace />;
   }
 

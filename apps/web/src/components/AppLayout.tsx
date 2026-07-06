@@ -40,7 +40,7 @@ export function AppLayout({ children, title, subtitle, actions }: AppLayoutProps
   const role = session?.user?.app_metadata?.['role'] as string | undefined;
   const rawName = session?.user?.user_metadata?.['full_name'];
   const fullName = typeof rawName === 'string' ? rawName : (session?.user?.email ?? '');
-  const showRollup = role === 'senior_manager' || role === 'admin';
+  const showRollup = role === 'senior_manager' || role === 'executive' || role === 'admin';
   const showAdmin = role === 'admin';
 
   const handleSignOut = async () => {
