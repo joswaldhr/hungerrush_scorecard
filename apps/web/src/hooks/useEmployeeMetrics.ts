@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { startOfWeek, subWeeks, format } from 'date-fns';
 import { supabase } from '../lib/supabase';
+import { currentWeekStartUtc, weeksBeforeUtc, weekStartStr } from '@scorecard/shared';
 import type { MetricDefinition, MetricSnapshot } from '@scorecard/shared';
 
 export interface EmployeeMetric {
@@ -20,17 +20,16 @@ export function useEmployeeMetrics(employeeId: string) {
     async function load() {
       setLoading(true);
 
-      const now = new Date();
-      const thisMonday = startOfWeek(now, { weekStartsOn: 1 });
-      const fourWeeksAgo = subWeeks(thisMonday, 3);
-      const lastMonday = subWeeks(thisMonday, 1);
+      // UTC week identity from the shared util (L2) — must match the sync's period_start.
+      const thisMonday = currentWeekStartUtc();
+      const fourWeeksAgoStr = weekStartStr(weeksBeforeUtc(thisMonday, 3));
 
       const [snapshotsRes, definitionsRes] = await Promise.all([
         supabase
           .from('metric_snapshots')
           .select('*')
           .eq('employee_id', employeeId)
-          .gte('period_start', format(fourWeeksAgo, 'yyyy-MM-dd'))
+          .gte('period_start', fourWeeksAgoStr)
           .order('period_start'),
         supabase
           .from('metric_definitions')
@@ -53,8 +52,8 @@ export function useEmployeeMetrics(employeeId: string) {
       const snapshots = (snapshotsRes.data ?? []) as MetricSnapshot[];
       const definitions = (definitionsRes.data ?? []) as MetricDefinition[];
 
-      const thisMondayStr = format(thisMonday, 'yyyy-MM-dd');
-      const lastMondayStr = format(lastMonday, 'yyyy-MM-dd');
+      const thisMondayStr = weekStartStr(thisMonday);
+      const lastMondayStr = weekStartStr(weeksBeforeUtc(thisMonday, 1));
 
       const result: EmployeeMetric[] = definitions.map(def => {
         const metricSnapshots = snapshots.filter(s => s.metric_key === def.key);

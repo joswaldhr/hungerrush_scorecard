@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { startOfWeek, subWeeks, format } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import { fetchAllPages } from '../lib/fetchAllPages';
+import { currentWeekStartUtc, weeksBeforeUtc, weekStartStr } from '@scorecard/shared';
 import type { Employee } from '@scorecard/shared';
 
 export interface EmployeePreviewMetrics {
@@ -20,9 +20,10 @@ export function useDirectReports() {
 
   useEffect(() => {
     async function load() {
-      const thisMonday = startOfWeek(new Date(), { weekStartsOn: 1 });
-      const thisMondayStr = format(thisMonday, 'yyyy-MM-dd');
-      const lastMondayStr = format(subWeeks(thisMonday, 1), 'yyyy-MM-dd');
+      // UTC week identity from the shared util (L2) — must match the sync's period_start.
+      const thisMonday = currentWeekStartUtc();
+      const thisMondayStr = weekStartStr(thisMonday);
+      const lastMondayStr = weekStartStr(weeksBeforeUtc(thisMonday, 1));
 
       // Both snapshot reads are paginated (L7: PostgREST caps unpaginated selects at
       // 1,000 rows). "Has data" is scoped to the current + last week — bounded forever,

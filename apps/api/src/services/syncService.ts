@@ -1,6 +1,7 @@
 import axios from 'axios';
 import type { AxiosInstance } from 'axios';
 import { createClient } from '@supabase/supabase-js';
+import { currentWeekStartUtc, weekStartStr } from '@scorecard/shared';
 import type { AssembledPerson } from '../types/assembled';
 import type { ZendeskUser, ZendeskUsersResponse } from '../types/zendesk';
 import { assembledConnector, type AssembledRunContext } from '../connectors/assembled';
@@ -18,19 +19,10 @@ function getSupabaseAdmin() {
   });
 }
 
-function getCurrentWeekStart(): Date {
-  const now = new Date();
-  const day = now.getUTCDay();
-  const mondayOffset = day === 0 ? -6 : 1 - day;
-  return new Date(Date.UTC(
-    now.getUTCFullYear(),
-    now.getUTCMonth(),
-    now.getUTCDate() + mondayOffset,
-  ));
-}
-
+// Week identity comes from the shared util (Phase 1C commit 6, L2) — the same UTC
+// Monday this sync has always written, now also used by every frontend read site.
 function getSyncBounds(mode: 'live' | 'snapshot'): { start: Date; end: Date } {
-  const start = getCurrentWeekStart();
+  const start = currentWeekStartUtc();
   if (mode === 'live') {
     return { start, end: new Date() };
   }
@@ -340,7 +332,7 @@ export async function runSync(mode: 'live' | 'snapshot'): Promise<SyncResult> {
   let metricsCollected = 0;
   let metricsWritten = 0;
   const syncedAt = new Date().toISOString();
-  const pStart = periodStart.toISOString().substring(0, 10);
+  const pStart = weekStartStr(periodStart);
   const pEnd = periodEnd.toISOString().substring(0, 10);
 
   for (const [i, emp] of employees.entries()) {

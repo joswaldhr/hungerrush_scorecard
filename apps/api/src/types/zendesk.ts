@@ -32,6 +32,22 @@ export interface ZendeskShowManyResponse {
   metric_sets: ZendeskTicketMetricSet[];
 }
 
+// One answered CSAT survey (score=received filter: good/bad only, with or without
+// comment — the *_with_comment variants are filter values, not stored scores).
+export interface ZendeskSatisfactionRating {
+  id: number;
+  assignee_id: number | null;
+  score: string;
+  created_at: string;
+  ticket_id: number;
+}
+
+export interface ZendeskSatisfactionRatingsResponse {
+  satisfaction_ratings: ZendeskSatisfactionRating[];
+  next_page: string | null;
+  count: number;
+}
+
 export interface ZendeskSlaPolicyMetric {
   priority: string;
   metric: string;

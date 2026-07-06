@@ -1,6 +1,6 @@
-// Characterization tests — pin CURRENT first_reply_time behavior through the Phase 1B
-// refactor. Known defects stay pinned (PRESERVE-FOR-PARITY) and are re-encoded to
-// correct behavior in Phase 1C, one commit per fix (docs/refactor-plan.md §f).
+// first_reply_time behavior tests. Re-encoded in Phase 1C commit 7 to the L1 split:
+// only tickets CREATED in the period enter the average (the fixture default
+// created_at is in-period, so the arithmetic cases read unchanged).
 import { describe, it, expect } from 'vitest';
 import { compute } from './first_reply_time';
 import { makeTicket, makeMetricSet, metricSetMap, zendeskWeek } from './testUtils';
@@ -41,10 +41,47 @@ describe('first_reply_time', () => {
     expect(compute(zendeskWeek({ tickets }))).toBeNull();
   });
 
-  it('PRESERVE-FOR-PARITY (L11): business time 0 is included and drags the average down', () => {
-    // A reply outside business hours records business: 0 — the object is truthy, so 0 is pushed.
+  it('L1 fix: a ticket created BEFORE the period is excluded even though it was updated in it', () => {
+    // Prod evidence: reworked months-old tickets pushed weekly averages to ~167h.
+    const tickets = [
+      makeTicket({ id: 1, created_at: '2026-03-02T09:00:00Z', updated_at: '2026-06-30T08:00:00Z' }),
+      makeTicket({ id: 2 }),
+    ];
+    const metricSets = metricSetMap([makeMetricSet(1, 10000), makeMetricSet(2, 10)]);
+    expect(compute(zendeskWeek({ tickets, metricSets }))).toBe(600);
+  });
+
+  it('L1 fix: null when only out-of-period tickets have reply metrics', () => {
+    const tickets = [makeTicket({ id: 1, created_at: '2026-03-02T09:00:00Z' })];
+    const metricSets = metricSetMap([makeMetricSet(1, 10000)]);
+    expect(compute(zendeskWeek({ tickets, metricSets }))).toBeNull();
+  });
+
+  it('period bounds are inclusive of both edges', () => {
+    const tickets = [
+      makeTicket({ id: 1, created_at: '2026-06-29T00:00:00Z' }),
+      makeTicket({ id: 2, created_at: '2026-07-05T23:59:59Z' }),
+    ];
+    const metricSets = metricSetMap([makeMetricSet(1, 10), makeMetricSet(2, 20)]);
+    expect(compute(zendeskWeek({ tickets, metricSets }))).toBe(900);
+  });
+
+  it('L11 fix: an off-hours reply (business 0, calendar > 0) is excluded from the average', () => {
+    // It used to enter as a fake instant reply and drag the average toward zero.
     const tickets = [makeTicket({ id: 1 }), makeTicket({ id: 2 })];
-    const metricSets = metricSetMap([makeMetricSet(1, 0), makeMetricSet(2, 10)]);
+    const metricSets = metricSetMap([makeMetricSet(1, 0, 670), makeMetricSet(2, 10)]);
+    expect(compute(zendeskWeek({ tickets, metricSets }))).toBe(600);
+  });
+
+  it('L11 fix: a genuinely instant reply (business 0, calendar 0) still counts as measured zero', () => {
+    const tickets = [makeTicket({ id: 1 }), makeTicket({ id: 2 })];
+    const metricSets = metricSetMap([makeMetricSet(1, 0, 0), makeMetricSet(2, 10)]);
     expect(compute(zendeskWeek({ tickets, metricSets }))).toBe(300);
+  });
+
+  it('L11 fix: null when every reply was off-hours (no measurable business time)', () => {
+    const tickets = [makeTicket({ id: 1 })];
+    const metricSets = metricSetMap([makeMetricSet(1, 0, 500)]);
+    expect(compute(zendeskWeek({ tickets, metricSets }))).toBeNull();
   });
 });

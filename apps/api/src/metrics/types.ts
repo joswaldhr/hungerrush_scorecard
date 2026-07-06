@@ -1,13 +1,23 @@
 // Week-data shapes produced by the fetcher connectors and consumed by the metric
 // modules' compute functions. Api-local on purpose: they wrap raw source-API types.
 import type { MetricSpec } from '@scorecard/shared';
-import type { ZendeskTicket, ZendeskTicketMetricSet } from '../types/zendesk';
+import type {
+  ZendeskSatisfactionRating,
+  ZendeskTicket,
+  ZendeskTicketMetricSet,
+} from '../types/zendesk';
 import type { AssembledActivity, AssembledAgentState } from '../types/assembled';
 
 export interface ZendeskWeekData {
+  /** Tickets UPDATED in the period — activity semantics (ticket_volume). Metrics with
+   *  created-in-period semantics filter these via ticketsCreatedInPeriod (L1 split). */
   tickets: ZendeskTicket[];
   metricSets: Map<number, ZendeskTicketMetricSet>;
   slaTargetMinutes: number | null;
+  /** CSAT surveys ANSWERED in the period for this agent (submitted-in-period semantics). */
+  ratings: ZendeskSatisfactionRating[];
+  periodStart: Date;
+  periodEnd: Date;
 }
 
 export interface AssembledWeekData {

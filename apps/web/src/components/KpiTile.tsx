@@ -1,12 +1,20 @@
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { formatMetricValue } from '../lib/formatMetric';
-import { METRIC_SPECS, type MetricDefinition } from '@scorecard/shared';
+import {
+  currentWeekStartUtc,
+  weeksBeforeUtc,
+  weekStartStr,
+  METRIC_SPECS,
+  type MetricDefinition,
+} from '@scorecard/shared';
 
 interface KpiTileProps {
   definition: MetricDefinition;
   value: number | null;
   syncedAt: string | null;
   history: Array<{ periodStart: string; value: number }>;
+  /** YYYY-MM-DD Monday of the sparkline's rightmost slot (default: current UTC week). */
+  weekAnchor?: string;
 }
 
 type TrendDirection = 'improving' | 'attention' | 'neutral';
@@ -55,12 +63,26 @@ const NULL_LABELS: Record<string, string> = {
   handle_time: 'No schedule data',
 };
 
-function Sparkline({ history }: { history: Array<{ value: number }> }) {
-  const historyLast4 = history.slice(-4);
-  const slots: Array<{ value: number } | null> = Array(4).fill(null);
-  historyLast4.forEach((h, i) => {
-    slots[4 - historyLast4.length + i] = h;
-  });
+// Exported for tests (Phase 1C commit 9, L5): map history onto the 4 CALENDAR weeks
+// ending at anchorWeek. A missing week stays an empty (dashed) slot instead of the
+// old sequence-packing, which collapsed gaps and misaligned bars across tiles.
+export function mapHistoryToCalendarSlots(
+  history: Array<{ periodStart: string; value: number }>,
+  anchorWeek: string,
+): Array<{ value: number } | null> {
+  const anchor = new Date(`${anchorWeek}T00:00:00Z`);
+  const byWeek = new Map(history.map(h => [h.periodStart, h]));
+  return [3, 2, 1, 0].map(n => byWeek.get(weekStartStr(weeksBeforeUtc(anchor, n))) ?? null);
+}
+
+function Sparkline({
+  history,
+  anchorWeek,
+}: {
+  history: Array<{ periodStart: string; value: number }>;
+  anchorWeek: string;
+}) {
+  const slots = mapHistoryToCalendarSlots(history, anchorWeek);
   const values = slots.filter((s): s is { value: number } => s !== null);
   const maxVal = values.length > 0 ? Math.max(...values.map(v => v.value)) : 0;
 
@@ -103,7 +125,7 @@ function getValueColor(value: number | null): string {
   return 'text-hr-text-1';
 }
 
-export function KpiTile({ definition, value, syncedAt, history }: KpiTileProps) {
+export function KpiTile({ definition, value, syncedAt, history, weekAnchor }: KpiTileProps) {
   const isNull = value === null;
   const trend = getTrend(value, history, definition.direction);
   const nullLabel =
@@ -134,7 +156,7 @@ export function KpiTile({ definition, value, syncedAt, history }: KpiTileProps) 
 
       {!isNull && (
         <div className="mt-3">
-          <Sparkline history={history} />
+          <Sparkline history={history} anchorWeek={weekAnchor ?? weekStartStr(currentWeekStartUtc())} />
           {history.length > 0 && (
             <p className="text-[10px] text-slate-300 mt-1">4 weeks</p>
           )}

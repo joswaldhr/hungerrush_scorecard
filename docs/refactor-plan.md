@@ -17,7 +17,7 @@
 | 0 — Audit & plan | 22 | ✅ Complete — approved by user 2026-07-02, pushed `19c55e1` |
 | 1A — Safety nets: tests, backup/dump scripts, truncation fix | 22 | ✅ **CLOSED** — `77d3028` (52 characterization tests), `b044a6f` (paginated scripts + first backup: 1,104 rows verified), `df71938` (L7 fix), `81194d9` (lint config repair). User verified in prod: dashboard "With metrics 247 of 351" ✓, rollup chips populated ✓. Side discovery: admin metric-config saves broken (S4 root cause: missing GRANT UPDATE); 4 metrics set inactive via audited service-key write, confirmed in DB. 1B is unblocked |
 | 1B — Metric registry refactor + parity + deploy watch | 23 | ✅ **CLOSED** — `7113691` (commit 4: MetricSpec in shared · one module per metric · fetch-shape connectors · sync = registry ∩ is_active · 56 tests green), `9b7cda4` (commit 5: add-a-metric recipe + contract docs), `cc54eb9` + `fd00d99` (deploy fix: tsx prod runtime — see 1B execution notes). **Parity PASS, user-verified 2026-07-02**: dumps A/B 741 rows each, 0 added/removed, 0 lines + 0 writes for the 4 toggled keys, 54 value changes = 17 employees of Zendesk drift in the 13-min inter-run gap (every resolution_rate change re-derived exactly); Zendesk write counts identical old-vs-new (615). Post-deploy watch: code verified — every run that executed post-deploy ran new code (0 toggled-key writes over 4 days; Sunday snapshot 2026-07-05 23:59 froze week Jun 29 with 626 rows; Mon 2026-07-06 bootstrap 05:00 + live sync 14:00 clean, tv=249). **NEW OPEN ISSUE found by the watch: ~18 scheduled live syncs Jul 2 22:00 → Jul 6 10:00 never executed** — see cron-reliability block below the table |
-| 1C — Logic fixes (one commit each) + approved data correction | — | Not started |
+| 1C — Logic fixes (one commit each) + approved data correction | 25 | ✅ **Code complete, verified pre-push, AWAITING user review → push** — `54722f6` (6/L2 shared week util), `3e51a0f` (7/L1 created-in-period split + csat submitted-in-period), `4a344e1` (7b/L11 off-hours reply exclusion — split out as its own commit), `112ec75` (8/L4), `9c9ca5e` (9/L5 calendar sparkline), `63e2497` (0016 pulled forward per release plan W1), `64126ad` (10/L6 nulls), `2a7d4ba` (11/L8 PDF zeros), `5becfe2` (10b script; dry-run 249 zero rows re-counted). Tests 56→79, build+lint+typecheck green. Every sync-affecting fix verified against prod with stash-controlled back-to-back old-vs-new syncs (~3-min drift gaps), diffs categorized per key + spot re-derivation tables. Post-push checklist in the 1C execution notes below |
 | 2 — Fluff removal & hardening | — | Not started |
 | 3 — Design implementation | — | Separate prompt, blocked on 2 |
 
@@ -54,12 +54,12 @@ Re-enablement policy (user):
 - `sla_compliance` + `handle_time`: **STAY OFF until their data sources exist** (SLA policies
   configured in Zendesk; Assembled WFM state mapping actually producing matches). Do not re-enable
   as part of 1C.
-- **⚠️ Order-of-operations conflict to resolve at 1C planning:** the user intends to re-enable via
-  the admin UI, but S4 (missing `GRANT UPDATE` on `metric_definitions`) keeps every browser save
-  failing with 42501 until Phase 2's `0016` migration. Either pull the one-line `0016` GRANT
-  migration forward into 1C (recommended — it also makes the re-enable action itself the S4
-  end-to-end test), or the re-enable must be another audited service-key write. Ask the user
-  which, at 1C kickoff.
+- **✅ Order-of-operations conflict RESOLVED (release plan W1, executed in 1C session 25):**
+  `0016_grant_metric_definitions_update.sql` was pulled forward into 1C (`63e2497`). The user
+  applies it in the Supabase SQL editor (no CLI access token in the session env; same
+  application path as 0001–0015), then the admin-UI re-enable of occupancy +
+  schedule_adherence IS the S4 end-to-end test. Sequence: push → `/health` sha check →
+  apply 0016 → run 10b `--execute` (fresh backup first) → re-enable the two toggles.
 
 **Pre-registered 1B parity expectation for the four toggled metrics** (user-requested; phrasing
 mechanically corrected — the user's note said their rows would be "absent from the new dump,"
@@ -334,6 +334,52 @@ correct behavior, (2) fix, (3) re-run sync, (4) report exactly which values chan
 | 10 | L6 Assembled zero-writes — empty productive-state intersection returns null for all three assembled metrics (not 0%) | New syncs stop writing 0s |
 | 10b | **Data correction — APPROVED by user 2026-07-02**, sequenced immediately AFTER commit 10 (deleting earlier would let the still-broken connector re-write 0s at the next 4-hour cron; note the OLD sync also ignored `is_active`, so the toggle alone didn't stop the writes — commit 10 must be deployed first). Mechanics: timestamped CSV backup → delete the `occupancy`/`schedule_adherence` rows with `value = 0` → log the correction to `audit_log`. Null = no row in this schema, matching `handle_time`. **Sweep scope (user, 2026-07-02): all zero rows written through 1B-deploy day** — old-code syncs kept re-stamping/adding occupancy/adherence zeros until the 1B deploy (124 current-week rows as of the parity run), so the sweep criterion is `value = 0` for those two keys across ALL weeks, re-counted at execution — not the originally counted 249 | ~249+ zero rows removed (re-count at execution) |
 | 11 | L8 PDF zero treatment — 0 renders as a value, only null renders "No data" | PDF-only |
+
+**1C execution notes (session 25, 2026-07-06):**
+- **L11 decided and landed as its own commit 7b** (the plan said "investigate during commit 7"):
+  replies with `business: 0 && calendar > 0` (first reply entirely outside business hours — no
+  meaningful business-time measurement) are excluded from reply averages; `0/0` instant replies
+  stay as measured zeros. Also corrects sla_compliance's dormant compute (business:0 auto-passed
+  the SLA target). Live evidence appeared unprompted in the commit-6 drift diff: all 8 frt
+  changes re-derived exactly as "+1 ticket with a 0-business reply".
+- **CSAT investigation verdict (commit 7):** `/satisfaction_ratings.json` with
+  `score=received` + `start_time`/`end_time` works with existing creds — 133 answered ratings
+  org-wide in the last full week (vs 3,707 including unanswered "offered") ⇒ 2 pages, one call
+  chain per run in `prepareRun`, grouped by `assignee_id`. Truer submitted-in-period semantic
+  implemented; created-this-week fallback not needed. Caveats: `end_time` must be >60s old
+  (live bounds clamped to now−90s); `assignee_id: null` ratings are unattributable and skipped.
+- **Verification method:** per sync-affecting fix, stash-controlled back-to-back syncs (prior
+  code → dump → pop → new code → dump → diff, ~3-min gaps) against prod inside cron-free
+  windows. First attempt diffed against the 14:00-cron state — 2h13m of Monday drift swamped
+  the signal (579 lines); the controlled re-run collapsed it to 38 fully-re-derived lines.
+- **Commit-7 diff (controlled):** 36 frt changes (top: 640,726s→0, 421,567s→795 — per-ticket
+  re-derivation tables showed the old averages were built from tickets created 2023–2026-06),
+  32 resolution changes, csat 1 changed + 4 added (ratings answered this week on older
+  tickets), 7 tv drift markers. Commit-7b diff: 6 frt changes, 4 pure-L11 with unchanged
+  ticket sets, all moving UP toward honest averages.
+- **NEW FINDING — deploy-week stale rows (decision needed at deploy):** upsert never deletes,
+  so current-week rows the new semantics no longer writes keep their old-semantics values
+  (at the 16:30 verification run: 138 rows = 68 frt + 68 resolution + 2 csat). The same
+  pattern will exist at deploy time for whatever the old-code crons wrote that week. Options:
+  (a) mini-sweep of the deploy week's not-re-stamped frt/resolution/csat rows right after the
+  first new-code sync (backup + audit, mechanics identical to 10b), or (b) accept mixed
+  semantics for the deploy week only. Historical completed weeks (Jun 22/29) are real history
+  computed under the semantics of their time — they stay untouched per constraint 7.
+- **10b dry run (2026-07-06):** 249 zero rows re-counted — occupancy 126/126,
+  schedule_adherence 123/123 (100% of both keys' rows), weeks 2026-06-22 (125) + 2026-06-29
+  (124), none in the current week. `scripts/correct-assembled-zeros.ts` executes the sweep;
+  `--execute` refuses without a <15-min-old backup and writes `metric_snapshot_correction`
+  to audit_log.
+- **Post-push checklist (in order):** (1) push → Railway deploy → verify `GET /health` sha
+  equals the pushed SHA (read the GitHub status description only as an early signal);
+  (2) user applies 0016 in the Supabase SQL editor; (3) fresh backup + 10b `--execute`;
+  (4) user re-enables occupancy + schedule_adherence in the admin UI — the save going
+  through IS the S4 end-to-end verification; (5) decide the deploy-week stale-row sweep (a/b
+  above); (6) watch the next cron via Railway logs (`[cron]` filter) — expect frt/resolution
+  written only for created-in-period agents, csat from ratings, occupancy/adherence rows
+  appearing only if the WFM state mapping produces matches (L6 null otherwise).
+- Untouched by classification: L9 (folded in 1B), L10 (warn shipped in 1B), L12 (WONTFIX,
+  Phase 3 revisits), L13 (WONTFIX), L14 (Phase 2 comment fix).
 
 Session boundary. (If context allows, 1C can absorb into 1B's session; plan for separate.)
 

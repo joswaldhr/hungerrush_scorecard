@@ -1,6 +1,5 @@
-// Characterization tests — pin CURRENT occupancy behavior through the Phase 1B
-// refactor. The L6 defect (0% when productive state names match nothing) is pinned
-// intentionally as PRESERVE-FOR-PARITY and is fixed in Phase 1C commit 10.
+// occupancy behavior tests. Re-encoded in Phase 1C commit 10 (L6 fix): an empty
+// productive-state intersection is "no measurement" (null), never a measured 0%.
 import { describe, it, expect } from 'vitest';
 import { compute } from './occupancy';
 import { state, assembledWeek } from './testUtils';
@@ -19,14 +18,14 @@ describe('occupancy', () => {
     }))).toBeNull();
   });
 
-  it('PRESERVE-FOR-PARITY (L6): returns 0 when states exist but none match a productive name', () => {
-    // This is the defect live in production: activity-type names don't match agent-state
-    // strings, so every occupancy row ever written is 0%. Correct behavior (Phase 1C
-    // commit 10) is null when the productive-name mapping matches nothing.
+  it('L6 fix: returns null when states exist but none match a productive name', () => {
+    // The prod defect: activity-type names never matched agent-state strings, so every
+    // occupancy row ever written was a misleading 0%. An empty intersection means the
+    // mapping does not apply — no measurement, no row.
     expect(compute(assembledWeek({
       states: [state('online', 0, 3600), state('away', 3600, 7200)],
       productiveStateNames,
-    }))).toBe(0);
+    }))).toBeNull();
   });
 
   it('computes productive time over logged-in time, excluding Offline', () => {

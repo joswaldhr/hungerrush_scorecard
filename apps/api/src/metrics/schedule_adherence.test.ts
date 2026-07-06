@@ -1,6 +1,6 @@
-// Characterization tests — pin CURRENT schedule_adherence behavior through the Phase 1B
-// refactor. The L6 defect (0% when productive state names match nothing) is pinned
-// intentionally as PRESERVE-FOR-PARITY and is fixed in Phase 1C commit 10.
+// schedule_adherence behavior tests. Re-encoded in Phase 1C commit 10 (L6 fix): an
+// empty productive-state intersection is "no measurement" (null); a zero overlap
+// with MATCHING states (worked entirely off-schedule) stays a measured 0.
 import { describe, it, expect } from 'vitest';
 import { compute } from './schedule_adherence';
 import { state, activity, assembledWeek } from './testUtils';
@@ -23,9 +23,18 @@ describe('schedule_adherence', () => {
     }))).toBeNull();
   });
 
-  it('PRESERVE-FOR-PARITY (L6): returns 0 when scheduled time exists but no state matches', () => {
+  it('L6 fix: returns null when scheduled time exists but no state matches a productive name', () => {
     expect(compute(assembledWeek({
       states: [state('online', 0, 3600)],
+      activities: [activity('t-productive', 0, 3600)],
+      productiveTypeIds,
+      productiveStateNames,
+    }))).toBeNull();
+  });
+
+  it('zero overlap with MATCHING states stays a measured 0 (worked entirely off-schedule)', () => {
+    expect(compute(assembledWeek({
+      states: [state('Chat', 7200, 10800)],
       activities: [activity('t-productive', 0, 3600)],
       productiveTypeIds,
       productiveStateNames,

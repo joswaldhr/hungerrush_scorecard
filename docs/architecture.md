@@ -113,3 +113,4 @@ Both `apps/web` and `apps/api` import from here.
 | 2026-06-27 | Add `is_active` boolean to `profiles` (default true); mark ~250 service accounts inactive; update `visible_manager_ids()` to exclude inactive profiles; add JWT-based admin SELECT/UPDATE policies on profiles | `0014_profiles_is_active.sql` |
 | 2026-06-29 | Re-add audit_log RLS policies using JWT claims (dropped in 0007); enables admin ExportLogPage to read audit_log directly via Supabase | `0015_audit_log_admin_policies.sql` |
 | 2026-07-02 | Phase 1B metric registry (no schema change): metric math moved to `apps/api/src/metrics/`, connectors become fetchers, sync writes registry ∩ `is_active` | — |
+| 2026-07-06 | GRANT UPDATE on `metric_definitions` to `authenticated` — fixes S4 (42501 on every admin-UI metric save; table privilege was missing, the 0012 RLS policy was already correct). Pulled forward from Phase 2 into 1C per release plan W1 | `0016_grant_metric_definitions_update.sql` |

@@ -5,6 +5,8 @@ import type { ZendeskWeekData } from '../metrics/types';
 import type {
   ZendeskTicket,
   ZendeskSearchResponse,
+  ZendeskSatisfactionRating,
+  ZendeskSatisfactionRatingsResponse,
   ZendeskTicketMetricSet,
   ZendeskShowManyResponse,
   ZendeskSlaPoliciesResponse,
@@ -77,6 +79,38 @@ async function fetchTicketMetrics(
   return map;
 }
 
+// All CSAT surveys ANSWERED in the period, org-wide, grouped by assignee — one
+// paginated call chain per sync run (score=received returns good/bad only; last
+// week that was 133 rows vs 3,707 with the unanswered "offered" rows included).
+// The endpoint rejects end_time less than 60s old, so live-sync bounds are clamped.
+async function fetchReceivedRatings(
+  client: AxiosInstance,
+  periodStart: Date,
+  periodEnd: Date,
+): Promise<Map<number, ZendeskSatisfactionRating[]>> {
+  const byAssignee = new Map<number, ZendeskSatisfactionRating[]>();
+  const startTime = Math.floor(periodStart.getTime() / 1000);
+  const endTime = Math.min(
+    Math.floor(periodEnd.getTime() / 1000),
+    Math.floor(Date.now() / 1000) - 90,
+  );
+  if (endTime <= startTime) return byAssignee;
+
+  let url: string | null =
+    `/satisfaction_ratings.json?score=received&start_time=${startTime}&end_time=${endTime}`;
+  while (url) {
+    const response: AxiosResponse<ZendeskSatisfactionRatingsResponse> = await client.get(url);
+    for (const rating of response.data.satisfaction_ratings) {
+      if (rating.assignee_id === null) continue; // unassigned ticket — attributable to no agent
+      const list = byAssignee.get(rating.assignee_id) ?? [];
+      list.push(rating);
+      byAssignee.set(rating.assignee_id, list);
+    }
+    url = response.data.next_page;
+  }
+  return byAssignee;
+}
+
 async function fetchSlaReplyTarget(client: AxiosInstance): Promise<number | null> {
   try {
     const response = await client.get<ZendeskSlaPoliciesResponse>('/slas/policies');
@@ -96,18 +130,23 @@ async function fetchSlaReplyTarget(client: AxiosInstance): Promise<number | null
 export interface ZendeskRunContext {
   client: AxiosInstance;
   slaTargetMinutes: number | null;
+  ratingsByAssignee: Map<number, ZendeskSatisfactionRating[]>;
 }
 
 export const zendeskConnector: DataSourceConnector<ZendeskRunContext, ZendeskWeekData> = {
   name: 'zendesk',
   isAvailable: true,
 
-  // SLA policy target is org-wide — fetched once per sync run instead of once per
-  // employee (L3: previously 247 identical /slas/policies calls per run).
-  async prepareRun(_periodStart: Date, _periodEnd: Date): Promise<ZendeskRunContext> {
+  // Org-wide data fetched once per sync run instead of once per employee: the SLA
+  // policy target (L3: previously 247 identical /slas/policies calls per run) and
+  // the period's answered CSAT surveys (submitted-in-period semantics, commit 7).
+  async prepareRun(periodStart: Date, periodEnd: Date): Promise<ZendeskRunContext> {
     const client = createClient();
-    const slaTargetMinutes = await fetchSlaReplyTarget(client);
-    return { client, slaTargetMinutes };
+    const [slaTargetMinutes, ratingsByAssignee] = await Promise.all([
+      fetchSlaReplyTarget(client),
+      fetchReceivedRatings(client, periodStart, periodEnd),
+    ]);
+    return { client, slaTargetMinutes, ratingsByAssignee };
   },
 
   async fetchWeekData(
@@ -121,7 +160,14 @@ export const zendeskConnector: DataSourceConnector<ZendeskRunContext, ZendeskWee
       tickets.length > 0
         ? await fetchTicketMetrics(run.client, tickets.map(t => t.id))
         : new Map<number, ZendeskTicketMetricSet>();
-    return { tickets, metricSets, slaTargetMinutes: run.slaTargetMinutes };
+    return {
+      tickets,
+      metricSets,
+      slaTargetMinutes: run.slaTargetMinutes,
+      ratings: run.ratingsByAssignee.get(Number(agentId)) ?? [],
+      periodStart,
+      periodEnd,
+    };
   },
 
   async testConnection(): Promise<{ ok: boolean; error?: string }> {

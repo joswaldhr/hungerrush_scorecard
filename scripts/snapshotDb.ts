@@ -81,8 +81,8 @@ async function countSnapshots(supabase: SupabaseClient, filter: SnapshotFilter):
 }
 
 // Current week's Monday as YYYY-MM-DD, computed in UTC — identical semantics to
-// getCurrentWeekStart() in apps/api/src/services/syncService.ts (the sync writes
-// period_start from UTC Monday; the dump must read the same week).
+// currentWeekStartUtc() in packages/shared/src/week.ts (the sync writes period_start
+// from UTC Monday; the dump must read the same week).
 export function currentWeekStartUtc(): string {
   const now = new Date();
   const day = now.getUTCDay();
