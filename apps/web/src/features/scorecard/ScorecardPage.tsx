@@ -10,6 +10,7 @@ import { NotesPanel } from '../notes/NotesPanel';
 import { AppLayout } from '../../components/AppLayout';
 import { supabase } from '../../lib/supabase';
 import { generateScorecardPdf } from '../../lib/pdfExport';
+import { getInitials } from '../../lib/initials';
 
 function PageSkeleton() {
   return (
@@ -250,7 +251,7 @@ export function ScorecardPage() {
       <div className="flex items-center gap-3 mb-6">
         <div className="h-11 w-11 bg-[#E1F5EE] rounded-full flex items-center justify-center flex-shrink-0">
           <span className="text-[#0F6E56] font-semibold text-lg">
-            {employee.full_name.charAt(0).toUpperCase()}
+            {getInitials(employee.full_name)}
           </span>
         </div>
         <div>

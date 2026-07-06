@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import type { MetricDefinition } from '@scorecard/shared';
 
-type MetricUpdates = Pick<MetricDefinition, 'name' | 'coaching_prompt' | 'display_order' | 'is_active'>;
+// The one MetricUpdates definition (D9) — MetricConfigPage and MetricCard import it from here.
+export type MetricUpdates = Pick<MetricDefinition, 'name' | 'coaching_prompt' | 'display_order' | 'is_active'>;
 
 export function useMetricDefinitions() {
   const [metrics, setMetrics] = useState<MetricDefinition[]>([]);

@@ -7,6 +7,7 @@ import { TourModal, useTour } from '../onboarding/TourModal';
 import { OfflineBanner } from '../../components/OfflineBanner';
 import { AppLayout } from '../../components/AppLayout';
 import { formatMetricValue } from '../../lib/formatMetric';
+import { getInitials } from '../../lib/initials';
 
 export function DashboardPage() {
   const { employees, employeesWithMetrics, previewMetrics, lastSyncedAt, loading, error } = useDirectReports();
@@ -201,7 +202,7 @@ export function DashboardPage() {
               >
                 <div className="h-8 w-8 bg-[#E1F5EE] rounded-full flex items-center justify-center flex-shrink-0">
                   <span className="text-[#0F6E56] font-semibold text-sm">
-                    {emp.full_name.charAt(0).toUpperCase()}
+                    {getInitials(emp.full_name)}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">

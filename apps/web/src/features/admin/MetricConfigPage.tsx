@@ -1,12 +1,9 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { useMetricDefinitions } from '../../hooks/useMetricDefinitions';
+import { useMetricDefinitions, type MetricUpdates } from '../../hooks/useMetricDefinitions';
 import { MetricCard } from './components/MetricCard';
 import { AppLayout } from '../../components/AppLayout';
-import type { MetricDefinition } from '@scorecard/shared';
-
-type MetricUpdates = Pick<MetricDefinition, 'name' | 'coaching_prompt' | 'display_order' | 'is_active'>;
 
 function MetricCardSkeleton() {
   return (

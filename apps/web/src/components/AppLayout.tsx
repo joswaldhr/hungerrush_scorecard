@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Users, LayoutGrid, SlidersHorizontal, FileOutput } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
+import { getInitials } from '../lib/initials';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -22,14 +23,6 @@ export function LogoMark({ size = 28 }: { size?: number }) {
       </span>
     </div>
   );
-}
-
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  const first = parts[0];
-  const last = parts.length >= 2 ? parts[parts.length - 1] : undefined;
-  if (first && last) return (first.charAt(0) + last.charAt(0)).toUpperCase();
-  return first ? first.charAt(0).toUpperCase() : '?';
 }
 
 export function AppLayout({ children, title, subtitle, actions }: AppLayoutProps) {

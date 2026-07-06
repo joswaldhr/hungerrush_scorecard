@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import type { MetricDefinition } from '@scorecard/shared';
-
-type MetricUpdates = Pick<MetricDefinition, 'name' | 'coaching_prompt' | 'display_order' | 'is_active'>;
+import type { MetricUpdates } from '../../../hooks/useMetricDefinitions';
 
 interface MetricCardProps {
   metric: MetricDefinition;

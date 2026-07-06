@@ -2,14 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { currentWeekStartUtc, weeksBeforeUtc, weekStartStr } from '@scorecard/shared';
 import type { MetricDefinition, MetricSnapshot } from '@scorecard/shared';
-
-export interface EmployeeMetric {
-  definition: MetricDefinition;
-  currentValue: number | null;
-  currentSyncedAt: string | null;
-  lastWeekValue: number | null;
-  history: Array<{ periodStart: string; value: number }>;
-}
+import { buildEmployeeMetrics, type EmployeeMetric } from '../lib/employeeMetrics';
 
 export function useEmployeeMetrics(employeeId: string) {
   const [metrics, setMetrics] = useState<EmployeeMetric[]>([]);
@@ -52,28 +45,7 @@ export function useEmployeeMetrics(employeeId: string) {
       const snapshots = (snapshotsRes.data ?? []) as MetricSnapshot[];
       const definitions = (definitionsRes.data ?? []) as MetricDefinition[];
 
-      const thisMondayStr = weekStartStr(thisMonday);
-      const lastMondayStr = weekStartStr(weeksBeforeUtc(thisMonday, 1));
-
-      const result: EmployeeMetric[] = definitions.map(def => {
-        const metricSnapshots = snapshots.filter(s => s.metric_key === def.key);
-        const current = metricSnapshots.find(s => s.period_start === thisMondayStr);
-        const lastWeek = metricSnapshots.find(s => s.period_start === lastMondayStr);
-        const history = metricSnapshots.map(s => ({
-          periodStart: s.period_start,
-          value: s.value,
-        }));
-
-        return {
-          definition: def,
-          currentValue: current?.value ?? null,
-          currentSyncedAt: current?.synced_at ?? null,
-          lastWeekValue: lastWeek?.value ?? null,
-          history,
-        };
-      });
-
-      setMetrics(result);
+      setMetrics(buildEmployeeMetrics(definitions, snapshots));
       setLoading(false);
     }
 
