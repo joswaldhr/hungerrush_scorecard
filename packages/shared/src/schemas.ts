@@ -118,12 +118,3 @@ export const AuditLogSchema = z.object({
   created_at: z.string(),
 });
 export type AuditLog = z.infer<typeof AuditLogSchema>;
-
-// --- Query result types ---
-
-export const MetricHistoryPointSchema = z.object({
-  period_start: z.string(),
-  period_end: z.string(),
-  value: z.number(),
-});
-export type MetricHistoryPoint = z.infer<typeof MetricHistoryPointSchema>;

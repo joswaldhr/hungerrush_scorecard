@@ -191,7 +191,7 @@ export async function syncOrgStructure(): Promise<SyncResult> {
     graphId: u.id,
     email: (u.mail ?? u.userPrincipalName).toLowerCase(),
     fullName: u.displayName,
-    title: u.jobTitle ?? null,
+    title: u.jobTitle?.trim() || null,
     managerGraphId: managerMap.get(u.id) ?? null,
   }));
 

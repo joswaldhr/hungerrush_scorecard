@@ -166,7 +166,6 @@ export function ScorecardPage() {
     }
   };
 
-  const currentWeekMetrics = metrics.filter(m => m.currentValue !== null);
   const lastWeekMetrics = metrics.filter(m => m.lastWeekValue !== null);
   const allCurrentNull = metrics.every(m => m.currentValue === null);
   const lastMondayStr = weekStartStr(weeksBeforeUtc(currentWeekStartUtc(), 1));
@@ -292,7 +291,7 @@ export function ScorecardPage() {
               <KpiTileSkeleton key={i} />
             ))}
           </div>
-        ) : currentWeekMetrics.length === 0 && metrics.every(m => m.currentValue === null) ? (
+        ) : allCurrentNull ? (
           <div className="bg-white rounded-xl border border-[#E8E6E1] p-6 text-center">
             <p className="text-[13px] text-slate-700 mb-1">No metrics synced for this week yet.</p>
             <p className="text-[13px] text-slate-400">
@@ -300,22 +299,17 @@ export function ScorecardPage() {
             </p>
           </div>
         ) : (
-          <>
-            {allCurrentNull && (
-              <p className="text-[11px] text-slate-400 mb-3">This week's data refreshes every 4 hours.</p>
-            )}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5">
-              {sortedMetrics.map(m => (
-                <KpiTile
-                  key={m.definition.id}
-                  definition={m.definition}
-                  value={m.currentValue}
-                  syncedAt={m.currentSyncedAt}
-                  history={m.history}
-                />
-              ))}
-            </div>
-          </>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5">
+            {sortedMetrics.map(m => (
+              <KpiTile
+                key={m.definition.id}
+                definition={m.definition}
+                value={m.currentValue}
+                syncedAt={m.currentSyncedAt}
+                history={m.history}
+              />
+            ))}
+          </div>
         )}
       </section>
 

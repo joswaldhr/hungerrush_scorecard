@@ -126,8 +126,7 @@ export function useTour() {
     }
   }, []);
 
-  const openTour = () => setShowTour(true);
   const closeTour = () => setShowTour(false);
 
-  return { showTour, openTour, closeTour };
+  return { showTour, closeTour };
 }

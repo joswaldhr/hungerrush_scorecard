@@ -86,7 +86,7 @@ router.get('/:token', async (req: Request, res: Response) => {
       return;
     }
 
-    // Fetch snapshots (current week only — no history needed for shared view)
+    // Fetch ALL snapshots for this employee — the shared page needs history for sparklines
     const { data: snapshots, error: snapError } = await supabase
       .from('metric_snapshots')
       .select('metric_key, value, period_start, period_end, synced_at')
