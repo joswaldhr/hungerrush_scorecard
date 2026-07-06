@@ -2,9 +2,10 @@
 // L4 (Last Week tiles receive current-week history) and L12 (partial-week comparison) are
 // consequences of how callers use this function; the function's own quirks are pinned here.
 import { describe, it, expect } from 'vitest';
-import { getTrend } from './KpiTile';
+import { getTrend, mapHistoryToCalendarSlots } from './KpiTile';
 
 const h = (...values: number[]) => values.map(value => ({ value }));
+const p = (periodStart: string, value: number) => ({ periodStart, value });
 
 describe('getTrend', () => {
   it('null value → neutral', () => {
@@ -45,5 +46,43 @@ describe('getTrend', () => {
     // comparison on This Week tiles) remains working-as-designed.
     expect(getTrend(999, h(10, 10, 20), 'higher_is_better')).toBe('improving');
     expect(getTrend(1, h(10, 10, 20), 'higher_is_better')).toBe('improving');
+  });
+});
+
+describe('mapHistoryToCalendarSlots (L5 fix, commit 9)', () => {
+  it('aligns each point to its calendar week, oldest slot first', () => {
+    const slots = mapHistoryToCalendarSlots(
+      [p('2026-06-15', 1), p('2026-06-22', 2), p('2026-06-29', 3), p('2026-07-06', 4)],
+      '2026-07-06',
+    );
+    expect(slots.map(s => s?.value ?? null)).toEqual([1, 2, 3, 4]);
+  });
+
+  it('a missing middle week stays an empty slot instead of collapsing', () => {
+    const slots = mapHistoryToCalendarSlots(
+      [p('2026-06-22', 5), p('2026-07-06', 7)],
+      '2026-07-06',
+    );
+    expect(slots.map(s => s?.value ?? null)).toEqual([null, 5, null, 7]);
+  });
+
+  it('points older than the 4-week window are ignored', () => {
+    const slots = mapHistoryToCalendarSlots(
+      [p('2026-05-04', 9), p('2026-07-06', 1)],
+      '2026-07-06',
+    );
+    expect(slots.map(s => s?.value ?? null)).toEqual([null, null, null, 1]);
+  });
+
+  it('anchoring to last week shifts the window (Last Week tiles)', () => {
+    const slots = mapHistoryToCalendarSlots(
+      [p('2026-06-29', 3), p('2026-07-06', 4)],
+      '2026-06-29',
+    );
+    expect(slots.map(s => s?.value ?? null)).toEqual([null, null, null, 3]);
+  });
+
+  it('empty history is four empty slots', () => {
+    expect(mapHistoryToCalendarSlots([], '2026-07-06')).toEqual([null, null, null, null]);
   });
 });
