@@ -70,7 +70,10 @@ npm run lint -w apps/web     # eslint src
   running container, added 2026-07-02). The GitHub commit status (context
   `... - @scorecard/api`) is a useful early signal but proved unreliable during the 1B
   deploy incident: it reported success while a rolled-back old container was still serving
-  and firing crons. Trust only the `/health` sha.
+  and firing crons. Root cause found 2026-07-06: the service has **Railway watch paths** —
+  commits outside them (docs-only, and notably railway.toml itself) post status success
+  with description "No deployment needed - watched paths not modified" and do NOT deploy.
+  Read the status description, then trust only the `/health` sha.
 
 ---
 

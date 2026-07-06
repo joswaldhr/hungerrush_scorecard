@@ -29,6 +29,13 @@ new-code runs, so this is service uptime / cron execution on Railway, NOT the re
 The silence begins exactly at the new container's first scheduled boundary (22:00 Jul 2) —
 the old container fired reliably through 18:00 Jul 2, so suspect something about the new
 deployment's runtime (tsx memory footprint? crashloop between crons? Railway app-sleep?).
+**Refinement (2026-07-06): the service has Railway watch paths configured** — commits not
+touching them post GitHub status success with description "No deployment needed - watched
+paths not modified" WITHOUT deploying. This retro-explains the `fd00d99` 14-second phantom
+success (it touched only railway.toml → skipped → the crashed/rolled-back state persisted
+into the 22:00 silence). Deploy-verification rule extended: **read the status description,
+not just the state — then trust only `/health` sha.** Note the timeline still leaves the
+Jul 3–6 silences unexplained after `91084f9` genuinely deployed — the dashboard checks stand.
 **User actions (dashboard-only):** api service → check App Sleeping setting; deployment
 events/restarts Jul 2–6; memory graphs. Impact while unresolved: "This week so far" tiles
 go stale between whichever crons actually fire; weekly snapshots so far unaffected.
