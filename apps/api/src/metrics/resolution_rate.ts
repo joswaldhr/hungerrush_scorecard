@@ -1,15 +1,15 @@
 import { METRIC_SPECS, type MetricSpec } from '@scorecard/shared';
 import type { ZendeskWeekData } from './types';
-import { roundPercent } from './zendeskCommon';
+import { roundPercent, ticketsCreatedInPeriod } from './zendeskCommon';
 
 export const spec: MetricSpec = METRIC_SPECS['resolution_rate']!;
 
-// Percent of the week's tickets solved or closed. Null for an empty week;
-// 0 is a measured zero (tickets exist, none resolved). The old computeAllMetrics
-// had an unreachable inner null-guard here (L9) — folded into the empty-week
-// early return with identical observable behavior.
+// Percent of the tickets CREATED in the period already solved or closed (L1 split,
+// commit 7). Null when nothing was created this period — even if older tickets were
+// updated; 0 is a measured zero (new tickets exist, none resolved yet).
 export function compute(data: ZendeskWeekData): number | null {
-  if (data.tickets.length === 0) return null;
-  const resolved = data.tickets.filter(t => t.status === 'solved' || t.status === 'closed').length;
-  return roundPercent(resolved, data.tickets.length);
+  const created = ticketsCreatedInPeriod(data);
+  if (created.length === 0) return null;
+  const resolved = created.filter(t => t.status === 'solved' || t.status === 'closed').length;
+  return roundPercent(resolved, created.length);
 }

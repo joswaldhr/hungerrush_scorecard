@@ -56,7 +56,32 @@ Sync pulls one week at a time. Live sync covers Monday 00:00 UTC through the cur
 timestamp; snapshot sync covers Monday 00:00 UTC through Sunday 23:59 UTC. Trend data
 is built from accumulated weekly snapshots — the connectors never pull more than one
 week of raw API data per run. Dashboard reads the last 4 weeks of `metric_snapshots`
-for sparklines.
+for sparklines. Week boundaries everywhere come from `currentWeekStartUtc()` in
+`packages/shared/src/week.ts` (UTC Monday — Phase 1C commit 6).
+
+## Which tickets count — the L1 semantics split (Phase 1C commit 7)
+
+The Zendesk fetch is still `updated>=` (one search per agent per run), but metrics no
+longer all share that basis:
+
+| Metric | Basis | Meaning |
+|---|---|---|
+| `ticket_volume` | tickets **updated** in period | Activity: everything the agent worked this week, including rework of old tickets |
+| `first_reply_time` | tickets **created** in period | This week's new tickets only — a reworked months-old ticket can no longer drag the weekly average (prod had ~167h averages from this) |
+| `resolution_rate` | tickets **created** in period | % of this week's new tickets already solved/closed; null when nothing was created (updated-only weeks) |
+| `csat_score` | ratings **submitted** in period | See below — independent of the ticket fetch entirely |
+| `sla_compliance` | tickets **updated** in period | Unchanged — inactive today; its basis gets decided when SLA policies exist (release plan W4) |
+
+**CSAT tradeoff, investigated 2026-07-06 per the approved plan:** Zendesk's
+`/satisfaction_ratings.json` endpoint supports `start_time`/`end_time` +
+`score=received` (answered surveys only: good/bad). That gives the truer semantic —
+the week the CUSTOMER answers is the week the rating counts, regardless of ticket age —
+and it did not materially complicate the fetcher: one org-wide paginated call chain per
+sync run (133 answered ratings org-wide in the last full week ⇒ 2 pages), grouped by
+`assignee_id`, attached per agent in `fetchWeekData`. Chosen over the created-this-week
+fallback. Caveats: ratings with `assignee_id: null` (unassigned tickets) are
+attributable to no agent and are skipped; the endpoint rejects `end_time` less than 60
+seconds old, so live-sync bounds are clamped to now−90s.
 
 ## Display formatting notes
 
