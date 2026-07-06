@@ -18,8 +18,8 @@
 | 1A — Safety nets: tests, backup/dump scripts, truncation fix | 22 | ✅ **CLOSED** — `77d3028` (52 characterization tests), `b044a6f` (paginated scripts + first backup: 1,104 rows verified), `df71938` (L7 fix), `81194d9` (lint config repair). User verified in prod: dashboard "With metrics 247 of 351" ✓, rollup chips populated ✓. Side discovery: admin metric-config saves broken (S4 root cause: missing GRANT UPDATE); 4 metrics set inactive via audited service-key write, confirmed in DB. 1B is unblocked |
 | 1B — Metric registry refactor + parity + deploy watch | 23 | ✅ **CLOSED** — `7113691` (commit 4: MetricSpec in shared · one module per metric · fetch-shape connectors · sync = registry ∩ is_active · 56 tests green), `9b7cda4` (commit 5: add-a-metric recipe + contract docs), `cc54eb9` + `fd00d99` (deploy fix: tsx prod runtime — see 1B execution notes). **Parity PASS, user-verified 2026-07-02**: dumps A/B 741 rows each, 0 added/removed, 0 lines + 0 writes for the 4 toggled keys, 54 value changes = 17 employees of Zendesk drift in the 13-min inter-run gap (every resolution_rate change re-derived exactly); Zendesk write counts identical old-vs-new (615). Post-deploy watch: code verified — every run that executed post-deploy ran new code (0 toggled-key writes over 4 days; Sunday snapshot 2026-07-05 23:59 froze week Jun 29 with 626 rows; Mon 2026-07-06 bootstrap 05:00 + live sync 14:00 clean, tv=249). **NEW OPEN ISSUE found by the watch: ~18 scheduled live syncs Jul 2 22:00 → Jul 6 10:00 never executed** — see cron-reliability block below the table |
 | 1C — Logic fixes (one commit each) + approved data correction | 25 | ✅ **CLOSED — deployed and executed 2026-07-06** — commits `54722f6` (6/L2), `3e51a0f` (7/L1 + csat submitted-in-period), `4a344e1` (7b/L11), `112ec75` (8/L4), `9c9ca5e` (9/L5), `63e2497` (0016), `64126ad` (10/L6), `2a7d4ba` (11/L8), `5becfe2`+`063add2` (correction scripts). Tests 56→79. Merged via PR #1 → master `b255976`, serving sha verified via `/health` 17:46 UTC. **0016 applied by user** (SQL editor). **10b executed 17:47**: 249 zero rows deleted (occ 126 / adh 123), audited. **18:00 cron = first new-code run, verified DB-side**: 381 rows on one stamp — tv 249, resolution 63, frt 58, csat 11; Assembled ran re-enabled and wrote 0 rows / 0 zeros (L6 null behavior). **Stale-semantics sweep executed 18:04**: 123 old-semantics rows deleted (frt 63 / resolution 58 / csat 2), audited; week 2026-07-06 now single-stamp, zero stale. **S4 verified end-to-end by user**: admin-UI re-enable of occupancy+adherence saved, held after reload |
-| 2 — Fluff removal & hardening | — | Not started |
-| 3 — Design implementation | — | Separate prompt, blocked on 2 |
+| 2 — Fluff removal & hardening | 27 | ✅ **CODE COMPLETE — PRs #5 + #6 open 2026-07-06, closes on James's merge + live verification.** Commits 12 `14df287` (F1–F4/F7/F8/F14/F11/F12 + L14 + jobTitle trim; F3 was already gone since 1B), 13 `2fc017b` (D2–D5, D9 — D6 stays excluded, Cadence supersedes it; side effect: shared-page trend badges un-inverted, see execution notes), 14 `5630a43` (S2 + S5 hook contract + S6 AuthProvider/AuthGuard incl. executive), 15 `c82d369` (S3/S7/S8/S9 + per-card save state), async-202 `bb449cc` + SYNC_TRIGGER_KEY `946a836` (both user-approved mid-session), 16 `9d1cd16` (CORS, own deploy via PR #6), 17 (this update). Tests 79 green / typecheck / lint at every commit. **Post-merge: James adds SYNC_TRIGGER_KEY in Railway BEFORE merging #5, then browser-verifies per the PR checklists (CORS check within minutes of #6's deploy)** |
+| 3 — Design implementation | — | **UNBLOCKED once #5/#6 verified** — kickoff prompt written: `docs/phase3-cadence-kickoff.md` (Cadence, est. 2–3 sessions; ADOPTION.md is the binding decision record) |
 
 **W2 release readiness landed between 1C and Phase 2 (session 26, 2026-07-06 — release-plan
 scope, not a refactor phase):** `executive` role (0017: enum value + `visible_manager_ids()`
@@ -405,13 +405,52 @@ Session boundary. (If context allows, 1C can absorb into 1B's session; plan for 
 hardening. Not applicable: nothing in this codebase opens a direct Postgres connection —
 `@supabase/supabase-js` speaks HTTP to PostgREST on both web and api. The connection-string flag
 belongs to direct-pg clients (Prisma/pg). Action: remove the item from CLAUDE.md with this
-explanation. If a direct-pg dependency ever appears, revisit.
+explanation. If a direct-pg dependency ever appears, revisit. **(Executed in commit 17 —
+the CLAUDE.md item is gone; this paragraph is the durable record.)**
 
 **Hardening candidate (user, 2026-07-02 — logged, do NOT build early):** make
 `POST /api/sync/run` return 202 immediately and run the sync async. Motivation: Railway's
 edge proxy kills the HTTP response at exactly 300s while the sync keeps running
 in-container (discovered during the 1B parity run); today every manual trigger must be
 verified DB-side. Slot alongside commit 15/16 sizing when Phase 2 is planned.
+**(APPROVED and BUILT session 27 — `bb449cc`; see execution notes.)**
+
+**Phase 2 execution notes (session 27, 2026-07-06):**
+- Session-start branch audit: `origin/master..` empty for both W2 branches — nothing
+  stranded; branched from master tip `abe19c9`.
+- F3 (`clearAssembledCache`) needed no removal — the 1B fetch-shape rewrite already
+  retired the module cache (the run context replaced it). Recorded, not re-done.
+- F12 re-verified before removal: the 20 web tests are pure-function vitest
+  (formatMetric, KpiTile trend/sparkline) — zero `@testing-library/react` importers.
+  Re-add with Phase 3's component tests; it stays on CLAUDE.md's approved list.
+- D5's unification FIXED a latent defect: the share API returns snapshots
+  `ascending: false`, and `getTrend` reads `history[length-1]` as "latest" — the public
+  shared page's trend badges were computed against the OLDEST point. The one mapping
+  util (`apps/web/src/lib/employeeMetrics.ts`) sorts ascending itself, so caller query
+  order can't leak in. Expect shared-page badges to change (from wrong to right).
+- D4 visual side effect: avatar circles on Dashboard/Scorecard/Shared now show
+  two-letter initials (the AppLayout algorithm won).
+- S5 contract documented in agents/FRONTEND.md (the Cadence prerequisite): every data
+  hook returns `{ ...data, loading, error, refetch }`; failed same-key refetch KEEPS
+  last good data; key change resets it; errors never swallowed (useDirectReports was
+  dropping two query errors silently).
+- S6: role model includes `executive` (rollup access beside senior_manager; admin routes
+  stay admin-only) — gate lives in `AuthGuard roles={[...]}` in App.tsx, nowhere else.
+- Decisions settled with James mid-session: (a) async 202 — APPROVED, built (`bb449cc`);
+  (b) SYNC_TRIGGER_KEY — APPROVED, built (`946a836`), fail-closed comparison (the old
+  code had a latent hole: unset env var + missing header passed `undefined !== undefined`);
+  James adds the Railway var BEFORE merging #5; (c) the `fulfilling-alignment -
+  @scorecard/web` GitHub status on merge `35bea86` — James confirmed the vestigial
+  service IS deleted; the status is a stale check context left over from the removed
+  service. Ignore that context on future merges; `/health` sha remains the only deploy truth.
+- Commit 16 verified locally before push (api booted with the prod ALLOWED_ORIGIN):
+  allow-origin echoed for the prod origin and localhost:5173, absent for a foreign
+  origin, no-Origin requests unaffected, preflight 204. LIVE verification is a PR-#6
+  merge step: prod frontend + a shared-link page checked in a real browser within
+  minutes (curl is not CORS-bound and proves nothing).
+- PR structure: #5 = commits 12–15 + the two approved decisions; #6 = commit 16 (own
+  api deploy) + commit 17 (docs-only, rides along so the handoff can't strand — the
+  deployed code diff of #6 is still exactly commit 16).
 
 ---
 
