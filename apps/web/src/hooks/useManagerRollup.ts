@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { startOfWeek, subWeeks, format } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import { fetchAllPages } from '../lib/fetchAllPages';
+import { currentWeekStartUtc, weeksBeforeUtc, weekStartStr } from '@scorecard/shared';
 import type { Profile, Employee, MetricSnapshot, MetricDefinition } from '@scorecard/shared';
 
 export interface MetricTrend {
@@ -26,11 +26,10 @@ export function useManagerRollup() {
 
   useEffect(() => {
     async function load() {
-      const now = new Date();
-      const thisMonday = startOfWeek(now, { weekStartsOn: 1 });
-      const lastMonday = subWeeks(thisMonday, 1);
-      const thisMondayStr = format(thisMonday, 'yyyy-MM-dd');
-      const lastMondayStr = format(lastMonday, 'yyyy-MM-dd');
+      // UTC week identity from the shared util (L2) — must match the sync's period_start.
+      const thisMonday = currentWeekStartUtc();
+      const thisMondayStr = weekStartStr(thisMonday);
+      const lastMondayStr = weekStartStr(weeksBeforeUtc(thisMonday, 1));
 
       const [managersRes, employeesRes, definitionsRes] = await Promise.all([
         supabase
@@ -176,9 +175,10 @@ export function useManagerRollup() {
       });
 
       if (snapshots.length > 0) {
-        const sunday = new Date(thisMonday.getTime());
-        sunday.setDate(sunday.getDate() + 6);
-        const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+        // thisMonday is UTC midnight now — format in UTC or US-negative offsets would
+        // display the previous (Sunday) date. Pure-ms day math for the same reason.
+        const sunday = new Date(thisMonday.getTime() + 6 * 24 * 60 * 60 * 1000);
+        const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
         setWeekRange(`Week of ${dateFmt.format(thisMonday)} – ${dateFmt.format(sunday)}`);
       }
 

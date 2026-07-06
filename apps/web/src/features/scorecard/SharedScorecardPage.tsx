@@ -2,7 +2,7 @@
 // Do not add AppLayout or sidebar to this page.
 
 import { useParams } from 'react-router-dom';
-import { startOfWeek, subWeeks, format } from 'date-fns';
+import { currentWeekStartUtc, weeksBeforeUtc, weekStartStr } from '@scorecard/shared';
 import { useSharedScorecard } from '../../hooks/useSharedScorecard';
 import { KpiTile, KpiTileSkeleton } from '../../components/KpiTile';
 import { LogoMark } from '../../components/AppLayout';
@@ -81,11 +81,10 @@ function SharedScorecardContent({ token }: { token: string }) {
 
   const { employee, definitions, snapshots } = data;
 
-  const now = new Date();
-  const thisMonday = startOfWeek(now, { weekStartsOn: 1 });
-  const lastMonday = subWeeks(thisMonday, 1);
-  const thisMondayStr = format(thisMonday, 'yyyy-MM-dd');
-  const lastMondayStr = format(lastMonday, 'yyyy-MM-dd');
+  // UTC week identity from the shared util (L2) — must match the sync's period_start.
+  const thisMonday = currentWeekStartUtc();
+  const thisMondayStr = weekStartStr(thisMonday);
+  const lastMondayStr = weekStartStr(weeksBeforeUtc(thisMonday, 1));
 
   const metrics = definitions.map(def => {
     const metricSnapshots = snapshots.filter(s => s.metric_key === def.key);
