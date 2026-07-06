@@ -19,11 +19,15 @@ Verified current state (read-only, 2026-07-06): all four people exist via graph 
 
 ## Workstreams, in order
 
-### W0 — Cron reliability (RELEASE BLOCKER, partly user-side)
-Open issue at top of `docs/refactor-plan.md`: ~18 scheduled live syncs Jul 2–6 never executed. Code is proven (every run that fired was clean); the failure is Railway-side process/cron execution.
-- **User (dashboard):** api service App-Sleep setting; deploy/restart events + memory graphs Jul 2–6.
-- **Session:** 18:00 UTC watcher already armed (verdicts: CRON-FIRED-CLEAN / NOCRON). If unreliable after findings: move schedules to Railway cron jobs invoking the existing endpoints (railway.toml `[deploy] cronSchedule` or platform cron; mitigation candidates already logged in plan).
-- Release cannot demo "This week so far" with stale tiles — this closes first.
+### W0 — Cron reliability — ✅ RESOLVED 2026-07-06 (false alarm)
+Railway runtime logs (pulled by James) prove every scheduled run since `91084f9` fired on
+time: ~20 live syncs at 615–626 rows, daily bootstraps, the Sunday snapshot — one process,
+zero restarts, healthy memory (~200–260MB tsx baseline). The "silent windows" were a
+measurement artifact: `synced_at` is last-writer-wins, so historical cron windows always
+count ~zero after later runs re-stamp the same rows. Verification rule going forward:
+Railway logs (filter `[cron]`) or current-window-only stamp counts. Side outcome: the
+vestigial `@scorecard/web` Railway service (unexposed, Phase-4-era code, no env vars) was
+removed — halves Railway spend. **No release blocker exists. W1 can start immediately.**
 
 ### W1 — Phase 1C logic fixes (FRESH SESSION — unchanged scope + one addition)
 Exactly as `docs/refactor-plan.md` §d (commits 6–11 + 10b), plus: **pull migration `0016_grant_metric_definitions_update.sql` forward into 1C** so the admin UI save path works (S4) — needed both for the occupancy/adherence re-enable step AND for W3's activate-by-toggle rollout. Rationale for 1C before the release: commit 7's created-in-period split removes the L1 contamination (601k-second reply times) — exactly the numbers metrics-savvy managers will scrutinize; commit 10+10b clean the misleading 0% tiles.

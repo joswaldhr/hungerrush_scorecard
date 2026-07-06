@@ -21,28 +21,26 @@
 | 2 — Fluff removal & hardening | — | Not started |
 | 3 — Design implementation | — | Separate prompt, blocked on 2 |
 
-**⚠️ OPEN — cron reliability (found 2026-07-06, during the extended 1B post-deploy watch):**
-Between Jul 2 22:00 and Jul 6 10:00 UTC, ~18 scheduled live syncs wrote nothing — no run
-stamps at those boundaries at all (immutable `synced_at` evidence). Runs that DID execute
-(Sun Jul 5 23:59 snapshot · Mon Jul 6 05:00 bootstrap · Mon Jul 6 14:00 live) were all clean
-new-code runs, so this is service uptime / cron execution on Railway, NOT the registry code.
-The silence begins exactly at the new container's first scheduled boundary (22:00 Jul 2) —
-the old container fired reliably through 18:00 Jul 2, so suspect something about the new
-deployment's runtime (tsx memory footprint? crashloop between crons? Railway app-sleep?).
-**Refinement (2026-07-06): the service has Railway watch paths configured** — commits not
-touching them post GitHub status success with description "No deployment needed - watched
-paths not modified" WITHOUT deploying. This retro-explains the `fd00d99` 14-second phantom
-success (it touched only railway.toml → skipped → the crashed/rolled-back state persisted
-into the 22:00 silence). Deploy-verification rule extended: **read the status description,
-not just the state — then trust only `/health` sha.** Note the timeline still leaves the
-Jul 3–6 silences unexplained after `91084f9` genuinely deployed — the dashboard checks stand.
-**User actions (dashboard-only):** api service → check App Sleeping setting; deployment
-events/restarts Jul 2–6; memory graphs. Impact while unresolved: "This week so far" tiles
-go stale between whichever crons actually fire; weekly snapshots so far unaffected.
-Mitigation candidates (do not build without direction): external uptime ping to `/health`;
-Railway restart policy/limits review; move schedules to Railway cron jobs (`railway.toml`
-supports crons invoking a start command) instead of in-process node-cron.
-DB-side detection recipe: count rows per cron window on `synced_at` (see 1B execution notes).
+**✅ RESOLVED 2026-07-06 — the "cron reliability" issue was a FALSE ALARM (measurement
+artifact), confirmed by Railway runtime logs the user pulled:** every scheduled run since the
+`91084f9` deploy fired within seconds of its boundary (~20 live syncs at 615–626 rows each,
+daily bootstraps, the Sunday snapshot), from ONE process with a single `Listening on port`
+boot line — zero restarts, zero errors, memory steady ~200–260MB (tsx baseline ≈ +90MB over
+the old `node dist` runtime). The flawed method: **`synced_at` is last-writer-wins** — each
+4-hour sync re-stamps the SAME current-week rows, so counting rows "stamped in a historical
+cron window" always reads ~zero once later runs have re-stamped them. Only the MOST RECENT
+window is countable DB-side. **Correct cron verification: Railway deploy logs (filter
+`[cron]`), or a current-window-only stamp count taken before the next run fires.** The
+1B execution notes' per-window recipe is superseded accordingly. What remains TRUE from this
+investigation: the watch-paths/phantom-success finding below, the `/health` sha rule, and the
+web-service cleanup (the vestigial unexposed `@scorecard/web` Railway service — old Phase-4
+code, no env vars, skipping all deploys — was removed by the user 2026-07-06).
+**Watch-paths finding (2026-07-06, still true):** commits not touching the service's watch
+paths post GitHub status success with description "No deployment needed - watched paths not
+modified" WITHOUT deploying — this retro-explains the `fd00d99` 14-second phantom success
+(railway.toml-only → skipped → the crashed/rolled-back state persisted into the 22:00 Jul 2
+old-code cron, the LAST old-code run). Deploy-verification rule: **read the status
+description, not just the state — then trust only `/health` sha.**
 
 **⚠️ Standing reminder (do not lose):** all four of `sla_compliance`, `handle_time`, `occupancy`,
 `schedule_adherence` were set `is_active = false` on 2026-07-02 (via service key — the admin UI
