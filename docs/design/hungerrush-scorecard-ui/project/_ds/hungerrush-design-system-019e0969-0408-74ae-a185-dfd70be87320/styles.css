@@ -1,0 +1,9 @@
+/* ============================================================
+   HungerRush Design System — global CSS entry point
+   Consumers link THIS one file. Import-only; no rules here.
+   ============================================================ */
+
+@import "./tokens/fonts.css";
+@import "./tokens/fig-tokens.css";       /* Figma Variables: colors, palette, spacing, typography, breakpoints, shape — Light / Dark / mobile-app modes */
+@import "./tokens/typography.css";       /* MUI type scale + semantic font tokens */
+@import "./tokens/brand.css";            /* px spacing/radius, elevation shadows, HungerRush nav surfaces */

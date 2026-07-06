@@ -1,0 +1,56 @@
+/* HungerRush Design System — Brand & layout semantic tokens
+   px-based spacing/radius aliases (Figma spacing variables are unitless 8px-grid),
+   MUI elevation shadow scale, and HungerRush-specific surface colors
+   (Restaurant Manager dark navy sidebar, etc.). */
+
+:root {
+  /* Spacing — 8px base grid (Figma: --1 = 8, --space-spacing-* etc.) */
+  --hr-space-0: 0;
+  --hr-space-1: 4px;
+  --hr-space-2: 8px;
+  --hr-space-3: 12px;
+  --hr-space-4: 16px;
+  --hr-space-5: 20px;
+  --hr-space-6: 24px;
+  --hr-space-8: 32px;
+  --hr-space-10: 40px;
+  --hr-space-12: 48px;
+  --hr-space-16: 64px;
+
+  /* Radius — Figma shape.borderRadius = 4 */
+  --hr-radius-sm: 2px;
+  --hr-radius: 4px;
+  --hr-radius-lg: 8px;
+  --hr-radius-pill: 999px;
+
+  /* Breakpoints (Figma `breakpoints` collection) */
+  --hr-bp-xs: 444px;
+  --hr-bp-sm: 600px;
+  --hr-bp-md: 900px;
+  --hr-bp-lg: 1200px;
+  --hr-bp-xl: 1536px;
+
+  /* MUI elevation shadow scale (shadow rgba 0.2 / 0.14 / 0.12) */
+  --hr-shadow-0: none;
+  --hr-shadow-1: 0px 2px 1px -1px rgba(0,0,0,0.2), 0px 1px 1px 0px rgba(0,0,0,0.14), 0px 1px 3px 0px rgba(0,0,0,0.12);
+  --hr-shadow-2: 0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12);
+  --hr-shadow-3: 0px 3px 3px -2px rgba(0,0,0,0.2), 0px 3px 4px 0px rgba(0,0,0,0.14), 0px 1px 8px 0px rgba(0,0,0,0.12);
+  --hr-shadow-4: 0px 2px 4px -1px rgba(0,0,0,0.2), 0px 4px 5px 0px rgba(0,0,0,0.14), 0px 1px 10px 0px rgba(0,0,0,0.12);
+  --hr-shadow-6: 0px 3px 5px -1px rgba(0,0,0,0.2), 0px 6px 10px 0px rgba(0,0,0,0.14), 0px 1px 18px 0px rgba(0,0,0,0.12);
+  --hr-shadow-8: 0px 5px 5px -3px rgba(0,0,0,0.2), 0px 8px 10px 1px rgba(0,0,0,0.14), 0px 3px 14px 2px rgba(0,0,0,0.12);
+  --hr-shadow-12: 0px 7px 8px -4px rgba(0,0,0,0.2), 0px 12px 17px 2px rgba(0,0,0,0.14), 0px 5px 22px 4px rgba(0,0,0,0.12);
+  --hr-shadow-16: 0px 8px 10px -5px rgba(0,0,0,0.2), 0px 16px 24px 2px rgba(0,0,0,0.14), 0px 6px 30px 5px rgba(0,0,0,0.12);
+  --hr-shadow-24: 0px 11px 15px -7px rgba(0,0,0,0.2), 0px 24px 38px 3px rgba(0,0,0,0.14), 0px 9px 46px 8px rgba(0,0,0,0.12);
+
+  /* HungerRush Restaurant Manager — primary navigation sidebar */
+  --hr-nav-bg: rgb(26,35,61);            /* dark navy sidebar */
+  --hr-nav-section-active: rgb(53,67,107); /* expanded/active section slate */
+  --hr-nav-item-hover: rgba(255,255,255,0.08);
+  --hr-nav-text: rgb(255,255,255);
+  --hr-nav-text-muted: rgba(255,255,255,0.7);
+  --hr-nav-width: 280px;
+
+  /* Brand mark colors */
+  --hr-brand-teal: rgb(14,132,118);      /* jade-500 — primary */
+  --hr-brand-navy: rgb(26,35,61);
+}

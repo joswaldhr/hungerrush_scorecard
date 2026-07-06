@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/hungerrush-design-system-019e0969-0408-74ae-a185-dfd70be87320/tokens/fonts.css">
+  <script src="_ds/hungerrush-design-system-019e0969-0408-74ae-a185-dfd70be87320/_ds_bundle.js"></script>
+  <style>
+    :root{ --primary-main:#1D9E75; --primary-dark:#0F6E56; --primary-light:#E1F5EE; --primary-contrasttext:#ffffff; --primary-states-outlinedborder:rgba(29,158,117,0.5); --primary-states-selected:rgba(29,158,117,0.08); }
+    *{ box-sizing:border-box; }
+    body{ margin:0; background:#F7F6F3; }
+    ::selection{ background:#CBEEE0; }
+    @keyframes hrpulse{ 0%{box-shadow:0 0 0 0 rgba(29,158,117,0.45)} 70%{box-shadow:0 0 0 7px rgba(29,158,117,0)} 100%{box-shadow:0 0 0 0 rgba(29,158,117,0)} }
+    @keyframes hrskel{ 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    @keyframes hrfade{ from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+    @keyframes hrspin{ to{transform:rotate(360deg)} }
+  </style>
+</helmet>
+
+<div style="font-family:Roboto,-apple-system,sans-serif;color:#1E2E4A;min-height:100vh;background:#F7F6F3;">
+
+  <!-- ===================== LOGIN ===================== -->
+  <sc-if value="{{ showLogin }}">
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div style="width:404px;max-width:100%;background:#fff;border-radius:18px;box-shadow:0 18px 60px rgba(30,46,74,0.14);overflow:hidden;">
+        <div style="height:6px;background:linear-gradient(90deg,#1D9E75,#0F6E56);"></div>
+        <div style="padding:46px 42px 40px;text-align:center;">
+          <img src="assets/hungerrush-icon.png" width="46" height="46" style="border-radius:11px;" alt="HungerRush"/>
+          <h1 style="font:800 27px/1.2 'Nunito Sans',sans-serif;color:#1E2E4A;margin:22px 0 7px;letter-spacing:-0.5px;">Manager Scorecard</h1>
+          <p style="font:400 14.5px/1.5 Roboto,sans-serif;color:#6B7280;margin:0 0 30px;">Sign in to review this week with your team.</p>
+          <x-import component-from-global-scope="HungerRushDesignSystem_019e09.Button" size="large" fullWidth="{{ true }}" disabled="{{ loading }}" onClick="{{ signIn }}" hint-size="100%,44px">
+            <sc-if value="{{ loading }}"><span style="display:inline-flex;align-items:center;gap:10px;"><span class="material-symbols-rounded" style="font-size:19px;animation:hrspin 1s linear infinite;">progress_activity</span>Signing in…</span></sc-if>
+            <sc-if value="{{ notLoading }}" hint-placeholder-val="{{ true }}"><span style="display:inline-flex;align-items:center;gap:11px;"><svg width="17" height="17" viewBox="0 0 18 18"><rect width="8" height="8" fill="#F25022"></rect><rect x="10" width="8" height="8" fill="#7FBA00"></rect><rect y="10" width="8" height="8" fill="#00A4EF"></rect><rect x="10" y="10" width="8" height="8" fill="#FFB900"></rect></svg>Sign in with Microsoft</span></sc-if>
+          </x-import>
+          <p style="font:400 12px/1.5 Roboto,sans-serif;color:#A6A29A;margin:22px 0 0;">Single sign-on only · HungerRush accounts</p>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===================== SHARED (employee, no auth) ===================== -->
+  <sc-if value="{{ showShared }}">
+    <div style="min-height:100vh;background:#F7F6F3;">
+      <div onClick="{{ backToApp }}" style="position:fixed;top:18px;left:18px;z-index:40;display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid #E4E1D9;color:#5A6472;padding:8px 14px;border-radius:999px;font:600 12px Roboto,sans-serif;cursor:pointer;box-shadow:0 3px 10px rgba(30,46,74,0.08);" style-hover="color:#0F6E56;border-color:#B7E4D4">
+        <span class="material-symbols-rounded" style="font-size:17px;">arrow_back</span>Back to app
+      </div>
+      <div style="background:#fff;border-bottom:1px solid #ECE9E2;">
+        <div style="max-width:1060px;margin:0 auto;padding:24px 40px;display:flex;align-items:center;gap:13px;">
+          <img src="assets/hungerrush-icon.png" width="32" height="32" style="border-radius:8px;" alt=""/>
+          <div style="font:600 11px/1.4 Roboto,sans-serif;letter-spacing:1.2px;text-transform:uppercase;color:#9AA2AE;">HungerRush · Weekly Snapshot</div>
+        </div>
+        <div style="height:5px;background:linear-gradient(90deg,#1D9E75,#0F6E56);"></div>
+      </div>
+      <div style="max-width:1060px;margin:0 auto;padding:40px 40px 64px;">
+        <h1 style="font:800 32px/1.2 'Nunito Sans',sans-serif;color:#1E2E4A;margin:0 0 8px;letter-spacing:-0.6px;">Your Weekly Snapshot</h1>
+        <div style="background:#E1F5EE;border:1px solid #C4EADB;border-radius:14px;padding:20px 24px;margin:20px 0 32px;">
+          <p style="margin:0;font:600 16px/1.5 'Nunito Sans',sans-serif;color:#0F6E56;">{{ sharedGreeting }}</p>
+          <p style="margin:8px 0 0;font:400 14.5px/1.6 Roboto,sans-serif;color:#3E7A67;">Your manager shared this week's metrics with you. These highlight your progress and the areas where there's room to grow — no grades, just a look at the week.</p>
+        </div>
+        <sc-if value="{{ empNoData }}">
+          <div style="display:flex;align-items:center;gap:12px;background:#EEF1F4;border:1px solid #DEE4EA;border-radius:12px;padding:16px 18px;margin-bottom:26px;color:#54606F;font:400 14px Roboto,sans-serif;">
+            <span class="material-symbols-rounded" style="color:#7C8797;">schedule</span>No metrics synced yet — data refreshes every 4 hours.
+          </div>
+        </sc-if>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;">
+          <sc-for list="{{ sharedTiles }}" as="t" hint-placeholder-count="6">
+            <dc-import name="KpiTile" tile="{{ t }}" hint-size="100%,182px"></dc-import>
+          </sc-for>
+        </div>
+        <p style="text-align:center;font:400 12.5px Roboto,sans-serif;color:#A6A29A;margin:36px 0 0;">Shared securely by your manager · this link is valid for 72 hours.</p>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===================== APP CHROME ===================== -->
+  <sc-if value="{{ showChrome }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;min-height:100vh;">
+
+      <!-- Sidebar -->
+      <aside style="width:220px;flex-shrink:0;background:#1E2E4A;color:#fff;display:flex;flex-direction:column;padding:22px 16px 18px;">
+        <div style="display:flex;align-items:center;gap:11px;padding:0 6px 0 8px;">
+          <img src="assets/hungerrush-icon.png" width="30" height="30" style="border-radius:7px;" alt=""/>
+          <div>
+            <div style="font:800 17px/1 'Nunito Sans',sans-serif;color:#fff;letter-spacing:-0.2px;">Scorecard</div>
+            <div style="font:600 9px/1.3 Roboto,sans-serif;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,0.42);margin-top:4px;">HungerRush</div>
+          </div>
+        </div>
+
+        <nav style="display:flex;flex-direction:column;gap:3px;margin-top:30px;">
+          <sc-for list="{{ navItems }}" as="it" hint-placeholder-count="2">
+            <div onClick="{{ it.onClick }}" style="display:flex;align-items:center;gap:13px;height:46px;padding:0 14px;border-radius:11px;cursor:pointer;position:relative;color:{{ it.fg }};background:{{ it.bg }};font:500 14px Roboto,sans-serif;transition:background .15s;" style-hover="background:rgba(255,255,255,0.07)">
+              <span style="position:absolute;left:-2px;top:12px;bottom:12px;width:3px;border-radius:3px;background:{{ it.bar }};"></span>
+              <span class="material-symbols-rounded" style="font-size:22px;">{{ it.icon }}</span>{{ it.label }}
+            </div>
+          </sc-for>
+        </nav>
+
+        <div style="flex:1;"></div>
+
+        <div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:14px;position:relative;">
+          <sc-if value="{{ roleMenuOpen }}">
+            <div style="position:absolute;bottom:62px;left:0;right:0;background:#26385A;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:6px;box-shadow:0 14px 34px rgba(0,0,0,0.4);animation:hrfade .16s ease both;">
+              <div style="font:600 9px Roboto,sans-serif;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,0.4);padding:8px 10px 6px;">View as role</div>
+              <sc-for list="{{ roleOptions }}" as="o" hint-placeholder-count="3">
+                <div onClick="{{ o.onClick }}" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 10px;border-radius:8px;cursor:pointer;color:{{ o.fg }};background:{{ o.bg }};font:500 13px Roboto,sans-serif;" style-hover="background:rgba(255,255,255,0.08)">
+                  {{ o.label }}
+                  <sc-if value="{{ o.active }}"><span class="material-symbols-rounded" style="font-size:18px;color:#8FE3C6;">check</span></sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <div style="display:flex;align-items:center;gap:11px;">
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:#1D9E75;color:#fff;font:700 14px 'Nunito Sans',sans-serif;flex-shrink:0;">JR</span>
+            <div onClick="{{ toggleRoleMenu }}" style="flex:1;min-width:0;cursor:pointer;">
+              <div style="font:600 13.5px/1.2 Roboto,sans-serif;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Jamie Rivera</div>
+              <div style="display:flex;align-items:center;gap:3px;font:400 11px Roboto,sans-serif;color:rgba(255,255,255,0.55);margin-top:2px;">Viewing as {{ roleLabel }}<span class="material-symbols-rounded" style="font-size:14px;">expand_more</span></div>
+            </div>
+            <span onClick="{{ signOut }}" class="material-symbols-rounded" style="font-size:20px;color:rgba(255,255,255,0.55);cursor:pointer;padding:4px;border-radius:8px;" style-hover="color:#fff;background:rgba(255,255,255,0.08)">logout</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main column -->
+      <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
+        <div style="height:52px;flex-shrink:0;background:#fff;border-bottom:1px solid #ECE9E2;display:flex;align-items:center;justify-content:space-between;padding:0 32px;">
+          <span style="font:600 14px Roboto,sans-serif;color:#1E2E4A;letter-spacing:0.1px;">{{ pageTitleTop }}</span>
+          <span style="display:inline-flex;align-items:center;gap:8px;color:#6B7280;font:500 13px Roboto,sans-serif;background:#F7F6F3;padding:7px 13px;border-radius:9px;">
+            <span class="material-symbols-rounded" style="font-size:18px;color:#9AA2AE;">calendar_today</span>Jun 23 – Jun 29, 2025
+          </span>
+        </div>
+
+        <main style="flex:1;padding:32px;overflow:auto;">
+          <sc-if value="{{ err }}">
+            <div style="max-width:1160px;margin:0 auto 20px;display:flex;align-items:center;gap:12px;background:#FDECEA;border:1px solid #F3C6C0;color:#8E2A1E;padding:13px 16px;border-radius:11px;font:500 14px Roboto,sans-serif;animation:hrfade .2s ease both;">
+              <span class="material-symbols-rounded" style="color:#C0392B;">error</span>
+              <span style="flex:1;">{{ err }}</span>
+              <span onClick="{{ dismissErr }}" class="material-symbols-rounded" style="cursor:pointer;color:#B0857E;">close</span>
+            </div>
+          </sc-if>
+
+          <!-- ---------- DASHBOARD ---------- -->
+          <sc-if value="{{ showDashboard }}" hint-placeholder-val="{{ true }}">
+            <div style="max-width:1160px;margin:0 auto;">
+              <div style="margin-bottom:26px;">
+                <h1 style="font:800 30px/1.2 'Nunito Sans',sans-serif;color:#1E2E4A;margin:0 0 6px;letter-spacing:-0.6px;">Your team</h1>
+                <p style="font:400 15px Roboto,sans-serif;color:#6B7280;margin:0;">A calm look at how everyone's week is going. Pick someone to prepare for your next 1:1.</p>
+              </div>
+
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:28px;">
+                <div style="background:#fff;border:1px solid #EEEBE3;border-radius:14px;padding:20px 22px;box-shadow:0 1px 2px rgba(30,46,74,0.04),0 6px 20px rgba(30,46,74,0.05);display:flex;gap:16px;align-items:center;">
+                  <span style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:12px;background:#E1F5EE;color:#0F6E56;flex-shrink:0;"><span class="material-symbols-rounded">groups</span></span>
+                  <div><div style="font:800 27px/1 'Nunito Sans',sans-serif;color:#1E2E4A;">{{ teamCount }}</div><div style="font:600 13px Roboto,sans-serif;color:#4C566A;margin-top:5px;">Team members</div><div style="font:400 12px Roboto,sans-serif;color:#9AA2AE;margin-top:2px;">{{ teamWithData }} with metric data</div></div>
+                </div>
+                <div style="background:#fff;border:1px solid #EEEBE3;border-radius:14px;padding:20px 22px;box-shadow:0 1px 2px rgba(30,46,74,0.04),0 6px 20px rgba(30,46,74,0.05);display:flex;gap:16px;align-items:center;">
+                  <span style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:12px;background:#EEF1F4;color:#3C6E9E;flex-shrink:0;"><span class="material-symbols-rounded">confirmation_number</span></span>
+                  <div><div style="font:800 27px/1 'Nunito Sans',sans-serif;color:#1E2E4A;">{{ avgTickets }}</div><div style="font:600 13px Roboto,sans-serif;color:#4C566A;margin-top:5px;">Avg tickets</div><div style="font:400 12px Roboto,sans-serif;color:#9AA2AE;margin-top:2px;">per person this week</div></div>
+                </div>
+                <div style="background:#fff;border:1px solid #EEEBE3;border-radius:14px;padding:20px 22px;box-shadow:0 1px 2px rgba(30,46,74,0.04),0 6px 20px rgba(30,46,74,0.05);display:flex;gap:16px;align-items:center;">
+                  <span style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:12px;background:#F5F0E6;color:#B7791F;flex-shrink:0;"><span class="material-symbols-rounded">sync</span></span>
+                  <div><div style="font:800 27px/1 'Nunito Sans',sans-serif;color:#1E2E4A;">2h ago</div><div style="font:600 13px Roboto,sans-serif;color:#4C566A;margin-top:5px;">Last synced</div><div style="font:400 12px Roboto,sans-serif;color:#9AA2AE;margin-top:2px;">Refreshes every 4 hours</div></div>
+                </div>
+              </div>
+
+              <div style="background:#fff;border:1px solid #EEEBE3;border-radius:16px;box-shadow:0 1px 2px rgba(30,46,74,0.04),0 6px 20px rgba(30,46,74,0.05);overflow:hidden;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 22px;border-bottom:1px solid #F0EEE9;flex-wrap:wrap;">
+                  <h2 style="font:700 17px 'Nunito Sans',sans-serif;color:#1E2E4A;margin:0;">Team roster</h2>
+                  <div style="display:flex;align-items:center;gap:12px;">
+                    <div style="display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border:1px solid #E4E1D9;border-radius:10px;background:#FCFBF9;width:270px;">
+                      <span class="material-symbols-rounded" style="font-size:20px;color:#9AA2AE;">search</span>
+                      <input value="{{ searchVal }}" onChange="{{ setSearch }}" placeholder="Search by name or email" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font:400 14px Roboto,sans-serif;color:#1E2E4A;"/>
+                    </div>
+                    <div style="display:inline-flex;background:#F0EEE9;border-radius:10px;padding:3px;gap:2px;">
+                      <button onClick="{{ setSortRecent }}" style="{{ styRecent }}">Recent</button>
+                      <button onClick="{{ setSortAZ }}" style="{{ styAZ }}">A–Z</button>
+                    </div>
+                  </div>
+                </div>
+                <div style="padding:8px 14px 14px;">
+                  <sc-for list="{{ rosterRows }}" as="r" hint-placeholder-count="6">
+                    <div onClick="{{ r.onOpen }}" style="display:flex;align-items:center;gap:14px;padding:14px 10px;border-bottom:1px solid #F3F1EC;border-radius:10px;cursor:pointer;transition:background .15s;" style-hover="background:#FAF9F6">
+                      <span style="display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:{{ r.color }};color:#fff;font:700 14px 'Nunito Sans',sans-serif;flex-shrink:0;">{{ r.initials }}</span>
+                      <div style="flex:1;min-width:0;">
+                        <div style="display:flex;align-items:center;gap:9px;">
+                          <span style="font:600 15px Roboto,sans-serif;color:#1E2E4A;">{{ r.name }}</span>
+                          <sc-if value="{{ r.noData }}"><span style="display:inline-flex;align-items:center;gap:5px;height:21px;padding:0 9px;border-radius:999px;background:#F0EDE7;color:#8A8578;font:600 10.5px Roboto,sans-serif;"><span style="width:6px;height:6px;border-radius:50%;background:#BDB8AE;"></span>No data yet</span></sc-if>
+                        </div>
+                        <div style="font:400 13px Roboto,sans-serif;color:#9AA2AE;margin-top:3px;">{{ r.email }}</div>
+                      </div>
+                      <sc-if value="{{ r.previewText }}"><div style="font:500 13.5px Roboto,sans-serif;color:#54606F;white-space:nowrap;">{{ r.previewText }}</div></sc-if>
+                      <div style="width:74px;text-align:right;font:400 12px Roboto,sans-serif;color:#B3B8C0;white-space:nowrap;">{{ r.lastActive }}</div>
+                      <span class="material-symbols-rounded" style="font-size:22px;color:#CBC9C1;">chevron_right</span>
+                    </div>
+                  </sc-for>
+                  <sc-if value="{{ noResults }}">
+                    <div style="text-align:center;padding:48px 20px;color:#9AA2AE;">
+                      <span class="material-symbols-rounded" style="font-size:36px;color:#CBC9C1;">search_off</span>
+                      <p style="font:500 15px Roboto,sans-serif;color:#6B7280;margin:12px 0 4px;">No one matches that search.</p>
+                      <p style="font:400 13px Roboto,sans-serif;margin:0;">Try a different name or email.</p>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ---------- SCORECARD ---------- -->
+          <sc-if value="{{ showScorecard }}">
+            <div style="max-width:1160px;margin:0 auto;">
+              <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:26px;flex-wrap:wrap;">
+                <div>
+                  <div style="display:flex;align-items:center;gap:7px;font:500 13px Roboto,sans-serif;color:#9AA2AE;margin-bottom:11px;">
+                    <span onClick="{{ back }}" style="color:#1D9E75;cursor:pointer;" style-hover="color:#0F6E56">Your team</span>
+                    <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
+                    <span style="color:#6B7280;">{{ emp.name }}</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:16px;">
+                    <span style="display:inline-flex;align-items:center;justify-content:center;width:54px;height:54px;border-radius:50%;background:{{ emp.color }};color:#fff;font:700 20px 'Nunito Sans',sans-serif;flex-shrink:0;">{{ emp.initials }}</span>
+                    <div>
+                      <h1 style="font:800 28px/1.1 'Nunito Sans',sans-serif;color:#1E2E4A;margin:0;letter-spacing:-0.5px;">{{ emp.name }}</h1>
+                      <div style="font:400 14px Roboto,sans-serif;color:#6B7280;margin-top:4px;">{{ emp.email }} · Support Specialist</div>
+                    </div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="display:inline-flex;border:1px solid #E4E1D9;border-radius:10px;overflow:hidden;background:#fff;">
+                    <span onClick="{{ prevEmp }}" class="material-symbols-rounded" style="padding:9px;cursor:pointer;color:#5A6472;border-right:1px solid #E4E1D9;font-size:20px;" style-hover="background:#FAF9F6">chevron_left</span>
+                    <span onClick="{{ nextEmp }}" class="material-symbols-rounded" style="padding:9px;cursor:pointer;color:#5A6472;font-size:20px;" style-hover="background:#FAF9F6">chevron_right</span>
+                  </div>
+                  <x-import component-from-global-scope="HungerRushDesignSystem_019e09.Button" variant="outlined" onClick="{{ share }}" hint-size="auto,38px">
+                    <span style="display:inline-flex;align-items:center;gap:7px;"><span class="material-symbols-rounded" style="font-size:18px;">ios_share</span>Share</span>
+                  </x-import>
+                  <x-import component-from-global-scope="HungerRushDesignSystem_019e09.Button" variant="contained" onClick="{{ exportPdf }}" hint-size="auto,38px">
+                    <span style="display:inline-flex;align-items:center;gap:7px;"><span class="material-symbols-rounded" style="font-size:18px;">picture_as_pdf</span>Export PDF</span>
+                  </x-import>
+                </div>
+              </div>
+
+              <sc-if value="{{ empNoData }}">
+                <div style="display:flex;align-items:center;gap:12px;background:#EEF1F4;border:1px solid #DEE4EA;border-radius:12px;padding:16px 18px;margin-bottom:24px;color:#54606F;font:400 14px Roboto,sans-serif;">
+                  <span class="material-symbols-rounded" style="color:#7C8797;">schedule</span>No metrics synced yet — data refreshes every 4 hours. Check back soon.
+                </div>
+              </sc-if>
+
+              <!-- This Week -->
+              <div style="margin-bottom:28px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                  <div style="display:flex;align-items:center;gap:12px;">
+                    <h2 style="font:700 18px 'Nunito Sans',sans-serif;color:#1E2E4A;margin:0;">This Week So Far</h2>
+                    <span style="display:inline-flex;align-items:center;gap:7px;height:24px;padding:0 11px;border-radius:999px;background:#E1F5EE;color:#0F6E56;font:600 11px Roboto,sans-serif;"><span style="width:7px;height:7px;border-radius:50%;background:#1D9E75;animation:hrpulse 2s infinite;"></span>Live · synced 2h ago</span>
+                  </div>
+                  <span onClick="{{ reloadWeek }}" style="display:inline-flex;align-items:center;gap:6px;color:#6B7280;font:600 12.5px Roboto,sans-serif;cursor:pointer;padding:5px 8px;border-radius:8px;" style-hover="color:#0F6E56;background:#EFEDE8"><span class="material-symbols-rounded" style="font-size:18px;">refresh</span>Refresh</span>
+                </div>
+                <sc-if value="{{ notReloading }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;">
+                    <sc-for list="{{ thisWeek }}" as="t" hint-placeholder-count="6">
+                      <dc-import name="KpiTile" tile="{{ t }}" hint-size="100%,182px"></dc-import>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ reloading }}">
+                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;">
+                    <sc-for list="{{ skel }}" as="s" hint-placeholder-count="6">
+                      <div style="background:#fff;border:1px solid #EEEBE3;border-radius:14px;padding:20px 22px;min-height:182px;">
+                        <div style="height:11px;width:46%;border-radius:6px;background:linear-gradient(90deg,#EFEDE8,#F7F6F3,#EFEDE8);background-size:200% 100%;animation:hrskel 1.4s infinite;"></div>
+                        <div style="height:32px;width:60%;border-radius:8px;margin-top:20px;background:linear-gradient(90deg,#EFEDE8,#F7F6F3,#EFEDE8);background-size:200% 100%;animation:hrskel 1.4s infinite;"></div>
+                        <div style="height:22px;width:80%;border-radius:6px;margin-top:20px;background:linear-gradient(90deg,#EFEDE8,#F7F6F3,#EFEDE8);background-size:200% 100%;animation:hrskel 1.4s infinite;"></div>
+                        <div style="height:12px;width:90%;border-radius:6px;margin-top:22px;background:linear-gradient(90deg,#F3F2ED,#F9F8F5,#F3F2ED);background-size:200% 100%;animation:hrskel 1.4s infinite;"></div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+
+              <!-- Last Week (frozen) -->
+              <div style="background:#EDF0F4;border:1px solid #E0E6EC;border-radius:16px;padding:22px;margin-bottom:28px;">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+                  <h2 style="font:700 18px 'Nunito Sans',sans-serif;color:#3A4A63;margin:0;">Last Week (Completed)</h2>
+                  <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 11px;border-radius:999px;background:#E2E7EE;color:#54606F;font:600 11px Roboto,sans-serif;"><span class="material-symbols-rounded" style="font-size:14px;">lock</span>Snapshot · Jun 16 – 22</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;">
+                  <sc-for list="{{ lastWeek }}" as="t" hint-placeholder-count="6">
+                    <dc-import name="KpiTile" tile="{{ t }}" hint-size="100%,182px"></dc-import>
+                  </sc-for>
+                </div>
+              </div>
+
+              <!-- Notes -->
+              <div style="background:#fff;border:1px solid #EEEBE3;border-radius:16px;box-shadow:0 1px 2px rgba(30,46,74,0.04),0 6px 20px rgba(30,46,74,0.05);padding:24px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="material-symbols-rounded" style="color:#1D9E75;">edit_note</span>
+                    <h2 style="font:700 17px 'Nunito Sans',sans-serif;color:#1E2E4A;margin:0;">1:1 Notes</h2>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:14px;">
+                    <span style="display:inline-flex;align-items:center;gap:5px;font:400 12px Roboto,sans-serif;color:#9AA2AE;"><span class="material-symbols-rounded" style="font-size:15px;color:#1D9E75;">cloud_done</span>All changes saved</span>
+                    <select value="{{ weekSel }}" onChange="{{ setWeek }}" style="border:1px solid #E4E1D9;border-radius:9px;padding:8px 12px;font:500 13px Roboto,sans-serif;color:#1E2E4A;background:#FCFBF9;cursor:pointer;outline:none;">
+                      <sc-for list="{{ weekOpts }}" as="w" hint-placeholder-count="4"><option value="{{ w }}">{{ w }}</option></sc-for>
+                    </select>
+                  </div>
+                </div>
+                <textarea value="{{ noteVal }}" onChange="{{ setNote }}" placeholder="What did you talk about? Capture wins, focus areas, and anything to follow up on…" style="width:100%;min-height:118px;box-sizing:border-box;border:1px solid #E4E1D9;border-radius:11px;padding:14px 16px;font:400 14.5px/1.6 Roboto,sans-serif;color:#1E2E4A;resize:vertical;outline:none;background:#FCFBF9;"></textarea>
+
+                <div style="margin-top:22px;">
+                  <div style="font:600 11px Roboto,sans-serif;letter-spacing:.7px;text-transform:uppercase;color:#8A93A0;margin-bottom:8px;">Action items</div>
+                  <sc-for list="{{ actions }}" as="a" hint-placeholder-count="3">
+                    <div style="display:flex;align-items:center;gap:11px;padding:5px 0;">
+                      <x-import component-from-global-scope="HungerRushDesignSystem_019e09.Checkbox" checked="{{ a.done }}" onChange="{{ a.onToggle }}" size="small" hint-size="20px,20px"></x-import>
+                      <input value="{{ a.text }}" onChange="{{ a.onEdit }}" placeholder="Add an action item…" style="flex:1;border:none;background:transparent;font:400 14.5px Roboto,sans-serif;color:#1E2E4A;outline:none;{{ a.strike }}"/>
+                      <span onClick="{{ a.onRemove }}" class="material-symbols-rounded" style="font-size:18px;color:#C4C0B6;cursor:pointer;" style-hover="color:#8E2A1E">close</span>
+                    </div>
+                  </sc-for>
+                  <div onClick="{{ addAct }}" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;color:#0F6E56;font:600 13.5px Roboto,sans-serif;cursor:pointer;"><span class="material-symbols-rounded" style="font-size:19px;">add</span>Add action item</div>
+                </div>
+
+                <div style="margin-top:22px;border-top:1px solid #F0EEE9;padding-top:14px;">
+                  <div onClick="{{ toggleSessions }}" style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#4C566A;font:600 13.5px Roboto,sans-serif;">
+                    <span class="material-symbols-rounded" style="font-size:20px;color:#9AA2AE;{{ sessChevron }}">chevron_right</span>Previous sessions
+                    <sc-if value="{{ hasSessions }}"><span style="font:400 12px Roboto,sans-serif;color:#B3B8C0;">· last 3</span></sc-if>
+                  </div>
+                  <sc-if value="{{ showSessions }}">
+                    <div style="margin-top:12px;display:flex;flex-direction:column;gap:2px;animation:hrfade .2s ease both;">
+                      <sc-if value="{{ hasSessions }}">
+                        <sc-for list="{{ sessions }}" as="ss" hint-placeholder-count="3">
+                          <div style="padding:12px 14px;border-radius:10px;background:#FAF9F6;margin-bottom:8px;">
+                            <div style="font:600 12.5px Roboto,sans-serif;color:#0F6E56;margin-bottom:4px;">{{ ss.date }}</div>
+                            <div style="font:400 13.5px/1.55 Roboto,sans-serif;color:#54606F;">{{ ss.summary }}</div>
+                          </div>
+                        </sc-for>
+                      </sc-if>
+                      <sc-if value="{{ notHasSessions }}"></sc-if>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ---------- ROLLUP ---------- -->
+          <sc-if value="{{ showRollup }}">
+            <div style="max-width:1160px;margin:0 auto;">
+              <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap;">
+                <div>
+                  <h1 style="font:800 30px/1.2 'Nunito Sans',sans-serif;color:#1E2E4A;margin:0 0 6px;letter-spacing:-0.6px;">Team rollup</h1>
+                  <p style="font:400 15px Roboto,sans-serif;color:#6B7280;margin:0;">How each of your managers' teams is trending this week.</p>
+                </div>
+                <span style="display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #EEEBE3;color:#54606F;font:500 13px Roboto,sans-serif;padding:9px 14px;border-radius:10px;"><span class="material-symbols-rounded" style="font-size:18px;color:#9AA2AE;">date_range</span>{{ weekRange }}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:14px;">
+                <sc-for list="{{ managers }}" as="m" hint-placeholder-count="5">
+                 <div>
+                  <sc-if value="{{ m.noData }}">
+                    <div style="display:flex;align-items:center;gap:13px;padding:14px 20px;border-radius:12px;background:#F4F3EF;border:1px dashed #DED9CF;color:#9A948A;">
+                      <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:#DED9CF;color:#8A8578;font:700 12px 'Nunito Sans',sans-serif;flex-shrink:0;">{{ m.initials }}</span>
+                      <span style="flex:1;font:500 14px Roboto,sans-serif;">{{ m.name }} · {{ m.reports }} reports</span>
+                      <span style="display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 10px;border-radius:999px;background:#EDEAE3;color:#8A8578;font:600 11px Roboto,sans-serif;"><span style="width:6px;height:6px;border-radius:50%;background:#BDB8AE;"></span>No data yet</span>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ m.hasData }}">
+                    <div onClick="{{ m.onClick }}" style="display:flex;align-items:center;gap:16px;padding:18px 22px;border-radius:14px;background:#fff;border:1px solid #EEEBE3;box-shadow:0 1px 2px rgba(30,46,74,0.04),0 6px 18px rgba(30,46,74,0.05);cursor:pointer;transition:box-shadow .2s,transform .2s;" style-hover="box-shadow:0 3px 8px rgba(30,46,74,0.07),0 14px 32px rgba(30,46,74,0.09);transform:translateY(-2px)">
+                      <span style="display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:50%;background:{{ m.color }};color:#fff;font:700 16px 'Nunito Sans',sans-serif;flex-shrink:0;">{{ m.initials }}</span>
+                      <div style="min-width:170px;">
+                        <div style="font:700 16px 'Nunito Sans',sans-serif;color:#1E2E4A;">{{ m.name }}</div>
+                        <div style="font:400 13px Roboto,sans-serif;color:#9AA2AE;margin-top:2px;">{{ m.reports }} reports</div>
+                      </div>
+                      <div style="flex:1;display:flex;align-items:center;gap:9px;flex-wrap:wrap;">
+                        <span style="display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 12px;border-radius:999px;background:#E1F5EE;color:#0F6E56;font:600 12.5px Roboto,sans-serif;"><span style="width:7px;height:7px;border-radius:50%;background:#1D9E75;"></span>{{ m.improving }} improving</span>
+                        <span style="display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 12px;border-radius:999px;background:#FBF0DA;color:#946410;font:600 12.5px Roboto,sans-serif;"><span style="width:7px;height:7px;border-radius:50%;background:#D08A1E;"></span>{{ m.opportunity }} opportunity</span>
+                        <span style="display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 12px;border-radius:999px;background:#EDEFF3;color:#54606F;font:600 12.5px Roboto,sans-serif;"><span style="width:7px;height:7px;border-radius:50%;background:#7C8797;"></span>{{ m.steady }} steady</span>
+                      </div>
+                      <span class="material-symbols-rounded" style="font-size:22px;color:#CBC9C1;">chevron_right</span>
+                    </div>
+                  </sc-if>
+                 </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ---------- METRIC CONFIG (admin) ---------- -->
+          <sc-if value="{{ showConfig }}">
+            <div style="max-width:1160px;margin:0 auto;">
+              <div style="margin-bottom:22px;">
+                <h1 style="font:800 30px/1.2 'Nunito Sans',sans-serif;color:#1E2E4A;margin:0 0 6px;letter-spacing:-0.6px;">Metric configuration</h1>
+                <p style="font:400 15px Roboto,sans-serif;color:#6B7280;margin:0;">Set how each metric appears on scorecards and the coaching prompt shown by default.</p>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:12px;">
+                <div style="display:grid;grid-template-columns:1.1fr 2fr 70px 150px 36px;gap:14px;padding:0 20px;font:600 11px Roboto,sans-serif;letter-spacing:.6px;text-transform:uppercase;color:#9AA2AE;">
+                  <span>Display name</span><span>Default coaching prompt</span><span>Order</span><span>Direction</span><span></span>
+                </div>
+                <sc-for list="{{ config }}" as="c" hint-placeholder-count="6">
+                  <div style="display:grid;grid-template-columns:1.1fr 2fr 70px 150px 36px;gap:14px;align-items:center;background:#fff;border:1px solid #EEEBE3;border-radius:12px;padding:14px 20px;box-shadow:0 1px 2px rgba(30,46,74,0.03);">
+                    <input value="{{ c.name }}" style="border:1px solid #EAE7E0;border-radius:8px;padding:8px 10px;font:600 14px Roboto,sans-serif;color:#1E2E4A;outline:none;background:#FCFBF9;"/>
+                    <input value="{{ c.prompt }}" style="border:1px solid #EAE7E0;border-radius:8px;padding:8px 10px;font:400 13.5px Roboto,sans-serif;color:#54606F;outline:none;background:#FCFBF9;"/>
+                    <input value="{{ c.order }}" style="border:1px solid #EAE7E0;border-radius:8px;padding:8px 10px;font:500 14px Roboto,sans-serif;color:#1E2E4A;outline:none;background:#FCFBF9;text-align:center;"/>
+                    <select value="{{ c.dir }}" style="border:1px solid #EAE7E0;border-radius:8px;padding:8px 10px;font:500 13px Roboto,sans-serif;color:#1E2E4A;outline:none;background:#FCFBF9;cursor:pointer;"><option>Higher is better</option><option>Lower is better</option></select>
+                    <span class="material-symbols-rounded" style="color:#CBC9C1;cursor:grab;">drag_indicator</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- ---------- EXPORT LOG (admin) ---------- -->
+          <sc-if value="{{ showLog }}">
+            <div style="max-width:1160px;margin:0 auto;">
+              <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap;">
+                <div>
+                  <h1 style="font:800 30px/1.2 'Nunito Sans',sans-serif;color:#1E2E4A;margin:0 0 6px;letter-spacing:-0.6px;">Export log</h1>
+                  <p style="font:400 15px Roboto,sans-serif;color:#6B7280;margin:0;">Audit trail of scorecard PDF exports.</p>
+                </div>
+                <x-import component-from-global-scope="HungerRushDesignSystem_019e09.Button" variant="outlined" onClick="{{ simulateError }}" hint-size="auto,38px">
+                  <span style="display:inline-flex;align-items:center;gap:7px;"><span class="material-symbols-rounded" style="font-size:18px;">replay</span>Re-run last export</span>
+                </x-import>
+              </div>
+              <div style="background:#fff;border:1px solid #EEEBE3;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(30,46,74,0.04);">
+                <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 120px;gap:12px;padding:14px 22px;background:#FAF9F6;border-bottom:1px solid #F0EEE9;font:600 11px Roboto,sans-serif;letter-spacing:.6px;text-transform:uppercase;color:#8A93A0;">
+                  <span>Date</span><span>Employee</span><span>Exported by</span><span>Status</span>
+                </div>
+                <sc-for list="{{ exportLog }}" as="l" hint-placeholder-count="5">
+                  <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 120px;gap:12px;padding:14px 22px;border-bottom:1px solid #F3F1EC;font:400 13.5px Roboto,sans-serif;color:#54606F;align-items:center;">
+                    <span style="color:#1E2E4A;font-weight:500;">{{ l.date }}</span><span>{{ l.emp }}</span><span>{{ l.by }}</span>
+                    <span style="display:inline-flex;align-items:center;gap:6px;color:#0F6E56;"><span class="material-symbols-rounded" style="font-size:17px;">check_circle</span>{{ l.status }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </main>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Toast -->
+  <sc-if value="{{ toast }}">
+    <div style="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:70;display:flex;align-items:center;gap:11px;background:#1E2E4A;color:#fff;padding:13px 20px;border-radius:13px;box-shadow:0 12px 34px rgba(30,46,74,0.32);font:500 14px Roboto,sans-serif;animation:hrfade .22s ease both;">
+      <span class="material-symbols-rounded" style="font-size:20px;color:#8FE3C6;">{{ toast.icon }}</span>{{ toast.msg }}
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.AV = ['#1E2E4A','#1D9E75','#3C6E9E','#B7791F','#5B6B7E','#0F6E56','#8A5A44','#455168','#2F7D6B','#7A5AA0','#C06A3D','#4A5568'];
+    this.METRICS = [
+      {key:'tickets', name:'Ticket Volume', unit:'', base:34, spread:16, min:2, hi:true, dec:0},
+      {key:'reply', name:'First Reply Time', unit:' min', base:4.2, spread:1.8, min:0.6, hi:false, dec:1},
+      {key:'csat', name:'CSAT Score', unit:'%', base:92, spread:6, min:60, max:100, hi:true, dec:1},
+      {key:'resolution', name:'Resolution Rate', unit:'%', base:78, spread:11, min:40, max:100, hi:true, dec:1},
+      {key:'adherence', name:'Schedule Adherence', unit:'%', base:94, spread:6, min:60, max:100, hi:true, dec:1},
+      {key:'aht', name:'Avg Handle Time', unit:' min', base:11, spread:3.4, min:3, hi:false, dec:1},
+    ];
+    this.PROMPTS = {
+      tickets:{up:"More tickets handled this week — strong throughput.", down:"Lighter volume this week — worth checking for blockers together.", flat:"Steady volume — dependable, consistent output."},
+      reply:{up:"Faster first replies this week — great momentum.", down:"Replies ran a little slower — a good one to unpack together.", flat:"Reply time holding steady — reliably responsive."},
+      csat:{up:"Customers happier this week — really nice work.", down:"CSAT dipped slightly — an opportunity to explore what changed.", flat:"CSAT holding steady — consistently strong."},
+      resolution:{up:"Resolving more on first contact — building well.", down:"A few more reopens this week — room to grow here.", flat:"Resolution rate steady — solid and dependable."},
+      adherence:{up:"Right on schedule — excellent consistency.", down:"Schedule slipped a little — an easy one to tighten up.", flat:"Adherence holding steady — a dependable presence."},
+      aht:{up:"Handling tickets more efficiently — nice progress.", down:"Handle time crept up — maybe some workload to talk through.", flat:"Handle time steady — a consistent pace."},
+    };
+    this.NULLMSG = {
+      tickets:"No tickets logged this week yet.", reply:"No replies to measure yet.",
+      csat:"No survey responses in yet.", resolution:"Not enough resolved tickets yet.",
+      adherence:"Schedule not synced yet.", aht:"Not configured for this role.",
+    };
+    this.STATUS = {
+      improving:{statusLabel:'Improving', dotColor:'#1D9E75', tint:'#E1F5EE', textColor:'#0F6E56', fillFaint:'rgba(29,158,117,0.14)'},
+      opportunity:{statusLabel:'Opportunity', dotColor:'#D08A1E', tint:'#FBF0DA', textColor:'#946410', fillFaint:'rgba(208,138,30,0.14)'},
+      steady:{statusLabel:'Steady', dotColor:'#7C8797', tint:'#EDEFF3', textColor:'#54606F', fillFaint:'rgba(124,135,151,0.14)'},
+    };
+    this.SESSIONS = {
+      sarah:[
+        {date:'Jun 16, 2025', summary:"Focused on CSAT recovery after a tough stretch. Agreed to slow down on complex tickets and double-check before closing."},
+        {date:'Jun 9, 2025', summary:"Rolled out the new ticketing macros. Talked through schedule flexibility for afternoon appointments."},
+        {date:'Jun 2, 2025', summary:"Reviewed Q2 goals. Sarah wants to grow into handling escalations — lined up a shadowing session."},
+      ],
+    };
+    this.EMPLOYEES = this._buildEmployees();
+    this.MANAGERS = [
+      {id:'sarah',name:'Sarah Chen',reports:8,improving:5,opportunity:2,steady:1,activity:94},
+      {id:'priya',name:'Priya Patel',reports:9,improving:4,opportunity:3,steady:2,activity:78},
+      {id:'marcus',name:'Marcus Reed',reports:6,improving:4,opportunity:1,steady:1,activity:66},
+      {id:'david',name:'David Okafor',reports:5,improving:2,opportunity:2,steady:1,activity:52},
+      {id:'emily',name:'Emily Nguyen',reports:7,improving:0,opportunity:0,steady:0,activity:0,noData:true},
+    ].map((m,i)=>({...m, initials:this._initials(m.name), color:this.AV[i%this.AV.length]}));
+    this.EXPORTLOG = [
+      {date:'Jun 30, 2025 · 9:14 AM', emp:'Sarah Chen', by:'Jamie Rivera', status:'Completed'},
+      {date:'Jun 30, 2025 · 9:02 AM', emp:'Marcus Reed', by:'Jamie Rivera', status:'Completed'},
+      {date:'Jun 23, 2025 · 4:48 PM', emp:'Priya Patel', by:'Dana Lee', status:'Completed'},
+      {date:'Jun 23, 2025 · 4:31 PM', emp:'David Okafor', by:'Dana Lee', status:'Completed'},
+      {date:'Jun 16, 2025 · 11:20 AM', emp:'Emily Nguyen', by:'Jamie Rivera', status:'Completed'},
+    ];
+    this.CONFIG = [
+      {name:'Ticket Volume', prompt:'More tickets handled — strong throughput.', order:'1', dir:'Higher is better'},
+      {name:'First Reply Time', prompt:'Faster first replies — great momentum.', order:'2', dir:'Lower is better'},
+      {name:'CSAT Score', prompt:'Customers happier this week — nice work.', order:'3', dir:'Higher is better'},
+      {name:'Resolution Rate', prompt:'Resolving more on first contact.', order:'4', dir:'Higher is better'},
+      {name:'Schedule Adherence', prompt:'Right on schedule — great consistency.', order:'5', dir:'Higher is better'},
+      {name:'Avg Handle Time', prompt:'Handling tickets more efficiently.', order:'6', dir:'Lower is better'},
+    ];
+    this.WEEKOPTS = ['This week · Jun 23 – 29','Last week · Jun 16 – 22','Jun 9 – 15','Jun 2 – 8'];
+    this.state = {
+      page:'dashboard', role:'senior', empId:'sarah', search:'', sort:'recent',
+      notes:{ sarah:"Great week overall — replies noticeably faster and CSAT climbing. We talked about the afternoon rush; she wants to try batching similar tickets together.\n\nWorth celebrating the CSAT jump out loud." },
+      actions:{ sarah:[
+        {id:1, text:'Share the ticket-batching approach with the team', done:false},
+        {id:2, text:'Revisit the handle-time goal at next 1:1', done:false},
+        {id:3, text:"Nominate Sarah for this month's customer-hero shoutout", done:true},
+      ]},
+      weekSel:this.WEEKOPTS[0], showSessions:false, roleMenuOpen:false,
+      loading:false, reloading:false, toast:null, err:null,
+    };
+  }
+
+  _initials(name){ return name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+
+  _rng(str){
+    let h = 2166136261 >>> 0;
+    for (let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return () => {
+      h += 0x6D2B79F5; let t = Math.imul(h ^ (h>>>15), h | 1);
+      t ^= t + Math.imul(t ^ (t>>>7), t | 61);
+      return ((t ^ (t>>>14)) >>> 0) / 4294967296;
+    };
+  }
+
+  _spark(vals){
+    const min=Math.min(...vals), max=Math.max(...vals), r=(max-min)||1;
+    const W=100,H=30,px=3,py=5;
+    const pts=vals.map((v,i)=>{
+      const x=px + i*((W-2*px)/(vals.length-1));
+      const y=(H-py) - ((v-min)/r)*(H-2*py);
+      return [x,y];
+    });
+    const line=pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+    const first=pts[0], last=pts[pts.length-1];
+    const area=first[0].toFixed(1)+','+H+' '+line+' '+last[0].toFixed(1)+','+H;
+    return {line, area, lastX:last[0].toFixed(1), lastY:last[1].toFixed(1)};
+  }
+
+  _buildTile(emp, m, frozen){
+    const cardBg = frozen ? '#FBFBFC' : '#FFFFFF';
+    const cardBorder = frozen ? '#E4E9EF' : '#EEEBE3';
+    const isNull = emp.noData || (emp.nulls && emp.nulls.indexOf(m.key) !== -1);
+    if (isNull){
+      return {key:m.key, name:m.name, unit:'', hasData:false, noData:true, value:'—',
+        statusLabel:'No data yet', dotColor:'#BDB8AE', tint:'#F0EDE7', textColor:'#8A8578',
+        prompt:this.NULLMSG[m.key], frozen, cardBg, cardBorder};
+    }
+    const rng = this._rng(emp.id+'|'+m.key+'|'+(frozen?'L':'T'));
+    let v = m.base*(0.84 + 0.32*rng());
+    const trend = (rng()-0.42);
+    const vals=[];
+    for(let i=0;i<5;i++){
+      v += trend*m.spread*0.26 + (rng()-0.5)*m.spread*0.42;
+      if(m.min!=null) v=Math.max(m.min,v);
+      if(m.max!=null) v=Math.min(m.max,v);
+      vals.push(v);
+    }
+    const last=vals[4], prev=vals[3], delta=last-prev;
+    const favorable = m.hi ? delta>0 : delta<0;
+    const rel = Math.abs(delta)/(Math.abs(last)||1);
+    let key = rel < 0.02 ? 'steady' : (favorable ? 'improving' : 'opportunity');
+    const st = this.STATUS[key];
+    const sp = this._spark(vals);
+    const value = m.dec===0 ? String(Math.round(last)) : last.toFixed(m.dec);
+    const pk = key==='improving' ? 'up' : key==='opportunity' ? 'down' : 'flat';
+    return {key:m.key, name:m.name, unit:m.unit, hasData:true, noData:false, value,
+      statusLabel:st.statusLabel, dotColor:st.dotColor, tint:st.tint, textColor:st.textColor,
+      fillFaint:st.fillFaint, line:sp.line, area:sp.area, lastX:sp.lastX, lastY:sp.lastY,
+      prompt:this.PROMPTS[m.key][pk], statusKey:key, frozen, cardBg, cardBorder};
+  }
+
+  _buildEmployees(){
+    const base = [
+      {id:'sarah', name:'Sarah Chen', activity:97, nulls:['aht']},
+      {id:'marcus', name:'Marcus Reed', activity:88},
+      {id:'priya', name:'Priya Patel', activity:82},
+      {id:'david', name:'David Okafor', activity:75},
+      {id:'emily', name:'Emily Nguyen', activity:69},
+      {id:'jordan', name:'Jordan Blake', activity:61},
+      {id:'ana', name:'Ana Ruiz', activity:54},
+      {id:'tom', name:'Tom Fletcher', activity:47},
+      {id:'rachel', name:'Rachel Kim', activity:39, nulls:['adherence']},
+      {id:'sam', name:'Sam Alvarez', activity:31},
+      {id:'leah', name:'Leah Bennett', activity:0, noData:true},
+      {id:'owen', name:'Owen Park', activity:0, noData:true},
+    ];
+    return base.map((e,i)=>{
+      const parts=e.name.split(' ');
+      const email=(parts[0]+'.'+parts[parts.length-1]).toLowerCase()+'@hungerrush.com';
+      const color=this.AV[i%this.AV.length];
+      const initials=this._initials(e.name);
+      const tilesT=this.METRICS.map(m=>this._buildTile(e,m,false));
+      const tilesL=this.METRICS.map(m=>this._buildTile(e,m,true));
+      let preview=null;
+      if(!e.noData){
+        const tk=tilesT.find(t=>t.key==='tickets'), rp=tilesT.find(t=>t.key==='reply');
+        preview={ tickets: tk.hasData?tk.value:'—', reply: rp.hasData?(rp.value+rp.unit):'—' };
+      }
+      const mins=Math.max(2,Math.round((100-e.activity)*1.4));
+      const lastActive = e.noData ? 'No activity yet' : (mins<60 ? mins+'m ago' : Math.round(mins/60)+'h ago');
+      return {...e, email, color, initials, tilesT, tilesL, preview, lastActive};
+    });
+  }
+
+  // navigation + actions
+  go(page){ this.setState({page, roleMenuOpen:false}); }
+  openEmp(id){ this.setState({page:'scorecard', empId:id, showSessions:false}); }
+  back(){ this.setState({page:'dashboard'}); }
+  prevEmp(){ const i=this.EMPLOYEES.findIndex(e=>e.id===this.state.empId); const n=this.EMPLOYEES.length; this.setState({empId:this.EMPLOYEES[(i-1+n)%n].id, showSessions:false}); }
+  nextEmp(){ const i=this.EMPLOYEES.findIndex(e=>e.id===this.state.empId); const n=this.EMPLOYEES.length; this.setState({empId:this.EMPLOYEES[(i+1)%n].id, showSessions:false}); }
+  signIn(){ if(this.state.loading) return; this.setState({loading:true}); setTimeout(()=>this.setState({loading:false, page:'dashboard'}),1500); }
+  signOut(){ this.setState({page:'login', roleMenuOpen:false}); }
+  share(){ this._toast('link','Share link copied — valid for 72 hours'); setTimeout(()=>this.setState({page:'shared'}),650); }
+  exportPdf(){ this._toast('check_circle','Scorecard exported to PDF'); }
+  _toast(icon,msg){ this.setState({toast:{icon,msg}}); if(this._tt) clearTimeout(this._tt); this._tt=setTimeout(()=>this.setState({toast:null}),3200); }
+  switchRole(r){ let p=this.state.page; if(r!=='admin' && (p==='config'||p==='log')) p='dashboard'; if(r==='manager' && p==='rollup') p='dashboard'; this.setState({role:r, roleMenuOpen:false, page:p}); }
+  toggleRoleMenu(){ this.setState(s=>({roleMenuOpen:!s.roleMenuOpen})); }
+  reloadWeek(){ if(this.state.reloading) return; this.setState({reloading:true}); setTimeout(()=>this.setState({reloading:false}),1300); }
+  toggleSessions(){ this.setState(s=>({showSessions:!s.showSessions})); }
+  dismissErr(){ this.setState({err:null}); }
+  simulateError(){ this.setState({err:'Export failed — network unavailable. Please retry.'}); }
+  setNote(v){ this.setState(s=>({notes:{...s.notes, [s.empId]:v}})); }
+  setWeek(v){ this.setState({weekSel:v}); }
+  _acts(){ const a=this.state.actions[this.state.empId]; return a?a.slice():[]; }
+  _setActs(arr){ this.setState(s=>({actions:{...s.actions, [s.empId]:arr}})); }
+  toggleAct(id){ this._setActs(this._acts().map(a=>a.id===id?{...a,done:!a.done}:a)); }
+  editAct(id,t){ this._setActs(this._acts().map(a=>a.id===id?{...a,text:t}:a)); }
+  removeAct(id){ this._setActs(this._acts().filter(a=>a.id!==id)); }
+  addAct(){ this._setActs(this._acts().concat([{id:Date.now(), text:'', done:false}])); }
+
+  renderVals(){
+    const S=this.state;
+    const emp=this.EMPLOYEES.find(e=>e.id===S.empId)||this.EMPLOYEES[0];
+    const empFirst=emp.name.split(' ')[0];
+    const q=S.search.trim().toLowerCase();
+    let roster=this.EMPLOYEES.filter(e=> !q || e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q));
+    roster = roster.slice().sort((a,b)=> S.sort==='az' ? a.name.localeCompare(b.name) : (b.activity-a.activity));
+    const rosterRows = roster.map(e=>({
+      id:e.id, name:e.name, email:e.email, initials:e.initials, color:e.color,
+      noData:!!e.noData, lastActive:e.lastActive,
+      previewText: e.preview ? (e.preview.tickets+' tickets · '+e.preview.reply+' reply') : null,
+      onOpen:()=>this.openEmp(e.id),
+    }));
+    const dataEmps=this.EMPLOYEES.filter(e=>!e.noData);
+    const avgTickets=Math.round(dataEmps.reduce((s,e)=>s+Number(e.preview.tickets),0)/dataEmps.length);
+
+    const roleLabel = {manager:'Manager', senior:'Senior Manager', admin:'Admin'}[S.role];
+    const nav=[{id:'dashboard',label:'Dashboard',icon:'space_dashboard'}];
+    if(S.role==='senior'||S.role==='admin') nav.push({id:'rollup',label:'Team Rollup',icon:'insights'});
+    if(S.role==='admin'){ nav.push({id:'config',label:'Metric Config',icon:'tune'}); nav.push({id:'log',label:'Export Log',icon:'receipt_long'}); }
+    const activeSec = S.page==='scorecard' ? 'dashboard' : S.page;
+    const navItems=nav.map(it=>{ const active=it.id===activeSec; return {...it, active,
+      onClick:()=>this.go(it.id),
+      bg: active?'rgba(29,158,117,0.15)':'transparent',
+      fg: active?'#8FE3C6':'rgba(255,255,255,0.72)',
+      bar: active?'#1D9E75':'transparent'}; });
+
+    const roleOptions=[{val:'manager',label:'Manager'},{val:'senior',label:'Senior Manager'},{val:'admin',label:'Admin'}].map(o=>{ const active=o.val===S.role; return {...o, active, onClick:()=>this.switchRole(o.val),
+      fg: active?'#8FE3C6':'rgba(255,255,255,0.85)', bg: active?'rgba(29,158,117,0.15)':'transparent'}; });
+
+    const acts=this._acts().map(a=>({ id:a.id, text:a.text, done:a.done,
+      onToggle:()=>this.toggleAct(a.id), onEdit:(e)=>this.editAct(a.id, e.target.value), onRemove:()=>this.removeAct(a.id),
+      strike: a.done?'text-decoration:line-through;color:#9AA2AE;':'' }));
+    const sessions=(this.SESSIONS[emp.id]||[]);
+
+    const managers=this.MANAGERS.slice().sort((a,b)=>b.activity-a.activity).map(m=>({...m, hasData:!m.noData, onClick:()=>this.openEmp(m.id)}));
+
+    const pageTitleTop={dashboard:'Team Dashboard',scorecard:'Scorecard',rollup:'Team Rollup',config:'Metric Configuration',log:'Export Log'}[S.page]||'';
+
+    const sortBase='border:none;cursor:pointer;font:600 13px Roboto,sans-serif;padding:7px 15px;border-radius:8px;transition:all .15s;';
+    const styRecent=sortBase+(S.sort==='recent'?'background:#fff;color:#0F6E56;box-shadow:0 1px 3px rgba(30,46,74,0.12);':'background:transparent;color:#6B7280;');
+    const styAZ=sortBase+(S.sort==='az'?'background:#fff;color:#0F6E56;box-shadow:0 1px 3px rgba(30,46,74,0.12);':'background:transparent;color:#6B7280;');
+    const sessChevron='transition:transform .2s;'+(S.showSessions?'transform:rotate(90deg);':'');
+
+    return {
+      showLogin:S.page==='login', showShared:S.page==='shared', showChrome:!(S.page==='login'||S.page==='shared'),
+      showDashboard:S.page==='dashboard', showScorecard:S.page==='scorecard', showRollup:S.page==='rollup',
+      showConfig:S.page==='config', showLog:S.page==='log',
+      navItems, roleOptions, roleLabel, roleMenuOpen:S.roleMenuOpen, pageTitleTop,
+      toggleRoleMenu:()=>this.toggleRoleMenu(), signOut:()=>this.signOut(),
+      // dashboard
+      rosterRows, teamCount:this.EMPLOYEES.length, teamWithData:dataEmps.length, avgTickets,
+      searchVal:S.search, setSearch:(e)=>this.setState({search:e.target.value}),
+      setSortRecent:()=>this.setState({sort:'recent'}), setSortAZ:()=>this.setState({sort:'az'}), styRecent, styAZ,
+      noResults:rosterRows.length===0,
+      // scorecard
+      emp, empFirst, empNoData:!!emp.noData, thisWeek:emp.tilesT, lastWeek:emp.tilesL, sharedTiles:emp.tilesT,
+      back:()=>this.back(), prevEmp:()=>this.prevEmp(), nextEmp:()=>this.nextEmp(),
+      share:()=>this.share(), exportPdf:()=>this.exportPdf(),
+      reloading:S.reloading, notReloading:!S.reloading, reloadWeek:()=>this.reloadWeek(), skel:[1,2,3,4,5,6],
+      noteVal:S.notes[emp.id]||'', setNote:(e)=>this.setNote(e.target.value),
+      actions:acts, addAct:()=>this.addAct(), weekOpts:this.WEEKOPTS, weekSel:S.weekSel, setWeek:(e)=>this.setWeek(e.target.value),
+      sessions, hasSessions:sessions.length>0, showSessions:S.showSessions, toggleSessions:()=>this.toggleSessions(), sessChevron,
+      // rollup
+      managers, weekRange:'Jun 23 – Jun 29, 2025',
+      // shared
+      sharedGreeting:'Hi '+empFirst+' — here is how your week is shaping up.',
+      backToApp:()=>this.go('scorecard'),
+      // admin
+      config:this.CONFIG, exportLog:this.EXPORTLOG, simulateError:()=>this.simulateError(),
+      // login
+      loading:S.loading, notLoading:!S.loading, signIn:()=>this.signIn(),
+      // global
+      err:S.err, dismissErr:()=>this.dismissErr(), toast:S.toast,
+    };
+  }
+}
+</script>
+</body>
+</html>
