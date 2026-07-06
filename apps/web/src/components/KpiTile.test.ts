@@ -38,9 +38,11 @@ describe('getTrend', () => {
     expect(getTrend(5, h(10, 10, 10), 'lower_is_better')).toBe('attention');
   });
 
-  it('PRESERVE-FOR-PARITY (L4/L12): trend always compares the LAST history point, regardless of the value shown on the tile', () => {
+  it('trend always compares the LAST history point, regardless of the value shown on the tile (why L4 is fixed at the call sites)', () => {
     // The `value` argument only gates null; the comparison uses history's last element.
-    // This is why Last Week tiles show a current-week trend when given full history.
+    // Last Week tiles therefore pass history truncated to <= last week (commit 8) —
+    // with full history they would show a current-week trend. L12 (partial-week
+    // comparison on This Week tiles) remains working-as-designed.
     expect(getTrend(999, h(10, 10, 20), 'higher_is_better')).toBe('improving');
     expect(getTrend(1, h(10, 10, 20), 'higher_is_better')).toBe('improving');
   });

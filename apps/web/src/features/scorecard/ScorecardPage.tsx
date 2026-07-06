@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
+import { currentWeekStartUtc, weeksBeforeUtc, weekStartStr } from '@scorecard/shared';
 import { useAuth } from '../../hooks/useAuth';
 import { useEmployee } from '../../hooks/useEmployee';
 import { useEmployeeMetrics } from '../../hooks/useEmployeeMetrics';
@@ -168,6 +169,7 @@ export function ScorecardPage() {
   const currentWeekMetrics = metrics.filter(m => m.currentValue !== null);
   const lastWeekMetrics = metrics.filter(m => m.lastWeekValue !== null);
   const allCurrentNull = metrics.every(m => m.currentValue === null);
+  const lastMondayStr = weekStartStr(weeksBeforeUtc(currentWeekStartUtc(), 1));
 
   const sortedMetrics = [...metrics].sort((a, b) => {
     const aNull = a.currentValue === null;
@@ -337,7 +339,7 @@ export function ScorecardPage() {
                   definition={m.definition}
                   value={m.lastWeekValue}
                   syncedAt={null}
-                  history={m.history}
+                  history={m.history.filter(h => h.periodStart <= lastMondayStr)}
                 />
               ))}
           </div>

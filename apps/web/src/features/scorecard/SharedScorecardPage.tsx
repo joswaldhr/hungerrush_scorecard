@@ -168,7 +168,7 @@ function SharedScorecardContent({ token }: { token: string }) {
                     definition={m.definition}
                     value={m.lastWeekValue}
                     syncedAt={null}
-                    history={m.history}
+                    history={m.history.filter(h => h.periodStart <= lastMondayStr)}
                   />
                 ))}
             </div>
