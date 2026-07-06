@@ -32,7 +32,16 @@ removed — halves Railway spend. **No release blocker exists. W1 can start imme
 ### W1 — Phase 1C logic fixes (FRESH SESSION — unchanged scope + one addition)
 Exactly as `docs/refactor-plan.md` §d (commits 6–11 + 10b), plus: **pull migration `0016_grant_metric_definitions_update.sql` forward into 1C** so the admin UI save path works (S4) — needed both for the occupancy/adherence re-enable step AND for W3's activate-by-toggle rollout. Rationale for 1C before the release: commit 7's created-in-period split removes the L1 contamination (601k-second reply times) — exactly the numbers metrics-savvy managers will scrutinize; commit 10+10b clean the misleading 0% tiles.
 
-### W2 — Release readiness (1 session)
+### W2 — Release readiness (1 session) — ✅ CODE COMPLETE session 26 (2026-07-06)
+
+> Delivered in the W2 PR: items 1–5 below (executive role incl. a graph-sync guard so the
+> daily bootstrap never reclassifies a manually-assigned executive; `employees.title` +
+> header line; CLAUDE.md philosophy/coral/trend amendments; `docs/demo-smoke-checklist.md`
+> with the Normando decision carried to demo day). Remaining are James's steps in the PR
+> body: apply 0017 + 0018 in the SQL editor → run `scripts/rls-probe-executive.sql` →
+> merge → `/health` sha → `npx tsx scripts/set-adam-executive.ts --execute` (Adam's JWT
+> picks up the role at his next sign-in; his real login at the demo is the final check).
+> Item 2 (Normando) is intentionally NOT implemented — decision at the demo.
 1. **`executive` role**: migration adds enum value + `visible_manager_ids()` branch (executive → all active manager-role profiles org-wide, admin-like DATA visibility, NO admin pages — frontend gates on `role === 'admin'` stay). Update: JWT claim sync already generic (`profiles.role` → app_metadata); frontend nav/role checks (`RollupPage`, `App.tsx` nav items) add `executive` where `senior_manager` appears; admin pages remain admin-only. Set Adam → `executive` (audited service write or admin UI post-0016). Alternative recorded (not chosen): recursive senior visibility — rejected for now, rewrites the documented one-level scoping org-wide.
 2. **Normando Bonadia Jr** (Alex's hidden direct): confirm with Alex at demo — reassign to one of Alex's managers (one `employees.manager_id` update, audited) or accept invisibility. One-liner either way.
 3. **CLAUDE.md philosophy amendment** (small commit): record "coaching-first = visual/tonal frame; negative-direction metrics allowed as content; no red / coaching language / no composite / no rank unchanged."
@@ -72,8 +81,8 @@ Phase 2 per refactor plan (S4 already pulled to 1C; S5 refresh support is a desi
 |---|---|---|
 | ~~1~~ | ~~W0 cron reliability~~ ✅ resolved (false alarm) | done |
 | ~~2~~ | ~~W1 = Phase 1C + 0016~~ ✅ deployed + corrections executed | done (session 25) |
-| 3 | W2 release readiness (executive role, employees.title, philosophy amendment incl. coral rule, smoke checklist) | fresh session |
-| 4 | Phase 2 hardening (refactor plan commits 12–17 — S5 is the Cadence prerequisite) | fresh session |
+| ~~3~~ | ~~W2 release readiness (executive role, employees.title, philosophy amendment incl. coral rule, smoke checklist)~~ ✅ code complete session 26 — PR open, James's SQL/merge/Adam steps in the PR body | done (session 26) |
+| 4 | Phase 2 hardening (refactor plan commits 12–17 — S5 is the Cadence prerequisite; S6 role checks must include `executive`) | fresh session |
 | 5 | **Phase 3 = Cadence implementation** (est. 2–3 sessions; scope in ADOPTION.md) | fresh sessions |
 | 6 | **SMALL RELEASE / demo to the four** (on the Cadence UI) | user + smoke checklist |
 | 7 | W3/W4 metric expansion batches | 1–2 sessions |

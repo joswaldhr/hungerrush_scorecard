@@ -21,6 +21,15 @@
 | 2 — Fluff removal & hardening | — | Not started |
 | 3 — Design implementation | — | Separate prompt, blocked on 2 |
 
+**W2 release readiness landed between 1C and Phase 2 (session 26, 2026-07-06 — release-plan
+scope, not a refactor phase):** `executive` role (0017: enum value + `visible_manager_ids()`
+executive branch + JWT-claims profiles SELECT policy; assigned only by audited service-key
+write, `scripts/set-adam-executive.ts`; **graphSync now preserves manually-assigned
+executives** — the 05:00 bootstrap reclassifies roles daily and would otherwise revert Adam
+within a day) and `employees.title` (0018 + graphSync `jobTitle` mapping). Phase 2 scope is
+unchanged, with one addition: **S6's auth consolidation must include `executive` in its role
+model** (the role now appears beside senior_manager in AppLayout and RollupPage gates).
+
 **✅ RESOLVED 2026-07-06 — the "cron reliability" issue was a FALSE ALARM (measurement
 artifact), confirmed by Railway runtime logs the user pulled:** every scheduled run since the
 `91084f9` deploy fired within seconds of its boundary (~20 live syncs at 615–626 rows each,

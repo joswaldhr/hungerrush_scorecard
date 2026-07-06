@@ -72,6 +72,9 @@ visible_employee_ids() → setof uuid
 
 - `manager` → their direct reports only
 - `senior_manager` → reports of the managers who report to them (one level down, not all)
+- `executive` → every active manager-role profile's reports, org-wide (data only — admin
+  policies and admin pages stay closed; the role is assigned only by audited service-key
+  write and the graph sync never produces or overwrites it)
 - `admin` → everyone
 
 Every table's SELECT policy uses this function. Hierarchy logic is never inlined in individual policies.
@@ -114,3 +117,5 @@ Both `apps/web` and `apps/api` import from here.
 | 2026-06-29 | Re-add audit_log RLS policies using JWT claims (dropped in 0007); enables admin ExportLogPage to read audit_log directly via Supabase | `0015_audit_log_admin_policies.sql` |
 | 2026-07-02 | Phase 1B metric registry (no schema change): metric math moved to `apps/api/src/metrics/`, connectors become fetchers, sync writes registry ∩ `is_active` | — |
 | 2026-07-06 | GRANT UPDATE on `metric_definitions` to `authenticated` — fixes S4 (42501 on every admin-UI metric save; table privilege was missing, the 0012 RLS policy was already correct). Pulled forward from Phase 2 into 1C per release plan W1 | `0016_grant_metric_definitions_update.sql` |
+| 2026-07-06 | W2: `executive` enum value (`user_role`); `visible_manager_ids()` executive branch (all active manager-role profiles org-wide, `executive` included so an executive's own directs stay visible); JWT-claims `profiles_select_executive` policy. Only ADDs the enum value — a new enum value is unusable in the transaction that adds it, so the role assignment is a separate audited service-key write (`scripts/set-adam-executive.ts`); claim-simulation probe in `scripts/rls-probe-executive.sql` | `0017_executive_role.sql` |
+| 2026-07-06 | W2: `employees.title` (nullable text) — Azure AD `jobTitle` mapped by the daily graph sync; renders in the scorecard header, feeds the Cadence header. Existing rows backfill at the first 05:00 UTC bootstrap after the code deploy | `0018_employees_title.sql` |
