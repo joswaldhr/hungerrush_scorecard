@@ -16,19 +16,45 @@
 |---|---|---|
 | 0 — Audit & plan | 22 | ✅ Complete — approved by user 2026-07-02, pushed `19c55e1` |
 | 1A — Safety nets: tests, backup/dump scripts, truncation fix | 22 | ✅ **CLOSED** — `77d3028` (52 characterization tests), `b044a6f` (paginated scripts + first backup: 1,104 rows verified), `df71938` (L7 fix), `81194d9` (lint config repair). User verified in prod: dashboard "With metrics 247 of 351" ✓, rollup chips populated ✓. Side discovery: admin metric-config saves broken (S4 root cause: missing GRANT UPDATE); 4 metrics set inactive via audited service-key write, confirmed in DB. 1B is unblocked |
-| 1B — Metric registry refactor + parity + deploy watch | — | Not started |
+| 1B — Metric registry refactor + parity + deploy watch | 23 | ✅ **CLOSED** — `7113691` (commit 4: MetricSpec in shared · one module per metric · fetch-shape connectors · sync = registry ∩ is_active · 56 tests green), `9b7cda4` (commit 5: add-a-metric recipe + contract docs), `cc54eb9` + `fd00d99` (deploy fix: tsx prod runtime — see 1B execution notes). **Parity PASS, user-verified 2026-07-02**: dumps A/B 741 rows each, 0 added/removed, 0 lines + 0 writes for the 4 toggled keys, 54 value changes = 17 employees of Zendesk drift in the 13-min inter-run gap (every resolution_rate change re-derived exactly); Zendesk write counts identical old-vs-new (615). Post-deploy watch: code verified — every run that executed post-deploy ran new code (0 toggled-key writes over 4 days; Sunday snapshot 2026-07-05 23:59 froze week Jun 29 with 626 rows; Mon 2026-07-06 bootstrap 05:00 + live sync 14:00 clean, tv=249). **NEW OPEN ISSUE found by the watch: ~18 scheduled live syncs Jul 2 22:00 → Jul 6 10:00 never executed** — see cron-reliability block below the table |
 | 1C — Logic fixes (one commit each) + approved data correction | — | Not started |
 | 2 — Fluff removal & hardening | — | Not started |
 | 3 — Design implementation | — | Separate prompt, blocked on 2 |
 
+**⚠️ OPEN — cron reliability (found 2026-07-06, during the extended 1B post-deploy watch):**
+Between Jul 2 22:00 and Jul 6 10:00 UTC, ~18 scheduled live syncs wrote nothing — no run
+stamps at those boundaries at all (immutable `synced_at` evidence). Runs that DID execute
+(Sun Jul 5 23:59 snapshot · Mon Jul 6 05:00 bootstrap · Mon Jul 6 14:00 live) were all clean
+new-code runs, so this is service uptime / cron execution on Railway, NOT the registry code.
+The silence begins exactly at the new container's first scheduled boundary (22:00 Jul 2) —
+the old container fired reliably through 18:00 Jul 2, so suspect something about the new
+deployment's runtime (tsx memory footprint? crashloop between crons? Railway app-sleep?).
+**User actions (dashboard-only):** api service → check App Sleeping setting; deployment
+events/restarts Jul 2–6; memory graphs. Impact while unresolved: "This week so far" tiles
+go stale between whichever crons actually fire; weekly snapshots so far unaffected.
+Mitigation candidates (do not build without direction): external uptime ping to `/health`;
+Railway restart policy/limits review; move schedules to Railway cron jobs (`railway.toml`
+supports crons invoking a start command) instead of in-process node-cron.
+DB-side detection recipe: count rows per cron window on `synced_at` (see 1B execution notes).
+
 **⚠️ Standing reminder (do not lose):** all four of `sla_compliance`, `handle_time`, `occupancy`,
 `schedule_adherence` were set `is_active = false` on 2026-07-02 (via service key — the admin UI
-save path was broken, see S4; intervention audited in `audit_log`). Re-enablement policy (user):
+save path was broken, see S4; intervention audited in `audit_log`). Since 1B deployed, `is_active`
+gates sync too: these four are not written at all (verified in the 1B parity run + deploy watch).
+Re-enablement policy (user):
 - `occupancy` + `schedule_adherence`: **RE-ENABLE after 1C commit 10 (state-matching fix) + 10b
-  (data correction)** — remind the user at that point.
+  (data correction)** — remind the user at that point. Order dependency confirmed by user
+  2026-07-02: commit 10 FIRST, then the 10b sweep (all zero rows written through 1B-deploy day),
+  then re-enable.
 - `sla_compliance` + `handle_time`: **STAY OFF until their data sources exist** (SLA policies
   configured in Zendesk; Assembled WFM state mapping actually producing matches). Do not re-enable
   as part of 1C.
+- **⚠️ Order-of-operations conflict to resolve at 1C planning:** the user intends to re-enable via
+  the admin UI, but S4 (missing `GRANT UPDATE` on `metric_definitions`) keeps every browser save
+  failing with 42501 until Phase 2's `0016` migration. Either pull the one-line `0016` GRANT
+  migration forward into 1C (recommended — it also makes the re-enable action itself the S4
+  end-to-end test), or the re-enable must be another audited service-key write. Ask the user
+  which, at 1C kickoff.
 
 **Pre-registered 1B parity expectation for the four toggled metrics** (user-requested; phrasing
 mechanically corrected — the user's note said their rows would be "absent from the new dump,"
@@ -226,6 +252,39 @@ Session boundary. Commit 3 is frontend-only and outside the sync parity surface 
 | 4 | MetricSpec in shared · `apps/api/src/metrics/` one file per metric (compute functions moved verbatim) · registry · connectors → fetchers (SLA + org activities fetched once per run, passed into fetch context — L3 lands here structurally; **document that reply-time/SLA values may shift only if source data changed between dumps**) · syncService driven by registry ∩ `is_active` · characterization tests re-pointed at the new modules, still green | **Parity protocol** below, BEFORE push |
 | 5 | docs/metrics.md add-a-metric recipe with worked example · CLAUDE.md decisions-log entries · this file's status update | — |
 
+**1B execution notes (session 23):**
+- Parity timestamps: backup 16:28:42 (1,104 rows, server-verified) → OLD prod sync stamp
+  16:29:36 (247 employees, 736 rows re-stamped, completion verified DB-side after Railway's
+  proxy killed the HTTP response at 300s) → dump A 16:38:02 (741 rows) → NEW local sync
+  16:38:28–16:42:52 via tsx (615 written, 0 errors, `zendesk 4/5, assembled 0/3` gate logged,
+  zero Assembled API calls) → dump B 16:43:24 (741 rows). All inside the 14:00–18:00 window.
+- Diff: 54 value changes (17 employees × up to 3 Zendesk metrics), every one consistent with
+  ±1 ticket-set membership or a status flip in the 13-minute gap; csat_score 0 changes; the 4
+  toggled keys 0 changes and 0 writes. The one large jump (frt 12,750→37,211s) is preserved-L1
+  stale-ticket contamination behaving identically in the new code. Old-vs-new Zendesk write
+  counts identical (615 = 736 − 121 occupancy/adherence re-stamps the new sync skips).
+- **Deploy incident (resolved at `91084f9`):** commit 4 added the api's FIRST runtime value
+  import from `@scorecard/shared` (`METRIC_SPECS`) — the package entry is TS source, so the
+  container's `node dist/index.js` crashed at boot. Two failed deploys (caught by the GitHub
+  commit-status check BEFORE any cron, per the user's confirm-SHA requirement; prod stayed on
+  the rolled-back old artifact). Fix sequence: tsx to dependencies + `npm start` → tsx
+  (`cc54eb9`, ineffective alone); `railway.toml` `startCommand` → npm start (`fd00d99` —
+  **railway.toml overrides package scripts; it is the authoritative boot path**). `fd00d99`
+  showed GitHub status "success" in 14s **but never actually served**: the 18:00 UTC cron ran
+  as ONE old-code stamp (736 rows incl. occupancy/adherence) and no new-code instance fired —
+  **a Railway rollback container was still serving while the commit status said success**.
+  Final fix `91084f9`: `/health` returns `RAILWAY_GIT_COMMIT_SHA` (external serving-SHA proof,
+  the new authoritative deploy check) and `startCommand` invokes `./node_modules/.bin/tsx`
+  directly. Serving SHA externally confirmed 18:12:17 UTC. `npm run build` stays as the tsc
+  compile gate; if the api ever returns to compiled `node dist/`, shared must ship built JS
+  first. **Deploy-verification rule from this incident: trust only `/health` sha, never the
+  GitHub status alone.**
+- Test suite 52 → 56 (41 api + 15 web): the composite empty-input characterization test
+  decomposed into per-metric cases; every original fixture→expectation pair preserved.
+- D10/S11 landed (labels via `METRIC_SPECS`, component maps kept as fallback until Phase 3).
+  D6 (trend centralization) intentionally NOT folded into 1B — user's session scope enumerated
+  commit 4 without it; it stays in Phase 2 commit 13's bundle.
+
 **Parity protocol (commit 4):**
 1. Note the Railway cron fires at 06:00/10:00/14:00/18:00/22:00 UTC — run the whole protocol inside one window, timestamps recorded before and after each step so any interleaved cron write is identifiable.
 2. `backup-snapshots.ts` → restore point (parity overwrites live current-week rows).
@@ -242,6 +301,18 @@ Session boundary. Commit 3 is frontend-only and outside the sync parity surface 
 7. **Show the user the diff before pushing.**
 8. After push: **post-deploy watch** — wait for the next scheduled Railway sync; verify logs show ~247 employees processed, 0 unexplained errors, snapshot counts consistent. Phase 1C does not start until this passes.
 
+**Operational learnings from the 1B parity run (2026-07-02) — apply to every 1C re-sync:**
+- Railway's edge proxy times out `POST /api/sync/run` responses at exactly 300s (`upstream
+  error`); the sync keeps running in-container. Never treat the HTTP response as the
+  completion signal. Verify DB-side: all rows in a run share one `synced_at` stamp;
+  completion = fresh-stamp count plateaus AND fresh `ticket_volume` count = employees
+  processed (~247).
+- Railway deploy state is visible as GitHub commit statuses (context `… - @scorecard/api`)
+  — confirm the deployed SHA is the intended commit BEFORE validating a cron run against it.
+- Abort rule used (user, 2026-07-02): if a parity re-run isn't fully complete comfortably
+  before the next cron firing, stop and rerun the whole protocol (fresh backup onward) in
+  the next clean window — no timestamp-forensics diffs.
+
 Session boundary.
 
 ### Phase 1C — Logic fixes (1 session; one commit each; never folded into refactor commits)
@@ -256,7 +327,7 @@ correct behavior, (2) fix, (3) re-run sync, (4) report exactly which values chan
 | 8 | L4 Last-week trend badge — Last Week tiles receive history truncated to ≤ last week | UI-only |
 | 9 | L5 Sparkline calendar slots — map history to 4 calendar-week positions | UI-only |
 | 10 | L6 Assembled zero-writes — empty productive-state intersection returns null for all three assembled metrics (not 0%) | New syncs stop writing 0s |
-| 10b | **Data correction — APPROVED by user 2026-07-02**, sequenced immediately AFTER commit 10 (deleting earlier would let the still-broken connector re-write 0s at the next 4-hour cron; note the OLD sync also ignores `is_active`, so the toggle alone doesn't stop the writes — commit 10 must be deployed first). Mechanics: timestamped CSV backup → delete the `occupancy`/`schedule_adherence` rows with `value = 0` → log the correction to `audit_log`. Null = no row in this schema, matching `handle_time` | ~249+ zero rows removed (count grows until commit 10 deploys — re-count at execution) |
+| 10b | **Data correction — APPROVED by user 2026-07-02**, sequenced immediately AFTER commit 10 (deleting earlier would let the still-broken connector re-write 0s at the next 4-hour cron; note the OLD sync also ignored `is_active`, so the toggle alone didn't stop the writes — commit 10 must be deployed first). Mechanics: timestamped CSV backup → delete the `occupancy`/`schedule_adherence` rows with `value = 0` → log the correction to `audit_log`. Null = no row in this schema, matching `handle_time`. **Sweep scope (user, 2026-07-02): all zero rows written through 1B-deploy day** — old-code syncs kept re-stamping/adding occupancy/adherence zeros until the 1B deploy (124 current-week rows as of the parity run), so the sweep criterion is `value = 0` for those two keys across ALL weeks, re-counted at execution — not the originally counted 249 | ~249+ zero rows removed (re-count at execution) |
 | 11 | L8 PDF zero treatment — 0 renders as a value, only null renders "No data" | PDF-only |
 
 Session boundary. (If context allows, 1C can absorb into 1B's session; plan for separate.)
@@ -277,6 +348,12 @@ hardening. Not applicable: nothing in this codebase opens a direct Postgres conn
 `@supabase/supabase-js` speaks HTTP to PostgREST on both web and api. The connection-string flag
 belongs to direct-pg clients (Prisma/pg). Action: remove the item from CLAUDE.md with this
 explanation. If a direct-pg dependency ever appears, revisit.
+
+**Hardening candidate (user, 2026-07-02 — logged, do NOT build early):** make
+`POST /api/sync/run` return 202 immediately and run the sync async. Motivation: Railway's
+edge proxy kills the HTTP response at exactly 300s while the sync keeps running
+in-container (discovered during the 1B parity run); today every manual trigger must be
+verified DB-side. Slot alongside commit 15/16 sizing when Phase 2 is planned.
 
 ---
 
@@ -311,6 +388,42 @@ Reading the state:
 - Baseline: typecheck green on all 3 workspaces; zero test files exist; working tree clean at `f1d0660`.
 
 ---
+
+## f½) Phase 3 design source & decision record (accepted by user 2026-07-02)
+
+**Source bundle:** `docs/design/hungerrush-scorecard-ui/` — Claude Design export (prototype
+HTML/CSS/JS + HungerRush design system tokens). Reviewed file-by-file in session 23; review
+verdict accepted. The prototype runtime (`support.js`, `_ds_bundle.js`, manifest) never ships.
+**Composite-score audit: confirmed clean** — no composite score, grade, rating, rank, or
+per-person overall number anywhere in the prototype markup or demo logic; the only "score"
+strings are the product name and the demo label "CSAT Score" (superseded at render time by
+`metric_definitions.name` = "Customer Satisfaction" — do NOT copy the demo label into the DB).
+
+**Decisions (user, 2026-07-02):**
+1. **Trend semantics — ADOPT the design's**: last vs previous point, ±2% steady band, as the
+   ONE definition everywhere (tiles, rollup chips, frozen last-week views). Computation stays
+   direction-aware; UI keeps consuming `trend.improving`. Resolves L4 at Phase 3 (1C commit 8
+   remains as the cheap interim fix for the current UI; Phase 3 trend unification supersedes
+   it). D6's "two intentional variants" plan is superseded: converge on this one.
+2. **Coaching prompts — single DB prompt per metric stays.** Per-trend-state prompts logged as
+   a future enhancement candidate (user label: "Phase 5") — needs migration + admin UI.
+3. **Metric Config — product rules override the design**: restore the `is_active` toggle
+   (post-1B it gates sync), add explicit save + visible confirmation (S4), designed in the new
+   visual language.
+4. **Sync timestamp — section-level chip accepted**; CLAUDE.md tile rule amended. Exception:
+   SharedScorecardPage tiles must still show the synced timestamp.
+5. **Notes — week-grouped PRESENTATION of existing per-session data only. No schema changes in
+   Phase 3.** "Previous session summaries" and roster "last active" are CUT from Phase 3;
+   logged as future candidates.
+6. **Icons/fonts — map all icons to lucide-react; self-host Roboto + Nunito Sans; no icon
+   webfont dependency.**
+
+**Confirmed implementation constraints for the Phase 3 prompt:** never import `_ds_bundle.js`
+(recreate Button/Checkbox as Tailwind components) · semantic elements + focus states instead of
+prototype divs · no role-switcher (real role from `profiles.role`) · login spinner becomes a
+skeleton/loading state · new sand/amber tokens land in `tailwind.config.ts` only · S1 mobile
+nav remains a Phase 3 requirement the design does not cover · S5 refresh support confirmed as a
+Phase 2 prerequisite.
 
 ## f) Logic audit
 

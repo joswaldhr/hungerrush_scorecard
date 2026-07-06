@@ -7,14 +7,14 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-07-02 (session 22)
+**Last updated:** 2026-07-02 (session 23)
 
 - All 5 phases, 4 UI/UX sprints, layout redesign, and data integrity audit complete — pilot-ready
 - Production: `hungerrush-scorecard.vercel.app` (frontend) · `scorecardapi-production.up.railway.app` (backend)
-- **Session 22 (refactor Phases 0 + 1A):** Phase 0 audit committed and approved (`docs/refactor-plan.md` — read it before ANY refactor work; it is the cross-session source of truth). Phase 1A complete: 52 characterization tests pin current metric behavior incl. PRESERVE-FOR-PARITY defect cases (`vitest run`, api build split to `tsconfig.build.json`); paginated `scripts/backup-snapshots.ts` + `scripts/dump-week-metrics.ts` (first backup taken, 1,104 rows verified against exact count); L7 fixed (snapshot reads paginate past PostgREST's 1,000-row cap; dashboard "has data" now scoped to current+last week); ESLint config repaired (51 false positives — core no-undef/no-unused-vars off for TS). User toggled `sla_compliance`, `handle_time`, `occupancy`, `schedule_adherence` inactive in admin UI — **re-enable occupancy + schedule_adherence after 1C commit 10+10b** (standing reminder in plan). Data correction for 249 zero-value assembled rows APPROVED, sequenced as 1C commit 10b. Semantics split approved (reply-time/resolution → created-this-week; CSAT: investigate ratings-submitted first).
-- **Session 21:** No code changes — data model Q&A. Playwright MCP install unresolved (`claude` CLI not on PATH); retry from user's terminal: `claude mcp add playwright -- npx @playwright/mcp@latest`
-- **Session 20:** Agent matching expanded — coverage 63→246 employees (of 351). Daily bootstrap cron at 05:00 UTC. 105 unmatched are non-support roles.
-- **Next up:** Phase 1B of `docs/refactor-plan.md` (metric registry refactor + parity protocol) — FRESH SESSION required (context rule). 1A verified in prod by user (247/351 ✓, rollup chips ✓). Late 1A discovery: admin metric-config saves are BROKEN — `0008` granted SELECT only on `metric_definitions`, `0012` added the update policy but no GRANT; every browser UPDATE fails 42501 with the error banner hidden above the fold. Four metrics (`sla_compliance`, `handle_time`, `occupancy`, `schedule_adherence`) set inactive via audited service-key write 2026-07-02. Fix is first Phase 2 commit (S4: grant migration + save feedback). Re-enablement policy + pre-registered parity expectations are in the plan's standing reminder — read it
+- **Session 23 (refactor Phase 1B — CLOSED):** Metric registry refactor live in prod at `fd00d99`. `7113691`: MetricSpec + METRIC_SPECS in shared; `apps/api/src/metrics/` one module per metric (computes moved verbatim, L6/L9/L11 pinned); boring registry; connectors → fetch-shape (`prepareRun` + `fetchWeekData`, all three together; ConnectorMetricResult retired); **sync writes registry ∩ `is_active`** (a source with no active metrics is skipped — currently zero Assembled API calls); KpiTile/RollupPage labels from METRIC_SPECS. `9b7cda4`: add-a-metric recipe in docs/metrics.md. Tests 52→56 (composite empty-input decomposed per metric; expectations unchanged). **Parity PASS, user-verified**: 741-row dumps identical except 54 live-drift changes on 17 employees; 0 lines + 0 writes for the 4 toggled keys; Zendesk write counts identical (615). **Deploy incident resolved** (`cc54eb9`+`fd00d99`+`91084f9`): first runtime value import from shared broke `node dist/` boot; two failed deploys left a **rolled-back old container serving while the GitHub status said success** (18:00 cron ran old code). Api now boots via `./node_modules/.bin/tsx apps/api/src/index.ts` — **railway.toml `startCommand` is the authoritative boot path** — and `/health` returns the running `sha` (the only trustworthy deploy check). Post-deploy watch (extended to 2026-07-06): every run that executed ran new code cleanly (0 toggled-key writes; Sunday snapshot froze week Jun 29, 626 rows; Mon 05:00 bootstrap + 14:00 live clean) — **but ~18 scheduled live syncs Jul 2 22:00 → Jul 6 10:00 never executed: OPEN cron-reliability issue, Railway-side, tracked at the top of the refactor plan (user must check dashboard: app-sleep, restarts, memory)**.
+- **Session 22 (refactor Phases 0 + 1A):** Phase 0 audit approved (`docs/refactor-plan.md` — read it before ANY refactor work; cross-session source of truth). 1A: characterization tests; paginated backup/dump scripts; L7 fixed; ESLint repaired. Four metrics set inactive 2026-07-02 (audited service-key write; admin UI saves broken — S4). Data correction approved → 1C commit 10b; semantics split approved (commit 7).
+- **Session 20–21:** Agent matching 63→246/351 (105 unmatched are non-support); daily bootstrap cron 05:00 UTC. Playwright MCP install unresolved.
+- **Next up:** FIRST resolve the **open cron-reliability issue** (top of refactor plan — needs the user's Railway dashboard: app-sleep setting, restart events, memory graphs; live tiles go stale while unresolved). Then Phase 1C of `docs/refactor-plan.md` (logic fixes, one commit each: 6–11 + 10b) — FRESH SESSION required (context rule). **Open question to ask at 1C kickoff:** user re-enables occupancy/adherence in the admin UI after commits 10+10b, but S4 keeps browser saves failing (missing GRANT) until Phase 2's `0016` — pull the one-line GRANT migration forward into 1C, or re-enable via audited service-key write? 10b sweep scope: ALL zero rows written through 1B-deploy day (2026-07-02), re-counted at execution. Parity re-runs in 1C: verify sync completion DB-side (Railway proxy kills HTTP at 300s) and confirm the deployed SHA via GitHub commit status before validating any cron.
 - **Remaining feature:** mobile navigation (hamburger menu for screens < 1024px) — recorded as gap S1 in refactor plan, owned by Phase 3 design
 - **Remaining hardening:** CORS lockdown (refactor plan commit 16), email nudge (needs `RESEND_API_KEY`); connection pooling item retired — see pgbouncer finding in refactor plan
 - **Known data/logic issues:** now tracked with classifications in `docs/refactor-plan.md` §f (L1–L14) — the four previously listed here plus sparkline calendar gap, Assembled zero-writes, 1000-row truncation, PDF zero treatment, and others
@@ -58,6 +58,19 @@ npm run lint -w apps/web     # eslint src
 ### Production URLs
 - **Frontend (Vercel):** `https://hungerrush-scorecard.vercel.app`
 - **Backend (Railway):** `https://scorecardapi-production.up.railway.app`
+
+### Operational notes
+- **Railway's edge proxy times out HTTP responses at 300s** (found 2026-07-02): a manual
+  `POST /api/sync/run` returns `upstream error` after exactly 5 minutes while the sync
+  keeps running in-container. Verify manual runs DB-side: rows share one `synced_at`
+  stamp per run; completion = fresh-stamp count plateaus and fresh `ticket_volume` count
+  equals employees processed (~247). Phase 2 hardening candidate (do not build early):
+  make `/api/sync/run` return 202 immediately and run async.
+- **Verify deploys via `GET /health` → `sha`** (returns `RAILWAY_GIT_COMMIT_SHA` of the
+  running container, added 2026-07-02). The GitHub commit status (context
+  `... - @scorecard/api`) is a useful early signal but proved unreliable during the 1B
+  deploy incident: it reported success while a rolled-back old container was still serving
+  and firing crons. Trust only the `/health` sha.
 
 ---
 
@@ -244,8 +257,10 @@ hr-gray:        #F5F5F4   page background
 **Never use red for any performance state.** (Red is allowed only for genuine system errors —
 failed save, lost connection — never for an employee's metrics.)
 
-**Every KPI tile must show:** metric name (from DB) · value + unit · direction indicator ·
-4-week sparkline · coaching prompt (from DB) · last-updated timestamp
+**Every KPI tile must show:** metric name (from DB) · value + unit · trend/status indicator ·
+4-week sparkline · coaching prompt (from DB). Last-updated timestamp: a section-level "synced"
+chip is acceptable (amended 2026-07-02 with the accepted Phase 3 design) — EXCEPT on
+SharedScorecardPage, where each tile must still show the synced timestamp.
 
 **Coaching language:**
 - ✅ Use: "improving" · "growing" · "opportunity" · "strong week" · "building toward"
