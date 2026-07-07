@@ -12,6 +12,7 @@ import {
   type MetricSpec,
   type MetricSource,
   type TrendAssessment,
+  type TrendTone,
 } from '@scorecard/shared';
 import { maxIso, type EmployeeMetric } from './employeeMetrics';
 
@@ -121,6 +122,23 @@ export function buildEvidenceMetrics(
       latestSyncedAt: m.latestSyncedAt,
     };
   });
+}
+
+/**
+ * Tone for one metric's chronological points — the ONE window + assess pairing
+ * (counts anchor to the last completed week, band from the spec) that every
+ * tone-counting surface shares (roster chips, rollup chips). An empty window
+ * (e.g. a count metric with only a partial current week) reads 'new'.
+ */
+export function metricTone(
+  points: Array<{ periodStart: string; value: number }>,
+  definition: Pick<MetricDefinition, 'key' | 'unit' | 'direction'>,
+  currentWeek: string,
+): TrendTone {
+  const spec = METRIC_SPECS[definition.key];
+  const windowPoints = trendWindow(points, definition.unit, currentWeek, currentWeek);
+  if (windowPoints.length === 0) return 'new';
+  return assessTrend(windowPoints.map(p => p.value), definition.direction, spec?.band).tone;
 }
 
 export function isStale(latestSyncedAt: string | null, now: Date): boolean {
