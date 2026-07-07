@@ -1,5 +1,5 @@
-import { formatDistanceToNow, parseISO } from 'date-fns';
 import type { RosterEntry } from '../../../hooks/useRoster';
+import { timeAgo } from '../../../lib/timeAgo';
 import { ToneDot } from './ToneDot';
 
 function ChipSkeleton() {
@@ -12,9 +12,8 @@ function ChipSkeleton() {
 }
 
 function chipSubline(entry: RosterEntry): string {
-  const last = entry.lastSessionDate
-    ? `1:1 ${formatDistanceToNow(parseISO(entry.lastSessionDate), { addSuffix: true })}`
-    : 'no 1:1 logged yet';
+  // The lookback is SESSION_LOOKBACK_WEEKS — older sessions read "no recent 1:1".
+  const last = entry.lastSessionDate ? `1:1 ${timeAgo(entry.lastSessionDate)}` : 'no recent 1:1';
   return `${entry.summary.label} · ${last}`;
 }
 

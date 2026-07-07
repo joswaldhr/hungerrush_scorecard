@@ -12,6 +12,7 @@ describe('assessTrend — sparse history ("new")', () => {
       priorAverage: null,
       absoluteChange: null,
       pctChange: null,
+      bandPosition: null,
     });
   });
 
@@ -80,6 +81,14 @@ describe('assessTrend — band metrics (healthy range, not a direction)', () => 
   it('discuss outside the band in either direction — never "win"', () => {
     expect(assessTrend([80, 80, 80, 92], 'higher_is_better', band).tone).toBe('discuss');
     expect(assessTrend([80, 80, 80, 70], 'higher_is_better', band).tone).toBe('discuss');
+  });
+
+  it('exposes bandPosition as the single boundary comparison', () => {
+    expect(assessTrend([80, 80, 80, 92], 'higher_is_better', band).bandPosition).toBe('above');
+    expect(assessTrend([80, 80, 80, 70], 'higher_is_better', band).bandPosition).toBe('below');
+    expect(assessTrend([80, 80, 80, 80], 'higher_is_better', band).bandPosition).toBe('in');
+    expect(assessTrend([80, 80, 80, 80], 'higher_is_better').bandPosition).toBeNull();
+    expect(assessTrend([80, 92], 'higher_is_better', band).bandPosition).toBeNull(); // sparse
   });
 
   it('a big in-band improvement still reads steady (band has no win state)', () => {

@@ -1,51 +1,48 @@
-// Characterization tests — pin CURRENT trend-badge behavior (getTrend) before Phase 1B/1C.
-// L4 (Last Week tiles receive current-week history) and L12 (partial-week comparison) are
-// consequences of how callers use this function; the function's own quirks are pinned here.
+// Pins the tile badge's mapping onto the ONE Cadence trend engine (Phase 3):
+// assessTrend tones map win→improving, discuss→attention, steady/new→neutral.
+// The old zero-threshold last-vs-average badge (Phase 1A characterization)
+// retired with this — the badge must agree with the manager's briefing.
 import { describe, it, expect } from 'vitest';
 import { getTrend, mapHistoryToCalendarSlots } from './KpiTile';
 
 const h = (...values: number[]) => values.map(value => ({ value }));
 const p = (periodStart: string, value: number) => ({ periodStart, value });
 
-describe('getTrend', () => {
+describe('getTrend (Cadence engine mapping)', () => {
   it('null value → neutral', () => {
-    expect(getTrend(null, h(1, 2, 3), 'higher_is_better')).toBe('neutral');
+    expect(getTrend(null, h(1, 2, 3, 4), 'higher_is_better')).toBe('neutral');
   });
 
-  it('fewer than 2 history points → neutral', () => {
+  it('fewer than 4 history points → neutral (trend "new" until week 4)', () => {
     expect(getTrend(5, h(), 'higher_is_better')).toBe('neutral');
-    expect(getTrend(5, h(10), 'higher_is_better')).toBe('neutral');
+    expect(getTrend(5, h(10, 20, 30), 'higher_is_better')).toBe('neutral');
   });
 
-  it('higher_is_better: latest above prior average → improving', () => {
-    expect(getTrend(5, h(10, 10, 20), 'higher_is_better')).toBe('improving');
+  it('higher_is_better: ≥6% above the prior average → improving, ≤−6% → attention', () => {
+    expect(getTrend(5, h(10, 10, 10, 11), 'higher_is_better')).toBe('improving');
+    expect(getTrend(5, h(10, 10, 10, 9), 'higher_is_better')).toBe('attention');
   });
 
-  it('higher_is_better: latest below prior average → attention', () => {
-    expect(getTrend(5, h(20, 20, 10), 'higher_is_better')).toBe('attention');
+  it('lower_is_better inverts the direction', () => {
+    expect(getTrend(5, h(10, 10, 10, 9), 'lower_is_better')).toBe('improving');
+    expect(getTrend(5, h(10, 10, 10, 11), 'lower_is_better')).toBe('attention');
   });
 
-  it('lower_is_better: latest below prior average → improving', () => {
-    expect(getTrend(5, h(20, 20, 10), 'lower_is_better')).toBe('improving');
+  it('inside the ±6% steady band → neutral (the old badge flagged any movement)', () => {
+    expect(getTrend(5, h(100, 100, 100, 103), 'higher_is_better')).toBe('neutral');
+    expect(getTrend(5, h(100, 100, 100, 97), 'higher_is_better')).toBe('neutral');
   });
 
-  it('lower_is_better: latest above prior average → attention', () => {
-    expect(getTrend(5, h(10, 10, 20), 'lower_is_better')).toBe('attention');
+  it('band metrics: in-band → neutral, outside → attention, never improving', () => {
+    const band: [number, number] = [75, 88];
+    expect(getTrend(5, h(80, 80, 80, 85), 'higher_is_better', band)).toBe('neutral');
+    expect(getTrend(5, h(80, 80, 80, 92), 'higher_is_better', band)).toBe('attention');
+    expect(getTrend(5, h(60, 60, 60, 80), 'higher_is_better', band)).toBe('neutral');
   });
 
-  it('PRESERVE-FOR-PARITY: latest exactly equal to prior average → attention, not neutral', () => {
-    // `latest > priorAvg ? improving : attention` — equality lands on attention.
-    expect(getTrend(5, h(10, 10, 10), 'higher_is_better')).toBe('attention');
-    expect(getTrend(5, h(10, 10, 10), 'lower_is_better')).toBe('attention');
-  });
-
-  it('trend always compares the LAST history point, regardless of the value shown on the tile (why L4 is fixed at the call sites)', () => {
-    // The `value` argument only gates null; the comparison uses history's last element.
-    // Last Week tiles therefore pass history truncated to <= last week (commit 8) —
-    // with full history they would show a current-week trend. L12 (partial-week
-    // comparison on This Week tiles) remains working-as-designed.
-    expect(getTrend(999, h(10, 10, 20), 'higher_is_better')).toBe('improving');
-    expect(getTrend(1, h(10, 10, 20), 'higher_is_better')).toBe('improving');
+  it('trend compares the LAST history point, regardless of the value shown on the tile (L4 fixed at call sites)', () => {
+    expect(getTrend(999, h(10, 10, 10, 20), 'higher_is_better')).toBe('improving');
+    expect(getTrend(1, h(10, 10, 10, 20), 'higher_is_better')).toBe('improving');
   });
 });
 

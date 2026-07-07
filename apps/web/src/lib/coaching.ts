@@ -18,8 +18,12 @@ export interface AssessedMetric {
   label: string;
   /** metric_definitions.unit — drives value formatting inside point text. */
   unit: string;
-  /** Healthy range for band metrics (MetricSpec.band). */
-  band?: readonly [number, number];
+  /**
+   * True when the assessed value IS this week's — false when the current week
+   * has no row yet and the assessment rides on the latest synced week. Copy
+   * must not say "now" about a stale value while the row beside it shows "—".
+   */
+  isCurrent: boolean;
   assessment: TrendAssessment;
 }
 
@@ -89,30 +93,34 @@ export function buildTalkingPoints(
     const a = m.assessment;
     if (a.current === null) continue;
     const value = formatMetricValue(a.current, m.unit);
+    // Honest tense: "now"/"this week" only when the value IS this week's.
+    const valueNow = m.isCurrent ? `${value} now` : `${value} at last sync`;
+    const thisWeek = m.isCurrent ? 'this week' : 'in its latest synced week';
+    const atValue = m.isCurrent ? `at ${value}` : `last synced at ${value}`;
 
     if (a.tone === 'discuss') {
-      if (m.band && a.current > m.band[1]) {
+      if (a.bandPosition === 'above') {
         discuss.push({
           kind: 'discuss',
-          text: `${m.label} at ${value} — above the healthy range; worth checking the pace is sustainable.`,
+          text: `${m.label} ${atValue} — above the healthy range; worth checking the pace is sustainable.`,
           ask: context?.workload ? ASK_WORKLOAD : ASK_PACE,
         });
-      } else if (m.band && a.current < m.band[0]) {
+      } else if (a.bandPosition === 'below') {
         discuss.push({
           kind: 'discuss',
-          text: `${m.label} at ${value} — below the healthy range this week.`,
+          text: `${m.label} ${atValue} — below the healthy range ${thisWeek}.`,
           ask: ASK_DISCUSS,
         });
       } else if (a.pctChange === null || a.absoluteChange === null) {
         discuss.push({
           kind: 'discuss',
-          text: `${m.label} moved to ${value} this week.`,
+          text: `${m.label} moved to ${value} ${thisWeek}.`,
           ask: ASK_DISCUSS,
         });
       } else {
         discuss.push({
           kind: 'discuss',
-          text: `${m.label} ${directionWord(a.absoluteChange)} ${pctText(a.pctChange)} — ${value} now.`,
+          text: `${m.label} ${directionWord(a.absoluteChange)} ${pctText(a.pctChange)} — ${valueNow}.`,
           ask: ASK_DISCUSS,
         });
       }
@@ -121,7 +129,7 @@ export function buildTalkingPoints(
     if (a.tone === 'win') {
       const text =
         a.pctChange === null || a.absoluteChange === null
-          ? `${m.label} at ${value} this week — building from a quiet stretch.`
+          ? `${m.label} at ${value} ${thisWeek} — building from a quiet stretch.`
           : `${m.label} ${directionWord(a.absoluteChange)} ${pctText(a.pctChange)} vs. the last few weeks.`;
       celebrate.push({ kind: 'celebrate', text, ask: ASK_CELEBRATE });
     }

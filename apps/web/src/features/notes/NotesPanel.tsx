@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { X } from 'lucide-react';
 import { currentWeekStartUtc, weekStartStr } from '@scorecard/shared';
+import { WarnBanner } from '../../components/WarnBanner';
 import type { ScorecardSessionWithDetails } from '../../hooks/useScorecardNotes';
 
 interface NotesPanelProps {
@@ -102,30 +103,32 @@ export function NotesPanel({
     <div className="space-y-7">
       <div className="space-y-4">
         <div>
-          <label className={fieldLabel}>
+          <label htmlFor="session-date" className={fieldLabel}>
             Session Date
-            <input
-              type="date"
-              value={sessionDate}
-              min={minDate}
-              max={today}
-              onChange={e => setSessionDate(e.target.value)}
-              className={`${fieldInput} block mt-1.5 font-normal normal-case tracking-normal`}
-            />
           </label>
+          <input
+            id="session-date"
+            type="date"
+            value={sessionDate}
+            min={minDate}
+            max={today}
+            onChange={e => setSessionDate(e.target.value)}
+            className={fieldInput}
+          />
         </div>
 
         <div>
-          <label className={fieldLabel}>
+          <label htmlFor="session-notes" className={fieldLabel}>
             Notes
-            <textarea
-              value={noteContent}
-              onChange={e => setNoteContent(e.target.value)}
-              rows={4}
-              placeholder="What do you want to cover in this 1:1?"
-              className={`${fieldInput} w-full mt-1.5 font-normal normal-case tracking-normal`}
-            />
           </label>
+          <textarea
+            id="session-notes"
+            value={noteContent}
+            onChange={e => setNoteContent(e.target.value)}
+            rows={4}
+            placeholder="What do you want to cover in this 1:1?"
+            className={`${fieldInput} w-full`}
+          />
         </div>
 
         <div>
@@ -173,11 +176,7 @@ export function NotesPanel({
 
         {saveSuccess && <p className="text-hr-teal text-[12px]">Session saved</p>}
 
-        {saveError && (
-          <div className="bg-hr-amber-tint border border-hr-amber/30 text-hr-amber p-3 rounded-xl text-sm">
-            {saveError}
-          </div>
-        )}
+        {saveError && <WarnBanner>{saveError}</WarnBanner>}
 
         <button
           onClick={handleSave}

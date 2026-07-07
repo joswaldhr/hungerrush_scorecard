@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Users, LayoutGrid, SlidersHorizontal, FileOutput, Menu, X } from 'lucide-react';
+import { Users, LayoutGrid, SlidersHorizontal, FileOutput, Menu, X, type LucideIcon } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthProvider';
 import { supabase } from '../lib/supabase';
 import { getInitials } from '../lib/initials';
@@ -75,9 +75,7 @@ function SidebarContent({ onNavigate }: { onNavigate: (path: string) => void }) 
       active ? 'bg-hr-teal/20 text-white' : 'text-white/60 hover:text-white hover:bg-white/[0.06]'
     }`;
 
-  const iconClass = (active: boolean) => (active ? 'text-hr-teal' : 'text-white/50');
-
-  const navButton = (path: string, icon: ReactNode, label: string) => {
+  const navButton = (path: string, Icon: LucideIcon, label: string) => {
     const active = isActive(path);
     return (
       <button
@@ -85,7 +83,7 @@ function SidebarContent({ onNavigate }: { onNavigate: (path: string) => void }) 
         className={navItemClass(active)}
         aria-current={active ? 'page' : undefined}
       >
-        {icon}
+        <Icon size={15} className={active ? 'text-hr-teal' : 'text-white/50'} />
         <span>{label}</span>
       </button>
     );
@@ -99,22 +97,13 @@ function SidebarContent({ onNavigate }: { onNavigate: (path: string) => void }) 
 
       <nav className="flex-1 px-3 py-4 space-y-1">
         <p className="text-[10px] font-semibold tracking-widest uppercase text-white/30 px-2 mb-2">Main</p>
-        {navButton('/scorecard', <Users size={15} className={iconClass(isActive('/scorecard'))} />, 'Your team')}
-        {showRollup &&
-          navButton('/rollup', <LayoutGrid size={15} className={iconClass(isActive('/rollup'))} />, 'Team rollup')}
+        {navButton('/scorecard', Users, 'Your team')}
+        {showRollup && navButton('/rollup', LayoutGrid, 'Team rollup')}
         {showAdmin && (
           <>
             <p className="text-[10px] font-semibold tracking-widest uppercase text-white/30 px-2 mb-2 mt-6">Admin</p>
-            {navButton(
-              '/admin/metrics',
-              <SlidersHorizontal size={15} className={iconClass(isActive('/admin/metrics'))} />,
-              'Metrics',
-            )}
-            {navButton(
-              '/admin/exports',
-              <FileOutput size={15} className={iconClass(isActive('/admin/exports'))} />,
-              'Export log',
-            )}
+            {navButton('/admin/metrics', SlidersHorizontal, 'Metrics')}
+            {navButton('/admin/exports', FileOutput, 'Export log')}
           </>
         )}
       </nav>

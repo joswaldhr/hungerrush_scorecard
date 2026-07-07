@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useRoster } from '../../hooks/useRoster';
 import { AppLayout } from '../../components/AppLayout';
+import { WarnBanner } from '../../components/WarnBanner';
 import { TourModal, useTour } from '../onboarding/TourModal';
 import { RosterStrip } from './components/RosterStrip';
 import { Briefing } from './components/Briefing';
@@ -11,7 +12,8 @@ import { Briefing } from './components/Briefing';
  * The Cadence home: roster strip for picking the person, 1:1 briefing below.
  * Selection lives in the URL (/scorecard/:employeeId) so briefings stay
  * deep-linkable; landing without a selection auto-picks the first roster
- * member. The ?manager= filter (rollup drill-down) scopes the roster.
+ * member. The ?manager= filter (rollup drill-down) scopes the roster to that
+ * manager's FULL team — no with-data filtering, matching the old drill-down.
  */
 export function ScorecardPage() {
   const { employeeId } = useParams<{ employeeId?: string }>();
@@ -19,19 +21,17 @@ export function ScorecardPage() {
   const navigate = useNavigate();
   const managerFilter = searchParams.get('manager');
   const managerName = searchParams.get('name');
-  const { entries, loading, error } = useRoster();
+  const { entries, loading, error } = useRoster(managerFilter);
   const [rosterMode, setRosterMode] = useState<'data' | 'all'>('data');
   const [search, setSearch] = useState('');
   const { showTour, closeTour } = useTour();
 
-  const scoped = useMemo(
-    () => (managerFilter ? entries.filter(e => e.employee.manager_id === managerFilter) : entries),
-    [entries, managerFilter],
-  );
+  const scoped = entries;
   const withData = useMemo(() => scoped.filter(e => e.hasData), [scoped]);
+  const effectiveMode = managerFilter ? 'all' : rosterMode;
 
   const visible = useMemo(() => {
-    let list = rosterMode === 'data' && withData.length > 0 ? withData : scoped;
+    let list = effectiveMode === 'data' ? withData : scoped;
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter(
@@ -50,7 +50,7 @@ export function ScorecardPage() {
       }
     }
     return list;
-  }, [scoped, withData, rosterMode, search, employeeId]);
+  }, [scoped, withData, effectiveMode, search, employeeId]);
 
   // Landing without a selection: pick the first roster member.
   useEffect(() => {
@@ -71,6 +71,9 @@ export function ScorecardPage() {
       ? 'bg-hr-navy text-white text-[12px] px-3 py-1 rounded-full transition-colors'
       : 'bg-hr-card border border-hr-line text-hr-gray text-[12px] px-3 py-1 rounded-full hover:bg-hr-bg transition-colors';
 
+  const noneWithData =
+    !loading && effectiveMode === 'data' && withData.length === 0 && scoped.length > 0;
+
   return (
     <AppLayout title="Your team">
       {managerFilter && (
@@ -88,24 +91,18 @@ export function ScorecardPage() {
         </div>
       )}
 
-      {error && (
-        <div className="bg-hr-amber-tint border border-hr-amber/30 text-hr-amber p-4 rounded-xl mb-4 text-[13px]">
-          {error}
-        </div>
-      )}
+      {error && <WarnBanner className="mb-4">{error}</WarnBanner>}
 
-      {!loading && scoped.length > 0 && (scoped.length > 8 || withData.length !== scoped.length) && (
+      {!loading && !managerFilter && scoped.length > 1 && (
         <div className="flex items-center gap-2 mb-3 flex-wrap">
-          {scoped.length > 8 && (
-            <input
-              type="text"
-              placeholder="Search team members..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              aria-label="Search team members"
-              className="w-56 h-8 bg-hr-card border border-hr-line rounded-lg px-3 text-[13px] outline-none focus:border-hr-teal transition-colors"
-            />
-          )}
+          <input
+            type="text"
+            placeholder="Search team members..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            aria-label="Search team members"
+            className="w-56 h-8 bg-hr-card border border-hr-line rounded-lg px-3 text-[13px] outline-none focus:border-hr-teal transition-colors"
+          />
           {withData.length !== scoped.length && (
             <div className="flex gap-1.5">
               <button onClick={() => setRosterMode('data')} className={pillClass(rosterMode === 'data')}>
@@ -126,24 +123,35 @@ export function ScorecardPage() {
             Ask your admin to run the org sync, or check back once your team has been set up.
           </p>
         </div>
+      ) : noneWithData ? (
+        <div className="bg-hr-card rounded-xl border border-hr-line p-8 text-center">
+          <p className="text-[13px] text-hr-navy mb-1">
+            None of your team members have synced metrics yet.
+          </p>
+          <p className="text-[13px] text-hr-gray">
+            Metrics appear after the data sync connects to Zendesk and Assembled.
+          </p>
+          <button
+            onClick={() => setRosterMode('all')}
+            className="text-hr-teal text-[13px] mt-3 hover:underline"
+          >
+            Show all team members
+          </button>
+        </div>
       ) : !loading && visible.length === 0 && search.trim() ? (
-        <>
-          <div className="bg-hr-card rounded-xl border border-hr-line p-8 text-center">
-            <p className="text-[13px] text-hr-gray">No team members match your search.</p>
-          </div>
-          {employeeId && <div className="mt-4"><Briefing employeeId={employeeId} /></div>}
-        </>
+        <div className="bg-hr-card rounded-xl border border-hr-line p-8 text-center">
+          <p className="text-[13px] text-hr-gray">No team members match your search.</p>
+        </div>
       ) : (
-        <>
-          <RosterStrip
-            entries={visible}
-            selectedId={employeeId ?? null}
-            onSelect={handleSelect}
-            loading={loading}
-          />
-          {employeeId && <Briefing employeeId={employeeId} />}
-        </>
+        <RosterStrip
+          entries={visible}
+          selectedId={employeeId ?? null}
+          onSelect={handleSelect}
+          loading={loading}
+        />
       )}
+
+      {employeeId && <Briefing employeeId={employeeId} />}
 
       <TourModal open={showTour} onClose={closeTour} />
     </AppLayout>

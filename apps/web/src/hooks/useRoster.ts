@@ -13,25 +13,26 @@ import {
 } from '@scorecard/shared';
 import { SPARKLINE_WEEKS } from '../lib/evidence';
 import { rosterSummary } from '../lib/coaching';
+import { SESSION_LOOKBACK_WEEKS } from './useScorecardNotes';
 
 export interface RosterEntry {
   employee: Employee;
   summary: { tone: TrendTone; label: string };
   lastSessionDate: string | null;
-  /** True when at least one active metric has a snapshot in the window. */
+  /** True when at least one active metric has a snapshot in the current or last week. */
   hasData: boolean;
 }
 
-/** How far back a 1:1 still counts as the chip's "last session". */
-const SESSION_LOOKBACK_WEEKS = 26;
-
 /**
- * Roster strip data: every visible employee (RLS scopes who that is) with a
- * trend-tone summary over the sparkline window and their most recent 1:1.
- * Tones only include metrics that have at least one point, so a person with
- * no data reads "no data yet" rather than "ramping".
+ * Roster strip data: every visible employee (RLS scopes who that is; pass a
+ * managerId to scope a rollup drill-down server-side) with a trend-tone
+ * summary over the sparkline window and their most recent 1:1. Tones only
+ * include metrics that have at least one point, so a person with no data
+ * reads "no data yet" rather than "ramping". hasData keeps the old
+ * dashboard's meaning — actively syncing (current or last week) — so people
+ * whose data stopped weeks ago don't crowd the default view.
  */
-export function useRoster() {
+export function useRoster(managerId: string | null = null) {
   const [entries, setEntries] = useState<RosterEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,37 +43,52 @@ export function useRoster() {
 
     const thisMonday = currentWeekStartUtc();
     const windowStartStr = weekStartStr(weeksBeforeUtc(thisMonday, SPARKLINE_WEEKS - 1));
+    const lastMondayStr = weekStartStr(weeksBeforeUtc(thisMonday, 1));
     const sessionFloor = weekStartStr(weeksBeforeUtc(thisMonday, SESSION_LOOKBACK_WEEKS));
 
-    const [empRes, defsRes, snapshotsRes, sessionsRes] = await Promise.all([
-      supabase.from('employees').select('*').order('full_name'),
+    // Wave 1: who + which metrics. Wave 2 scopes its queries by both.
+    const empQuery = supabase.from('employees').select('*').order('full_name');
+    const [empRes, defsRes] = await Promise.all([
+      managerId ? empQuery.eq('manager_id', managerId) : empQuery,
       supabase.from('metric_definitions').select('*').eq('is_active', true).order('display_order'),
-      // Paginated (L7): 8 weeks × all visible employees exceeds PostgREST's 1,000-row cap.
-      fetchAllPages<{ employee_id: string; metric_key: string; value: number; period_start: string }>(
-        (from, to) =>
-          supabase
-            .from('metric_snapshots')
-            .select('employee_id, metric_key, value, period_start')
-            .gte('period_start', windowStartStr)
-            .order('id')
-            .range(from, to),
-      ),
-      fetchAllPages<{ employee_id: string; session_date: string }>((from, to) =>
-        supabase
-          .from('scorecard_sessions')
-          .select('employee_id, session_date')
-          .gte('session_date', sessionFloor)
-          .order('id')
-          .range(from, to),
-      ),
     ]);
+
+    const employees = (empRes.data ?? []) as Employee[];
+    const defs = (defsRes.data ?? []) as MetricDefinition[];
+    const activeKeys = defs.map(d => d.key);
+    // Only manager-scoped rosters filter by employee id — an org-wide id list
+    // would blow past URL length limits; RLS already scopes the wide case.
+    const scopeIds = managerId ? employees.map(e => e.id) : null;
+
+    const [snapshotsRes, sessionsRes] =
+      employees.length === 0 || activeKeys.length === 0
+        ? [{ data: [], error: null }, { data: [], error: null }]
+        : await Promise.all([
+            // Paginated (L7): 8 weeks × all visible employees exceeds PostgREST's 1,000-row cap.
+            fetchAllPages<{ employee_id: string; metric_key: string; value: number; period_start: string }>(
+              (from, to) => {
+                let q = supabase
+                  .from('metric_snapshots')
+                  .select('employee_id, metric_key, value, period_start')
+                  .gte('period_start', windowStartStr)
+                  .in('metric_key', activeKeys);
+                if (scopeIds) q = q.in('employee_id', scopeIds);
+                return q.order('id').range(from, to);
+              },
+            ),
+            fetchAllPages<{ employee_id: string; session_date: string }>((from, to) => {
+              let q = supabase
+                .from('scorecard_sessions')
+                .select('employee_id, session_date')
+                .gte('session_date', sessionFloor);
+              if (scopeIds) q = q.in('employee_id', scopeIds);
+              return q.order('id').range(from, to);
+            }),
+          ]);
 
     // Surface the first failure (S5) — sections that DID load still render.
     const firstError = empRes.error ?? defsRes.error ?? snapshotsRes.error ?? sessionsRes.error;
     if (firstError) setError(firstError.message);
-
-    const employees = (empRes.data ?? []) as Employee[];
-    const defs = (defsRes.data ?? []) as MetricDefinition[];
 
     if (!empRes.error) {
       // values per employee per metric, chronological
@@ -98,6 +114,7 @@ export function useRoster() {
         employees.map(employee => {
           const byMetric = byEmployee.get(employee.id);
           const tones: TrendTone[] = [];
+          let hasData = false;
           if (byMetric) {
             for (const def of defs) {
               const points = byMetric.get(def.key);
@@ -105,22 +122,25 @@ export function useRoster() {
               points.sort((a, b) => a.periodStart.localeCompare(b.periodStart));
               const spec = METRIC_SPECS[def.key];
               tones.push(assessTrend(points.map(p => p.value), def.direction, spec?.band).tone);
+              if (points[points.length - 1]!.periodStart >= lastMondayStr) hasData = true;
             }
           }
           return {
             employee,
             summary: rosterSummary(tones),
             lastSessionDate: lastSessionByEmployee.get(employee.id) ?? null,
-            hasData: tones.length > 0,
+            hasData,
           };
         }),
       );
     }
 
     setLoading(false);
-  }, []);
+  }, [managerId]);
 
   useEffect(() => {
+    // New scope key: drop the previous scope's entries (S5 key-change reset).
+    setEntries([]);
     load();
   }, [load]);
 

@@ -8,7 +8,7 @@ export const TONE_HEX: Record<TrendTone, string> = {
   steady: '#9EA2BC',
   new: '#9EA2BC',
 };
-export const SPARK_BAND_FILL = '#3B8272';
+export const SPARK_BAND_FILL = TONE_HEX.win;
 export const SPARK_BASELINE = '#E3E6EE';
 
 export const TONE_TEXT: Record<TrendTone, string> = {

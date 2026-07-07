@@ -12,7 +12,7 @@ import {
   type MetricSource,
   type TrendAssessment,
 } from '@scorecard/shared';
-import type { EmployeeMetric } from './employeeMetrics';
+import { maxIso, type EmployeeMetric } from './employeeMetrics';
 
 /** Sparkline window: 8 calendar slots ending at the anchor week. */
 export const SPARKLINE_WEEKS = 8;
@@ -109,13 +109,7 @@ export function groupEvidenceBySource(
   return SOURCE_ORDER.flatMap(source => {
     const metrics = evidence.filter(m => m.definition.source === source);
     if (metrics.length === 0) return [];
-    const latestSyncedAt = metrics.reduce<string | null>(
-      (max, m) =>
-        max === null || (m.latestSyncedAt !== null && m.latestSyncedAt > max)
-          ? m.latestSyncedAt
-          : max,
-      null,
-    );
+    const latestSyncedAt = maxIso(metrics.map(m => m.latestSyncedAt));
     return [{
       source,
       label: SOURCE_LABELS[source],

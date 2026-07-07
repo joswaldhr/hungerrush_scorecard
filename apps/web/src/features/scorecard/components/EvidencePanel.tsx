@@ -1,5 +1,6 @@
-import { formatDistanceToNow, parseISO } from 'date-fns';
 import type { EvidenceGroup } from '../../../lib/evidence';
+import { timeAgo } from '../../../lib/timeAgo';
+import { WarnBanner } from '../../../components/WarnBanner';
 import { Eyebrow } from './Eyebrow';
 import { MetricRow } from './MetricRow';
 
@@ -19,8 +20,10 @@ function PanelSkeleton() {
 /**
  * Metrics as supporting evidence, grouped by source. Each group carries its
  * history-depth chip and a section-level synced stamp; a source whose newest
- * stamp is older than the staleness bound degrades to the amber
- * "showing last sync" banner instead of pretending to be live.
+ * stamp for THIS person is older than the staleness bound degrades to the
+ * amber "showing last sync" banner instead of pretending to be live. The
+ * copy is per-person honest: a stale stamp can also mean this one person
+ * stopped syncing (deactivated agent), so it never claims the source is down.
  */
 export function EvidencePanel({ groups, loading }: { groups: EvidenceGroup[]; loading: boolean }) {
   return (
@@ -42,18 +45,15 @@ export function EvidencePanel({ groups, loading }: { groups: EvidenceGroup[]; lo
               <p className="font-mono text-[10px] text-hr-gray-light">
                 {group.weeksOfHistory} wk
                 {!group.stale && group.latestSyncedAt && (
-                  <> · synced {formatDistanceToNow(parseISO(group.latestSyncedAt), { addSuffix: true })}</>
+                  <> · synced {timeAgo(group.latestSyncedAt)}</>
                 )}
               </p>
             </div>
             {group.stale && group.latestSyncedAt && (
-              <div
-                role="status"
-                className="bg-hr-amber-tint border border-hr-amber/30 rounded-lg px-3 py-2 mb-2 text-[12px] leading-snug text-[#8A5A0B]"
-              >
-                {group.label} unreachable — showing last sync (
-                {formatDistanceToNow(parseISO(group.latestSyncedAt), { addSuffix: true })}).
-              </div>
+              <WarnBanner className="mb-2">
+                No fresh {group.label} data for this person — showing last sync (
+                {timeAgo(group.latestSyncedAt)}).
+              </WarnBanner>
             )}
             <div className={`border-t border-hr-line ${group.stale ? 'opacity-75' : ''}`}>
               {group.metrics.map(m => (

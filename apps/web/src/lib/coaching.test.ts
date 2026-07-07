@@ -14,18 +14,19 @@ function assessed(
   label: string,
   unit: string,
   assessment: Partial<TrendAssessment> & { tone: TrendAssessment['tone'] },
-  band?: readonly [number, number],
+  isCurrent = true,
 ): AssessedMetric {
   return {
     key,
     label,
     unit,
-    band,
+    isCurrent,
     assessment: {
       current: 10,
       priorAverage: 10,
       absoluteChange: 0,
       pctChange: 0,
+      bandPosition: null,
       ...assessment,
     },
   };
@@ -82,7 +83,8 @@ describe('buildTalkingPoints — flags only', () => {
     const points = buildTalkingPoints([
       assessed('occupancy', 'Occupancy', 'percent', {
         tone: 'discuss', current: 93, priorAverage: 90, absoluteChange: 3, pctChange: 3.3,
-      }, [75, 88]),
+        bandPosition: 'above',
+      }),
     ]);
     expect(points[0]!.text).toBe(
       'Occupancy at 93.0% — above the healthy range; worth checking the pace is sustainable.',
@@ -94,9 +96,20 @@ describe('buildTalkingPoints — flags only', () => {
     const points = buildTalkingPoints([
       assessed('occupancy', 'Occupancy', 'percent', {
         tone: 'discuss', current: 62, priorAverage: 70, absoluteChange: -8, pctChange: -11.4,
-      }, [75, 88]),
+        bandPosition: 'below',
+      }),
     ]);
     expect(points[0]!.text).toBe('Occupancy at 62.0% — below the healthy range this week.');
+  });
+
+  it('never says "now" about a value that is not this week\'s', () => {
+    const points = buildTalkingPoints([
+      assessed('first_reply_time', 'First Reply Time', 'seconds', {
+        tone: 'discuss', current: 2520, priorAverage: 1800, absoluteChange: 720, pctChange: 40,
+      }, false),
+    ]);
+    expect(points[0]!.text).toBe('First Reply Time up 40% — 42.0 min at last sync.');
+    expect(points[0]!.text).not.toContain('now');
   });
 
   it('a win off a zero prior average reads as building, not a percentage', () => {
@@ -111,7 +124,7 @@ describe('buildTalkingPoints — flags only', () => {
   it('integrates with assessTrend end-to-end', () => {
     const a = assessTrend([1800, 1800, 1800, 2520], 'lower_is_better');
     const points = buildTalkingPoints([
-      { key: 'first_reply_time', label: 'First Reply Time', unit: 'seconds', assessment: a },
+      { key: 'first_reply_time', label: 'First Reply Time', unit: 'seconds', isCurrent: true, assessment: a },
     ]);
     expect(points[0]!.kind).toBe('discuss');
     expect(points[0]!.text).toContain('up 40%');
@@ -175,7 +188,8 @@ describe('coaching-language rules over every engine string', () => {
         assessed('occupancy', 'Occupancy', 'percent', {
           tone: 'discuss', current: bandCur, priorAverage: 80,
           absoluteChange: bandCur - 80, pctChange: ((bandCur - 80) / 80) * 100,
-        }, [75, 88]),
+          bandPosition: bandCur > 88 ? 'above' : 'below',
+        }),
       ])) {
         everyText.push(p.text, p.ask ?? '');
       }

@@ -17,6 +17,7 @@ export default {
         'hr-coral-tint': '#FBF1EE', // lead discuss-card background
         'hr-amber':      '#E9930F', // system degradation (stale sync) · notes tone
         'hr-amber-tint': '#FDF4E3', // stale-banner background
+        'hr-amber-deep': '#8A5A0B', // readable amber text on the tint
         'hr-bg':         '#F6F7F9', // page background
         'hr-card':       '#FFFFFF',
         'hr-line':       '#E3E6EE', // borders · dividers

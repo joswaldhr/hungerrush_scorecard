@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { ScorecardSessionWithDetails } from '../../../hooks/useScorecardNotes';
+import { WarnBanner } from '../../../components/WarnBanner';
 
 const MAX_VISIBLE = 8;
 
@@ -15,6 +16,16 @@ export function ActionItemsList({
   sessions: ScorecardSessionWithDetails[];
   onToggle: (itemId: string, isCompleted: boolean) => Promise<{ ok: boolean; error?: string }>;
 }) {
+  const [toggleError, setToggleError] = useState<string | null>(null);
+
+  const handleToggle = async (itemId: string, isCompleted: boolean) => {
+    setToggleError(null);
+    const result = await onToggle(itemId, isCompleted);
+    if (!result.ok) {
+      setToggleError(result.error ?? "That update didn't save — try again.");
+    }
+  };
+
   const items = useMemo(() => {
     const flat = sessions.flatMap(s =>
       s.action_items.map(item => ({ item, sessionDate: s.session_date })),
@@ -39,6 +50,7 @@ export function ActionItemsList({
 
   return (
     <div>
+      {toggleError && <WarnBanner className="mb-2">{toggleError}</WarnBanner>}
       {visible.map(({ item }) => (
         <label
           key={item.id}
@@ -49,7 +61,7 @@ export function ActionItemsList({
           <input
             type="checkbox"
             checked={item.is_completed}
-            onChange={e => onToggle(item.id, e.target.checked)}
+            onChange={e => handleToggle(item.id, e.target.checked)}
             className="mt-0.5 rounded border-hr-line text-hr-teal focus:ring-hr-teal/20"
           />
           {item.content}

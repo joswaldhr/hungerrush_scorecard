@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { formatDistanceToNow, parseISO } from 'date-fns';
 import { currentWeekStartUtc, weekStartStr } from '@scorecard/shared';
 import { useAuth } from '../../auth/AuthProvider';
 import { useEmployee } from '../../../hooks/useEmployee';
@@ -10,6 +9,8 @@ import { buildTalkingPoints } from '../../../lib/coaching';
 import { supabase } from '../../../lib/supabase';
 import { generateScorecardPdf } from '../../../lib/pdfExport';
 import { NotesPanel } from '../../notes/NotesPanel';
+import { WarnBanner } from '../../../components/WarnBanner';
+import { timeAgo } from '../../../lib/timeAgo';
 import { Eyebrow } from './Eyebrow';
 import { TalkingPoints } from './TalkingPoints';
 import { EvidencePanel } from './EvidencePanel';
@@ -73,7 +74,7 @@ export function Briefing({ employeeId }: { employeeId: string }) {
           key: m.definition.key,
           label: m.definition.name,
           unit: m.definition.unit,
-          band: m.spec?.band,
+          isCurrent: m.currentValue !== null,
           assessment: m.assessment,
         })),
       ),
@@ -174,9 +175,7 @@ export function Briefing({ employeeId }: { employeeId: string }) {
           <div className="min-w-0">
             <Eyebrow className="mb-1.5">
               1:1 briefing
-              {lastSessionDate
-                ? ` · last session ${formatDistanceToNow(parseISO(lastSessionDate), { addSuffix: true })}`
-                : ''}
+              {lastSessionDate ? ` · last session ${timeAgo(lastSessionDate)}` : ''}
             </Eyebrow>
             <h2 className="font-heading text-[clamp(24px,4vw,32px)] font-extrabold text-hr-navy leading-tight truncate">
               {employee.full_name}
@@ -269,11 +268,7 @@ export function Briefing({ employeeId }: { employeeId: string }) {
 
           <div className="mt-6">
             <Eyebrow className="mb-2">Notes</Eyebrow>
-            {notesError && (
-              <div className="bg-hr-amber-tint border border-hr-amber/30 text-hr-amber p-3 rounded-lg mb-3 text-[13px]">
-                {notesError}
-              </div>
-            )}
+            {notesError && <WarnBanner className="mb-3">{notesError}</WarnBanner>}
             <NotesPanel
               sessions={sessions}
               loading={notesLoading}
@@ -286,11 +281,7 @@ export function Briefing({ employeeId }: { employeeId: string }) {
 
         {/* Evidence panel — supporting */}
         <div>
-          {metricsError && (
-            <div className="bg-hr-amber-tint border border-hr-amber/30 text-hr-amber p-4 rounded-xl mb-4 text-[13px]">
-              {metricsError}
-            </div>
-          )}
+          {metricsError && <WarnBanner className="mb-4">{metricsError}</WarnBanner>}
           <EvidencePanel groups={groups} loading={metricsLoading} />
         </div>
       </div>

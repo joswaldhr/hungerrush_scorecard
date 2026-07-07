@@ -28,6 +28,12 @@ export interface TrendAssessment {
   absoluteChange: number | null;
   /** Percent change vs priorAverage; null when sparse OR priorAverage is 0. */
   pctChange: number | null;
+  /**
+   * Where the current value sits relative to the band; null for non-band
+   * metrics or sparse windows. The ONE place band boundaries are compared —
+   * consumers (copy engine, badges) switch on this instead of re-deriving.
+   */
+  bandPosition: 'above' | 'in' | 'below' | null;
 }
 
 /**
@@ -45,7 +51,14 @@ export function assessTrend(
   const current = values.length > 0 ? values[values.length - 1]! : null;
 
   if (values.length < TREND_MIN_POINTS || current === null) {
-    return { tone: 'new', current, priorAverage: null, absoluteChange: null, pctChange: null };
+    return {
+      tone: 'new',
+      current,
+      priorAverage: null,
+      absoluteChange: null,
+      pctChange: null,
+      bandPosition: null,
+    };
   }
 
   const priors = values.slice(
@@ -57,9 +70,9 @@ export function assessTrend(
   const pctChange = priorAverage === 0 ? null : (absoluteChange / priorAverage) * 100;
 
   if (band) {
-    const [lo, hi] = band;
-    const tone: TrendTone = current >= lo && current <= hi ? 'steady' : 'discuss';
-    return { tone, current, priorAverage, absoluteChange, pctChange };
+    const bandPosition = current > band[1] ? 'above' : current < band[0] ? 'below' : 'in';
+    const tone: TrendTone = bandPosition === 'in' ? 'steady' : 'discuss';
+    return { tone, current, priorAverage, absoluteChange, pctChange, bandPosition };
   }
 
   let tone: TrendTone;
@@ -74,7 +87,7 @@ export function assessTrend(
     const signed = direction === 'lower_is_better' ? -pctChange : pctChange;
     tone = signed >= TREND_STEADY_PCT ? 'win' : signed <= -TREND_STEADY_PCT ? 'discuss' : 'steady';
   }
-  return { tone, current, priorAverage, absoluteChange, pctChange };
+  return { tone, current, priorAverage, absoluteChange, pctChange, bandPosition: null };
 }
 
 /**
