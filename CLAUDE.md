@@ -388,10 +388,10 @@ hr-line:        #E3E6EE   borders · dividers
 hr-gray:        #5C607E   secondary text
 hr-gray-light:  #9EA2BC   tertiary text · steady/new tone
 ```
-The retired pre-Cadence names (hr-green, hr-sand, hr-text-*, …) survive in
-tailwind.config.ts only as transitional aliases re-pointed at Cadence values while the
-reskin lands surface-by-surface — never use them in new code; they die with the last
-old surface.
+The pre-Cadence names (hr-green, hr-sand, hr-text-*, …) are GONE — their transitional
+aliases were retired 2026-07-07 with the last old surfaces (Phase 3 session 2). Only
+the Cadence tokens above exist; a class referencing an old name silently renders
+unstyled, so treat any hr-green/hr-sand/hr-text-* sighting in a diff as a bug.
 
 **Typography (self-hosted woff2 in `apps/web/public/fonts/` — no Google Fonts @import,
 no icon webfonts; lucide-react only):** Montserrat = headings (`font-heading`) ·
