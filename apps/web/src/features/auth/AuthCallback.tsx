@@ -71,7 +71,7 @@ export function AuthCallback() {
   }
 
   return (
-    <div className="min-h-screen bg-hr-gray flex items-center justify-center">
+    <div className="min-h-screen bg-hr-bg flex items-center justify-center">
       <div className="animate-pulse text-hr-navy text-lg">Signing you in...</div>
     </div>
   );

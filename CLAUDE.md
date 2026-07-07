@@ -339,21 +339,40 @@ leaks, every access control is void.
 
 ## UI rules
 
-**Brand tokens — configure in tailwind.config.ts, use nowhere else:**
+**Brand tokens — configure in tailwind.config.ts, use nowhere else (Cadence set, Phase 3
+2026-07-07 — values from the `T` object in `docs/design/hungerrush-cadence/cadence-v2.jsx`):**
 ```
-hr-navy:        #1E2E4A   headings · nav · primary text
-hr-green:       #1D9E75   actions · positive indicators · brand accent
-hr-green-dark:  #0F6E56   hover · active states
-hr-green-light: #E1F5EE   subtle backgrounds · highlights
-hr-gray:        #F5F5F4   page background
+hr-navy:        #0C1443   headings · nav · primary ink
+hr-navy-soft:   #3A3F6B   eyebrows · secondary navy
+hr-teal:        #3B8272   brand accent · wins · actions
+hr-teal-tint:   #EAF3F0   positive tint backgrounds
+hr-coral:       #C4553A   the ONE attention accent — "discuss", never "alarm"
+hr-coral-tint:  #FBF1EE   lead discuss-card background
+hr-amber:       #E9930F   system degradation (stale sync) · notes tone
+hr-amber-tint:  #FDF4E3   stale-banner background
+hr-bg:          #F6F7F9   page background
+hr-card:        #FFFFFF   card surface
+hr-line:        #E3E6EE   borders · dividers
+hr-gray:        #5C607E   secondary text
+hr-gray-light:  #9EA2BC   tertiary text · steady/new tone
 ```
+The retired pre-Cadence names (hr-green, hr-sand, hr-text-*, …) survive in
+tailwind.config.ts only as transitional aliases re-pointed at Cadence values while the
+reskin lands surface-by-surface — never use them in new code; they die with the last
+old surface.
 
-**Performance state colors:** amber-500 for attention · hr-green for positive · slate-400 for neutral
+**Typography (self-hosted woff2 in `apps/web/public/fonts/` — no Google Fonts @import,
+no icon webfonts; lucide-react only):** Montserrat = headings (`font-heading`) ·
+Inter = body (`font-sans`) · IBM Plex Mono = metric values (`font-mono`).
+
+**Performance state colors:** hr-coral for discuss · hr-teal for wins · hr-gray-light for
+steady/new. hr-amber is NOT a performance state — it marks system degradation (stale sync,
+notes tone) only.
 **Never use red for any performance state — AMENDED 2026-07-06 (Cadence adoption):** coral
 `#C4553A` (warm terracotta) is the one sanctioned attention accent for performance states,
 always framed as "discuss", never "alarm". True red stays reserved for genuine system errors —
-failed save, lost connection — never for an employee's metrics. The coral token ships with the
-Phase 3 Cadence token swap; until that lands, the amber convention above stands in the shipped UI.
+failed save, lost connection — never for an employee's metrics. The coral token SHIPPED with
+the Phase 3 Cadence token swap (2026-07-07) as `hr-coral`.
 
 **Every KPI tile must show:** metric name (from DB) · value + unit · trend/status indicator ·
 4-week sparkline · coaching prompt (from DB). Last-updated timestamp: a section-level "synced"

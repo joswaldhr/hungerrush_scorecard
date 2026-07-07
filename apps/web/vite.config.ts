@@ -10,8 +10,8 @@ export default defineConfig({
       manifest: {
         name: 'Manager Scorecard',
         short_name: 'Scorecard',
-        theme_color: '#1E2E4A',
-        background_color: '#F5F5F4',
+        theme_color: '#0C1443',
+        background_color: '#F6F7F9',
         display: 'standalone',
         start_url: '/',
         icons: [
@@ -20,7 +20,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+        globPatterns: ['**/*.{js,css,html,png,svg,ico,woff2}'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
