@@ -8,8 +8,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'Manager Scorecard',
-        short_name: 'Scorecard',
+        name: 'HungerRush Cadence',
+        short_name: 'Cadence',
         theme_color: '#0C1443',
         background_color: '#F6F7F9',
         display: 'standalone',
