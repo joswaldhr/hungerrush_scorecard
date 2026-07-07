@@ -34,14 +34,16 @@
   degradation wording, drill-down shows full team, hasData = current-or-last-week again,
   KpiTile badge now derives from assessTrend (public shared page can't contradict the
   briefing). **D6 is closed EXCEPT rollup chips** (`useManagerRollup` still counts
-  this-vs-last-week; migrates with the rollup reskin). **Flagged for James in PR #7, not
-  changed:** trend "current" includes the partial in-progress week (per ADOPTION's
-  current-vs-prior wording; the old tiles compared the same way) — early-week
-  ticket_volume can read as a big decline; if unwanted, the follow-up is anchoring
-  count-unit trends to the last completed week. **Session 2 scope:** rollup reskin (+ its
-  trend migration), SharedScorecardPage (keeps per-tile synced stamps), PDF export design,
-  admin pages, login, S10 404, S12 titles/aria/focus, component tests (**needs jsdom
-  dev-dep — ask James**; @testing-library/react is approved but useless without it),
+  this-vs-last-week; migrates with the rollup reskin). **Both flagged decisions RESOLVED
+  same day — James: "do what you recommend":** commit 9 anchors count-unit trends to the
+  last completed week (`trendWindow` in shared; rates keep live values; coaching copy
+  speaks in matching tense — now / last week / at last sync); commit 10 adds jsdom +
+  re-adds @testing-library/react (devDeps) with the first 16 component render tests
+  (TalkingPoints, EvidencePanel, RosterStrip, KpiTile) via per-file jsdom pragma.
+  Final session-1 state: 10 commits, tests **142** (50 api / 60 web / 32 shared).
+  **Session 2 scope:** rollup reskin (+ its trend migration = D6 fully closed),
+  SharedScorecardPage (keeps per-tile synced stamps), PDF export design, admin pages,
+  login, S10 404, S12 titles/aria/focus, component tests for the remaining surfaces,
   transitional-alias retirement, `docs/demo-smoke-checklist.md` at the end.
 - **Session 27 (Phase 2 hardening — CLOSED, merged + live-verified 2026-07-07):** refactor plan §d commits 12–17, all built and green
   (79 tests / typecheck 3×3 / lint at every commit). Commit 12 dead-code sweep (+ L14 comment,
@@ -435,8 +437,12 @@ Two data windows shown on every scorecard, clearly labeled:
 ONE definition everywhere — current value vs the **prior-period average**, ±6% steady
 threshold, direction-aware, band metrics supported (healthy range, not a direction), sparse
 history (<4 points) = "new" state (trends unlock at week 4). Applies to tiles/rows, rollup
-chips, and frozen last-week views alike. Implementation lands in Phase 3 (Cadence); the
-shipped UI keeps its current trend computations until then.
+chips, and frozen last-week views alike. **Amended 2026-07-07 (James):** count-unit metrics
+are weekly sums, so their "current value" is the **last completed week** when the view shows
+the in-progress week (`trendWindow` in `packages/shared/src/trend.ts`) — a partial Monday is
+bias, not signal; rates/averages keep the live value so a mid-week CSAT drop stays visible.
+Implemented in Phase 3 session 1; only the rollup chips still run pre-Cadence trend code
+(they migrate with the rollup reskin).
 
 ---
 
@@ -445,7 +451,7 @@ shipped UI keeps its current trend computations until then.
 **Shared:** `zod` (schemas live here, imported by both apps)
 **Frontend:** `react react-dom react-router-dom @supabase/supabase-js tailwindcss @tailwindcss/forms recharts date-fns lucide-react jspdf vite @vitejs/plugin-react vite-plugin-pwa typescript`
 **Backend:** `express cors helmet express-rate-limit @supabase/supabase-js node-cron axios typescript tsx dotenv`
-**Testing:** `vitest @testing-library/react supertest`
+**Testing:** `vitest @testing-library/react jsdom supertest` (jsdom approved 2026-07-07 — the DOM env @testing-library/react requires; devDependency only)
 
 To add anything not listed: stop · explain why · get explicit approval before installing.
 
@@ -525,7 +531,8 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | CORS allowlist = `[ALLOWED_ORIGIN, http://localhost:5173]`, trailing slashes normalized; requests with no Origin header pass untouched | Locks browser cross-origin API use to the deployed frontend while curl/sync-triggers/health checks (no Origin header) keep working; localhost stays for dev against prod api |
 | `/scorecard/:employeeId?` is the home surface (roster strip + briefing + evidence); DashboardPage/useDirectReports deleted; `/dashboard` = search-preserving redirect (Phase 3, 2026-07-07) | Cadence merges person-picking and the briefing into one deep-linkable surface; the redirect keeps old bookmarks and the rollup `?manager=` drill-down working; drill-down always shows the manager's FULL team |
 | Evidence degradation = per-person `synced_at` age (9h bound, clears the 22:00→06:00 cron gap); copy says "No fresh ‹Source› data for this person — showing last sync (…)", never "unreachable" | A stale stamp cannot distinguish a source outage from one person no longer syncing (deactivated agent); the prototype's "unreachable" wording over-claims — deliberate copy repair in ADOPTION's own spirit |
-| Trend "current" includes the partial in-progress week (ADOPTION's current-vs-prior wording; the old tiles compared the same way) — NOT changed unilaterally, flagged in PR #7 | Early-week count metrics (ticket_volume) can read as declines until the week fills; if unwanted, the follow-up anchors count-unit trends to the last completed week — James's call, recorded here so it isn't relitigated |
+| Count-unit trends anchor to the last completed week (`trendWindow`, shared); rates/averages keep the live current value; frozen views untouched — RESOLVED by James 2026-07-07 ("do what you recommend") after being flagged in PR #7 | A partial week's count is a biased sum (every Monday would read as a collapse and train managers to ignore coral), while rates are unbiased mid-week and must keep live signal (a Thursday CSAT drop belongs in the briefing); W4's backlog/tickets_assigned inherit the rule via `unit: 'count'` |
+| jsdom added as an apps/web devDependency (James-approved 2026-07-07); component tests opt into the DOM per-file via `// @vitest-environment jsdom`, lib tests stay on node | @testing-library/react was on the approved list but is inert without a DOM environment; per-file pragma keeps pure-logic tests fast and the DOM dependency test-only (never in the bundle) |
 
 | Metric | Source | Formula |
 |---|---|---|
