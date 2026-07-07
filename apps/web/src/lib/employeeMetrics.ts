@@ -7,6 +7,8 @@ export interface EmployeeMetric {
   currentSyncedAt: string | null;
   lastWeekValue: number | null;
   history: Array<{ periodStart: string; value: number }>;
+  /** Newest synced_at across the fetched window — drives per-source staleness (Cadence). */
+  latestSyncedAt: string | null;
 }
 
 // The share API returns this subset of MetricSnapshot; direct Supabase reads return full rows.
@@ -35,6 +37,10 @@ export function buildEmployeeMetrics(
       periodStart: s.period_start,
       value: s.value,
     }));
+    const latestSyncedAt = metricSnapshots.reduce<string | null>(
+      (max, s) => (max === null || s.synced_at > max ? s.synced_at : max),
+      null,
+    );
 
     return {
       definition: def,
@@ -42,6 +48,7 @@ export function buildEmployeeMetrics(
       currentSyncedAt: current?.synced_at ?? null,
       lastWeekValue: lastWeek?.value ?? null,
       history,
+      latestSyncedAt,
     };
   });
 }
