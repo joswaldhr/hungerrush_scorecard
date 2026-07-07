@@ -86,8 +86,8 @@ Phase 2 per refactor plan (S4 already pulled to 1C; S5 refresh support is a desi
 | ~~2~~ | ~~W1 = Phase 1C + 0016~~ ✅ deployed + corrections executed | done (session 25) |
 | ~~3~~ | ~~W2 release readiness (executive role, employees.title, philosophy amendment incl. coral rule, smoke checklist)~~ ✅ PR #3 merged + executed (Adam is executive, guard live-verified, titles backfilled) | done (session 26) |
 | ~~4~~ | ~~Phase 2 hardening~~ ✅ merged + live-verified 2026-07-07 (master `37f6779`); S5 hook contract + S6 executive-aware guard landed; async 202 + SYNC_TRIGGER_KEY live; CORS check passed | done (session 27) |
-| 5 | **Phase 3 = Cadence implementation** (scope in ADOPTION.md) — **session 1 shipped 2026-07-07 (PR #7 merged `66c7b5c` + browser-verified: engine + main surface + chrome + S1); session 2 shipped same day (PR #8: rollup + trend migration/D6, shared page, PDF, admin, login, S10, S12, alias retirement, pilot guide) — IMPLEMENTATION COMPLETE, phase closes on PR #8 merge + browser verification** | closing |
-| 6 | **SMALL RELEASE / demo to the four** (on the Cadence UI) | user + smoke checklist |
+| 5 | **Phase 3 = Cadence implementation** (scope in ADOPTION.md) — **session 1 shipped 2026-07-07 (PR #7 merged `66c7b5c` + browser-verified); session 2 same day (PR #8 merged `3665473` + browser-verified: rollup + trend migration/D6, shared page, PDF, admin, login, S10, S12, alias retirement, pilot guide); PR #9 = admin-config polish (James's pass feedback)** | ✅ done |
+| 6 | **SMALL RELEASE / demo to the four** (on the Cadence UI) — **schedule ON/AFTER Mon Jul 13**: trends unlock at week 4, so rate metrics start showing improving/to-discuss Jul 13 (counts Jul 20); before it: Entra roster fixes (Normando dupe accounts, Michael Diamond enabled-check — see demo-checklist preconditions) + one org sync + the audited stray-row cleanup | user + smoke checklist |
 | 7 | W3/W4 metric expansion batches | 1–2 sessions |
 | 8 | W5 when WFM mapping lands | per refactor plan |
 
