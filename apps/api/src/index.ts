@@ -13,8 +13,17 @@ import { bootstrapAgentIds, runSync } from './services/syncService';
 
 const app = express();
 
+// CORS locked to the deployed frontend + local dev (Phase 2 commit 16).
+// ALLOWED_ORIGIN is set in Railway (https://hungerrush-scorecard.vercel.app);
+// trailing slashes are normalized away so a formatting slip can't break prod.
+// Requests with no Origin header (curl, manual sync triggers, /health checks)
+// are unaffected — this gates browser cross-origin reads only.
+const allowedOrigins = [process.env['ALLOWED_ORIGIN'], 'http://localhost:5173']
+  .filter((o): o is string => Boolean(o))
+  .map(o => o.replace(/\/+$/, ''));
+
 app.use(helmet());
-app.use(cors());
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
 

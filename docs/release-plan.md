@@ -85,8 +85,8 @@ Phase 2 per refactor plan (S4 already pulled to 1C; S5 refresh support is a desi
 | ~~1~~ | ~~W0 cron reliability~~ ✅ resolved (false alarm) | done |
 | ~~2~~ | ~~W1 = Phase 1C + 0016~~ ✅ deployed + corrections executed | done (session 25) |
 | ~~3~~ | ~~W2 release readiness (executive role, employees.title, philosophy amendment incl. coral rule, smoke checklist)~~ ✅ PR #3 merged + executed (Adam is executive, guard live-verified, titles backfilled) | done (session 26) |
-| 4 | Phase 2 hardening (refactor plan commits 12–17 — S5 is the Cadence prerequisite; S6 role checks must include `executive`) | fresh session |
-| 5 | **Phase 3 = Cadence implementation** (est. 2–3 sessions; scope in ADOPTION.md) | fresh sessions |
+| ~~4~~ | ~~Phase 2 hardening~~ ✅ code complete session 27 (2026-07-06) — PRs #5 + #6 open; S5 hook contract + S6 executive-aware guard landed; async 202 + SYNC_TRIGGER_KEY approved and built; closes on James's merge + live CORS check | done (session 27) |
+| 5 | **Phase 3 = Cadence implementation** (est. 2–3 sessions; scope in ADOPTION.md; kickoff prompt: `docs/phase3-cadence-kickoff.md`) — start once #5/#6 are merged and verified | fresh sessions |
 | 6 | **SMALL RELEASE / demo to the four** (on the Cadence UI) | user + smoke checklist |
 | 7 | W3/W4 metric expansion batches | 1–2 sessions |
 | 8 | W5 when WFM mapping lands | per refactor plan |
