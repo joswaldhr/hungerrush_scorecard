@@ -17,9 +17,10 @@ const SOURCE_BADGE: Record<string, string> = {
   forethought: 'bg-hr-bg text-hr-gray',
 };
 
-const fieldLabel = 'text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-gray-light mb-1.5 block';
+const fieldLabel = 'text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-gray-light mb-1 block';
+const metaLabel = 'text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-gray-light';
 const fieldInput =
-  'w-full rounded-lg border-hr-line text-sm text-hr-navy focus:ring-hr-teal/20 focus:border-hr-teal/40';
+  'w-full rounded-lg border-hr-line text-[13px] text-hr-navy py-1.5 focus:ring-hr-teal/20 focus:border-hr-teal/40';
 
 export function MetricCard({ metric, saveState, onSave }: MetricCardProps) {
   const [name, setName] = useState(metric.name);
@@ -37,38 +38,38 @@ export function MetricCard({ metric, saveState, onSave }: MetricCardProps) {
     metric.direction === 'higher_is_better' ? '↑ Higher is better' : '↓ Lower is better';
 
   return (
-    <div className={`bg-hr-card border border-hr-line rounded-xl p-6 transition-opacity ${!isActive ? 'opacity-60' : ''}`}>
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <span className="font-mono text-[11px] text-hr-gray-light">{metric.key}</span>
+    <div className={`bg-hr-card border border-hr-line rounded-xl shadow-card p-5 transition-opacity ${!isActive ? 'opacity-60' : ''}`}>
+      <div className="flex items-center justify-between gap-3 mb-3.5">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="font-mono text-[11px] text-hr-gray-light truncate">{metric.key}</span>
           <span
-            className={`text-xs font-medium px-2 py-0.5 rounded-full ${SOURCE_BADGE[metric.source] ?? 'bg-hr-bg text-hr-gray'}`}
+            className={`text-[11px] font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${SOURCE_BADGE[metric.source] ?? 'bg-hr-bg text-hr-gray'}`}
           >
             {metric.source}
           </span>
         </div>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <span className="text-sm text-hr-gray">{isActive ? 'Active' : 'Inactive'}</span>
+        <label className="flex items-center gap-2 cursor-pointer flex-shrink-0">
+          <span className="text-[12px] text-hr-gray">{isActive ? 'Active' : 'Inactive'}</span>
           <button
             type="button"
             role="switch"
             aria-checked={isActive}
             aria-label={`${metric.name} active`}
             onClick={() => setIsActive(!isActive)}
-            className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hr-teal focus-visible:ring-offset-2 ${
+            className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hr-teal focus-visible:ring-offset-2 ${
               isActive ? 'bg-hr-teal' : 'bg-hr-line'
             }`}
           >
             <span
-              className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform ${
-                isActive ? 'translate-x-5' : 'translate-x-0'
+              className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform ${
+                isActive ? 'translate-x-4' : 'translate-x-0'
               }`}
             />
           </button>
         </label>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div>
           <label className={fieldLabel}>Display Name</label>
           <input
@@ -80,38 +81,38 @@ export function MetricCard({ metric, saveState, onSave }: MetricCardProps) {
         </div>
 
         <div>
-          <label className={fieldLabel}>Coaching Prompt Template</label>
+          <label className={fieldLabel}>Coaching Prompt</label>
           <textarea
             value={coachingPrompt}
             onChange={e => setCoachingPrompt(e.target.value)}
-            rows={3}
-            className={fieldInput}
+            rows={2}
+            className={`${fieldInput} resize-y`}
           />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className={fieldLabel}>Display Order</label>
-            <input
-              type="number"
-              value={displayOrder}
-              onChange={e => setDisplayOrder(parseInt(e.target.value, 10) || 0)}
-              min={1}
-              className={fieldInput}
-            />
-          </div>
-          <div>
-            <label className={fieldLabel}>Unit</label>
-            <p className="text-sm text-hr-gray py-2">{metric.unit}</p>
-          </div>
-          <div>
-            <label className={fieldLabel}>Direction</label>
-            <p className="text-sm text-hr-gray py-2">{directionLabel}</p>
-          </div>
         </div>
       </div>
 
-      <div className="mt-4 flex justify-end">
+      <div className="mt-4 pt-3.5 border-t border-hr-line flex flex-wrap items-center gap-x-6 gap-y-2.5">
+        <div className="flex items-center gap-2">
+          <label htmlFor={`display-order-${metric.id}`} className={metaLabel}>
+            Order
+          </label>
+          <input
+            id={`display-order-${metric.id}`}
+            type="number"
+            value={displayOrder}
+            onChange={e => setDisplayOrder(parseInt(e.target.value, 10) || 0)}
+            min={1}
+            className="w-20 rounded-lg border-hr-line text-[13px] text-hr-navy py-1 focus:ring-hr-teal/20 focus:border-hr-teal/40"
+          />
+        </div>
+        <p className="flex items-baseline gap-1.5">
+          <span className={metaLabel}>Unit</span>
+          <span className="text-[12px] text-hr-gray">{metric.unit}</span>
+        </p>
+        <p className="flex items-baseline gap-1.5">
+          <span className={metaLabel}>Direction</span>
+          <span className="text-[12px] text-hr-gray">{directionLabel}</span>
+        </p>
         <button
           onClick={() =>
             onSave(metric.id, {
@@ -122,7 +123,7 @@ export function MetricCard({ metric, saveState, onSave }: MetricCardProps) {
             })
           }
           disabled={!isDirty || saveState === 'saving'}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+          className={`ml-auto px-3.5 py-1.5 rounded-lg text-[13px] font-medium transition-colors ${
             saveState === 'saved'
               ? 'bg-hr-teal-tint text-hr-teal'
               : saveState === 'error'

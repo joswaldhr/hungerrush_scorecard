@@ -11,8 +11,11 @@
 
 - All 5 phases, 4 UI/UX sprints, layout redesign, and data integrity audit complete — pilot-ready
 - Production: `hungerrush-scorecard.vercel.app` (frontend) · `scorecardapi-production.up.railway.app` (backend)
-- **Session 29 (Phase 3 = Cadence, session 2 of 2 — PR #8 OPEN 2026-07-07; Phase 3 closes
-  on James's merge + browser verification): CADENCE IMPLEMENTATION COMPLETE.** Branch
+- **Session 29 (Phase 3 = Cadence, session 2 of 2 — CLOSED: PR #8, 12 commits, merged to
+  master `3665473` + James browser-verified 2026-07-07, steps 1–6 confirmed; all-"new"
+  rollup chips are CORRECT — only 3 weeks of history exist, trends unlock Jul 13 for
+  rates / Jul 20 for counts; admin metric-config visual polish requested at the pass →
+  PR #9 same day): CADENCE IMPLEMENTATION COMPLETE.** Branch
   `claude/phase3-cadence-2` from master `66c7b5c` (stranded-commit check clean), 11
   commits, green at every one (typecheck 3×3 / lint / vite build; tests 142→**154**:
   50 api / 72 web / 32 shared). Shipped: (1) **rollup reskin + trend migration = D6
@@ -42,11 +45,21 @@
   checklist re-worded against the shipped UI + **pilot guide rewritten for Cadence**
   (the refactor plan's after-Phase-3 F2/pilot-drift fix). Composite-score audit re-ran
   clean on every new surface (all aggregates are flag/trend counts; no composite, no
-  rank, no per-person overall number). **Next: James merges PR #8 + browser-verifies
-  (steps in the PR), then the demo** (`docs/demo-smoke-checklist.md`, four accounts,
-  Adam's fresh sign-in, Normando decision with Alex). Post-Phase-3 fast-follow (logged,
-  NOT built): PersonContext fields + manager edit UI (ADOPTION decision 3; dormant
-  branches in `apps/web/src/lib/coaching.ts`).
+  rank, no per-person overall number). **Same-day follow-ups after the merge:**
+  (a) **roster-diff audit** (read-only, against Alex's + Barb's real rosters) — Cadence
+  matches Azure AD almost perfectly; findings live in `docs/demo-smoke-checklist.md`
+  preconditions: Normando has TWO AD accounts (`bonadiajr@` = data-carrying, reports to
+  Alex = RLS-invisible; `bonadia@` = empty dupe under Courcy — fix AD-side, never
+  hand-edit manager_id, the org sync overwrites it), Michael Diamond exists in Entra
+  but wasn't in the last sync's Graph result (check enabled → next org sync creates
+  him), **Emma Veazey SETTLED = Mike's** (queue roster borrows her), Rejohn Lunze
+  Cuares needs Barb's confirm, 5 name spellings differ AD-vs-roster (all present with
+  data); (b) **PR #9**: admin metric-config polish (compact Cadence cards) + this docs
+  flip. **Next: merge PR #9 → Entra fixes → one `POST /api/sync/org` → audited removal
+  of the stray normando.bonadia@ employees row (James-approved protocol: backup +
+  audit_log) → demo ON/AFTER Jul 13** (rates trend-unlock; counts Jul 20). Post-Phase-3
+  fast-follow (logged, NOT built): PersonContext fields + manager edit UI (ADOPTION
+  decision 3; dormant branches in `apps/web/src/lib/coaching.ts`).
 - **Session 28 (Phase 3 = Cadence, session 1 of ~3 — CLOSED: PR #7, 11 commits, merged to
   master `66c7b5c` + James browser-verified 2026-07-07, 11-step pass "looks good" incl.
   count anchoring and the S1 drawer):** kickoff gate met (PRs #5 + #6 merged +
@@ -169,7 +182,20 @@
   decision 3; the coaching-engine template branches already sit dormant in
   `apps/web/src/lib/coaching.ts` (new table + RLS + UI when it lands). S1 mobile
   navigation CLOSED in Phase 3 session 1.
-- **Remaining hardening:** email nudge (needs `RESEND_API_KEY`). CORS lockdown landed in Phase 2 (PR #6). The old "connection pooling (`?pgbouncer=true`)" item is REMOVED as not applicable — nothing here opens a direct Postgres connection (supabase-js speaks HTTP to PostgREST); full explanation lives in the refactor plan's pgbouncer finding
+- **Remaining hardening:** email nudge (needs `RESEND_API_KEY`). **Org-sync admin
+  classification (found 2026-07-07, session 29): every manager-less AD account gets
+  `role='admin'` — 280 such profiles exist (shared mailboxes, rooms, vendors, ~10 real
+  humans); only James is `is_active=true`, BUT is_active is enforced only in
+  `visible_manager_ids()` — NOT in the 0010 claims trigger, the JWT-claims admin RLS
+  policies, or the web auth path — so any of those humans signing in would get live
+  admin, and a NEW manager-less human would sync as an ACTIVE admin (is_active defaults
+  true). Fix direction (own PR, James decides when): stop assigning 'admin' from
+  classification (audited-write-only, like executive) and/or create admins-bucket
+  profiles inactive + claims trigger respects is_active; verify with an RLS claims
+  probe.** CORS lockdown landed in Phase 2 (PR #6). The old "connection pooling
+  (`?pgbouncer=true`)" item is REMOVED as not applicable — nothing here opens a direct
+  Postgres connection (supabase-js speaks HTTP to PostgREST); full explanation lives in
+  the refactor plan's pgbouncer finding
 - **Known data/logic issues:** now tracked with classifications in `docs/refactor-plan.md` §f (L1–L14) — the four previously listed here plus sparkline calendar gap, Assembled zero-writes, 1000-row truncation, PDF zero treatment, and others
 
 ---
