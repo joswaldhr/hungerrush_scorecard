@@ -58,6 +58,12 @@ export const STEADY_WEEK_COPY =
 export const STEADY_WEEK_SUGGESTION =
   'Good week for a growth conversation — or review the open action items below.';
 
+/** Empty-state copy for a person with no synced metrics at all. */
+export const NO_DATA_COPY =
+  'No synced metrics for this person yet — talking points build once data starts flowing.';
+export const NO_DATA_SUGGESTION =
+  'You can still capture notes and action items below.';
+
 function directionWord(absoluteChange: number): string {
   return absoluteChange > 0 ? 'up' : 'down';
 }

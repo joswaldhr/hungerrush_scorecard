@@ -19,13 +19,15 @@ export function useScorecardNotes(employeeId: string) {
 
   const fetchSessions = useCallback(async () => {
     setError(null);
-    const fourWeeksAgo = format(subWeeks(new Date(), 4), 'yyyy-MM-dd');
+    // 12 weeks (Cadence): open action items from past sessions carry into the
+    // briefing, so the window is wider than the old 4-week notes list.
+    const windowStart = format(subWeeks(new Date(), 12), 'yyyy-MM-dd');
 
     const { data, error: err } = await supabase
       .from('scorecard_sessions')
       .select('*, session_notes(*), session_action_items(*)')
       .eq('employee_id', employeeId)
-      .gte('session_date', fourWeeksAgo)
+      .gte('session_date', windowStart)
       .order('session_date', { ascending: false });
 
     if (err) {

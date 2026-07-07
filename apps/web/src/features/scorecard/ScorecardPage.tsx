@@ -1,364 +1,151 @@
-import { useState } from 'react';
-import { useParams, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
-import { currentWeekStartUtc, weeksBeforeUtc, weekStartStr } from '@scorecard/shared';
-import { useAuth } from '../auth/AuthProvider';
-import { useEmployee } from '../../hooks/useEmployee';
-import { useEmployeeMetrics } from '../../hooks/useEmployeeMetrics';
-import { useScorecardNotes } from '../../hooks/useScorecardNotes';
-import { KpiTile, KpiTileSkeleton } from '../../components/KpiTile';
-import { NotesPanel } from '../notes/NotesPanel';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
+import { useRoster } from '../../hooks/useRoster';
 import { AppLayout } from '../../components/AppLayout';
-import { supabase } from '../../lib/supabase';
-import { generateScorecardPdf } from '../../lib/pdfExport';
-import { getInitials } from '../../lib/initials';
+import { TourModal, useTour } from '../onboarding/TourModal';
+import { RosterStrip } from './components/RosterStrip';
+import { Briefing } from './components/Briefing';
 
-function PageSkeleton() {
+/**
+ * The Cadence home: roster strip for picking the person, 1:1 briefing below.
+ * Selection lives in the URL (/scorecard/:employeeId) so briefings stay
+ * deep-linkable; landing without a selection auto-picks the first roster
+ * member. The ?manager= filter (rollup drill-down) scopes the roster.
+ */
+export function ScorecardPage() {
+  const { employeeId } = useParams<{ employeeId?: string }>();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const managerFilter = searchParams.get('manager');
+  const managerName = searchParams.get('name');
+  const { entries, loading, error } = useRoster();
+  const [rosterMode, setRosterMode] = useState<'data' | 'all'>('data');
+  const [search, setSearch] = useState('');
+  const { showTour, closeTour } = useTour();
+
+  const scoped = useMemo(
+    () => (managerFilter ? entries.filter(e => e.employee.manager_id === managerFilter) : entries),
+    [entries, managerFilter],
+  );
+  const withData = useMemo(() => scoped.filter(e => e.hasData), [scoped]);
+
+  const visible = useMemo(() => {
+    let list = rosterMode === 'data' && withData.length > 0 ? withData : scoped;
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter(
+        e =>
+          e.employee.full_name.toLowerCase().includes(q) ||
+          e.employee.email.toLowerCase().includes(q),
+      );
+    }
+    // The selected person always keeps a chip, even when a filter hides them.
+    if (employeeId && !list.some(e => e.employee.id === employeeId)) {
+      const selected = scoped.find(e => e.employee.id === employeeId);
+      if (selected) {
+        list = [...list, selected].sort((a, b) =>
+          a.employee.full_name.localeCompare(b.employee.full_name),
+        );
+      }
+    }
+    return list;
+  }, [scoped, withData, rosterMode, search, employeeId]);
+
+  // Landing without a selection: pick the first roster member.
+  useEffect(() => {
+    if (!employeeId && !loading && visible.length > 0) {
+      navigate(
+        { pathname: `/scorecard/${visible[0]!.employee.id}`, search: searchParams.toString() },
+        { replace: true },
+      );
+    }
+  }, [employeeId, loading, visible, navigate, searchParams]);
+
+  const handleSelect = (id: string) => {
+    navigate({ pathname: `/scorecard/${id}`, search: searchParams.toString() });
+  };
+
+  const pillClass = (active: boolean) =>
+    active
+      ? 'bg-hr-navy text-white text-[12px] px-3 py-1 rounded-full transition-colors'
+      : 'bg-hr-card border border-hr-line text-hr-gray text-[12px] px-3 py-1 rounded-full hover:bg-hr-bg transition-colors';
+
   return (
     <AppLayout title="Your team">
-      <div className="animate-pulse space-y-10">
-        <div className="space-y-2">
-          <div className="h-6 bg-slate-100 rounded w-1/3" />
-          <div className="h-4 bg-slate-100 rounded w-1/4" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5">
-          {Array.from({ length: 6 }, (_, i) => (
-            <KpiTileSkeleton key={i} />
-          ))}
-        </div>
-      </div>
-    </AppLayout>
-  );
-}
-
-export function ScorecardPage() {
-  const { employeeId } = useParams<{ employeeId: string }>();
-  const location = useLocation();
-  const locationNavigate = useNavigate();
-  const { session } = useAuth();
-  const { employee, loading: empLoading, error: empError } = useEmployee(employeeId ?? '');
-  const { metrics, loading: metricsLoading, error: metricsError } = useEmployeeMetrics(employeeId ?? '');
-  const {
-    sessions,
-    loading: notesLoading,
-    error: notesError,
-    createSession,
-    toggleActionItem,
-  } = useScorecardNotes(employeeId ?? '');
-  const [shareStatus, setShareStatus] = useState<'idle' | 'sharing' | 'copied' | 'error'>('idle');
-  const [shareFallbackUrl, setShareFallbackUrl] = useState<string | null>(null);
-  const [exportStatus, setExportStatus] = useState<'idle' | 'exporting' | 'done' | 'error'>('idle');
-
-  const employeeIds = (location.state as { employeeIds?: string[] } | null)?.employeeIds ?? null;
-  const currentIndex = employeeIds && employeeId ? employeeIds.indexOf(employeeId) : -1;
-  const prevId = employeeIds && currentIndex > 0 ? employeeIds[currentIndex - 1] : null;
-  const nextId = employeeIds && currentIndex >= 0 && currentIndex < employeeIds.length - 1 ? employeeIds[currentIndex + 1] : null;
-  const positionLabel = employeeIds && currentIndex >= 0 ? `${currentIndex + 1} of ${employeeIds.length}` : null;
-
-  const goTo = (id: string) => {
-    locationNavigate(`/scorecard/${id}`, { state: { employeeIds }, replace: true });
-  };
-
-  if (!employeeId) return <Navigate to="/dashboard" replace />;
-
-  if (empLoading) return <PageSkeleton />;
-
-  // AuthGuard owns session/role access (S6) — this narrows the type for the code below.
-  if (!session) return null;
-
-  if (empError) {
-    return (
-      <AppLayout title="Your team">
-        <div className="flex items-center justify-center py-16">
-          <div className="bg-white border border-[#E8E6E1] rounded-xl p-8 text-center max-w-md">
-            <p className="text-[13px] text-slate-700 mb-2">Unable to load employee data.</p>
-            <p className="text-[13px] text-slate-400">{empError}</p>
-            <Link to="/dashboard" className="text-[#1D9E75] text-[13px] mt-4 inline-block hover:underline">
-              Back to your team
-            </Link>
-          </div>
-        </div>
-      </AppLayout>
-    );
-  }
-
-  if (!employee) {
-    return (
-      <AppLayout title="Your team">
-        <div className="flex items-center justify-center py-16">
-          <div className="bg-white border border-[#E8E6E1] rounded-xl p-8 text-center max-w-md">
-            <p className="text-[13px] text-slate-700 mb-2">Employee not found.</p>
-            <p className="text-[13px] text-slate-400">
-              They may not be on your team, or the link may be incorrect.
-            </p>
-            <Link to="/dashboard" className="text-[#1D9E75] text-[13px] mt-4 inline-block hover:underline">
-              Back to your team
-            </Link>
-          </div>
-        </div>
-      </AppLayout>
-    );
-  }
-
-  const managerId = session.user.id;
-
-  const handleShare = async () => {
-    if (!employeeId) return;
-    setShareStatus('sharing');
-
-    const { data, error: insertError } = await supabase
-      .from('share_tokens')
-      .insert({ employee_id: employeeId, created_by: managerId })
-      .select('token')
-      .single();
-
-    if (insertError || !data) {
-      setShareStatus('error');
-      setTimeout(() => setShareStatus('idle'), 3000);
-      return;
-    }
-
-    const url = `${window.location.origin}/shared/${data.token as string}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      setShareStatus('copied');
-      setShareFallbackUrl(null);
-      setTimeout(() => setShareStatus('idle'), 3000);
-    } catch {
-      setShareFallbackUrl(url);
-      setShareStatus('idle');
-    }
-  };
-
-  const handleExportPdf = async () => {
-    if (!employee || !employeeId) return;
-    setExportStatus('exporting');
-
-    try {
-      generateScorecardPdf(
-        employee.full_name,
-        employee.email,
-        metrics.map(m => ({ definition: m.definition, value: m.currentValue })),
-        session.user.email ?? '',
-      );
-
-      setExportStatus('done');
-      setTimeout(() => setExportStatus('idle'), 3000);
-
-      try {
-        const apiUrl = import.meta.env.VITE_API_URL as string;
-        const { data: sessionData } = await supabase.auth.getSession();
-        const accessToken = sessionData.session?.access_token;
-
-        if (apiUrl && accessToken) {
-          await fetch(`${apiUrl}/api/audit/export`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${accessToken}`,
-            },
-            body: JSON.stringify({ employee_id: employeeId }),
-          });
-        }
-      } catch (auditErr) {
-        console.error('Audit log failed:', auditErr);
-      }
-    } catch {
-      setExportStatus('error');
-      setTimeout(() => setExportStatus('idle'), 3000);
-    }
-  };
-
-  const lastWeekMetrics = metrics.filter(m => m.lastWeekValue !== null);
-  const allCurrentNull = metrics.every(m => m.currentValue === null);
-  const lastMondayStr = weekStartStr(weeksBeforeUtc(currentWeekStartUtc(), 1));
-
-  const sortedMetrics = [...metrics].sort((a, b) => {
-    const aNull = a.currentValue === null;
-    const bNull = b.currentValue === null;
-    if (aNull !== bNull) return aNull ? 1 : -1;
-    return a.definition.display_order - b.definition.display_order;
-  });
-
-  const ghostBtn = 'border border-[#E8E6E1] rounded-lg px-3 py-1.5 text-[13px] text-slate-600 hover:bg-[#F7F6F3] transition-colors';
-  const primaryBtn = 'bg-[#1D9E75] text-white rounded-lg px-3 py-1.5 text-[13px] font-medium hover:bg-[#0F6E56] transition-colors';
-  const successBtn = 'bg-[#E1F5EE] text-[#0F6E56] rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors';
-  const errorBtn = 'bg-[#FFFBEB] text-[#D97706] rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors';
-
-  const headerActions = (
-    <>
-      {employeeIds && (
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => prevId && goTo(prevId)}
-            disabled={!prevId}
-            className="text-[12px] px-2 py-1 border border-[#E8E6E1] rounded-md text-slate-500 hover:bg-[#F7F6F3] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            ← Prev
-          </button>
-          {positionLabel && (
-            <span className="text-[12px] text-slate-400 tabular-nums">{positionLabel}</span>
-          )}
-          <button
-            onClick={() => nextId && goTo(nextId)}
-            disabled={!nextId}
-            className="text-[12px] px-2 py-1 border border-[#E8E6E1] rounded-md text-slate-500 hover:bg-[#F7F6F3] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            Next →
-          </button>
-        </div>
-      )}
-      <button
-        onClick={handleExportPdf}
-        disabled={exportStatus === 'exporting'}
-        className={
-          exportStatus === 'done' ? successBtn
-            : exportStatus === 'error' ? errorBtn
-              : ghostBtn
-        }
-      >
-        {exportStatus === 'idle' && 'Export PDF'}
-        {exportStatus === 'exporting' && 'Exporting…'}
-        {exportStatus === 'done' && 'Downloaded!'}
-        {exportStatus === 'error' && 'Failed'}
-      </button>
-      <button
-        onClick={handleShare}
-        disabled={shareStatus === 'sharing'}
-        className={
-          shareStatus === 'copied' ? successBtn
-            : shareStatus === 'error' ? errorBtn
-              : primaryBtn
-        }
-      >
-        {shareStatus === 'idle' && 'Share'}
-        {shareStatus === 'sharing' && 'Creating…'}
-        {shareStatus === 'copied' && 'Copied!'}
-        {shareStatus === 'error' && 'Failed'}
-      </button>
-    </>
-  );
-
-  return (
-    <AppLayout
-      title={
-        <>
-          <Link to="/dashboard" className="hover:text-[#1D9E75] cursor-pointer transition-colors">Your team</Link>
-          <span className="text-slate-400"> → </span>
-          {employee.full_name}
-        </>
-      }
-      actions={headerActions}
-    >
-      <div className="flex items-center gap-3 mb-6">
-        <div className="h-11 w-11 bg-[#E1F5EE] rounded-full flex items-center justify-center flex-shrink-0">
-          <span className="text-[#0F6E56] font-semibold text-lg">
-            {getInitials(employee.full_name)}
+      {managerFilter && (
+        <div className="bg-hr-teal-tint border border-hr-teal/20 rounded-xl px-4 py-3 flex items-center justify-between mb-4">
+          <span className="text-[13px] text-hr-navy font-medium">
+            {`Viewing ${managerName ?? 'this manager'}'s team`}
           </span>
-        </div>
-        <div>
-          <h2 className="text-[17px] font-medium text-slate-800">{employee.full_name}</h2>
-          {employee.title && <p className="text-[12px] text-slate-500">{employee.title}</p>}
-          <p className="text-[12px] text-slate-400">{employee.email}</p>
-        </div>
-      </div>
-
-      {shareFallbackUrl && (
-        <div className="bg-white border border-[#E8E6E1] rounded-xl p-4 mb-4 flex items-center gap-3">
-          <input
-            type="text"
-            readOnly
-            value={shareFallbackUrl}
-            onFocus={e => e.target.select()}
-            className="flex-1 text-[12px] text-slate-600 bg-[#F7F6F3] border border-[#E8E6E1] rounded-lg px-3 py-1.5 outline-none"
-          />
           <button
-            onClick={() => setShareFallbackUrl(null)}
-            className="text-[12px] text-slate-400 hover:text-slate-600 transition-colors"
+            onClick={() => navigate('/rollup')}
+            className="flex items-center gap-1 text-[12px] text-hr-navy hover:underline"
           >
-            Dismiss
+            <ArrowLeft size={12} />
+            Back to rollup
           </button>
         </div>
       )}
 
-      <section>
-        <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400 mb-3 mt-2">This Week So Far</p>
-        {metricsError && (
-          <div className="bg-[#FFFBEB] border border-[#D97706]/20 text-[#D97706] p-4 rounded-xl mb-4 text-[13px]">
-            {metricsError}
-          </div>
-        )}
-        {metricsLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5">
-            {Array.from({ length: 6 }, (_, i) => (
-              <KpiTileSkeleton key={i} />
-            ))}
-          </div>
-        ) : allCurrentNull ? (
-          <div className="bg-white rounded-xl border border-[#E8E6E1] p-6 text-center">
-            <p className="text-[13px] text-slate-700 mb-1">No metrics synced for this week yet.</p>
-            <p className="text-[13px] text-slate-400">
-              Data refreshes every 4 hours — check back soon.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5">
-            {sortedMetrics.map(m => (
-              <KpiTile
-                key={m.definition.id}
-                definition={m.definition}
-                value={m.currentValue}
-                syncedAt={m.currentSyncedAt}
-                history={m.history}
-              />
-            ))}
-          </div>
-        )}
-      </section>
+      {error && (
+        <div className="bg-hr-amber-tint border border-hr-amber/30 text-hr-amber p-4 rounded-xl mb-4 text-[13px]">
+          {error}
+        </div>
+      )}
 
-      <div className="border-t border-[#F0EEE9] my-8" />
+      {!loading && scoped.length > 0 && (scoped.length > 8 || withData.length !== scoped.length) && (
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          {scoped.length > 8 && (
+            <input
+              type="text"
+              placeholder="Search team members..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              aria-label="Search team members"
+              className="w-56 h-8 bg-hr-card border border-hr-line rounded-lg px-3 text-[13px] outline-none focus:border-hr-teal transition-colors"
+            />
+          )}
+          {withData.length !== scoped.length && (
+            <div className="flex gap-1.5">
+              <button onClick={() => setRosterMode('data')} className={pillClass(rosterMode === 'data')}>
+                With data ({withData.length})
+              </button>
+              <button onClick={() => setRosterMode('all')} className={pillClass(rosterMode === 'all')}>
+                All ({scoped.length})
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
-      <section>
-        <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400 mb-3 mt-2">Last Week (Completed)</p>
-        {lastWeekMetrics.length === 0 ? (
-          <div className="bg-white rounded-xl border border-[#E8E6E1] p-6 text-center">
-            <p className="text-[13px] text-slate-700 mb-1">No completed snapshot for last week.</p>
-            <p className="text-[13px] text-slate-400">
-              Last week's snapshot will appear after the Sunday sync.
-            </p>
+      {!loading && scoped.length === 0 && !error ? (
+        <div className="bg-hr-card rounded-xl border border-hr-line p-8 text-center">
+          <p className="text-[13px] text-hr-navy mb-1">No team members found yet.</p>
+          <p className="text-[13px] text-hr-gray">
+            Ask your admin to run the org sync, or check back once your team has been set up.
+          </p>
+        </div>
+      ) : !loading && visible.length === 0 && search.trim() ? (
+        <>
+          <div className="bg-hr-card rounded-xl border border-hr-line p-8 text-center">
+            <p className="text-[13px] text-hr-gray">No team members match your search.</p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5">
-            {lastWeekMetrics
-              .sort((a, b) => a.definition.display_order - b.definition.display_order)
-              .map(m => (
-                <KpiTile
-                  key={m.definition.id}
-                  definition={m.definition}
-                  value={m.lastWeekValue}
-                  syncedAt={null}
-                  history={m.history.filter(h => h.periodStart <= lastMondayStr)}
-                  weekAnchor={lastMondayStr}
-                />
-              ))}
-          </div>
-        )}
-      </section>
+          {employeeId && <div className="mt-4"><Briefing employeeId={employeeId} /></div>}
+        </>
+      ) : (
+        <>
+          <RosterStrip
+            entries={visible}
+            selectedId={employeeId ?? null}
+            onSelect={handleSelect}
+            loading={loading}
+          />
+          {employeeId && <Briefing employeeId={employeeId} />}
+        </>
+      )}
 
-      <div className="bg-white rounded-xl border border-[#E8E6E1] p-5 mt-4">
-        <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400 mb-4">1:1 Notes</p>
-        {notesError && (
-          <div className="bg-[#FFFBEB] border border-[#D97706]/20 text-[#D97706] p-4 rounded-xl mb-4 text-[13px]">
-            {notesError}
-          </div>
-        )}
-        <NotesPanel
-          sessions={sessions}
-          loading={notesLoading}
-          managerId={managerId}
-          onSave={createSession}
-          onToggleActionItem={toggleActionItem}
-        />
-      </div>
+      <TourModal open={showTour} onClose={closeTour} />
     </AppLayout>
   );
 }

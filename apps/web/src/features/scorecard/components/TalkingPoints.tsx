@@ -1,5 +1,11 @@
 import type { TalkingPoint } from '../../../lib/coaching';
-import { NEW_HIRE_COPY, STEADY_WEEK_COPY, STEADY_WEEK_SUGGESTION } from '../../../lib/coaching';
+import {
+  NEW_HIRE_COPY,
+  NO_DATA_COPY,
+  NO_DATA_SUGGESTION,
+  STEADY_WEEK_COPY,
+  STEADY_WEEK_SUGGESTION,
+} from '../../../lib/coaching';
 
 const KIND_COLOR: Record<TalkingPoint['kind'], { text: string; border: string; leadBg: string }> = {
   discuss:   { text: 'text-hr-coral', border: 'border-l-hr-coral', leadBg: 'bg-hr-coral-tint border-hr-coral/20' },
@@ -26,13 +32,24 @@ function PointsSkeleton() {
 export function TalkingPoints({
   points,
   allNew,
+  noData,
   loading,
 }: {
   points: TalkingPoint[];
   allNew: boolean;
+  noData: boolean;
   loading: boolean;
 }) {
   if (loading) return <PointsSkeleton />;
+
+  if (noData) {
+    return (
+      <div className="bg-hr-bg rounded-lg p-4">
+        <p className="text-[13px] text-hr-navy mb-1">{NO_DATA_COPY}</p>
+        <p className="text-[13px] text-hr-gray">{NO_DATA_SUGGESTION}</p>
+      </div>
+    );
+  }
 
   if (allNew) {
     return (

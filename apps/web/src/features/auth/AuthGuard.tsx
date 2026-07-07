@@ -26,7 +26,7 @@ export function AuthGuard({ children, roles }: AuthGuardProps) {
 
   if (loading) return <AuthSkeleton />;
   if (!session) return <Navigate to="/login" replace />;
-  if (roles && (!role || !roles.includes(role))) return <Navigate to="/dashboard" replace />;
+  if (roles && (!role || !roles.includes(role))) return <Navigate to="/scorecard" replace />;
 
   return <>{children}</>;
 }
