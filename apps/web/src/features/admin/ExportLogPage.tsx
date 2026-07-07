@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 import { AppLayout } from '../../components/AppLayout';
+import { WarnBanner } from '../../components/WarnBanner';
 
 interface ExportLogEntry {
   id: string;
@@ -15,13 +16,13 @@ interface ExportLogEntry {
 
 function TableSkeleton() {
   return (
-    <div className="bg-white rounded-xl border border-[#E8E6E1] overflow-hidden">
+    <div className="bg-hr-card rounded-xl border border-hr-line overflow-hidden">
       <div className="animate-pulse p-4 space-y-4">
         {Array.from({ length: 5 }, (_, i) => (
           <div key={i} className="flex items-center gap-4">
-            <div className="h-4 bg-slate-100 rounded w-1/4" />
-            <div className="h-4 bg-slate-100 rounded w-1/4" />
-            <div className="h-4 bg-slate-100 rounded w-1/4" />
+            <div className="h-4 bg-hr-line/60 rounded w-1/4" />
+            <div className="h-4 bg-hr-line/60 rounded w-1/4" />
+            <div className="h-4 bg-hr-line/60 rounded w-1/4" />
           </div>
         ))}
       </div>
@@ -88,45 +89,41 @@ export function ExportLogPage() {
 
   return (
     <AppLayout title="Export log">
-      <p className="text-[13px] text-slate-500 mb-6">
+      <p className="text-[13px] text-hr-gray mb-6">
         Scorecard PDF exports with manager and timestamp — showing the latest 100
       </p>
 
-      {error && (
-        <div className="bg-[#FFFBEB] border border-[#D97706]/20 text-[#D97706] p-4 rounded-xl mb-4 text-[13px]">
-          {error}
-        </div>
-      )}
+      {error && <WarnBanner className="mb-4">{error}</WarnBanner>}
 
       {loading ? (
         <TableSkeleton />
       ) : entries.length === 0 ? (
-        <div className="bg-white rounded-xl border border-[#E8E6E1] p-12 text-center">
-          <p className="text-[13px] text-slate-700 mb-2">No exports yet.</p>
-          <p className="text-[13px] text-slate-400">
+        <div className="bg-hr-card rounded-xl border border-hr-line p-8 text-center">
+          <p className="text-[13px] text-hr-navy mb-1">No exports yet.</p>
+          <p className="text-[13px] text-hr-gray">
             PDF exports will appear here once a manager exports a scorecard.
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-[#E8E6E1] overflow-x-auto">
+        <div className="bg-hr-card rounded-xl border border-hr-line overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-[#E8E6E1]">
-                <th className="px-4 py-3 text-[10px] font-semibold tracking-widest uppercase text-slate-400">Date</th>
-                <th className="px-4 py-3 text-[10px] font-semibold tracking-widest uppercase text-slate-400">Exported By</th>
-                <th className="px-4 py-3 text-[10px] font-semibold tracking-widest uppercase text-slate-400">Employee</th>
+              <tr className="border-b border-hr-line">
+                <th className="px-4 py-3 text-[10px] font-semibold tracking-widest uppercase text-hr-gray-light">Date</th>
+                <th className="px-4 py-3 text-[10px] font-semibold tracking-widest uppercase text-hr-gray-light">Exported By</th>
+                <th className="px-4 py-3 text-[10px] font-semibold tracking-widest uppercase text-hr-gray-light">Employee</th>
               </tr>
             </thead>
             <tbody>
               {entries.map(entry => (
-                <tr key={entry.id} className="border-b border-[#F0EEE9] last:border-0 hover:bg-[#FAFAF8] transition-colors">
-                  <td className="px-4 py-3 text-[13px] text-slate-700">
+                <tr key={entry.id} className="border-b border-hr-line/60 last:border-0 hover:bg-hr-bg transition-colors">
+                  <td className="px-4 py-3 text-[13px] text-hr-navy">
                     {format(parseISO(entry.created_at), 'MMM d, yyyy h:mm a')}
                   </td>
-                  <td className="px-4 py-3 text-[13px] text-slate-700">
+                  <td className="px-4 py-3 text-[13px] text-hr-navy">
                     {entry.actor_email}
                   </td>
-                  <td className="px-4 py-3 text-[13px] text-slate-700">
+                  <td className="px-4 py-3 text-[13px] text-hr-navy">
                     {entry.employee_name}
                   </td>
                 </tr>

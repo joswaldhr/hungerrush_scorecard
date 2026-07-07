@@ -1,16 +1,33 @@
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import { formatMetricValue } from './formatMetric';
-import type { MetricDefinition } from '@scorecard/shared';
+import type { MetricDefinition, TrendTone } from '@scorecard/shared';
 
-interface PdfMetric {
+export interface PdfMetric {
   definition: MetricDefinition;
-  value: number | null;
+  /** This-week-so-far value — 0 is a measured value (L8); only null reads "No data". */
+  currentValue: number | null;
+  /** Frozen last completed week. */
+  lastWeekValue: number | null;
+  /** Tone from the one trend engine; null when the metric has no history. */
+  tone: TrendTone | null;
 }
 
-const NAVY = [30, 46, 74] as const;
-const GREEN = [29, 158, 117] as const;
-const GRAY = [148, 163, 184] as const;
+// Cadence tokens as RGB (tailwind.config.ts is the source of the hex values).
+const NAVY = [12, 20, 67] as const;
+const TEAL = [59, 130, 114] as const;
+const CORAL = [196, 85, 58] as const;
+const GRAY = [92, 96, 126] as const;
+const GRAY_LIGHT = [158, 162, 188] as const;
+const LINE = [227, 230, 238] as const;
+const LAVENDER = [174, 179, 206] as const; // sub-brand text on navy, matches app chrome
+
+const TONE_PDF: Record<TrendTone, { label: string; color: readonly [number, number, number] }> = {
+  win: { label: 'Improving', color: TEAL },
+  discuss: { label: 'To discuss', color: CORAL },
+  steady: { label: 'Steady', color: GRAY },
+  new: { label: 'New', color: GRAY_LIGHT },
+};
 
 export function generateScorecardPdf(
   employeeName: string,
@@ -23,83 +40,109 @@ export function generateScorecardPdf(
   const pageHeight = doc.internal.pageSize.getHeight();
   const now = new Date();
   const dateStr = format(now, 'MMM d, yyyy h:mm a');
-  let y = 20;
 
-  // Header
-  doc.setFontSize(20);
+  // Brand band
+  doc.setFillColor(...NAVY);
+  doc.rect(0, 0, pageWidth, 24, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(255, 255, 255);
+  doc.text('HungerRush Cadence', 14, 15);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(...LAVENDER);
+  doc.text('1:1 briefing snapshot', pageWidth - 14, 15, { align: 'right' });
+
+  let y = 36;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
   doc.setTextColor(...NAVY);
-  doc.text('HungerRush Scorecard', 14, y);
-  y += 12;
-
-  doc.setFontSize(14);
   doc.text(employeeName, 14, y);
-  y += 7;
-
-  doc.setFontSize(10);
+  y += 6.5;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9.5);
   doc.setTextColor(...GRAY);
   doc.text(employeeEmail, 14, y);
-  y += 5;
-
-  // Divider
-  y += 5;
-  doc.setDrawColor(...GREEN);
-  doc.setLineWidth(0.5);
+  y += 8;
+  doc.setDrawColor(...TEAL);
+  doc.setLineWidth(0.7);
   doc.line(14, y, pageWidth - 14, y);
-  y += 10;
+  y += 9;
 
-  // Section header
-  doc.setFontSize(13);
-  doc.setTextColor(...NAVY);
-  doc.text('Current Week Metrics', 14, y);
-  y += 10;
+  doc.setFontSize(8);
+  doc.setTextColor(...GRAY_LIGHT);
+  doc.text('THIS WEEK SO FAR  ·  LAST WEEK (COMPLETED)', 14, y);
+  y += 8;
 
-  // Metrics
   for (const m of metrics) {
-    if (y > pageHeight - 40) {
+    if (y > pageHeight - 42) {
       doc.addPage();
       y = 20;
     }
 
-    // Metric name
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
     doc.setTextColor(...NAVY);
     doc.text(m.definition.name, 14, y);
 
-    // Value — 0 is a measured value (L8 fix, commit 11); only null means "No data".
-    const hasValue = m.value !== null;
-    const valueText = hasValue
-      ? formatMetricValue(m.value, m.definition.unit)
-      : 'No data';
-    doc.setFontSize(11);
-    if (hasValue) {
-      doc.setTextColor(...GREEN);
+    // Value — 0 is a measured value (L8, 1C commit 11); only null means "No data".
+    const current = m.currentValue;
+    doc.setFontSize(12);
+    if (current !== null) {
+      doc.setTextColor(...NAVY);
+      doc.text(formatMetricValue(current, m.definition.unit), pageWidth - 14, y, { align: 'right' });
     } else {
-      doc.setTextColor(...GRAY);
+      doc.setTextColor(...GRAY_LIGHT);
+      doc.text('No data', pageWidth - 14, y, { align: 'right' });
     }
-    doc.text(valueText, pageWidth - 14, y, { align: 'right' });
-    y += 6;
+    y += 5.5;
 
-    // Coaching prompt
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    if (m.tone) {
+      const t = TONE_PDF[m.tone];
+      doc.setTextColor(...t.color);
+      doc.text(t.label, 14, y);
+    }
+    doc.setTextColor(...GRAY);
+    doc.text(
+      m.lastWeekValue !== null
+        ? `last wk ${formatMetricValue(m.lastWeekValue, m.definition.unit)}`
+        : 'last wk —',
+      pageWidth - 14,
+      y,
+      { align: 'right' },
+    );
+    y += 5.5;
+
     if (m.definition.coaching_prompt) {
       doc.setFontSize(9);
       doc.setTextColor(...GRAY);
-      const lines = doc.splitTextToSize(m.definition.coaching_prompt, pageWidth - 28);
-      doc.text(lines as string[], 14, y);
-      y += (lines as string[]).length * 4 + 4;
+      const lines = doc.splitTextToSize(m.definition.coaching_prompt, pageWidth - 28) as string[];
+      doc.text(lines, 14, y);
+      y += lines.length * 4 + 2;
     }
 
-    y += 4;
+    doc.setDrawColor(...LINE);
+    doc.setLineWidth(0.3);
+    doc.line(14, y, pageWidth - 14, y);
+    y += 7;
   }
 
-  // Watermark at bottom
+  // Watermark on EVERY page — a forwardable performance doc must carry its
+  // provenance on each page, not just the last one.
+  const pageCount = doc.getNumberOfPages();
+  doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
-  doc.setTextColor(180, 180, 180);
-  doc.text(
-    `Exported by ${managerEmail} on ${dateStr}`,
-    pageWidth / 2,
-    pageHeight - 10,
-    { align: 'center' },
-  );
+  doc.setTextColor(...GRAY_LIGHT);
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.text(`Exported by ${managerEmail} on ${dateStr}`, pageWidth / 2, pageHeight - 10, {
+      align: 'center',
+    });
+  }
 
-  doc.save(`scorecard-${employeeName.toLowerCase().replace(/\s+/g, '-')}-${format(now, 'yyyy-MM-dd')}.pdf`);
+  doc.save(
+    `scorecard-${employeeName.toLowerCase().replace(/\s+/g, '-')}-${format(now, 'yyyy-MM-dd')}.pdf`,
+  );
 }

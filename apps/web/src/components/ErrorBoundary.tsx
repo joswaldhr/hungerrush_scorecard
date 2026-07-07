@@ -22,15 +22,15 @@ export class ErrorBoundary extends React.Component<Props, State> {
   override render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-hr-sand px-4">
+        <div className="min-h-screen flex items-center justify-center bg-hr-bg px-4">
           <div className="text-center max-w-md">
-            <h1 className="text-2xl font-semibold text-hr-text-1 mb-2">Something went wrong</h1>
-            <p className="text-hr-text-2 mb-6">
+            <h1 className="font-heading text-2xl font-bold text-hr-navy mb-2">Something went wrong</h1>
+            <p className="text-hr-gray mb-6">
               An unexpected error occurred. Try reloading the page.
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-hr-green text-white rounded-lg hover:bg-hr-green-dark transition-colors"
+              className="px-4 py-2 bg-hr-teal text-white rounded-lg hover:bg-hr-teal/90 transition-colors"
             >
               Reload page
             </button>

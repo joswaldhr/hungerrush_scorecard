@@ -23,20 +23,8 @@ export default {
         'hr-line':       '#E3E6EE', // borders · dividers
         'hr-gray':       '#5C607E', // secondary text
         'hr-gray-light': '#9EA2BC', // tertiary text · steady/new tone
-
-        // Transitional aliases — pre-Cadence names re-pointed at Cadence values so
-        // not-yet-reskinned surfaces stay on one palette. Each alias dies when the
-        // last surface using it is reskinned; do not use in new code.
-        'hr-navy-deep':   '#232B57',
-        'hr-green':       '#3B8272',
-        'hr-green-dark':  '#2E6653',
-        'hr-green-light': '#EAF3F0',
-        'hr-sand':        '#F6F7F9',
-        'hr-sand-md':     '#E3E6EE',
-        'hr-amber-light': '#FDF4E3',
-        'hr-text-1':      '#0C1443',
-        'hr-text-2':      '#5C607E',
-        'hr-text-3':      '#9EA2BC',
+        // The pre-Cadence transitional aliases (hr-green, hr-sand, hr-text-*, …)
+        // were retired 2026-07-07 with the last old surface (Phase 3 session 2).
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -47,13 +35,6 @@ export default {
         'card':       '0 1px 3px rgba(12,20,67,0.08), 0 4px 16px rgba(12,20,67,0.06)',
         'card-hover': '0 4px 12px rgba(12,20,67,0.10), 0 2px 4px rgba(12,20,67,0.06)',
         'panel':      '0 8px 32px rgba(12,20,67,0.14), 0 2px 8px rgba(12,20,67,0.06)',
-      },
-      borderWidth: {
-        'half': '0.5px',
-      },
-      borderColor: {
-        'hr-base':   'rgba(12,20,67,0.08)',
-        'hr-strong': 'rgba(12,20,67,0.16)',
       },
     },
   },

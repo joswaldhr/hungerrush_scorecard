@@ -1,5 +1,6 @@
 import { SPARKLINE_WEEKS, type EvidenceMetric } from '../../../lib/evidence';
 import { formatMetricValue } from '../../../lib/formatMetric';
+import { timeAgo } from '../../../lib/timeAgo';
 import { CadenceSparkline } from './CadenceSparkline';
 import { ToneDot } from './ToneDot';
 import { TONE_HEX, TONE_TEXT } from './toneStyles';
@@ -8,8 +9,17 @@ import { TONE_HEX, TONE_TEXT } from './toneStyles';
  * One evidence row: tone, name, trend sub-line, honest sparkline, and the two
  * labeled data windows (this week so far · last completed week). The DB
  * coaching_prompt stays always-visible per the touch-device decision.
+ * showSyncedAt adds the per-row synced stamp — SharedScorecardPage must set it
+ * (per-tile timestamps are that page's CLAUDE.md exception to the
+ * section-level chip).
  */
-export function MetricRow({ metric }: { metric: EvidenceMetric }) {
+export function MetricRow({
+  metric,
+  showSyncedAt = false,
+}: {
+  metric: EvidenceMetric;
+  showSyncedAt?: boolean;
+}) {
   const { definition, spec, assessment, currentValue, lastWeekValue, slots, domain, weeksOfHistory, trendWeeks } = metric;
   const tone = assessment.tone;
   const hasHistory = weeksOfHistory > 0;
@@ -70,6 +80,11 @@ export function MetricRow({ metric }: { metric: EvidenceMetric }) {
       <p className="text-[11px] text-hr-gray leading-relaxed mt-1.5 pl-[22px]">
         {definition.coaching_prompt}
       </p>
+      {showSyncedAt && metric.latestSyncedAt && (
+        <p className="text-[10px] text-hr-gray-light mt-1 pl-[22px]">
+          Synced {timeAgo(metric.latestSyncedAt)}
+        </p>
+      )}
     </div>
   );
 }

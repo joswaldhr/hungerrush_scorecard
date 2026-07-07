@@ -23,7 +23,7 @@ export function OfflineBanner() {
 
   if (offline) {
     return (
-      <div className="bg-hr-amber-light border-b border-half border-hr-amber/20 text-hr-amber flex items-center justify-center gap-2 px-4 py-2.5">
+      <div className="bg-hr-amber-tint border-b border-hr-amber/30 text-hr-amber-deep flex items-center justify-center gap-2 px-4 py-2.5">
         <WifiOff size={14} aria-hidden="true" />
         <span className="text-sm font-medium">You're offline — showing cached data</span>
       </div>
@@ -32,7 +32,7 @@ export function OfflineBanner() {
 
   if (wasOffline) {
     return (
-      <div className="bg-hr-green-light border-b border-half border-hr-green/20 text-hr-green-dark flex items-center justify-center gap-2 px-4 py-2.5">
+      <div className="bg-hr-teal-tint border-b border-hr-teal/20 text-hr-teal flex items-center justify-center gap-2 px-4 py-2.5">
         <Wifi size={14} aria-hidden="true" />
         <span className="text-sm font-medium">Back online</span>
       </div>

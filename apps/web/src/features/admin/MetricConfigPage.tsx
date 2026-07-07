@@ -2,23 +2,24 @@ import { useState } from 'react';
 import { useMetricDefinitions, type MetricUpdates } from '../../hooks/useMetricDefinitions';
 import { MetricCard } from './components/MetricCard';
 import { AppLayout } from '../../components/AppLayout';
+import { WarnBanner } from '../../components/WarnBanner';
 
 function MetricCardSkeleton() {
   return (
-    <div className="animate-pulse bg-white rounded-xl border border-[#E8E6E1] p-6 space-y-4">
+    <div className="animate-pulse bg-hr-card rounded-xl border border-hr-line p-6 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex gap-2">
-          <div className="h-4 w-24 bg-slate-100 rounded" />
-          <div className="h-4 w-16 bg-slate-100 rounded-full" />
+          <div className="h-4 w-24 bg-hr-line/60 rounded" />
+          <div className="h-4 w-16 bg-hr-line/60 rounded-full" />
         </div>
-        <div className="h-6 w-11 bg-slate-100 rounded-full" />
+        <div className="h-6 w-11 bg-hr-line/60 rounded-full" />
       </div>
-      <div className="h-8 bg-slate-100 rounded w-full" />
-      <div className="h-20 bg-slate-100 rounded" />
+      <div className="h-8 bg-hr-line/60 rounded w-full" />
+      <div className="h-20 bg-hr-line/60 rounded" />
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="h-8 bg-slate-100 rounded" />
-        <div className="h-4 bg-slate-100 rounded w-2/3" />
-        <div className="h-4 bg-slate-100 rounded w-2/3" />
+        <div className="h-8 bg-hr-line/60 rounded" />
+        <div className="h-4 bg-hr-line/60 rounded w-2/3" />
+        <div className="h-4 bg-hr-line/60 rounded w-2/3" />
       </div>
     </div>
   );
@@ -47,21 +48,13 @@ export function MetricConfigPage() {
 
   return (
     <AppLayout title="Metrics">
-      <p className="text-[13px] text-slate-500 mb-6">
+      <p className="text-[13px] text-hr-gray mb-6">
         Configure which metrics appear on scorecards, their display names, and coaching prompts.
+        Toggling a metric off also stops its collection at the next sync.
       </p>
 
-      {saveError && (
-        <div className="bg-[#FFFBEB] border border-[#D97706]/20 text-[#D97706] p-4 rounded-xl mb-4 text-[13px]">
-          {saveError}
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-[#FFFBEB] border border-[#D97706]/20 text-[#D97706] p-4 rounded-xl mb-4 text-[13px]">
-          {error}
-        </div>
-      )}
+      {saveError && <WarnBanner className="mb-4">{saveError}</WarnBanner>}
+      {error && <WarnBanner className="mb-4">{error}</WarnBanner>}
 
       {loading ? (
         <div className="space-y-4">
@@ -70,9 +63,9 @@ export function MetricConfigPage() {
           ))}
         </div>
       ) : metrics.length === 0 ? (
-        <div className="bg-white rounded-xl border border-[#E8E6E1] p-12 text-center">
-          <p className="text-[13px] text-slate-700 mb-2">No metric definitions found.</p>
-          <p className="text-[13px] text-slate-400">
+        <div className="bg-hr-card rounded-xl border border-hr-line p-8 text-center">
+          <p className="text-[13px] text-hr-navy mb-1">No metric definitions found.</p>
+          <p className="text-[13px] text-hr-gray">
             Run the sync job or seed the database with metric definitions to get started.
           </p>
         </div>

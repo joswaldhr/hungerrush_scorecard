@@ -10,11 +10,16 @@ interface MetricCardProps {
   onSave: (id: string, updates: MetricUpdates) => void;
 }
 
+// Source identity badges — calm, never a performance signal.
 const SOURCE_BADGE: Record<string, string> = {
-  zendesk: 'bg-blue-100 text-blue-800',
-  assembled: 'bg-purple-100 text-purple-800',
-  forethought: 'bg-hr-sand text-hr-text-2',
+  zendesk: 'bg-hr-teal-tint text-hr-teal',
+  assembled: 'bg-hr-navy/[0.06] text-hr-navy-soft',
+  forethought: 'bg-hr-bg text-hr-gray',
 };
+
+const fieldLabel = 'text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-gray-light mb-1.5 block';
+const fieldInput =
+  'w-full rounded-lg border-hr-line text-sm text-hr-navy focus:ring-hr-teal/20 focus:border-hr-teal/40';
 
 export function MetricCard({ metric, saveState, onSave }: MetricCardProps) {
   const [name, setName] = useState(metric.name);
@@ -32,25 +37,26 @@ export function MetricCard({ metric, saveState, onSave }: MetricCardProps) {
     metric.direction === 'higher_is_better' ? '↑ Higher is better' : '↓ Lower is better';
 
   return (
-    <div className={`bg-white border-half border-hr-base rounded-xl p-6 transition-opacity ${!isActive ? 'opacity-60' : ''}`}>
+    <div className={`bg-hr-card border border-hr-line rounded-xl p-6 transition-opacity ${!isActive ? 'opacity-60' : ''}`}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.09em] text-hr-text-3">{metric.key}</span>
+          <span className="font-mono text-[11px] text-hr-gray-light">{metric.key}</span>
           <span
-            className={`text-xs font-medium px-2 py-0.5 rounded-full ${SOURCE_BADGE[metric.source] ?? 'bg-hr-sand text-hr-text-2'}`}
+            className={`text-xs font-medium px-2 py-0.5 rounded-full ${SOURCE_BADGE[metric.source] ?? 'bg-hr-bg text-hr-gray'}`}
           >
             {metric.source}
           </span>
         </div>
         <label className="flex items-center gap-2 cursor-pointer">
-          <span className="text-sm text-hr-text-3">{isActive ? 'Active' : 'Inactive'}</span>
+          <span className="text-sm text-hr-gray">{isActive ? 'Active' : 'Inactive'}</span>
           <button
             type="button"
             role="switch"
             aria-checked={isActive}
+            aria-label={`${metric.name} active`}
             onClick={() => setIsActive(!isActive)}
-            className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors ${
-              isActive ? 'bg-hr-green' : 'bg-hr-sand-md'
+            className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hr-teal focus-visible:ring-offset-2 ${
+              isActive ? 'bg-hr-teal' : 'bg-hr-line'
             }`}
           >
             <span
@@ -64,53 +70,43 @@ export function MetricCard({ metric, saveState, onSave }: MetricCardProps) {
 
       <div className="space-y-4">
         <div>
-          <label className="text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-text-3 mb-1.5 block">
-            Display Name
-          </label>
+          <label className={fieldLabel}>Display Name</label>
           <input
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
-            className="w-full rounded-lg border-half border-hr-base text-sm text-hr-text-1 focus:ring-hr-green/20 focus:border-hr-green/40"
+            className={fieldInput}
           />
         </div>
 
         <div>
-          <label className="text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-text-3 mb-1.5 block">
-            Coaching Prompt Template
-          </label>
+          <label className={fieldLabel}>Coaching Prompt Template</label>
           <textarea
             value={coachingPrompt}
             onChange={e => setCoachingPrompt(e.target.value)}
             rows={3}
-            className="w-full rounded-lg border-half border-hr-base text-sm text-hr-text-1 focus:ring-hr-green/20 focus:border-hr-green/40"
+            className={fieldInput}
           />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-text-3 mb-1.5 block">
-              Display Order
-            </label>
+            <label className={fieldLabel}>Display Order</label>
             <input
               type="number"
               value={displayOrder}
               onChange={e => setDisplayOrder(parseInt(e.target.value, 10) || 0)}
               min={1}
-              className="w-full rounded-lg border-half border-hr-base text-sm text-hr-text-1 focus:ring-hr-green/20 focus:border-hr-green/40"
+              className={fieldInput}
             />
           </div>
           <div>
-            <label className="text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-text-3 mb-1.5 block">
-              Unit
-            </label>
-            <p className="text-sm text-hr-text-2 py-2">{metric.unit}</p>
+            <label className={fieldLabel}>Unit</label>
+            <p className="text-sm text-hr-gray py-2">{metric.unit}</p>
           </div>
           <div>
-            <label className="text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-text-3 mb-1.5 block">
-              Direction
-            </label>
-            <p className="text-sm text-hr-text-2 py-2">{directionLabel}</p>
+            <label className={fieldLabel}>Direction</label>
+            <p className="text-sm text-hr-gray py-2">{directionLabel}</p>
           </div>
         </div>
       </div>
@@ -128,12 +124,12 @@ export function MetricCard({ metric, saveState, onSave }: MetricCardProps) {
           disabled={!isDirty || saveState === 'saving'}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             saveState === 'saved'
-              ? 'bg-hr-green-light text-hr-green-dark'
+              ? 'bg-hr-teal-tint text-hr-teal'
               : saveState === 'error'
-                ? 'bg-hr-amber-light text-hr-amber'
+                ? 'bg-hr-amber-tint text-hr-amber-deep'
                 : isDirty && saveState !== 'saving'
-                  ? 'bg-hr-navy text-white hover:bg-hr-navy-deep'
-                  : 'bg-hr-sand-md text-hr-text-3 cursor-not-allowed'
+                  ? 'bg-hr-navy text-white hover:bg-hr-navy/90'
+                  : 'bg-hr-line text-hr-gray-light cursor-not-allowed'
           }`}
         >
           {saveState === 'saving' && 'Saving...'}

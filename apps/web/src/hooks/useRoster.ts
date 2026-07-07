@@ -2,17 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { fetchAllPages } from '../lib/fetchAllPages';
 import {
-  METRIC_SPECS,
-  assessTrend,
   currentWeekStartUtc,
-  trendWindow,
   weeksBeforeUtc,
   weekStartStr,
   type Employee,
   type MetricDefinition,
   type TrendTone,
 } from '@scorecard/shared';
-import { SPARKLINE_WEEKS } from '../lib/evidence';
+import { SPARKLINE_WEEKS, metricTone } from '../lib/evidence';
 import { rosterSummary } from '../lib/coaching';
 import { SESSION_LOOKBACK_WEEKS } from './useScorecardNotes';
 
@@ -122,16 +119,7 @@ export function useRoster(managerId: string | null = null) {
               const points = byMetric.get(def.key);
               if (!points || points.length === 0) continue;
               points.sort((a, b) => a.periodStart.localeCompare(b.periodStart));
-              const spec = METRIC_SPECS[def.key];
-              // Counts anchor to the last completed week (same rule as the
-              // evidence panel); a count with only a partial current week
-              // reads "new", not a collapse.
-              const windowPoints = trendWindow(points, def.unit, thisMondayStr, thisMondayStr);
-              tones.push(
-                windowPoints.length > 0
-                  ? assessTrend(windowPoints.map(p => p.value), def.direction, spec?.band).tone
-                  : 'new',
-              );
+              tones.push(metricTone(points, def, thisMondayStr));
               if (points[points.length - 1]!.periodStart >= lastMondayStr) hasData = true;
             }
           }

@@ -8,6 +8,7 @@ import { MetricConfigPage } from './features/admin/MetricConfigPage';
 import { ExportLogPage } from './features/admin/ExportLogPage';
 import { RollupPage } from './features/scorecard/RollupPage';
 import { SharedScorecardPage } from './features/scorecard/SharedScorecardPage';
+import { NotFoundPage } from './components/NotFoundPage';
 
 // The Cadence home is /scorecard (roster + briefing). /dashboard survives as a
 // redirect so old bookmarks and the rollup drill-down (?manager=…) keep working.
@@ -20,6 +21,7 @@ export function App() {
   return (
     <AuthProvider>
       <Routes>
+        <Route path="/" element={<Navigate to="/scorecard" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/shared/:token" element={<SharedScorecardPage />} />
@@ -56,7 +58,8 @@ export function App() {
             </AuthGuard>
           }
         />
-        <Route path="*" element={<Navigate to="/scorecard" replace />} />
+        {/* S10: unknown paths get a real 404 (the "/" landing redirect stays above). */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </AuthProvider>
   );

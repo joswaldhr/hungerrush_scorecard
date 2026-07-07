@@ -24,8 +24,17 @@ function PanelSkeleton() {
  * amber "showing last sync" banner instead of pretending to be live. The
  * copy is per-person honest: a stale stamp can also mean this one person
  * stopped syncing (deactivated agent), so it never claims the source is down.
+ * showRowSyncedAt stamps every row — the SharedScorecardPage per-tile rule.
  */
-export function EvidencePanel({ groups, loading }: { groups: EvidenceGroup[]; loading: boolean }) {
+export function EvidencePanel({
+  groups,
+  loading,
+  showRowSyncedAt = false,
+}: {
+  groups: EvidenceGroup[];
+  loading: boolean;
+  showRowSyncedAt?: boolean;
+}) {
   return (
     <section className="bg-hr-card rounded-xl shadow-card p-5 self-start">
       {loading ? (
@@ -57,7 +66,7 @@ export function EvidencePanel({ groups, loading }: { groups: EvidenceGroup[]; lo
             )}
             <div className={`border-t border-hr-line ${group.stale ? 'opacity-75' : ''}`}>
               {group.metrics.map(m => (
-                <MetricRow key={m.definition.key} metric={m} />
+                <MetricRow key={m.definition.key} metric={m} showSyncedAt={showRowSyncedAt} />
               ))}
             </div>
           </div>
