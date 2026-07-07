@@ -91,6 +91,25 @@ export function assessTrend(
 }
 
 /**
+ * The trend window for one metric (James-approved 2026-07-07): count-unit
+ * metrics are weekly SUMS, so comparing the in-progress week's partial
+ * accumulation against completed-week averages is bias, not noise — every
+ * Monday would read as a collapse. Counts therefore measure their trend
+ * through the LAST COMPLETED week; rates/averages (percent, seconds) keep the
+ * live current value. Frozen views (anchorWeek ≠ the in-progress week) are
+ * already complete and pass through untouched.
+ */
+export function trendWindow<T extends { periodStart: string }>(
+  history: T[],
+  unit: string,
+  anchorWeek: string,
+  currentWeek: string,
+): T[] {
+  if (unit !== 'count' || anchorWeek !== currentWeek) return history;
+  return history.filter(h => h.periodStart < currentWeek);
+}
+
+/**
  * Resolve a sparkline's y-scale: the spec domain is the MINIMUM extent (so a
  * small wiggle can never be zoomed into a cliff — honest by construction);
  * out-of-range data extends the edge rather than clipping (never lie about

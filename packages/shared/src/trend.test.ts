@@ -2,7 +2,7 @@
 // prior-period average (up to 4 preceding points), ±6% steady band inclusive,
 // direction-aware, band metrics, <4 points = "new".
 import { describe, it, expect } from 'vitest';
-import { assessTrend, resolveDomain } from './trend';
+import { assessTrend, resolveDomain, trendWindow } from './trend';
 
 describe('assessTrend — sparse history ("new")', () => {
   it('is "new" for an empty window, with null fields', () => {
@@ -107,6 +107,30 @@ describe('assessTrend — zero prior average (no percentage exists)', () => {
 
   it('all-zero stays steady', () => {
     expect(assessTrend([0, 0, 0, 0], 'higher_is_better').tone).toBe('steady');
+  });
+});
+
+describe('trendWindow — counts measure through the last completed week', () => {
+  const p = (periodStart: string, value: number) => ({ periodStart, value });
+  const CURRENT = '2026-07-06';
+  const history = [p('2026-06-15', 40), p('2026-06-22', 38), p('2026-06-29', 41), p(CURRENT, 3)];
+
+  it('drops the in-progress week for count metrics (partial sums are bias, not noise)', () => {
+    expect(trendWindow(history, 'count', CURRENT, CURRENT)).toEqual(history.slice(0, 3));
+  });
+
+  it('keeps the live value for rates and averages', () => {
+    expect(trendWindow(history, 'percent', CURRENT, CURRENT)).toEqual(history);
+    expect(trendWindow(history, 'seconds', CURRENT, CURRENT)).toEqual(history);
+  });
+
+  it('passes frozen views through untouched — a completed anchor week has no partial bias', () => {
+    const frozen = history.slice(0, 3); // last-week view: history ends at a completed week
+    expect(trendWindow(frozen, 'count', '2026-06-29', CURRENT)).toEqual(frozen);
+  });
+
+  it('a count with only the partial current week yields an empty window (tone "new")', () => {
+    expect(trendWindow([p(CURRENT, 3)], 'count', CURRENT, CURRENT)).toEqual([]);
   });
 });
 

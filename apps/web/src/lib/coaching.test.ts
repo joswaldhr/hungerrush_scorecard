@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { assessTrend, type TrendAssessment } from '@scorecard/shared';
+import type { AssessedTiming } from './evidence';
 import {
   buildTalkingPoints,
   rosterSummary,
@@ -14,13 +15,13 @@ function assessed(
   label: string,
   unit: string,
   assessment: Partial<TrendAssessment> & { tone: TrendAssessment['tone'] },
-  isCurrent = true,
+  timing: AssessedTiming | null = 'current',
 ): AssessedMetric {
   return {
     key,
     label,
     unit,
-    isCurrent,
+    timing,
     assessment: {
       current: 10,
       priorAverage: 10,
@@ -106,9 +107,19 @@ describe('buildTalkingPoints — flags only', () => {
     const points = buildTalkingPoints([
       assessed('first_reply_time', 'First Reply Time', 'seconds', {
         tone: 'discuss', current: 2520, priorAverage: 1800, absoluteChange: 720, pctChange: 40,
-      }, false),
+      }, 'stale'),
     ]);
     expect(points[0]!.text).toBe('First Reply Time up 40% — 42.0 min at last sync.');
+    expect(points[0]!.text).not.toContain('now');
+  });
+
+  it('anchored count metrics speak in last-week tense', () => {
+    const points = buildTalkingPoints([
+      assessed('ticket_volume', 'Ticket Volume', 'count', {
+        tone: 'discuss', current: 25, priorAverage: 40, absoluteChange: -15, pctChange: -37.5,
+      }, 'lastWeek'),
+    ]);
+    expect(points[0]!.text).toBe('Ticket Volume down 38% — 25 last week.');
     expect(points[0]!.text).not.toContain('now');
   });
 
@@ -124,7 +135,7 @@ describe('buildTalkingPoints — flags only', () => {
   it('integrates with assessTrend end-to-end', () => {
     const a = assessTrend([1800, 1800, 1800, 2520], 'lower_is_better');
     const points = buildTalkingPoints([
-      { key: 'first_reply_time', label: 'First Reply Time', unit: 'seconds', isCurrent: true, assessment: a },
+      { key: 'first_reply_time', label: 'First Reply Time', unit: 'seconds', timing: 'current', assessment: a },
     ]);
     expect(points[0]!.kind).toBe('discuss');
     expect(points[0]!.text).toContain('up 40%');

@@ -4,6 +4,7 @@ import { mapHistoryToWeekSlots } from '../lib/evidence';
 import {
   assessTrend,
   currentWeekStartUtc,
+  trendWindow,
   weekStartStr,
   METRIC_SPECS,
   type MetricDefinition,
@@ -123,7 +124,11 @@ function getValueColor(value: number | null): string {
 
 export function KpiTile({ definition, value, syncedAt, history, weekAnchor }: KpiTileProps) {
   const isNull = value === null;
-  const trend = getTrend(value, history, definition.direction, METRIC_SPECS[definition.key]?.band);
+  // Same anchoring rule as the briefing: count metrics measure their trend
+  // through the last completed week when the tile shows the in-progress week.
+  const thisMondayStr = weekStartStr(currentWeekStartUtc());
+  const trendHistory = trendWindow(history, definition.unit, weekAnchor ?? thisMondayStr, thisMondayStr);
+  const trend = getTrend(value, trendHistory, definition.direction, METRIC_SPECS[definition.key]?.band);
   const nullLabel =
     METRIC_SPECS[definition.key]?.nullLabel ?? NULL_LABELS[definition.key] ?? 'No data yet';
   const valueColorClass = getValueColor(value);
@@ -152,7 +157,7 @@ export function KpiTile({ definition, value, syncedAt, history, weekAnchor }: Kp
 
       {!isNull && (
         <div className="mt-3">
-          <Sparkline history={history} anchorWeek={weekAnchor ?? weekStartStr(currentWeekStartUtc())} />
+          <Sparkline history={history} anchorWeek={weekAnchor ?? thisMondayStr} />
           {history.length > 0 && (
             <p className="text-[10px] text-slate-300 mt-1">4 weeks</p>
           )}

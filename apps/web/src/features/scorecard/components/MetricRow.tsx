@@ -10,7 +10,7 @@ import { TONE_HEX, TONE_TEXT } from './toneStyles';
  * coaching_prompt stays always-visible per the touch-device decision.
  */
 export function MetricRow({ metric }: { metric: EvidenceMetric }) {
-  const { definition, spec, assessment, currentValue, lastWeekValue, slots, domain, weeksOfHistory } = metric;
+  const { definition, spec, assessment, currentValue, lastWeekValue, slots, domain, weeksOfHistory, trendWeeks } = metric;
   const tone = assessment.tone;
   const hasHistory = weeksOfHistory > 0;
 
@@ -18,7 +18,9 @@ export function MetricRow({ metric }: { metric: EvidenceMetric }) {
   if (!hasHistory) {
     sub = spec?.nullLabel ?? 'No data yet';
   } else if (tone === 'new') {
-    sub = `wk ${weeksOfHistory}`;
+    // Counts anchor to completed weeks, so their unlock count can trail the
+    // synced-week count by one.
+    sub = `wk ${Math.max(trendWeeks, 1)}`;
   } else {
     const abs = assessment.absoluteChange ?? 0;
     const arrow = abs > 0 ? '↑' : abs < 0 ? '↓' : '→';
@@ -33,7 +35,8 @@ export function MetricRow({ metric }: { metric: EvidenceMetric }) {
     `${definition.name}: ${weeksOfHistory} of the last ${SPARKLINE_WEEKS} weeks synced` +
     (assessment.current !== null ? `, latest ${fmt(assessment.current)}` : '') +
     `, on a fixed ${fmt(domain[0])} to ${fmt(domain[1])} scale` +
-    (spec?.band ? `, healthy range ${fmt(spec.band[0])} to ${fmt(spec.band[1])}` : '');
+    (spec?.band ? `, healthy range ${fmt(spec.band[0])} to ${fmt(spec.band[1])}` : '') +
+    (definition.unit === 'count' ? ', trend measured through the last completed week' : '');
 
   return (
     <div className="py-3 border-b border-hr-line last:border-b-0">

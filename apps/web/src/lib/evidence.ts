@@ -5,6 +5,7 @@ import {
   METRIC_SPECS,
   assessTrend,
   resolveDomain,
+  trendWindow,
   weeksBeforeUtc,
   weekStartStr,
   type MetricDefinition,
@@ -24,10 +25,21 @@ export const SPARKLINE_WEEKS = 8;
  */
 export const STALE_AFTER_MS = 9 * 60 * 60 * 1000;
 
+/** Which week the assessed "current" value belongs to — drives honest copy tense. */
+export type AssessedTiming = 'current' | 'lastWeek' | 'stale';
+
 export interface EvidenceMetric {
   definition: MetricDefinition;
   spec: MetricSpec | undefined;
   assessment: TrendAssessment;
+  /**
+   * Week of the assessment's last point: 'current' = this week's live value,
+   * 'lastWeek' = the frozen last-completed week (count metrics anchor here),
+   * 'stale' = older. Null when the trend window is empty.
+   */
+  assessedTiming: AssessedTiming | null;
+  /** Points inside the trend window (< weeksOfHistory for anchored counts). */
+  trendWeeks: number;
   /** This-week-so-far value (the row's headline window; null = not synced yet). */
   currentValue: number | null;
   /** Frozen last-week value (the row's second labeled window). */
@@ -80,13 +92,27 @@ export function buildEvidenceMetrics(
   metrics: EmployeeMetric[],
   anchorWeek: string,
 ): EvidenceMetric[] {
+  const lastCompletedWeek = weekStartStr(weeksBeforeUtc(new Date(`${anchorWeek}T00:00:00Z`), 1));
   return metrics.map(m => {
     const spec = METRIC_SPECS[m.definition.key];
     const values = m.history.map(h => h.value);
+    // Counts anchor their trend to the last completed week (partial-sum bias);
+    // sparkline slots and the headline value still show the live week.
+    const trendPoints = trendWindow(m.history, m.definition.unit, anchorWeek, anchorWeek);
+    const lastTrendPoint = trendPoints[trendPoints.length - 1];
+    const assessedTiming: AssessedTiming | null = !lastTrendPoint
+      ? null
+      : lastTrendPoint.periodStart === anchorWeek
+        ? 'current'
+        : lastTrendPoint.periodStart === lastCompletedWeek
+          ? 'lastWeek'
+          : 'stale';
     return {
       definition: m.definition,
       spec,
-      assessment: assessTrend(values, m.definition.direction, spec?.band),
+      assessment: assessTrend(trendPoints.map(p => p.value), m.definition.direction, spec?.band),
+      assessedTiming,
+      trendWeeks: trendPoints.length,
       currentValue: m.currentValue,
       lastWeekValue: m.lastWeekValue,
       slots: mapHistoryToWeekSlots(m.history, anchorWeek, SPARKLINE_WEEKS),

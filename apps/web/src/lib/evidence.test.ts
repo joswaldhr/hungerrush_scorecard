@@ -10,12 +10,17 @@ import {
 } from './evidence';
 import type { EmployeeMetric } from './employeeMetrics';
 
-function def(key: string, source: MetricDefinition['source'], direction: MetricDefinition['direction']): MetricDefinition {
+function def(
+  key: string,
+  source: MetricDefinition['source'],
+  direction: MetricDefinition['direction'],
+  unit = 'count',
+): MetricDefinition {
   return {
     id: `id-${key}`,
     key,
     name: key,
-    unit: 'count',
+    unit,
     source,
     coaching_prompt: 'prompt',
     direction,
@@ -68,7 +73,7 @@ describe('buildEvidenceMetrics', () => {
       { periodStart: '2026-07-06', value: 80 },
     ];
     const [row] = buildEvidenceMetrics(
-      [metric({ definition: def('occupancy', 'assembled', 'higher_is_better'), history, currentValue: 80 })],
+      [metric({ definition: def('occupancy', 'assembled', 'higher_is_better', 'percent'), history, currentValue: 80 })],
       '2026-07-06',
     );
     expect(row!.assessment.tone).toBe('steady');
@@ -91,6 +96,65 @@ describe('buildEvidenceMetrics', () => {
     expect(row!.assessment.tone).toBe('new');
     expect(row!.weeksOfHistory).toBe(1);
   });
+
+  it('anchors count trends to the last completed week — a partial Monday is not a collapse', () => {
+    const history = [
+      { periodStart: '2026-06-08', value: 40 },
+      { periodStart: '2026-06-15', value: 40 },
+      { periodStart: '2026-06-22', value: 38 },
+      { periodStart: '2026-06-29', value: 41 },
+      { periodStart: '2026-07-06', value: 3 }, // in-progress week, 3 tickets so far
+    ];
+    const [row] = buildEvidenceMetrics(
+      [metric({
+        definition: def('ticket_volume', 'zendesk', 'higher_is_better'),
+        history,
+        currentValue: 3,
+        lastWeekValue: 41,
+      })],
+      '2026-07-06',
+    );
+    expect(row!.assessment.current).toBe(41); // last COMPLETED week, not the partial 3
+    expect(row!.assessment.tone).toBe('steady');
+    expect(row!.assessedTiming).toBe('lastWeek');
+    expect(row!.trendWeeks).toBe(4);
+    expect(row!.weeksOfHistory).toBe(5);
+    expect(row!.currentValue).toBe(3); // the headline still shows the live week
+  });
+
+  it('rate metrics keep the live current value and read as current', () => {
+    const history = [
+      { periodStart: '2026-06-15', value: 92 },
+      { periodStart: '2026-06-22', value: 93 },
+      { periodStart: '2026-06-29', value: 91 },
+      { periodStart: '2026-07-06', value: 60 },
+    ];
+    const [row] = buildEvidenceMetrics(
+      [metric({
+        definition: def('csat_score', 'zendesk', 'higher_is_better', 'percent'),
+        history,
+        currentValue: 60,
+      })],
+      '2026-07-06',
+    );
+    expect(row!.assessment.current).toBe(60); // a live CSAT drop stays visible mid-week
+    expect(row!.assessment.tone).toBe('discuss');
+    expect(row!.assessedTiming).toBe('current');
+  });
+
+  it('a count with only the partial current week is "new" with an empty trend window', () => {
+    const [row] = buildEvidenceMetrics(
+      [metric({
+        definition: def('ticket_volume', 'zendesk', 'higher_is_better'),
+        history: [{ periodStart: '2026-07-06', value: 3 }],
+        currentValue: 3,
+      })],
+      '2026-07-06',
+    );
+    expect(row!.assessment.tone).toBe('new');
+    expect(row!.trendWeeks).toBe(0);
+    expect(row!.assessedTiming).toBeNull();
+  });
 });
 
 describe('groupEvidenceBySource', () => {
@@ -100,7 +164,7 @@ describe('groupEvidenceBySource', () => {
     const rows = buildEvidenceMetrics(
       [
         metric({
-          definition: def('occupancy', 'assembled', 'higher_is_better'),
+          definition: def('occupancy', 'assembled', 'higher_is_better', 'percent'),
           history: [{ periodStart: '2026-07-06', value: 80 }],
           latestSyncedAt: '2026-07-07T10:00:00Z',
         }),
@@ -113,7 +177,7 @@ describe('groupEvidenceBySource', () => {
           latestSyncedAt: '2026-07-07T11:00:00Z',
         }),
         metric({
-          definition: def('csat_score', 'zendesk', 'higher_is_better'),
+          definition: def('csat_score', 'zendesk', 'higher_is_better', 'percent'),
           latestSyncedAt: '2026-07-07T09:00:00Z',
         }),
       ],

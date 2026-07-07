@@ -5,6 +5,7 @@ import {
   METRIC_SPECS,
   assessTrend,
   currentWeekStartUtc,
+  trendWindow,
   weeksBeforeUtc,
   weekStartStr,
   type Employee,
@@ -42,6 +43,7 @@ export function useRoster(managerId: string | null = null) {
     setError(null);
 
     const thisMonday = currentWeekStartUtc();
+    const thisMondayStr = weekStartStr(thisMonday);
     const windowStartStr = weekStartStr(weeksBeforeUtc(thisMonday, SPARKLINE_WEEKS - 1));
     const lastMondayStr = weekStartStr(weeksBeforeUtc(thisMonday, 1));
     const sessionFloor = weekStartStr(weeksBeforeUtc(thisMonday, SESSION_LOOKBACK_WEEKS));
@@ -121,7 +123,15 @@ export function useRoster(managerId: string | null = null) {
               if (!points || points.length === 0) continue;
               points.sort((a, b) => a.periodStart.localeCompare(b.periodStart));
               const spec = METRIC_SPECS[def.key];
-              tones.push(assessTrend(points.map(p => p.value), def.direction, spec?.band).tone);
+              // Counts anchor to the last completed week (same rule as the
+              // evidence panel); a count with only a partial current week
+              // reads "new", not a collapse.
+              const windowPoints = trendWindow(points, def.unit, thisMondayStr, thisMondayStr);
+              tones.push(
+                windowPoints.length > 0
+                  ? assessTrend(windowPoints.map(p => p.value), def.direction, spec?.band).tone
+                  : 'new',
+              );
               if (points[points.length - 1]!.periodStart >= lastMondayStr) hasData = true;
             }
           }

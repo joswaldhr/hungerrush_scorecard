@@ -74,7 +74,7 @@ export function Briefing({ employeeId }: { employeeId: string }) {
           key: m.definition.key,
           label: m.definition.name,
           unit: m.definition.unit,
-          isCurrent: m.currentValue !== null,
+          timing: m.assessedTiming,
           assessment: m.assessment,
         })),
       ),

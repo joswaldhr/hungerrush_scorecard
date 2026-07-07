@@ -11,6 +11,7 @@
 // coaching.test.ts enforces the forbidden list over all generated output.
 import type { TrendAssessment, TrendTone } from '@scorecard/shared';
 import { formatMetricValue } from './formatMetric';
+import type { AssessedTiming } from './evidence';
 
 export interface AssessedMetric {
   key: string;
@@ -19,11 +20,12 @@ export interface AssessedMetric {
   /** metric_definitions.unit — drives value formatting inside point text. */
   unit: string;
   /**
-   * True when the assessed value IS this week's — false when the current week
-   * has no row yet and the assessment rides on the latest synced week. Copy
-   * must not say "now" about a stale value while the row beside it shows "—".
+   * Which week the assessed value belongs to — copy tense must match:
+   * 'current' says "now", 'lastWeek' says "last week" (count metrics anchor
+   * there by design), 'stale'/null says "at last sync". Never claim "now"
+   * about a value the row beside it doesn't show as this week's.
    */
-  isCurrent: boolean;
+  timing: AssessedTiming | null;
   assessment: TrendAssessment;
 }
 
@@ -93,10 +95,19 @@ export function buildTalkingPoints(
     const a = m.assessment;
     if (a.current === null) continue;
     const value = formatMetricValue(a.current, m.unit);
-    // Honest tense: "now"/"this week" only when the value IS this week's.
-    const valueNow = m.isCurrent ? `${value} now` : `${value} at last sync`;
-    const thisWeek = m.isCurrent ? 'this week' : 'in its latest synced week';
-    const atValue = m.isCurrent ? `at ${value}` : `last synced at ${value}`;
+    // Honest tense: the phrase names the week the assessed value belongs to.
+    const valueNow =
+      m.timing === 'current' ? `${value} now`
+        : m.timing === 'lastWeek' ? `${value} last week`
+          : `${value} at last sync`;
+    const thisWeek =
+      m.timing === 'current' ? 'this week'
+        : m.timing === 'lastWeek' ? 'last week'
+          : 'in its latest synced week';
+    const atValue =
+      m.timing === 'current' ? `at ${value}`
+        : m.timing === 'lastWeek' ? `at ${value} last week`
+          : `last synced at ${value}`;
 
     if (a.tone === 'discuss') {
       if (a.bandPosition === 'above') {
