@@ -6,20 +6,21 @@ import { WarnBanner } from '../../components/WarnBanner';
 
 function MetricCardSkeleton() {
   return (
-    <div className="animate-pulse bg-hr-card rounded-xl border border-hr-line p-6 space-y-4">
+    <div className="animate-pulse bg-hr-card rounded-xl border border-hr-line shadow-card p-5 space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex gap-2">
-          <div className="h-4 w-24 bg-hr-line/60 rounded" />
-          <div className="h-4 w-16 bg-hr-line/60 rounded-full" />
+          <div className="h-3.5 w-24 bg-hr-line/60 rounded" />
+          <div className="h-3.5 w-16 bg-hr-line/60 rounded-full" />
         </div>
-        <div className="h-6 w-11 bg-hr-line/60 rounded-full" />
+        <div className="h-5 w-9 bg-hr-line/60 rounded-full" />
       </div>
-      <div className="h-8 bg-hr-line/60 rounded w-full" />
-      <div className="h-20 bg-hr-line/60 rounded" />
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="h-8 bg-hr-line/60 rounded" />
-        <div className="h-4 bg-hr-line/60 rounded w-2/3" />
-        <div className="h-4 bg-hr-line/60 rounded w-2/3" />
+      <div className="h-8 bg-hr-line/60 rounded" />
+      <div className="h-12 bg-hr-line/60 rounded" />
+      <div className="flex items-center gap-6 pt-1">
+        <div className="h-6 w-24 bg-hr-line/60 rounded" />
+        <div className="h-3.5 w-20 bg-hr-line/60 rounded" />
+        <div className="h-3.5 w-28 bg-hr-line/60 rounded" />
+        <div className="h-7 w-16 bg-hr-line/60 rounded-lg ml-auto" />
       </div>
     </div>
   );
@@ -48,39 +49,41 @@ export function MetricConfigPage() {
 
   return (
     <AppLayout title="Metrics">
-      <p className="text-[13px] text-hr-gray mb-6">
-        Configure which metrics appear on scorecards, their display names, and coaching prompts.
-        Toggling a metric off also stops its collection at the next sync.
-      </p>
+      <div className="max-w-3xl">
+        <p className="text-[13px] text-hr-gray mb-5">
+          Configure which metrics appear on scorecards, their display names, and coaching
+          prompts. Toggling a metric off also stops its collection at the next sync.
+        </p>
 
-      {saveError && <WarnBanner className="mb-4">{saveError}</WarnBanner>}
-      {error && <WarnBanner className="mb-4">{error}</WarnBanner>}
+        {saveError && <WarnBanner className="mb-4">{saveError}</WarnBanner>}
+        {error && <WarnBanner className="mb-4">{error}</WarnBanner>}
 
-      {loading ? (
-        <div className="space-y-4">
-          {Array.from({ length: 4 }, (_, i) => (
-            <MetricCardSkeleton key={i} />
-          ))}
-        </div>
-      ) : metrics.length === 0 ? (
-        <div className="bg-hr-card rounded-xl border border-hr-line p-8 text-center">
-          <p className="text-[13px] text-hr-navy mb-1">No metric definitions found.</p>
-          <p className="text-[13px] text-hr-gray">
-            Run the sync job or seed the database with metric definitions to get started.
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {metrics.map(metric => (
-            <MetricCard
-              key={metric.id}
-              metric={metric}
-              saveState={saveState?.id === metric.id ? saveState.state : 'idle'}
-              onSave={handleSave}
-            />
-          ))}
-        </div>
-      )}
+        {loading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 4 }, (_, i) => (
+              <MetricCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : metrics.length === 0 ? (
+          <div className="bg-hr-card rounded-xl border border-hr-line p-8 text-center">
+            <p className="text-[13px] text-hr-navy mb-1">No metric definitions found.</p>
+            <p className="text-[13px] text-hr-gray">
+              Run the sync job or seed the database with metric definitions to get started.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {metrics.map(metric => (
+              <MetricCard
+                key={metric.id}
+                metric={metric}
+                saveState={saveState?.id === metric.id ? saveState.state : 'idle'}
+                onSave={handleSave}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </AppLayout>
   );
 }
