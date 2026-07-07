@@ -23,6 +23,7 @@
 - [ ] `employees.title` is populated (the org sync `POST /api/sync/org` run in the W2 post-merge steps backfills it — the daily 05:00 cron does not)
 - [ ] Metric data is fresh: last cron stamp within 4h (check Railway logs `[cron]`, or a current-window-only stamp count — historical `synced_at` window-counting is invalid)
 - [ ] A test share link created earlier than 72h ago is confirmed EXPIRED (share-expiry behaves)
+- [ ] Roster-diff fixes (2026-07-07) applied in Entra + one `POST /api/sync/org` run afterwards: Normando's duplicate accounts (decision item below), Michael Diamond absent from AD, Emma Veazey's manager (AD says Mike Pacilio, Alex's roster claims her — if she moves, Mike's and Alex's counts in these steps shift accordingly), optional: "Villanueava" spelling + the Muhammad Ejaz duplicate; Rejohn Lunze Cuares confirmed with Barb
 
 ## Per-account passes
 
@@ -39,7 +40,7 @@
 - [ ] Rollup shows exactly his 3 manager cards — per-metric chips in Cadence words (N improving / N to discuss / steady / new) + the wins / to-discuss stat pair (counts, never scores/ranks)
 - [ ] Drill into one manager team → roster scoped to that FULL team (banner + back link) → open one briefing
 - [ ] Notes + share + PDF each work on a drilled-into employee (same checks as Mike's pass)
-- [ ] **Decision item — confirm with Alex (carried from W2, do NOT pre-implement):** his direct employee **Normando Bonadia Jr** is invisible to him under one-level-down senior RLS. Choose: (a) reassign Normando's `employees.manager_id` to one of Alex's managers (one audited update), or (b) accept invisibility. Record the choice in the release plan either way
+- [ ] **Decision item — confirm with Alex (carried from W2; ROOT CAUSE found 2026-07-07 roster diff):** Normando Bonadia Jr has **two Azure AD accounts**, so two employee rows — `normando.bonadiajr@` (carries his Zendesk id + data) reports to Alex directly = invisible under senior RLS; `normando.bonadia@` (empty) reports to Christopher Courcy = visible but "no data yet". Fix is **AD-side**: keep the data-carrying account, set its manager (his roster seat is Courcy's General Queue), disable the stray, then run `POST /api/sync/org`. Do NOT hand-edit `employees.manager_id` — the next org sync overwrites it (only the executive role has an overwrite guard). Record the choice in the release plan
 
 ### 3. Barbara Maenza (`senior_manager`)
 - [ ] Same pass as Alex (3 cards: Murray / Maynard / Crawford); one drill-down, one scorecard, one note
