@@ -11,8 +11,9 @@
 
 - All 5 phases, 4 UI/UX sprints, layout redesign, and data integrity audit complete — pilot-ready
 - Production: `hungerrush-scorecard.vercel.app` (frontend) · `scorecardapi-production.up.railway.app` (backend)
-- **Session 28 (Phase 3 = Cadence, session 1 of ~3 — PR #7 OPEN 2026-07-07; closes on
-  James's merge + browser verification):** kickoff gate met (PRs #5 + #6 merged +
+- **Session 28 (Phase 3 = Cadence, session 1 of ~3 — CLOSED: PR #7, 11 commits, merged to
+  master `66c7b5c` + James browser-verified 2026-07-07, 11-step pass "looks good" incl.
+  count anchoring and the S1 drawer):** kickoff gate met (PRs #5 + #6 merged +
   live-verified at master `37f6779`, **Phase 2 CLOSED**; stranded-commit check clean).
   Branch `claude/phase3-cadence`, 8 commits, green at every one (tests 79→118 / typecheck
   3×3 / lint / vite build). Shipped: (1) token swap + self-hosted Montserrat/Inter/IBM Plex
@@ -40,7 +41,7 @@
   speaks in matching tense — now / last week / at last sync); commit 10 adds jsdom +
   re-adds @testing-library/react (devDeps) with the first 16 component render tests
   (TalkingPoints, EvidencePanel, RosterStrip, KpiTile) via per-file jsdom pragma.
-  Final session-1 state: 10 commits, tests **142** (50 api / 60 web / 32 shared).
+  Final session-1 state: 11 commits, tests **142** (50 api / 60 web / 32 shared).
   **Session 2 scope:** rollup reskin (+ its trend migration = D6 fully closed),
   SharedScorecardPage (keeps per-tile synced stamps), PDF export design, admin pages,
   login, S10 404, S12 titles/aria/focus, component tests for the remaining surfaces,
