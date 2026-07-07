@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { WarnBanner } from '../../components/WarnBanner';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { AuthCard } from './AuthCard';
 
 export function LoginPage() {
   const [signingIn, setSigningIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  useDocumentTitle('Sign in');
 
   const handleLogin = async () => {
     setSigningIn(true);

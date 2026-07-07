@@ -4,6 +4,7 @@ import { Users, LayoutGrid, SlidersHorizontal, FileOutput, Menu, X, type LucideI
 import { useAuth } from '../features/auth/AuthProvider';
 import { supabase } from '../lib/supabase';
 import { getInitials } from '../lib/initials';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { OfflineBanner } from './OfflineBanner';
 
 interface AppLayoutProps {
@@ -133,6 +134,15 @@ export function AppLayout({ children, title, subtitle, actions }: AppLayoutProps
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+
+  // S12: per-route document title + move focus to the page heading when a page
+  // mounts (each page mounts its own AppLayout, so this fires on page-to-page
+  // navigation but NOT on a same-page param change like switching people).
+  useDocumentTitle(typeof title === 'string' ? title : undefined);
+  useEffect(() => {
+    titleRef.current?.focus();
+  }, []);
 
   // S1 mobile navigation: Esc closes the drawer; focus moves into it on open.
   useEffect(() => {
@@ -191,7 +201,9 @@ export function AppLayout({ children, title, subtitle, actions }: AppLayoutProps
             <Menu size={18} />
           </button>
           <div className="min-w-0">
-            <h1 className="text-[15px] font-medium text-hr-navy truncate">{title}</h1>
+            <h1 ref={titleRef} tabIndex={-1} className="text-[15px] font-medium text-hr-navy truncate outline-none">
+              {title}
+            </h1>
             {subtitle && <p className="text-[11px] text-hr-gray-light mt-px">{subtitle}</p>}
           </div>
           <div className="ml-auto flex items-center gap-3 flex-shrink-0">{actions}</div>

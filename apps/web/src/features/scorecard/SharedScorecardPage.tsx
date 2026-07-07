@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
 import { currentWeekStartUtc, weekStartStr } from '@scorecard/shared';
 import { useSharedScorecard } from '../../hooks/useSharedScorecard';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { LogoMark } from '../../components/AppLayout';
 import { getInitials } from '../../lib/initials';
 import { buildEmployeeMetrics } from '../../lib/employeeMetrics';
@@ -12,6 +13,7 @@ import { buildEvidenceMetrics, groupEvidenceBySource } from '../../lib/evidence'
 import { EvidencePanel } from './components/EvidencePanel';
 
 function PublicShell({ children }: { children: ReactNode }) {
+  useDocumentTitle('Your weekly snapshot');
   return (
     <div className="min-h-screen bg-hr-bg">
       <nav className="bg-hr-navy px-5 py-3.5 flex items-center justify-between gap-3">
