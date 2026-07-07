@@ -86,7 +86,7 @@ Phase 2 per refactor plan (S4 already pulled to 1C; S5 refresh support is a desi
 | ~~2~~ | ~~W1 = Phase 1C + 0016~~ ✅ deployed + corrections executed | done (session 25) |
 | ~~3~~ | ~~W2 release readiness (executive role, employees.title, philosophy amendment incl. coral rule, smoke checklist)~~ ✅ PR #3 merged + executed (Adam is executive, guard live-verified, titles backfilled) | done (session 26) |
 | ~~4~~ | ~~Phase 2 hardening~~ ✅ merged + live-verified 2026-07-07 (master `37f6779`); S5 hook contract + S6 executive-aware guard landed; async 202 + SYNC_TRIGGER_KEY live; CORS check passed | done (session 27) |
-| 5 | **Phase 3 = Cadence implementation** (est. 2–3 sessions; scope in ADOPTION.md; kickoff prompt: `docs/phase3-cadence-kickoff.md`) — **started session 28 (2026-07-07)** | in progress |
+| 5 | **Phase 3 = Cadence implementation** (est. 2–3 sessions; scope in ADOPTION.md; kickoff prompt: `docs/phase3-cadence-kickoff.md`) — **session 1 shipped 2026-07-07 (PR #7: engine + main surface + chrome + S1); session 2 = rollup/shared/PDF/admin/login/S10/S12** | in progress |
 | 6 | **SMALL RELEASE / demo to the four** (on the Cadence UI) | user + smoke checklist |
 | 7 | W3/W4 metric expansion batches | 1–2 sessions |
 | 8 | W5 when WFM mapping lands | per refactor plan |

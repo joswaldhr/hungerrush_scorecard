@@ -11,10 +11,38 @@
 
 - All 5 phases, 4 UI/UX sprints, layout redesign, and data integrity audit complete — pilot-ready
 - Production: `hungerrush-scorecard.vercel.app` (frontend) · `scorecardapi-production.up.railway.app` (backend)
-- **Session 28 (Phase 3 = Cadence — IN PROGRESS, opened 2026-07-07):** kickoff gate met —
-  PRs #5 + #6 merged + live-verified (master `37f6779`), so **Phase 2 is CLOSED**.
-  Stranded-commit check on all previous session branches: clean. Work on
-  `claude/phase3-cadence` per `docs/phase3-cadence-kickoff.md`; ADOPTION.md is binding.
+- **Session 28 (Phase 3 = Cadence, session 1 of ~3 — PR #7 OPEN 2026-07-07; closes on
+  James's merge + browser verification):** kickoff gate met (PRs #5 + #6 merged +
+  live-verified at master `37f6779`, **Phase 2 CLOSED**; stranded-commit check clean).
+  Branch `claude/phase3-cadence`, 8 commits, green at every one (tests 79→118 / typecheck
+  3×3 / lint / vite build). Shipped: (1) token swap + self-hosted Montserrat/Inter/IBM Plex
+  Mono woff2 (Google Fonts @import gone; old token names remain ONLY as transitional
+  aliases re-pointed at Cadence values — die with the last old surface); (2) the ONE trend
+  engine `packages/shared/src/trend.ts` (current vs prior-period average capped at 4
+  preceding points, ±6% inclusive, direction-aware, band via `bandPosition`, <4 points =
+  new) + MetricSpec `domain`/`band` (occupancy band 75–88); (3) flags-only coaching engine
+  (`apps/web/src/lib/coaching.ts`, dormant PersonContext branches for the fast-follow;
+  forbidden-language test sweeps every generated string); (4) **the Cadence inversion**:
+  `/scorecard/:employeeId?` is home (roster strip + briefing + evidence panel;
+  `DashboardPage`/`useDirectReports` DELETED, `/dashboard` = search-preserving redirect);
+  briefing = talking points (start-here + opening question) → open action items (12-week
+  window) → week-grouped notes; evidence rows carry BOTH labeled windows (this wk headline ·
+  last wk secondary) + always-visible DB coaching_prompt; per-source `N wk` chip + synced
+  stamp + amber degradation banner (9h staleness bound — see the api cron comment);
+  (5) Cadence app chrome + S1 mobile drawer CLOSED + PWA/app renamed "HungerRush Cadence";
+  (6) 8-finder code review applied (commit 7): honest stale-value copy, per-person-honest
+  degradation wording, drill-down shows full team, hasData = current-or-last-week again,
+  KpiTile badge now derives from assessTrend (public shared page can't contradict the
+  briefing). **D6 is closed EXCEPT rollup chips** (`useManagerRollup` still counts
+  this-vs-last-week; migrates with the rollup reskin). **Flagged for James in PR #7, not
+  changed:** trend "current" includes the partial in-progress week (per ADOPTION's
+  current-vs-prior wording; the old tiles compared the same way) — early-week
+  ticket_volume can read as a big decline; if unwanted, the follow-up is anchoring
+  count-unit trends to the last completed week. **Session 2 scope:** rollup reskin (+ its
+  trend migration), SharedScorecardPage (keeps per-tile synced stamps), PDF export design,
+  admin pages, login, S10 404, S12 titles/aria/focus, component tests (**needs jsdom
+  dev-dep — ask James**; @testing-library/react is approved but useless without it),
+  transitional-alias retirement, `docs/demo-smoke-checklist.md` at the end.
 - **Session 27 (Phase 2 hardening — CLOSED, merged + live-verified 2026-07-07):** refactor plan §d commits 12–17, all built and green
   (79 tests / typecheck 3×3 / lint at every commit). Commit 12 dead-code sweep (+ L14 comment,
   + Azure AD `jobTitle` trim — existing padded titles clean up at the next org sync); commit 13
@@ -350,6 +378,7 @@ hr-coral:       #C4553A   the ONE attention accent — "discuss", never "alarm"
 hr-coral-tint:  #FBF1EE   lead discuss-card background
 hr-amber:       #E9930F   system degradation (stale sync) · notes tone
 hr-amber-tint:  #FDF4E3   stale-banner background
+hr-amber-deep:  #8A5A0B   readable amber text on the tint (WarnBanner)
 hr-bg:          #F6F7F9   page background
 hr-card:        #FFFFFF   card surface
 hr-line:        #E3E6EE   borders · dividers
@@ -375,7 +404,8 @@ failed save, lost connection — never for an employee's metrics. The coral toke
 the Phase 3 Cadence token swap (2026-07-07) as `hr-coral`.
 
 **Every KPI tile must show:** metric name (from DB) · value + unit · trend/status indicator ·
-4-week sparkline · coaching prompt (from DB). Last-updated timestamp: a section-level "synced"
+sparkline over the metric window (8 calendar weeks as of Cadence, 2026-07-07 — missing
+weeks stay visible gaps, never packed) · coaching prompt (from DB). Last-updated timestamp: a section-level "synced"
 chip is acceptable (amended 2026-07-02 with the accepted Phase 3 design) — EXCEPT on
 SharedScorecardPage, where each tile must still show the synced timestamp.
 
@@ -493,6 +523,9 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | `POST /api/sync/run` returns 202 and runs in-container; completion is verified DB-side (one `synced_at` stamp per run) or in Railway logs | Railway's edge proxy kills HTTP responses at exactly 300s while the sync keeps running — the response was never a real completion signal (user-approved 2026-07-06) |
 | Manual sync triggers authenticate with dedicated `SYNC_TRIGGER_KEY`, compared fail-closed (unset var ⇒ 403 for everything) | The RLS-bypass service key must never double as an HTTP shared secret; the old comparison also had a latent hole (unset key + missing header passed `undefined !== undefined`) (user-approved 2026-07-06) |
 | CORS allowlist = `[ALLOWED_ORIGIN, http://localhost:5173]`, trailing slashes normalized; requests with no Origin header pass untouched | Locks browser cross-origin API use to the deployed frontend while curl/sync-triggers/health checks (no Origin header) keep working; localhost stays for dev against prod api |
+| `/scorecard/:employeeId?` is the home surface (roster strip + briefing + evidence); DashboardPage/useDirectReports deleted; `/dashboard` = search-preserving redirect (Phase 3, 2026-07-07) | Cadence merges person-picking and the briefing into one deep-linkable surface; the redirect keeps old bookmarks and the rollup `?manager=` drill-down working; drill-down always shows the manager's FULL team |
+| Evidence degradation = per-person `synced_at` age (9h bound, clears the 22:00→06:00 cron gap); copy says "No fresh ‹Source› data for this person — showing last sync (…)", never "unreachable" | A stale stamp cannot distinguish a source outage from one person no longer syncing (deactivated agent); the prototype's "unreachable" wording over-claims — deliberate copy repair in ADOPTION's own spirit |
+| Trend "current" includes the partial in-progress week (ADOPTION's current-vs-prior wording; the old tiles compared the same way) — NOT changed unilaterally, flagged in PR #7 | Early-week count metrics (ticket_volume) can read as declines until the week fills; if unwanted, the follow-up anchors count-unit trends to the last completed week — James's call, recorded here so it isn't relitigated |
 
 | Metric | Source | Formula |
 |---|---|---|
