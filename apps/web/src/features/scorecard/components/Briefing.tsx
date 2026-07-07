@@ -120,7 +120,12 @@ export function Briefing({ employeeId }: { employeeId: string }) {
       generateScorecardPdf(
         employee.full_name,
         employee.email,
-        metrics.map(m => ({ definition: m.definition, value: m.currentValue })),
+        evidence.map(m => ({
+          definition: m.definition,
+          currentValue: m.currentValue,
+          lastWeekValue: m.lastWeekValue,
+          tone: m.weeksOfHistory > 0 ? m.assessment.tone : null,
+        })),
         session.user.email ?? '',
       );
       setExportStatus('done');
