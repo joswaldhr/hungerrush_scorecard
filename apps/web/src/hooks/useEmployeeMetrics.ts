@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { currentWeekStartUtc, weeksBeforeUtc, weekStartStr } from '@scorecard/shared';
 import type { MetricDefinition, MetricSnapshot } from '@scorecard/shared';
 import { buildEmployeeMetrics, type EmployeeMetric } from '../lib/employeeMetrics';
+import { SPARKLINE_WEEKS } from '../lib/evidence';
 
 export function useEmployeeMetrics(employeeId: string) {
   const [metrics, setMetrics] = useState<EmployeeMetric[]>([]);
@@ -14,15 +15,17 @@ export function useEmployeeMetrics(employeeId: string) {
     setError(null);
 
     // UTC week identity from the shared util (L2) — must match the sync's period_start.
+    // 8-week window (Cadence): sparklines show up to 8 calendar slots and the trend
+    // engine averages up to the 4 points preceding the current one.
     const thisMonday = currentWeekStartUtc();
-    const fourWeeksAgoStr = weekStartStr(weeksBeforeUtc(thisMonday, 3));
+    const windowStartStr = weekStartStr(weeksBeforeUtc(thisMonday, SPARKLINE_WEEKS - 1));
 
     const [snapshotsRes, definitionsRes] = await Promise.all([
       supabase
         .from('metric_snapshots')
         .select('*')
         .eq('employee_id', employeeId)
-        .gte('period_start', fourWeeksAgoStr)
+        .gte('period_start', windowStartStr)
         .order('period_start'),
       supabase
         .from('metric_definitions')

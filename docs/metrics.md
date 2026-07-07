@@ -55,8 +55,9 @@ Never use red for a performance direction. Red is reserved for system errors onl
 Sync pulls one week at a time. Live sync covers Monday 00:00 UTC through the current
 timestamp; snapshot sync covers Monday 00:00 UTC through Sunday 23:59 UTC. Trend data
 is built from accumulated weekly snapshots — the connectors never pull more than one
-week of raw API data per run. Dashboard reads the last 4 weeks of `metric_snapshots`
-for sparklines. Week boundaries everywhere come from `currentWeekStartUtc()` in
+week of raw API data per run. The web reads the last 8 weeks of `metric_snapshots`
+for sparklines and trend math (Cadence, Phase 3 — trends need up to 4 points preceding
+the current one). Week boundaries everywhere come from `currentWeekStartUtc()` in
 `packages/shared/src/week.ts` (UTC Monday — Phase 1C commit 6).
 
 ## Which tickets count — the L1 semantics split (Phase 1C commit 7)

@@ -1,6 +1,8 @@
-import { useState } from 'react';
-import { format, parseISO, formatDistanceToNow } from 'date-fns';
+import { useMemo, useState } from 'react';
+import { format, parseISO } from 'date-fns';
 import { X } from 'lucide-react';
+import { currentWeekStartUtc, weekStartStr } from '@scorecard/shared';
+import { WarnBanner } from '../../components/WarnBanner';
 import type { ScorecardSessionWithDetails } from '../../hooks/useScorecardNotes';
 
 interface NotesPanelProps {
@@ -18,12 +20,21 @@ interface NotesPanelProps {
 
 function NotesSkeleton() {
   return (
-    <div className="animate-pulse space-y-4">
-      <div className="h-6 bg-hr-sand-md rounded w-1/4" />
-      <div className="h-24 bg-hr-sand-md rounded" />
-      <div className="h-10 bg-hr-sand-md rounded w-1/3" />
+    <div className="animate-pulse space-y-4" aria-hidden="true">
+      <div className="h-6 bg-hr-line/60 rounded w-1/4" />
+      <div className="h-24 bg-hr-line/60 rounded" />
+      <div className="h-10 bg-hr-line/60 rounded w-1/3" />
     </div>
   );
+}
+
+const fieldLabel = 'text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-gray-light mb-1.5 block';
+const fieldInput =
+  'rounded-lg border-hr-line text-sm text-hr-navy placeholder:text-hr-gray-light focus:ring-hr-teal/20 focus:border-hr-teal/40';
+
+/** UTC week key for a session date — groups the history by week (Cadence). */
+function weekOf(sessionDate: string): string {
+  return weekStartStr(currentWeekStartUtc(new Date(`${sessionDate}T00:00:00Z`)));
 }
 
 export function NotesPanel({
@@ -42,6 +53,22 @@ export function NotesPanel({
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Sessions arrive newest-first; group into weeks in that order (presentation
+  // only — no schema change).
+  const weekGroups = useMemo(() => {
+    const groups: Array<{ week: string; sessions: ScorecardSessionWithDetails[] }> = [];
+    for (const session of sessions) {
+      const week = weekOf(session.session_date);
+      const last = groups[groups.length - 1];
+      if (last && last.week === week) {
+        last.sessions.push(session);
+      } else {
+        groups.push({ week, sessions: [session] });
+      }
+    }
+    return groups;
+  }, [sessions]);
 
   const handleAddItem = () => {
     if (!newItem.trim()) return;
@@ -73,48 +100,48 @@ export function NotesPanel({
   if (loading) return <NotesSkeleton />;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-7">
       <div className="space-y-4">
         <div>
-          <label className="text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-text-3 mb-1.5 block">
+          <label htmlFor="session-date" className={fieldLabel}>
             Session Date
           </label>
           <input
+            id="session-date"
             type="date"
             value={sessionDate}
             min={minDate}
             max={today}
             onChange={e => setSessionDate(e.target.value)}
-            className="rounded-lg border-half border-hr-base text-sm text-hr-text-1 focus:ring-hr-green/20 focus:border-hr-green/40"
+            className={fieldInput}
           />
         </div>
 
         <div>
-          <label className="text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-text-3 mb-1.5 block">
+          <label htmlFor="session-notes" className={fieldLabel}>
             Notes
           </label>
           <textarea
+            id="session-notes"
             value={noteContent}
             onChange={e => setNoteContent(e.target.value)}
             rows={4}
             placeholder="What do you want to cover in this 1:1?"
-            className="w-full rounded-lg border-half border-hr-base text-sm text-hr-text-1 placeholder:text-hr-text-3 focus:ring-hr-green/20 focus:border-hr-green/40"
+            className={`${fieldInput} w-full`}
           />
         </div>
 
         <div>
-          <label className="text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-text-3 mb-1.5 block">
-            Action Items
-          </label>
+          <p className={fieldLabel}>Action Items</p>
           <div className="space-y-2">
             {actionItems.map((item, i) => (
               <div key={i} className="flex items-center gap-2">
-                <span className="flex-1 text-sm text-hr-text-1 bg-hr-sand px-3 py-1.5 rounded-lg">
+                <span className="flex-1 text-sm text-hr-navy bg-hr-bg px-3 py-1.5 rounded-lg">
                   {item}
                 </span>
                 <button
                   onClick={() => handleRemoveItem(i)}
-                  className="text-hr-text-3 hover:text-hr-text-1 p-1 rounded transition-colors"
+                  className="text-hr-gray-light hover:text-hr-navy p-1 rounded transition-colors"
                   aria-label={`Remove action item: ${item}`}
                 >
                   <X size={14} />
@@ -133,12 +160,13 @@ export function NotesPanel({
                   }
                 }}
                 placeholder="Add an action item..."
-                className="flex-1 rounded-lg border-half border-hr-base text-sm text-hr-text-1 placeholder:text-hr-text-3 focus:ring-hr-green/20 focus:border-hr-green/40"
+                aria-label="New action item"
+                className={`${fieldInput} flex-1`}
               />
               <button
                 onClick={handleAddItem}
                 disabled={!newItem.trim()}
-                className="px-3 py-2 text-sm rounded-lg border-half border-hr-green/30 text-hr-green hover:bg-hr-green-light transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-3 py-2 text-sm rounded-lg border border-hr-teal/30 text-hr-teal hover:bg-hr-teal-tint transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Add
               </button>
@@ -146,68 +174,74 @@ export function NotesPanel({
           </div>
         </div>
 
-        {saveSuccess && (
-          <p className="text-[#1D9E75] text-[12px]">Session saved</p>
-        )}
+        {saveSuccess && <p className="text-hr-teal text-[12px]">Session saved</p>}
 
-        {saveError && (
-          <div className="bg-hr-amber-light border-half border-hr-amber/20 text-hr-amber p-3 rounded-xl text-sm">
-            {saveError}
-          </div>
-        )}
+        {saveError && <WarnBanner>{saveError}</WarnBanner>}
 
         <button
           onClick={handleSave}
           disabled={saving || (!noteContent.trim() && actionItems.length === 0)}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             !saving && (noteContent.trim() || actionItems.length > 0)
-              ? 'bg-hr-navy text-white hover:bg-hr-navy-deep'
-              : 'bg-hr-sand-md text-hr-text-3 cursor-not-allowed'
+              ? 'bg-hr-teal text-white hover:bg-hr-teal/90'
+              : 'bg-hr-line text-hr-gray-light cursor-not-allowed'
           }`}
         >
           {saving ? 'Saving...' : 'Save Session'}
         </button>
       </div>
 
-      {sessions.length > 0 && (
-        <div className="space-y-3">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-text-3">Previous Sessions</p>
-          {sessions.map(session => (
-            <div key={session.id} className="bg-hr-sand rounded-xl p-5 space-y-3">
-              <p className="text-sm font-medium text-hr-text-1" title={format(parseISO(session.session_date), 'MMMM d, yyyy')}>
-                {formatDistanceToNow(parseISO(session.session_date), { addSuffix: true })}
+      {weekGroups.length === 0 ? (
+        <p className="text-[13px] text-hr-gray">
+          No 1:1 sessions in the last 12 weeks — save your first note above.
+        </p>
+      ) : (
+        <div className="space-y-4">
+          {weekGroups.map(group => (
+            <div key={group.week}>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-gray-light mb-2">
+                Week of {format(parseISO(group.week), 'MMM d')}
               </p>
+              <div className="space-y-2.5">
+                {group.sessions.map(session => (
+                  <div key={session.id} className="bg-hr-bg rounded-xl p-4 space-y-2.5">
+                    <p className="text-[12px] font-medium text-hr-navy">
+                      {format(parseISO(session.session_date), 'EEEE, MMMM d')}
+                    </p>
 
-              {session.notes.map(note => (
-                <p key={note.id} className="text-sm text-hr-text-2 whitespace-pre-wrap">
-                  {note.content}
-                </p>
-              ))}
+                    {session.notes.map(note => (
+                      <p key={note.id} className="text-sm text-hr-gray whitespace-pre-wrap">
+                        {note.content}
+                      </p>
+                    ))}
 
-              {session.action_items.length > 0 && (
-                <div className="space-y-1.5">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-text-3">
-                    Action Items
-                  </p>
-                  {session.action_items.map(item => (
-                    <label key={item.id} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={item.is_completed}
-                        onChange={e => onToggleActionItem(item.id, e.target.checked)}
-                        className="rounded border-hr-base text-hr-green focus:ring-hr-green/20"
-                      />
-                      <span
-                        className={`text-sm ${
-                          item.is_completed ? 'line-through text-hr-text-3' : 'text-hr-text-1'
-                        }`}
-                      >
-                        {item.content}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              )}
+                    {session.action_items.length > 0 && (
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-gray-light">
+                          Action Items
+                        </p>
+                        {session.action_items.map(item => (
+                          <label key={item.id} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={item.is_completed}
+                              onChange={e => onToggleActionItem(item.id, e.target.checked)}
+                              className="rounded border-hr-line text-hr-teal focus:ring-hr-teal/20"
+                            />
+                            <span
+                              className={`text-sm ${
+                                item.is_completed ? 'line-through text-hr-gray-light' : 'text-hr-navy'
+                              }`}
+                            >
+                              {item.content}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>

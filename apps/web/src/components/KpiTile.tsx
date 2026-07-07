@@ -1,11 +1,14 @@
-import { formatDistanceToNow, parseISO } from 'date-fns';
 import { formatMetricValue } from '../lib/formatMetric';
+import { timeAgo } from '../lib/timeAgo';
+import { mapHistoryToWeekSlots } from '../lib/evidence';
 import {
+  assessTrend,
   currentWeekStartUtc,
-  weeksBeforeUtc,
+  trendWindow,
   weekStartStr,
   METRIC_SPECS,
   type MetricDefinition,
+  type MetricDirection,
 } from '@scorecard/shared';
 
 interface KpiTileProps {
@@ -19,24 +22,20 @@ interface KpiTileProps {
 
 type TrendDirection = 'improving' | 'attention' | 'neutral';
 
-// Exported for characterization tests (Phase 1A).
+// The tile badge now derives from the ONE Cadence trend engine (assessTrend:
+// current vs prior-period average, ±6% steady, band metrics, <4 points =
+// new). This retires the old zero-threshold last-vs-average badge so the
+// public shared page can no longer contradict the manager's briefing on the
+// same data. Exported for tests.
 export function getTrend(
   value: number | null,
   history: Array<{ value: number }>,
-  direction: string,
+  direction: MetricDirection,
+  band?: readonly [number, number],
 ): TrendDirection {
   if (value === null) return 'neutral';
-  if (history.length < 2) return 'neutral';
-  const last = history[history.length - 1];
-  if (!last) return 'neutral';
-  const latest = last.value;
-  const priorAvg =
-    history.slice(0, -1).reduce((sum, p) => sum + p.value, 0) /
-    (history.length - 1);
-  if (direction === 'higher_is_better') {
-    return latest > priorAvg ? 'improving' : 'attention';
-  }
-  return latest < priorAvg ? 'improving' : 'attention';
+  const tone = assessTrend(history.map(h => h.value), direction, band).tone;
+  return tone === 'win' ? 'improving' : tone === 'discuss' ? 'attention' : 'neutral';
 }
 
 const BADGE_STYLES: Record<TrendDirection, string> = {
@@ -63,16 +62,14 @@ const NULL_LABELS: Record<string, string> = {
   handle_time: 'No schedule data',
 };
 
-// Exported for tests (Phase 1C commit 9, L5): map history onto the 4 CALENDAR weeks
-// ending at anchorWeek. A missing week stays an empty (dashed) slot instead of the
-// old sequence-packing, which collapsed gaps and misaligned bars across tiles.
+// L5 calendar mapping — thin wrapper over the generalized mapper in
+// lib/evidence.ts (this tile keeps 4 slots until it retires with the
+// SharedScorecardPage reskin). Exported for tests.
 export function mapHistoryToCalendarSlots(
   history: Array<{ periodStart: string; value: number }>,
   anchorWeek: string,
 ): Array<{ value: number } | null> {
-  const anchor = new Date(`${anchorWeek}T00:00:00Z`);
-  const byWeek = new Map(history.map(h => [h.periodStart, h]));
-  return [3, 2, 1, 0].map(n => byWeek.get(weekStartStr(weeksBeforeUtc(anchor, n))) ?? null);
+  return mapHistoryToWeekSlots(history, anchorWeek, 4);
 }
 
 function Sparkline({
@@ -127,7 +124,11 @@ function getValueColor(value: number | null): string {
 
 export function KpiTile({ definition, value, syncedAt, history, weekAnchor }: KpiTileProps) {
   const isNull = value === null;
-  const trend = getTrend(value, history, definition.direction);
+  // Same anchoring rule as the briefing: count metrics measure their trend
+  // through the last completed week when the tile shows the in-progress week.
+  const thisMondayStr = weekStartStr(currentWeekStartUtc());
+  const trendHistory = trendWindow(history, definition.unit, weekAnchor ?? thisMondayStr, thisMondayStr);
+  const trend = getTrend(value, trendHistory, definition.direction, METRIC_SPECS[definition.key]?.band);
   const nullLabel =
     METRIC_SPECS[definition.key]?.nullLabel ?? NULL_LABELS[definition.key] ?? 'No data yet';
   const valueColorClass = getValueColor(value);
@@ -156,7 +157,7 @@ export function KpiTile({ definition, value, syncedAt, history, weekAnchor }: Kp
 
       {!isNull && (
         <div className="mt-3">
-          <Sparkline history={history} anchorWeek={weekAnchor ?? weekStartStr(currentWeekStartUtc())} />
+          <Sparkline history={history} anchorWeek={weekAnchor ?? thisMondayStr} />
           {history.length > 0 && (
             <p className="text-[10px] text-slate-300 mt-1">4 weeks</p>
           )}
@@ -169,7 +170,7 @@ export function KpiTile({ definition, value, syncedAt, history, weekAnchor }: Kp
 
       {!isNull && syncedAt && (
         <p className="text-[11px] text-hr-text-3 mt-1">
-          Synced {formatDistanceToNow(parseISO(syncedAt), { addSuffix: true })}
+          Synced {timeAgo(syncedAt)}
         </p>
       )}
     </div>

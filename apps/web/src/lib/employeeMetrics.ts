@@ -7,10 +7,20 @@ export interface EmployeeMetric {
   currentSyncedAt: string | null;
   lastWeekValue: number | null;
   history: Array<{ periodStart: string; value: number }>;
+  /** Newest synced_at across the fetched window — drives per-source staleness (Cadence). */
+  latestSyncedAt: string | null;
 }
 
 // The share API returns this subset of MetricSnapshot; direct Supabase reads return full rows.
 type SnapshotLike = Pick<MetricSnapshot, 'metric_key' | 'value' | 'period_start' | 'synced_at'>;
+
+/** Newest ISO timestamp of a set, null-aware — ISO strings compare lexically. */
+export function maxIso(values: Array<string | null>): string | null {
+  return values.reduce<string | null>(
+    (max, v) => (v !== null && (max === null || v > max) ? v : max),
+    null,
+  );
+}
 
 // The one snapshot→view-model mapping (D5), used by useEmployeeMetrics and
 // SharedScorecardPage. Sorts history ascending itself — trend math reads
@@ -35,6 +45,7 @@ export function buildEmployeeMetrics(
       periodStart: s.period_start,
       value: s.value,
     }));
+    const latestSyncedAt = maxIso(metricSnapshots.map(s => s.synced_at));
 
     return {
       definition: def,
@@ -42,6 +53,7 @@ export function buildEmployeeMetrics(
       currentSyncedAt: current?.synced_at ?? null,
       lastWeekValue: lastWeek?.value ?? null,
       history,
+      latestSyncedAt,
     };
   });
 }

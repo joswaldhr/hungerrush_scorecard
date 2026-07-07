@@ -17,6 +17,20 @@ export interface MetricSpec {
   nullLabel: string;
   /** Rollup trend-chip label. */
   shortLabel: string;
+  /**
+   * Fixed sparkline scale [min, max] (Cadence honest charts): the MINIMUM
+   * y-extent — small wiggles look small; out-of-range data extends the edge
+   * (see resolveDomain in trend.ts). Display-only, no DB counterpart.
+   */
+  domain?: readonly [number, number];
+  /**
+   * Healthy range [lo, hi] (inclusive) — a band metric has no good direction:
+   * in-band = steady, outside = discuss. Overrides `direction` for trend tone
+   * and shades the range on sparklines. The DB `direction` enum stays as-is;
+   * a band enum migration is deferred until a second band metric appears
+   * (ADOPTION.md).
+   */
+  band?: readonly [number, number];
 }
 
 export const METRIC_SPECS: Readonly<Record<string, MetricSpec>> = {
@@ -27,6 +41,7 @@ export const METRIC_SPECS: Readonly<Record<string, MetricSpec>> = {
     direction: 'higher_is_better',
     nullLabel: 'No data yet',
     shortLabel: 'Tickets',
+    domain: [0, 70],
   },
   first_reply_time: {
     key: 'first_reply_time',
@@ -35,6 +50,7 @@ export const METRIC_SPECS: Readonly<Record<string, MetricSpec>> = {
     direction: 'lower_is_better',
     nullLabel: 'No data yet',
     shortLabel: 'First Reply',
+    domain: [0, 3600],
   },
   csat_score: {
     key: 'csat_score',
@@ -43,6 +59,7 @@ export const METRIC_SPECS: Readonly<Record<string, MetricSpec>> = {
     direction: 'higher_is_better',
     nullLabel: 'No ratings yet',
     shortLabel: 'CSAT',
+    domain: [70, 100],
   },
   sla_compliance: {
     key: 'sla_compliance',
@@ -51,6 +68,7 @@ export const METRIC_SPECS: Readonly<Record<string, MetricSpec>> = {
     direction: 'higher_is_better',
     nullLabel: 'Not configured',
     shortLabel: 'SLA',
+    domain: [0, 100],
   },
   resolution_rate: {
     key: 'resolution_rate',
@@ -59,6 +77,7 @@ export const METRIC_SPECS: Readonly<Record<string, MetricSpec>> = {
     direction: 'higher_is_better',
     nullLabel: 'No data yet',
     shortLabel: 'Resolution',
+    domain: [0, 100],
   },
   schedule_adherence: {
     key: 'schedule_adherence',
@@ -67,6 +86,7 @@ export const METRIC_SPECS: Readonly<Record<string, MetricSpec>> = {
     direction: 'higher_is_better',
     nullLabel: 'No schedule data',
     shortLabel: 'Adherence',
+    domain: [60, 100],
   },
   occupancy: {
     key: 'occupancy',
@@ -75,6 +95,8 @@ export const METRIC_SPECS: Readonly<Record<string, MetricSpec>> = {
     direction: 'higher_is_better',
     nullLabel: 'No schedule data',
     shortLabel: 'Occupancy',
+    domain: [55, 100],
+    band: [75, 88],
   },
   handle_time: {
     key: 'handle_time',
@@ -83,5 +105,6 @@ export const METRIC_SPECS: Readonly<Record<string, MetricSpec>> = {
     direction: 'lower_is_better',
     nullLabel: 'No schedule data',
     shortLabel: 'Handle Time',
+    domain: [0, 3600],
   },
 };

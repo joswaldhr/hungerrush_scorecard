@@ -56,6 +56,8 @@ app.listen(Number(PORT), () => {
     }
   }, { timezone: 'UTC' });
 
+  // Changing this cadence? The web staleness bound is derived from it —
+  // STALE_AFTER_MS in apps/web/src/lib/evidence.ts (9h clears the 22:00→06:00 gap).
   cron.schedule('0 6,10,14,18,22 * * *', async () => {
     console.log('[cron] Starting live refresh sync');
     try {

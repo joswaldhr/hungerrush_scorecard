@@ -12,6 +12,13 @@ export interface ScorecardSessionWithDetails extends ScorecardSession {
   action_items: SessionActionItem[];
 }
 
+/**
+ * The ONE session window (weeks): notes history, briefing action-item
+ * carry-over, and the roster chip's "last 1:1" all read it — two windows
+ * here would let the chip advertise a session the briefing can't see.
+ */
+export const SESSION_LOOKBACK_WEEKS = 12;
+
 export function useScorecardNotes(employeeId: string) {
   const [sessions, setSessions] = useState<ScorecardSessionWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,13 +26,15 @@ export function useScorecardNotes(employeeId: string) {
 
   const fetchSessions = useCallback(async () => {
     setError(null);
-    const fourWeeksAgo = format(subWeeks(new Date(), 4), 'yyyy-MM-dd');
+    // Wider than the old 4-week notes list: open action items from past
+    // sessions carry into the briefing (Cadence).
+    const windowStart = format(subWeeks(new Date(), SESSION_LOOKBACK_WEEKS), 'yyyy-MM-dd');
 
     const { data, error: err } = await supabase
       .from('scorecard_sessions')
       .select('*, session_notes(*), session_action_items(*)')
       .eq('employee_id', employeeId)
-      .gte('session_date', fourWeeksAgo)
+      .gte('session_date', windowStart)
       .order('session_date', { ascending: false });
 
     if (err) {

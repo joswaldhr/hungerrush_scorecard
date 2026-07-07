@@ -1,14 +1,20 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { LoginPage } from './features/auth/LoginPage';
 import { AuthCallback } from './features/auth/AuthCallback';
 import { AuthGuard } from './features/auth/AuthGuard';
-import { DashboardPage } from './features/scorecard/DashboardPage';
 import { ScorecardPage } from './features/scorecard/ScorecardPage';
 import { MetricConfigPage } from './features/admin/MetricConfigPage';
 import { ExportLogPage } from './features/admin/ExportLogPage';
 import { RollupPage } from './features/scorecard/RollupPage';
 import { SharedScorecardPage } from './features/scorecard/SharedScorecardPage';
+
+// The Cadence home is /scorecard (roster + briefing). /dashboard survives as a
+// redirect so old bookmarks and the rollup drill-down (?manager=…) keep working.
+function DashboardRedirect() {
+  const location = useLocation();
+  return <Navigate to={{ pathname: '/scorecard', search: location.search }} replace />;
+}
 
 export function App() {
   return (
@@ -17,14 +23,7 @@ export function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/shared/:token" element={<SharedScorecardPage />} />
-        <Route
-          path="/dashboard"
-          element={
-            <AuthGuard>
-              <DashboardPage />
-            </AuthGuard>
-          }
-        />
+        <Route path="/dashboard" element={<DashboardRedirect />} />
         <Route
           path="/rollup"
           element={
@@ -34,7 +33,7 @@ export function App() {
           }
         />
         <Route
-          path="/scorecard/:employeeId"
+          path="/scorecard/:employeeId?"
           element={
             <AuthGuard>
               <ScorecardPage />
@@ -57,7 +56,7 @@ export function App() {
             </AuthGuard>
           }
         />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/scorecard" replace />} />
       </Routes>
     </AuthProvider>
   );

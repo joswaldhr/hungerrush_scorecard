@@ -7,12 +7,45 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-07-06 (session 27)
+**Last updated:** 2026-07-07 (session 28)
 
 - All 5 phases, 4 UI/UX sprints, layout redesign, and data integrity audit complete — pilot-ready
 - Production: `hungerrush-scorecard.vercel.app` (frontend) · `scorecardapi-production.up.railway.app` (backend)
-- **Session 27 (Phase 2 hardening — CODE COMPLETE, PRs #5 + #6 open 2026-07-06; closes on
-  James's merge + live verification):** refactor plan §d commits 12–17, all built and green
+- **Session 28 (Phase 3 = Cadence, session 1 of ~3 — PR #7 OPEN 2026-07-07; closes on
+  James's merge + browser verification):** kickoff gate met (PRs #5 + #6 merged +
+  live-verified at master `37f6779`, **Phase 2 CLOSED**; stranded-commit check clean).
+  Branch `claude/phase3-cadence`, 8 commits, green at every one (tests 79→118 / typecheck
+  3×3 / lint / vite build). Shipped: (1) token swap + self-hosted Montserrat/Inter/IBM Plex
+  Mono woff2 (Google Fonts @import gone; old token names remain ONLY as transitional
+  aliases re-pointed at Cadence values — die with the last old surface); (2) the ONE trend
+  engine `packages/shared/src/trend.ts` (current vs prior-period average capped at 4
+  preceding points, ±6% inclusive, direction-aware, band via `bandPosition`, <4 points =
+  new) + MetricSpec `domain`/`band` (occupancy band 75–88); (3) flags-only coaching engine
+  (`apps/web/src/lib/coaching.ts`, dormant PersonContext branches for the fast-follow;
+  forbidden-language test sweeps every generated string); (4) **the Cadence inversion**:
+  `/scorecard/:employeeId?` is home (roster strip + briefing + evidence panel;
+  `DashboardPage`/`useDirectReports` DELETED, `/dashboard` = search-preserving redirect);
+  briefing = talking points (start-here + opening question) → open action items (12-week
+  window) → week-grouped notes; evidence rows carry BOTH labeled windows (this wk headline ·
+  last wk secondary) + always-visible DB coaching_prompt; per-source `N wk` chip + synced
+  stamp + amber degradation banner (9h staleness bound — see the api cron comment);
+  (5) Cadence app chrome + S1 mobile drawer CLOSED + PWA/app renamed "HungerRush Cadence";
+  (6) 8-finder code review applied (commit 7): honest stale-value copy, per-person-honest
+  degradation wording, drill-down shows full team, hasData = current-or-last-week again,
+  KpiTile badge now derives from assessTrend (public shared page can't contradict the
+  briefing). **D6 is closed EXCEPT rollup chips** (`useManagerRollup` still counts
+  this-vs-last-week; migrates with the rollup reskin). **Both flagged decisions RESOLVED
+  same day — James: "do what you recommend":** commit 9 anchors count-unit trends to the
+  last completed week (`trendWindow` in shared; rates keep live values; coaching copy
+  speaks in matching tense — now / last week / at last sync); commit 10 adds jsdom +
+  re-adds @testing-library/react (devDeps) with the first 16 component render tests
+  (TalkingPoints, EvidencePanel, RosterStrip, KpiTile) via per-file jsdom pragma.
+  Final session-1 state: 10 commits, tests **142** (50 api / 60 web / 32 shared).
+  **Session 2 scope:** rollup reskin (+ its trend migration = D6 fully closed),
+  SharedScorecardPage (keeps per-tile synced stamps), PDF export design, admin pages,
+  login, S10 404, S12 titles/aria/focus, component tests for the remaining surfaces,
+  transitional-alias retirement, `docs/demo-smoke-checklist.md` at the end.
+- **Session 27 (Phase 2 hardening — CLOSED, merged + live-verified 2026-07-07):** refactor plan §d commits 12–17, all built and green
   (79 tests / typecheck 3×3 / lint at every commit). Commit 12 dead-code sweep (+ L14 comment,
   + Azure AD `jobTitle` trim — existing padded titles clean up at the next org sync); commit 13
   D2–D5/D9 unification (D6 excluded — Cadence owns trend centralization; **side effect: the
@@ -93,7 +126,7 @@
 - **Session 23 (refactor Phase 1B — CLOSED):** Metric registry refactor live in prod at `fd00d99`. `7113691`: MetricSpec + METRIC_SPECS in shared; `apps/api/src/metrics/` one module per metric (computes moved verbatim, L6/L9/L11 pinned); boring registry; connectors → fetch-shape (`prepareRun` + `fetchWeekData`, all three together; ConnectorMetricResult retired); **sync writes registry ∩ `is_active`** (a source with no active metrics is skipped — currently zero Assembled API calls); KpiTile/RollupPage labels from METRIC_SPECS. `9b7cda4`: add-a-metric recipe in docs/metrics.md. Tests 52→56 (composite empty-input decomposed per metric; expectations unchanged). **Parity PASS, user-verified**: 741-row dumps identical except 54 live-drift changes on 17 employees; 0 lines + 0 writes for the 4 toggled keys; Zendesk write counts identical (615). **Deploy incident resolved** (`cc54eb9`+`fd00d99`+`91084f9`): first runtime value import from shared broke `node dist/` boot; two failed deploys left a **rolled-back old container serving while the GitHub status said success** (18:00 cron ran old code). Api now boots via `./node_modules/.bin/tsx apps/api/src/index.ts` — **railway.toml `startCommand` is the authoritative boot path** — and `/health` returns the running `sha` (the only trustworthy deploy check). Post-deploy watch (extended to 2026-07-06): every run that executed ran new code cleanly (0 toggled-key writes; Sunday snapshot froze week Jun 29, 626 rows; Mon 05:00 bootstrap + 14:00 live clean) — **but ~18 scheduled live syncs Jul 2 22:00 → Jul 6 10:00 never executed: OPEN cron-reliability issue, Railway-side, tracked at the top of the refactor plan (user must check dashboard: app-sleep, restarts, memory)**.
 - **Session 22 (refactor Phases 0 + 1A):** Phase 0 audit approved (`docs/refactor-plan.md` — read it before ANY refactor work; cross-session source of truth). 1A: characterization tests; paginated backup/dump scripts; L7 fixed; ESLint repaired. Four metrics set inactive 2026-07-02 (audited service-key write; admin UI saves broken — S4). Data correction approved → 1C commit 10b; semantics split approved (commit 7).
 - **Session 20–21:** Agent matching 63→246/351 (105 unmatched are non-support); daily bootstrap cron 05:00 UTC. Playwright MCP install unresolved.
-- **Next up — `docs/release-plan.md` is the approved sequencing (2026-07-06), it wraps the refactor plan:** ~~W0 cron reliability~~ **RESOLVED — false alarm** (Railway logs prove every cron fired on time since `91084f9`; the DB per-window counting method was invalid — `synced_at` is last-writer-wins; verify crons via Railway logs or current-window-only counts; vestigial `@scorecard/web` Railway service removed) → ~~W1 = Phase 1C + `0016`~~ **DONE session 25 (2026-07-06) — deployed, corrections executed, S4 closed** → **RESEQUENCED 2026-07-06: Cadence v2 (`docs/design/hungerrush-cadence/` — ADOPTION.md is the decision record) replaces the old Phase 3 design source, and the demo moves AFTER its implementation.** New order: W2 → Phase 2 hardening → Phase 3 = Cadence (2–3 sessions) → demo → W3/W4 → W5. → ~~W2 release readiness~~ **DONE session 26 (2026-07-06) — PR #3 merged (master `35bea86`) AND all post-merge steps executed: migrations applied + probed, Adam is `executive` (audited), org sync verified the guard live, titles backfilled 335/353; only Adam's fresh sign-in remains (demo-day item); James stays the only admin** → ~~Phase 2 hardening~~ **CODE COMPLETE session 27 (2026-07-06) — PRs #5 + #6 open; S5 hook contract + executive-aware guard landed; async 202 + SYNC_TRIGGER_KEY built (approved); closes on merge + live CORS check** → **Phase 3 = Cadence (NEXT — fresh session once #5/#6 are verified; kickoff prompt `docs/phase3-cadence-kickoff.md`)** → **small release demo to Alex Smith / Barb Maenza / Mike Pacilio / Adam Seow** (run `docs/demo-smoke-checklist.md`; Normando decision confirmed with Alex there) → W3/W4 metric expansion (Zendesk Talk calls, backlog, tickets_assigned) → W5 Assembled hours. Master-list disposition table for Alex/Barb is in the release plan. Philosophy clarification (user, 2026-07-06): coaching-first = visual/tonal frame; negative-direction metrics are in-scope content; no red / coaching language / no composites / no rank unchanged. Verification cautions that remain true for every future sync validation: verify completion DB-side (Railway proxy kills HTTP at 300s), trust only `GET /health` → `sha` for deploys (GitHub statuses post success for watch-path-skipped commits), and verify crons via Railway logs (`[cron]`) — historical `synced_at` window-counting is invalid.
+- **Next up — `docs/release-plan.md` is the approved sequencing (2026-07-06), it wraps the refactor plan:** ~~W0 cron reliability~~ **RESOLVED — false alarm** (Railway logs prove every cron fired on time since `91084f9`; the DB per-window counting method was invalid — `synced_at` is last-writer-wins; verify crons via Railway logs or current-window-only counts; vestigial `@scorecard/web` Railway service removed) → ~~W1 = Phase 1C + `0016`~~ **DONE session 25 (2026-07-06) — deployed, corrections executed, S4 closed** → **RESEQUENCED 2026-07-06: Cadence v2 (`docs/design/hungerrush-cadence/` — ADOPTION.md is the decision record) replaces the old Phase 3 design source, and the demo moves AFTER its implementation.** New order: W2 → Phase 2 hardening → Phase 3 = Cadence (2–3 sessions) → demo → W3/W4 → W5. → ~~W2 release readiness~~ **DONE session 26 (2026-07-06) — PR #3 merged (master `35bea86`) AND all post-merge steps executed: migrations applied + probed, Adam is `executive` (audited), org sync verified the guard live, titles backfilled 335/353; only Adam's fresh sign-in remains (demo-day item); James stays the only admin** → ~~Phase 2 hardening~~ **DONE session 27, closed 2026-07-07 — PRs #5 + #6 merged + live-verified (master `37f6779`); S5 hook contract + executive-aware guard landed; async 202 + SYNC_TRIGGER_KEY live; CORS check passed** → **Phase 3 = Cadence (IN PROGRESS — session 28 opened 2026-07-07 on `claude/phase3-cadence`; kickoff prompt `docs/phase3-cadence-kickoff.md`)** → **small release demo to Alex Smith / Barb Maenza / Mike Pacilio / Adam Seow** (run `docs/demo-smoke-checklist.md`; Normando decision confirmed with Alex there) → W3/W4 metric expansion (Zendesk Talk calls, backlog, tickets_assigned) → W5 Assembled hours. Master-list disposition table for Alex/Barb is in the release plan. Philosophy clarification (user, 2026-07-06): coaching-first = visual/tonal frame; negative-direction metrics are in-scope content; no red / coaching language / no composites / no rank unchanged. Verification cautions that remain true for every future sync validation: verify completion DB-side (Railway proxy kills HTTP at 300s), trust only `GET /health` → `sha` for deploys (GitHub statuses post success for watch-path-skipped commits), and verify crons via Railway logs (`[cron]`) — historical `synced_at` window-counting is invalid.
 - **Remaining feature:** mobile navigation (hamburger menu for screens < 1024px) — recorded as gap S1 in refactor plan, owned by Phase 3 design
 - **Remaining hardening:** email nudge (needs `RESEND_API_KEY`). CORS lockdown landed in Phase 2 (PR #6). The old "connection pooling (`?pgbouncer=true`)" item is REMOVED as not applicable — nothing here opens a direct Postgres connection (supabase-js speaks HTTP to PostgREST); full explanation lives in the refactor plan's pgbouncer finding
 - **Known data/logic issues:** now tracked with classifications in `docs/refactor-plan.md` §f (L1–L14) — the four previously listed here plus sparkline calendar gap, Assembled zero-writes, 1000-row truncation, PDF zero treatment, and others
@@ -336,24 +369,45 @@ leaks, every access control is void.
 
 ## UI rules
 
-**Brand tokens — configure in tailwind.config.ts, use nowhere else:**
+**Brand tokens — configure in tailwind.config.ts, use nowhere else (Cadence set, Phase 3
+2026-07-07 — values from the `T` object in `docs/design/hungerrush-cadence/cadence-v2.jsx`):**
 ```
-hr-navy:        #1E2E4A   headings · nav · primary text
-hr-green:       #1D9E75   actions · positive indicators · brand accent
-hr-green-dark:  #0F6E56   hover · active states
-hr-green-light: #E1F5EE   subtle backgrounds · highlights
-hr-gray:        #F5F5F4   page background
+hr-navy:        #0C1443   headings · nav · primary ink
+hr-navy-soft:   #3A3F6B   eyebrows · secondary navy
+hr-teal:        #3B8272   brand accent · wins · actions
+hr-teal-tint:   #EAF3F0   positive tint backgrounds
+hr-coral:       #C4553A   the ONE attention accent — "discuss", never "alarm"
+hr-coral-tint:  #FBF1EE   lead discuss-card background
+hr-amber:       #E9930F   system degradation (stale sync) · notes tone
+hr-amber-tint:  #FDF4E3   stale-banner background
+hr-amber-deep:  #8A5A0B   readable amber text on the tint (WarnBanner)
+hr-bg:          #F6F7F9   page background
+hr-card:        #FFFFFF   card surface
+hr-line:        #E3E6EE   borders · dividers
+hr-gray:        #5C607E   secondary text
+hr-gray-light:  #9EA2BC   tertiary text · steady/new tone
 ```
+The retired pre-Cadence names (hr-green, hr-sand, hr-text-*, …) survive in
+tailwind.config.ts only as transitional aliases re-pointed at Cadence values while the
+reskin lands surface-by-surface — never use them in new code; they die with the last
+old surface.
 
-**Performance state colors:** amber-500 for attention · hr-green for positive · slate-400 for neutral
+**Typography (self-hosted woff2 in `apps/web/public/fonts/` — no Google Fonts @import,
+no icon webfonts; lucide-react only):** Montserrat = headings (`font-heading`) ·
+Inter = body (`font-sans`) · IBM Plex Mono = metric values (`font-mono`).
+
+**Performance state colors:** hr-coral for discuss · hr-teal for wins · hr-gray-light for
+steady/new. hr-amber is NOT a performance state — it marks system degradation (stale sync,
+notes tone) only.
 **Never use red for any performance state — AMENDED 2026-07-06 (Cadence adoption):** coral
 `#C4553A` (warm terracotta) is the one sanctioned attention accent for performance states,
 always framed as "discuss", never "alarm". True red stays reserved for genuine system errors —
-failed save, lost connection — never for an employee's metrics. The coral token ships with the
-Phase 3 Cadence token swap; until that lands, the amber convention above stands in the shipped UI.
+failed save, lost connection — never for an employee's metrics. The coral token SHIPPED with
+the Phase 3 Cadence token swap (2026-07-07) as `hr-coral`.
 
 **Every KPI tile must show:** metric name (from DB) · value + unit · trend/status indicator ·
-4-week sparkline · coaching prompt (from DB). Last-updated timestamp: a section-level "synced"
+sparkline over the metric window (8 calendar weeks as of Cadence, 2026-07-07 — missing
+weeks stay visible gaps, never packed) · coaching prompt (from DB). Last-updated timestamp: a section-level "synced"
 chip is acceptable (amended 2026-07-02 with the accepted Phase 3 design) — EXCEPT on
 SharedScorecardPage, where each tile must still show the synced timestamp.
 
@@ -383,8 +437,12 @@ Two data windows shown on every scorecard, clearly labeled:
 ONE definition everywhere — current value vs the **prior-period average**, ±6% steady
 threshold, direction-aware, band metrics supported (healthy range, not a direction), sparse
 history (<4 points) = "new" state (trends unlock at week 4). Applies to tiles/rows, rollup
-chips, and frozen last-week views alike. Implementation lands in Phase 3 (Cadence); the
-shipped UI keeps its current trend computations until then.
+chips, and frozen last-week views alike. **Amended 2026-07-07 (James):** count-unit metrics
+are weekly sums, so their "current value" is the **last completed week** when the view shows
+the in-progress week (`trendWindow` in `packages/shared/src/trend.ts`) — a partial Monday is
+bias, not signal; rates/averages keep the live value so a mid-week CSAT drop stays visible.
+Implemented in Phase 3 session 1; only the rollup chips still run pre-Cadence trend code
+(they migrate with the rollup reskin).
 
 ---
 
@@ -393,7 +451,7 @@ shipped UI keeps its current trend computations until then.
 **Shared:** `zod` (schemas live here, imported by both apps)
 **Frontend:** `react react-dom react-router-dom @supabase/supabase-js tailwindcss @tailwindcss/forms recharts date-fns lucide-react jspdf vite @vitejs/plugin-react vite-plugin-pwa typescript`
 **Backend:** `express cors helmet express-rate-limit @supabase/supabase-js node-cron axios typescript tsx dotenv`
-**Testing:** `vitest @testing-library/react supertest`
+**Testing:** `vitest @testing-library/react jsdom supertest` (jsdom approved 2026-07-07 — the DOM env @testing-library/react requires; devDependency only)
 
 To add anything not listed: stop · explain why · get explicit approval before installing.
 
@@ -471,6 +529,10 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | `POST /api/sync/run` returns 202 and runs in-container; completion is verified DB-side (one `synced_at` stamp per run) or in Railway logs | Railway's edge proxy kills HTTP responses at exactly 300s while the sync keeps running — the response was never a real completion signal (user-approved 2026-07-06) |
 | Manual sync triggers authenticate with dedicated `SYNC_TRIGGER_KEY`, compared fail-closed (unset var ⇒ 403 for everything) | The RLS-bypass service key must never double as an HTTP shared secret; the old comparison also had a latent hole (unset key + missing header passed `undefined !== undefined`) (user-approved 2026-07-06) |
 | CORS allowlist = `[ALLOWED_ORIGIN, http://localhost:5173]`, trailing slashes normalized; requests with no Origin header pass untouched | Locks browser cross-origin API use to the deployed frontend while curl/sync-triggers/health checks (no Origin header) keep working; localhost stays for dev against prod api |
+| `/scorecard/:employeeId?` is the home surface (roster strip + briefing + evidence); DashboardPage/useDirectReports deleted; `/dashboard` = search-preserving redirect (Phase 3, 2026-07-07) | Cadence merges person-picking and the briefing into one deep-linkable surface; the redirect keeps old bookmarks and the rollup `?manager=` drill-down working; drill-down always shows the manager's FULL team |
+| Evidence degradation = per-person `synced_at` age (9h bound, clears the 22:00→06:00 cron gap); copy says "No fresh ‹Source› data for this person — showing last sync (…)", never "unreachable" | A stale stamp cannot distinguish a source outage from one person no longer syncing (deactivated agent); the prototype's "unreachable" wording over-claims — deliberate copy repair in ADOPTION's own spirit |
+| Count-unit trends anchor to the last completed week (`trendWindow`, shared); rates/averages keep the live current value; frozen views untouched — RESOLVED by James 2026-07-07 ("do what you recommend") after being flagged in PR #7 | A partial week's count is a biased sum (every Monday would read as a collapse and train managers to ignore coral), while rates are unbiased mid-week and must keep live signal (a Thursday CSAT drop belongs in the briefing); W4's backlog/tickets_assigned inherit the rule via `unit: 'count'` |
+| jsdom added as an apps/web devDependency (James-approved 2026-07-07); component tests opt into the DOM per-file via `// @vitest-environment jsdom`, lib tests stay on node | @testing-library/react was on the approved list but is inert without a DOM environment; per-file pragma keeps pure-logic tests fast and the DOM dependency test-only (never in the bundle) |
 
 | Metric | Source | Formula |
 |---|---|---|
