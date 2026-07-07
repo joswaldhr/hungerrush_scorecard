@@ -1,23 +1,13 @@
 import axios from 'axios';
-import type { AxiosInstance } from 'axios';
-import { createClient } from '@supabase/supabase-js';
 import { currentWeekStartUtc, weekStartStr } from '@scorecard/shared';
 import type { AssembledPerson } from '../types/assembled';
 import type { ZendeskUser, ZendeskUsersResponse } from '../types/zendesk';
 import { assembledConnector, type AssembledRunContext } from '../connectors/assembled';
-import { zendeskConnector, type ZendeskRunContext } from '../connectors/zendesk';
+import { zendeskConnector, createZendeskClient, type ZendeskRunContext } from '../connectors/zendesk';
 import { ALL_METRICS, ASSEMBLED_METRICS, ZENDESK_METRICS } from '../metrics/registry';
+import { getSupabaseAdmin } from '../lib/supabaseAdmin';
 
 // --- Helpers ---
-
-function getSupabaseAdmin() {
-  const url = process.env['SUPABASE_URL'];
-  const key = process.env['SUPABASE_SERVICE_KEY'];
-  if (!url || !key) throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_KEY');
-  return createClient(url, key, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-}
 
 // Week identity comes from the shared util (Phase 1C commit 6, L2) — the same UTC
 // Monday this sync has always written, now also used by every frontend read site.
@@ -36,19 +26,6 @@ function getSyncBounds(mode: 'live' | 'snapshot'): { start: Date; end: Date } {
 }
 
 // --- Zendesk user fetch ---
-
-function createZendeskClient(): AxiosInstance {
-  const subdomain = process.env['ZENDESK_SUBDOMAIN'];
-  const email = process.env['ZENDESK_EMAIL'];
-  const token = process.env['ZENDESK_API_TOKEN'];
-  if (!subdomain || !email || !token) {
-    throw new Error('ZENDESK_SUBDOMAIN, ZENDESK_EMAIL, and ZENDESK_API_TOKEN must be set');
-  }
-  return axios.create({
-    baseURL: `https://${subdomain}.zendesk.com/api/v2`,
-    auth: { username: `${email}/token`, password: token },
-  });
-}
 
 async function fetchAllZendeskAgents(): Promise<ZendeskUser[]> {
   const client = createZendeskClient();

@@ -1,8 +1,10 @@
 import { ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Users, LayoutGrid, SlidersHorizontal, FileOutput } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../features/auth/AuthProvider';
 import { supabase } from '../lib/supabase';
+import { getInitials } from '../lib/initials';
+import { OfflineBanner } from './OfflineBanner';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -24,20 +26,11 @@ export function LogoMark({ size = 28 }: { size?: number }) {
   );
 }
 
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  const first = parts[0];
-  const last = parts.length >= 2 ? parts[parts.length - 1] : undefined;
-  if (first && last) return (first.charAt(0) + last.charAt(0)).toUpperCase();
-  return first ? first.charAt(0).toUpperCase() : '?';
-}
-
 export function AppLayout({ children, title, subtitle, actions }: AppLayoutProps) {
-  const { session } = useAuth();
+  const { session, role } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
-  const role = session?.user?.app_metadata?.['role'] as string | undefined;
   const rawName = session?.user?.user_metadata?.['full_name'];
   const fullName = typeof rawName === 'string' ? rawName : (session?.user?.email ?? '');
   const showRollup = role === 'senior_manager' || role === 'executive' || role === 'admin';
@@ -132,6 +125,7 @@ export function AppLayout({ children, title, subtitle, actions }: AppLayoutProps
           </div>
           <div className="ml-auto flex items-center gap-3 flex-shrink-0">{actions}</div>
         </header>
+        <OfflineBanner />
         <main className="flex-1 overflow-y-auto p-6 bg-[#F7F6F3]">{children}</main>
       </div>
     </div>

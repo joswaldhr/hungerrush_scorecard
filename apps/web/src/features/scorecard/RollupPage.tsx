@@ -1,6 +1,5 @@
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { METRIC_SPECS } from '@scorecard/shared';
-import { useAuth } from '../../hooks/useAuth';
 import { useManagerRollup } from '../../hooks/useManagerRollup';
 import { AppLayout } from '../../components/AppLayout';
 import type { ManagerRollupRow, MetricTrend } from '../../hooks/useManagerRollup';
@@ -58,28 +57,14 @@ function CardSkeleton() {
   );
 }
 
+// Access control: AuthGuard in App.tsx gates this route to senior_manager/executive/admin (S6).
 export function RollupPage() {
-  const { session, loading: authLoading } = useAuth();
   const { rows, definitions, weekRange, loading, error } = useManagerRollup();
   const navigate = useNavigate();
 
   const subtitleText = rows.length > 0
     ? `${rows.length} managers${weekRange ? ` · ${weekRange}` : ' · Trend data builds after two weekly syncs'}`
     : undefined;
-
-  if (authLoading) {
-    return (
-      <AppLayout title="Team rollup" subtitle={subtitleText}>
-        <CardSkeleton />
-      </AppLayout>
-    );
-  }
-  if (!session) return <Navigate to="/login" replace />;
-
-  const role = session.user.app_metadata?.['role'] as string | undefined;
-  if (role !== 'senior_manager' && role !== 'executive' && role !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
-  }
 
   const handleManagerClick = (row: ManagerRollupRow) => {
     const params = new URLSearchParams({ manager: row.manager.id, name: row.manager.full_name });
@@ -108,10 +93,12 @@ export function RollupPage() {
           {rows.map(row => {
             const chips = definitions.filter(d => (row.trends[d.key]?.total ?? 0) > 0);
             return (
-              <div
+              <button
                 key={row.manager.id}
+                type="button"
                 onClick={() => handleManagerClick(row)}
-                className="bg-white rounded-xl border border-[#E8E6E1] p-4 flex items-start gap-4 hover:border-[#D3D1C7] transition-colors cursor-pointer"
+                aria-label={`View ${row.manager.full_name}'s team`}
+                className="w-full text-left bg-white rounded-xl border border-[#E8E6E1] p-4 flex items-start gap-4 hover:border-[#D3D1C7] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D9E75] focus-visible:ring-offset-2"
               >
                 <div className="w-64 flex-shrink-0 min-w-0">
                   <p className="text-[13px] font-medium text-slate-800 truncate">{row.manager.full_name}</p>
@@ -131,7 +118,7 @@ export function RollupPage() {
                     <span className="text-[11px] text-slate-400">No data yet</span>
                   )}
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>

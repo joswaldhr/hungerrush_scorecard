@@ -6,6 +6,8 @@ import { currentWeekStartUtc, weeksBeforeUtc, weekStartStr } from '@scorecard/sh
 import { useSharedScorecard } from '../../hooks/useSharedScorecard';
 import { KpiTile, KpiTileSkeleton } from '../../components/KpiTile';
 import { LogoMark } from '../../components/AppLayout';
+import { getInitials } from '../../lib/initials';
+import { buildEmployeeMetrics } from '../../lib/employeeMetrics';
 
 function PageSkeleton() {
   return (
@@ -81,28 +83,9 @@ function SharedScorecardContent({ token }: { token: string }) {
 
   const { employee, definitions, snapshots } = data;
 
-  // UTC week identity from the shared util (L2) — must match the sync's period_start.
-  const thisMonday = currentWeekStartUtc();
-  const thisMondayStr = weekStartStr(thisMonday);
-  const lastMondayStr = weekStartStr(weeksBeforeUtc(thisMonday, 1));
+  const lastMondayStr = weekStartStr(weeksBeforeUtc(currentWeekStartUtc(), 1));
 
-  const metrics = definitions.map(def => {
-    const metricSnapshots = snapshots.filter(s => s.metric_key === def.key);
-    const current = metricSnapshots.find(s => s.period_start === thisMondayStr);
-    const lastWeek = metricSnapshots.find(s => s.period_start === lastMondayStr);
-    const history = metricSnapshots.map(s => ({
-      periodStart: s.period_start,
-      value: s.value,
-    }));
-
-    return {
-      definition: def,
-      currentValue: current?.value ?? null,
-      currentSyncedAt: current?.synced_at ?? null,
-      lastWeekValue: lastWeek?.value ?? null,
-      history,
-    };
-  });
+  const metrics = buildEmployeeMetrics(definitions, snapshots);
 
   const currentWeekMetrics = metrics.filter(m => m.currentValue !== null);
 
@@ -117,7 +100,7 @@ function SharedScorecardContent({ token }: { token: string }) {
         <div className="flex items-center gap-4">
           <div className="h-11 w-11 bg-[#E1F5EE] rounded-full flex items-center justify-center flex-shrink-0">
             <span className="text-[#0F6E56] font-semibold text-lg">
-              {employee.full_name.charAt(0).toUpperCase()}
+              {getInitials(employee.full_name)}
             </span>
           </div>
           <div>

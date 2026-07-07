@@ -1,17 +1,8 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '../lib/supabaseAdmin';
 
 const router = Router();
-
-function getSupabaseAdmin() {
-  const url = process.env['SUPABASE_URL'];
-  const key = process.env['SUPABASE_SERVICE_KEY'];
-  if (!url || !key) throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_KEY');
-  return createClient(url, key, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-}
 
 router.get('/:token', async (req: Request, res: Response) => {
   const { token } = req.params;
@@ -86,7 +77,7 @@ router.get('/:token', async (req: Request, res: Response) => {
       return;
     }
 
-    // Fetch snapshots (current week only — no history needed for shared view)
+    // Fetch ALL snapshots for this employee — the shared page needs history for sparklines
     const { data: snapshots, error: snapError } = await supabase
       .from('metric_snapshots')
       .select('metric_key, value, period_start, period_end, synced_at')

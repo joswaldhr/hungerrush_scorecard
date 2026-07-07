@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { fetchAllPages } from '../lib/fetchAllPages';
 import { currentWeekStartUtc, weeksBeforeUtc, weekStartStr } from '@scorecard/shared';
@@ -24,171 +24,173 @@ export function useManagerRollup() {
   const [error, setError] = useState<string | null>(null);
   const [weekRange, setWeekRange] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function load() {
-      // UTC week identity from the shared util (L2) — must match the sync's period_start.
-      const thisMonday = currentWeekStartUtc();
-      const thisMondayStr = weekStartStr(thisMonday);
-      const lastMondayStr = weekStartStr(weeksBeforeUtc(thisMonday, 1));
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    // UTC week identity from the shared util (L2) — must match the sync's period_start.
+    const thisMonday = currentWeekStartUtc();
+    const thisMondayStr = weekStartStr(thisMonday);
+    const lastMondayStr = weekStartStr(weeksBeforeUtc(thisMonday, 1));
 
-      const [managersRes, employeesRes, definitionsRes] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('is_active', true)
-          .order('full_name'),
-        supabase
-          .from('employees')
-          .select('id, manager_id'),
-        supabase
-          .from('metric_definitions')
-          .select('*')
-          .eq('is_active', true)
-          .order('display_order'),
-      ]);
+    const [managersRes, employeesRes, definitionsRes] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('*')
+        .eq('is_active', true)
+        .order('full_name'),
+      supabase
+        .from('employees')
+        .select('id, manager_id'),
+      supabase
+        .from('metric_definitions')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order'),
+    ]);
 
-      if (managersRes.error) {
-        setError(managersRes.error.message);
-        setLoading(false);
-        return;
-      }
-      if (employeesRes.error) {
-        setError(employeesRes.error.message);
-        setLoading(false);
-        return;
-      }
-      if (definitionsRes.error) {
-        setError(definitionsRes.error.message);
-        setLoading(false);
-        return;
-      }
-
-      const managers = (managersRes.data ?? []) as Profile[];
-      const employees = (employeesRes.data ?? []) as Pick<Employee, 'id' | 'manager_id'>[];
-      const defs = (definitionsRes.data ?? []) as MetricDefinition[];
-
-      // Only keep profiles that actually manage employees
-      const managerIds = new Set(employees.map(e => e.manager_id));
-      const activeManagers = managers.filter(m => managerIds.has(m.id));
-
-      if (activeManagers.length === 0) {
-        setDefinitions(defs);
-        setRows([]);
-        setLoading(false);
-        return;
-      }
-
-      // Group employees by manager
-      const employeesByManager = new Map<string, string[]>();
-      for (const emp of employees) {
-        const list = employeesByManager.get(emp.manager_id) ?? [];
-        list.push(emp.id);
-        employeesByManager.set(emp.manager_id, list);
-      }
-
-      // Fetch snapshots for current and last week — paginated (L7: PostgREST caps
-      // unpaginated selects at 1,000 rows; this query already exceeds that in prod).
-      const allEmployeeIds = employees.map(e => e.id);
-      const snapshotsRes = await fetchAllPages<
-        Pick<MetricSnapshot, 'employee_id' | 'metric_key' | 'value' | 'period_start'>
-      >((from, to) =>
-        supabase
-          .from('metric_snapshots')
-          .select('employee_id, metric_key, value, period_start')
-          .in('employee_id', allEmployeeIds)
-          .in('period_start', [thisMondayStr, lastMondayStr])
-          .order('id')
-          .range(from, to),
-      );
-
-      if (snapshotsRes.error) {
-        setError(snapshotsRes.error.message);
-        setLoading(false);
-        return;
-      }
-
-      const snapshots = snapshotsRes.data ?? [];
-
-      // Index snapshots: employeeId -> metricKey -> { thisWeek, lastWeek }
-      const snapshotIndex = new Map<string, Map<string, { thisWeek: number | null; lastWeek: number | null }>>();
-      for (const s of snapshots) {
-        let byMetric = snapshotIndex.get(s.employee_id);
-        if (!byMetric) {
-          byMetric = new Map();
-          snapshotIndex.set(s.employee_id, byMetric);
-        }
-        let entry = byMetric.get(s.metric_key);
-        if (!entry) {
-          entry = { thisWeek: null, lastWeek: null };
-          byMetric.set(s.metric_key, entry);
-        }
-        if (s.period_start === thisMondayStr) {
-          entry.thisWeek = s.value;
-        } else if (s.period_start === lastMondayStr) {
-          entry.lastWeek = s.value;
-        }
-      }
-
-      // Build direction lookup
-      const directionByKey = new Map(defs.map(d => [d.key, d.direction]));
-
-      // Compute rollup rows
-      const result: ManagerRollupRow[] = activeManagers.map(manager => {
-        const empIds = employeesByManager.get(manager.id) ?? [];
-        const trends: Record<string, MetricTrend> = {};
-
-        for (const def of defs) {
-          let improving = 0;
-          let declining = 0;
-          let total = 0;
-
-          for (const empId of empIds) {
-            const byMetric = snapshotIndex.get(empId);
-            const entry = byMetric?.get(def.key);
-            if (!entry || entry.thisWeek === null || entry.lastWeek === null) continue;
-
-            total++;
-            const direction = directionByKey.get(def.key);
-            const diff = entry.thisWeek - entry.lastWeek;
-
-            if (diff === 0) continue;
-
-            const isImproving = direction === 'higher_is_better' ? diff > 0 : diff < 0;
-            if (isImproving) {
-              improving++;
-            } else {
-              declining++;
-            }
-          }
-
-          trends[def.key] = { improving, declining, total, direction: def.direction };
-        }
-
-        return { manager, employeeCount: empIds.length, trends };
-      });
-
-      result.sort((a, b) => {
-        const aChips = Object.values(a.trends).filter(t => t.total > 0).length;
-        const bChips = Object.values(b.trends).filter(t => t.total > 0).length;
-        if (aChips !== bChips) return bChips - aChips;
-        return a.manager.full_name.localeCompare(b.manager.full_name);
-      });
-
-      if (snapshots.length > 0) {
-        // thisMonday is UTC midnight now — format in UTC or US-negative offsets would
-        // display the previous (Sunday) date. Pure-ms day math for the same reason.
-        const sunday = new Date(thisMonday.getTime() + 6 * 24 * 60 * 60 * 1000);
-        const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
-        setWeekRange(`Week of ${dateFmt.format(thisMonday)} – ${dateFmt.format(sunday)}`);
-      }
-
-      setDefinitions(defs);
-      setRows(result);
+    if (managersRes.error) {
+      setError(managersRes.error.message);
       setLoading(false);
+      return;
+    }
+    if (employeesRes.error) {
+      setError(employeesRes.error.message);
+      setLoading(false);
+      return;
+    }
+    if (definitionsRes.error) {
+      setError(definitionsRes.error.message);
+      setLoading(false);
+      return;
     }
 
-    load();
+    const managers = (managersRes.data ?? []) as Profile[];
+    const employees = (employeesRes.data ?? []) as Pick<Employee, 'id' | 'manager_id'>[];
+    const defs = (definitionsRes.data ?? []) as MetricDefinition[];
+
+    // Only keep profiles that actually manage employees
+    const managerIds = new Set(employees.map(e => e.manager_id));
+    const activeManagers = managers.filter(m => managerIds.has(m.id));
+
+    if (activeManagers.length === 0) {
+      setDefinitions(defs);
+      setRows([]);
+      setLoading(false);
+      return;
+    }
+
+    // Group employees by manager
+    const employeesByManager = new Map<string, string[]>();
+    for (const emp of employees) {
+      const list = employeesByManager.get(emp.manager_id) ?? [];
+      list.push(emp.id);
+      employeesByManager.set(emp.manager_id, list);
+    }
+
+    // Fetch snapshots for current and last week — paginated (L7: PostgREST caps
+    // unpaginated selects at 1,000 rows; this query already exceeds that in prod).
+    const allEmployeeIds = employees.map(e => e.id);
+    const snapshotsRes = await fetchAllPages<
+      Pick<MetricSnapshot, 'employee_id' | 'metric_key' | 'value' | 'period_start'>
+    >((from, to) =>
+      supabase
+        .from('metric_snapshots')
+        .select('employee_id, metric_key, value, period_start')
+        .in('employee_id', allEmployeeIds)
+        .in('period_start', [thisMondayStr, lastMondayStr])
+        .order('id')
+        .range(from, to),
+    );
+
+    if (snapshotsRes.error) {
+      setError(snapshotsRes.error.message);
+      setLoading(false);
+      return;
+    }
+
+    const snapshots = snapshotsRes.data ?? [];
+
+    // Index snapshots: employeeId -> metricKey -> { thisWeek, lastWeek }
+    const snapshotIndex = new Map<string, Map<string, { thisWeek: number | null; lastWeek: number | null }>>();
+    for (const s of snapshots) {
+      let byMetric = snapshotIndex.get(s.employee_id);
+      if (!byMetric) {
+        byMetric = new Map();
+        snapshotIndex.set(s.employee_id, byMetric);
+      }
+      let entry = byMetric.get(s.metric_key);
+      if (!entry) {
+        entry = { thisWeek: null, lastWeek: null };
+        byMetric.set(s.metric_key, entry);
+      }
+      if (s.period_start === thisMondayStr) {
+        entry.thisWeek = s.value;
+      } else if (s.period_start === lastMondayStr) {
+        entry.lastWeek = s.value;
+      }
+    }
+
+    // Build direction lookup
+    const directionByKey = new Map(defs.map(d => [d.key, d.direction]));
+
+    // Compute rollup rows
+    const result: ManagerRollupRow[] = activeManagers.map(manager => {
+      const empIds = employeesByManager.get(manager.id) ?? [];
+      const trends: Record<string, MetricTrend> = {};
+
+      for (const def of defs) {
+        let improving = 0;
+        let declining = 0;
+        let total = 0;
+
+        for (const empId of empIds) {
+          const byMetric = snapshotIndex.get(empId);
+          const entry = byMetric?.get(def.key);
+          if (!entry || entry.thisWeek === null || entry.lastWeek === null) continue;
+
+          total++;
+          const direction = directionByKey.get(def.key);
+          const diff = entry.thisWeek - entry.lastWeek;
+
+          if (diff === 0) continue;
+
+          const isImproving = direction === 'higher_is_better' ? diff > 0 : diff < 0;
+          if (isImproving) {
+            improving++;
+          } else {
+            declining++;
+          }
+        }
+
+        trends[def.key] = { improving, declining, total, direction: def.direction };
+      }
+
+      return { manager, employeeCount: empIds.length, trends };
+    });
+
+    result.sort((a, b) => {
+      const aChips = Object.values(a.trends).filter(t => t.total > 0).length;
+      const bChips = Object.values(b.trends).filter(t => t.total > 0).length;
+      if (aChips !== bChips) return bChips - aChips;
+      return a.manager.full_name.localeCompare(b.manager.full_name);
+    });
+
+    if (snapshots.length > 0) {
+      // thisMonday is UTC midnight now — format in UTC or US-negative offsets would
+      // display the previous (Sunday) date. Pure-ms day math for the same reason.
+      const sunday = new Date(thisMonday.getTime() + 6 * 24 * 60 * 60 * 1000);
+      const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+      setWeekRange(`Week of ${dateFmt.format(thisMonday)} – ${dateFmt.format(sunday)}`);
+    }
+
+    setDefinitions(defs);
+    setRows(result);
+    setLoading(false);
   }, []);
 
-  return { rows, definitions, weekRange, loading, error };
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  return { rows, definitions, weekRange, loading, error, refetch: load };
 }

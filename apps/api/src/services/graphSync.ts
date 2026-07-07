@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '../lib/supabaseAdmin';
 
 interface GraphUser {
   id: string;
@@ -43,15 +43,6 @@ function getEntraConfig() {
     throw new Error('Missing ENTRA_TENANT_ID, ENTRA_CLIENT_ID, or ENTRA_CLIENT_SECRET');
   }
   return { tenantId, clientId, clientSecret };
-}
-
-function getSupabaseAdmin() {
-  const url = process.env['SUPABASE_URL'];
-  const key = process.env['SUPABASE_SERVICE_KEY'];
-  if (!url || !key) throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_KEY');
-  return createClient(url, key, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
 }
 
 async function getGraphToken(): Promise<string> {
@@ -191,7 +182,7 @@ export async function syncOrgStructure(): Promise<SyncResult> {
     graphId: u.id,
     email: (u.mail ?? u.userPrincipalName).toLowerCase(),
     fullName: u.displayName,
-    title: u.jobTitle ?? null,
+    title: u.jobTitle?.trim() || null,
     managerGraphId: managerMap.get(u.id) ?? null,
   }));
 

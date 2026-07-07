@@ -16,7 +16,8 @@ import type {
 // approaching it so the cap never truncates silently.
 const SEARCH_CAP_WARN_THRESHOLD = 900;
 
-function createClient(): AxiosInstance {
+// The one Zendesk client factory (D3) — also used by the bootstrap's agent fetch in syncService.
+export function createZendeskClient(): AxiosInstance {
   const subdomain = process.env.ZENDESK_SUBDOMAIN;
   const email = process.env.ZENDESK_EMAIL;
   const token = process.env.ZENDESK_API_TOKEN;
@@ -141,7 +142,7 @@ export const zendeskConnector: DataSourceConnector<ZendeskRunContext, ZendeskWee
   // policy target (L3: previously 247 identical /slas/policies calls per run) and
   // the period's answered CSAT surveys (submitted-in-period semantics, commit 7).
   async prepareRun(periodStart: Date, periodEnd: Date): Promise<ZendeskRunContext> {
-    const client = createClient();
+    const client = createZendeskClient();
     const [slaTargetMinutes, ratingsByAssignee] = await Promise.all([
       fetchSlaReplyTarget(client),
       fetchReceivedRatings(client, periodStart, periodEnd),
@@ -172,7 +173,7 @@ export const zendeskConnector: DataSourceConnector<ZendeskRunContext, ZendeskWee
 
   async testConnection(): Promise<{ ok: boolean; error?: string }> {
     try {
-      const client = createClient();
+      const client = createZendeskClient();
       await client.get('/users/me.json');
       return { ok: true };
     } catch (err: unknown) {

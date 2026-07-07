@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import type { MetricDefinition } from '@scorecard/shared';
+import type { MetricUpdates } from '../../../hooks/useMetricDefinitions';
 
-type MetricUpdates = Pick<MetricDefinition, 'name' | 'coaching_prompt' | 'display_order' | 'is_active'>;
+type SaveState = 'idle' | 'saving' | 'saved' | 'error';
 
 interface MetricCardProps {
   metric: MetricDefinition;
-  saving: boolean;
+  saveState: SaveState;
   onSave: (id: string, updates: MetricUpdates) => void;
 }
 
@@ -15,7 +16,7 @@ const SOURCE_BADGE: Record<string, string> = {
   forethought: 'bg-hr-sand text-hr-text-2',
 };
 
-export function MetricCard({ metric, saving, onSave }: MetricCardProps) {
+export function MetricCard({ metric, saveState, onSave }: MetricCardProps) {
   const [name, setName] = useState(metric.name);
   const [coachingPrompt, setCoachingPrompt] = useState(metric.coaching_prompt);
   const [displayOrder, setDisplayOrder] = useState(metric.display_order);
@@ -124,14 +125,21 @@ export function MetricCard({ metric, saving, onSave }: MetricCardProps) {
               is_active: isActive,
             })
           }
-          disabled={!isDirty || saving}
+          disabled={!isDirty || saveState === 'saving'}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            isDirty && !saving
-              ? 'bg-hr-navy text-white hover:bg-hr-navy-deep'
-              : 'bg-hr-sand-md text-hr-text-3 cursor-not-allowed'
+            saveState === 'saved'
+              ? 'bg-hr-green-light text-hr-green-dark'
+              : saveState === 'error'
+                ? 'bg-hr-amber-light text-hr-amber'
+                : isDirty && saveState !== 'saving'
+                  ? 'bg-hr-navy text-white hover:bg-hr-navy-deep'
+                  : 'bg-hr-sand-md text-hr-text-3 cursor-not-allowed'
           }`}
         >
-          {saving ? 'Saving...' : 'Save'}
+          {saveState === 'saving' && 'Saving...'}
+          {saveState === 'saved' && 'Saved'}
+          {saveState === 'error' && 'Save failed'}
+          {saveState === 'idle' && 'Save'}
         </button>
       </div>
     </div>

@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
-import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
 import { AppLayout } from '../../components/AppLayout';
 
@@ -31,28 +29,20 @@ function TableSkeleton() {
   );
 }
 
+// Access control: AuthGuard in App.tsx gates this route to admin (S6).
 export function ExportLogPage() {
-  const { session, loading: authLoading } = useAuth();
   const [entries, setEntries] = useState<ExportLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
-      const [logsRes, profilesRes, employeesRes] = await Promise.all([
-        supabase
-          .from('audit_log')
-          .select('*')
-          .eq('action', 'pdf_export')
-          .order('created_at', { ascending: false })
-          .limit(100),
-        supabase
-          .from('profiles')
-          .select('id, email'),
-        supabase
-          .from('employees')
-          .select('id, full_name'),
-      ]);
+      const logsRes = await supabase
+        .from('audit_log')
+        .select('*')
+        .eq('action', 'pdf_export')
+        .order('created_at', { ascending: false })
+        .limit(100);
 
       if (logsRes.error) {
         setError(logsRes.error.message);
@@ -60,14 +50,30 @@ export function ExportLogPage() {
         return;
       }
 
+      const logs = (logsRes.data ?? []) as ExportLogEntry[];
+
+      // Enrichment lookups bounded to the ids actually shown (S8) — previously
+      // fetched every profile and employee in the org for 100 rows.
+      const actorIds = [...new Set(logs.map(l => l.actor_id).filter((id): id is string => id !== null))];
+      const employeeIds = [...new Set(logs.map(l => l.resource_id))];
+
+      const [profilesRes, employeesRes] = await Promise.all([
+        actorIds.length > 0
+          ? supabase.from('profiles').select('id, email').in('id', actorIds)
+          : Promise.resolve({ data: [] }),
+        employeeIds.length > 0
+          ? supabase.from('employees').select('id, full_name').in('id', employeeIds)
+          : Promise.resolve({ data: [] }),
+      ]);
+
       const profileMap = new Map(
-        (profilesRes.data ?? []).map((p: { id: string; email: string }) => [p.id, p.email]),
+        ((profilesRes.data ?? []) as Array<{ id: string; email: string }>).map(p => [p.id, p.email]),
       );
       const employeeMap = new Map(
-        (employeesRes.data ?? []).map((e: { id: string; full_name: string }) => [e.id, e.full_name]),
+        ((employeesRes.data ?? []) as Array<{ id: string; full_name: string }>).map(e => [e.id, e.full_name]),
       );
 
-      const enriched: ExportLogEntry[] = (logsRes.data ?? []).map((row: ExportLogEntry) => ({
+      const enriched: ExportLogEntry[] = logs.map(row => ({
         ...row,
         actor_email: row.actor_id ? profileMap.get(row.actor_id) ?? 'Unknown' : 'Unknown',
         employee_name: employeeMap.get(row.resource_id) ?? 'Unknown',
@@ -80,24 +86,10 @@ export function ExportLogPage() {
     load();
   }, []);
 
-  if (authLoading) {
-    return (
-      <AppLayout title="Export log">
-        <TableSkeleton />
-      </AppLayout>
-    );
-  }
-  if (!session) return <Navigate to="/login" replace />;
-
-  const role = session.user.app_metadata?.['role'] as string | undefined;
-  if (role !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   return (
     <AppLayout title="Export log">
       <p className="text-[13px] text-slate-500 mb-6">
-        All scorecard PDF exports with manager and timestamp
+        Scorecard PDF exports with manager and timestamp — showing the latest 100
       </p>
 
       {error && (

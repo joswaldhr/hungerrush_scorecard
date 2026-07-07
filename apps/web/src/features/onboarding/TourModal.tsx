@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { X } from 'lucide-react';
 
 const STORAGE_KEY = 'scorecard_tour_complete';
 
@@ -48,24 +49,70 @@ interface TourModalProps {
 
 export function TourModal({ open, onClose }: TourModalProps) {
   const [step, setStep] = useState(0);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (open) setStep(0);
+    if (open) {
+      setStep(0);
+      dialogRef.current?.focus();
+    }
   }, [open]);
+
+  // Esc closes (S3); onClose persists dismissal via useTour, so the tour never resurrects.
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open, onClose]);
 
   if (!open) return null;
 
   const current = STEPS[step] as (typeof STEPS)[number];
   const isLast = step === STEPS.length - 1;
 
-  const handleDone = () => {
-    localStorage.setItem(STORAGE_KEY, 'true');
-    onClose();
+  // Minimal focus trap: keep Tab inside the dialog while it is open.
+  const trapTab = (e: React.KeyboardEvent) => {
+    if (e.key !== 'Tab' || !dialogRef.current) return;
+    const focusables = dialogRef.current.querySelectorAll<HTMLElement>(
+      'button:not([disabled])',
+    );
+    if (focusables.length === 0) return;
+    const first = focusables[0] as HTMLElement;
+    const last = focusables[focusables.length - 1] as HTMLElement;
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-      <div className="bg-white rounded-xl shadow-panel max-w-md w-full p-6 sm:p-8">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+      onClick={onClose}
+    >
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Welcome tour — ${current.title}`}
+        tabIndex={-1}
+        onClick={e => e.stopPropagation()}
+        onKeyDown={trapTab}
+        className="relative bg-white rounded-xl shadow-panel max-w-md w-full p-6 sm:p-8 outline-none"
+      >
+        <button
+          onClick={onClose}
+          aria-label="Close tour"
+          className="absolute top-3 right-3 p-1.5 rounded-md text-hr-text-3 hover:text-hr-text-1 hover:bg-hr-sand transition-colors"
+        >
+          <X size={16} />
+        </button>
         <div className="flex flex-col items-center text-center">
           <div className="mb-4">{current.icon}</div>
           <h2 className="text-xl font-semibold text-hr-text-1 mb-2">{current.title}</h2>
@@ -98,7 +145,7 @@ export function TourModal({ open, onClose }: TourModalProps) {
 
           {isLast ? (
             <button
-              onClick={handleDone}
+              onClick={onClose}
               className="text-sm font-semibold px-6 py-2 rounded-lg bg-hr-green text-white hover:bg-hr-green-dark transition-colors"
             >
               Done
@@ -126,8 +173,12 @@ export function useTour() {
     }
   }, []);
 
-  const openTour = () => setShowTour(true);
-  const closeTour = () => setShowTour(false);
+  // ANY close counts as done (S3) — X, Esc, backdrop, or the Done button. Persisting
+  // here means navigating away can never resurrect the tour on the next visit.
+  const closeTour = () => {
+    localStorage.setItem(STORAGE_KEY, 'true');
+    setShowTour(false);
+  };
 
-  return { showTour, openTour, closeTour };
+  return { showTour, closeTour };
 }

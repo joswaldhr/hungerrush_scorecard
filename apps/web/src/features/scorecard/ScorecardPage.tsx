@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import { currentWeekStartUtc, weeksBeforeUtc, weekStartStr } from '@scorecard/shared';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../auth/AuthProvider';
 import { useEmployee } from '../../hooks/useEmployee';
 import { useEmployeeMetrics } from '../../hooks/useEmployeeMetrics';
 import { useScorecardNotes } from '../../hooks/useScorecardNotes';
@@ -10,6 +10,7 @@ import { NotesPanel } from '../notes/NotesPanel';
 import { AppLayout } from '../../components/AppLayout';
 import { supabase } from '../../lib/supabase';
 import { generateScorecardPdf } from '../../lib/pdfExport';
+import { getInitials } from '../../lib/initials';
 
 function PageSkeleton() {
   return (
@@ -33,7 +34,7 @@ export function ScorecardPage() {
   const { employeeId } = useParams<{ employeeId: string }>();
   const location = useLocation();
   const locationNavigate = useNavigate();
-  const { session, loading: authLoading } = useAuth();
+  const { session } = useAuth();
   const { employee, loading: empLoading, error: empError } = useEmployee(employeeId ?? '');
   const { metrics, loading: metricsLoading, error: metricsError } = useEmployeeMetrics(employeeId ?? '');
   const {
@@ -59,9 +60,10 @@ export function ScorecardPage() {
 
   if (!employeeId) return <Navigate to="/dashboard" replace />;
 
-  if (authLoading || empLoading) return <PageSkeleton />;
+  if (empLoading) return <PageSkeleton />;
 
-  if (!session) return <Navigate to="/login" replace />;
+  // AuthGuard owns session/role access (S6) — this narrows the type for the code below.
+  if (!session) return null;
 
   if (empError) {
     return (
@@ -166,7 +168,6 @@ export function ScorecardPage() {
     }
   };
 
-  const currentWeekMetrics = metrics.filter(m => m.currentValue !== null);
   const lastWeekMetrics = metrics.filter(m => m.lastWeekValue !== null);
   const allCurrentNull = metrics.every(m => m.currentValue === null);
   const lastMondayStr = weekStartStr(weeksBeforeUtc(currentWeekStartUtc(), 1));
@@ -251,7 +252,7 @@ export function ScorecardPage() {
       <div className="flex items-center gap-3 mb-6">
         <div className="h-11 w-11 bg-[#E1F5EE] rounded-full flex items-center justify-center flex-shrink-0">
           <span className="text-[#0F6E56] font-semibold text-lg">
-            {employee.full_name.charAt(0).toUpperCase()}
+            {getInitials(employee.full_name)}
           </span>
         </div>
         <div>
@@ -292,7 +293,7 @@ export function ScorecardPage() {
               <KpiTileSkeleton key={i} />
             ))}
           </div>
-        ) : currentWeekMetrics.length === 0 && metrics.every(m => m.currentValue === null) ? (
+        ) : allCurrentNull ? (
           <div className="bg-white rounded-xl border border-[#E8E6E1] p-6 text-center">
             <p className="text-[13px] text-slate-700 mb-1">No metrics synced for this week yet.</p>
             <p className="text-[13px] text-slate-400">
@@ -300,22 +301,17 @@ export function ScorecardPage() {
             </p>
           </div>
         ) : (
-          <>
-            {allCurrentNull && (
-              <p className="text-[11px] text-slate-400 mb-3">This week's data refreshes every 4 hours.</p>
-            )}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5">
-              {sortedMetrics.map(m => (
-                <KpiTile
-                  key={m.definition.id}
-                  definition={m.definition}
-                  value={m.currentValue}
-                  syncedAt={m.currentSyncedAt}
-                  history={m.history}
-                />
-              ))}
-            </div>
-          </>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5">
+            {sortedMetrics.map(m => (
+              <KpiTile
+                key={m.definition.id}
+                definition={m.definition}
+                value={m.currentValue}
+                syncedAt={m.currentSyncedAt}
+                history={m.history}
+              />
+            ))}
+          </div>
         )}
       </section>
 

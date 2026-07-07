@@ -1,12 +1,7 @@
 import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-import { useMetricDefinitions } from '../../hooks/useMetricDefinitions';
+import { useMetricDefinitions, type MetricUpdates } from '../../hooks/useMetricDefinitions';
 import { MetricCard } from './components/MetricCard';
 import { AppLayout } from '../../components/AppLayout';
-import type { MetricDefinition } from '@scorecard/shared';
-
-type MetricUpdates = Pick<MetricDefinition, 'name' | 'coaching_prompt' | 'display_order' | 'is_active'>;
 
 function MetricCardSkeleton() {
   return (
@@ -29,36 +24,25 @@ function MetricCardSkeleton() {
   );
 }
 
+// Access control: AuthGuard in App.tsx gates this route to admin (S6).
 export function MetricConfigPage() {
-  const { session, loading: authLoading } = useAuth();
   const { metrics, loading, error, updateMetric } = useMetricDefinitions();
-  const [savingId, setSavingId] = useState<string | null>(null);
+  // Save feedback lives on the card's own button — a page-top banner alone was how
+  // S4's broken saves looked successful with the card below the fold.
+  const [saveState, setSaveState] = useState<{ id: string; state: 'saving' | 'saved' | 'error' } | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  if (authLoading) {
-    return (
-      <AppLayout title="Metrics">
-        <div className="space-y-4">
-          {Array.from({ length: 4 }, (_, i) => (
-            <MetricCardSkeleton key={i} />
-          ))}
-        </div>
-      </AppLayout>
-    );
-  }
-
-  if (!session || session.user.app_metadata?.['role'] !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   const handleSave = async (id: string, updates: MetricUpdates) => {
-    setSavingId(id);
+    setSaveState({ id, state: 'saving' });
     setSaveError(null);
     const result = await updateMetric(id, updates);
-    if (!result.ok) {
+    if (result.ok) {
+      setSaveState({ id, state: 'saved' });
+    } else {
       setSaveError(result.error ?? 'Failed to save');
+      setSaveState({ id, state: 'error' });
     }
-    setSavingId(null);
+    setTimeout(() => setSaveState(current => (current?.id === id ? null : current)), 3000);
   };
 
   return (
@@ -98,7 +82,7 @@ export function MetricConfigPage() {
             <MetricCard
               key={metric.id}
               metric={metric}
-              saving={savingId === metric.id}
+              saveState={saveState?.id === metric.id ? saveState.state : 'idle'}
               onSave={handleSave}
             />
           ))}

@@ -2,30 +2,33 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import type { MetricDefinition } from '@scorecard/shared';
 
-type MetricUpdates = Pick<MetricDefinition, 'name' | 'coaching_prompt' | 'display_order' | 'is_active'>;
+// The one MetricUpdates definition (D9) — MetricConfigPage and MetricCard import it from here.
+export type MetricUpdates = Pick<MetricDefinition, 'name' | 'coaching_prompt' | 'display_order' | 'is_active'>;
 
 export function useMetricDefinitions() {
   const [metrics, setMetrics] = useState<MetricDefinition[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function load() {
-      const { data, error: err } = await supabase
-        .from('metric_definitions')
-        .select('*')
-        .order('display_order');
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const { data, error: err } = await supabase
+      .from('metric_definitions')
+      .select('*')
+      .order('display_order');
 
-      if (err) {
-        setError(err.message);
-      } else {
-        setMetrics((data ?? []) as MetricDefinition[]);
-      }
-      setLoading(false);
+    if (err) {
+      setError(err.message);
+    } else {
+      setMetrics((data ?? []) as MetricDefinition[]);
     }
-
-    load();
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const updateMetric = useCallback(
     async (id: string, updates: MetricUpdates): Promise<{ ok: boolean; error?: string }> => {
@@ -47,5 +50,5 @@ export function useMetricDefinitions() {
     [],
   );
 
-  return { metrics, loading, error, updateMetric };
+  return { metrics, loading, error, refetch: load, updateMetric };
 }
