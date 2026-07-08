@@ -32,7 +32,7 @@ export function useManagerRollup() {
         .order('full_name'),
       supabase
         .from('employees')
-        .select('id, manager_id'),
+        .select('id, manager_id, is_active'),
       supabase
         .from('metric_definitions')
         .select('*')
@@ -66,7 +66,11 @@ export function useManagerRollup() {
       setError(firstError.message);
     } else {
       const managers = (managersRes.data ?? []) as Profile[];
-      const employees = (employeesRes.data ?? []) as Array<{ id: string; manager_id: string }>;
+      const employees = (employeesRes.data ?? []) as Array<{
+        id: string;
+        manager_id: string;
+        is_active: boolean;
+      }>;
       const snapshots = snapshotsRes.data ?? [];
 
       setRows(buildRollupRows(managers, employees, defs, snapshots, thisMondayStr));

@@ -31,8 +31,32 @@ interface SyncResult {
   profilesUpdated: number;
   employeesCreated: number;
   employeesUpdated: number;
+  employeesDeactivated: number;
+  employeesReactivated: number;
   flaggedAdmins: string[];
   errors: string[];
+}
+
+// Ghost reconciliation decision (audit PR 3, REVIEW.md 3.1) — pure and exported
+// for tests. An employee row whose email is absent from the current Graph
+// member set gets is_active=false (never deleted: snapshots FK + history rule);
+// a previously-deactivated email that reappears flips back. Circuit breaker:
+// if more than max(5, 20% of active rows) would deactivate at once, the flip is
+// skipped — a partial Graph read must never mass-deactivate the org.
+export function reconcileEmployeeActivity(
+  dbEmployees: Array<{ id: string; email: string; is_active: boolean }>,
+  graphEmails: Set<string>,
+): { deactivate: string[]; reactivate: string[]; breakerTripped: boolean } {
+  const deactivate: string[] = [];
+  const reactivate: string[] = [];
+  for (const emp of dbEmployees) {
+    const present = graphEmails.has(emp.email.toLowerCase());
+    if (emp.is_active && !present) deactivate.push(emp.id);
+    if (!emp.is_active && present) reactivate.push(emp.id);
+  }
+  const activeCount = dbEmployees.filter((e) => e.is_active).length;
+  const breakerTripped = deactivate.length > Math.max(5, Math.floor(activeCount * 0.2));
+  return { deactivate: breakerTripped ? [] : deactivate, reactivate, breakerTripped };
 }
 
 function getEntraConfig() {
@@ -164,6 +188,8 @@ export async function syncOrgStructure(): Promise<SyncResult> {
     profilesUpdated: 0,
     employeesCreated: 0,
     employeesUpdated: 0,
+    employeesDeactivated: 0,
+    employeesReactivated: 0,
     flaggedAdmins: [],
     errors: [],
   };
@@ -341,6 +367,55 @@ export async function syncOrgStructure(): Promise<SyncResult> {
       const msg = err instanceof Error ? err.message : 'Unknown error';
       result.errors.push(`Employee sync failed for ${emp.email}: ${msg}`);
     }
+  }
+
+  // Pass 5: ghost reconciliation (audit PR 3, REVIEW.md 3.1). Compare every
+  // employee row against the FULL enabled-member email set (all buckets — a
+  // pass-4 "manager not in profiles" skip is still present in Graph and must
+  // not deactivate). Rows are never deleted.
+  try {
+    const memberEmails = new Set(members.map((m) => m.email));
+    const { data: allEmployees, error: allEmpErr } = await supabase
+      .from('employees')
+      .select('id, email, is_active');
+    if (allEmpErr) throw new Error(allEmpErr.message);
+
+    const { deactivate, reactivate, breakerTripped } = reconcileEmployeeActivity(
+      (allEmployees ?? []) as Array<{ id: string; email: string; is_active: boolean }>,
+      memberEmails,
+    );
+
+    if (breakerTripped) {
+      const msg =
+        'Reconciliation circuit breaker tripped — a suspiciously large share of employees ' +
+        'is absent from the Graph result; NO deactivations this run (reactivations still apply)';
+      console.error(`[graph-sync] ${msg}`);
+      result.errors.push(msg);
+    }
+
+    for (const [flag, ids] of [[false, deactivate], [true, reactivate]] as const) {
+      for (let i = 0; i < ids.length; i += 100) {
+        const chunk = ids.slice(i, i + 100);
+        const { error } = await supabase
+          .from('employees')
+          .update({ is_active: flag, updated_at: new Date().toISOString() })
+          .in('id', chunk);
+        if (error) {
+          result.errors.push(`Reconciliation ${flag ? 're' : 'de'}activation failed: ${error.message}`);
+        } else if (flag) {
+          result.employeesReactivated += chunk.length;
+        } else {
+          result.employeesDeactivated += chunk.length;
+        }
+      }
+    }
+    console.log(
+      `[graph-sync] Reconciliation: ${result.employeesDeactivated} deactivated, ` +
+      `${result.employeesReactivated} reactivated${breakerTripped ? ' (BREAKER TRIPPED)' : ''}`,
+    );
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    result.errors.push(`Reconciliation pass failed: ${msg}`);
   }
 
   console.log('[graph-sync] Sync complete:', JSON.stringify(result, null, 2));

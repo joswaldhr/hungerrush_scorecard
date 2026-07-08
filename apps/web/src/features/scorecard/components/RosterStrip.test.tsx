@@ -17,6 +17,7 @@ function employee(id: string, name: string): Employee {
     title: null,
     zendesk_agent_id: null,
     assembled_agent_id: null,
+    is_active: true,
     created_at: '2026-01-01',
     updated_at: '2026-01-01',
   };
@@ -58,5 +59,17 @@ describe('RosterStrip', () => {
     const { container } = render(<RosterStrip entries={[]} selectedId={null} onSelect={() => {}} loading />);
     expect(container.querySelectorAll('.animate-pulse').length).toBeGreaterThan(0);
     expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  it('badges a no-longer-synced person instead of showing a stale tone label', () => {
+    const inactive: RosterEntry = {
+      employee: { ...employee('e3', 'Gone Person'), is_active: false },
+      summary: { tone: 'win', label: 'on track' },
+      lastSessionDate: null,
+      hasData: true,
+    };
+    render(<RosterStrip entries={[inactive]} selectedId={null} onSelect={() => {}} loading={false} />);
+    expect(screen.getByRole('button', { name: /Gone Person, no longer synced/ })).toBeTruthy();
+    expect(screen.queryByText(/on track/)).toBeNull();
   });
 });

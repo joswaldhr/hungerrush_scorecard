@@ -84,6 +84,9 @@ export function RollupCard({
         <p className="text-[11px] text-hr-gray-light truncate">{row.manager.email}</p>
         <p className="text-[11px] text-hr-gray mt-0.5">
           {row.employeeCount} report{row.employeeCount === 1 ? '' : 's'}
+          {row.inactiveCount > 0 && (
+            <span className="text-hr-gray-light"> · {row.inactiveCount} no longer synced</span>
+          )}
         </p>
       </div>
       <div className="flex-1 flex flex-wrap gap-1.5 min-w-0">

@@ -59,10 +59,10 @@ describe('buildRollupRows', () => {
     const rows = buildRollupRows(
       [manager('m1', 'Alex')],
       [
-        { id: 'e1', manager_id: 'm1' },
-        { id: 'e2', manager_id: 'm1' },
-        { id: 'e3', manager_id: 'm1' },
-        { id: 'e4', manager_id: 'm1' },
+        { id: 'e1', manager_id: 'm1', is_active: true },
+        { id: 'e2', manager_id: 'm1', is_active: true },
+        { id: 'e3', manager_id: 'm1', is_active: true },
+        { id: 'e4', manager_id: 'm1', is_active: true },
       ],
       [CSAT],
       [
@@ -89,7 +89,7 @@ describe('buildRollupRows', () => {
     const tickets = def('ticket_volume', 'higher_is_better', 'count');
     const rows = buildRollupRows(
       [manager('m1', 'Alex')],
-      [{ id: 'e1', manager_id: 'm1' }],
+      [{ id: 'e1', manager_id: 'm1', is_active: true }],
       [tickets],
       // Steady 50/wk for five completed weeks; the in-progress week has 3 so far.
       snaps('e1', 'ticket_volume', {
@@ -106,8 +106,8 @@ describe('buildRollupRows', () => {
     const rows = buildRollupRows(
       [manager('m1', 'Alex')],
       [
-        { id: 'e1', manager_id: 'm1' },
-        { id: 'e2', manager_id: 'm1' },
+        { id: 'e1', manager_id: 'm1', is_active: true },
+        { id: 'e2', manager_id: 'm1', is_active: true },
       ],
       [occupancy],
       [
@@ -127,7 +127,7 @@ describe('buildRollupRows', () => {
     });
     const rows = buildRollupRows(
       [manager('m1', 'Alex')],
-      [{ id: 'e1', manager_id: 'm1' }],
+      [{ id: 'e1', manager_id: 'm1', is_active: true }],
       [CSAT],
       [...ordered].reverse(),
       CURRENT_WEEK,
@@ -138,7 +138,7 @@ describe('buildRollupRows', () => {
   it('drops profiles that manage no employees and omits metrics nobody has points for', () => {
     const rows = buildRollupRows(
       [manager('m1', 'Alex'), manager('m2', 'Blake')],
-      [{ id: 'e1', manager_id: 'm1' }],
+      [{ id: 'e1', manager_id: 'm1', is_active: true }],
       [CSAT, def('resolution_rate', 'higher_is_better')],
       snaps('e1', 'csat_score', { [CURRENT_WEEK]: 90 }),
       CURRENT_WEEK,
@@ -149,13 +149,33 @@ describe('buildRollupRows', () => {
     expect(rows[0]!.tones['csat_score']!.total).toBe(1);
   });
 
+  it('excludes no-longer-synced reports from tone counts but keeps them in the headcount', () => {
+    const rows = buildRollupRows(
+      [manager('m1', 'Alex')],
+      [
+        { id: 'e1', manager_id: 'm1', is_active: true },
+        { id: 'e2', manager_id: 'm1', is_active: false }, // ghost — frozen history
+      ],
+      [CSAT],
+      [
+        ...snaps('e1', 'csat_score', { [W[1]!]: 80, [W[2]!]: 80, [W[3]!]: 80, [W[4]!]: 80, [CURRENT_WEEK]: 90 }),
+        // The ghost has a full (frozen) history that would otherwise count as steady.
+        ...snaps('e2', 'csat_score', { [W[1]!]: 80, [W[2]!]: 80, [W[3]!]: 80, [W[4]!]: 80, [CURRENT_WEEK]: 80 }),
+      ],
+      CURRENT_WEEK,
+    );
+    expect(rows[0]!.employeeCount).toBe(2);
+    expect(rows[0]!.inactiveCount).toBe(1);
+    expect(rows[0]!.tones['csat_score']).toEqual({ win: 1, discuss: 0, steady: 0, new: 0, total: 1 });
+  });
+
   it('orders by metric coverage then name — data availability, not performance', () => {
     const rows = buildRollupRows(
       [manager('m1', 'Avery'), manager('m2', 'Blake'), manager('m3', 'Casey')],
       [
-        { id: 'e1', manager_id: 'm1' },
-        { id: 'e2', manager_id: 'm2' },
-        { id: 'e3', manager_id: 'm3' },
+        { id: 'e1', manager_id: 'm1', is_active: true },
+        { id: 'e2', manager_id: 'm2', is_active: true },
+        { id: 'e3', manager_id: 'm3', is_active: true },
       ],
       [CSAT, def('resolution_rate', 'higher_is_better')],
       [
