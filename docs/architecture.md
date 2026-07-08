@@ -46,6 +46,10 @@ metric: `docs/metrics.md`.
 
 Schedule: live refresh every 4h 6am–10pm UTC, weekly snapshot Sunday 23:59 UTC.
 Weekly windows: live = Monday 00:00 UTC → now; snapshot = Monday 00:00 → Sunday 23:59:59 UTC.
+Since audit PR 2a (2026-07-08): one sync runs at a time (module-level guard — a manual
+trigger during a cron gets HTTP 409; the check-to-start race throws and is logged), and
+every run writes one `sync_run` / `sync_run_failed` summary row to `audit_log`
+(mode, counts, first 20 errors, duration) so failures are queryable, not log-only.
 
 ## Domain model
 

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { syncOrgStructure } from '../services/graphSync';
-import { bootstrapAgentIds, runSync } from '../services/syncService';
+import { bootstrapAgentIds, isSyncRunning, runSync } from '../services/syncService';
 
 const router = Router();
 
@@ -42,6 +42,17 @@ router.post('/bootstrap', async (_req: Request, res: Response) => {
 
 router.post('/run', (req: Request, res: Response) => {
   const mode: 'live' | 'snapshot' = req.body?.mode === 'snapshot' ? 'snapshot' : 'live';
+  // Overlap guard (audit PR 2a): one sync at a time — a manual trigger during a
+  // cron run is rejected loudly instead of doubling API load and interleaving
+  // synced_at stamps. runSync itself also throws on the check-to-start race.
+  if (isSyncRunning()) {
+    console.warn(`[sync] Manual ${mode} run rejected — a sync is already running`);
+    res.status(409).json({
+      accepted: false,
+      error: 'A sync is already running — try again when it completes.',
+    });
+    return;
+  }
   // 202 + fire-and-forget: Railway's edge proxy kills HTTP responses at exactly 300s
   // while the sync keeps running in-container, so the response was never a usable
   // completion signal. Verify DB-side (rows share one synced_at stamp per run) or in
