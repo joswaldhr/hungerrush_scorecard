@@ -1,9 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { X } from 'lucide-react';
 import { currentWeekStartUtc, weekStartStr } from '@scorecard/shared';
 import { WarnBanner } from '../../components/WarnBanner';
-import type { ScorecardSessionWithDetails } from '../../hooks/useScorecardNotes';
+import {
+  ACTION_TOGGLE_FAILED_COPY,
+  type ScorecardSessionWithDetails,
+} from '../../hooks/useScorecardNotes';
 
 interface NotesPanelProps {
   sessions: ScorecardSessionWithDetails[];
@@ -16,6 +19,12 @@ interface NotesPanelProps {
     actionItems: string[],
   ) => Promise<{ ok: boolean; error?: string }>;
   onToggleActionItem: (itemId: string, isCompleted: boolean) => Promise<{ ok: boolean; error?: string }>;
+  /**
+   * Reports whether a draft (note text or pending action items) would be lost
+   * if the panel unmounted — the roster person-switch guard reads it. The
+   * panel reports clean on unmount.
+   */
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 function NotesSkeleton() {
@@ -43,6 +52,7 @@ export function NotesPanel({
   managerId,
   onSave,
   onToggleActionItem,
+  onDirtyChange,
 }: NotesPanelProps) {
   const today = new Date().toISOString().split('T')[0];
   const minDate = new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -53,6 +63,32 @@ export function NotesPanel({
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [historyToggleError, setHistoryToggleError] = useState<string | null>(null);
+
+  // A draft exists once any field the save would persist has content; the
+  // date field alone is not a draft. Guards both loss paths (REVIEW.md 2.1):
+  // person-switch (via onDirtyChange → the roster confirm) and tab close
+  // (via beforeunload below).
+  const dirty = noteContent.trim() !== '' || actionItems.length > 0 || newItem.trim() !== '';
+
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
+
+  // Unmounting destroys the draft with the panel — report clean so a stale
+  // dirty flag can't keep confirming switches that no longer lose anything.
+  useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
+
+  useEffect(() => {
+    if (!dirty) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      // Legacy Chrome requirement — without returnValue the prompt is skipped.
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [dirty]);
 
   // Sessions arrive newest-first; group into weeks in that order (presentation
   // only — no schema change).
@@ -78,6 +114,15 @@ export function NotesPanel({
 
   const handleRemoveItem = (index: number) => {
     setActionItems(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleHistoryToggle = async (itemId: string, isCompleted: boolean) => {
+    setHistoryToggleError(null);
+    const result = await onToggleActionItem(itemId, isCompleted);
+    // Optimistic toggle: a failed write is already undone on screen — say so.
+    if (!result.ok) {
+      setHistoryToggleError(ACTION_TOGGLE_FAILED_COPY);
+    }
   };
 
   const handleSave = async () => {
@@ -197,6 +242,7 @@ export function NotesPanel({
         </p>
       ) : (
         <div className="space-y-4">
+          {historyToggleError && <WarnBanner>{historyToggleError}</WarnBanner>}
           {weekGroups.map(group => (
             <div key={group.week}>
               <p className="text-xs font-semibold uppercase tracking-[0.07em] text-hr-gray-mid mb-2">
@@ -225,7 +271,7 @@ export function NotesPanel({
                             <input
                               type="checkbox"
                               checked={item.is_completed}
-                              onChange={e => onToggleActionItem(item.id, e.target.checked)}
+                              onChange={e => handleHistoryToggle(item.id, e.target.checked)}
                               className="rounded border-hr-line text-hr-teal focus:ring-hr-teal/20"
                             />
                             <span

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useRoster } from '../../hooks/useRoster';
@@ -7,6 +7,9 @@ import { WarnBanner } from '../../components/WarnBanner';
 import { TourModal, useTour } from '../onboarding/TourModal';
 import { RosterStrip } from './components/RosterStrip';
 import { Briefing } from './components/Briefing';
+
+const UNSAVED_NOTE_CONFIRM =
+  'You have an unsaved note for this person. Switch anyway and discard it?';
 
 /**
  * The Cadence home: roster strip for picking the person, 1:1 briefing below.
@@ -24,7 +27,9 @@ export function ScorecardPage() {
   const { entries, loading, error } = useRoster(managerFilter);
   const [rosterMode, setRosterMode] = useState<'data' | 'all'>('data');
   const [search, setSearch] = useState('');
+  const [notesDirty, setNotesDirty] = useState(false);
   const { showTour, closeTour } = useTour();
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const scoped = entries;
   const withData = useMemo(() => scoped.filter(e => e.hasData), [scoped]);
@@ -62,9 +67,55 @@ export function ScorecardPage() {
     }
   }, [employeeId, loading, visible, navigate, searchParams]);
 
-  const handleSelect = (id: string) => {
-    navigate({ pathname: `/scorecard/${id}`, search: searchParams.toString() });
-  };
+  // The ONE person-switch path (roster clicks and arrow keys both land here).
+  // Switching unmounts the briefing and destroys any notes draft — when one
+  // exists, confirm the discard first (REVIEW.md 2.1).
+  const selectPerson = useCallback(
+    (id: string) => {
+      if (id === employeeId) return;
+      if (notesDirty && !window.confirm(UNSAVED_NOTE_CONFIRM)) return;
+      navigate({ pathname: `/scorecard/${id}`, search: searchParams.toString() });
+    },
+    [employeeId, notesDirty, navigate, searchParams],
+  );
+
+  // Keyboard basics (QoL): '/' focuses the roster search, ←/→ step through
+  // the visible roster (via selectPerson, so the unsaved-note guard applies),
+  // Esc clears the search. Plain window listener; it never acts while the
+  // user is typing — '/' in the notes textarea must not steal focus, and an
+  // arrow keypress mid-sentence must not switch people. Esc inside the search
+  // box itself is the input's own handler below, not this listener.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target;
+      if (
+        t instanceof HTMLElement &&
+        (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)
+      ) {
+        return;
+      }
+      if (e.key === '/') {
+        if (searchRef.current) {
+          e.preventDefault();
+          searchRef.current.focus();
+        }
+      } else if (e.key === 'Escape') {
+        setSearch('');
+      } else if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && visible.length > 0) {
+        const idx = visible.findIndex(entry => entry.employee.id === employeeId);
+        const step = e.key === 'ArrowRight' ? 1 : -1;
+        // Clamp at the ends (no wrap); an unknown selection starts at the front.
+        const next = idx === -1 ? 0 : Math.min(Math.max(idx + step, 0), visible.length - 1);
+        if (next !== idx) {
+          e.preventDefault();
+          selectPerson(visible[next]!.employee.id);
+        }
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [visible, employeeId, selectPerson]);
 
   const pillClass = (active: boolean) =>
     active
@@ -96,10 +147,14 @@ export function ScorecardPage() {
       {!loading && !managerFilter && scoped.length > 1 && (
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           <input
+            ref={searchRef}
             type="text"
             placeholder="Search team members..."
             value={search}
             onChange={e => setSearch(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Escape') setSearch('');
+            }}
             aria-label="Search team members"
             className="w-56 h-8 bg-hr-card border border-hr-line rounded-lg px-3 text-base outline-none focus:border-hr-teal transition-colors"
           />
@@ -146,12 +201,12 @@ export function ScorecardPage() {
         <RosterStrip
           entries={visible}
           selectedId={employeeId ?? null}
-          onSelect={handleSelect}
+          onSelect={selectPerson}
           loading={loading}
         />
       )}
 
-      {employeeId && <Briefing employeeId={employeeId} />}
+      {employeeId && <Briefing employeeId={employeeId} onNotesDirtyChange={setNotesDirty} />}
 
       <TourModal open={showTour} onClose={closeTour} />
     </AppLayout>

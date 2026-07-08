@@ -7,10 +7,45 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-07-08 (session 30)
+**Last updated:** 2026-07-08 (session 31)
 
 - All 5 phases, 4 UI/UX sprints, layout redesign, and data integrity audit complete — pilot-ready
 - Production: `hungerrush-scorecard.vercel.app` (frontend) · `scorecardapi-production.up.railway.app` (backend)
+- **Session 31 (2026-07-08 — audit sprint PR 5 of 6 BUILT; sprint 1 COMPLETE on merge):**
+  Pre-flight all green: PR #15 merged (`df43bf0`), zero stranded commits across the six
+  `audit/*` branches, and **the first node-cron-v4 production cron VERIFIED** — `sync_run`
+  audit row stamped 2026-07-08T18:06:48Z (408s, 250 employees, 545 metrics, 0 errors;
+  a second clean manual run at 16:47Z) — the PR 2b post-deploy check is CLOSED. Built
+  **PR 5 `audit/qol-sprint1`** (branch from `df43bf0`, 4 code commits + docs, green at
+  every one): (1) **unsaved-note guard** (REVIEW 2.1) — NotesPanel derives a dirty flag
+  from its draft fields, reports it up via `onDirtyChange` (clean on unmount), registers
+  `beforeunload` while dirty; ScorecardPage routes EVERY person-switch through one
+  `selectPerson` callback that `window.confirm`s before discarding a draft;
+  (2) **optimistic action-item toggles** (2.2) — `toggleActionItem` flips local state
+  before the write and rolls back on failure; both checkbox surfaces show the shared
+  `ACTION_TOGGLE_FAILED_COPY` undo banner; (3) **keyboard basics** (2.3) — one window
+  keydown listener: `/` focuses roster search, `←/→` step the roster via `selectPerson`
+  (guard applies; clamped, no wrap), `Esc` clears search (the input's own handler owns
+  Esc-in-box); inert while typing in any field or with modifiers; (4) **freshness
+  chips** (2.8/1.12) — new `SyncFreshnessChip` (gray `synced X ago`, amber tint past the
+  9h `STALE_AFTER_MS` bound) + `useDataFreshness` (one RLS-scoped max-`synced_at` read,
+  failed refetch keeps last stamp) in the AppLayout header on every screen, plus a
+  rollup-subtitle chip from the fetched rows' own max stamp (`synced_at` added to the
+  rollup select; `AppLayout.subtitle` widened to ReactNode like `title`). Tests
+  **162 → 181** (55 api / 94 web / 32 shared) incl. dirty-guard, beforeunload, and
+  rollback paths; typecheck ×3 / lint / vite build green; npm audit 0. **Two entries
+  added to REVIEW.md "Discovered during execution":** SPA route-nav (sidebar clicks)
+  is NOT guarded — needs a data-router migration for `useBlocker`, sprint-2 candidate;
+  and the rollup's subtitle chip + global header chip will usually agree (both were
+  specified; dropping one is a two-line revert if James's pass dislikes the pair).
+  **NEXT: James's merge = the deploy authorization** (visual before/afters in the PR
+  body per decision 1), then **James picks sprint 2's contents from REVIEW.md's
+  deferrals** (candidates on record: PDF brand fonts + sparklines 1.15/1.16 — the named
+  best second-sprint item, share-link management 0.3/2.6, route-level tests 3.5,
+  rollup search 1.13, covered-checks + note-insert QoL 2.4/2.5, metrics.md doc fix 3.4,
+  briefing fade 1.4, print stylesheet 2.9, data-router migration for the full
+  unsaved-note route guard). Standing: Entra roster fixes backburnered (IT); demo
+  on/after Jul 13.
 - **Session 30 (2026-07-08 — audit sprint, 5 of 6 PRs DONE; NEXT SESSION = sprint PR 5):**
   James ran a four-track review (**`REVIEW.md` at the repo root is the sprint tracker —
   read it before any sprint work**; execution-status header lists every PR + sha) and

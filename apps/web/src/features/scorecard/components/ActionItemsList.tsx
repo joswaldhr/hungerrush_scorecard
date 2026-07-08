@@ -1,5 +1,8 @@
 import { useMemo, useState } from 'react';
-import type { ScorecardSessionWithDetails } from '../../../hooks/useScorecardNotes';
+import {
+  ACTION_TOGGLE_FAILED_COPY,
+  type ScorecardSessionWithDetails,
+} from '../../../hooks/useScorecardNotes';
 import { WarnBanner } from '../../../components/WarnBanner';
 
 const MAX_VISIBLE = 8;
@@ -21,8 +24,11 @@ export function ActionItemsList({
   const handleToggle = async (itemId: string, isCompleted: boolean) => {
     setToggleError(null);
     const result = await onToggle(itemId, isCompleted);
+    // The toggle is optimistic — by now a failed write has already been
+    // undone on screen, and the copy says so (raw error text stays in the
+    // result for callers that want it).
     if (!result.ok) {
-      setToggleError(result.error ?? "That update didn't save — try again.");
+      setToggleError(ACTION_TOGGLE_FAILED_COPY);
     }
   };
 
