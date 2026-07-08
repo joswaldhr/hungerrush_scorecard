@@ -53,8 +53,8 @@ export function MetricRow({
       <div className="flex items-center gap-3.5 flex-wrap">
         <ToneDot tone={tone} />
         <div className="flex-1 min-w-[130px]">
-          <p className="text-[13.5px] font-semibold text-hr-navy">{definition.name}</p>
-          <p className={`font-mono text-[11px] ${TONE_TEXT[tone]}`}>{sub}</p>
+          <p className="text-base font-semibold text-hr-navy">{definition.name}</p>
+          <p className={`font-mono text-xs ${TONE_TEXT[tone]}`}>{sub}</p>
         </div>
         <div className="flex items-center gap-3.5 max-[520px]:w-full max-[520px]:justify-between max-[520px]:pl-5">
           {hasHistory && (
@@ -70,18 +70,18 @@ export function MetricRow({
             <p className="font-heading font-bold text-[20px] leading-none text-hr-navy">
               {currentValue !== null ? fmt(currentValue) : '—'}
             </p>
-            <p className="text-[10px] text-hr-gray-light mt-0.5">this wk</p>
+            <p className="text-xs text-hr-gray-mid mt-0.5">this wk</p>
             {lastWeekValue !== null && (
-              <p className="text-[10px] text-hr-gray">last wk {fmt(lastWeekValue)}</p>
+              <p className="text-xs text-hr-gray">last wk {fmt(lastWeekValue)}</p>
             )}
           </div>
         </div>
       </div>
-      <p className="text-[11px] text-hr-gray leading-relaxed mt-1.5 pl-[22px]">
+      <p className="text-xs text-hr-gray leading-relaxed mt-1.5 pl-[22px]">
         {definition.coaching_prompt}
       </p>
       {showSyncedAt && metric.latestSyncedAt && (
-        <p className="text-[10px] text-hr-gray-light mt-1 pl-[22px]">
+        <p className="text-xs text-hr-gray-mid mt-1 pl-[22px]">
           Synced {timeAgo(metric.latestSyncedAt)}
         </p>
       )}

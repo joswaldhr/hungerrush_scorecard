@@ -34,7 +34,7 @@ export function LoginPage() {
 
   return (
     <AuthCard>
-      <p className="text-[13px] text-hr-gray text-center mb-7">
+      <p className="text-base text-hr-gray text-center mb-7">
         1:1 briefings for HungerRush support leads. Sign in with your Microsoft account to
         continue.
       </p>
@@ -44,7 +44,7 @@ export function LoginPage() {
       <button
         onClick={handleLogin}
         disabled={signingIn}
-        className="w-full bg-hr-teal text-white rounded-lg py-2.5 text-[14px] font-medium hover:bg-hr-teal/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        className="w-full bg-hr-teal text-white rounded-lg py-2.5 text-base font-medium hover:bg-hr-teal/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {signingIn ? 'Signing in…' : 'Sign in with Microsoft'}
       </button>

@@ -8,11 +8,11 @@ import {
 } from '../../../lib/coaching';
 
 const KIND_COLOR: Record<TalkingPoint['kind'], { text: string; border: string; leadBg: string }> = {
-  discuss:   { text: 'text-hr-coral', border: 'border-l-hr-coral', leadBg: 'bg-hr-coral-tint border-hr-coral/20' },
-  celebrate: { text: 'text-hr-teal',  border: 'border-l-hr-teal',  leadBg: 'bg-hr-teal-tint border-hr-teal/20' },
-  growth:    { text: 'text-hr-teal',  border: 'border-l-hr-teal',  leadBg: 'bg-hr-teal-tint border-hr-teal/20' },
-  note:      { text: 'text-hr-amber', border: 'border-l-hr-amber', leadBg: 'bg-hr-amber-tint border-hr-amber/20' },
-  ramping:   { text: 'text-hr-amber', border: 'border-l-hr-amber', leadBg: 'bg-hr-amber-tint border-hr-amber/20' },
+  discuss:   { text: 'text-hr-coral-deep', border: 'border-l-hr-coral', leadBg: 'bg-hr-coral-tint border-hr-coral/20' },
+  celebrate: { text: 'text-hr-teal-deep',  border: 'border-l-hr-teal',  leadBg: 'bg-hr-teal-tint border-hr-teal/20' },
+  growth:    { text: 'text-hr-teal-deep',  border: 'border-l-hr-teal',  leadBg: 'bg-hr-teal-tint border-hr-teal/20' },
+  note:      { text: 'text-hr-amber-deep', border: 'border-l-hr-amber', leadBg: 'bg-hr-amber-tint border-hr-amber/20' },
+  ramping:   { text: 'text-hr-amber-deep', border: 'border-l-hr-amber', leadBg: 'bg-hr-amber-tint border-hr-amber/20' },
 };
 
 function PointsSkeleton() {
@@ -45,8 +45,8 @@ export function TalkingPoints({
   if (noData) {
     return (
       <div className="bg-hr-bg rounded-lg p-4">
-        <p className="text-[13px] text-hr-navy mb-1">{NO_DATA_COPY}</p>
-        <p className="text-[13px] text-hr-gray">{NO_DATA_SUGGESTION}</p>
+        <p className="text-base text-hr-navy mb-1">{NO_DATA_COPY}</p>
+        <p className="text-base text-hr-gray">{NO_DATA_SUGGESTION}</p>
       </div>
     );
   }
@@ -54,7 +54,7 @@ export function TalkingPoints({
   if (allNew) {
     return (
       <div className="bg-hr-bg rounded-lg p-4">
-        <p className="text-[13px] text-hr-gray leading-relaxed">{NEW_HIRE_COPY}</p>
+        <p className="text-base text-hr-gray leading-relaxed">{NEW_HIRE_COPY}</p>
       </div>
     );
   }
@@ -62,8 +62,8 @@ export function TalkingPoints({
   if (points.length === 0) {
     return (
       <div className="bg-hr-bg rounded-lg p-4">
-        <p className="text-[13px] text-hr-navy mb-1">{STEADY_WEEK_COPY}</p>
-        <p className="text-[13px] text-hr-gray">{STEADY_WEEK_SUGGESTION}</p>
+        <p className="text-base text-hr-navy mb-1">{STEADY_WEEK_COPY}</p>
+        <p className="text-base text-hr-gray">{STEADY_WEEK_SUGGESTION}</p>
       </div>
     );
   }
@@ -81,20 +81,20 @@ export function TalkingPoints({
             }`}
           >
             <div className="flex gap-2 items-baseline mb-1">
-              <span className={`font-heading text-[10px] font-bold tracking-[0.1em] uppercase ${c.text}`}>
+              <span className={`font-heading text-xs font-bold tracking-[0.1em] uppercase ${c.text}`}>
                 {p.kind}
               </span>
               {lead && (
-                <span className={`font-heading text-[10px] font-bold tracking-[0.1em] uppercase text-white rounded px-1.5 py-0.5 ${p.kind === 'discuss' ? 'bg-hr-coral' : 'bg-hr-teal'}`}>
+                <span className={`font-heading text-xs font-bold tracking-[0.1em] uppercase text-white rounded px-1.5 py-0.5 ${p.kind === 'discuss' ? 'bg-hr-coral' : 'bg-hr-teal'}`}>
                   start here
                 </span>
               )}
             </div>
-            <p className={`${lead ? 'text-[14px]' : 'text-[13.5px]'} text-hr-navy leading-normal`}>
+            <p className={`${lead ? 'text-base' : 'text-base'} text-hr-navy leading-normal`}>
               {p.text}
             </p>
             {p.ask && (
-              <p className="text-[13px] text-hr-navy-soft italic mt-1.5">Ask: {p.ask}</p>
+              <p className="text-base text-hr-navy-soft italic mt-1.5">Ask: {p.ask}</p>
             )}
           </div>
         );

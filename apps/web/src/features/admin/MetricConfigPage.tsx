@@ -50,7 +50,7 @@ export function MetricConfigPage() {
   return (
     <AppLayout title="Metrics">
       <div className="max-w-3xl">
-        <p className="text-[13px] text-hr-gray mb-5">
+        <p className="text-base text-hr-gray mb-5">
           Configure which metrics appear on scorecards, their display names, and coaching
           prompts. Toggling a metric off also stops its collection at the next sync.
         </p>
@@ -66,8 +66,8 @@ export function MetricConfigPage() {
           </div>
         ) : metrics.length === 0 ? (
           <div className="bg-hr-card rounded-xl border border-hr-line p-8 text-center">
-            <p className="text-[13px] text-hr-navy mb-1">No metric definitions found.</p>
-            <p className="text-[13px] text-hr-gray">
+            <p className="text-base text-hr-navy mb-1">No metric definitions found.</p>
+            <p className="text-base text-hr-gray">
               Run the sync job or seed the database with metric definitions to get started.
             </p>
           </div>

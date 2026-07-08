@@ -20,13 +20,13 @@ function PublicShell({ children }: { children: ReactNode }) {
         <div className="flex items-center gap-2">
           <LogoMark />
           <div className="min-w-0">
-            <span className="font-heading font-extrabold text-[15px] text-white leading-none block">
+            <span className="font-heading font-extrabold text-lg text-white leading-none block">
               Hunger<span className="text-hr-teal">Rush</span>
             </span>
-            <span className="text-[11px] text-[#AEB3CE] leading-none">Cadence</span>
+            <span className="text-xs text-[#AEB3CE] leading-none">Cadence</span>
           </div>
         </div>
-        <span className="text-[12px] text-white/60">Your weekly snapshot</span>
+        <span className="text-sm text-white/60">Your weekly snapshot</span>
       </nav>
       <main className="max-w-3xl mx-auto px-4 py-6 sm:px-6 sm:py-8">{children}</main>
     </div>
@@ -37,7 +37,7 @@ function MessageCard({ title, message, action }: { title: string; message: strin
   return (
     <div className="bg-hr-card rounded-xl border border-hr-line shadow-card p-8 text-center max-w-md mx-auto">
       <p className="font-heading text-[16px] font-bold text-hr-navy mb-2">{title}</p>
-      <p className="text-[13px] text-hr-gray leading-relaxed">{message}</p>
+      <p className="text-base text-hr-gray leading-relaxed">{message}</p>
       {action}
     </div>
   );
@@ -107,12 +107,12 @@ function SharedScorecardContent({ token }: { token: string }) {
             errorType === 'network' ? (
               <button
                 onClick={refetch}
-                className="mt-4 bg-hr-teal text-white rounded-lg px-4 py-1.5 text-[13px] font-medium hover:bg-hr-teal/90 transition-colors"
+                className="mt-4 bg-hr-teal text-white rounded-lg px-4 py-1.5 text-base font-medium hover:bg-hr-teal/90 transition-colors"
               >
                 Try again
               </button>
             ) : (
-              <p className="text-[12px] text-hr-gray-light mt-3">
+              <p className="text-sm text-hr-gray-mid mt-3">
                 Share links stay valid for 72 hours — ask your manager for a fresh one.
               </p>
             )
@@ -140,7 +140,7 @@ function SharedScorecardContent({ token }: { token: string }) {
         <div className="h-[5px] bg-hr-teal" />
         <div className="px-5 py-4 flex items-center gap-4">
           <div className="h-11 w-11 bg-hr-teal-tint rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-hr-teal font-semibold text-[15px]">
+            <span className="text-hr-teal-deep font-semibold text-lg">
               {getInitials(employee.full_name)}
             </span>
           </div>
@@ -148,13 +148,13 @@ function SharedScorecardContent({ token }: { token: string }) {
             <h1 className="font-heading text-[22px] font-extrabold text-hr-navy leading-tight truncate">
               {employee.full_name}
             </h1>
-            <p className="text-[12px] text-hr-gray truncate">{employee.email}</p>
+            <p className="text-sm text-hr-gray truncate">{employee.email}</p>
           </div>
         </div>
       </div>
 
       <div className="bg-hr-teal-tint border border-hr-teal/20 rounded-xl p-4 mb-5">
-        <p className="text-[13px] text-hr-navy leading-relaxed">
+        <p className="text-base text-hr-navy leading-relaxed">
           Your manager shared this snapshot of your recent metrics as a conversation starter for
           your 1:1. These numbers show momentum and growth opportunities — not a performance
           review.
@@ -170,7 +170,7 @@ function SharedScorecardContent({ token }: { token: string }) {
         <EvidencePanel groups={groups} loading={false} showRowSyncedAt />
       )}
 
-      <p className="text-[11px] text-hr-gray-light text-center pt-6">
+      <p className="text-xs text-hr-gray-mid text-center pt-6">
         Read-only view shared by your manager
       </p>
     </PublicShell>

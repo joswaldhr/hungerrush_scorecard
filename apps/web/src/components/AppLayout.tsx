@@ -46,10 +46,10 @@ function Brand() {
     <div className="flex items-center gap-2">
       <LogoMark />
       <div className="min-w-0">
-        <span className="font-heading font-extrabold text-[15px] text-white leading-none block">
+        <span className="font-heading font-extrabold text-lg text-white leading-none block">
           Hunger<span className="text-hr-teal">Rush</span>
         </span>
-        <span className="text-[11px] text-[#AEB3CE] leading-none">Cadence</span>
+        <span className="text-xs text-[#AEB3CE] leading-none">Cadence</span>
       </div>
     </div>
   );
@@ -72,7 +72,7 @@ function SidebarContent({ onNavigate }: { onNavigate: (path: string) => void }) 
   const isActive = (path: string) => location.pathname.startsWith(path);
 
   const navItemClass = (active: boolean) =>
-    `w-full flex items-center gap-2 px-2 py-[7px] rounded-md text-[13px] transition-colors ${
+    `w-full flex items-center gap-2 px-2 py-[7px] rounded-md text-base transition-colors ${
       active ? 'bg-hr-teal/20 text-white' : 'text-white/60 hover:text-white hover:bg-white/[0.06]'
     }`;
 
@@ -97,12 +97,12 @@ function SidebarContent({ onNavigate }: { onNavigate: (path: string) => void }) 
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-1">
-        <p className="text-[10px] font-semibold tracking-widest uppercase text-white/30 px-2 mb-2">Main</p>
+        <p className="text-xs font-semibold tracking-widest uppercase text-white/30 px-2 mb-2">Main</p>
         {navButton('/scorecard', Users, 'Your team')}
         {showRollup && navButton('/rollup', LayoutGrid, 'Team rollup')}
         {showAdmin && (
           <>
-            <p className="text-[10px] font-semibold tracking-widest uppercase text-white/30 px-2 mb-2 mt-6">Admin</p>
+            <p className="text-xs font-semibold tracking-widest uppercase text-white/30 px-2 mb-2 mt-6">Admin</p>
             {navButton('/admin/metrics', SlidersHorizontal, 'Metrics')}
             {navButton('/admin/exports', FileOutput, 'Export log')}
           </>
@@ -112,15 +112,15 @@ function SidebarContent({ onNavigate }: { onNavigate: (path: string) => void }) 
       <div className="mt-auto border-t border-white/[0.08] p-2">
         <div className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-white/[0.06] group">
           <div className="w-[26px] h-[26px] rounded-full bg-hr-teal flex items-center justify-center flex-shrink-0">
-            <span className="text-[10px] font-semibold text-white">{getInitials(fullName)}</span>
+            <span className="text-xs font-semibold text-white">{getInitials(fullName)}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[12px] text-white/70 truncate">{fullName}</p>
-            <p className="text-[10px] text-white/35 capitalize">{role ?? 'user'}</p>
+            <p className="text-sm text-white/70 truncate">{fullName}</p>
+            <p className="text-xs text-white/35 capitalize">{role ?? 'user'}</p>
           </div>
           <button
             onClick={handleSignOut}
-            className="text-[11px] text-white/30 hover:text-white/60 opacity-60 hover:opacity-100 transition-opacity ml-auto"
+            className="text-xs text-white/30 hover:text-white/60 opacity-60 hover:opacity-100 transition-opacity ml-auto"
           >
             Sign out
           </button>
@@ -201,10 +201,10 @@ export function AppLayout({ children, title, subtitle, actions }: AppLayoutProps
             <Menu size={18} />
           </button>
           <div className="min-w-0">
-            <h1 ref={titleRef} tabIndex={-1} className="text-[15px] font-medium text-hr-navy truncate outline-none">
+            <h1 ref={titleRef} tabIndex={-1} className="text-lg font-medium text-hr-navy truncate outline-none">
               {title}
             </h1>
-            {subtitle && <p className="text-[11px] text-hr-gray-light mt-px">{subtitle}</p>}
+            {subtitle && <p className="text-xs text-hr-gray-mid mt-px">{subtitle}</p>}
           </div>
           <div className="ml-auto flex items-center gap-3 flex-shrink-0">{actions}</div>
         </header>

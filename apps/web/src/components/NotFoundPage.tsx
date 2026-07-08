@@ -21,13 +21,13 @@ export function NotFoundPage() {
           <p className="font-heading text-[38px] font-extrabold text-hr-navy leading-none mb-2">
             404
           </p>
-          <p className="text-[14px] font-medium text-hr-navy mb-1">Page not found</p>
-          <p className="text-[13px] text-hr-gray mb-6">
+          <p className="text-base font-medium text-hr-navy mb-1">Page not found</p>
+          <p className="text-base text-hr-gray mb-6">
             This link may be mistyped, or the page may have moved.
           </p>
           <button
             onClick={() => navigate('/scorecard')}
-            className="w-full bg-hr-teal text-white rounded-lg py-2.5 text-[14px] font-medium hover:bg-hr-teal/90 transition-colors"
+            className="w-full bg-hr-teal text-white rounded-lg py-2.5 text-base font-medium hover:bg-hr-teal/90 transition-colors"
           >
             Go to your team
           </button>

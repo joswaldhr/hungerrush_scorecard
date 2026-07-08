@@ -110,14 +110,14 @@ export function TourModal({ open, onClose }: TourModalProps) {
         <button
           onClick={onClose}
           aria-label="Close tour"
-          className="absolute top-3 right-3 p-1.5 rounded-md text-hr-gray-light hover:text-hr-navy hover:bg-hr-bg transition-colors"
+          className="absolute top-3 right-3 p-1.5 rounded-md text-hr-gray-mid hover:text-hr-navy hover:bg-hr-bg transition-colors"
         >
           <X size={16} />
         </button>
         <div className="flex flex-col items-center text-center">
           <div className="mb-4">{current.icon}</div>
           <h2 className="text-xl font-semibold text-hr-navy mb-2">{current.title}</h2>
-          <p className="text-hr-gray text-sm leading-relaxed">{current.body}</p>
+          <p className="text-hr-gray text-base leading-relaxed">{current.body}</p>
         </div>
 
         <div className="flex justify-center gap-1.5 mt-6">
@@ -135,9 +135,9 @@ export function TourModal({ open, onClose }: TourModalProps) {
           <button
             onClick={() => setStep(s => s - 1)}
             disabled={step === 0}
-            className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
+            className={`text-base font-medium px-4 py-2 rounded-lg transition-colors ${
               step === 0
-                ? 'text-hr-gray-light cursor-not-allowed'
+                ? 'text-hr-gray-mid cursor-not-allowed'
                 : 'text-hr-gray hover:bg-hr-bg'
             }`}
           >
@@ -147,14 +147,14 @@ export function TourModal({ open, onClose }: TourModalProps) {
           {isLast ? (
             <button
               onClick={onClose}
-              className="text-sm font-semibold px-6 py-2 rounded-lg bg-hr-teal text-white hover:bg-hr-teal/90 transition-colors"
+              className="text-base font-semibold px-6 py-2 rounded-lg bg-hr-teal text-white hover:bg-hr-teal/90 transition-colors"
             >
               Done
             </button>
           ) : (
             <button
               onClick={() => setStep(s => s + 1)}
-              className="text-sm font-semibold px-6 py-2 rounded-lg bg-hr-teal text-white hover:bg-hr-teal/90 transition-colors"
+              className="text-base font-semibold px-6 py-2 rounded-lg bg-hr-teal text-white hover:bg-hr-teal/90 transition-colors"
             >
               Next
             </button>

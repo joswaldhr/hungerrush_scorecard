@@ -54,7 +54,7 @@ export function AuthCallback() {
         <WarnBanner className="mb-6">{error}</WarnBanner>
         <button
           onClick={() => navigate('/login', { replace: true })}
-          className="w-full bg-hr-teal text-white rounded-lg py-2.5 text-[14px] font-medium hover:bg-hr-teal/90 transition-colors"
+          className="w-full bg-hr-teal text-white rounded-lg py-2.5 text-base font-medium hover:bg-hr-teal/90 transition-colors"
         >
           Back to login
         </button>
@@ -68,7 +68,7 @@ export function AuthCallback() {
         <div className="h-3.5 bg-hr-line/60 rounded" />
         <div className="h-3.5 bg-hr-line/60 rounded w-2/3 mx-auto" />
       </div>
-      <p className="text-[13px] text-hr-gray text-center mt-4">Signing you in…</p>
+      <p className="text-base text-hr-gray text-center mt-4">Signing you in…</p>
     </AuthCard>
   );
 }

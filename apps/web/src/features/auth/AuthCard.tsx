@@ -13,7 +13,7 @@ export function AuthCard({ children }: { children: ReactNode }) {
             <p className="font-heading font-extrabold text-[19px] text-hr-navy mt-2 leading-none">
               Hunger<span className="text-hr-teal">Rush</span>
             </p>
-            <p className="text-[12px] text-hr-gray-light mt-1">Cadence</p>
+            <p className="text-sm text-hr-gray-mid mt-1">Cadence</p>
           </div>
           {children}
         </div>

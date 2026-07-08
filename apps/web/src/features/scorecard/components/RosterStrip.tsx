@@ -57,11 +57,11 @@ export function RosterStrip({
               >
                 <span className="flex items-center gap-2 mb-0.5">
                   <ToneDot tone={entry.employee.is_active ? entry.summary.tone : 'new'} />
-                  <span className="font-heading text-[14px] font-bold truncate">
+                  <span className="font-heading text-base font-bold truncate">
                     {entry.employee.full_name}
                   </span>
                 </span>
-                <span className={`block text-[11px] truncate ${active ? 'text-white/60' : 'text-hr-gray'}`}>
+                <span className={`block text-xs truncate ${active ? 'text-white/60' : 'text-hr-gray'}`}>
                   {subline}
                 </span>
               </button>

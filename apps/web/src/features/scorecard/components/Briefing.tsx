@@ -17,13 +17,13 @@ import { EvidencePanel } from './EvidencePanel';
 import { ActionItemsList } from './ActionItemsList';
 
 const ghostBtn =
-  'border border-hr-line rounded-lg px-3 py-1.5 text-[13px] text-hr-gray hover:bg-hr-bg transition-colors';
+  'border border-hr-line rounded-lg px-3 py-1.5 text-base text-hr-gray hover:bg-hr-bg transition-colors';
 const primaryBtn =
-  'bg-hr-teal text-white rounded-lg px-3 py-1.5 text-[13px] font-medium hover:bg-hr-teal/90 transition-colors';
+  'bg-hr-teal text-white rounded-lg px-3 py-1.5 text-base font-medium hover:bg-hr-teal/90 transition-colors';
 const successBtn =
-  'bg-hr-teal-tint text-hr-teal rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors';
+  'bg-hr-teal-tint text-hr-teal-deep rounded-lg px-3 py-1.5 text-base font-medium transition-colors';
 const errorBtn =
-  'bg-hr-amber-tint text-hr-amber rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors';
+  'bg-hr-amber-tint text-hr-amber-deep rounded-lg px-3 py-1.5 text-base font-medium transition-colors';
 
 function HeaderSkeleton() {
   return (
@@ -160,10 +160,10 @@ export function Briefing({ employeeId }: { employeeId: string }) {
     return (
       <div className="flex items-center justify-center py-16">
         <div className="bg-hr-card border border-hr-line rounded-xl p-8 text-center max-w-md">
-          <p className="text-[13px] text-hr-navy mb-2">
+          <p className="text-base text-hr-navy mb-2">
             {empError ? 'Unable to load this person.' : 'This person could not be found.'}
           </p>
-          <p className="text-[13px] text-hr-gray">
+          <p className="text-base text-hr-gray">
             {empError ?? 'They may not be on your team, or the link may be incorrect. Pick someone from the roster above.'}
           </p>
         </div>
@@ -185,12 +185,12 @@ export function Briefing({ employeeId }: { employeeId: string }) {
             <h2 className="font-heading text-[clamp(24px,4vw,32px)] font-extrabold text-hr-navy leading-tight truncate">
               {employee.full_name}
             </h2>
-            <p className="text-[13px] text-hr-gray mt-1 truncate">
+            <p className="text-base text-hr-gray mt-1 truncate">
               {employee.title ? `${employee.title} · ` : ''}
               {employee.email}
             </p>
             {!employee.is_active && (
-              <p className="text-[11px] text-hr-gray-light mt-1">
+              <p className="text-xs text-hr-gray-mid mt-1">
                 No longer synced — absent from the last org sync; metrics are frozen at their
                 last values.
               </p>
@@ -201,13 +201,13 @@ export function Briefing({ employeeId }: { employeeId: string }) {
               <div className="flex gap-5">
                 <div className="text-center">
                   <p className="font-heading font-extrabold text-[24px] leading-none text-hr-teal">{wins}</p>
-                  <p className="text-[11px] text-hr-gray mt-0.5">wins</p>
+                  <p className="text-xs text-hr-gray mt-0.5">wins</p>
                 </div>
                 <div className="text-center">
-                  <p className={`font-heading font-extrabold text-[24px] leading-none ${discuss > 0 ? 'text-hr-coral' : 'text-hr-gray-light'}`}>
+                  <p className={`font-heading font-extrabold text-[24px] leading-none ${discuss > 0 ? 'text-hr-coral' : 'text-hr-gray-mid'}`}>
                     {discuss}
                   </p>
-                  <p className="text-[11px] text-hr-gray mt-0.5">to discuss</p>
+                  <p className="text-xs text-hr-gray mt-0.5">to discuss</p>
                 </div>
               </div>
             )}
@@ -248,11 +248,11 @@ export function Briefing({ employeeId }: { employeeId: string }) {
             readOnly
             value={shareFallbackUrl}
             onFocus={e => e.target.select()}
-            className="flex-1 text-[12px] text-hr-gray bg-hr-bg border border-hr-line rounded-lg px-3 py-1.5 outline-none"
+            className="flex-1 text-sm text-hr-gray bg-hr-bg border border-hr-line rounded-lg px-3 py-1.5 outline-none"
           />
           <button
             onClick={() => setShareFallbackUrl(null)}
-            className="text-[12px] text-hr-gray-light hover:text-hr-gray transition-colors"
+            className="text-sm text-hr-gray-mid hover:text-hr-gray transition-colors"
           >
             Dismiss
           </button>

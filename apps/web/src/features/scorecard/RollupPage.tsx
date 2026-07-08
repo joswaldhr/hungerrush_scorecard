@@ -51,8 +51,8 @@ export function RollupPage() {
         <CardSkeleton />
       ) : rows.length === 0 ? (
         <div className="bg-hr-card rounded-xl border border-hr-line p-8 text-center">
-          <p className="text-[13px] text-hr-navy mb-1">No managers found in your team.</p>
-          <p className="text-[13px] text-hr-gray">
+          <p className="text-base text-hr-navy mb-1">No managers found in your team.</p>
+          <p className="text-base text-hr-gray">
             Your managers&apos; teams appear here once the org sync has run.
           </p>
         </div>

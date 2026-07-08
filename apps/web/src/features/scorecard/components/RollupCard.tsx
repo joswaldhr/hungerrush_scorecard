@@ -25,10 +25,10 @@ function chipDetail(label: string, counts: MetricToneCounts): string {
 }
 
 function chipClass(counts: MetricToneCounts): string {
-  if (counts.discuss > 0) return 'bg-hr-coral-tint border-hr-coral/20 text-hr-coral';
-  if (counts.win > 0) return 'bg-hr-teal-tint border-hr-teal/20 text-hr-teal';
+  if (counts.discuss > 0) return 'bg-hr-coral-tint border-hr-coral/20 text-hr-coral-deep';
+  if (counts.win > 0) return 'bg-hr-teal-tint border-hr-teal/20 text-hr-teal-deep';
   if (counts.steady > 0) return 'bg-hr-bg border-hr-line text-hr-gray';
-  return 'bg-hr-bg border-hr-line text-hr-gray-light';
+  return 'bg-hr-bg border-hr-line text-hr-gray-mid';
 }
 
 function ToneChip({ label, counts }: { label: string; counts: MetricToneCounts }) {
@@ -37,7 +37,7 @@ function ToneChip({ label, counts }: { label: string; counts: MetricToneCounts }
     <span
       title={detail}
       aria-label={detail}
-      className={`text-[11px] px-2 py-0.5 rounded-full border ${chipClass(counts)}`}
+      className={`text-xs px-2 py-0.5 rounded-full border ${chipClass(counts)}`}
     >
       <span className="font-medium">{label}</span> · {chipText(counts)}
     </span>
@@ -50,7 +50,7 @@ function Stat({ value, word, valueClass }: { value: number; word: string; valueC
       <div className={`font-heading font-extrabold text-[20px] leading-none ${valueClass}`}>
         {value}
       </div>
-      <div className="text-[10px] text-hr-gray mt-1">{word}</div>
+      <div className="text-xs text-hr-gray mt-1">{word}</div>
     </div>
   );
 }
@@ -78,14 +78,14 @@ export function RollupCard({
       className="w-full text-left bg-hr-card rounded-xl border border-hr-line p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 transition-all duration-100 hover:-translate-y-px hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hr-teal focus-visible:ring-offset-2"
     >
       <div className="w-full sm:w-56 flex-shrink-0 min-w-0">
-        <p className="font-heading text-[14px] font-bold text-hr-navy truncate">
+        <p className="font-heading text-base font-bold text-hr-navy truncate">
           {row.manager.full_name}
         </p>
-        <p className="text-[11px] text-hr-gray-light truncate">{row.manager.email}</p>
-        <p className="text-[11px] text-hr-gray mt-0.5">
+        <p className="text-xs text-hr-gray-mid truncate">{row.manager.email}</p>
+        <p className="text-xs text-hr-gray mt-0.5">
           {row.employeeCount} report{row.employeeCount === 1 ? '' : 's'}
           {row.inactiveCount > 0 && (
-            <span className="text-hr-gray-light"> · {row.inactiveCount} no longer synced</span>
+            <span className="text-hr-gray-mid"> · {row.inactiveCount} no longer synced</span>
           )}
         </p>
       </div>
@@ -99,7 +99,7 @@ export function RollupCard({
             />
           ))
         ) : (
-          <span className="text-[11px] text-hr-gray-light">
+          <span className="text-xs text-hr-gray-mid">
             No trend data yet — builds as weekly syncs accumulate.
           </span>
         )}
@@ -109,7 +109,7 @@ export function RollupCard({
         <Stat
           value={row.toDiscuss}
           word="to discuss"
-          valueClass={row.toDiscuss > 0 ? 'text-hr-coral' : 'text-hr-gray-light'}
+          valueClass={row.toDiscuss > 0 ? 'text-hr-coral' : 'text-hr-gray-mid'}
         />
       </div>
     </button>
