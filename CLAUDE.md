@@ -516,7 +516,7 @@ Implemented in Phase 3 session 1; only the rollup chips still run pre-Cadence tr
 ## Approved dependencies
 
 **Shared:** `zod` (schemas live here, imported by both apps)
-**Frontend:** `react react-dom react-router-dom @supabase/supabase-js tailwindcss @tailwindcss/forms recharts date-fns lucide-react jspdf vite @vitejs/plugin-react vite-plugin-pwa typescript`
+**Frontend:** `react react-dom react-router-dom @supabase/supabase-js tailwindcss @tailwindcss/forms date-fns lucide-react jspdf vite @vitejs/plugin-react vite-plugin-pwa typescript` (recharts removed 2026-07-08, audit PR 2b — zero imports since the Cadence sparklines are hand-rolled SVG; re-approve deliberately if charting needs ever exceed them)
 **Backend:** `express cors helmet express-rate-limit @supabase/supabase-js node-cron axios typescript tsx dotenv`
 **Testing:** `vitest @testing-library/react jsdom supertest` (jsdom approved 2026-07-07 — the DOM env @testing-library/react requires; devDependency only)
 
