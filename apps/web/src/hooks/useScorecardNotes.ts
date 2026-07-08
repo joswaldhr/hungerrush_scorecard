@@ -19,6 +19,27 @@ export interface ScorecardSessionWithDetails extends ScorecardSession {
  */
 export const SESSION_LOOKBACK_WEEKS = 12;
 
+/**
+ * WarnBanner copy for a failed action-item toggle. The toggle is optimistic,
+ * so the copy must explain that the visible change was undone — every surface
+ * with a checkbox shows this same line.
+ */
+export const ACTION_TOGGLE_FAILED_COPY =
+  "That update didn't save — the change was undone. Check your connection and try again.";
+
+function setItemCompleted(
+  sessions: ScorecardSessionWithDetails[],
+  itemId: string,
+  isCompleted: boolean,
+): ScorecardSessionWithDetails[] {
+  return sessions.map(s => ({
+    ...s,
+    action_items: s.action_items.map(ai =>
+      ai.id === itemId ? { ...ai, is_completed: isCompleted } : ai,
+    ),
+  }));
+}
+
 export function useScorecardNotes(employeeId: string) {
   const [sessions, setSessions] = useState<ScorecardSessionWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
@@ -108,21 +129,20 @@ export function useScorecardNotes(employeeId: string) {
 
   const toggleActionItem = useCallback(
     async (itemId: string, isCompleted: boolean): Promise<{ ok: boolean; error?: string }> => {
+      // Optimistic: the most-clicked control in the 1:1 must feel instant.
+      // Flip first; a failed write flips it back (checkbox state is binary,
+      // so the pre-toggle value is always !isCompleted).
+      setSessions(prev => setItemCompleted(prev, itemId, isCompleted));
+
       const { error: err } = await supabase
         .from('session_action_items')
         .update({ is_completed: isCompleted, updated_at: new Date().toISOString() })
         .eq('id', itemId);
 
-      if (err) return { ok: false, error: err.message };
-
-      setSessions(prev =>
-        prev.map(s => ({
-          ...s,
-          action_items: s.action_items.map(ai =>
-            ai.id === itemId ? { ...ai, is_completed: isCompleted } : ai,
-          ),
-        })),
-      );
+      if (err) {
+        setSessions(prev => setItemCompleted(prev, itemId, !isCompleted));
+        return { ok: false, error: err.message };
+      }
 
       return { ok: true };
     },

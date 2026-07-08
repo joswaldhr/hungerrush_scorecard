@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
-import type { ScorecardSessionWithDetails } from '../../../hooks/useScorecardNotes';
+import {
+  ACTION_TOGGLE_FAILED_COPY,
+  type ScorecardSessionWithDetails,
+} from '../../../hooks/useScorecardNotes';
 import { ActionItemsList } from './ActionItemsList';
 
 afterEach(cleanup);
@@ -57,7 +60,7 @@ describe('ActionItemsList', () => {
     expect(screen.getByText(/No action items yet — add them/)).toBeTruthy();
   });
 
-  it('toggling calls onToggle and surfaces a failed save', async () => {
+  it('toggling calls onToggle and surfaces a failed save with the undo copy', async () => {
     const onToggle = vi.fn(async () => ({ ok: false, error: 'Network hiccup' }));
     render(
       <ActionItemsList
@@ -67,6 +70,8 @@ describe('ActionItemsList', () => {
     );
     fireEvent.click(screen.getByRole('checkbox'));
     expect(onToggle).toHaveBeenCalledWith('a1', true);
-    await waitFor(() => expect(screen.getByText('Network hiccup')).toBeTruthy());
+    // The optimistic toggle already undid the change on screen — the banner
+    // explains that instead of echoing the raw error.
+    await waitFor(() => expect(screen.getByText(ACTION_TOGGLE_FAILED_COPY)).toBeTruthy());
   });
 });

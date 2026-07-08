@@ -3,7 +3,10 @@ import { format, parseISO } from 'date-fns';
 import { X } from 'lucide-react';
 import { currentWeekStartUtc, weekStartStr } from '@scorecard/shared';
 import { WarnBanner } from '../../components/WarnBanner';
-import type { ScorecardSessionWithDetails } from '../../hooks/useScorecardNotes';
+import {
+  ACTION_TOGGLE_FAILED_COPY,
+  type ScorecardSessionWithDetails,
+} from '../../hooks/useScorecardNotes';
 
 interface NotesPanelProps {
   sessions: ScorecardSessionWithDetails[];
@@ -53,6 +56,7 @@ export function NotesPanel({
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [historyToggleError, setHistoryToggleError] = useState<string | null>(null);
 
   // Sessions arrive newest-first; group into weeks in that order (presentation
   // only — no schema change).
@@ -78,6 +82,15 @@ export function NotesPanel({
 
   const handleRemoveItem = (index: number) => {
     setActionItems(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleHistoryToggle = async (itemId: string, isCompleted: boolean) => {
+    setHistoryToggleError(null);
+    const result = await onToggleActionItem(itemId, isCompleted);
+    // Optimistic toggle: a failed write is already undone on screen — say so.
+    if (!result.ok) {
+      setHistoryToggleError(ACTION_TOGGLE_FAILED_COPY);
+    }
   };
 
   const handleSave = async () => {
@@ -197,6 +210,7 @@ export function NotesPanel({
         </p>
       ) : (
         <div className="space-y-4">
+          {historyToggleError && <WarnBanner>{historyToggleError}</WarnBanner>}
           {weekGroups.map(group => (
             <div key={group.week}>
               <p className="text-xs font-semibold uppercase tracking-[0.07em] text-hr-gray-mid mb-2">
@@ -225,7 +239,7 @@ export function NotesPanel({
                             <input
                               type="checkbox"
                               checked={item.is_completed}
-                              onChange={e => onToggleActionItem(item.id, e.target.checked)}
+                              onChange={e => handleHistoryToggle(item.id, e.target.checked)}
                               className="rounded border-hr-line text-hr-teal focus:ring-hr-teal/20"
                             />
                             <span

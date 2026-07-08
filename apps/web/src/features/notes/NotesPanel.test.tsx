@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { render, screen, cleanup, fireEvent } from '@testing-library/react';
-import type { ScorecardSessionWithDetails } from '../../hooks/useScorecardNotes';
+import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
+import {
+  ACTION_TOGGLE_FAILED_COPY,
+  type ScorecardSessionWithDetails,
+} from '../../hooks/useScorecardNotes';
 import { NotesPanel } from './NotesPanel';
 
 afterEach(cleanup);
@@ -53,6 +56,34 @@ describe('NotesPanel', () => {
   it('shows the empty history message with a suggested action', () => {
     renderPanel([]);
     expect(screen.getByText(/No 1:1 sessions in the last 12 weeks — save your first note/)).toBeTruthy();
+  });
+
+  it('shows the undo copy when a history checkbox toggle fails', async () => {
+    const withItem: ScorecardSessionWithDetails = {
+      ...SESSION,
+      action_items: [
+        {
+          id: 'ai1',
+          session_id: 's1',
+          content: 'Follow up on queue coverage',
+          is_completed: false,
+          created_by: 'm1',
+          created_at: '2026-07-01',
+          updated_at: '2026-07-01',
+        },
+      ],
+    };
+    render(
+      <NotesPanel
+        sessions={[withItem]}
+        loading={false}
+        managerId="m1"
+        onSave={async () => ({ ok: true })}
+        onToggleActionItem={async () => ({ ok: false, error: 'network down' })}
+      />,
+    );
+    fireEvent.click(screen.getByRole('checkbox'));
+    await waitFor(() => expect(screen.getByText(ACTION_TOGGLE_FAILED_COPY)).toBeTruthy());
   });
 
   it('keeps Save disabled until there is content, then saves', async () => {
