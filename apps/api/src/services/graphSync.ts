@@ -190,7 +190,7 @@ export async function syncOrgStructure(): Promise<SyncResult> {
   console.log(
     `[graph-sync] Classified: ${seniorManagers.length} senior_managers, ` +
     `${managers.length} managers, ${employees.length} employees, ` +
-    `${admins.length} admins (flagged for review)`,
+    `${admins.length} manager-less (flagged for review; created as role=employee)`,
   );
 
   result.flaggedAdmins = admins.map((a) => `${a.fullName} <${a.email}>`);
@@ -235,25 +235,33 @@ export async function syncOrgStructure(): Promise<SyncResult> {
   }
 
   // Pass 2: upsert profiles with correct role (manager_id set in pass 3).
-  // Classification can never produce 'executive' — it is assigned only via an
-  // audited service-key write — so an existing executive keeps that role
-  // instead of being reclassified on the next org-sync run.
-  const { data: executiveRows, error: executiveErr } = await supabase
+  // Classification can never produce 'executive' OR 'admin' — both are assigned
+  // only via audited service-key writes (0017 precedent; REVIEW.md 0.2, audit
+  // PR 1) — so an existing executive/admin keeps that role instead of being
+  // reclassified on the next org-sync run. If the preserve-set lookup fails we
+  // fail CLOSED and write no roles at all this run: an empty preserve-set on a
+  // transient error would otherwise demote the only admin.
+  const { data: preservedRows, error: preservedErr } = await supabase
     .from('profiles')
     .select('id')
-    .eq('role', 'executive');
-  if (executiveErr) {
+    .in('role', ['executive', 'admin']);
+  if (preservedErr) {
     console.warn(
-      `[graph-sync] Executive lookup failed (${executiveErr.message}) — role preservation skipped this run`,
+      `[graph-sync] Preserved-role lookup failed (${preservedErr.message}) — ` +
+      'NO roles will be written this run (names/emails still sync)',
     );
+    result.errors.push(`Preserved-role lookup failed: ${preservedErr.message}`);
   }
-  const executiveIds = new Set((executiveRows ?? []).map((r) => String(r.id)));
+  const preservationReliable = !preservedErr;
+  const preservedRoleIds = new Set((preservedRows ?? []).map((r) => String(r.id)));
 
   for (const member of profileMembers) {
     const profileId = graphToProfileId.get(member.graphId);
     if (!profileId) continue;
 
-    let role: 'admin' | 'senior_manager' | 'manager' = 'admin';
+    // Manager-less accounts (the flagged bucket) get the unprivileged role —
+    // visible_manager_ids() has no employee branch, so they see nothing.
+    let role: 'senior_manager' | 'manager' | 'employee' = 'employee';
     if (seniorManagers.includes(member)) role = 'senior_manager';
     else if (managers.includes(member)) role = 'manager';
 
@@ -262,7 +270,7 @@ export async function syncOrgStructure(): Promise<SyncResult> {
         id: profileId,
         email: member.email,
         full_name: member.fullName,
-        ...(executiveIds.has(profileId) ? {} : { role }),
+        ...(preservationReliable && !preservedRoleIds.has(profileId) ? { role } : {}),
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'id' },
