@@ -230,7 +230,73 @@ export interface SyncResult {
   durationSeconds: number;
 }
 
+// Overlap guard (audit PR 2a, REVIEW.md 3.3): one sync at a time per process.
+// A manual /api/sync/run landing during a cron run would double the external
+// API load and interleave two synced_at stamps into what reads as one run —
+// breaking the documented DB-side verification heuristic (one stamp per run).
+let syncRunning = false;
+
+export function isSyncRunning(): boolean {
+  return syncRunning;
+}
+
+// One queryable summary row per run (audit PR 2a, REVIEW.md 3.3) — failures
+// used to die in Railway logs only. Recording must never mask the run's own
+// outcome, so insert problems are logged and swallowed.
+async function recordSyncRun(
+  mode: 'live' | 'snapshot',
+  result: SyncResult | null,
+  failure: string | null,
+): Promise<void> {
+  try {
+    const supabase = getSupabaseAdmin();
+    const { error } = await supabase.from('audit_log').insert({
+      actor_id: null,
+      action: failure === null ? 'sync_run' : 'sync_run_failed',
+      resource_type: 'sync',
+      resource_id: mode,
+      metadata:
+        failure === null && result
+          ? {
+              mode: result.mode,
+              employee_count: result.employeeCount,
+              metrics_collected: result.metricsCollected,
+              metrics_written: result.metricsWritten,
+              error_count: result.errors.length,
+              errors: result.errors.slice(0, 20),
+              duration_seconds: result.durationSeconds,
+            }
+          : { mode, error: failure },
+    });
+    if (error) console.error('[sync] sync_run audit insert failed:', error.message);
+  } catch (err: unknown) {
+    console.error(
+      '[sync] sync_run audit insert failed:',
+      err instanceof Error ? err.message : err,
+    );
+  }
+}
+
 export async function runSync(mode: 'live' | 'snapshot'): Promise<SyncResult> {
+  if (syncRunning) {
+    // A skip is not a run: no sync_run row. The cron wrappers catch and log
+    // this; the manual route pre-checks isSyncRunning() and responds 409.
+    throw new Error('sync already running — skipped');
+  }
+  syncRunning = true;
+  try {
+    const result = await runSyncInner(mode);
+    await recordSyncRun(mode, result, null);
+    return result;
+  } catch (err: unknown) {
+    await recordSyncRun(mode, null, err instanceof Error ? err.message : 'Unknown error');
+    throw err;
+  } finally {
+    syncRunning = false;
+  }
+}
+
+async function runSyncInner(mode: 'live' | 'snapshot'): Promise<SyncResult> {
   const startedAt = Date.now();
   const { start: periodStart, end: periodEnd } = getSyncBounds(mode);
   const errors: string[] = [];
