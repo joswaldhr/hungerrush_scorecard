@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useRoster } from '../../hooks/useRoster';
@@ -29,6 +29,7 @@ export function ScorecardPage() {
   const [search, setSearch] = useState('');
   const [notesDirty, setNotesDirty] = useState(false);
   const { showTour, closeTour } = useTour();
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const scoped = entries;
   const withData = useMemo(() => scoped.filter(e => e.hasData), [scoped]);
@@ -78,6 +79,44 @@ export function ScorecardPage() {
     [employeeId, notesDirty, navigate, searchParams],
   );
 
+  // Keyboard basics (QoL): '/' focuses the roster search, ←/→ step through
+  // the visible roster (via selectPerson, so the unsaved-note guard applies),
+  // Esc clears the search. Plain window listener; it never acts while the
+  // user is typing — '/' in the notes textarea must not steal focus, and an
+  // arrow keypress mid-sentence must not switch people. Esc inside the search
+  // box itself is the input's own handler below, not this listener.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target;
+      if (
+        t instanceof HTMLElement &&
+        (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)
+      ) {
+        return;
+      }
+      if (e.key === '/') {
+        if (searchRef.current) {
+          e.preventDefault();
+          searchRef.current.focus();
+        }
+      } else if (e.key === 'Escape') {
+        setSearch('');
+      } else if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && visible.length > 0) {
+        const idx = visible.findIndex(entry => entry.employee.id === employeeId);
+        const step = e.key === 'ArrowRight' ? 1 : -1;
+        // Clamp at the ends (no wrap); an unknown selection starts at the front.
+        const next = idx === -1 ? 0 : Math.min(Math.max(idx + step, 0), visible.length - 1);
+        if (next !== idx) {
+          e.preventDefault();
+          selectPerson(visible[next]!.employee.id);
+        }
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [visible, employeeId, selectPerson]);
+
   const pillClass = (active: boolean) =>
     active
       ? 'bg-hr-navy text-white text-sm px-3 py-1 rounded-full transition-colors'
@@ -108,10 +147,14 @@ export function ScorecardPage() {
       {!loading && !managerFilter && scoped.length > 1 && (
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           <input
+            ref={searchRef}
             type="text"
             placeholder="Search team members..."
             value={search}
             onChange={e => setSearch(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Escape') setSearch('');
+            }}
             aria-label="Search team members"
             className="w-56 h-8 bg-hr-card border border-hr-line rounded-lg px-3 text-base outline-none focus:border-hr-teal transition-colors"
           />

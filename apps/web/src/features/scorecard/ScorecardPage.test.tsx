@@ -123,3 +123,55 @@ describe('ScorecardPage unsaved-note guard', () => {
     expect(briefingPerson()).toBe('e1');
   });
 });
+
+describe('ScorecardPage keyboard basics', () => {
+  it("'/' focuses the roster search", () => {
+    renderPage();
+    const search = screen.getByLabelText('Search team members');
+    fireEvent.keyDown(document.body, { key: '/' });
+    expect(document.activeElement).toBe(search);
+  });
+
+  it("'/' while typing in a field does not steal focus", () => {
+    renderPage();
+    const note = screen.getByLabelText('fake note field');
+    (note as HTMLTextAreaElement).focus();
+    fireEvent.keyDown(note, { key: '/' });
+    expect(document.activeElement).toBe(note);
+  });
+
+  it('arrow keys step through the roster and clamp at the ends', () => {
+    renderPage();
+    fireEvent.keyDown(document.body, { key: 'ArrowRight' });
+    expect(briefingPerson()).toBe('e2');
+    fireEvent.keyDown(document.body, { key: 'ArrowLeft' });
+    expect(briefingPerson()).toBe('e1');
+    fireEvent.keyDown(document.body, { key: 'ArrowLeft' });
+    expect(briefingPerson()).toBe('e1'); // no wrap past the first person
+  });
+
+  it('arrow keys while typing never switch people', () => {
+    renderPage();
+    fireEvent.keyDown(screen.getByLabelText('fake note field'), { key: 'ArrowRight' });
+    expect(briefingPerson()).toBe('e1');
+  });
+
+  it('an arrow-key switch goes through the unsaved-note confirm', () => {
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: 'make-dirty' }));
+    fireEvent.keyDown(document.body, { key: 'ArrowRight' });
+    expect(confirmSpy).toHaveBeenCalledWith(expect.stringMatching(/unsaved note/));
+    expect(briefingPerson()).toBe('e1'); // confirm mocked to cancel
+  });
+
+  it('Esc clears the search from the box itself and from anywhere else', () => {
+    renderPage();
+    const search = screen.getByLabelText('Search team members') as HTMLInputElement;
+    fireEvent.change(search, { target: { value: 'maya' } });
+    fireEvent.keyDown(search, { key: 'Escape' }); // the input's own handler
+    expect(search.value).toBe('');
+    fireEvent.change(search, { target: { value: 'dario' } });
+    fireEvent.keyDown(document.body, { key: 'Escape' }); // the global listener
+    expect(search.value).toBe('');
+  });
+});
