@@ -183,16 +183,16 @@
   `apps/web/src/lib/coaching.ts` (new table + RLS + UI when it lands). S1 mobile
   navigation CLOSED in Phase 3 session 1.
 - **Remaining hardening:** email nudge (needs `RESEND_API_KEY`). **Org-sync admin
-  classification (found 2026-07-07, session 29): every manager-less AD account gets
-  `role='admin'` — 280 such profiles exist (shared mailboxes, rooms, vendors, ~10 real
-  humans); only James is `is_active=true`, BUT is_active is enforced only in
-  `visible_manager_ids()` — NOT in the 0010 claims trigger, the JWT-claims admin RLS
-  policies, or the web auth path — so any of those humans signing in would get live
-  admin, and a NEW manager-less human would sync as an ACTIVE admin (is_active defaults
-  true). Fix direction (own PR, James decides when): stop assigning 'admin' from
-  classification (audited-write-only, like executive) and/or create admins-bucket
-  profiles inactive + claims trigger respects is_active; verify with an RLS claims
-  probe.** CORS lockdown landed in Phase 2 (PR #6). The old "connection pooling
+  classification — FIX SHIPPED in audit PR 1 (`audit/admin-role-fix`, 2026-07-07,
+  REVIEW.md 0.2):** classification now assigns manager-less accounts `role='employee'`
+  (still flagged for review); `admin` joins `executive` as audited-write-only and the
+  sync preserves both fail-CLOSED (a failed preserve-lookup writes no roles at all —
+  fail-open would have demoted the only admin); `0019` makes the JWT role claim
+  conditional on `is_active` (strip on deactivate; trigger fires on role AND is_active);
+  one-time audited sweep `scripts/sweep-admin-roles.ts` reclassifies the 279 minted
+  admins (keep-set determined from data), verified by `scripts/rls-probe-admin-sweep.sql`.
+  Residual: existing-session survival after AD-disable is an IT-side empirical check
+  (claims fix propagates at token refresh ≤1h). CORS lockdown landed in Phase 2 (PR #6). The old "connection pooling
   (`?pgbouncer=true`)" item is REMOVED as not applicable — nothing here opens a direct
   Postgres connection (supabase-js speaks HTTP to PostgREST); full explanation lives in
   the refactor plan's pgbouncer finding
@@ -600,6 +600,7 @@ To add anything not listed: stop · explain why · get explicit approval before 
 | Evidence degradation = per-person `synced_at` age (9h bound, clears the 22:00→06:00 cron gap); copy says "No fresh ‹Source› data for this person — showing last sync (…)", never "unreachable" | A stale stamp cannot distinguish a source outage from one person no longer syncing (deactivated agent); the prototype's "unreachable" wording over-claims — deliberate copy repair in ADOPTION's own spirit |
 | Count-unit trends anchor to the last completed week (`trendWindow`, shared); rates/averages keep the live current value; frozen views untouched — RESOLVED by James 2026-07-07 ("do what you recommend") after being flagged in PR #7 | A partial week's count is a biased sum (every Monday would read as a collapse and train managers to ignore coral), while rates are unbiased mid-week and must keep live signal (a Thursday CSAT drop belongs in the briefing); W4's backlog/tickets_assigned inherit the rule via `unit: 'count'` |
 | jsdom added as an apps/web devDependency (James-approved 2026-07-07); component tests opt into the DOM per-file via `// @vitest-environment jsdom`, lib tests stay on node | @testing-library/react was on the approved list but is inert without a DOM environment; per-file pragma keeps pure-logic tests fast and the DOM dependency test-only (never in the bundle) |
+| Org-sync classification never mints `admin` — manager-less accounts become `employee` (still flagged for review); `admin` joins `executive` as audited-write-only, preserved by the sync FAIL-CLOSED (a failed preserve-lookup writes no roles that run); 0019 stamps the JWT role claim only while `is_active = true` (strips on deactivate; trigger fires on role AND is_active); the 279 classification-minted admins reclassified by one audited sweep (audit PR 1, 2026-07-07) | REVIEW.md 0.2: 280 admin-role profiles existed and is_active was enforced nowhere in the claims/admin-RLS/web path — any manager-less human signing in held live admin, and a new manager-less human would have synced as an ACTIVE admin; "James stays the only admin" becomes enforcement, not luck |
 
 | Metric | Source | Formula |
 |---|---|---|

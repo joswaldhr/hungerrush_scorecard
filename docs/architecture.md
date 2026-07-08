@@ -82,7 +82,11 @@ Every table's SELECT policy uses this function. Hierarchy logic is never inlined
 Admin RLS policies use JWT claims instead of table queries to avoid recursion:
 - `(auth.jwt()->'app_metadata'->>'role') = 'admin'`
 - Role is synced from `profiles.role` to `auth.users.raw_app_meta_data` via trigger (migration 0010)
+- Since 0019 the claim exists only while the profile is `is_active` — deactivating strips it
+  (propagates at the next token refresh/sign-in)
 - A guard trigger prevents non-`service_role` callers from changing their own role
+- `admin` and `executive` are audited-write-only: the graph sync never produces or overwrites
+  either (classification assigns manager-less accounts `employee` and flags them for review)
 
 ## Shared package
 
@@ -119,3 +123,4 @@ Both `apps/web` and `apps/api` import from here.
 | 2026-07-06 | GRANT UPDATE on `metric_definitions` to `authenticated` — fixes S4 (42501 on every admin-UI metric save; table privilege was missing, the 0012 RLS policy was already correct). Pulled forward from Phase 2 into 1C per release plan W1 | `0016_grant_metric_definitions_update.sql` |
 | 2026-07-06 | W2: `executive` enum value (`user_role`); `visible_manager_ids()` executive branch (all active manager-role profiles org-wide, `executive` included so an executive's own directs stay visible); JWT-claims `profiles_select_executive` policy. Only ADDs the enum value — a new enum value is unusable in the transaction that adds it, so the role assignment is a separate audited service-key write (`scripts/set-adam-executive.ts`); claim-simulation probe in `scripts/rls-probe-executive.sql` | `0017_executive_role.sql` |
 | 2026-07-06 | W2: `employees.title` (nullable text) — Azure AD `jobTitle` mapped by the org graph sync; renders in the scorecard header, feeds the Cadence header. Existing rows backfill at the first org sync after the code deploy (`POST /api/sync/org`, manual trigger — the daily 05:00 cron only matches agent IDs) | `0018_employees_title.sql` |
+| 2026-07-07 | Audit PR 1 (REVIEW.md 0.2): `sync_role_to_jwt()` stamps the role claim only while `profiles.is_active = true` and strips it otherwise; trigger now also fires on `is_active` changes; backfill strips claims from all inactive profiles. Pairs with the graph-sync change (classification never mints `admin` — manager-less accounts become `employee`; admin joins executive as audited-write-only, preserved by the sync) and the one-time audited sweep `scripts/sweep-admin-roles.ts` (279 minted admins → employee; probe: `scripts/rls-probe-admin-sweep.sql`) | `0019_claims_respect_is_active.sql` |
