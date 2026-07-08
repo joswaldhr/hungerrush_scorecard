@@ -39,7 +39,7 @@ export function ActionItemsList({
 
   if (items.length === 0) {
     return (
-      <p className="text-[13px] text-hr-gray">
+      <p className="text-base text-hr-gray">
         No action items yet — add them with your next session note below.
       </p>
     );
@@ -54,8 +54,8 @@ export function ActionItemsList({
       {visible.map(({ item }) => (
         <label
           key={item.id}
-          className={`flex gap-2.5 items-start py-1.5 cursor-pointer text-[13.5px] ${
-            item.is_completed ? 'line-through text-hr-gray-light' : 'text-hr-navy'
+          className={`flex gap-2.5 items-start py-1.5 cursor-pointer text-base ${
+            item.is_completed ? 'line-through text-hr-gray-mid' : 'text-hr-navy'
           }`}
         >
           <input
@@ -68,7 +68,7 @@ export function ActionItemsList({
         </label>
       ))}
       {hiddenCount > 0 && (
-        <p className="text-[11px] text-hr-gray-light mt-1">
+        <p className="text-xs text-hr-gray-mid mt-1">
           +{hiddenCount} more in past sessions below
         </p>
       )}

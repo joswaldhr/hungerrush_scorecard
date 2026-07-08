@@ -28,9 +28,9 @@ function NotesSkeleton() {
   );
 }
 
-const fieldLabel = 'text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-gray-light mb-1.5 block';
+const fieldLabel = 'text-xs font-semibold uppercase tracking-[0.07em] text-hr-gray-mid mb-1.5 block';
 const fieldInput =
-  'rounded-lg border-hr-line text-sm text-hr-navy placeholder:text-hr-gray-light focus:ring-hr-teal/20 focus:border-hr-teal/40';
+  'rounded-lg border-hr-line text-base text-hr-navy placeholder:text-hr-gray-mid focus:ring-hr-teal/20 focus:border-hr-teal/40';
 
 /** UTC week key for a session date — groups the history by week (Cadence). */
 function weekOf(sessionDate: string): string {
@@ -136,12 +136,12 @@ export function NotesPanel({
           <div className="space-y-2">
             {actionItems.map((item, i) => (
               <div key={i} className="flex items-center gap-2">
-                <span className="flex-1 text-sm text-hr-navy bg-hr-bg px-3 py-1.5 rounded-lg">
+                <span className="flex-1 text-base text-hr-navy bg-hr-bg px-3 py-1.5 rounded-lg">
                   {item}
                 </span>
                 <button
                   onClick={() => handleRemoveItem(i)}
-                  className="text-hr-gray-light hover:text-hr-navy p-1 rounded transition-colors"
+                  className="text-hr-gray-mid hover:text-hr-navy p-1 rounded transition-colors"
                   aria-label={`Remove action item: ${item}`}
                 >
                   <X size={14} />
@@ -166,7 +166,7 @@ export function NotesPanel({
               <button
                 onClick={handleAddItem}
                 disabled={!newItem.trim()}
-                className="px-3 py-2 text-sm rounded-lg border border-hr-teal/30 text-hr-teal hover:bg-hr-teal-tint transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-3 py-2 text-base rounded-lg border border-hr-teal/30 text-hr-teal-deep hover:bg-hr-teal-tint transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Add
               </button>
@@ -174,17 +174,17 @@ export function NotesPanel({
           </div>
         </div>
 
-        {saveSuccess && <p className="text-hr-teal text-[12px]">Session saved</p>}
+        {saveSuccess && <p className="text-hr-teal-deep text-sm">Session saved</p>}
 
         {saveError && <WarnBanner>{saveError}</WarnBanner>}
 
         <button
           onClick={handleSave}
           disabled={saving || (!noteContent.trim() && actionItems.length === 0)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+          className={`px-4 py-2 rounded-lg text-base font-medium transition-colors ${
             !saving && (noteContent.trim() || actionItems.length > 0)
               ? 'bg-hr-teal text-white hover:bg-hr-teal/90'
-              : 'bg-hr-line text-hr-gray-light cursor-not-allowed'
+              : 'bg-hr-line text-hr-gray-mid cursor-not-allowed'
           }`}
         >
           {saving ? 'Saving...' : 'Save Session'}
@@ -192,32 +192,32 @@ export function NotesPanel({
       </div>
 
       {weekGroups.length === 0 ? (
-        <p className="text-[13px] text-hr-gray">
+        <p className="text-base text-hr-gray">
           No 1:1 sessions in the last 12 weeks — save your first note above.
         </p>
       ) : (
         <div className="space-y-4">
           {weekGroups.map(group => (
             <div key={group.week}>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-gray-light mb-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.07em] text-hr-gray-mid mb-2">
                 Week of {format(parseISO(group.week), 'MMM d')}
               </p>
               <div className="space-y-2.5">
                 {group.sessions.map(session => (
                   <div key={session.id} className="bg-hr-bg rounded-xl p-4 space-y-2.5">
-                    <p className="text-[12px] font-medium text-hr-navy">
+                    <p className="text-sm font-medium text-hr-navy">
                       {format(parseISO(session.session_date), 'EEEE, MMMM d')}
                     </p>
 
                     {session.notes.map(note => (
-                      <p key={note.id} className="text-sm text-hr-gray whitespace-pre-wrap">
+                      <p key={note.id} className="text-base text-hr-gray whitespace-pre-wrap">
                         {note.content}
                       </p>
                     ))}
 
                     {session.action_items.length > 0 && (
                       <div className="space-y-1.5">
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-gray-light">
+                        <p className="text-xs font-semibold uppercase tracking-[0.07em] text-hr-gray-mid">
                           Action Items
                         </p>
                         {session.action_items.map(item => (
@@ -229,8 +229,8 @@ export function NotesPanel({
                               className="rounded border-hr-line text-hr-teal focus:ring-hr-teal/20"
                             />
                             <span
-                              className={`text-sm ${
-                                item.is_completed ? 'line-through text-hr-gray-light' : 'text-hr-navy'
+                              className={`text-base ${
+                                item.is_completed ? 'line-through text-hr-gray-mid' : 'text-hr-navy'
                               }`}
                             >
                               {item.content}

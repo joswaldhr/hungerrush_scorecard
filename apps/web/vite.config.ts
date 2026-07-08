@@ -17,6 +17,10 @@ export default defineConfig({
         icons: [
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+          // Maskable icon (REVIEW.md 1.19, sprint decision 4): APPROVED but
+          // blocked on a design asset. When icon-512-maskable.png lands in
+          // apps/web/public/, uncomment — do NOT ship a generated placeholder.
+          // { src: '/icon-512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {

@@ -12,15 +12,15 @@ interface MetricCardProps {
 
 // Source identity badges — calm, never a performance signal.
 const SOURCE_BADGE: Record<string, string> = {
-  zendesk: 'bg-hr-teal-tint text-hr-teal',
+  zendesk: 'bg-hr-teal-tint text-hr-teal-deep',
   assembled: 'bg-hr-navy/[0.06] text-hr-navy-soft',
   forethought: 'bg-hr-bg text-hr-gray',
 };
 
-const fieldLabel = 'text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-gray-light mb-1 block';
-const metaLabel = 'text-[10px] font-semibold uppercase tracking-[0.07em] text-hr-gray-light';
+const fieldLabel = 'text-xs font-semibold uppercase tracking-[0.07em] text-hr-gray-mid mb-1 block';
+const metaLabel = 'text-xs font-semibold uppercase tracking-[0.07em] text-hr-gray-mid';
 const fieldInput =
-  'w-full rounded-lg border-hr-line text-[13px] text-hr-navy py-1.5 focus:ring-hr-teal/20 focus:border-hr-teal/40';
+  'w-full rounded-lg border-hr-line text-base text-hr-navy py-1.5 focus:ring-hr-teal/20 focus:border-hr-teal/40';
 
 export function MetricCard({ metric, saveState, onSave }: MetricCardProps) {
   const [name, setName] = useState(metric.name);
@@ -41,15 +41,15 @@ export function MetricCard({ metric, saveState, onSave }: MetricCardProps) {
     <div className={`bg-hr-card border border-hr-line rounded-xl shadow-card p-5 transition-opacity ${!isActive ? 'opacity-60' : ''}`}>
       <div className="flex items-center justify-between gap-3 mb-3.5">
         <div className="flex items-center gap-2.5 min-w-0">
-          <span className="font-mono text-[11px] text-hr-gray-light truncate">{metric.key}</span>
+          <span className="font-mono text-xs text-hr-gray-mid truncate">{metric.key}</span>
           <span
-            className={`text-[11px] font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${SOURCE_BADGE[metric.source] ?? 'bg-hr-bg text-hr-gray'}`}
+            className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${SOURCE_BADGE[metric.source] ?? 'bg-hr-bg text-hr-gray'}`}
           >
             {metric.source}
           </span>
         </div>
         <label className="flex items-center gap-2 cursor-pointer flex-shrink-0">
-          <span className="text-[12px] text-hr-gray">{isActive ? 'Active' : 'Inactive'}</span>
+          <span className="text-sm text-hr-gray">{isActive ? 'Active' : 'Inactive'}</span>
           <button
             type="button"
             role="switch"
@@ -102,16 +102,16 @@ export function MetricCard({ metric, saveState, onSave }: MetricCardProps) {
             value={displayOrder}
             onChange={e => setDisplayOrder(parseInt(e.target.value, 10) || 0)}
             min={1}
-            className="w-20 rounded-lg border-hr-line text-[13px] text-hr-navy py-1 focus:ring-hr-teal/20 focus:border-hr-teal/40"
+            className="w-20 rounded-lg border-hr-line text-base text-hr-navy py-1 focus:ring-hr-teal/20 focus:border-hr-teal/40"
           />
         </div>
         <p className="flex items-baseline gap-1.5">
           <span className={metaLabel}>Unit</span>
-          <span className="text-[12px] text-hr-gray">{metric.unit}</span>
+          <span className="text-sm text-hr-gray">{metric.unit}</span>
         </p>
         <p className="flex items-baseline gap-1.5">
           <span className={metaLabel}>Direction</span>
-          <span className="text-[12px] text-hr-gray">{directionLabel}</span>
+          <span className="text-sm text-hr-gray">{directionLabel}</span>
         </p>
         <button
           onClick={() =>
@@ -123,14 +123,14 @@ export function MetricCard({ metric, saveState, onSave }: MetricCardProps) {
             })
           }
           disabled={!isDirty || saveState === 'saving'}
-          className={`ml-auto px-3.5 py-1.5 rounded-lg text-[13px] font-medium transition-colors ${
+          className={`ml-auto px-3.5 py-1.5 rounded-lg text-base font-medium transition-colors ${
             saveState === 'saved'
-              ? 'bg-hr-teal-tint text-hr-teal'
+              ? 'bg-hr-teal-tint text-hr-teal-deep'
               : saveState === 'error'
                 ? 'bg-hr-amber-tint text-hr-amber-deep'
                 : isDirty && saveState !== 'saving'
                   ? 'bg-hr-navy text-white hover:bg-hr-navy/90'
-                  : 'bg-hr-line text-hr-gray-light cursor-not-allowed'
+                  : 'bg-hr-line text-hr-gray-mid cursor-not-allowed'
           }`}
         >
           {saveState === 'saving' && 'Saving...'}

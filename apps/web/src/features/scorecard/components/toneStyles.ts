@@ -12,10 +12,10 @@ export const SPARK_BAND_FILL = TONE_HEX.win;
 export const SPARK_BASELINE = '#E3E6EE';
 
 export const TONE_TEXT: Record<TrendTone, string> = {
-  win: 'text-hr-teal',
-  discuss: 'text-hr-coral',
-  steady: 'text-hr-gray-light',
-  new: 'text-hr-gray-light',
+  win: 'text-hr-teal-deep',
+  discuss: 'text-hr-coral-deep',
+  steady: 'text-hr-gray-mid',
+  new: 'text-hr-gray-mid',
 };
 
 export const TONE_BG: Record<TrendTone, string> = {

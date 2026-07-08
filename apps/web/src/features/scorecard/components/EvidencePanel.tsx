@@ -41,8 +41,8 @@ export function EvidencePanel({
         <PanelSkeleton />
       ) : groups.length === 0 ? (
         <div className="py-8 text-center">
-          <p className="text-[13px] text-hr-navy mb-1">No active metrics to show.</p>
-          <p className="text-[13px] text-hr-gray">
+          <p className="text-base text-hr-navy mb-1">No active metrics to show.</p>
+          <p className="text-base text-hr-gray">
             Ask your admin to enable metrics under Admin → Metrics.
           </p>
         </div>
@@ -51,7 +51,7 @@ export function EvidencePanel({
           <div key={group.source} className="mb-6 last:mb-0">
             <div className="flex justify-between items-baseline gap-2">
               <Eyebrow className="mb-2">{group.label}</Eyebrow>
-              <p className="font-mono text-[10px] text-hr-gray-light">
+              <p className="font-mono text-xs text-hr-gray-mid">
                 {group.weeksOfHistory} wk
                 {!group.stale && group.latestSyncedAt && (
                   <> · synced {timeAgo(group.latestSyncedAt)}</>

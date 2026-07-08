@@ -68,8 +68,8 @@ export function ScorecardPage() {
 
   const pillClass = (active: boolean) =>
     active
-      ? 'bg-hr-navy text-white text-[12px] px-3 py-1 rounded-full transition-colors'
-      : 'bg-hr-card border border-hr-line text-hr-gray text-[12px] px-3 py-1 rounded-full hover:bg-hr-bg transition-colors';
+      ? 'bg-hr-navy text-white text-sm px-3 py-1 rounded-full transition-colors'
+      : 'bg-hr-card border border-hr-line text-hr-gray text-sm px-3 py-1 rounded-full hover:bg-hr-bg transition-colors';
 
   const noneWithData =
     !loading && effectiveMode === 'data' && withData.length === 0 && scoped.length > 0;
@@ -78,12 +78,12 @@ export function ScorecardPage() {
     <AppLayout title="Your team">
       {managerFilter && (
         <div className="bg-hr-teal-tint border border-hr-teal/20 rounded-xl px-4 py-3 flex items-center justify-between mb-4">
-          <span className="text-[13px] text-hr-navy font-medium">
+          <span className="text-base text-hr-navy font-medium">
             {`Viewing ${managerName ?? 'this manager'}'s team`}
           </span>
           <button
             onClick={() => navigate('/rollup')}
-            className="flex items-center gap-1 text-[12px] text-hr-navy hover:underline"
+            className="flex items-center gap-1 text-sm text-hr-navy hover:underline"
           >
             <ArrowLeft size={12} />
             Back to rollup
@@ -101,7 +101,7 @@ export function ScorecardPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             aria-label="Search team members"
-            className="w-56 h-8 bg-hr-card border border-hr-line rounded-lg px-3 text-[13px] outline-none focus:border-hr-teal transition-colors"
+            className="w-56 h-8 bg-hr-card border border-hr-line rounded-lg px-3 text-base outline-none focus:border-hr-teal transition-colors"
           />
           {withData.length !== scoped.length && (
             <div className="flex gap-1.5">
@@ -118,29 +118,29 @@ export function ScorecardPage() {
 
       {!loading && scoped.length === 0 && !error ? (
         <div className="bg-hr-card rounded-xl border border-hr-line p-8 text-center">
-          <p className="text-[13px] text-hr-navy mb-1">No team members found yet.</p>
-          <p className="text-[13px] text-hr-gray">
+          <p className="text-base text-hr-navy mb-1">No team members found yet.</p>
+          <p className="text-base text-hr-gray">
             Ask your admin to run the org sync, or check back once your team has been set up.
           </p>
         </div>
       ) : noneWithData ? (
         <div className="bg-hr-card rounded-xl border border-hr-line p-8 text-center">
-          <p className="text-[13px] text-hr-navy mb-1">
+          <p className="text-base text-hr-navy mb-1">
             None of your team members have synced metrics yet.
           </p>
-          <p className="text-[13px] text-hr-gray">
+          <p className="text-base text-hr-gray">
             Metrics appear after the data sync connects to Zendesk and Assembled.
           </p>
           <button
             onClick={() => setRosterMode('all')}
-            className="text-hr-teal text-[13px] mt-3 hover:underline"
+            className="text-hr-teal-deep text-base mt-3 hover:underline"
           >
             Show all team members
           </button>
         </div>
       ) : !loading && visible.length === 0 && search.trim() ? (
         <div className="bg-hr-card rounded-xl border border-hr-line p-8 text-center">
-          <p className="text-[13px] text-hr-gray">No team members match your search.</p>
+          <p className="text-base text-hr-gray">No team members match your search.</p>
         </div>
       ) : (
         <RosterStrip

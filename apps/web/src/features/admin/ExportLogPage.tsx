@@ -89,7 +89,7 @@ export function ExportLogPage() {
 
   return (
     <AppLayout title="Export log">
-      <p className="text-[13px] text-hr-gray mb-6">
+      <p className="text-base text-hr-gray mb-6">
         Scorecard PDF exports with manager and timestamp — showing the latest 100
       </p>
 
@@ -99,8 +99,8 @@ export function ExportLogPage() {
         <TableSkeleton />
       ) : entries.length === 0 ? (
         <div className="bg-hr-card rounded-xl border border-hr-line p-8 text-center">
-          <p className="text-[13px] text-hr-navy mb-1">No exports yet.</p>
-          <p className="text-[13px] text-hr-gray">
+          <p className="text-base text-hr-navy mb-1">No exports yet.</p>
+          <p className="text-base text-hr-gray">
             PDF exports will appear here once a manager exports a scorecard.
           </p>
         </div>
@@ -109,21 +109,21 @@ export function ExportLogPage() {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-hr-line">
-                <th className="px-4 py-3 text-[10px] font-semibold tracking-widest uppercase text-hr-gray-light">Date</th>
-                <th className="px-4 py-3 text-[10px] font-semibold tracking-widest uppercase text-hr-gray-light">Exported By</th>
-                <th className="px-4 py-3 text-[10px] font-semibold tracking-widest uppercase text-hr-gray-light">Employee</th>
+                <th className="px-4 py-3 text-xs font-semibold tracking-widest uppercase text-hr-gray-mid">Date</th>
+                <th className="px-4 py-3 text-xs font-semibold tracking-widest uppercase text-hr-gray-mid">Exported By</th>
+                <th className="px-4 py-3 text-xs font-semibold tracking-widest uppercase text-hr-gray-mid">Employee</th>
               </tr>
             </thead>
             <tbody>
               {entries.map(entry => (
                 <tr key={entry.id} className="border-b border-hr-line/60 last:border-0 hover:bg-hr-bg transition-colors">
-                  <td className="px-4 py-3 text-[13px] text-hr-navy">
+                  <td className="px-4 py-3 text-base text-hr-navy">
                     {format(parseISO(entry.created_at), 'MMM d, yyyy h:mm a')}
                   </td>
-                  <td className="px-4 py-3 text-[13px] text-hr-navy">
+                  <td className="px-4 py-3 text-base text-hr-navy">
                     {entry.actor_email}
                   </td>
-                  <td className="px-4 py-3 text-[13px] text-hr-navy">
+                  <td className="px-4 py-3 text-base text-hr-navy">
                     {entry.employee_name}
                   </td>
                 </tr>

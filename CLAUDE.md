@@ -437,23 +437,31 @@ leaks, every access control is void.
 ## UI rules
 
 **Brand tokens — configure in tailwind.config.ts, use nowhere else (Cadence set, Phase 3
-2026-07-07 — values from the `T` object in `docs/design/hungerrush-cadence/cadence-v2.jsx`):**
+2026-07-07 — values from the `T` object in `docs/design/hungerrush-cadence/cadence-v2.jsx`;
+`-deep`/`-mid` contrast tokens added by audit PR 4, 2026-07-08 — WCAG ratios computed and
+recorded in tailwind.config.ts comments):**
 ```
 hr-navy:        #0C1443   headings · nav · primary ink
 hr-navy-soft:   #3A3F6B   eyebrows · secondary navy
-hr-teal:        #3B8272   brand accent · wins · actions
+hr-teal:        #3B8272   brand accent — fills/borders/dots/strokes; as TEXT only ≥18px bold or on navy
+hr-teal-deep:   #2E6653   teal TEXT at body sizes (tints + white)
 hr-teal-tint:   #EAF3F0   positive tint backgrounds
-hr-coral:       #C4553A   the ONE attention accent — "discuss", never "alarm"
+hr-coral:       #C4553A   the ONE attention accent — "discuss", never "alarm"; fills/dots/large stats
+hr-coral-deep:  #A8442C   coral TEXT at body sizes (tints + white)
 hr-coral-tint:  #FBF1EE   lead discuss-card background
-hr-amber:       #E9930F   system degradation (stale sync) · notes tone
+hr-amber:       #E9930F   system degradation (stale sync) — fills/borders only
 hr-amber-tint:  #FDF4E3   stale-banner background
-hr-amber-deep:  #8A5A0B   readable amber text on the tint (WarnBanner)
+hr-amber-deep:  #8A5A0B   amber TEXT (WarnBanner etc.)
 hr-bg:          #F6F7F9   page background
 hr-card:        #FFFFFF   card surface
 hr-line:        #E3E6EE   borders · dividers
 hr-gray:        #5C607E   secondary text
-hr-gray-light:  #9EA2BC   tertiary text · steady/new tone
+hr-gray-mid:    #687090   tertiary TEXT (labels · stamps · sublines)
+hr-gray-light:  #9EA2BC   decoration ONLY (dots · accents) — NEVER text (2.5:1)
 ```
+**The rule of thumb (audit PR 4): colored TEXT at body sizes uses the `-deep`/`-mid`
+variant; base hues stay for fills, borders, dots, sparkline strokes, and large display
+stats (≥18px bold passes as large text).**
 The pre-Cadence names (hr-green, hr-sand, hr-text-*, …) are GONE — their transitional
 aliases were retired 2026-07-07 with the last old surfaces (Phase 3 session 2). Only
 the Cadence tokens above exist; a class referencing an old name silently renders
@@ -462,9 +470,15 @@ unstyled, so treat any hr-green/hr-sand/hr-text-* sighting in a diff as a bug.
 **Typography (self-hosted woff2 in `apps/web/public/fonts/` — no Google Fonts @import,
 no icon webfonts; lucide-react only):** Montserrat = headings (`font-heading`) ·
 Inter = body (`font-sans`) · IBM Plex Mono = metric values (`font-mono`).
+**Type scale (audit PR 4, 2026-07-08):** ONE tokenized scale below 16px — `text-xs` 11px
+(labels/eyebrows/chips/stamps) · `text-sm` 12.5px (sublines/meta) · `text-base` 13.5px
+(body) · `text-lg` 15px (emphasized/titles). These SHADOW Tailwind's core steps so an
+accidental core class can't reintroduce an off-scale size; arbitrary `text-[Npx]` below
+16px is a bug in review. Display sizes (16px+) stay per-surface.
 
-**Performance state colors:** hr-coral for discuss · hr-teal for wins · hr-gray-light for
-steady/new. hr-amber is NOT a performance state — it marks system degradation (stale sync,
+**Performance state colors:** coral for discuss · teal for wins · gray for steady/new —
+dots/fills use the base hues, body-size TEXT uses `-deep`/`-mid` (see the token rule
+above). hr-amber is NOT a performance state — it marks system degradation (stale sync,
 notes tone) only.
 **Never use red for any performance state — AMENDED 2026-07-06 (Cadence adoption):** coral
 `#C4553A` (warm terracotta) is the one sanctioned attention accent for performance states,
