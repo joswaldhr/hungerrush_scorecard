@@ -35,6 +35,8 @@ export const EmployeeSchema = z.object({
   title: z.string().nullable(),
   zendesk_agent_id: z.string().nullable(),
   assembled_agent_id: z.string().nullable(),
+  /** False = absent from the AD graph at the last org sync — history frozen, badged "no longer synced" (0020). */
+  is_active: z.boolean(),
   created_at: z.string(),
   updated_at: z.string(),
 });

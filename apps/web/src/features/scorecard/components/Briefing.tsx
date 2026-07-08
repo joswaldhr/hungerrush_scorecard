@@ -189,6 +189,12 @@ export function Briefing({ employeeId }: { employeeId: string }) {
               {employee.title ? `${employee.title} · ` : ''}
               {employee.email}
             </p>
+            {!employee.is_active && (
+              <p className="text-[11px] text-hr-gray-light mt-1">
+                No longer synced — absent from the last org sync; metrics are frozen at their
+                last values.
+              </p>
+            )}
           </div>
           <div className="flex items-end gap-5 flex-wrap">
             {!metricsLoading && !noData && (

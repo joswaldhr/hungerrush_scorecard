@@ -39,6 +39,7 @@ function def(key: string): MetricDefinition {
 const ROW: ManagerRollupRow = {
   manager: manager('m1', 'Alex Smith'),
   employeeCount: 4,
+  inactiveCount: 0,
   tones: {
     csat_score: { win: 2, discuss: 1, steady: 1, new: 0, total: 4 },
     occupancy: { win: 0, discuss: 0, steady: 3, new: 1, total: 4 },
@@ -75,11 +76,23 @@ describe('RollupCard', () => {
     const empty: ManagerRollupRow = {
       manager: manager('m2', 'Blake Jones'),
       employeeCount: 2,
+      inactiveCount: 0,
       tones: {},
       wins: 0,
       toDiscuss: 0,
     };
     render(<RollupCard row={empty} definitions={[def('csat_score')]} onOpen={() => {}} />);
     expect(screen.getByText(/No trend data yet/)).toBeTruthy();
+  });
+
+  it('shows the no-longer-synced count when a report has left the directory', () => {
+    render(
+      <RollupCard
+        row={{ ...ROW, inactiveCount: 1 }}
+        definitions={[def('csat_score')]}
+        onOpen={() => {}}
+      />,
+    );
+    expect(screen.getByText(/1 no longer synced/)).toBeTruthy();
   });
 });

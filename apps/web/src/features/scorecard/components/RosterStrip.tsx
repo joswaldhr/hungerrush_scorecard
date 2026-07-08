@@ -14,7 +14,10 @@ function ChipSkeleton() {
 function chipSubline(entry: RosterEntry): string {
   // The lookback is SESSION_LOOKBACK_WEEKS — older sessions read "no recent 1:1".
   const last = entry.lastSessionDate ? `1:1 ${timeAgo(entry.lastSessionDate)}` : 'no recent 1:1';
-  return `${entry.summary.label} · ${last}`;
+  // Inactive = absent from the AD graph at the last org sync (0020): the badge
+  // replaces the tone label — frozen metrics are not a coaching signal.
+  const label = entry.employee.is_active ? entry.summary.label : 'no longer synced';
+  return `${label} · ${last}`;
 }
 
 /**
@@ -53,7 +56,7 @@ export function RosterStrip({
                 }`}
               >
                 <span className="flex items-center gap-2 mb-0.5">
-                  <ToneDot tone={entry.summary.tone} />
+                  <ToneDot tone={entry.employee.is_active ? entry.summary.tone : 'new'} />
                   <span className="font-heading text-[14px] font-bold truncate">
                     {entry.employee.full_name}
                   </span>
