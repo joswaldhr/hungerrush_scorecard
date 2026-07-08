@@ -5,12 +5,15 @@ import { useAuth } from '../features/auth/AuthProvider';
 import { supabase } from '../lib/supabase';
 import { getInitials } from '../lib/initials';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useDataFreshness } from '../hooks/useDataFreshness';
 import { OfflineBanner } from './OfflineBanner';
+import { SyncFreshnessChip } from './SyncFreshnessChip';
 
 interface AppLayoutProps {
   children: ReactNode;
   title: ReactNode;
-  subtitle?: string;
+  /** ReactNode so pages can append chips (rollup freshness) — same rationale as title. */
+  subtitle?: ReactNode;
   actions?: ReactNode;
 }
 
@@ -135,6 +138,9 @@ export function AppLayout({ children, title, subtitle, actions }: AppLayoutProps
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
+  // Global freshness chip (QoL): every screen answers "can I trust this right
+  // now" at a glance — the newest visible synced_at, amber past the 9h bound.
+  const { latestSyncedAt } = useDataFreshness();
 
   // S12: per-route document title + move focus to the page heading when a page
   // mounts (each page mounts its own AppLayout, so this fires on page-to-page
@@ -206,7 +212,10 @@ export function AppLayout({ children, title, subtitle, actions }: AppLayoutProps
             </h1>
             {subtitle && <p className="text-xs text-hr-gray-mid mt-px">{subtitle}</p>}
           </div>
-          <div className="ml-auto flex items-center gap-3 flex-shrink-0">{actions}</div>
+          <div className="ml-auto flex items-center gap-3 flex-shrink-0">
+            <SyncFreshnessChip latestSyncedAt={latestSyncedAt} />
+            {actions}
+          </div>
         </header>
         <OfflineBanner />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-hr-bg">{children}</main>

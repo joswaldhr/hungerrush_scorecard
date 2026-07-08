@@ -4,10 +4,14 @@ import { fetchAllPages } from '../lib/fetchAllPages';
 import { currentWeekStartUtc, weeksBeforeUtc, weekStartStr } from '@scorecard/shared';
 import type { Profile, MetricDefinition } from '@scorecard/shared';
 import { SPARKLINE_WEEKS } from '../lib/evidence';
+import { maxIso } from '../lib/employeeMetrics';
 import { buildRollupRows, type RollupSnapshotRow } from '../lib/rollup';
 import type { ManagerRollupRow } from '../lib/rollup';
 
 export type { ManagerRollupRow, MetricToneCounts } from '../lib/rollup';
+
+/** The aggregation contract plus the stamp the freshness chip needs. */
+type SnapshotRowWithSync = RollupSnapshotRow & { synced_at: string | null };
 
 export function useManagerRollup() {
   const [rows, setRows] = useState<ManagerRollupRow[]>([]);
@@ -15,6 +19,7 @@ export function useManagerRollup() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [weekRange, setWeekRange] = useState<string | null>(null);
+  const [latestSyncedAt, setLatestSyncedAt] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -48,11 +53,11 @@ export function useManagerRollup() {
     // rationale as useRoster's wide case). Paginated (L7).
     const snapshotsRes =
       definitionsRes.error || activeKeys.length === 0
-        ? { data: [] as RollupSnapshotRow[], error: null }
-        : await fetchAllPages<RollupSnapshotRow>((from, to) =>
+        ? { data: [] as SnapshotRowWithSync[], error: null }
+        : await fetchAllPages<SnapshotRowWithSync>((from, to) =>
             supabase
               .from('metric_snapshots')
-              .select('employee_id, metric_key, value, period_start')
+              .select('employee_id, metric_key, value, period_start, synced_at')
               .gte('period_start', windowStartStr)
               .in('metric_key', activeKeys)
               .order('id')
@@ -75,6 +80,8 @@ export function useManagerRollup() {
 
       setRows(buildRollupRows(managers, employees, defs, snapshots, thisMondayStr));
       setDefinitions(defs);
+      // Freshness of the rows behind these cards (QoL) — max stamp in the window.
+      setLatestSyncedAt(maxIso(snapshots.map(s => s.synced_at)));
       if (snapshots.length > 0) {
         // thisMonday is UTC midnight — format in UTC or US-negative offsets would
         // display the previous (Sunday) date. Pure-ms day math for the same reason.
@@ -90,5 +97,5 @@ export function useManagerRollup() {
     load();
   }, [load]);
 
-  return { rows, definitions, weekRange, loading, error, refetch: load };
+  return { rows, definitions, weekRange, latestSyncedAt, loading, error, refetch: load };
 }

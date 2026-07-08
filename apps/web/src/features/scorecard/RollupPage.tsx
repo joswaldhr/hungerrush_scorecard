@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useManagerRollup } from '../../hooks/useManagerRollup';
 import { AppLayout } from '../../components/AppLayout';
 import { WarnBanner } from '../../components/WarnBanner';
+import { SyncFreshnessChip } from '../../components/SyncFreshnessChip';
 import { RollupCard } from './components/RollupCard';
 import type { ManagerRollupRow } from '../../hooks/useManagerRollup';
 
@@ -30,13 +31,25 @@ function CardSkeleton() {
 
 // Access control: AuthGuard in App.tsx gates this route to senior_manager/executive/admin (S6).
 export function RollupPage() {
-  const { rows, definitions, weekRange, loading, error } = useManagerRollup();
+  const { rows, definitions, weekRange, latestSyncedAt, loading, error } = useManagerRollup();
   const navigate = useNavigate();
 
-  const subtitleText =
-    rows.length > 0
-      ? `${rows.length} manager${rows.length === 1 ? '' : 's'}${weekRange ? ` · ${weekRange}` : ''}`
-      : undefined;
+  // Freshness rides the subtitle (QoL): the cards' counts come from these
+  // snapshot rows, so the stamp is the rows' own max synced_at, not the
+  // app-wide one in the header.
+  const subtitle =
+    rows.length > 0 ? (
+      <>
+        {rows.length} manager{rows.length === 1 ? '' : 's'}
+        {weekRange ? ` · ${weekRange}` : ''}
+        {latestSyncedAt && (
+          <>
+            {' · '}
+            <SyncFreshnessChip latestSyncedAt={latestSyncedAt} />
+          </>
+        )}
+      </>
+    ) : undefined;
 
   const handleOpen = (row: ManagerRollupRow) => {
     const params = new URLSearchParams({ manager: row.manager.id, name: row.manager.full_name });
@@ -44,7 +57,7 @@ export function RollupPage() {
   };
 
   return (
-    <AppLayout title="Team rollup" subtitle={subtitleText}>
+    <AppLayout title="Team rollup" subtitle={subtitle}>
       {error && <WarnBanner className="mb-4">{error}</WarnBanner>}
 
       {loading ? (
