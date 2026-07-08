@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useRoster } from '../../hooks/useRoster';
@@ -7,6 +7,9 @@ import { WarnBanner } from '../../components/WarnBanner';
 import { TourModal, useTour } from '../onboarding/TourModal';
 import { RosterStrip } from './components/RosterStrip';
 import { Briefing } from './components/Briefing';
+
+const UNSAVED_NOTE_CONFIRM =
+  'You have an unsaved note for this person. Switch anyway and discard it?';
 
 /**
  * The Cadence home: roster strip for picking the person, 1:1 briefing below.
@@ -24,6 +27,7 @@ export function ScorecardPage() {
   const { entries, loading, error } = useRoster(managerFilter);
   const [rosterMode, setRosterMode] = useState<'data' | 'all'>('data');
   const [search, setSearch] = useState('');
+  const [notesDirty, setNotesDirty] = useState(false);
   const { showTour, closeTour } = useTour();
 
   const scoped = entries;
@@ -62,9 +66,17 @@ export function ScorecardPage() {
     }
   }, [employeeId, loading, visible, navigate, searchParams]);
 
-  const handleSelect = (id: string) => {
-    navigate({ pathname: `/scorecard/${id}`, search: searchParams.toString() });
-  };
+  // The ONE person-switch path (roster clicks and arrow keys both land here).
+  // Switching unmounts the briefing and destroys any notes draft — when one
+  // exists, confirm the discard first (REVIEW.md 2.1).
+  const selectPerson = useCallback(
+    (id: string) => {
+      if (id === employeeId) return;
+      if (notesDirty && !window.confirm(UNSAVED_NOTE_CONFIRM)) return;
+      navigate({ pathname: `/scorecard/${id}`, search: searchParams.toString() });
+    },
+    [employeeId, notesDirty, navigate, searchParams],
+  );
 
   const pillClass = (active: boolean) =>
     active
@@ -146,12 +158,12 @@ export function ScorecardPage() {
         <RosterStrip
           entries={visible}
           selectedId={employeeId ?? null}
-          onSelect={handleSelect}
+          onSelect={selectPerson}
           loading={loading}
         />
       )}
 
-      {employeeId && <Briefing employeeId={employeeId} />}
+      {employeeId && <Briefing employeeId={employeeId} onNotesDirtyChange={setNotesDirty} />}
 
       <TourModal open={showTour} onClose={closeTour} />
     </AppLayout>

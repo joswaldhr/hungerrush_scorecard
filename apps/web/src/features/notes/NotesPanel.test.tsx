@@ -58,6 +58,79 @@ describe('NotesPanel', () => {
     expect(screen.getByText(/No 1:1 sessions in the last 12 weeks — save your first note/)).toBeTruthy();
   });
 
+  it('reports dirty while a draft exists and guards tab close only then', () => {
+    const onDirtyChange = vi.fn();
+    render(
+      <NotesPanel
+        sessions={[]}
+        loading={false}
+        managerId="m1"
+        onSave={async () => ({ ok: true })}
+        onToggleActionItem={async () => ({ ok: true })}
+        onDirtyChange={onDirtyChange}
+      />,
+    );
+    expect(onDirtyChange).toHaveBeenLastCalledWith(false);
+
+    const cleanClose = new Event('beforeunload', { cancelable: true });
+    window.dispatchEvent(cleanClose);
+    expect(cleanClose.defaultPrevented).toBe(false);
+
+    fireEvent.change(screen.getByLabelText('Notes'), { target: { value: 'half-typed draft' } });
+    expect(onDirtyChange).toHaveBeenLastCalledWith(true);
+
+    const dirtyClose = new Event('beforeunload', { cancelable: true });
+    window.dispatchEvent(dirtyClose);
+    expect(dirtyClose.defaultPrevented).toBe(true);
+
+    fireEvent.change(screen.getByLabelText('Notes'), { target: { value: '' } });
+    expect(onDirtyChange).toHaveBeenLastCalledWith(false);
+  });
+
+  it('a pending action item counts as a draft', () => {
+    const onDirtyChange = vi.fn();
+    render(
+      <NotesPanel
+        sessions={[]}
+        loading={false}
+        managerId="m1"
+        onSave={async () => ({ ok: true })}
+        onToggleActionItem={async () => ({ ok: true })}
+        onDirtyChange={onDirtyChange}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText('New action item'), { target: { value: 'Pair up' } });
+    expect(onDirtyChange).toHaveBeenLastCalledWith(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+    // Item moved from the input into the pending list — still a draft.
+    expect(onDirtyChange).toHaveBeenLastCalledWith(true);
+  });
+
+  it('reports clean after a successful save and on unmount', async () => {
+    const onDirtyChange = vi.fn();
+    const { unmount } = render(
+      <NotesPanel
+        sessions={[]}
+        loading={false}
+        managerId="m1"
+        onSave={async () => ({ ok: true })}
+        onToggleActionItem={async () => ({ ok: true })}
+        onDirtyChange={onDirtyChange}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText('Notes'), { target: { value: 'First 1:1' } });
+    expect(onDirtyChange).toHaveBeenLastCalledWith(true);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save Session' }));
+    await screen.findByText('Session saved');
+    expect(onDirtyChange).toHaveBeenLastCalledWith(false);
+
+    fireEvent.change(screen.getByLabelText('Notes'), { target: { value: 'next draft' } });
+    expect(onDirtyChange).toHaveBeenLastCalledWith(true);
+    unmount();
+    expect(onDirtyChange).toHaveBeenLastCalledWith(false);
+  });
+
   it('shows the undo copy when a history checkbox toggle fails', async () => {
     const withItem: ScorecardSessionWithDetails = {
       ...SESSION,

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { X } from 'lucide-react';
 import { currentWeekStartUtc, weekStartStr } from '@scorecard/shared';
@@ -19,6 +19,12 @@ interface NotesPanelProps {
     actionItems: string[],
   ) => Promise<{ ok: boolean; error?: string }>;
   onToggleActionItem: (itemId: string, isCompleted: boolean) => Promise<{ ok: boolean; error?: string }>;
+  /**
+   * Reports whether a draft (note text or pending action items) would be lost
+   * if the panel unmounted — the roster person-switch guard reads it. The
+   * panel reports clean on unmount.
+   */
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 function NotesSkeleton() {
@@ -46,6 +52,7 @@ export function NotesPanel({
   managerId,
   onSave,
   onToggleActionItem,
+  onDirtyChange,
 }: NotesPanelProps) {
   const today = new Date().toISOString().split('T')[0];
   const minDate = new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -57,6 +64,31 @@ export function NotesPanel({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [historyToggleError, setHistoryToggleError] = useState<string | null>(null);
+
+  // A draft exists once any field the save would persist has content; the
+  // date field alone is not a draft. Guards both loss paths (REVIEW.md 2.1):
+  // person-switch (via onDirtyChange → the roster confirm) and tab close
+  // (via beforeunload below).
+  const dirty = noteContent.trim() !== '' || actionItems.length > 0 || newItem.trim() !== '';
+
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
+
+  // Unmounting destroys the draft with the panel — report clean so a stale
+  // dirty flag can't keep confirming switches that no longer lose anything.
+  useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
+
+  useEffect(() => {
+    if (!dirty) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      // Legacy Chrome requirement — without returnValue the prompt is skipped.
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [dirty]);
 
   // Sessions arrive newest-first; group into weeks in that order (presentation
   // only — no schema change).
