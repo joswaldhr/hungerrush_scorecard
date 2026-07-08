@@ -7,10 +7,44 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-07-07 (session 29)
+**Last updated:** 2026-07-08 (session 30)
 
 - All 5 phases, 4 UI/UX sprints, layout redesign, and data integrity audit complete — pilot-ready
 - Production: `hungerrush-scorecard.vercel.app` (frontend) · `scorecardapi-production.up.railway.app` (backend)
+- **Session 30 (2026-07-08 — audit sprint, 5 of 6 PRs DONE; NEXT SESSION = sprint PR 5):**
+  James ran a four-track review (**`REVIEW.md` at the repo root is the sprint tracker —
+  read it before any sprint work**; execution-status header lists every PR + sha) and
+  kicked off the "suggested first sprint" with hard rules: ONE PR at a time in order,
+  stop-and-show diff summary after each, no scope creep (new finds → REVIEW.md
+  "Discovered during execution", never fixed inline), data sweeps shown before
+  execution, migrations additive-only, visual PRs carry before/after per screen.
+  **Merged this session** (each verified via `/health` sha; James applied migrations +
+  approved the sweep): **PR 1** `8f8228e` — org-sync classification never mints admin
+  (manager-less → `employee`; admin+executive preserved FAIL-CLOSED), `0019` claims
+  trigger respects `is_active` (strip on deactivate), audited sweep 279 minted admins →
+  employee (backup CSV + audit_log; James = the only admin by enforcement now; probe
+  passed); **PR 2a** `a14c8ce` — sync overlap guard (manual /run during a run → 409),
+  one `sync_run`/`sync_run_failed` audit row per run, audit-POST scope check (employees
+  SELECT under the CALLER's JWT = the existing visibility function); **PR 2b** `371b356`
+  — vite 8 / vitest 4 / vite-plugin-pwa 1.3 / node-cron 4.6, **npm audit 7 → 0**,
+  recharts removed (unused; also off the approved list), cron gate passed (3/3 patterns
+  + exactly-one probe fire), PWA NetworkFirst semantics verified in dist/sw.js;
+  **PR 3** `90f73c2` — ghost reconciliation: `0020` `employees.is_active`, graphSync
+  pass 5 flips absent emails inactive / returned active with a mass-deactivation
+  circuit breaker (>max(5, 20%) skips), "no longer synced" badges (roster chip,
+  briefing header, rollup count) + rollup tone counts exclude frozen histories (the
+  42701 error on 0020 was a double-paste — first run had succeeded); **PR 4** `f3b0d25`
+  — contrast tokens `hr-gray-mid #687090` / `hr-teal-deep #2E6653` / `hr-coral-deep
+  #A8442C` (ratios in tailwind.config comments; gray-light = decoration-only) + the ONE
+  type scale (xs 11 / sm 12.5 / base 13.5 / lg 15 shadowing core steps; zero sub-16px
+  arbitraries) + maskable-icon manifest scaffold (commented, awaiting design asset).
+  Tests **154 → 162** (55 api / 75 web / 32 shared). **Next session: sprint PR 5
+  `audit/qol-sprint1`** — scope + gates in REVIEW.md's execution-status header
+  (unsaved-note guard, optimistic toggles, keyboard basics, freshness chips). **Pending
+  checks:** first node-cron-v4 production cron (18:00 UTC Jul 8 — verify a `sync_run`
+  audit row exists stamped ~18:07); IT owns the AD-disable session-survival check.
+  Sprint-2 deferrals (do NOT start): PDF fonts/sparklines, share-link management UI,
+  route-level tests, rollup search, covered-checks/note-insert QoL, metrics.md doc fix.
 - **Session 29 (Phase 3 = Cadence, session 2 of 2 — CLOSED: PR #8, 12 commits, merged to
   master `3665473` + James browser-verified 2026-07-07, steps 1–6 confirmed; all-"new"
   rollup chips are CORRECT — only 3 weeks of history exist, trends unlock Jul 13 for
