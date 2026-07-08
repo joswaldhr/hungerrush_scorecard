@@ -1,7 +1,7 @@
 # REVIEW.md — HungerRush Cadence, four-track review
 
 **Baseline:** master `959622f` (2026-07-07) · 154/154 tests green · builds green.
-**Execution status (sprint 1, one PR at a time):** PR 1 `audit/admin-role-fix` → **MERGED `8f8228e` 2026-07-08** (0019 applied + verified; sweep executed: 279 → employee, audited, probe passed; serving sha confirmed). PR 2a `audit/sync-hardening` → **in review** (ships 3.3 + 0.3's audit-POST scope check). PRs 2b/3/4/5 not started. Migration renumber: 0019 = claims trigger, so ghost reconciliation (3.1) = `0020`.
+**Execution status (sprint 1, one PR at a time):** PR 1 `audit/admin-role-fix` → **MERGED `8f8228e` 2026-07-08** (0019 applied + verified; sweep executed: 279 → employee, audited, probe passed; serving sha confirmed). PR 2a `audit/sync-hardening` → **MERGED `a14c8ce` 2026-07-08** (serving sha confirmed; gate outputs in the PR). PR 2b `audit/toolchain-2026-07` → **in review** (ships 0.1 + drops unused recharts; **npm audit now 0 vulnerabilities**; cron gate passed: 3/3 patterns + exactly-one fire; PWA NetworkFirst semantics verified in dist/sw.js). PRs 3/4/5 not started. Migration renumber: 0019 = claims trigger, so ghost reconciliation (3.1) = `0020`.
 **Method:** full code read + live-DB read-only queries + computed WCAG ratios. The app was **not** driven locally in this pass — it sits behind Microsoft SSO; visual findings are code-derived plus today's production screenshots (rollup, briefing, admin), tagged accordingly. Dispositioned items from `docs/refactor-plan.md` (L*/S*/D*) are referenced, not re-litigated.
 
 ---
@@ -18,7 +18,7 @@
 | vite-node / vite-plugin-pwa | Moderate | Dev/build chain only | Rides vitest 4 / pwa 1.3 bumps |
 | **node-cron ≤3.x via uuid <11.1.1** (buffer bounds, v3/v5/v6 with `buf`) | Moderate | **Production runtime dep** — but the vulnerable path needs a caller passing `buf` to uuid v3/v5/v6; node-cron's internal use doesn't. Practical reachability ~nil | Bump node-cron 4.6 (MAJOR — re-verify the three schedules in `apps/api/src/index.ts:45-81` fire once after deploy) |
 
-**Verdict [VERIFIED]:** nothing here is exploitable in the deployed app today. Do ONE coordinated toolchain PR (vite 8 + vitest 4 + vite-plugin-pwa 1.3 + node-cron 4), gate on build + 154 tests + a PWA install check + one cron cycle. Sev: Med · Effort: hours.
+**Verdict [VERIFIED]:** nothing here is exploitable in the deployed app today. Do ONE coordinated toolchain PR (vite 8 + vitest 4 + vite-plugin-pwa 1.3 + node-cron 4), gate on build + 154 tests + a PWA install check + one cron cycle. Sev: Med · Effort: hours. → **SHIPPED in PR 2b** — `npm audit`: **0 vulnerabilities** after the bumps; recharts (unused) removed; all gates in the PR body.
 
 ### 0.2 Admin-classification blast radius [VERIFIED] → **SHIPPED — PR 1 merged `8f8228e`, sweep executed + probed 2026-07-08**
 
