@@ -11,6 +11,8 @@ export interface PdfMetric {
   lastWeekValue: number | null;
   /** Tone from the one trend engine; null when the metric has no history. */
   tone: TrendTone | null;
+  /** Full 12-week history array for sparkline rendering (oldest to newest). */
+  history: (number | null)[];
 }
 
 // Cadence tokens as RGB (tailwind.config.ts is the source of the hex values).
@@ -29,13 +31,36 @@ const TONE_PDF: Record<TrendTone, { label: string; color: readonly [number, numb
   new: { label: 'New', color: GRAY_LIGHT },
 };
 
-export function generateScorecardPdf(
+export async function generateScorecardPdf(
   employeeName: string,
   employeeEmail: string,
   metrics: PdfMetric[],
   managerEmail: string,
-): void {
+): Promise<void> {
   const doc = new jsPDF();
+
+  // Load custom font dynamically
+  try {
+    const fontRes = await fetch('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfMZhrib2Bg-4.ttf');
+    if (fontRes.ok) {
+      const buffer = await fontRes.arrayBuffer();
+      // btoa requires a string, but arrayBuffer can be large. Use Uint8Array to string.
+      let binary = '';
+      const bytes = new Uint8Array(buffer);
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]!);
+      }
+      const base64Font = btoa(binary);
+      doc.addFileToVFS('Inter-Regular.ttf', base64Font);
+      doc.addFont('Inter-Regular.ttf', 'Inter', 'normal');
+      doc.addFont('Inter-Regular.ttf', 'Inter', 'bold'); // fallback since we only load one weight for speed
+    }
+  } catch (e) {
+    console.warn('Failed to load brand font for PDF:', e);
+  }
+
+  const fontName = doc.getFontList()['Inter'] ? 'Inter' : 'helvetica';
+
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const now = new Date();
@@ -44,22 +69,22 @@ export function generateScorecardPdf(
   // Brand band
   doc.setFillColor(...NAVY);
   doc.rect(0, 0, pageWidth, 24, 'F');
-  doc.setFont('helvetica', 'bold');
+  doc.setFont(fontName, 'bold');
   doc.setFontSize(15);
   doc.setTextColor(255, 255, 255);
   doc.text('HungerRush Cadence', 14, 15);
-  doc.setFont('helvetica', 'normal');
+  doc.setFont(fontName, 'normal');
   doc.setFontSize(9);
   doc.setTextColor(...LAVENDER);
   doc.text('1:1 briefing snapshot', pageWidth - 14, 15, { align: 'right' });
 
   let y = 36;
-  doc.setFont('helvetica', 'bold');
+  doc.setFont(fontName, 'bold');
   doc.setFontSize(15);
   doc.setTextColor(...NAVY);
   doc.text(employeeName, 14, y);
   y += 6.5;
-  doc.setFont('helvetica', 'normal');
+  doc.setFont(fontName, 'normal');
   doc.setFontSize(9.5);
   doc.setTextColor(...GRAY);
   doc.text(employeeEmail, 14, y);
@@ -80,7 +105,7 @@ export function generateScorecardPdf(
       y = 20;
     }
 
-    doc.setFont('helvetica', 'bold');
+    doc.setFont(fontName, 'bold');
     doc.setFontSize(11);
     doc.setTextColor(...NAVY);
     doc.text(m.definition.name, 14, y);
@@ -97,7 +122,7 @@ export function generateScorecardPdf(
     }
     y += 5.5;
 
-    doc.setFont('helvetica', 'normal');
+    doc.setFont(fontName, 'normal');
     doc.setFontSize(8.5);
     if (m.tone) {
       const t = TONE_PDF[m.tone];
@@ -114,6 +139,37 @@ export function generateScorecardPdf(
       { align: 'right' },
     );
     y += 5.5;
+
+    // Draw sparkline
+    const validHistory = m.history.filter(v => v !== null) as number[];
+    if (validHistory.length > 1) {
+      const sparklineHeight = 10;
+      const sparklineWidth = 30;
+      const sparklineX = 14;
+      const sparklineY = y + 2;
+
+      const min = Math.min(...validHistory);
+      const max = Math.max(...validHistory);
+      const range = max - min === 0 ? 1 : max - min; // avoid division by zero
+
+      doc.setDrawColor(...(m.tone ? TONE_PDF[m.tone].color : NAVY));
+      doc.setLineWidth(0.5);
+
+      const stepX = sparklineWidth / (validHistory.length - 1);
+      let prevX = sparklineX;
+      let prevY = sparklineY + sparklineHeight - (((validHistory[0] as number) - min) / range) * sparklineHeight;
+
+      for (let i = 1; i < validHistory.length; i++) {
+        const cx = sparklineX + i * stepX;
+        const cy = sparklineY + sparklineHeight - (((validHistory[i] as number) - min) / range) * sparklineHeight;
+        doc.line(prevX, prevY, cx, cy);
+        prevX = cx;
+        prevY = cy;
+      }
+      y += sparklineHeight + 6;
+    } else if (validHistory.length <= 1) {
+      y += 2; // small padding if no sparkline
+    }
 
     if (m.definition.coaching_prompt) {
       doc.setFontSize(9);
@@ -132,7 +188,7 @@ export function generateScorecardPdf(
   // Watermark on EVERY page — a forwardable performance doc must carry its
   // provenance on each page, not just the last one.
   const pageCount = doc.getNumberOfPages();
-  doc.setFont('helvetica', 'normal');
+  doc.setFont(fontName, 'normal');
   doc.setFontSize(8);
   doc.setTextColor(...GRAY_LIGHT);
   for (let i = 1; i <= pageCount; i++) {

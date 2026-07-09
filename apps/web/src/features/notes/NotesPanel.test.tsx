@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
+import { RouterProvider, createMemoryRouter } from 'react-router-dom';
 import {
   ACTION_TOGGLE_FAILED_COPY,
   type ScorecardSessionWithDetails,
@@ -30,15 +31,21 @@ const SESSION: ScorecardSessionWithDetails = {
 };
 
 function renderPanel(sessions: ScorecardSessionWithDetails[], loading = false) {
-  return render(
-    <NotesPanel
-      sessions={sessions}
-      loading={loading}
-      managerId="m1"
-      onSave={async () => ({ ok: true })}
-      onToggleActionItem={async () => ({ ok: true })}
-    />,
-  );
+  const router = createMemoryRouter([
+    {
+      path: '/',
+      element: (
+        <NotesPanel
+          sessions={sessions}
+          loading={loading}
+          managerId="m1"
+          onSave={async () => ({ ok: true })}
+          onToggleActionItem={async () => ({ ok: true })}
+        />
+      ),
+    },
+  ]);
+  return render(<RouterProvider router={router} />);
 }
 
 describe('NotesPanel', () => {
@@ -60,16 +67,22 @@ describe('NotesPanel', () => {
 
   it('reports dirty while a draft exists and guards tab close only then', () => {
     const onDirtyChange = vi.fn();
-    render(
-      <NotesPanel
-        sessions={[]}
-        loading={false}
-        managerId="m1"
-        onSave={async () => ({ ok: true })}
-        onToggleActionItem={async () => ({ ok: true })}
-        onDirtyChange={onDirtyChange}
-      />,
-    );
+    const router = createMemoryRouter([
+      {
+        path: '/',
+        element: (
+          <NotesPanel
+            sessions={[]}
+            loading={false}
+            managerId="m1"
+            onSave={async () => ({ ok: true })}
+            onToggleActionItem={async () => ({ ok: true })}
+            onDirtyChange={onDirtyChange}
+          />
+        ),
+      },
+    ]);
+    render(<RouterProvider router={router} />);
     expect(onDirtyChange).toHaveBeenLastCalledWith(false);
 
     const cleanClose = new Event('beforeunload', { cancelable: true });
@@ -89,16 +102,22 @@ describe('NotesPanel', () => {
 
   it('a pending action item counts as a draft', () => {
     const onDirtyChange = vi.fn();
-    render(
-      <NotesPanel
-        sessions={[]}
-        loading={false}
-        managerId="m1"
-        onSave={async () => ({ ok: true })}
-        onToggleActionItem={async () => ({ ok: true })}
-        onDirtyChange={onDirtyChange}
-      />,
-    );
+    const router = createMemoryRouter([
+      {
+        path: '/',
+        element: (
+          <NotesPanel
+            sessions={[]}
+            loading={false}
+            managerId="m1"
+            onSave={async () => ({ ok: true })}
+            onToggleActionItem={async () => ({ ok: true })}
+            onDirtyChange={onDirtyChange}
+          />
+        ),
+      },
+    ]);
+    render(<RouterProvider router={router} />);
     fireEvent.change(screen.getByLabelText('New action item'), { target: { value: 'Pair up' } });
     expect(onDirtyChange).toHaveBeenLastCalledWith(true);
     fireEvent.click(screen.getByRole('button', { name: 'Add' }));
@@ -108,16 +127,22 @@ describe('NotesPanel', () => {
 
   it('reports clean after a successful save and on unmount', async () => {
     const onDirtyChange = vi.fn();
-    const { unmount } = render(
-      <NotesPanel
-        sessions={[]}
-        loading={false}
-        managerId="m1"
-        onSave={async () => ({ ok: true })}
-        onToggleActionItem={async () => ({ ok: true })}
-        onDirtyChange={onDirtyChange}
-      />,
-    );
+    const router = createMemoryRouter([
+      {
+        path: '/',
+        element: (
+          <NotesPanel
+            sessions={[]}
+            loading={false}
+            managerId="m1"
+            onSave={async () => ({ ok: true })}
+            onToggleActionItem={async () => ({ ok: true })}
+            onDirtyChange={onDirtyChange}
+          />
+        ),
+      },
+    ]);
+    const { unmount } = render(<RouterProvider router={router} />);
     fireEvent.change(screen.getByLabelText('Notes'), { target: { value: 'First 1:1' } });
     expect(onDirtyChange).toHaveBeenLastCalledWith(true);
 
@@ -146,30 +171,42 @@ describe('NotesPanel', () => {
         },
       ],
     };
-    render(
-      <NotesPanel
-        sessions={[withItem]}
-        loading={false}
-        managerId="m1"
-        onSave={async () => ({ ok: true })}
-        onToggleActionItem={async () => ({ ok: false, error: 'network down' })}
-      />,
-    );
+    const router = createMemoryRouter([
+      {
+        path: '/',
+        element: (
+          <NotesPanel
+            sessions={[withItem]}
+            loading={false}
+            managerId="m1"
+            onSave={async () => ({ ok: true })}
+            onToggleActionItem={async () => ({ ok: false, error: 'network down' })}
+          />
+        ),
+      },
+    ]);
+    render(<RouterProvider router={router} />);
     fireEvent.click(screen.getByRole('checkbox'));
     await waitFor(() => expect(screen.getByText(ACTION_TOGGLE_FAILED_COPY)).toBeTruthy());
   });
 
   it('keeps Save disabled until there is content, then saves', async () => {
     const onSave = vi.fn(async () => ({ ok: true }));
-    render(
-      <NotesPanel
-        sessions={[]}
-        loading={false}
-        managerId="m1"
-        onSave={onSave}
-        onToggleActionItem={async () => ({ ok: true })}
-      />,
-    );
+    const router = createMemoryRouter([
+      {
+        path: '/',
+        element: (
+          <NotesPanel
+            sessions={[]}
+            loading={false}
+            managerId="m1"
+            onSave={onSave}
+            onToggleActionItem={async () => ({ ok: true })}
+          />
+        ),
+      },
+    ]);
+    render(<RouterProvider router={router} />);
     const save = screen.getByRole('button', { name: 'Save Session' });
     expect((save as HTMLButtonElement).disabled).toBe(true);
 

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useBlocker } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import { X } from 'lucide-react';
 import { currentWeekStartUtc, weekStartStr } from '@scorecard/shared';
@@ -74,6 +75,19 @@ export function NotesPanel({
   useEffect(() => {
     onDirtyChange?.(dirty);
   }, [dirty, onDirtyChange]);
+
+  const blocker = useBlocker(dirty);
+
+  useEffect(() => {
+    if (blocker.state === 'blocked') {
+      const confirmLeave = window.confirm('You have unsaved notes. Are you sure you want to leave?');
+      if (confirmLeave) {
+        blocker.proceed();
+      } else {
+        blocker.reset();
+      }
+    }
+  }, [blocker]);
 
   // Unmounting destroys the draft with the panel — report clean so a stale
   // dirty flag can't keep confirming switches that no longer lose anything.

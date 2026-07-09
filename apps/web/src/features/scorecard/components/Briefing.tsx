@@ -125,7 +125,7 @@ export function Briefing({
     if (!employee) return;
     setExportStatus('exporting');
     try {
-      generateScorecardPdf(
+      await generateScorecardPdf(
         employee.full_name,
         employee.email,
         evidence.map(m => ({
@@ -133,6 +133,7 @@ export function Briefing({
           currentValue: m.currentValue,
           lastWeekValue: m.lastWeekValue,
           tone: m.weeksOfHistory > 0 ? m.assessment.tone : null,
+          history: m.slots.map(s => (s ? s.value : null)),
         })),
         session.user.email ?? '',
       );

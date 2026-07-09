@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import { App } from './App';
+import { RouterProvider } from 'react-router-dom';
+import { router } from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import './index.css';
 
@@ -17,9 +17,7 @@ if (!rootEl) throw new Error('Root element not found');
 ReactDOM.createRoot(rootEl).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <App />
-      </BrowserRouter>
+      <RouterProvider router={router} future={{ v7_startTransition: true }} />
     </ErrorBoundary>
   </React.StrictMode>,
 );
