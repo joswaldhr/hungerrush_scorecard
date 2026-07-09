@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Users, LayoutGrid, SlidersHorizontal, FileOutput, Menu, X, type LucideIcon } from 'lucide-react';
+import { Users, LayoutGrid, SlidersHorizontal, FileOutput, Menu, Search, X, type LucideIcon } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthProvider';
 import { supabase } from '../lib/supabase';
 import { getInitials } from '../lib/initials';
@@ -8,6 +8,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useDataFreshness } from '../hooks/useDataFreshness';
 import { OfflineBanner } from './OfflineBanner';
 import { SyncFreshnessChip } from './SyncFreshnessChip';
+import { CommandPalette } from './CommandPalette';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -136,11 +137,14 @@ function SidebarContent({ onNavigate }: { onNavigate: (path: string) => void }) 
 export function AppLayout({ children, title, subtitle, actions }: AppLayoutProps) {
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   // Global freshness chip (QoL): every screen answers "can I trust this right
   // now" at a glance — the newest visible synced_at, amber past the 9h bound.
   const { latestSyncedAt } = useDataFreshness();
+  // Header hint doubles as the mouse entry point for the Ctrl/Cmd+K palette.
+  const isMac = /Mac/i.test(navigator.platform);
 
   // S12: per-route document title + move focus to the page heading when a page
   // mounts (each page mounts its own AppLayout, so this fires on page-to-page
@@ -213,6 +217,14 @@ export function AppLayout({ children, title, subtitle, actions }: AppLayoutProps
             {subtitle && <p className="text-xs text-hr-gray-mid mt-px">{subtitle}</p>}
           </div>
           <div className="ml-auto flex items-center gap-3 flex-shrink-0">
+            <button
+              onClick={() => setPaletteOpen(true)}
+              aria-label="Open command palette"
+              className="hidden sm:flex items-center gap-1 border border-hr-line rounded-md px-1.5 py-0.5 text-xs text-hr-gray-mid hover:text-hr-gray hover:bg-hr-bg transition-colors"
+            >
+              <Search size={11} />
+              {isMac ? '⌘K' : 'Ctrl K'}
+            </button>
             <SyncFreshnessChip latestSyncedAt={latestSyncedAt} />
             {actions}
           </div>
@@ -220,6 +232,8 @@ export function AppLayout({ children, title, subtitle, actions }: AppLayoutProps
         <OfflineBanner />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-hr-bg">{children}</main>
       </div>
+
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>
   );
 }
