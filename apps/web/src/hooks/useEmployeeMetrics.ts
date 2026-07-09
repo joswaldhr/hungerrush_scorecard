@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { currentWeekStartUtc, weeksBeforeUtc, weekStartStr } from '@scorecard/shared';
 import type { MetricDefinition, MetricSnapshot } from '@scorecard/shared';
@@ -9,8 +9,15 @@ export function useEmployeeMetrics(employeeId: string) {
   const [metrics, setMetrics] = useState<EmployeeMetric[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Fetch generation (external review): a response that lost the race — the
+  // person switched or a newer fetch started mid-flight — must not write
+  // state over the winner's. Every load claims a generation; only the newest
+  // may commit. Guards refetches too, which a flag-per-effect can't. (After
+  // unmount React 18 no-ops setState, so no cleanup hook is needed.)
+  const generationRef = useRef(0);
 
   const load = useCallback(async () => {
+    const generation = ++generationRef.current;
     setLoading(true);
     setError(null);
 
@@ -33,6 +40,8 @@ export function useEmployeeMetrics(employeeId: string) {
         .eq('is_active', true)
         .order('display_order'),
     ]);
+
+    if (generationRef.current !== generation) return;
 
     const firstError = snapshotsRes.error ?? definitionsRes.error;
     if (firstError) {

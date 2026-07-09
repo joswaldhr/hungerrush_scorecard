@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { subWeeks, format } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import type {
@@ -44,8 +44,13 @@ export function useScorecardNotes(employeeId: string) {
   const [sessions, setSessions] = useState<ScorecardSessionWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Fetch generation (external review): only the newest fetch may commit
+  // state — see useEmployeeMetrics. Also covers the post-save refetch inside
+  // createSession racing a person switch.
+  const generationRef = useRef(0);
 
   const fetchSessions = useCallback(async () => {
+    const generation = ++generationRef.current;
     setError(null);
     // Wider than the old 4-week notes list: open action items from past
     // sessions carry into the briefing (Cadence).
@@ -57,6 +62,8 @@ export function useScorecardNotes(employeeId: string) {
       .eq('employee_id', employeeId)
       .gte('session_date', windowStart)
       .order('session_date', { ascending: false });
+
+    if (generationRef.current !== generation) return;
 
     if (err) {
       setError(err.message);

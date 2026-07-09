@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Employee } from '@scorecard/shared';
 
@@ -6,8 +6,13 @@ export function useEmployee(employeeId: string) {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Fetch generation (external review): only the newest fetch may commit
+  // state — a slow response for the outgoing person must not put their name
+  // back on screen after a switch. See useEmployeeMetrics.
+  const generationRef = useRef(0);
 
   const load = useCallback(async () => {
+    const generation = ++generationRef.current;
     setLoading(true);
     setError(null);
     const { data, error: err } = await supabase
@@ -15,6 +20,8 @@ export function useEmployee(employeeId: string) {
       .select('*')
       .eq('id', employeeId)
       .single();
+
+    if (generationRef.current !== generation) return;
 
     if (err) {
       setError(err.message);

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { currentWeekStartUtc, weekStartStr } from '@scorecard/shared';
+import { currentWeekStartUtc, weekStartStr, type Employee } from '@scorecard/shared';
 import type { AssembledPerson } from '../types/assembled';
 import type { ZendeskUser, ZendeskUsersResponse } from '../types/zendesk';
 import { assembledConnector, type AssembledRunContext } from '../connectors/assembled';
@@ -23,6 +23,32 @@ function getSyncBounds(mode: 'live' | 'snapshot'): { start: Date; end: Date } {
     23, 59, 59, 999,
   ));
   return { start, end };
+}
+
+/** The projection every sync-side employees read uses (columns of shared Employee). */
+type EmployeeAgentRow = Pick<Employee, 'id' | 'email' | 'zendesk_agent_id' | 'assembled_agent_id'>;
+
+// Paginated employees fetch (external review; the L7 truncation class):
+// PostgREST caps one response at 1,000 rows — comfortably above today's ~350
+// employees, but the sync must not silently truncate as the org grows.
+// Ordered by id for stable pages, like every paginated fetch in this repo.
+async function fetchEmployeesPaginated<T extends Partial<EmployeeAgentRow>>(
+  selectFields: string,
+  orFilter?: string,
+): Promise<{ data: T[] | null; error: { message: string } | null }> {
+  const supabase = getSupabaseAdmin();
+  const all: T[] = [];
+  const PAGE_SIZE = 1000;
+  for (let from = 0; ; from += PAGE_SIZE) {
+    let query = supabase.from('employees').select(selectFields);
+    if (orFilter) query = query.or(orFilter);
+    const { data, error } = await query.order('id').range(from, from + PAGE_SIZE - 1);
+
+    if (error) return { data: null, error };
+    const page = (data ?? []) as unknown as T[];
+    all.push(...page);
+    if (page.length < PAGE_SIZE) return { data: all, error: null };
+  }
 }
 
 // --- Zendesk user fetch ---
@@ -71,9 +97,9 @@ export async function bootstrapAgentIds(): Promise<BootstrapResult> {
   };
 
   const supabase = getSupabaseAdmin();
-  const { data: employees, error: empError } = await supabase
-    .from('employees')
-    .select('id, email, zendesk_agent_id, assembled_agent_id');
+  const { data: employees, error: empError } = await fetchEmployeesPaginated<EmployeeAgentRow>(
+    'id, email, zendesk_agent_id, assembled_agent_id',
+  );
 
   if (empError) throw new Error(`Failed to fetch employees: ${empError.message}`);
   if (!employees || employees.length === 0) {
@@ -141,9 +167,9 @@ export async function bootstrapAgentIds(): Promise<BootstrapResult> {
   }
 
   // Re-fetch employees to pick up assembled pass updates
-  const { data: refreshed, error: refreshErr } = await supabase
-    .from('employees')
-    .select('id, email, zendesk_agent_id');
+  const { data: refreshed, error: refreshErr } = await fetchEmployeesPaginated<
+    Pick<EmployeeAgentRow, 'id' | 'email' | 'zendesk_agent_id'>
+  >('id, email, zendesk_agent_id');
 
   if (refreshErr) throw new Error(`Failed to refresh employees: ${refreshErr.message}`);
   const currentEmployees = refreshed ?? [];
@@ -336,10 +362,10 @@ async function runSyncInner(mode: 'live' | 'snapshot'): Promise<SyncResult> {
     `assembled ${activeAssembled.length}/${ASSEMBLED_METRICS.length}`,
   );
 
-  const { data: employees, error: empError } = await supabase
-    .from('employees')
-    .select('id, email, zendesk_agent_id, assembled_agent_id')
-    .or('zendesk_agent_id.not.is.null,assembled_agent_id.not.is.null');
+  const { data: employees, error: empError } = await fetchEmployeesPaginated<EmployeeAgentRow>(
+    'id, email, zendesk_agent_id, assembled_agent_id',
+    'zendesk_agent_id.not.is.null,assembled_agent_id.not.is.null',
+  );
 
   if (empError) throw new Error(`Failed to fetch employees: ${empError.message}`);
   if (!employees || employees.length === 0) {
