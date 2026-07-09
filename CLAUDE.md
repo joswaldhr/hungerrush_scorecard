@@ -11,6 +11,27 @@
 
 - All 5 phases, 4 UI/UX sprints, layout redesign, and data integrity audit complete — pilot-ready
 - Production: `hungerrush-scorecard.vercel.app` (frontend) · `scorecardapi-production.up.railway.app` (backend)
+- **Session 31b (2026-07-08 — sprint 1 MERGED + external-review fix PR built, OPEN):**
+  James merged PR #16 (`d06fcda`) — **sprint 1 COMPLETE** — then ran a Google Antigravity
+  second-opinion review whose agent left an uncommitted 4-file changeset + test in the
+  master checkout. Verified claim-by-claim before adopting: tests/typecheck green but
+  **lint FAILED** (9 `no-explicit-any`), 6 `any`s total, graphSync's new listUsers
+  pagination failed OPEN (a partial auth map would let pass 1 re-create existing auth
+  users), the race-guard's refetch wrappers bypassed the guard and churned identity
+  every render, the package-lock/jsdom "fix" was a no-op (EOL noise; jsdom already
+  approved), and the changeset MISSED `useEmployee` — the same stale-response race on
+  the person's NAME. Adopted onto **`audit/external-review-fixes`** with repairs:
+  typed `User[]` + shared-`Employee`-projection generics (zero `any`), fail-CLOSED
+  listUsers pagination (PR-1 precedent), and a **fetch-generation guard** (every load
+  claims `++generationRef.current`; only the newest commits; guards refetch with
+  stable identity; no effect cleanup needed — a new load already invalidates in-flight
+  responses and React 18 no-ops post-unmount setState) across useEmployeeMetrics /
+  useScorecardNotes / useEmployee; typed test harness + new useEmployee race test.
+  Tests 181 → **186** (55 api / 99 web / 32 shared); typecheck ×3 / lint / build green.
+  REVIEW.md discovered-entry records the adoption + the not-fixed lower-stakes race in
+  useRoster/useManagerRollup. Master checkout cleaned after the branch captured the
+  changeset (stray `hungerrush_cadence.jsx` at repo root left for James). **This PR is
+  out-of-band hardening — sprint 2 still awaits James's pick from REVIEW.md deferrals.**
 - **Session 31 (2026-07-08 — audit sprint PR 5 of 6 BUILT; sprint 1 COMPLETE on merge):**
   Pre-flight all green: PR #15 merged (`df43bf0`), zero stranded commits across the six
   `audit/*` branches, and **the first node-cron-v4 production cron VERIFIED** — `sync_run`
