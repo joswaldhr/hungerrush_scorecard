@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { User } from '@supabase/supabase-js';
 import { getSupabaseAdmin } from '../lib/supabaseAdmin';
 
 interface GraphUser {
@@ -223,10 +224,23 @@ export async function syncOrgStructure(): Promise<SyncResult> {
 
   const supabase = getSupabaseAdmin();
 
-  // Fetch existing auth users to avoid duplicates
-  const { data: authData } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  // Fetch existing auth users to avoid duplicates — paginated (external
+  // review): one page holds at most perPage users, so past 1,000 accounts a
+  // single fetch would silently miss the rest. A PARTIAL map here is worse
+  // than no run at all (pass 1 would re-create auth users it failed to see),
+  // so any page failure aborts the run — fail closed, the PR-1 precedent.
+  const authUsers: User[] = [];
+  for (let page = 1; ; page++) {
+    const { data: authData, error } = await supabase.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) {
+      throw new Error(`Failed to fetch auth users (page ${page}): ${error.message}`);
+    }
+    const users = authData?.users ?? [];
+    authUsers.push(...users);
+    if (users.length < 1000) break;
+  }
   const authByEmail = new Map(
-    (authData?.users ?? []).map((u) => [u.email?.toLowerCase(), u.id]),
+    authUsers.map((u) => [u.email?.toLowerCase(), u.id]),
   );
 
   // Graph ID → Supabase profile ID mapping (built as we go)
