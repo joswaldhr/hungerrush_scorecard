@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { LoginPage } from './features/auth/LoginPage';
 import { AuthCallback } from './features/auth/AuthCallback';
@@ -17,50 +17,67 @@ function DashboardRedirect() {
   return <Navigate to={{ pathname: '/scorecard', search: location.search }} replace />;
 }
 
-export function App() {
+function AppLayout() {
   return (
     <AuthProvider>
-      <Routes>
-        <Route path="/" element={<Navigate to="/scorecard" replace />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/auth/callback" element={<AuthCallback />} />
-        <Route path="/shared/:token" element={<SharedScorecardPage />} />
-        <Route path="/dashboard" element={<DashboardRedirect />} />
-        <Route
-          path="/rollup"
-          element={
-            <AuthGuard roles={['senior_manager', 'executive', 'admin']}>
-              <RollupPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/scorecard/:employeeId?"
-          element={
-            <AuthGuard>
-              <ScorecardPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/admin/metrics"
-          element={
-            <AuthGuard roles={['admin']}>
-              <MetricConfigPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/admin/exports"
-          element={
-            <AuthGuard roles={['admin']}>
-              <ExportLogPage />
-            </AuthGuard>
-          }
-        />
-        {/* S10: unknown paths get a real 404 (the "/" landing redirect stays above). */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+      <Outlet />
     </AuthProvider>
   );
 }
+
+export const router = createBrowserRouter(
+  [
+    {
+      element: <AppLayout />,
+      children: [
+        { path: '/', element: <Navigate to="/scorecard" replace /> },
+        { path: '/login', element: <LoginPage /> },
+        { path: '/auth/callback', element: <AuthCallback /> },
+        { path: '/shared/:token', element: <SharedScorecardPage /> },
+        { path: '/dashboard', element: <DashboardRedirect /> },
+        {
+          path: '/rollup',
+          element: (
+            <AuthGuard roles={['senior_manager', 'executive', 'admin']}>
+              <RollupPage />
+            </AuthGuard>
+          ),
+        },
+        {
+          path: '/scorecard/:employeeId?',
+          element: (
+            <AuthGuard>
+              <ScorecardPage />
+            </AuthGuard>
+          ),
+        },
+        {
+          path: '/admin/metrics',
+          element: (
+            <AuthGuard roles={['admin']}>
+              <MetricConfigPage />
+            </AuthGuard>
+          ),
+        },
+        {
+          path: '/admin/exports',
+          element: (
+            <AuthGuard roles={['admin']}>
+              <ExportLogPage />
+            </AuthGuard>
+          ),
+        },
+        { path: '*', element: <NotFoundPage /> },
+      ],
+    },
+  ],
+  {
+    future: {
+      v7_fetcherPersist: true,
+      v7_normalizeFormMethod: true,
+      v7_partialHydration: true,
+      v7_relativeSplatPath: true,
+      v7_skipActionErrorRevalidation: true,
+    },
+  }
+);
