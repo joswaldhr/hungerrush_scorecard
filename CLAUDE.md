@@ -11,6 +11,22 @@
 
 - All 5 phases, 4 UI/UX sprints, layout redesign, and data integrity audit complete — pilot-ready
 - Production: `hungerrush-scorecard.vercel.app` (frontend) · `scorecardapi-production.up.railway.app` (backend)
+- **Session 31c (2026-07-08 — PR #17 MERGED + wave-2 palette rebuilt, PR OPEN):** James
+  merged #17 (`f4583df`; **/health sha verified serving it**). Antigravity's wave 2
+  (Cmd+K palette + 3 unapproved deps clsx/framer-motion/tailwind-merge + a 366-line
+  restyle) had withdrawn itself into the Antigravity UI on "finish" — it never reached
+  git. James's call: rebuild the palette, drop the restyle. Built **`audit/command-palette`**:
+  new `CommandPalette.tsx` — ZERO new deps (existing idioms replace all three), Cadence
+  tokens, the S1 drawer's overlay pattern, combobox/listbox a11y with
+  aria-activedescendant, person-jump via LAZY `useRoster` (inner content mounts on first
+  open, so no query rides every page), role-gated pages reusing the sidebar gates,
+  Ctrl/Cmd+K modified-chord listener that deliberately works while typing (no collision
+  with PR-16's bare-key listener; Esc closes via the input's own handler) — plus an
+  AppLayout header trigger (`⌘K`/`Ctrl K` chip) sharing the controlled open state.
+  Tests 186 → **193** (55 api / 106 web / 32 shared); typecheck ×3 / lint / build green;
+  npm audit 0 (no dep changes). REVIEW.md records: palette nav joins sidebar clicks in
+  the unguarded-SPA-nav residual (data-router/useBlocker = the one fix). **NEXT: James
+  merges the palette PR, then picks sprint 2 from REVIEW.md's deferrals.**
 - **Session 31b (2026-07-08 — sprint 1 MERGED + external-review fix PR built, OPEN):**
   James merged PR #16 (`d06fcda`) — **sprint 1 COMPLETE** — then ran a Google Antigravity
   second-opinion review whose agent left an uncommitted 4-file changeset + test in the
