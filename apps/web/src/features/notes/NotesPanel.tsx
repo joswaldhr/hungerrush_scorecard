@@ -25,16 +25,16 @@ interface NotesPanelProps {
 function NotesSkeleton() {
   return (
     <div className="animate-pulse space-y-4" aria-hidden="true">
-      <div className="h-6 bg-hr-line/60 rounded w-1/4" />
-      <div className="h-24 bg-hr-line/60 rounded" />
-      <div className="h-10 bg-hr-line/60 rounded w-1/3" />
+      <div className="h-6 bg-white/10 rounded w-1/4" />
+      <div className="h-24 bg-white/10 rounded" />
+      <div className="h-10 bg-white/10 rounded w-1/3" />
     </div>
   );
 }
 
-const fieldLabel = 'text-xs font-semibold uppercase tracking-[0.07em] text-hr-gray-mid mb-1.5 block';
+const fieldLabel = 'text-[12px] font-semibold uppercase tracking-[0.07em] text-[#5E6980] mb-1.5 block';
 const fieldInput =
-  'rounded-lg border-hr-line text-base text-hr-navy placeholder:text-hr-gray-mid focus:ring-hr-teal/20 focus:border-hr-teal/40';
+  'rounded-[10px] bg-white/5 border-white/10 text-[14px] text-[#F2F5FA] placeholder:text-[#5E6980] focus:ring-[#2BD9BC]/20 focus:border-[#2BD9BC]/40';
 
 /** UTC week key for a session date — groups the history by week (Cadence). */
 function weekOf(sessionDate: string): string {
@@ -59,10 +59,6 @@ export function NotesPanel({
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [historyToggleError, setHistoryToggleError] = useState<string | null>(null);
 
-  // A draft exists once any field the save would persist has content; the
-  // date field alone is not a draft. Guards both loss paths (REVIEW.md 2.1):
-  // person-switch (via onDirtyChange → the roster confirm) and tab close
-  // (via beforeunload below).
   const dirty = noteContent.trim() !== '' || actionItems.length > 0 || newItem.trim() !== '';
 
   const blocker = useBlocker(dirty);
@@ -83,15 +79,12 @@ export function NotesPanel({
     if (!dirty) return;
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
-      // Legacy Chrome requirement — without returnValue the prompt is skipped.
       e.returnValue = '';
     };
     window.addEventListener('beforeunload', onBeforeUnload);
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, [dirty]);
 
-  // Sessions arrive newest-first; group into weeks in that order (presentation
-  // only — no schema change).
   const weekGroups = useMemo(() => {
     const groups: Array<{ week: string; sessions: ScorecardSessionWithDetails[] }> = [];
     for (const session of sessions) {
@@ -119,7 +112,6 @@ export function NotesPanel({
   const handleHistoryToggle = async (itemId: string, isCompleted: boolean) => {
     setHistoryToggleError(null);
     const result = await onToggleActionItem(itemId, isCompleted);
-    // Optimistic toggle: a failed write is already undone on screen — say so.
     if (!result.ok) {
       setHistoryToggleError(ACTION_TOGGLE_FAILED_COPY);
     }
@@ -159,6 +151,7 @@ export function NotesPanel({
             max={today}
             onChange={e => setSessionDate(e.target.value)}
             className={fieldInput}
+            style={{ colorScheme: 'dark' }}
           />
         </div>
 
@@ -181,12 +174,12 @@ export function NotesPanel({
           <div className="space-y-2">
             {actionItems.map((item, i) => (
               <div key={i} className="flex items-center gap-2">
-                <span className="flex-1 text-base text-hr-navy bg-hr-bg px-3 py-1.5 rounded-lg">
+                <span className="flex-1 text-[14px] text-[#F2F5FA] bg-white/5 border border-white/10 px-3 py-1.5 rounded-[10px]">
                   {item}
                 </span>
                 <button
                   onClick={() => handleRemoveItem(i)}
-                  className="text-hr-gray-mid hover:text-hr-navy p-1 rounded transition-colors"
+                  className="text-[#5E6980] hover:text-[#F2F5FA] p-1 rounded transition-colors"
                   aria-label={`Remove action item: ${item}`}
                 >
                   <X size={14} />
@@ -211,7 +204,7 @@ export function NotesPanel({
               <button
                 onClick={handleAddItem}
                 disabled={!newItem.trim()}
-                className="px-3 py-2 text-base rounded-lg border border-hr-teal/30 text-hr-teal-deep hover:bg-hr-teal-tint transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-3 py-2 text-[14px] rounded-[10px] border border-[#2BD9BC]/30 text-[#2BD9BC] hover:bg-[#2BD9BC]/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Add
               </button>
@@ -219,17 +212,17 @@ export function NotesPanel({
           </div>
         </div>
 
-        {saveSuccess && <p className="text-hr-teal-deep text-sm">Session saved</p>}
+        {saveSuccess && <p className="text-[#2BD9BC] text-[13px]">Session saved</p>}
 
         {saveError && <WarnBanner>{saveError}</WarnBanner>}
 
         <button
           onClick={handleSave}
           disabled={saving || (!noteContent.trim() && actionItems.length === 0)}
-          className={`px-4 py-2 rounded-lg text-base font-medium transition-colors ${
+          className={`px-4 py-2.5 rounded-[10px] text-[14px] font-semibold transition-colors ${
             !saving && (noteContent.trim() || actionItems.length > 0)
-              ? 'bg-hr-teal text-white hover:bg-hr-teal/90'
-              : 'bg-hr-line text-hr-gray-mid cursor-not-allowed'
+              ? 'bg-[#2BD9BC] text-[#101624] hover:bg-[#2BD9BC]/90'
+              : 'bg-white/10 text-[#5E6980] cursor-not-allowed'
           }`}
         >
           {saving ? 'Saving...' : 'Save Session'}
@@ -237,7 +230,7 @@ export function NotesPanel({
       </div>
 
       {weekGroups.length === 0 ? (
-        <p className="text-base text-hr-gray">
+        <p className="text-[14px] text-[#98A2B8]">
           No 1:1 sessions in the last 12 weeks — save your first note above.
         </p>
       ) : (
@@ -245,25 +238,25 @@ export function NotesPanel({
           {historyToggleError && <WarnBanner>{historyToggleError}</WarnBanner>}
           {weekGroups.map(group => (
             <div key={group.week}>
-              <p className="text-xs font-semibold uppercase tracking-[0.07em] text-hr-gray-mid mb-2">
+              <p className="text-[12px] font-semibold uppercase tracking-[0.07em] text-[#5E6980] mb-2">
                 Week of {format(parseISO(group.week), 'MMM d')}
               </p>
               <div className="space-y-2.5">
                 {group.sessions.map(session => (
-                  <div key={session.id} className="bg-hr-bg rounded-xl p-4 space-y-2.5">
-                    <p className="text-sm font-medium text-hr-navy">
+                  <div key={session.id} className="bg-white/5 border border-white/10 rounded-[12px] p-4 space-y-2.5">
+                    <p className="text-[14px] font-medium text-[#F2F5FA]">
                       {format(parseISO(session.session_date), 'EEEE, MMMM d')}
                     </p>
 
                     {session.notes.map(note => (
-                      <p key={note.id} className="text-base text-hr-gray whitespace-pre-wrap">
+                      <p key={note.id} className="text-[14px] text-[#98A2B8] whitespace-pre-wrap">
                         {note.content}
                       </p>
                     ))}
 
                     {session.action_items.length > 0 && (
-                      <div className="space-y-1.5">
-                        <p className="text-xs font-semibold uppercase tracking-[0.07em] text-hr-gray-mid">
+                      <div className="space-y-1.5 pt-2">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#5E6980]">
                           Action Items
                         </p>
                         {session.action_items.map(item => (
@@ -272,11 +265,11 @@ export function NotesPanel({
                               type="checkbox"
                               checked={item.is_completed}
                               onChange={e => handleHistoryToggle(item.id, e.target.checked)}
-                              className="rounded border-hr-line text-hr-teal focus:ring-hr-teal/20"
+                              className="rounded border-white/20 bg-white/5 text-[#2BD9BC] focus:ring-[#2BD9BC]/20"
                             />
                             <span
-                              className={`text-base ${
-                                item.is_completed ? 'line-through text-hr-gray-mid' : 'text-hr-navy'
+                              className={`text-[14px] ${
+                                item.is_completed ? 'line-through text-[#5E6980]' : 'text-[#F2F5FA]'
                               }`}
                             >
                               {item.content}

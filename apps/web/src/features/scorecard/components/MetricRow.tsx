@@ -49,14 +49,14 @@ export function MetricRow({
     (definition.unit === 'count' ? ', trend measured through the last completed week' : '');
 
   return (
-    <div className="py-3 border-b border-hr-line last:border-b-0">
+    <div className="py-4 border-b border-white/10 last:border-b-0">
       <div className="flex items-center gap-3.5 flex-wrap">
         <ToneDot tone={tone} />
         <div className="flex-1 min-w-[130px]">
-          <p className="text-base font-semibold text-hr-navy">{definition.name}</p>
-          <p className={`font-mono text-xs ${TONE_TEXT[tone]}`}>{sub}</p>
+          <p className="text-[14px] font-semibold text-[#F2F5FA]">{definition.name}</p>
+          <p className={`font-mono text-[11px] mt-0.5 ${TONE_TEXT[tone]}`}>{sub}</p>
         </div>
-        <div className="flex items-center gap-3.5 max-[520px]:w-full max-[520px]:justify-between max-[520px]:pl-5">
+        <div className="flex items-center gap-4 max-[520px]:w-full max-[520px]:justify-between max-[520px]:pl-5">
           {hasHistory && (
             <CadenceSparkline
               slots={slots}
@@ -67,21 +67,21 @@ export function MetricRow({
             />
           )}
           <div className="text-right min-w-[64px]">
-            <p className="font-heading font-bold text-[20px] leading-none text-hr-navy">
+            <p className="font-heading font-bold text-[18px] leading-none text-[#F2F5FA]">
               {currentValue !== null ? fmt(currentValue) : '—'}
             </p>
-            <p className="text-xs text-hr-gray-mid mt-0.5">this wk</p>
+            <p className="text-[11px] text-[#5E6980] mt-1">this wk</p>
             {lastWeekValue !== null && (
-              <p className="text-xs text-hr-gray">last wk {fmt(lastWeekValue)}</p>
+              <p className="text-[11px] text-[#98A2B8] mt-0.5">last wk {fmt(lastWeekValue)}</p>
             )}
           </div>
         </div>
       </div>
-      <p className="text-xs text-hr-gray leading-relaxed mt-1.5 pl-[22px]">
+      <p className="text-[12px] text-[#98A2B8] leading-[1.4] mt-2 pl-[22px]">
         {definition.coaching_prompt}
       </p>
       {showSyncedAt && metric.latestSyncedAt && (
-        <p className="text-xs text-hr-gray-mid mt-1 pl-[22px]">
+        <p className="text-[11px] text-[#5E6980] mt-1 pl-[22px]">
           Synced {timeAgo(metric.latestSyncedAt)}
         </p>
       )}

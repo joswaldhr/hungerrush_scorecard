@@ -48,13 +48,13 @@ export function AuthCallback() {
   if (error) {
     return (
       <AuthCard>
-        <h1 className="font-heading text-[16px] font-bold text-hr-navy text-center mb-4">
+        <h1 className="font-heading text-[16px] font-bold text-[#F2F5FA] text-center mb-4">
           Sign-in didn&apos;t complete
         </h1>
         <WarnBanner className="mb-6">{error}</WarnBanner>
         <button
           onClick={() => navigate('/login', { replace: true })}
-          className="w-full bg-hr-teal text-white rounded-lg py-2.5 text-base font-medium hover:bg-hr-teal/90 transition-colors"
+          className="w-full bg-[#2BD9BC] text-[#101624] rounded-xl py-2.5 text-[15px] font-semibold hover:bg-[#2BD9BC]/90 transition-colors"
         >
           Back to login
         </button>
@@ -65,10 +65,10 @@ export function AuthCallback() {
   return (
     <AuthCard>
       <div className="animate-pulse space-y-2.5" aria-hidden="true">
-        <div className="h-3.5 bg-hr-line/60 rounded" />
-        <div className="h-3.5 bg-hr-line/60 rounded w-2/3 mx-auto" />
+        <div className="h-3.5 bg-white/10 rounded" />
+        <div className="h-3.5 bg-white/10 rounded w-2/3 mx-auto" />
       </div>
-      <p className="text-base text-hr-gray text-center mt-4">Signing you in…</p>
+      <p className="text-[14px] text-[#98A2B8] text-center mt-4">Signing you in…</p>
     </AuthCard>
   );
 }

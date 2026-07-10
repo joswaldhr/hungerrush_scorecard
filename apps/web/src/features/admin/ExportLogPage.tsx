@@ -16,13 +16,13 @@ interface ExportLogEntry {
 
 function TableSkeleton() {
   return (
-    <div className="bg-hr-card rounded-xl border border-hr-line overflow-hidden">
-      <div className="animate-pulse p-4 space-y-4">
+    <div className="bg-white/5 border border-white/10 rounded-[18px] overflow-hidden">
+      <div className="animate-pulse p-5 space-y-4">
         {Array.from({ length: 5 }, (_, i) => (
           <div key={i} className="flex items-center gap-4">
-            <div className="h-4 bg-hr-line/60 rounded w-1/4" />
-            <div className="h-4 bg-hr-line/60 rounded w-1/4" />
-            <div className="h-4 bg-hr-line/60 rounded w-1/4" />
+            <div className="h-4 bg-white/10 rounded w-1/4" />
+            <div className="h-4 bg-white/10 rounded w-1/4" />
+            <div className="h-4 bg-white/10 rounded w-1/4" />
           </div>
         ))}
       </div>
@@ -89,49 +89,51 @@ export function ExportLogPage() {
 
   return (
     <AppLayout title="Export log">
-      <p className="text-base text-hr-gray mb-6">
-        Scorecard PDF exports with manager and timestamp — showing the latest 100
-      </p>
+      <div className="pb-20 max-w-5xl">
+        <p className="text-[14px] text-[#98A2B8] mb-6">
+          Scorecard PDF exports with manager and timestamp — showing the latest 100
+        </p>
 
-      {error && <WarnBanner className="mb-4">{error}</WarnBanner>}
+        {error && <WarnBanner className="mb-4">{error}</WarnBanner>}
 
-      {loading ? (
-        <TableSkeleton />
-      ) : entries.length === 0 ? (
-        <div className="bg-hr-card rounded-xl border border-hr-line p-8 text-center">
-          <p className="text-base text-hr-navy mb-1">No exports yet.</p>
-          <p className="text-base text-hr-gray">
-            PDF exports will appear here once a manager exports a scorecard.
-          </p>
-        </div>
-      ) : (
-        <div className="bg-hr-card rounded-xl border border-hr-line overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-hr-line">
-                <th className="px-4 py-3 text-xs font-semibold tracking-widest uppercase text-hr-gray-mid">Date</th>
-                <th className="px-4 py-3 text-xs font-semibold tracking-widest uppercase text-hr-gray-mid">Exported By</th>
-                <th className="px-4 py-3 text-xs font-semibold tracking-widest uppercase text-hr-gray-mid">Employee</th>
-              </tr>
-            </thead>
-            <tbody>
-              {entries.map(entry => (
-                <tr key={entry.id} className="border-b border-hr-line/60 last:border-0 hover:bg-hr-bg transition-colors">
-                  <td className="px-4 py-3 text-base text-hr-navy">
-                    {format(parseISO(entry.created_at), 'MMM d, yyyy h:mm a')}
-                  </td>
-                  <td className="px-4 py-3 text-base text-hr-navy">
-                    {entry.actor_email}
-                  </td>
-                  <td className="px-4 py-3 text-base text-hr-navy">
-                    {entry.employee_name}
-                  </td>
+        {loading ? (
+          <TableSkeleton />
+        ) : entries.length === 0 ? (
+          <div className="bg-white/5 border border-white/10 rounded-[18px] p-8 text-center max-w-xl">
+            <p className="text-[16px] text-[#F2F5FA] font-semibold mb-1">No exports yet.</p>
+            <p className="text-[14px] text-[#98A2B8]">
+              PDF exports will appear here once a manager exports a scorecard.
+            </p>
+          </div>
+        ) : (
+          <div className="bg-white/5 border border-white/10 rounded-[18px] overflow-x-auto shadow-[0_12px_40px_rgba(0,0,0,0.3)]">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-white/10">
+                  <th className="px-5 py-3.5 text-[11px] font-bold tracking-[0.1em] uppercase text-[#5E6980]">Date</th>
+                  <th className="px-5 py-3.5 text-[11px] font-bold tracking-[0.1em] uppercase text-[#5E6980]">Exported By</th>
+                  <th className="px-5 py-3.5 text-[11px] font-bold tracking-[0.1em] uppercase text-[#5E6980]">Employee</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {entries.map(entry => (
+                  <tr key={entry.id} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
+                    <td className="px-5 py-3.5 text-[14px] text-[#F2F5FA]">
+                      {format(parseISO(entry.created_at), 'MMM d, yyyy h:mm a')}
+                    </td>
+                    <td className="px-5 py-3.5 text-[14px] text-[#F2F5FA]">
+                      {entry.actor_email}
+                    </td>
+                    <td className="px-5 py-3.5 text-[14px] text-[#F2F5FA]">
+                      {entry.employee_name}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </AppLayout>
   );
 }

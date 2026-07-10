@@ -166,30 +166,30 @@ export function ScorecardPage() {
       )}
 
       {!loading && scoped.length === 0 && !error ? (
-        <div className="bg-hr-card rounded-xl border border-hr-line p-8 text-center">
-          <p className="text-base text-hr-navy mb-1">No team members found yet.</p>
-          <p className="text-base text-hr-gray">
+        <div className="bg-white/5 border border-white/10 rounded-[18px] p-8 text-center max-w-xl mx-auto">
+          <p className="text-[16px] text-[#F2F5FA] font-semibold mb-1">No team members found yet.</p>
+          <p className="text-[14px] text-[#98A2B8]">
             Ask your admin to run the org sync, or check back once your team has been set up.
           </p>
         </div>
       ) : noneWithData ? (
-        <div className="bg-hr-card rounded-xl border border-hr-line p-8 text-center">
-          <p className="text-base text-hr-navy mb-1">
+        <div className="bg-white/5 border border-white/10 rounded-[18px] p-8 text-center max-w-xl mx-auto">
+          <p className="text-[16px] text-[#F2F5FA] font-semibold mb-1">
             None of your team members have synced metrics yet.
           </p>
-          <p className="text-base text-hr-gray">
+          <p className="text-[14px] text-[#98A2B8]">
             Metrics appear after the data sync connects to Zendesk and Assembled.
           </p>
           <button
             onClick={() => setRosterMode('all')}
-            className="text-hr-teal-deep text-base mt-3 hover:underline"
+            className="text-[#2BD9BC] text-[14px] font-semibold mt-4 hover:text-[#6FEAD6] transition-colors"
           >
             Show all team members
           </button>
         </div>
       ) : !loading && visible.length === 0 && search.trim() ? (
-        <div className="bg-hr-card rounded-xl border border-hr-line p-8 text-center">
-          <p className="text-base text-hr-gray">No team members match your search.</p>
+        <div className="bg-white/5 border border-white/10 rounded-[18px] p-8 text-center max-w-xl mx-auto">
+          <p className="text-[14px] text-[#98A2B8]">No team members match your search.</p>
         </div>
       ) : (
         <RosterStrip

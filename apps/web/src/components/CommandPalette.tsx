@@ -29,9 +29,9 @@ const MAX_PEOPLE = 8;
 function PeopleSkeleton() {
   return (
     <div className="animate-pulse space-y-2 px-3 py-2" aria-hidden="true">
-      <div className="h-4 bg-hr-line/60 rounded w-2/3" />
-      <div className="h-4 bg-hr-line/60 rounded w-1/2" />
-      <div className="h-4 bg-hr-line/60 rounded w-3/5" />
+      <div className="h-4 bg-white/10 rounded w-2/3" />
+      <div className="h-4 bg-white/10 rounded w-1/2" />
+      <div className="h-4 bg-white/10 rounded w-3/5" />
     </div>
   );
 }
@@ -124,7 +124,7 @@ function PaletteContent({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="p-2">
+    <div className="p-3">
       <input
         ref={inputRef}
         type="text"
@@ -137,17 +137,17 @@ function PaletteContent({ onClose }: { onClose: () => void }) {
         aria-controls="command-palette-list"
         aria-activedescendant={activeIndex >= 0 ? items[activeIndex]!.id : undefined}
         aria-label="Command palette"
-        className="w-full rounded-lg border border-hr-line bg-hr-bg px-3 py-2 text-base text-hr-navy placeholder:text-hr-gray-mid outline-none focus:border-hr-teal/40"
+        className="w-full rounded-[14px] border border-white/10 bg-white/5 px-4 py-3 text-[15px] text-[#F2F5FA] placeholder:text-[#5E6980] outline-none focus:border-[#2BD9BC]/40 focus:ring-1 focus:ring-[#2BD9BC]/20 transition-all"
       />
 
       {loading ? (
         <PeopleSkeleton />
       ) : items.length === 0 ? (
-        <p className="px-3 py-4 text-base text-hr-gray">
+        <p className="px-4 py-6 text-[14px] text-[#98A2B8] text-center">
           No matches — try a different name or email.
         </p>
       ) : (
-        <ul id="command-palette-list" role="listbox" aria-label="Commands" className="mt-2 max-h-80 overflow-y-auto">
+        <ul id="command-palette-list" role="listbox" aria-label="Commands" className="mt-3 max-h-80 overflow-y-auto pr-1 custom-scrollbar">
           {items.map((item, i) => {
             const active = i === activeIndex;
             const Icon = item.icon;
@@ -160,20 +160,20 @@ function PaletteContent({ onClose }: { onClose: () => void }) {
                 onMouseDown={e => e.preventDefault()}
                 onMouseEnter={() => setSelectedIndex(i)}
                 onClick={() => run(item)}
-                className={`flex items-center gap-2.5 rounded-lg px-3 py-2 cursor-pointer ${
-                  active ? 'bg-hr-teal-tint text-hr-navy' : 'text-hr-navy hover:bg-hr-bg'
+                className={`flex items-center gap-3 rounded-[12px] px-3.5 py-2.5 cursor-pointer mb-1 transition-all ${
+                  active ? 'bg-[#2BD9BC]/10 border border-[#2BD9BC]/20 text-white' : 'text-[#F2F5FA] hover:bg-white/5 border border-transparent'
                 }`}
               >
-                <Icon size={15} className={active ? 'text-hr-teal' : 'text-hr-gray-mid'} />
-                <span className="text-base truncate">{item.label}</span>
+                <Icon size={16} className={active ? 'text-[#2BD9BC]' : 'text-[#5E6980]'} />
+                <span className="text-[14.5px] truncate font-medium">{item.label}</span>
                 {item.sublabel && (
-                  <span className="ml-auto text-xs text-hr-gray-mid truncate">{item.sublabel}</span>
+                  <span className={`ml-auto text-[12px] truncate ${active ? 'text-[#2BD9BC]/70' : 'text-[#5E6980]'}`}>{item.sublabel}</span>
                 )}
               </li>
             );
           })}
           {hiddenPeople > 0 && (
-            <li aria-hidden="true" className="px-3 py-1.5 text-xs text-hr-gray-mid">
+            <li aria-hidden="true" className="px-4 py-2 text-[12px] text-[#5E6980] text-center border-t border-white/5 mt-1">
               +{hiddenPeople} more — keep typing to narrow it down
             </li>
           )}
@@ -210,13 +210,13 @@ export function CommandPalette({
       className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] px-4"
       onClick={() => onOpenChange(false)}
     >
-      <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
+      <div className="absolute inset-0 bg-[#04070D]/60 backdrop-blur-sm transition-opacity" aria-hidden="true" />
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Command palette"
         onClick={e => e.stopPropagation()}
-        className="relative w-full max-w-lg bg-hr-card rounded-xl shadow-panel border border-hr-line"
+        className="relative w-full max-w-[540px] bg-[#0D121E]/95 backdrop-blur-[30px] rounded-[24px] shadow-[0_30px_80px_rgba(0,0,0,0.6)] border border-white/10 overflow-hidden hr-fade-up"
       >
         <PaletteContent onClose={() => onOpenChange(false)} />
       </div>
