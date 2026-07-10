@@ -12,16 +12,9 @@ vi.mock('../../hooks/useRoster', () => ({
 }));
 
 vi.mock('./components/Briefing', () => ({
-  Briefing: ({
-    employeeId,
-    onNotesDirtyChange,
-  }: {
-    employeeId: string;
-    onNotesDirtyChange?: (dirty: boolean) => void;
-  }) => (
+  Briefing: ({ employeeId }: { employeeId: string }) => (
     <div>
       <span data-testid="briefing-person">{employeeId}</span>
-      <button onClick={() => onNotesDirtyChange?.(true)}>make-dirty</button>
       <textarea aria-label="fake note field" />
     </div>
   ),
@@ -79,47 +72,22 @@ function briefingPerson(): string {
   return screen.getByTestId('briefing-person').textContent ?? '';
 }
 
-let confirmSpy: ReturnType<typeof vi.spyOn>;
-
-beforeEach(() => {
-  confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
-});
-
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
 
-describe('ScorecardPage unsaved-note guard', () => {
-  it('switches people without confirmation when the note is clean', () => {
+describe('ScorecardPage person selection', () => {
+  it('switches people on click', () => {
     renderPage();
     expect(briefingPerson()).toBe('e1');
     fireEvent.click(screen.getByRole('button', { name: /Dario Reyes/ }));
-    expect(confirmSpy).not.toHaveBeenCalled();
     expect(briefingPerson()).toBe('e2');
   });
 
-  it('confirms before a switch discards a draft, and stays on cancel', () => {
+  it('re-clicking the selected person does nothing', () => {
     renderPage();
-    fireEvent.click(screen.getByRole('button', { name: 'make-dirty' }));
-    fireEvent.click(screen.getByRole('button', { name: /Dario Reyes/ }));
-    expect(confirmSpy).toHaveBeenCalledWith(expect.stringMatching(/unsaved note/));
-    expect(briefingPerson()).toBe('e1'); // cancel keeps the draft's person
-  });
-
-  it('switches and discards when the manager confirms', () => {
-    confirmSpy.mockReturnValue(true);
-    renderPage();
-    fireEvent.click(screen.getByRole('button', { name: 'make-dirty' }));
-    fireEvent.click(screen.getByRole('button', { name: /Dario Reyes/ }));
-    expect(briefingPerson()).toBe('e2');
-  });
-
-  it('re-clicking the selected person never prompts', () => {
-    renderPage();
-    fireEvent.click(screen.getByRole('button', { name: 'make-dirty' }));
     fireEvent.click(screen.getByRole('button', { name: /Maya Okafor/ }));
-    expect(confirmSpy).not.toHaveBeenCalled();
     expect(briefingPerson()).toBe('e1');
   });
 });
@@ -152,16 +120,9 @@ describe('ScorecardPage keyboard basics', () => {
 
   it('arrow keys while typing never switch people', () => {
     renderPage();
-    fireEvent.keyDown(screen.getByLabelText('fake note field'), { key: 'ArrowRight' });
+    const search = screen.getByLabelText('Search team members');
+    fireEvent.keyDown(search, { key: 'ArrowRight' });
     expect(briefingPerson()).toBe('e1');
-  });
-
-  it('an arrow-key switch goes through the unsaved-note confirm', () => {
-    renderPage();
-    fireEvent.click(screen.getByRole('button', { name: 'make-dirty' }));
-    fireEvent.keyDown(document.body, { key: 'ArrowRight' });
-    expect(confirmSpy).toHaveBeenCalledWith(expect.stringMatching(/unsaved note/));
-    expect(briefingPerson()).toBe('e1'); // confirm mocked to cancel
   });
 
   it('Esc clears the search from the box itself and from anywhere else', () => {

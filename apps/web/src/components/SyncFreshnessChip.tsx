@@ -10,13 +10,20 @@ import { timeAgo } from '../lib/timeAgo';
 export function SyncFreshnessChip({
   latestSyncedAt,
   now = new Date(),
+  minimal = false,
 }: {
   latestSyncedAt: string | null;
   /** Injectable for tests — staleness needs a fixed clock. */
   now?: Date;
+  minimal?: boolean;
 }) {
   if (!latestSyncedAt) return null;
-  const label = `synced ${timeAgo(latestSyncedAt)}`;
+  const label = `${minimal ? 'Synced' : 'synced'} ${timeAgo(latestSyncedAt)}`;
+  
+  if (minimal) {
+    return <>{label}</>;
+  }
+
   if (isStale(latestSyncedAt, now)) {
     return (
       <span className="font-mono text-xs text-hr-amber-deep bg-hr-amber-tint rounded-full px-2 py-0.5 whitespace-nowrap">

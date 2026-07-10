@@ -1,65 +1,46 @@
 import { METRIC_SPECS, type MetricDefinition } from '@scorecard/shared';
 import type { ManagerRollupRow, MetricToneCounts } from '../../../lib/rollup';
+import { getInitials } from '../../../lib/initials';
 
-/**
- * One metric's tone counts as a chip. Copy stays in Cadence words — improving /
- * to discuss / steady / new — and the full breakdown lives in the tooltip and
- * accessible name. Coral is "discuss", never "alarm"; band metrics (no win
- * state) read "steady" when every report sits inside the healthy range.
- */
-function chipText(counts: MetricToneCounts): string {
+function chipClass(counts: MetricToneCounts): { bg: string, border: string, color: string } {
+  if (counts.discuss > 0) return { bg: 'rgba(233,180,84,0.1)', border: 'rgba(233,180,84,0.35)', color: '#E9B454' }; // Amber
+  if (counts.win > 0) return { bg: 'rgba(43,217,188,0.1)', border: 'rgba(43,217,188,0.35)', color: '#2BD9BC' }; // Jade
+  return { bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.12)', color: '#98A2B8' }; // Neutral
+}
+
+function chipText(counts: MetricToneCounts, label: string): string {
   const parts: string[] = [];
   if (counts.win > 0) parts.push(`${counts.win} improving`);
   if (counts.discuss > 0) parts.push(`${counts.discuss} to discuss`);
-  if (parts.length === 0) return counts.steady > 0 ? 'steady' : 'new';
+  if (parts.length === 0) return counts.steady > 0 ? `${label} steady` : `${label} tracking`;
   return parts.join(' · ');
 }
 
-function chipDetail(label: string, counts: MetricToneCounts): string {
-  const parts: string[] = [];
-  if (counts.win > 0) parts.push(`${counts.win} improving`);
-  if (counts.discuss > 0) parts.push(`${counts.discuss} to discuss`);
-  if (counts.steady > 0) parts.push(`${counts.steady} steady`);
-  if (counts.new > 0) parts.push(`${counts.new} building history`);
-  return `${label}: ${parts.join(', ')} of ${counts.total} report${counts.total === 1 ? '' : 's'}`;
-}
-
-function chipClass(counts: MetricToneCounts): string {
-  if (counts.discuss > 0) return 'bg-hr-coral-tint border-hr-coral/20 text-hr-coral-deep';
-  if (counts.win > 0) return 'bg-hr-teal-tint border-hr-teal/20 text-hr-teal-deep';
-  if (counts.steady > 0) return 'bg-hr-bg border-hr-line text-hr-gray';
-  return 'bg-hr-bg border-hr-line text-hr-gray-mid';
-}
-
 function ToneChip({ label, counts }: { label: string; counts: MetricToneCounts }) {
-  const detail = chipDetail(label, counts);
+  const style = chipClass(counts);
   return (
-    <span
-      title={detail}
-      aria-label={detail}
-      className={`text-xs px-2 py-0.5 rounded-full border ${chipClass(counts)}`}
+    <div 
+      className="flex items-center gap-1.5 h-7 px-3 rounded-full text-[12.5px] font-semibold"
+      style={{ backgroundColor: style.bg, borderColor: style.border, color: style.color, borderWidth: '1px' }}
     >
-      <span className="font-medium">{label}</span> · {chipText(counts)}
-    </span>
-  );
-}
-
-function Stat({ value, word, valueClass }: { value: number; word: string; valueClass: string }) {
-  return (
-    <div className="text-center">
-      <div className={`font-heading font-extrabold text-[20px] leading-none ${valueClass}`}>
-        {value}
-      </div>
-      <div className="text-xs text-hr-gray mt-1">{word}</div>
+      {counts.win > 0 ? '📈 ' : counts.discuss > 0 ? '🎯 ' : ''}
+      {chipText(counts, label)}
     </div>
   );
 }
 
-/**
- * One manager's team card on the rollup. The stat pair and chips are flag /
- * trend counts over the shared trend window — same engine as the briefing, so
- * the rollup can never contradict a person's scorecard.
- */
+function Stat({ label, val, delta, deltaColor }: { label: string, val: string, delta: string, deltaColor: string }) {
+  return (
+    <div>
+      <div className="text-[11.5px] font-semibold tracking-wider uppercase text-[#6B7690]">{label}</div>
+      <div className="mt-1.5 flex items-baseline gap-2">
+        <span className="font-heading font-bold text-[20px]">{val}</span>
+        <span className="text-[12px] font-semibold" style={{ color: deltaColor }}>{delta}</span>
+      </div>
+    </div>
+  );
+}
+
 export function RollupCard({
   row,
   definitions,
@@ -70,28 +51,40 @@ export function RollupCard({
   onOpen: () => void;
 }) {
   const chips = definitions.filter(d => row.tones[d.key]);
+  
+  // Decide the glow based on the overall tone
+  const glow = row.toDiscuss > 0 ? 'rgba(233,180,84,0.22)' : 'rgba(43,217,188,0.25)';
+
   return (
     <button
       type="button"
       onClick={onOpen}
-      aria-label={`View ${row.manager.full_name}'s team — ${row.wins} wins, ${row.toDiscuss} to discuss`}
-      className="w-full text-left bg-hr-card rounded-xl border border-hr-line p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 transition-all duration-100 hover:-translate-y-px hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hr-teal focus-visible:ring-offset-2"
+      className="relative overflow-hidden rounded-[18px] p-6 pt-7 text-left outline-none transition-all duration-250 ease-out hover:-translate-y-[3px] focus-visible:ring-2 focus-visible:ring-[#2BD9BC]"
+      style={{
+        background: 'linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.025))',
+        border: '1px solid rgba(255,255,255,0.09)',
+        backdropFilter: 'blur(22px)',
+        boxShadow: '0 18px 44px rgba(0,0,0,0.35)',
+      }}
     >
-      <div className="w-full sm:w-56 flex-shrink-0 min-w-0">
-        <p className="font-heading text-base font-bold text-hr-navy truncate">
-          {row.manager.full_name}
-        </p>
-        <p className="text-xs text-hr-gray-mid truncate">{row.manager.email}</p>
-        <p className="text-xs text-hr-gray mt-0.5">
-          {row.employeeCount} report{row.employeeCount === 1 ? '' : 's'}
-          {row.inactiveCount > 0 && (
-            <span className="text-hr-gray-mid"> · {row.inactiveCount} no longer synced</span>
-          )}
-        </p>
+      <div 
+        className="absolute -top-[60px] -right-[60px] w-[200px] h-[200px] rounded-full pointer-events-none"
+        style={{ background: `radial-gradient(circle, ${glow}, transparent 70%)` }}
+      />
+      
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <div className="font-heading font-bold text-[19px] tracking-tight">{row.manager.full_name}</div>
+          <div className="mt-1 text-[13px] text-[#98A2B8]">
+            {row.employeeCount} people
+            {row.inactiveCount > 0 ? ` · ${row.inactiveCount} inactive` : ''}
+          </div>
+        </div>
       </div>
-      <div className="flex-1 flex flex-wrap gap-1.5 min-w-0">
+
+      <div className="mt-[18px] flex flex-wrap gap-2">
         {chips.length > 0 ? (
-          chips.map(def => (
+          chips.slice(0, 3).map(def => (
             <ToneChip
               key={def.key}
               label={METRIC_SPECS[def.key]?.shortLabel ?? def.name}
@@ -99,17 +92,22 @@ export function RollupCard({
             />
           ))
         ) : (
-          <span className="text-xs text-hr-gray-mid">
-            No trend data yet — builds as weekly syncs accumulate.
-          </span>
+          <span className="text-xs text-[#98A2B8]">Building history...</span>
         )}
       </div>
-      <div className="flex gap-5 flex-shrink-0 sm:pl-2">
-        <Stat value={row.wins} word="wins" valueClass="text-hr-teal" />
-        <Stat
-          value={row.toDiscuss}
-          word="to discuss"
-          valueClass={row.toDiscuss > 0 ? 'text-hr-coral' : 'text-hr-gray-mid'}
+
+      <div className="mt-5 pt-[18px] border-t border-white/10 grid grid-cols-2 gap-3">
+        <Stat 
+          label="Wins" 
+          val={row.wins.toString()} 
+          delta="" 
+          deltaColor="#2BD9BC" 
+        />
+        <Stat 
+          label="To Discuss" 
+          val={row.toDiscuss.toString()} 
+          delta="" 
+          deltaColor={row.toDiscuss > 0 ? "#E9B454" : "#6B7690"} 
         />
       </div>
     </button>

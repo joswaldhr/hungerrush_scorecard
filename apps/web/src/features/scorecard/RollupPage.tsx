@@ -8,48 +8,29 @@ import type { ManagerRollupRow } from '../../hooks/useManagerRollup';
 
 function CardSkeleton() {
   return (
-    <div className="space-y-2.5">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
       {Array.from({ length: 4 }, (_, i) => (
         <div
           key={i}
-          className="animate-pulse bg-hr-card rounded-xl border border-hr-line p-4 flex items-center gap-4"
+          className="animate-pulse bg-white/5 rounded-[18px] border border-white/10 p-6 flex flex-col gap-4"
         >
-          <div className="w-56 flex-shrink-0 space-y-2">
-            <div className="h-3.5 bg-hr-line/60 rounded w-2/3" />
-            <div className="h-2.5 bg-hr-line/60 rounded w-1/2" />
+          <div className="space-y-2">
+            <div className="h-4 bg-white/10 rounded w-1/2" />
+            <div className="h-3 bg-white/10 rounded w-1/3" />
           </div>
-          <div className="flex-1 flex gap-1.5">
-            <div className="h-5 bg-hr-line/60 rounded-full w-28" />
-            <div className="h-5 bg-hr-line/60 rounded-full w-32" />
+          <div className="flex gap-2">
+            <div className="h-7 bg-white/10 rounded-full w-24" />
+            <div className="h-7 bg-white/10 rounded-full w-20" />
           </div>
-          <div className="h-8 bg-hr-line/60 rounded w-20 flex-shrink-0" />
         </div>
       ))}
     </div>
   );
 }
 
-// Access control: AuthGuard in App.tsx gates this route to senior_manager/executive/admin (S6).
 export function RollupPage() {
   const { rows, definitions, weekRange, latestSyncedAt, loading, error } = useManagerRollup();
   const navigate = useNavigate();
-
-  // Freshness rides the subtitle (QoL): the cards' counts come from these
-  // snapshot rows, so the stamp is the rows' own max synced_at, not the
-  // app-wide one in the header.
-  const subtitle =
-    rows.length > 0 ? (
-      <>
-        {rows.length} manager{rows.length === 1 ? '' : 's'}
-        {weekRange ? ` · ${weekRange}` : ''}
-        {latestSyncedAt && (
-          <>
-            {' · '}
-            <SyncFreshnessChip latestSyncedAt={latestSyncedAt} />
-          </>
-        )}
-      </>
-    ) : undefined;
 
   const handleOpen = (row: ManagerRollupRow) => {
     const params = new URLSearchParams({ manager: row.manager.id, name: row.manager.full_name });
@@ -57,30 +38,49 @@ export function RollupPage() {
   };
 
   return (
-    <AppLayout title="Team rollup" subtitle={subtitle}>
-      {error && <WarnBanner className="mb-4">{error}</WarnBanner>}
+    <AppLayout title="Team rollup">
+      <div className="max-w-[1220px] mx-auto px-7 pt-10 pb-16 hr-fade-up">
+        <div className="flex items-end justify-between gap-6">
+          <div>
+            <h1 className="font-heading font-extrabold text-[32px] tracking-tight">Team momentum</h1>
+            <p className="mt-2 text-[14px] text-[#98A2B8]">
+              {weekRange ? `Week of ${weekRange} · ` : ''} 
+              aggregate movement across support teams. No rankings — just direction.
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-2 h-8 px-3.5 rounded-full bg-[#2BD9BC]/10 border border-[#2BD9BC]/30 text-[#2BD9BC] text-[12.5px] font-semibold whitespace-nowrap">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#2BD9BC] hr-pulse" />
+            <SyncFreshnessChip latestSyncedAt={latestSyncedAt} minimal />
+          </div>
+        </div>
 
-      {loading ? (
-        <CardSkeleton />
-      ) : rows.length === 0 ? (
-        <div className="bg-hr-card rounded-xl border border-hr-line p-8 text-center">
-          <p className="text-base text-hr-navy mb-1">No managers found in your team.</p>
-          <p className="text-base text-hr-gray">
-            Your managers&apos; teams appear here once the org sync has run.
-          </p>
+        {error && <WarnBanner className="mt-6 mb-4">{error}</WarnBanner>}
+
+        <div className="mt-8">
+          {loading ? (
+            <CardSkeleton />
+          ) : rows.length === 0 ? (
+            <div className="bg-white/5 rounded-[18px] border border-white/10 p-8 text-center mt-6">
+              <p className="text-base text-white mb-1">No managers found in your team.</p>
+              <p className="text-base text-[#98A2B8]">
+                Your managers&apos; teams appear here once the org sync has run.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(420px,1fr))] gap-5">
+              {rows.map(row => (
+                <RollupCard
+                  key={row.manager.id}
+                  row={row}
+                  definitions={definitions}
+                  onOpen={() => handleOpen(row)}
+                />
+              ))}
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="space-y-2.5">
-          {rows.map(row => (
-            <RollupCard
-              key={row.manager.id}
-              row={row}
-              definitions={definitions}
-              onOpen={() => handleOpen(row)}
-            />
-          ))}
-        </div>
-      )}
+      </div>
     </AppLayout>
   );
 }

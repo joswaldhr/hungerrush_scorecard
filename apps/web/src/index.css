@@ -62,9 +62,59 @@
     -moz-osx-font-smoothing: grayscale;
   }
   body {
-    background-color: #F6F7F9;
-    color: #0C1443;
+    background-color: #070B14;
+    color: #F2F5FA;
   }
+}
+
+@layer utilities {
+  .hr-mesh-a {
+    animation: hrMeshA 18s ease-in-out infinite;
+  }
+  .hr-mesh-b {
+    animation: hrMeshB 22s ease-in-out infinite;
+  }
+  .hr-mesh-c {
+    animation: hrMeshC 26s ease-in-out infinite;
+  }
+  .hr-pulse {
+    animation: hrPulse 2.4s ease infinite;
+  }
+  .hr-fade-up {
+    animation: hrFadeUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .hr-grain {
+    animation: hrGrain 9s ease-in-out infinite;
+  }
+}
+
+@keyframes hrMeshA {
+  0% { transform: translate(-8%, -6%) scale(1); }
+  50% { transform: translate(6%, 8%) scale(1.15); }
+  100% { transform: translate(-8%, -6%) scale(1); }
+}
+@keyframes hrMeshB {
+  0% { transform: translate(10%, 6%) scale(1.1); }
+  50% { transform: translate(-6%, -8%) scale(0.95); }
+  100% { transform: translate(10%, 6%) scale(1.1); }
+}
+@keyframes hrMeshC {
+  0% { transform: translate(0%, 10%) scale(1); }
+  50% { transform: translate(4%, -6%) scale(1.2); }
+  100% { transform: translate(0%, 10%) scale(1); }
+}
+@keyframes hrPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(43,217,188,0.45); }
+  50% { box-shadow: 0 0 0 5px rgba(43,217,188,0); }
+}
+@keyframes hrFadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes hrGrain {
+  0% { opacity: 0.5; }
+  50% { opacity: 0.9; }
+  100% { opacity: 0.5; }
 }
 
 :focus-visible {

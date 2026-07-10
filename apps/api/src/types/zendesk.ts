@@ -77,3 +77,18 @@ export interface ZendeskUsersResponse {
   meta?: { has_more: boolean };
   links?: { next: string | null };
 }
+
+export interface ZendeskCall {
+  id: number;
+  agent_id: number | null;
+  direction: 'inbound' | 'outbound';
+  completion_status: string; // 'completed', 'abandoned', 'declined', 'missed', etc.
+  talk_time: number; // in seconds
+  duration: number; // in seconds
+  created_at: string;
+}
+
+export interface ZendeskCallsResponse {
+  calls: ZendeskCall[];
+  next_page: string | null;
+}

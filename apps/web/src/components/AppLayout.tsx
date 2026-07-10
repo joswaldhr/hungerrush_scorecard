@@ -136,102 +136,89 @@ function SidebarContent({ onNavigate }: { onNavigate: (path: string) => void }) 
 
 export function AppLayout({ children, title, subtitle, actions }: AppLayoutProps) {
   const navigate = useNavigate();
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const location = useLocation();
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const drawerRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
-  // Global freshness chip (QoL): every screen answers "can I trust this right
-  // now" at a glance — the newest visible synced_at, amber past the 9h bound.
-  const { latestSyncedAt } = useDataFreshness();
-  // Header hint doubles as the mouse entry point for the Ctrl/Cmd+K palette.
+  
+  const { session, role } = useAuth();
+  const rawName = session?.user?.user_metadata?.['full_name'];
+  const fullName = typeof rawName === 'string' ? rawName : (session?.user?.email ?? '');
+  
   const isMac = /Mac/i.test(navigator.platform);
 
-  // S12: per-route document title + move focus to the page heading when a page
-  // mounts (each page mounts its own AppLayout, so this fires on page-to-page
-  // navigation but NOT on a same-page param change like switching people).
   useDocumentTitle(typeof title === 'string' ? title : undefined);
   useEffect(() => {
     titleRef.current?.focus();
   }, []);
 
-  // S1 mobile navigation: Esc closes the drawer; focus moves into it on open.
-  useEffect(() => {
-    if (!drawerOpen) return;
-    drawerRef.current?.focus();
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setDrawerOpen(false);
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [drawerOpen]);
-
   const handleNavigate = (path: string) => {
-    setDrawerOpen(false);
     navigate(path);
   };
+  
+  const isExec = location.pathname.startsWith('/rollup');
+  const isScorecard = location.pathname.startsWith('/scorecard');
+
+  const tabClass = (active: boolean) =>
+    `h-8 px-[14px] rounded-lg border-none cursor-pointer font-sans text-[13px] font-semibold transition-colors ${
+      active ? 'bg-hr-teal/15 text-hr-teal' : 'bg-transparent text-hr-gray-mid hover:text-hr-gray hover:bg-white/5'
+    }`;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-hr-bg">
-      <aside className="w-[220px] flex-shrink-0 bg-hr-navy flex-col h-full hidden lg:flex">
-        <SidebarContent onNavigate={handleNavigate} />
-      </aside>
-
-      {drawerOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setDrawerOpen(false)}>
-          <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
-          <div
-            ref={drawerRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Navigation"
-            tabIndex={-1}
-            onClick={e => e.stopPropagation()}
-            className="relative w-[240px] h-full bg-hr-navy flex flex-col shadow-panel outline-none"
-          >
-            <button
-              onClick={() => setDrawerOpen(false)}
-              aria-label="Close navigation"
-              className="absolute top-4 right-3 p-1.5 rounded-md text-white/50 hover:text-white"
-            >
-              <X size={16} />
-            </button>
-            <SidebarContent onNavigate={handleNavigate} />
-          </div>
+    <div className="min-h-screen relative text-[#F2F5FA] overflow-x-hidden">
+      {/* Background Mesh */}
+      <div className="fixed inset-0 -z-10 bg-[#070B14]">
+        {/* We use inline styles for the complex radial gradients to match exactly */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: 'radial-gradient(1200px 500px at 75% -10%, rgba(53,80,140,0.22), transparent 60%), radial-gradient(900px 420px at 10% -5%, rgba(14,132,118,0.20), transparent 55%)'
+          }}
+        />
+        <div className="absolute -inset-[20%] blur-[90px] opacity-55">
+          <div className="absolute left-[12%] top-[18%] w-[560px] h-[560px] rounded-full hr-mesh-a" style={{ background: 'radial-gradient(circle at 40% 40%, rgba(14,132,118,0.85), transparent 65%)' }} />
+          <div className="absolute right-[8%] top-[6%] w-[520px] h-[520px] rounded-full hr-mesh-b" style={{ background: 'radial-gradient(circle at 60% 40%, rgba(53,80,140,0.8), transparent 65%)' }} />
+          <div className="absolute left-[38%] -bottom-[10%] w-[640px] h-[640px] rounded-full hr-mesh-c" style={{ background: 'radial-gradient(circle at 50% 50%, rgba(43,217,188,0.35), transparent 60%)' }} />
         </div>
-      )}
-
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <header className="h-[52px] bg-hr-card border-b border-hr-line flex items-center px-4 sm:px-6 gap-3 flex-shrink-0">
-          <button
-            onClick={() => setDrawerOpen(true)}
-            aria-label="Open navigation"
-            aria-expanded={drawerOpen}
-            className="lg:hidden p-1.5 -ml-1 rounded-md text-hr-gray hover:text-hr-navy hover:bg-hr-bg transition-colors"
-          >
-            <Menu size={18} />
-          </button>
-          <div className="min-w-0">
-            <h1 ref={titleRef} tabIndex={-1} className="text-lg font-medium text-hr-navy truncate outline-none">
-              {title}
-            </h1>
-            {subtitle && <p className="text-xs text-hr-gray-mid mt-px">{subtitle}</p>}
-          </div>
-          <div className="ml-auto flex items-center gap-3 flex-shrink-0">
-            <button
-              onClick={() => setPaletteOpen(true)}
-              aria-label="Open command palette"
-              className="hidden sm:flex items-center gap-1 border border-hr-line rounded-md px-1.5 py-0.5 text-xs text-hr-gray-mid hover:text-hr-gray hover:bg-hr-bg transition-colors"
-            >
-              <Search size={11} />
-              {isMac ? '⌘K' : 'Ctrl K'}
-            </button>
-            <SyncFreshnessChip latestSyncedAt={latestSyncedAt} />
-            {actions}
-          </div>
-        </header>
-        <OfflineBanner />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-hr-bg">{children}</main>
+        <div className="absolute inset-0 hr-grain" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '28px 28px', maskImage: 'radial-gradient(ellipse at center, black 20%, transparent 75%)' }} />
       </div>
+
+      {/* Top Nav */}
+      <div className="sticky top-0 z-40 h-16 flex items-center gap-5 px-7 bg-[#090D17]/70 backdrop-blur-[20px] border-b border-white/10">
+        <div className="flex items-center gap-[11px] cursor-pointer" onClick={() => handleNavigate('/scorecard')}>
+          <div className="w-[26px] h-[26px] rounded-md bg-gradient-to-br from-[#0E8476]/30 to-[#0E8476]/5 border border-[#2BD9BC]/35 flex items-center justify-center shadow-[0_0_20px_rgba(43,217,188,0.15)]">
+            <LogoMark size={16} />
+          </div>
+          <div className="font-heading font-bold text-[15px] tracking-tight">Scorecard</div>
+        </div>
+
+        <div className="flex gap-1 ml-3 p-1 rounded-[10px] bg-white/5 border border-white/5">
+          <button onClick={() => handleNavigate('/rollup')} className={tabClass(isExec)}>Team Rollup</button>
+          <button onClick={() => handleNavigate('/scorecard')} className={tabClass(isScorecard)}>1:1 Scorecard</button>
+        </div>
+
+        <div className="flex-1" />
+
+        <button 
+          onClick={() => setPaletteOpen(true)}
+          className="h-9 flex items-center gap-2.5 px-3 rounded-[10px] border border-white/10 bg-white/5 text-[#98A2B8] font-sans text-[13px] transition-colors hover:border-[#2BD9BC]/50 hover:text-[#F2F5FA]"
+        >
+          <Search size={17} />
+          Jump to person…
+          <kbd className="font-sans text-[11px] px-1.5 py-0.5 rounded-[5px] bg-white/10 border border-white/10 text-[#7C879C] ml-1">
+            {isMac ? '⌘K' : 'Ctrl K'}
+          </kbd>
+        </button>
+
+        <div 
+          className="w-[34px] h-[34px] rounded-full bg-gradient-to-br from-[#35508C] to-[#0E8476] flex items-center justify-center text-xs font-bold border border-white/20 ml-2"
+          title={fullName}
+        >
+          {getInitials(fullName)}
+        </div>
+      </div>
+
+      <OfflineBanner />
+      <main className="relative z-10">{children}</main>
 
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>

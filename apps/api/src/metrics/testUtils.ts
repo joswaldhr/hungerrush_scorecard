@@ -63,6 +63,8 @@ export function metricSetMap(sets: ZendeskTicketMetricSet[]): Map<number, Zendes
 export function zendeskWeek(overrides: Partial<ZendeskWeekData> = {}): ZendeskWeekData {
   return {
     tickets: [],
+    openTickets: [],
+    calls: [],
     metricSets: metricSetMap([]),
     slaTargetMinutes: null,
     ratings: [],

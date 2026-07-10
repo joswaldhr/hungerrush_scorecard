@@ -5,6 +5,7 @@ import type {
   ZendeskSatisfactionRating,
   ZendeskTicket,
   ZendeskTicketMetricSet,
+  ZendeskCall,
 } from '../types/zendesk';
 import type { AssembledActivity, AssembledAgentState } from '../types/assembled';
 
@@ -12,6 +13,9 @@ export interface ZendeskWeekData {
   /** Tickets UPDATED in the period — activity semantics (ticket_volume). Metrics with
    *  created-in-period semantics filter these via ticketsCreatedInPeriod (L1 split). */
   tickets: ZendeskTicket[];
+  /** Tickets currently OPEN (status < solved), used for backlog. */
+  openTickets: ZendeskTicket[];
+  calls: ZendeskCall[];
   metricSets: Map<number, ZendeskTicketMetricSet>;
   slaTargetMinutes: number | null;
   /** CSAT surveys ANSWERED in the period for this agent (submitted-in-period semantics). */

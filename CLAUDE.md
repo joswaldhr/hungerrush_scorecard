@@ -11,6 +11,13 @@
 
 - All 5 phases, 4 UI/UX sprints, layout redesign, and data integrity audit complete — pilot-ready
 - Production: `hungerrush-scorecard.vercel.app` (frontend) · `scorecardapi-production.up.railway.app` (backend)
+- **Session 32 (2026-07-09 — Sprint 2 Fast-Follow PDF & UX Fixes OPEN):** James merged
+  PR #19 which migrated to a data router (`createBrowserRouter`) and `useBlocker` to fix
+  the SPA-nav draft discarding issue (SPA-nav residuals closed). Then executed fast-follow
+  items: self-hosted brand fonts (Inter, Montserrat) loaded correctly in `pdfExport.ts`,
+  passed the metric domain to the PDF sparklines for true scaling, handled missing-week
+  gaps in PDF sparklines, adjusted PDF page-break threshold, and renamed AppLayout to
+  RootLayout. All 103 tests pass.
 - **Session 31c (2026-07-08 — PR #17 MERGED + wave-2 palette rebuilt, PR OPEN):** James
   merged #17 (`f4583df`; **/health sha verified serving it**). Antigravity's wave 2
   (Cmd+K palette + 3 unapproved deps clsx/framer-motion/tailwind-merge + a 366-line

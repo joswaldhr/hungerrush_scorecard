@@ -5,7 +5,7 @@ import { z } from 'zod';
 export const RoleSchema = z.enum(['admin', 'executive', 'senior_manager', 'manager', 'employee']);
 export type Role = z.infer<typeof RoleSchema>;
 
-export const MetricSourceSchema = z.enum(['zendesk', 'assembled', 'forethought']);
+export const MetricSourceSchema = z.enum(['zendesk', 'assembled', 'forethought', 'manual']);
 export type MetricSource = z.infer<typeof MetricSourceSchema>;
 
 export const MetricDirectionSchema = z.enum(['higher_is_better', 'lower_is_better']);

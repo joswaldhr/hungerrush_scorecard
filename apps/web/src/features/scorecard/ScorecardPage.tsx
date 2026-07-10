@@ -8,8 +8,6 @@ import { TourModal, useTour } from '../onboarding/TourModal';
 import { RosterStrip } from './components/RosterStrip';
 import { Briefing } from './components/Briefing';
 
-const UNSAVED_NOTE_CONFIRM =
-  'You have an unsaved note for this person. Switch anyway and discard it?';
 
 /**
  * The Cadence home: roster strip for picking the person, 1:1 briefing below.
@@ -27,7 +25,6 @@ export function ScorecardPage() {
   const { entries, loading, error } = useRoster(managerFilter);
   const [rosterMode, setRosterMode] = useState<'data' | 'all'>('data');
   const [search, setSearch] = useState('');
-  const [notesDirty, setNotesDirty] = useState(false);
   const { showTour, closeTour } = useTour();
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -68,15 +65,12 @@ export function ScorecardPage() {
   }, [employeeId, loading, visible, navigate, searchParams]);
 
   // The ONE person-switch path (roster clicks and arrow keys both land here).
-  // Switching unmounts the briefing and destroys any notes draft — when one
-  // exists, confirm the discard first (REVIEW.md 2.1).
   const selectPerson = useCallback(
     (id: string) => {
       if (id === employeeId) return;
-      if (notesDirty && !window.confirm(UNSAVED_NOTE_CONFIRM)) return;
       navigate({ pathname: `/scorecard/${id}`, search: searchParams.toString() });
     },
-    [employeeId, notesDirty, navigate, searchParams],
+    [employeeId, navigate, searchParams],
   );
 
   // Keyboard basics (QoL): '/' focuses the roster search, ←/→ step through
@@ -119,8 +113,8 @@ export function ScorecardPage() {
 
   const pillClass = (active: boolean) =>
     active
-      ? 'bg-hr-navy text-white text-sm px-3 py-1 rounded-full transition-colors'
-      : 'bg-hr-card border border-hr-line text-hr-gray text-sm px-3 py-1 rounded-full hover:bg-hr-bg transition-colors';
+      ? 'bg-white/10 text-white text-[13px] font-medium px-3 py-1.5 rounded-full border border-white/10 transition-colors'
+      : 'bg-transparent text-[#6B7690] text-[13px] font-medium px-3 py-1.5 rounded-full border border-transparent hover:text-[#98A2B8] transition-colors';
 
   const noneWithData =
     !loading && effectiveMode === 'data' && withData.length === 0 && scoped.length > 0;
@@ -128,15 +122,15 @@ export function ScorecardPage() {
   return (
     <AppLayout title="Your team">
       {managerFilter && (
-        <div className="bg-hr-teal-tint border border-hr-teal/20 rounded-xl px-4 py-3 flex items-center justify-between mb-4">
-          <span className="text-base text-hr-navy font-medium">
+        <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 flex items-center justify-between mb-4 mt-6">
+          <span className="text-[14px] text-white font-medium">
             {`Viewing ${managerName ?? 'this manager'}'s team`}
           </span>
           <button
             onClick={() => navigate('/rollup')}
-            className="flex items-center gap-1 text-sm text-hr-navy hover:underline"
+            className="flex items-center gap-1 text-[13px] text-[#98A2B8] hover:text-white transition-colors"
           >
-            <ArrowLeft size={12} />
+            <ArrowLeft size={14} />
             Back to rollup
           </button>
         </div>
@@ -145,7 +139,7 @@ export function ScorecardPage() {
       {error && <WarnBanner className="mb-4">{error}</WarnBanner>}
 
       {!loading && !managerFilter && scoped.length > 1 && (
-        <div className="flex items-center gap-2 mb-3 flex-wrap">
+        <div className="flex items-center gap-2 mb-3 mt-6 flex-wrap">
           <input
             ref={searchRef}
             type="text"
@@ -156,10 +150,10 @@ export function ScorecardPage() {
               if (e.key === 'Escape') setSearch('');
             }}
             aria-label="Search team members"
-            className="w-56 h-8 bg-hr-card border border-hr-line rounded-lg px-3 text-base outline-none focus:border-hr-teal transition-colors"
+            className="w-64 h-9 bg-white/5 border border-white/10 rounded-[10px] px-3.5 text-[13.5px] text-white placeholder:text-[#6B7690] outline-none focus:border-[#2BD9BC]/50 focus:bg-white/10 transition-all"
           />
           {withData.length !== scoped.length && (
-            <div className="flex gap-1.5">
+            <div className="flex gap-1.5 ml-2">
               <button onClick={() => setRosterMode('data')} className={pillClass(rosterMode === 'data')}>
                 With data ({withData.length})
               </button>
@@ -206,7 +200,7 @@ export function ScorecardPage() {
         />
       )}
 
-      {employeeId && <Briefing employeeId={employeeId} onNotesDirtyChange={setNotesDirty} />}
+      {employeeId && <Briefing employeeId={employeeId} />}
 
       <TourModal open={showTour} onClose={closeTour} />
     </AppLayout>

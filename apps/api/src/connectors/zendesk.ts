@@ -10,6 +10,8 @@ import type {
   ZendeskTicketMetricSet,
   ZendeskShowManyResponse,
   ZendeskSlaPoliciesResponse,
+  ZendeskCall,
+  ZendeskCallsResponse,
 } from '../types/zendesk';
 
 // Zendesk's search API hard-caps at 1,000 results (L10) — warn while an agent is
@@ -56,6 +58,23 @@ async function searchTickets(
       `[zendesk] Agent ${agentId}: ${tickets.length} tickets this period — ` +
       `approaching the search API's 1,000-result cap (L10); results beyond it are silently dropped`,
     );
+  }
+
+  return tickets;
+}
+
+async function searchOpenTickets(
+  client: AxiosInstance,
+  agentId: string,
+): Promise<ZendeskTicket[]> {
+  const query = `type:ticket assignee:${agentId} status<solved`;
+  const tickets: ZendeskTicket[] = [];
+  let url: string | null = `/search.json?query=${encodeURIComponent(query)}`;
+
+  while (url) {
+    const response: AxiosResponse<ZendeskSearchResponse> = await client.get(url);
+    tickets.push(...response.data.results);
+    url = response.data.next_page;
   }
 
   return tickets;
@@ -112,6 +131,37 @@ async function fetchReceivedRatings(
   return byAssignee;
 }
 
+// Bulk fetch of all Zendesk Talk calls in the period, grouped by agent.
+// Uses the incremental export endpoint to get all calls org-wide without per-agent limits.
+async function fetchTalkCalls(
+  client: AxiosInstance,
+  periodStart: Date,
+): Promise<Map<number, ZendeskCall[]>> {
+  const byAssignee = new Map<number, ZendeskCall[]>();
+  const startTime = Math.floor(periodStart.getTime() / 1000);
+  
+  let url: string | null = `/channels/voice/incremental/calls.json?start_time=${startTime}`;
+  
+  while (url) {
+    const response: AxiosResponse<ZendeskCallsResponse> = await client.get(url);
+    if (!response.data.calls) break;
+    
+    for (const call of response.data.calls) {
+      if (call.agent_id === null) continue;
+      
+      const list = byAssignee.get(call.agent_id) ?? [];
+      list.push(call);
+      byAssignee.set(call.agent_id, list);
+    }
+    
+    // Zendesk incremental APIs return next_page even when empty, so we must stop when count is < 1000 or empty.
+    if (response.data.calls.length === 0) break;
+    url = response.data.next_page;
+  }
+  
+  return byAssignee;
+}
+
 async function fetchSlaReplyTarget(client: AxiosInstance): Promise<number | null> {
   try {
     const response = await client.get<ZendeskSlaPoliciesResponse>('/slas/policies');
@@ -132,6 +182,7 @@ export interface ZendeskRunContext {
   client: AxiosInstance;
   slaTargetMinutes: number | null;
   ratingsByAssignee: Map<number, ZendeskSatisfactionRating[]>;
+  callsByAssignee: Map<number, ZendeskCall[]>;
 }
 
 export const zendeskConnector: DataSourceConnector<ZendeskRunContext, ZendeskWeekData> = {
@@ -143,11 +194,12 @@ export const zendeskConnector: DataSourceConnector<ZendeskRunContext, ZendeskWee
   // the period's answered CSAT surveys (submitted-in-period semantics, commit 7).
   async prepareRun(periodStart: Date, periodEnd: Date): Promise<ZendeskRunContext> {
     const client = createZendeskClient();
-    const [slaTargetMinutes, ratingsByAssignee] = await Promise.all([
+    const [slaTargetMinutes, ratingsByAssignee, callsByAssignee] = await Promise.all([
       fetchSlaReplyTarget(client),
       fetchReceivedRatings(client, periodStart, periodEnd),
+      fetchTalkCalls(client, periodStart),
     ]);
-    return { client, slaTargetMinutes, ratingsByAssignee };
+    return { client, slaTargetMinutes, ratingsByAssignee, callsByAssignee };
   },
 
   async fetchWeekData(
@@ -156,13 +208,18 @@ export const zendeskConnector: DataSourceConnector<ZendeskRunContext, ZendeskWee
     periodEnd: Date,
     run: ZendeskRunContext,
   ): Promise<ZendeskWeekData | null> {
-    const tickets = await searchTickets(run.client, agentId, periodStart, periodEnd);
+    const [tickets, openTickets] = await Promise.all([
+      searchTickets(run.client, agentId, periodStart, periodEnd),
+      searchOpenTickets(run.client, agentId)
+    ]);
     const metricSets =
       tickets.length > 0
         ? await fetchTicketMetrics(run.client, tickets.map(t => t.id))
         : new Map<number, ZendeskTicketMetricSet>();
     return {
       tickets,
+      openTickets,
+      calls: run.callsByAssignee.get(Number(agentId)) ?? [],
       metricSets,
       slaTargetMinutes: run.slaTargetMinutes,
       ratings: run.ratingsByAssignee.get(Number(agentId)) ?? [],

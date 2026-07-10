@@ -17,7 +17,7 @@ function DashboardRedirect() {
   return <Navigate to={{ pathname: '/scorecard', search: location.search }} replace />;
 }
 
-function AppLayout() {
+function RootLayout() {
   return (
     <AuthProvider>
       <Outlet />
@@ -28,7 +28,7 @@ function AppLayout() {
 export const router = createBrowserRouter(
   [
     {
-      element: <AppLayout />,
+      element: <RootLayout />,
       children: [
         { path: '/', element: <Navigate to="/scorecard" replace /> },
         { path: '/login', element: <LoginPage /> },

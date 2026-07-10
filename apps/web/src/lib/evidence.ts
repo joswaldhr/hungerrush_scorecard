@@ -67,8 +67,9 @@ const SOURCE_LABELS: Record<MetricSource, string> = {
   zendesk: 'Zendesk',
   assembled: 'Assembled',
   forethought: 'Forethought',
+  manual: 'Manual tracking',
 };
-const SOURCE_ORDER: MetricSource[] = ['zendesk', 'assembled', 'forethought'];
+const SOURCE_ORDER: MetricSource[] = ['zendesk', 'assembled', 'forethought', 'manual'];
 
 /**
  * Map history onto the `weeks` calendar weeks ending at anchorWeek (L5
