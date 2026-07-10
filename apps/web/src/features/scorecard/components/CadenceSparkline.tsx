@@ -1,90 +1,93 @@
-import { SPARK_BAND_FILL, SPARK_BASELINE } from './toneStyles';
+import { Area, AreaChart, ResponsiveContainer, Tooltip, YAxis } from 'recharts';
+import { formatMetricValue } from '../../../lib/formatMetric';
 
 interface CadenceSparklineProps {
-  /** Calendar-mapped slots, oldest → newest; null = week without a snapshot. */
   slots: Array<{ value: number } | null>;
-  /** Resolved y-scale (spec domain as minimum extent — honest by construction). */
   domain: [number, number];
-  /** Healthy range to shade (band metrics). */
   band?: readonly [number, number];
   color: string;
   ariaLabel: string;
   width?: number;
   height?: number;
+  unit?: string;
 }
 
-/**
- * Anchored line sparkline: y-scale is the resolved domain, never the data's
- * min/max, so a small wiggle can never look like a collapse. A missing week
- * breaks the line into segments instead of packing the gap (L5 semantics);
- * an isolated point renders as a dot.
- */
 export function CadenceSparkline({
   slots,
   domain,
   band,
   color,
   ariaLabel,
-  width = 100,
-  height = 32,
+  width = 120,
+  height = 40,
+  unit = 'count'
 }: CadenceSparklineProps) {
-  const [lo, hi] = domain;
-  const span = hi - lo || 1;
-  const y = (v: number) => height - 3 - ((v - lo) / span) * (height - 6);
-  const step = width / Math.max(slots.length - 1, 1);
+  // Map slots into a Recharts-friendly format. 
+  // We use index as a mock x-axis. Nulls represent missing weeks.
+  const data = slots.map((slot, i) => ({
+    index: i,
+    value: slot ? slot.value : null,
+  }));
 
-  // Consecutive non-null runs become polyline segments.
-  const segments: Array<Array<[number, number]>> = [];
-  let run: Array<[number, number]> = [];
-  slots.forEach((slot, i) => {
-    if (slot === null) {
-      if (run.length > 0) segments.push(run);
-      run = [];
-    } else {
-      run.push([i * step, y(slot.value)]);
-    }
-  });
-  if (run.length > 0) segments.push(run);
-
-  const lastSegment = segments[segments.length - 1];
-  const endPoint = lastSegment ? lastSegment[lastSegment.length - 1] : undefined;
+  // Create a unique ID for the gradient to prevent conflicts if multiple charts render
+  const gradId = `spark-grad-${Math.random().toString(36).substring(2, 9)}`;
 
   return (
-    <svg
-      width={width}
-      height={height}
-      className="overflow-visible flex-shrink-0"
-      role="img"
+    <div 
+      style={{ width, height }} 
+      className="flex-shrink-0"
+      role="img" 
       aria-label={ariaLabel}
     >
-      {band && (
-        <rect
-          x="0"
-          y={y(band[1])}
-          width={width}
-          height={Math.max(y(band[0]) - y(band[1]), 0)}
-          fill={SPARK_BAND_FILL}
-          opacity="0.12"
-          rx="2"
-        />
-      )}
-      <line x1="0" y1={y(lo)} x2={width} y2={y(lo)} stroke={SPARK_BASELINE} strokeWidth="1" />
-      {segments.map((seg, i) =>
-        seg.length === 1 ? (
-          <circle key={i} cx={seg[0]![0]} cy={seg[0]![1]} r="2" fill={color} />
-        ) : (
-          <polyline
-            key={i}
-            points={seg.map(([px, py]) => `${px},${py}`).join(' ')}
-            fill="none"
-            stroke={color}
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
+          <defs>
+            <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={color} stopOpacity={0.35} />
+              <stop offset="95%" stopColor={color} stopOpacity={0} />
+            </linearGradient>
+            
+            {/* Optional drop shadow for the line to make it "glow" */}
+            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="2" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+          </defs>
+          
+          <YAxis domain={domain} hide />
+          
+          <Tooltip 
+            cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1, strokeDasharray: '3 3' }}
+            content={({ active, payload }) => {
+              if (active && payload && payload.length) {
+                const val = payload[0].value as number;
+                return (
+                  <div className="bg-[#0C1443]/90 border border-white/10 shadow-glass rounded-md px-2 py-1 backdrop-blur-md">
+                    <p className="text-[12px] text-white font-mono">
+                      {formatMetricValue(val, unit)}
+                    </p>
+                  </div>
+                );
+              }
+              return null;
+            }}
           />
-        ),
-      )}
-      {endPoint && <circle cx={endPoint[0]} cy={endPoint[1]} r="3.2" fill={color} />}
-    </svg>
+
+          <Area
+            type="monotone"
+            dataKey="value"
+            stroke={color}
+            strokeWidth={2}
+            fillOpacity={1}
+            fill={`url(#${gradId})`}
+            isAnimationActive={true}
+            animationDuration={1500}
+            animationEasing="ease-out"
+            connectNulls={false}
+            filter="url(#glow)"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

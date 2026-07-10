@@ -322,6 +322,31 @@ export async function runSync(mode: 'live' | 'snapshot'): Promise<SyncResult> {
   }
 }
 
+// --- Dynamic Connector Registry ---
+import type { DataSourceConnector, MetricSpec } from '@scorecard/shared';
+
+interface SyncConnectorDef<TRun = any, TData = any> {
+  source: string;
+  connector: DataSourceConnector<TRun, TData>;
+  metricsModules: ReadonlyArray<{ spec: MetricSpec; compute: (d: TData) => number | null }>;
+  getAgentRef: (emp: EmployeeAgentRow) => string | null;
+}
+
+const CONNECTOR_REGISTRY: SyncConnectorDef[] = [
+  {
+    source: 'assembled',
+    connector: assembledConnector,
+    metricsModules: ASSEMBLED_METRICS,
+    getAgentRef: (emp) => (emp.assembled_agent_id ? String(emp.email) : null),
+  },
+  {
+    source: 'zendesk',
+    connector: zendeskConnector,
+    metricsModules: ZENDESK_METRICS,
+    getAgentRef: (emp) => (emp.zendesk_agent_id ? String(emp.zendesk_agent_id) : null),
+  }
+];
+
 async function runSyncInner(mode: 'live' | 'snapshot'): Promise<SyncResult> {
   const startedAt = Date.now();
   const { start: periodStart, end: periodEnd } = getSyncBounds(mode);
@@ -355,13 +380,6 @@ async function runSyncInner(mode: 'live' | 'snapshot'): Promise<SyncResult> {
     }
   }
 
-  const activeAssembled = ASSEMBLED_METRICS.filter(m => activeKeys.has(m.spec.key));
-  const activeZendesk = ZENDESK_METRICS.filter(m => activeKeys.has(m.spec.key));
-  console.log(
-    `[sync] Active metrics: zendesk ${activeZendesk.length}/${ZENDESK_METRICS.length}, ` +
-    `assembled ${activeAssembled.length}/${ASSEMBLED_METRICS.length}`,
-  );
-
   const { data: employees, error: empError } = await fetchEmployeesPaginated<EmployeeAgentRow>(
     'id, email, zendesk_agent_id, assembled_agent_id',
     'zendesk_agent_id.not.is.null,assembled_agent_id.not.is.null',
@@ -376,25 +394,30 @@ async function runSyncInner(mode: 'live' | 'snapshot'): Promise<SyncResult> {
 
   console.log(`[sync] Found ${employees.length} employees with agent IDs`);
 
-  // Run-scoped data fetched once per source — skipped entirely when a source has no
-  // active metrics (with all three Assembled metrics inactive, no Assembled API calls).
-  let assembledRun: AssembledRunContext | null = null;
-  if (activeAssembled.length > 0 && assembledConnector.isAvailable) {
-    try {
-      assembledRun = await assembledConnector.prepareRun(periodStart, periodEnd);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Unknown error';
-      errors.push(`[assembled] prepareRun failed — source skipped this run: ${msg}`);
-    }
-  }
+  // Prepare active connectors
+  const activeConnectors = CONNECTOR_REGISTRY.map(def => {
+    const activeMetrics = def.metricsModules.filter(m => activeKeys.has(m.spec.key));
+    return {
+      ...def,
+      activeMetrics,
+      runContext: null as any
+    };
+  }).filter(c => c.activeMetrics.length > 0 && c.connector.isAvailable);
 
-  let zendeskRun: ZendeskRunContext | null = null;
-  if (activeZendesk.length > 0 && zendeskConnector.isAvailable) {
+  console.log(
+    `[sync] Active metrics: ` +
+    CONNECTOR_REGISTRY.map(c => 
+      `${c.source} ${c.metricsModules.filter(m => activeKeys.has(m.spec.key)).length}/${c.metricsModules.length}`
+    ).join(', ')
+  );
+
+  for (const c of activeConnectors) {
     try {
-      zendeskRun = await zendeskConnector.prepareRun(periodStart, periodEnd);
+      c.runContext = await c.connector.prepareRun(periodStart, periodEnd);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
-      errors.push(`[zendesk] prepareRun failed — source skipped this run: ${msg}`);
+      errors.push(`[${c.source}] prepareRun failed — source skipped this run: ${msg}`);
+      c.runContext = null; // Mark as failed
     }
   }
 
@@ -407,40 +430,17 @@ async function runSyncInner(mode: 'live' | 'snapshot'): Promise<SyncResult> {
   for (const [i, emp] of employees.entries()) {
     const empRows: Array<Record<string, unknown>> = [];
 
-    if (emp.assembled_agent_id && assembledRun) {
-      try {
-        const data = await assembledConnector.fetchWeekData(
-          String(emp.email), periodStart, periodEnd, assembledRun,
-        );
-        if (data) {
-          for (const metric of activeAssembled) {
-            const value = metric.compute(data);
-            if (value === null) continue;
-            empRows.push({
-              employee_id: String(emp.id),
-              metric_key: metric.spec.key,
-              value,
-              period_start: pStart,
-              period_end: pEnd,
-              synced_at: syncedAt,
-            });
-          }
-        }
-        console.log(`[sync] [${i + 1}/${employees.length}] Assembled: ${String(emp.email)} → ${empRows.length} rows`);
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : 'Unknown error';
-        errors.push(`[assembled] ${String(emp.email)}: ${msg}`);
-      }
-    }
+    for (const c of activeConnectors) {
+      if (!c.runContext) continue; // Skipped due to prepareRun failure
 
-    if (emp.zendesk_agent_id && zendeskRun) {
-      const beforeZendesk = empRows.length;
+      const agentRef = c.getAgentRef(emp);
+      if (!agentRef) continue;
+
+      const beforeCount = empRows.length;
       try {
-        const data = await zendeskConnector.fetchWeekData(
-          String(emp.zendesk_agent_id), periodStart, periodEnd, zendeskRun,
-        );
+        const data = await c.connector.fetchWeekData(agentRef, periodStart, periodEnd, c.runContext);
         if (data) {
-          for (const metric of activeZendesk) {
+          for (const metric of c.activeMetrics) {
             const value = metric.compute(data);
             if (value === null) continue;
             empRows.push({
@@ -453,10 +453,10 @@ async function runSyncInner(mode: 'live' | 'snapshot'): Promise<SyncResult> {
             });
           }
         }
-        console.log(`[sync] [${i + 1}/${employees.length}] Zendesk: ${String(emp.email)} → ${empRows.length - beforeZendesk} rows`);
+        console.log(`[sync] [${i + 1}/${employees.length}] ${c.connector.name}: ${String(emp.email)} → ${empRows.length - beforeCount} rows`);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Unknown error';
-        errors.push(`[zendesk] ${String(emp.email)}: ${msg}`);
+        errors.push(`[${c.source}] ${String(emp.email)}: ${msg}`);
       }
     }
 

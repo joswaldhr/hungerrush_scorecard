@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useRoster } from '../../hooks/useRoster';
 import { AppLayout } from '../../components/AppLayout';
 import { WarnBanner } from '../../components/WarnBanner';
@@ -113,8 +114,8 @@ export function ScorecardPage() {
 
   const pillClass = (active: boolean) =>
     active
-      ? 'bg-white/10 text-white text-[13px] font-medium px-3 py-1.5 rounded-full border border-white/10 transition-colors'
-      : 'bg-transparent text-[#6B7690] text-[13px] font-medium px-3 py-1.5 rounded-full border border-transparent hover:text-[#98A2B8] transition-colors';
+      ? 'bg-white/10 text-white text-[13px] font-medium px-3 py-1.5 rounded-full border border-white/10 transition-colors shadow-glass'
+      : 'bg-transparent text-[#6B7690] text-[13px] font-medium px-3 py-1.5 rounded-full border border-transparent hover:text-[#98A2B8] hover:bg-white/5 transition-colors';
 
   const noneWithData =
     !loading && effectiveMode === 'data' && withData.length === 0 && scoped.length > 0;
@@ -122,7 +123,11 @@ export function ScorecardPage() {
   return (
     <AppLayout title="Your team">
       {managerFilter && (
-        <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 flex items-center justify-between mb-4 mt-6">
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 flex items-center justify-between mb-4 mt-6 backdrop-blur-md"
+        >
           <span className="text-[14px] text-white font-medium">
             {`Viewing ${managerName ?? 'this manager'}'s team`}
           </span>
@@ -133,13 +138,17 @@ export function ScorecardPage() {
             <ArrowLeft size={14} />
             Back to rollup
           </button>
-        </div>
+        </motion.div>
       )}
 
       {error && <WarnBanner className="mb-4">{error}</WarnBanner>}
 
       {!loading && !managerFilter && scoped.length > 1 && (
-        <div className="flex items-center gap-2 mb-3 mt-6 flex-wrap">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center gap-2 mb-3 mt-6 flex-wrap"
+        >
           <input
             ref={searchRef}
             type="text"
@@ -150,7 +159,7 @@ export function ScorecardPage() {
               if (e.key === 'Escape') setSearch('');
             }}
             aria-label="Search team members"
-            className="w-64 h-9 bg-white/5 border border-white/10 rounded-[10px] px-3.5 text-[13.5px] text-white placeholder:text-[#6B7690] outline-none focus:border-[#2BD9BC]/50 focus:bg-white/10 transition-all"
+            className="w-64 h-9 bg-white/5 border border-white/10 rounded-[10px] px-3.5 text-[13.5px] text-white placeholder:text-[#6B7690] outline-none focus:border-[#2BD9BC]/50 focus:bg-white/10 focus:ring-2 focus:ring-[#2BD9BC]/20 transition-all shadow-glass"
           />
           {withData.length !== scoped.length && (
             <div className="flex gap-1.5 ml-2">
@@ -162,18 +171,26 @@ export function ScorecardPage() {
               </button>
             </div>
           )}
-        </div>
+        </motion.div>
       )}
 
       {!loading && scoped.length === 0 && !error ? (
-        <div className="bg-white/5 border border-white/10 rounded-[18px] p-8 text-center max-w-xl mx-auto">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white/5 border border-white/10 rounded-[18px] p-8 text-center max-w-xl mx-auto mt-10 backdrop-blur-md shadow-glass"
+        >
           <p className="text-[16px] text-[#F2F5FA] font-semibold mb-1">No team members found yet.</p>
           <p className="text-[14px] text-[#98A2B8]">
             Ask your admin to run the org sync, or check back once your team has been set up.
           </p>
-        </div>
+        </motion.div>
       ) : noneWithData ? (
-        <div className="bg-white/5 border border-white/10 rounded-[18px] p-8 text-center max-w-xl mx-auto">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white/5 border border-white/10 rounded-[18px] p-8 text-center max-w-xl mx-auto mt-10 backdrop-blur-md shadow-glass"
+        >
           <p className="text-[16px] text-[#F2F5FA] font-semibold mb-1">
             None of your team members have synced metrics yet.
           </p>
@@ -186,11 +203,15 @@ export function ScorecardPage() {
           >
             Show all team members
           </button>
-        </div>
+        </motion.div>
       ) : !loading && visible.length === 0 && search.trim() ? (
-        <div className="bg-white/5 border border-white/10 rounded-[18px] p-8 text-center max-w-xl mx-auto">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white/5 border border-white/10 rounded-[18px] p-8 text-center max-w-xl mx-auto mt-10 backdrop-blur-md shadow-glass"
+        >
           <p className="text-[14px] text-[#98A2B8]">No team members match your search.</p>
-        </div>
+        </motion.div>
       ) : (
         <RosterStrip
           entries={visible}

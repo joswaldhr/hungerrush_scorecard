@@ -56,8 +56,8 @@ export function EvidencePanel({
               </WarnBanner>
             )}
             <div className={`border-t border-white/10 ${group.stale ? 'opacity-75' : ''}`}>
-              {group.metrics.map(m => (
-                <MetricRow key={m.definition.key} metric={m} showSyncedAt={showRowSyncedAt} />
+              {group.metrics.map((m, index) => (
+                <MetricRow key={m.definition.key} metric={m} showSyncedAt={showRowSyncedAt} index={index} />
               ))}
             </div>
           </div>

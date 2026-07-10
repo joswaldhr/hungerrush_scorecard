@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import type { RosterEntry } from '../../../hooks/useRoster';
 import { getInitials } from '../../../lib/initials';
 
@@ -42,10 +43,16 @@ export function RosterStrip({
   loading: boolean;
 }) {
   return (
-    <div className="flex gap-[10px] overflow-x-auto pb-3 pt-1.5 mb-2" role="group" aria-label="Your team">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex gap-[10px] overflow-x-auto pb-3 pt-1.5 mb-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent" 
+      role="group" 
+      aria-label="Your team"
+    >
       {loading
         ? Array.from({ length: 4 }, (_, i) => <ChipSkeleton key={i} />)
-        : entries.map(entry => {
+        : entries.map((entry, index) => {
             const active = entry.employee.id === selectedId;
             const shortTitle = (entry.employee.title || 'Team Member')
               .replace('Support Specialist', 'Specialist')
@@ -57,7 +64,10 @@ export function RosterStrip({
             const nameColor = active ? '#F2F5FA' : '#B9C1D2';
             
             return (
-              <button
+              <motion.button
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05, ease: 'easeOut' }}
                 key={entry.employee.id}
                 onClick={() => onSelect(entry.employee.id)}
                 aria-label={`${entry.employee.full_name}, ${shortTitle}`}
@@ -72,16 +82,16 @@ export function RosterStrip({
                   {getInitials(entry.employee.full_name)}
                 </div>
                 <div className="text-left flex-1 min-w-0">
-                  <div className="text-[13px] font-semibold whitespace-nowrap truncate" style={{ color: nameColor }}>
+                  <div className="text-[13px] font-semibold whitespace-nowrap truncate tracking-tight" style={{ color: nameColor }}>
                     {entry.employee.full_name}
                   </div>
-                  <div className="text-[11px] text-[#6B7690] whitespace-nowrap truncate">
+                  <div className="text-[11px] text-[#6B7690] whitespace-nowrap truncate font-medium">
                     {shortTitle}
                   </div>
                 </div>
-              </button>
+              </motion.button>
             );
           })}
-    </div>
+    </motion.div>
   );
 }

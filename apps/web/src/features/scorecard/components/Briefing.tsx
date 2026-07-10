@@ -158,7 +158,7 @@ export function Briefing({ employeeId }: { employeeId: string }) {
         </div>
       ) : (
         <div className="mt-7 grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-4">
-          {evidence.map(m => <KPICard key={m.definition.key} metric={m} />)}
+          {evidence.map((m, i) => <KPICard key={m.definition.key} metric={m} index={i} />)}
         </div>
       )}
 
