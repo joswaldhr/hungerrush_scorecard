@@ -14,12 +14,17 @@
   "dependencies": {
     "@scorecard/shared": "*",
     "@supabase/supabase-js": "^2.39.0",
+    "@tanstack/react-query": "^5.101.2",
+    "clsx": "^2.1.1",
     "date-fns": "^3.3.0",
+    "framer-motion": "^12.42.2",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.344.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
-    "react-router-dom": "^6.22.0"
+    "react-router-dom": "^6.22.0",
+    "recharts": "^3.9.2",
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

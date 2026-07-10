@@ -11,13 +11,19 @@ if (savedMode === 'dark' || (!savedMode && prefersDark)) {
   document.documentElement.classList.add('dark');
 }
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
+
 const rootEl = document.getElementById('root');
 if (!rootEl) throw new Error('Root element not found');
 
 ReactDOM.createRoot(rootEl).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <RouterProvider router={router} future={{ v7_startTransition: true }} />
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} future={{ v7_startTransition: true }} />
+      </QueryClientProvider>
     </ErrorBoundary>
   </React.StrictMode>,
 );
