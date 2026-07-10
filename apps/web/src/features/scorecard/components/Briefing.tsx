@@ -41,16 +41,8 @@ function HeaderSkeleton() {
 /**
  * The Cadence inversion: the 1:1 briefing (talking points → actions → notes)
  * is the primary pane; metrics sit beside it as supporting evidence.
- * onNotesDirtyChange surfaces the notes draft state to the page, whose roster
- * switch would otherwise silently discard it (REVIEW.md 2.1).
  */
-export function Briefing({
-  employeeId,
-  onNotesDirtyChange,
-}: {
-  employeeId: string;
-  onNotesDirtyChange?: (dirty: boolean) => void;
-}) {
+export function Briefing({ employeeId }: { employeeId: string }) {
   const { session } = useAuth();
   const { employee, loading: empLoading, error: empError } = useEmployee(employeeId);
   const { metrics, loading: metricsLoading, error: metricsError } = useEmployeeMetrics(employeeId);
@@ -134,6 +126,7 @@ export function Briefing({
           lastWeekValue: m.lastWeekValue,
           tone: m.weeksOfHistory > 0 ? m.assessment.tone : null,
           history: m.slots.map(s => (s ? s.value : null)),
+          domain: m.domain,
         })),
         session.user.email ?? '',
       );
@@ -295,7 +288,6 @@ export function Briefing({
               managerId={managerId}
               onSave={createSession}
               onToggleActionItem={toggleActionItem}
-              onDirtyChange={onNotesDirtyChange}
             />
           </div>
         </section>

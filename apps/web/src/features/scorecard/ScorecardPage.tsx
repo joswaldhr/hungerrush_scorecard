@@ -8,9 +8,6 @@ import { TourModal, useTour } from '../onboarding/TourModal';
 import { RosterStrip } from './components/RosterStrip';
 import { Briefing } from './components/Briefing';
 
-const UNSAVED_NOTE_CONFIRM =
-  'You have an unsaved note for this person. Switch anyway and discard it?';
-
 /**
  * The Cadence home: roster strip for picking the person, 1:1 briefing below.
  * Selection lives in the URL (/scorecard/:employeeId) so briefings stay
@@ -27,7 +24,6 @@ export function ScorecardPage() {
   const { entries, loading, error } = useRoster(managerFilter);
   const [rosterMode, setRosterMode] = useState<'data' | 'all'>('data');
   const [search, setSearch] = useState('');
-  const [notesDirty, setNotesDirty] = useState(false);
   const { showTour, closeTour } = useTour();
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -68,20 +64,19 @@ export function ScorecardPage() {
   }, [employeeId, loading, visible, navigate, searchParams]);
 
   // The ONE person-switch path (roster clicks and arrow keys both land here).
-  // Switching unmounts the briefing and destroys any notes draft — when one
-  // exists, confirm the discard first (REVIEW.md 2.1).
+  // Switching navigates, so NotesPanel's useBlocker owns the unsaved-draft
+  // confirm — one guard for every route change (REVIEW.md 2.1).
   const selectPerson = useCallback(
     (id: string) => {
       if (id === employeeId) return;
-      if (notesDirty && !window.confirm(UNSAVED_NOTE_CONFIRM)) return;
       navigate({ pathname: `/scorecard/${id}`, search: searchParams.toString() });
     },
-    [employeeId, notesDirty, navigate, searchParams],
+    [employeeId, navigate, searchParams],
   );
 
   // Keyboard basics (QoL): '/' focuses the roster search, ←/→ step through
-  // the visible roster (via selectPerson, so the unsaved-note guard applies),
-  // Esc clears the search. Plain window listener; it never acts while the
+  // the visible roster (via selectPerson — a navigation, so the useBlocker
+  // draft guard applies), Esc clears the search. Plain window listener; it never acts while the
   // user is typing — '/' in the notes textarea must not steal focus, and an
   // arrow keypress mid-sentence must not switch people. Esc inside the search
   // box itself is the input's own handler below, not this listener.
@@ -206,7 +201,7 @@ export function ScorecardPage() {
         />
       )}
 
-      {employeeId && <Briefing employeeId={employeeId} onNotesDirtyChange={setNotesDirty} />}
+      {employeeId && <Briefing employeeId={employeeId} />}
 
       <TourModal open={showTour} onClose={closeTour} />
     </AppLayout>

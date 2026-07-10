@@ -20,12 +20,6 @@ interface NotesPanelProps {
     actionItems: string[],
   ) => Promise<{ ok: boolean; error?: string }>;
   onToggleActionItem: (itemId: string, isCompleted: boolean) => Promise<{ ok: boolean; error?: string }>;
-  /**
-   * Reports whether a draft (note text or pending action items) would be lost
-   * if the panel unmounted — the roster person-switch guard reads it. The
-   * panel reports clean on unmount.
-   */
-  onDirtyChange?: (dirty: boolean) => void;
 }
 
 function NotesSkeleton() {
@@ -53,7 +47,6 @@ export function NotesPanel({
   managerId,
   onSave,
   onToggleActionItem,
-  onDirtyChange,
 }: NotesPanelProps) {
   const today = new Date().toISOString().split('T')[0];
   const minDate = new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -68,13 +61,9 @@ export function NotesPanel({
 
   // A draft exists once any field the save would persist has content; the
   // date field alone is not a draft. Guards both loss paths (REVIEW.md 2.1):
-  // person-switch (via onDirtyChange → the roster confirm) and tab close
-  // (via beforeunload below).
+  // any route navigation — person switches, sidebar, palette, back button —
+  // via useBlocker, and tab close via beforeunload below.
   const dirty = noteContent.trim() !== '' || actionItems.length > 0 || newItem.trim() !== '';
-
-  useEffect(() => {
-    onDirtyChange?.(dirty);
-  }, [dirty, onDirtyChange]);
 
   const blocker = useBlocker(dirty);
 
@@ -88,10 +77,6 @@ export function NotesPanel({
       }
     }
   }, [blocker]);
-
-  // Unmounting destroys the draft with the panel — report clean so a stale
-  // dirty flag can't keep confirming switches that no longer lose anything.
-  useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
 
   useEffect(() => {
     if (!dirty) return;

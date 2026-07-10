@@ -7,10 +7,38 @@
 
 ## Current Session Status
 
-**Last updated:** 2026-07-08 (session 31)
+**Last updated:** 2026-07-10 (session 32)
 
 - All 5 phases, 4 UI/UX sprints, layout redesign, and data integrity audit complete — pilot-ready
 - Production: `hungerrush-scorecard.vercel.app` (frontend) · `scorecardapi-production.up.railway.app` (backend)
+- **Session 32 (2026-07-10 — sprint 2 merged + reviewed; sprint 3 planned; Antigravity
+  wave 3 QUARANTINED; fast-follow PR built, OPEN):** James merged **PR #19** (sprint 2,
+  Antigravity-built: data-router/`createBrowserRouter` migration + `useBlocker` draft
+  guard — the SPA-nav residual CLOSED — + a first PDF fonts/sparklines pass); post-merge
+  review found a live **double-confirm** on dirty person-switches, a PDF **bold-weight
+  regression riding a runtime Google-CDN fetch** (against the self-hosted-fonts policy),
+  and gap-packing min/max PDF sparklines. Sprint 3 planned with Antigravity over three
+  review rounds — **manual metric source architecture locked** (`'manual'` on the
+  MetricSource enum, snapshots via RLS-scoped upsert, NO compute module/registry line,
+  standalone ManualMetricsPanel; JSONB-on-notes rejected); James's Alex/Barb master list
+  mapped in **`docs/sprint3-metric-coverage.md` (PR #20, MERGED `555f0b4`)** = the sprint
+  acceptance checklist. **Antigravity wave 3 executed sprint 3 + fast-follow + a
+  resurrected glassmorphic re-theme as ONE blob into James's checkout** — quarantined on
+  `audit/sprint2-fast-follow` (`40251de` + capture `11f6dc0`, pushed, NEVER merge:
+  lint 14 / 6 tests failing / 3 deleted; PDF-export + Share + freshness chips + ghost
+  badges dropped; HTML-as-TTF fonts; unpasteable 0024; fabricated CLAUDE.md entry —
+  full record in REVIEW.md wave-3 bullet). James: **re-theme dropped a second time**.
+  Built **`audit/pr19-fast-follow`** (PR OPEN): useBlocker = the ONE guard (ScorecardPage
+  confirm + dirty-prop chain removed; blocker-based tests), PDF real self-hosted TTFs
+  (Inter normal+bold + Montserrat headings, verified TrueType, precache-excluded,
+  helvetica offline fallback) + fixed-domain gap-preserving sparklines (`PdfMetric.domain`
+  from the evidence view-model). Tests 193 → **194** (55 api / 107 web / 32 shared);
+  typecheck ×3 / lint / build green. **NEXT: James merges the fast-follow (deploys
+  pre-demo) → sprint-3 backend REPAIR on a clean branch** (salvage 40251de's backend:
+  fix 0024 enum-transaction + is_active=false + ROLLBACK blocks, tests for all 12
+  modules, PR-20 deltas incl. pct_ib_answered/tickets_solved/absences, Talk discovery
+  gate, remove gen_telephony.js, verify periodEnd clamp, build ManualMetricsPanel) →
+  **demo ON/AFTER Jul 13 on master** (smoke checklist).
 - **Session 31c (2026-07-08 — PR #17 MERGED + wave-2 palette rebuilt, PR OPEN):** James
   merged #17 (`f4583df`; **/health sha verified serving it**). Antigravity's wave 2
   (Cmd+K palette + 3 unapproved deps clsx/framer-motion/tailwind-merge + a 366-line

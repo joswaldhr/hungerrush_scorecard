@@ -1,14 +1,17 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
-import { RouterProvider, createMemoryRouter } from 'react-router-dom';
+import { Link, RouterProvider, createMemoryRouter } from 'react-router-dom';
 import {
   ACTION_TOGGLE_FAILED_COPY,
   type ScorecardSessionWithDetails,
 } from '../../hooks/useScorecardNotes';
 import { NotesPanel } from './NotesPanel';
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 const SESSION: ScorecardSessionWithDetails = {
   id: 's1',
@@ -30,20 +33,42 @@ const SESSION: ScorecardSessionWithDetails = {
   action_items: [],
 };
 
-function renderPanel(sessions: ScorecardSessionWithDetails[], loading = false) {
+/**
+ * Two-route harness: NotesPanel needs a data router for useBlocker, and the
+ * "Leave page" link exercises exactly the navigation the blocker guards
+ * (person switches, sidebar, palette — all route changes look like this).
+ */
+function renderPanel(
+  sessions: ScorecardSessionWithDetails[],
+  loading = false,
+  onSave: (
+    managerId: string,
+    sessionDate: string,
+    noteContent: string,
+    actionItems: string[],
+  ) => Promise<{ ok: boolean; error?: string }> = async () => ({ ok: true }),
+  onToggleActionItem: (
+    itemId: string,
+    isCompleted: boolean,
+  ) => Promise<{ ok: boolean; error?: string }> = async () => ({ ok: true }),
+) {
   const router = createMemoryRouter([
     {
       path: '/',
       element: (
-        <NotesPanel
-          sessions={sessions}
-          loading={loading}
-          managerId="m1"
-          onSave={async () => ({ ok: true })}
-          onToggleActionItem={async () => ({ ok: true })}
-        />
+        <div>
+          <NotesPanel
+            sessions={sessions}
+            loading={loading}
+            managerId="m1"
+            onSave={onSave}
+            onToggleActionItem={onToggleActionItem}
+          />
+          <Link to="/away">Leave page</Link>
+        </div>
       ),
     },
+    { path: '/away', element: <p>away page</p> },
   ]);
   return render(<RouterProvider router={router} />);
 }
@@ -65,95 +90,72 @@ describe('NotesPanel', () => {
     expect(screen.getByText(/No 1:1 sessions in the last 12 weeks — save your first note/)).toBeTruthy();
   });
 
-  it('reports dirty while a draft exists and guards tab close only then', () => {
-    const onDirtyChange = vi.fn();
-    const router = createMemoryRouter([
-      {
-        path: '/',
-        element: (
-          <NotesPanel
-            sessions={[]}
-            loading={false}
-            managerId="m1"
-            onSave={async () => ({ ok: true })}
-            onToggleActionItem={async () => ({ ok: true })}
-            onDirtyChange={onDirtyChange}
-          />
-        ),
-      },
-    ]);
-    render(<RouterProvider router={router} />);
-    expect(onDirtyChange).toHaveBeenLastCalledWith(false);
-
+  it('guards tab close only while a draft exists', () => {
+    renderPanel([]);
     const cleanClose = new Event('beforeunload', { cancelable: true });
     window.dispatchEvent(cleanClose);
     expect(cleanClose.defaultPrevented).toBe(false);
 
     fireEvent.change(screen.getByLabelText('Notes'), { target: { value: 'half-typed draft' } });
-    expect(onDirtyChange).toHaveBeenLastCalledWith(true);
-
     const dirtyClose = new Event('beforeunload', { cancelable: true });
     window.dispatchEvent(dirtyClose);
     expect(dirtyClose.defaultPrevented).toBe(true);
 
     fireEvent.change(screen.getByLabelText('Notes'), { target: { value: '' } });
-    expect(onDirtyChange).toHaveBeenLastCalledWith(false);
+    const cleanAgain = new Event('beforeunload', { cancelable: true });
+    window.dispatchEvent(cleanAgain);
+    expect(cleanAgain.defaultPrevented).toBe(false);
   });
 
-  it('a pending action item counts as a draft', () => {
-    const onDirtyChange = vi.fn();
-    const router = createMemoryRouter([
-      {
-        path: '/',
-        element: (
-          <NotesPanel
-            sessions={[]}
-            loading={false}
-            managerId="m1"
-            onSave={async () => ({ ok: true })}
-            onToggleActionItem={async () => ({ ok: true })}
-            onDirtyChange={onDirtyChange}
-          />
-        ),
-      },
-    ]);
-    render(<RouterProvider router={router} />);
+  it('never blocks navigation while the panel is clean', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    renderPanel([]);
+    fireEvent.click(screen.getByRole('link', { name: 'Leave page' }));
+    expect(await screen.findByText('away page')).toBeTruthy();
+    expect(confirmSpy).not.toHaveBeenCalled();
+  });
+
+  it('blocks navigation away from a draft and stays on cancel', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    renderPanel([]);
+    fireEvent.change(screen.getByLabelText('Notes'), { target: { value: 'half-typed draft' } });
+    fireEvent.click(screen.getByRole('link', { name: 'Leave page' }));
+    await waitFor(() =>
+      expect(confirmSpy).toHaveBeenCalledWith(expect.stringMatching(/unsaved notes/)),
+    );
+    // Cancel keeps the manager on the page with the draft intact.
+    expect((screen.getByLabelText('Notes') as HTMLTextAreaElement).value).toBe('half-typed draft');
+    expect(screen.queryByText('away page')).toBeNull();
+  });
+
+  it('proceeds with navigation when the manager confirms the discard', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    renderPanel([]);
+    fireEvent.change(screen.getByLabelText('Notes'), { target: { value: 'half-typed draft' } });
+    fireEvent.click(screen.getByRole('link', { name: 'Leave page' }));
+    expect(await screen.findByText('away page')).toBeTruthy();
+  });
+
+  it('a pending action item counts as a draft — navigation prompts', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    renderPanel([]);
     fireEvent.change(screen.getByLabelText('New action item'), { target: { value: 'Pair up' } });
-    expect(onDirtyChange).toHaveBeenLastCalledWith(true);
     fireEvent.click(screen.getByRole('button', { name: 'Add' }));
-    // Item moved from the input into the pending list — still a draft.
-    expect(onDirtyChange).toHaveBeenLastCalledWith(true);
+    fireEvent.click(screen.getByRole('link', { name: 'Leave page' }));
+    await waitFor(() => expect(confirmSpy).toHaveBeenCalled());
+    expect(screen.queryByText('away page')).toBeNull();
   });
 
-  it('reports clean after a successful save and on unmount', async () => {
-    const onDirtyChange = vi.fn();
-    const router = createMemoryRouter([
-      {
-        path: '/',
-        element: (
-          <NotesPanel
-            sessions={[]}
-            loading={false}
-            managerId="m1"
-            onSave={async () => ({ ok: true })}
-            onToggleActionItem={async () => ({ ok: true })}
-            onDirtyChange={onDirtyChange}
-          />
-        ),
-      },
-    ]);
-    const { unmount } = render(<RouterProvider router={router} />);
+  it('a successful save clears the draft — navigating afterwards never prompts', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    renderPanel([]);
     fireEvent.change(screen.getByLabelText('Notes'), { target: { value: 'First 1:1' } });
-    expect(onDirtyChange).toHaveBeenLastCalledWith(true);
-
     fireEvent.click(screen.getByRole('button', { name: 'Save Session' }));
     await screen.findByText('Session saved');
-    expect(onDirtyChange).toHaveBeenLastCalledWith(false);
 
-    fireEvent.change(screen.getByLabelText('Notes'), { target: { value: 'next draft' } });
-    expect(onDirtyChange).toHaveBeenLastCalledWith(true);
-    unmount();
-    expect(onDirtyChange).toHaveBeenLastCalledWith(false);
+    fireEvent.click(screen.getByRole('link', { name: 'Leave page' }));
+    expect(await screen.findByText('away page')).toBeTruthy();
+    expect(confirmSpy).not.toHaveBeenCalled();
   });
 
   it('shows the undo copy when a history checkbox toggle fails', async () => {
@@ -171,42 +173,14 @@ describe('NotesPanel', () => {
         },
       ],
     };
-    const router = createMemoryRouter([
-      {
-        path: '/',
-        element: (
-          <NotesPanel
-            sessions={[withItem]}
-            loading={false}
-            managerId="m1"
-            onSave={async () => ({ ok: true })}
-            onToggleActionItem={async () => ({ ok: false, error: 'network down' })}
-          />
-        ),
-      },
-    ]);
-    render(<RouterProvider router={router} />);
+    renderPanel([withItem], false, undefined, async () => ({ ok: false, error: 'network down' }));
     fireEvent.click(screen.getByRole('checkbox'));
     await waitFor(() => expect(screen.getByText(ACTION_TOGGLE_FAILED_COPY)).toBeTruthy());
   });
 
   it('keeps Save disabled until there is content, then saves', async () => {
     const onSave = vi.fn(async () => ({ ok: true }));
-    const router = createMemoryRouter([
-      {
-        path: '/',
-        element: (
-          <NotesPanel
-            sessions={[]}
-            loading={false}
-            managerId="m1"
-            onSave={onSave}
-            onToggleActionItem={async () => ({ ok: true })}
-          />
-        ),
-      },
-    ]);
-    render(<RouterProvider router={router} />);
+    renderPanel([], false, onSave);
     const save = screen.getByRole('button', { name: 'Save Session' });
     expect((save as HTMLButtonElement).disabled).toBe(true);
 

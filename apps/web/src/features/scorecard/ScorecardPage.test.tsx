@@ -6,22 +6,16 @@ import type { Employee } from '@scorecard/shared';
 import type { RosterEntry } from '../../hooks/useRoster';
 
 // The page composes heavy neighbours — stub everything that isn't the roster
-// selection / guard / keyboard behavior under test.
+// selection / keyboard behavior under test. The unsaved-draft guard lives in
+// NotesPanel (useBlocker) and is tested there.
 vi.mock('../../hooks/useRoster', () => ({
   useRoster: () => ({ entries: ENTRIES, loading: false, error: null }),
 }));
 
 vi.mock('./components/Briefing', () => ({
-  Briefing: ({
-    employeeId,
-    onNotesDirtyChange,
-  }: {
-    employeeId: string;
-    onNotesDirtyChange?: (dirty: boolean) => void;
-  }) => (
+  Briefing: ({ employeeId }: { employeeId: string }) => (
     <div>
       <span data-testid="briefing-person">{employeeId}</span>
-      <button onClick={() => onNotesDirtyChange?.(true)}>make-dirty</button>
       <textarea aria-label="fake note field" />
     </div>
   ),
@@ -90,37 +84,29 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('ScorecardPage unsaved-note guard', () => {
-  it('switches people without confirmation when the note is clean', () => {
+describe('ScorecardPage person switching', () => {
+  it('switches people on a roster click without any prompt of its own', () => {
     renderPage();
     expect(briefingPerson()).toBe('e1');
     fireEvent.click(screen.getByRole('button', { name: /Dario Reyes/ }));
+    // The draft guard is NotesPanel's useBlocker — the page itself never confirms.
     expect(confirmSpy).not.toHaveBeenCalled();
     expect(briefingPerson()).toBe('e2');
   });
 
-  it('confirms before a switch discards a draft, and stays on cancel', () => {
+  it('re-clicking the selected person is a no-op', () => {
     renderPage();
-    fireEvent.click(screen.getByRole('button', { name: 'make-dirty' }));
-    fireEvent.click(screen.getByRole('button', { name: /Dario Reyes/ }));
-    expect(confirmSpy).toHaveBeenCalledWith(expect.stringMatching(/unsaved note/));
-    expect(briefingPerson()).toBe('e1'); // cancel keeps the draft's person
-  });
-
-  it('switches and discards when the manager confirms', () => {
-    confirmSpy.mockReturnValue(true);
-    renderPage();
-    fireEvent.click(screen.getByRole('button', { name: 'make-dirty' }));
-    fireEvent.click(screen.getByRole('button', { name: /Dario Reyes/ }));
-    expect(briefingPerson()).toBe('e2');
-  });
-
-  it('re-clicking the selected person never prompts', () => {
-    renderPage();
-    fireEvent.click(screen.getByRole('button', { name: 'make-dirty' }));
     fireEvent.click(screen.getByRole('button', { name: /Maya Okafor/ }));
-    expect(confirmSpy).not.toHaveBeenCalled();
     expect(briefingPerson()).toBe('e1');
+  });
+
+  it('a person switch preserves the ?manager drill-down params', () => {
+    renderPage('/scorecard/e1?manager=mgr-1&name=Sam%20Lee');
+    expect(screen.getByText(/Viewing Sam Lee's team/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /Dario Reyes/ }));
+    expect(briefingPerson()).toBe('e2');
+    // The banner reads the CURRENT route's params — still present ⇒ preserved.
+    expect(screen.getByText(/Viewing Sam Lee's team/)).toBeTruthy();
   });
 });
 
@@ -154,14 +140,6 @@ describe('ScorecardPage keyboard basics', () => {
     renderPage();
     fireEvent.keyDown(screen.getByLabelText('fake note field'), { key: 'ArrowRight' });
     expect(briefingPerson()).toBe('e1');
-  });
-
-  it('an arrow-key switch goes through the unsaved-note confirm', () => {
-    renderPage();
-    fireEvent.click(screen.getByRole('button', { name: 'make-dirty' }));
-    fireEvent.keyDown(document.body, { key: 'ArrowRight' });
-    expect(confirmSpy).toHaveBeenCalledWith(expect.stringMatching(/unsaved note/));
-    expect(briefingPerson()).toBe('e1'); // confirm mocked to cancel
   });
 
   it('Esc clears the search from the box itself and from anywhere else', () => {

@@ -11,8 +11,13 @@ export interface PdfMetric {
   lastWeekValue: number | null;
   /** Tone from the one trend engine; null when the metric has no history. */
   tone: TrendTone | null;
-  /** Full 12-week history array for sparkline rendering (oldest to newest). */
+  /**
+   * The 8-week calendar window, oldest → newest — one slot per week; null =
+   * week without a snapshot, kept as a visible gap (never packed).
+   */
   history: (number | null)[];
+  /** Resolved sparkline y-scale (spec domain as minimum extent) — same honest scale the screen uses. */
+  domain: readonly [number, number];
 }
 
 // Cadence tokens as RGB (tailwind.config.ts is the source of the hex values).
@@ -31,6 +36,46 @@ const TONE_PDF: Record<TrendTone, { label: string; color: readonly [number, numb
   new: { label: 'New', color: GRAY_LIGHT },
 };
 
+// The brand TTFs live beside the CSS woff2s in public/fonts/ (self-hosted —
+// never a CDN fetch). Fetched and base64'd once per session, then reused.
+const BRAND_FONTS = [
+  { file: 'Inter-Regular.ttf', family: 'Inter', style: 'normal' },
+  { file: 'Inter-Bold.ttf', family: 'Inter', style: 'bold' },
+  { file: 'Montserrat-Bold.ttf', family: 'Montserrat', style: 'bold' },
+] as const;
+
+let brandFontCache: Promise<Map<string, string> | null> | null = null;
+
+function toBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  // Chunked — a single fromCharCode spread overflows the arg limit on ~400KB files.
+  for (let i = 0; i < bytes.byteLength; i += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(binary);
+}
+
+function loadBrandFonts(): Promise<Map<string, string> | null> {
+  brandFontCache ??= (async () => {
+    try {
+      const entries = await Promise.all(
+        BRAND_FONTS.map(async f => {
+          const res = await fetch(`/fonts/${f.file}`);
+          if (!res.ok) throw new Error(`${f.file}: ${res.status}`);
+          return [f.file, toBase64(await res.arrayBuffer())] as const;
+        }),
+      );
+      return new Map(entries);
+    } catch (e) {
+      console.warn('Brand fonts unavailable for PDF (offline?) — falling back to helvetica:', e);
+      brandFontCache = null; // let a later export retry once back online
+      return null;
+    }
+  })();
+  return brandFontCache;
+}
+
 export async function generateScorecardPdf(
   employeeName: string,
   employeeEmail: string,
@@ -39,27 +84,16 @@ export async function generateScorecardPdf(
 ): Promise<void> {
   const doc = new jsPDF();
 
-  // Load custom font dynamically
-  try {
-    const fontRes = await fetch('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfMZhrib2Bg-4.ttf');
-    if (fontRes.ok) {
-      const buffer = await fontRes.arrayBuffer();
-      // btoa requires a string, but arrayBuffer can be large. Use Uint8Array to string.
-      let binary = '';
-      const bytes = new Uint8Array(buffer);
-      for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]!);
-      }
-      const base64Font = btoa(binary);
-      doc.addFileToVFS('Inter-Regular.ttf', base64Font);
-      doc.addFont('Inter-Regular.ttf', 'Inter', 'normal');
-      doc.addFont('Inter-Regular.ttf', 'Inter', 'bold'); // fallback since we only load one weight for speed
+  const fontData = await loadBrandFonts();
+  if (fontData) {
+    for (const f of BRAND_FONTS) {
+      doc.addFileToVFS(f.file, fontData.get(f.file)!);
+      doc.addFont(f.file, f.family, f.style);
     }
-  } catch (e) {
-    console.warn('Failed to load brand font for PDF:', e);
   }
-
-  const fontName = doc.getFontList()['Inter'] ? 'Inter' : 'helvetica';
+  // Montserrat = headings, Inter = body (the app's own pairing); helvetica offline.
+  const headingFont = fontData ? 'Montserrat' : 'helvetica';
+  const bodyFont = fontData ? 'Inter' : 'helvetica';
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -69,22 +103,22 @@ export async function generateScorecardPdf(
   // Brand band
   doc.setFillColor(...NAVY);
   doc.rect(0, 0, pageWidth, 24, 'F');
-  doc.setFont(fontName, 'bold');
+  doc.setFont(headingFont, 'bold');
   doc.setFontSize(15);
   doc.setTextColor(255, 255, 255);
   doc.text('HungerRush Cadence', 14, 15);
-  doc.setFont(fontName, 'normal');
+  doc.setFont(bodyFont, 'normal');
   doc.setFontSize(9);
   doc.setTextColor(...LAVENDER);
   doc.text('1:1 briefing snapshot', pageWidth - 14, 15, { align: 'right' });
 
   let y = 36;
-  doc.setFont(fontName, 'bold');
+  doc.setFont(headingFont, 'bold');
   doc.setFontSize(15);
   doc.setTextColor(...NAVY);
   doc.text(employeeName, 14, y);
   y += 6.5;
-  doc.setFont(fontName, 'normal');
+  doc.setFont(bodyFont, 'normal');
   doc.setFontSize(9.5);
   doc.setTextColor(...GRAY);
   doc.text(employeeEmail, 14, y);
@@ -94,24 +128,27 @@ export async function generateScorecardPdf(
   doc.line(14, y, pageWidth - 14, y);
   y += 9;
 
+  doc.setFont(bodyFont, 'normal');
   doc.setFontSize(8);
   doc.setTextColor(...GRAY_LIGHT);
   doc.text('THIS WEEK SO FAR  ·  LAST WEEK (COMPLETED)', 14, y);
   y += 8;
 
   for (const m of metrics) {
-    if (y > pageHeight - 42) {
+    // Tallest card: name + windows + sparkline + a 3-line coaching prompt.
+    if (y > pageHeight - 60) {
       doc.addPage();
       y = 20;
     }
 
-    doc.setFont(fontName, 'bold');
+    doc.setFont(headingFont, 'bold');
     doc.setFontSize(11);
     doc.setTextColor(...NAVY);
     doc.text(m.definition.name, 14, y);
 
     // Value — 0 is a measured value (L8, 1C commit 11); only null means "No data".
     const current = m.currentValue;
+    doc.setFont(bodyFont, 'bold');
     doc.setFontSize(12);
     if (current !== null) {
       doc.setTextColor(...NAVY);
@@ -122,7 +159,7 @@ export async function generateScorecardPdf(
     }
     y += 5.5;
 
-    doc.setFont(fontName, 'normal');
+    doc.setFont(bodyFont, 'normal');
     doc.setFontSize(8.5);
     if (m.tone) {
       const t = TONE_PDF[m.tone];
@@ -140,38 +177,45 @@ export async function generateScorecardPdf(
     );
     y += 5.5;
 
-    // Draw sparkline
-    const validHistory = m.history.filter(v => v !== null) as number[];
-    if (validHistory.length > 1) {
-      const sparklineHeight = 10;
-      const sparklineWidth = 30;
-      const sparklineX = 14;
-      const sparklineY = y + 2;
+    // Sparkline — the same honest chart rules as the screen (Cadence): fixed
+    // domain scale so small wiggles look small, one x-slot per calendar week,
+    // and a missing week stays a visible gap instead of packing the line.
+    const pointCount = m.history.filter(v => v !== null).length;
+    if (pointCount > 0) {
+      const sparkH = 10;
+      const sparkW = 40;
+      const sparkX = 14;
+      const sparkY = y + 2;
+      const [lo, hi] = m.domain;
+      const range = hi - lo || 1;
+      const slots = m.history.length;
+      const stepX = slots > 1 ? sparkW / (slots - 1) : 0;
+      const yFor = (v: number) => sparkY + sparkH - ((v - lo) / range) * sparkH;
 
-      const min = Math.min(...validHistory);
-      const max = Math.max(...validHistory);
-      const range = max - min === 0 ? 1 : max - min; // avoid division by zero
-
-      doc.setDrawColor(...(m.tone ? TONE_PDF[m.tone].color : NAVY));
+      const color = m.tone ? TONE_PDF[m.tone].color : NAVY;
+      doc.setDrawColor(...color);
+      doc.setFillColor(...color);
       doc.setLineWidth(0.5);
 
-      const stepX = sparklineWidth / (validHistory.length - 1);
-      let prevX = sparklineX;
-      let prevY = sparklineY + sparklineHeight - (((validHistory[0] as number) - min) / range) * sparklineHeight;
-
-      for (let i = 1; i < validHistory.length; i++) {
-        const cx = sparklineX + i * stepX;
-        const cy = sparklineY + sparklineHeight - (((validHistory[i] as number) - min) / range) * sparklineHeight;
-        doc.line(prevX, prevY, cx, cy);
-        prevX = cx;
-        prevY = cy;
+      for (let i = 0; i < slots; i++) {
+        const v = m.history[i];
+        if (v === null || v === undefined) continue;
+        const prev = i > 0 ? m.history[i - 1] : null;
+        if (prev !== null && prev !== undefined) {
+          doc.line(sparkX + (i - 1) * stepX, yFor(prev), sparkX + i * stepX, yFor(v));
+        } else {
+          // Segment start (or isolated week) — mark the point so gaps read as
+          // gaps rather than the line simply starting late.
+          doc.circle(sparkX + i * stepX, yFor(v), 0.45, 'F');
+        }
       }
-      y += sparklineHeight + 6;
-    } else if (validHistory.length <= 1) {
-      y += 2; // small padding if no sparkline
+      y += sparkH + 6;
+    } else {
+      y += 2; // no history — small padding only
     }
 
     if (m.definition.coaching_prompt) {
+      doc.setFont(bodyFont, 'normal');
       doc.setFontSize(9);
       doc.setTextColor(...GRAY);
       const lines = doc.splitTextToSize(m.definition.coaching_prompt, pageWidth - 28) as string[];
@@ -188,7 +232,7 @@ export async function generateScorecardPdf(
   // Watermark on EVERY page — a forwardable performance doc must carry its
   // provenance on each page, not just the last one.
   const pageCount = doc.getNumberOfPages();
-  doc.setFont(fontName, 'normal');
+  doc.setFont(bodyFont, 'normal');
   doc.setFontSize(8);
   doc.setTextColor(...GRAY_LIGHT);
   for (let i = 1; i <= pageCount; i++) {
