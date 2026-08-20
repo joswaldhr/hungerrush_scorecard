@@ -315,3 +315,33 @@ export const metricObservations = pgTable(
     index("metric_observations_period_idx").on(table.periodStart, table.periodEnd),
   ]
 );
+
+// ── Briefings ──────────────────────────────────────────────
+
+export const briefingSnapshots = pgTable(
+  "briefing_snapshots",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
+    briefingType: text("briefing_type").notNull(),
+    managerUserId: uuid("manager_user_id")
+      .notNull()
+      .references(() => users.id),
+    employeeId: uuid("employee_id").references(() => employees.id),
+    teamId: uuid("team_id").references(() => teams.id),
+    periodStart: date("period_start").notNull(),
+    periodEnd: date("period_end").notNull(),
+    generatedAt: timestamp("generated_at", { withTimezone: true }).notNull().defaultNow(),
+    dataFreshnessAt: timestamp("data_freshness_at", { withTimezone: true }),
+    generationVersion: integer("generation_version").notNull().default(1),
+    payloadJson: jsonb("payload_json").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("briefing_snapshots_manager_id_idx").on(table.managerUserId),
+    index("briefing_snapshots_team_id_idx").on(table.teamId),
+    index("briefing_snapshots_period_idx").on(table.periodStart, table.periodEnd),
+  ]
+);

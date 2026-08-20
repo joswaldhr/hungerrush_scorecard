@@ -40,9 +40,9 @@ export function formatMetricValue(
     case "percentage":
       return `${value.toFixed(1)}%`;
     case "duration":
-      if (unit === "minutes") return `${value.toFixed(1)}m`;
-      if (unit === "hours") return `${value.toFixed(1)}h`;
-      if (unit === "seconds") return `${value.toFixed(0)}s`;
+      if (unit === "min" || unit === "minutes") return `${value.toFixed(1)}m`;
+      if (unit === "h" || unit === "hours") return `${value.toFixed(1)}h`;
+      if (unit === "s" || unit === "seconds") return `${value.toFixed(0)}s`;
       return `${value.toFixed(1)}`;
     case "count":
       return value.toFixed(0);
