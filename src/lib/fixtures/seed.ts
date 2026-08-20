@@ -20,6 +20,8 @@ import {
   normalizedFacts,
   contextItems,
   meetingReferences,
+  reconciliationRuns,
+  reconciliationResults,
 } from "../db/schema";
 
 const connectionString = process.env.DATABASE_URL;
@@ -98,6 +100,8 @@ async function seed() {
 
   await db.transaction(async (tx) => {
     // Clear in reverse FK order
+    await tx.delete(reconciliationResults).execute();
+    await tx.delete(reconciliationRuns).execute();
     await tx.delete(meetingReferences).execute();
     await tx.delete(contextItems).execute();
     await tx.delete(normalizedFacts).execute();

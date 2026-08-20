@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Home, Users, Calendar, Activity, LogOut } from "lucide-react";
+import { Home, Users, Calendar, Activity, Scale, LogOut } from "lucide-react";
 import { auth, signOut } from "@/lib/auth";
 
 const navItems = [
@@ -7,6 +7,7 @@ const navItems = [
   { label: "Team", href: "/team", icon: Users },
   { label: "1:1s", href: "/one-on-ones", icon: Calendar },
   { label: "Data Health", href: "/data-health", icon: Activity },
+  { label: "Reconciliation", href: "/reconciliation", icon: Scale },
 ];
 
 export async function Sidebar() {

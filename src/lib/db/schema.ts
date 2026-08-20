@@ -504,3 +504,67 @@ export const meetingReferences = pgTable(
     index("meeting_references_manager_id_idx").on(table.managerUserId),
   ]
 );
+
+// ── Reconciliation ───────────────────────────────────────
+
+export const reconciliationRuns = pgTable(
+  "reconciliation_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
+    triggeredBy: uuid("triggered_by")
+      .notNull()
+      .references(() => users.id),
+    status: text("status").notNull().default("running"),
+    teamId: uuid("team_id").references(() => teams.id),
+    periodStart: date("period_start").notNull(),
+    periodEnd: date("period_end").notNull(),
+    thresholdPct: real("threshold_pct").notNull().default(5),
+    totalComparisons: integer("total_comparisons").notNull().default(0),
+    matchCount: integer("match_count").notNull().default(0),
+    mismatchCount: integer("mismatch_count").notNull().default(0),
+    sourceMissingCount: integer("source_missing_count").notNull().default(0),
+    cadenceMissingCount: integer("cadence_missing_count").notNull().default(0),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("reconciliation_runs_org_id_idx").on(table.organizationId),
+    index("reconciliation_runs_status_idx").on(table.status),
+  ]
+);
+
+export const reconciliationResults = pgTable(
+  "reconciliation_results",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    reconciliationRunId: uuid("reconciliation_run_id")
+      .notNull()
+      .references(() => reconciliationRuns.id),
+    metricDefinitionId: uuid("metric_definition_id")
+      .notNull()
+      .references(() => metricDefinitions.id),
+    employeeId: uuid("employee_id")
+      .notNull()
+      .references(() => employees.id),
+    periodStart: date("period_start").notNull(),
+    periodEnd: date("period_end").notNull(),
+    cadenceValue: real("cadence_value"),
+    sourceValue: real("source_value"),
+    absoluteDelta: real("absolute_delta"),
+    relativeDeltaPct: real("relative_delta_pct"),
+    status: text("status").notNull(),
+    cadenceCalculationVersion: integer("cadence_calculation_version"),
+    metricKey: text("metric_key").notNull(),
+    factType: text("fact_type").notNull(),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("reconciliation_results_run_id_idx").on(table.reconciliationRunId),
+    index("reconciliation_results_employee_id_idx").on(table.employeeId),
+    index("reconciliation_results_metric_id_idx").on(table.metricDefinitionId),
+  ]
+);
