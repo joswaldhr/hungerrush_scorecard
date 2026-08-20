@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Home, Users, Calendar, Activity, Scale, LogOut } from "lucide-react";
 import { auth, signOut } from "@/lib/auth";
+import { headers } from "next/headers";
 
 const navItems = [
   { label: "Home", href: "/", icon: Home },
@@ -13,6 +14,8 @@ const navItems = [
 export async function Sidebar() {
   const session = await auth();
   const user = session?.user;
+  const headerList = await headers();
+  const pathname = headerList.get("x-pathname") ?? "/";
 
   return (
     <aside className="flex h-screen w-[var(--sidebar-width)] flex-col bg-sidebar-background text-sidebar-foreground">
@@ -20,17 +23,26 @@ export async function Sidebar() {
         <span className="text-lg font-bold tracking-tight text-white">CADENCE</span>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3">
-        {navItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-          >
-            <item.icon className="h-4 w-4" />
-            {item.label}
-          </Link>
-        ))}
+      <nav className="flex-1 space-y-1 px-3" aria-label="Main navigation">
+        {navItems.map((item) => {
+          const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={isActive ? "page" : undefined}
+              className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                isActive
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              }`}
+            >
+              <item.icon className="h-4 w-4" />
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
 
       {user && (
@@ -53,6 +65,7 @@ export async function Sidebar() {
             >
               <button
                 type="submit"
+                aria-label="Sign out"
                 className="rounded-md p-1.5 text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
               >
                 <LogOut className="h-4 w-4" />

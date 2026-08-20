@@ -27,6 +27,11 @@ function syncStatusIcon(status: string) {
   }
 }
 
+function sanitizeErrorMessage(message: string): string {
+  if (message.length > 200) return message.slice(0, 200) + "...";
+  return message;
+}
+
 function syncStatusLabel(status: string): string {
   switch (status) {
     case "completed":
@@ -138,7 +143,7 @@ export default async function DataHealthPage() {
                 <div className="mt-3 space-y-1">
                   {errors.map((err) => (
                     <p key={err.id} className="text-xs text-[oklch(var(--status-attention))]">
-                      {err.errorType}: {err.message}
+                      {err.errorType}: {sanitizeErrorMessage(err.message)}
                       {err.retryable && <span className="text-muted-foreground"> (retryable)</span>}
                     </p>
                   ))}

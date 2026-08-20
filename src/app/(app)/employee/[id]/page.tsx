@@ -155,6 +155,7 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
         <BriefingSection title="Performance metrics">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
+              <caption className="sr-only">Employee performance metrics</caption>
               <thead>
                 <tr className="border-b text-left">
                   <th className="pb-2 font-medium text-muted-foreground">Metric</th>

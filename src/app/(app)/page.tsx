@@ -179,6 +179,7 @@ export default async function HomePage() {
               <BriefingSection title="Team performance">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
+                    <caption className="sr-only">Team performance metrics</caption>
                     <thead>
                       <tr className="border-b text-left">
                         <th className="pb-2 font-medium text-muted-foreground">Metric</th>

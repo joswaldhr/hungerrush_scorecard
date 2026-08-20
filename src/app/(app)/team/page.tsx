@@ -6,9 +6,13 @@ import {
   getAssignedEmployees,
 } from "@/lib/auth/authorization";
 import { getEmployeeMetrics } from "@/lib/domain/metrics/queries";
+import { db } from "@/lib/db";
+import { syncRuns, dataSources } from "@/lib/db/schema";
+import { eq, desc } from "drizzle-orm";
 import { StatusBadge } from "@/components/status-badge";
 import { TrendIndicator } from "@/components/trend-indicator";
 import { MetricValue } from "@/components/metric-value";
+import { DataFreshness } from "@/components/data-freshness";
 import { EmptyState } from "@/components/empty-state";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Link from "next/link";
@@ -24,6 +28,7 @@ function weekDates() {
   return {
     periodStart: monday.toISOString().split("T")[0]!,
     previousPeriodStart: prevMonday.toISOString().split("T")[0]!,
+    now: now.getTime(),
   };
 }
 
@@ -74,7 +79,17 @@ export default async function TeamPage() {
     return <EmptyState title="No teams" description="No teams assigned." />;
   }
 
-  const { periodStart, previousPeriodStart } = weekDates();
+  const { periodStart, previousPeriodStart, now } = weekDates();
+
+  const [latestSync] = await db
+    .select({ completedAt: syncRuns.completedAt })
+    .from(syncRuns)
+    .innerJoin(dataSources, eq(syncRuns.dataSourceId, dataSources.id))
+    .where(eq(dataSources.organizationId, ctx.organizationId))
+    .orderBy(desc(syncRuns.completedAt))
+    .limit(1);
+
+  const freshnessAt = latestSync?.completedAt?.toISOString() ?? null;
 
   const employeeData = await Promise.all(
     employees.map(async (emp) => {
@@ -96,6 +111,7 @@ export default async function TeamPage() {
       <header>
         <h1 className="text-xl font-semibold text-foreground">Team</h1>
         <p className="mt-1 text-sm text-muted-foreground">How is everyone doing?</p>
+        <DataFreshness freshnessAt={freshnessAt} now={now} className="mt-2" />
       </header>
 
       {teams.map((team) => {
@@ -108,6 +124,7 @@ export default async function TeamPage() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
+                  <caption className="sr-only">{team.name} employee metrics</caption>
                   <thead>
                     <tr className="border-b text-left">
                       <th className="pb-2 font-medium text-muted-foreground">Employee</th>

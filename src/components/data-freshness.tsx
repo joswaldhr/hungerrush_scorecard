@@ -17,10 +17,10 @@ export function DataFreshness({
   className,
 }: {
   freshnessAt: string | null;
-  now?: number;
+  now: number;
   className?: string;
 }) {
-  const timestamp = now ?? 0;
+  const timestamp = now;
   const isStale = freshnessAt
     ? timestamp - new Date(freshnessAt).getTime() > 24 * 60 * 60 * 1000
     : true;

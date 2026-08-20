@@ -154,6 +154,7 @@ export default async function ReconciliationPage() {
               </h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
+                  <caption className="sr-only">Reconciliation run detail</caption>
                   <thead>
                     <tr className="border-b text-left text-xs text-muted-foreground">
                       <th className="pb-2 pr-4">Status</th>
