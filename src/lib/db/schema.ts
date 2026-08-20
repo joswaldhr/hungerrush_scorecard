@@ -345,3 +345,162 @@ export const briefingSnapshots = pgTable(
     index("briefing_snapshots_period_idx").on(table.periodStart, table.periodEnd),
   ]
 );
+
+// ── Sync / Connector Framework ────────────────────────────
+
+export const syncRuns = pgTable(
+  "sync_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    dataSourceId: uuid("data_source_id")
+      .notNull()
+      .references(() => dataSources.id),
+    status: text("status").notNull().default("running"),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    recordsIngested: integer("records_ingested").notNull().default(0),
+    recordsNormalized: integer("records_normalized").notNull().default(0),
+    recordsSkipped: integer("records_skipped").notNull().default(0),
+    errorCount: integer("error_count").notNull().default(0),
+    cursor: text("cursor"),
+    metadataJson: jsonb("metadata_json"),
+  },
+  (table) => [
+    index("sync_runs_data_source_id_idx").on(table.dataSourceId),
+    index("sync_runs_status_idx").on(table.status),
+  ]
+);
+
+export const syncErrors = pgTable(
+  "sync_errors",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    syncRunId: uuid("sync_run_id")
+      .notNull()
+      .references(() => syncRuns.id),
+    errorType: text("error_type").notNull(),
+    message: text("message").notNull(),
+    externalRecordId: text("external_record_id"),
+    retryable: boolean("retryable").notNull().default(false),
+    context: jsonb("context"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("sync_errors_sync_run_id_idx").on(table.syncRunId)]
+);
+
+export const sourceRecords = pgTable(
+  "source_records",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    dataSourceId: uuid("data_source_id")
+      .notNull()
+      .references(() => dataSources.id),
+    externalRecordType: text("external_record_type").notNull(),
+    externalRecordId: text("external_record_id").notNull(),
+    employeeId: uuid("employee_id").references(() => employees.id),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }),
+    periodStart: date("period_start"),
+    periodEnd: date("period_end"),
+    payloadJson: jsonb("payload_json").notNull(),
+    payloadHash: text("payload_hash").notNull(),
+    sourceUpdatedAt: timestamp("source_updated_at", { withTimezone: true }),
+    ingestedAt: timestamp("ingested_at", { withTimezone: true }).notNull().defaultNow(),
+    syncRunId: uuid("sync_run_id").references(() => syncRuns.id),
+  },
+  (table) => [
+    uniqueIndex("source_records_dedup_idx").on(
+      table.dataSourceId,
+      table.externalRecordType,
+      table.externalRecordId
+    ),
+    index("source_records_employee_id_idx").on(table.employeeId),
+    index("source_records_period_idx").on(table.periodStart, table.periodEnd),
+  ]
+);
+
+export const normalizedFacts = pgTable(
+  "normalized_facts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
+    employeeId: uuid("employee_id")
+      .notNull()
+      .references(() => employees.id),
+    teamId: uuid("team_id").references(() => teams.id),
+    factType: text("fact_type").notNull(),
+    numericValue: real("numeric_value"),
+    textValue: text("text_value"),
+    booleanValue: boolean("boolean_value"),
+    unit: text("unit"),
+    periodStart: date("period_start").notNull(),
+    periodEnd: date("period_end").notNull(),
+    dataSourceId: uuid("data_source_id")
+      .notNull()
+      .references(() => dataSources.id),
+    sourceRecordId: uuid("source_record_id").references(() => sourceRecords.id),
+    dimensionsJson: jsonb("dimensions_json"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("normalized_facts_employee_id_idx").on(table.employeeId),
+    index("normalized_facts_fact_type_idx").on(table.factType),
+    index("normalized_facts_period_idx").on(table.periodStart, table.periodEnd),
+    index("normalized_facts_source_record_id_idx").on(table.sourceRecordId),
+  ]
+);
+
+// ── Context / Meetings ────────────────────────────────────
+
+export const contextItems = pgTable(
+  "context_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
+    employeeId: uuid("employee_id")
+      .notNull()
+      .references(() => employees.id),
+    contextType: text("context_type").notNull(),
+    title: text("title").notNull(),
+    summary: text("summary"),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
+    effectiveUntil: timestamp("effective_until", { withTimezone: true }),
+    dataSourceId: uuid("data_source_id").references(() => dataSources.id),
+    externalReference: text("external_reference"),
+    visibility: text("visibility").notNull().default("manager"),
+    metadataJson: jsonb("metadata_json"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("context_items_employee_id_idx").on(table.employeeId),
+    index("context_items_context_type_idx").on(table.contextType),
+  ]
+);
+
+export const meetingReferences = pgTable(
+  "meeting_references",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    employeeId: uuid("employee_id")
+      .notNull()
+      .references(() => employees.id),
+    managerUserId: uuid("manager_user_id")
+      .notNull()
+      .references(() => users.id),
+    meetingType: text("meeting_type").notNull(),
+    scheduledStart: timestamp("scheduled_start", { withTimezone: true }).notNull(),
+    scheduledEnd: timestamp("scheduled_end", { withTimezone: true }),
+    externalSystem: text("external_system"),
+    externalId: text("external_id"),
+    externalUrl: text("external_url"),
+    status: text("status").notNull().default("scheduled"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("meeting_references_employee_id_idx").on(table.employeeId),
+    index("meeting_references_manager_id_idx").on(table.managerUserId),
+  ]
+);

@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Home, Users, Calendar, LogOut } from "lucide-react";
+import { Home, Users, Calendar, Activity, LogOut } from "lucide-react";
 import { auth, signOut } from "@/lib/auth";
 
 const navItems = [
   { label: "Home", href: "/", icon: Home },
   { label: "Team", href: "/team", icon: Users },
   { label: "1:1s", href: "/one-on-ones", icon: Calendar },
+  { label: "Data Health", href: "/data-health", icon: Activity },
 ];
 
 export async function Sidebar() {

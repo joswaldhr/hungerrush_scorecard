@@ -14,6 +14,12 @@ import {
   metricTargets,
   metricValues,
   metricObservations,
+  syncRuns,
+  syncErrors,
+  sourceRecords,
+  normalizedFacts,
+  contextItems,
+  meetingReferences,
 } from "../db/schema";
 
 const connectionString = process.env.DATABASE_URL;
@@ -54,6 +60,7 @@ const EMP = {
 const DS = {
   zendesk: "50000000-0000-4000-8000-000000000001",
   assembled: "50000000-0000-4000-8000-000000000002",
+  rippling: "50000000-0000-4000-8000-000000000003",
 };
 
 const MD = {
@@ -91,6 +98,12 @@ async function seed() {
 
   await db.transaction(async (tx) => {
     // Clear in reverse FK order
+    await tx.delete(meetingReferences).execute();
+    await tx.delete(contextItems).execute();
+    await tx.delete(normalizedFacts).execute();
+    await tx.delete(sourceRecords).execute();
+    await tx.delete(syncErrors).execute();
+    await tx.delete(syncRuns).execute();
     await tx.delete(metricObservations).execute();
     await tx.delete(metricValues).execute();
     await tx.delete(metricTargets).execute();
@@ -259,48 +272,54 @@ async function seed() {
         displayName: "Assembled",
         status: "configured",
       },
+      {
+        id: DS.rippling,
+        organizationId: ORG_ID,
+        type: "rippling",
+        displayName: "Rippling",
+        status: "configured",
+      },
     ]);
 
-    // External identities
-    await tx.insert(externalIdentities).values([
-      {
-        employeeId: EMP.alexChen,
-        dataSourceId: DS.zendesk,
-        externalEntityType: "agent",
-        externalId: "zd-agent-1001",
-        externalEmail: "alex.chen@hungerrush.dev",
-        externalDisplayName: "Alex Chen",
-        matchMethod: "email",
-        matchConfidence: 1.0,
-      },
-      {
-        employeeId: EMP.alexChen,
-        dataSourceId: DS.assembled,
-        externalEntityType: "user",
-        externalId: "asm-user-2001",
-        externalEmail: "alex.chen@hungerrush.dev",
-        matchMethod: "email",
-        matchConfidence: 1.0,
-      },
-      {
-        employeeId: EMP.sarahJohnson,
-        dataSourceId: DS.zendesk,
-        externalEntityType: "agent",
-        externalId: "zd-agent-1002",
-        externalEmail: "sarah.johnson@hungerrush.dev",
-        matchMethod: "email",
-        matchConfidence: 1.0,
-      },
-      {
-        employeeId: EMP.carlosRodriguez,
-        dataSourceId: DS.zendesk,
-        externalEntityType: "agent",
-        externalId: "zd-agent-1007",
-        externalEmail: "carlos.rodriguez@hungerrush.dev",
-        matchMethod: "email",
-        matchConfidence: 1.0,
-      },
-    ]);
+    // External identities — all employees across all three sources
+    const allEmployees = [...posEmployees, ...menufyEmployees];
+    const identityValues = allEmployees.flatMap((emp, idx) => {
+      const zdNum = 1001 + idx;
+      const asmNum = 2001 + idx;
+      const ripNum = 3001 + idx;
+      return [
+        {
+          employeeId: emp.id,
+          dataSourceId: DS.zendesk,
+          externalEntityType: "agent",
+          externalId: `zd-agent-${zdNum}`,
+          externalEmail: `${emp.email}@hungerrush.dev`,
+          externalDisplayName: emp.name,
+          matchMethod: "email",
+          matchConfidence: 1.0,
+        },
+        {
+          employeeId: emp.id,
+          dataSourceId: DS.assembled,
+          externalEntityType: "user",
+          externalId: `asm-user-${asmNum}`,
+          externalEmail: `${emp.email}@hungerrush.dev`,
+          matchMethod: "email",
+          matchConfidence: 1.0,
+        },
+        {
+          employeeId: emp.id,
+          dataSourceId: DS.rippling,
+          externalEntityType: "employee",
+          externalId: `rip-emp-${ripNum}`,
+          externalEmail: `${emp.email}@hungerrush.dev`,
+          externalDisplayName: emp.name,
+          matchMethod: "hr_id",
+          matchConfidence: 1.0,
+        },
+      ];
+    });
+    await tx.insert(externalIdentities).values(identityValues);
 
     // ── Metric Definitions ─────────────────────────────────────
 
