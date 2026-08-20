@@ -75,13 +75,13 @@ function seededValue(seed: number, min: number, max: number): number {
 }
 
 function weekStart(weeksAgo: number): string {
-  const d = new Date("2026-08-18");
+  const d = new Date("2026-08-17");
   d.setDate(d.getDate() - weeksAgo * 7);
   return d.toISOString().split("T")[0]!;
 }
 
 function weekEnd(weeksAgo: number): string {
-  const d = new Date("2026-08-18");
+  const d = new Date("2026-08-17");
   d.setDate(d.getDate() - weeksAgo * 7 + 6);
   return d.toISOString().split("T")[0]!;
 }
@@ -557,6 +557,7 @@ async function seed() {
       numericValue: number;
       calculationVersion: number;
       qualityStatus: string;
+      dataFreshnessAt: Date;
       provenanceJson: object;
     }> = [];
 
@@ -583,6 +584,9 @@ async function seed() {
               value = Math.max(1, Math.round(value * 10) / 10);
             }
 
+            const freshnessDate = new Date("2026-08-20T08:00:00Z");
+            freshnessDate.setDate(freshnessDate.getDate() - w * 7);
+
             allValues.push({
               metricDefinitionId: profile.defId,
               employeeId: empId,
@@ -592,6 +596,7 @@ async function seed() {
               numericValue: value,
               calculationVersion: 1,
               qualityStatus: w === 0 && empIdx === 0 ? "partial" : "complete",
+              dataFreshnessAt: freshnessDate,
               provenanceJson: { source: "synthetic", generatedAt: "2026-08-20" },
             });
           }
