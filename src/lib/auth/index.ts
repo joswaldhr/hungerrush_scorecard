@@ -1,15 +1,30 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
 import { DEV_USERS } from "./dev-users";
+import { env } from "@/lib/env";
 
-if (process.env.NODE_ENV === "production") {
-  if (!process.env.AUTH_PROVIDER || process.env.AUTH_PROVIDER === "credentials") {
-    console.warn("Credentials provider is active in production. Configure a proper SSO provider.");
-  }
+const entraConfigured = Boolean(
+  env.AUTH_MICROSOFT_ENTRA_ID_ID && env.AUTH_MICROSOFT_ENTRA_ID_SECRET
+);
+
+if (process.env.NODE_ENV === "production" && !entraConfigured) {
+  console.warn(
+    "Microsoft Entra ID is not configured — the Credentials provider is disabled in production, so no one can sign in until AUTH_MICROSOFT_ENTRA_ID_ID/SECRET are set."
+  );
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
+    ...(entraConfigured
+      ? [
+          MicrosoftEntraID({
+            clientId: env.AUTH_MICROSOFT_ENTRA_ID_ID,
+            clientSecret: env.AUTH_MICROSOFT_ENTRA_ID_SECRET,
+            issuer: env.AUTH_MICROSOFT_ENTRA_ID_ISSUER,
+          }),
+        ]
+      : []),
     Credentials({
       name: "Development Login",
       credentials: {
