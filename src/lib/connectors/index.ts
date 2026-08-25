@@ -3,3 +3,5 @@ export { runSync } from "./sync-engine";
 export { ZendeskMockConnector } from "./zendesk-mock";
 export { AssembledMockConnector } from "./assembled-mock";
 export { RipplingMockConnector } from "./rippling-mock";
+export { ZendeskConnector } from "./zendesk";
+export { AssembledConnector } from "./assembled";

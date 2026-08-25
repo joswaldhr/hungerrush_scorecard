@@ -5,6 +5,19 @@ const envSchema = z.object({
   AUTH_SECRET: z.string().min(1),
   AUTH_PROVIDER: z.enum(["credentials", "okta"]).default("credentials"),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+
+  // Zendesk connector (optional — only required once the live connector is wired in)
+  ZENDESK_SUBDOMAIN: z.string().min(1).optional(),
+  ZENDESK_EMAIL: z.string().min(1).optional(),
+  ZENDESK_API_KEY: z.string().min(1).optional(),
+
+  // Assembled connector (optional)
+  ASSEMBLED_API_KEY: z.string().min(1).optional(),
+
+  // Microsoft Graph / Entra ID app registration (optional)
+  ENTRA_TENANT_ID: z.string().min(1).optional(),
+  ENTRA_CLIENT_ID: z.string().min(1).optional(),
+  ENTRA_CLIENT_SECRET: z.string().min(1).optional(),
 });
 
 function validateEnv() {

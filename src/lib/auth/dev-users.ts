@@ -8,14 +8,14 @@ export interface DevUser {
 export const DEV_USERS: DevUser[] = [
   {
     id: "dev-manager-pos",
-    email: "james.smith@hungerrush.dev",
-    name: "James Smith",
+    email: "alexander.smith@hungerrush.com",
+    name: "Alexander Smith",
     role: "manager",
   },
   {
     id: "dev-manager-menufy",
-    email: "maria.garcia@hungerrush.dev",
-    name: "Maria Garcia",
+    email: "barbara.maenza@hungerrush.com",
+    name: "Barbara Maenza",
     role: "manager",
   },
 ];

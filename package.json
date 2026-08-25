@@ -14,7 +14,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "tsx --env-file=.env src/lib/fixtures/seed.ts"
+    "db:seed": "tsx --env-file=.env src/lib/fixtures/seed.ts",
+    "connectors:health": "tsx --env-file=.env scripts/check-connectors.ts"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.2.6",

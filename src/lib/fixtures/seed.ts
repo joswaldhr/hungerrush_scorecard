@@ -42,27 +42,17 @@ const TEAM = {
 };
 
 const USER = {
-  james: "30000000-0000-4000-8000-000000000001",
-  maria: "30000000-0000-4000-8000-000000000002",
+  alexander: "30000000-0000-4000-8000-000000000001",
+  barbara: "30000000-0000-4000-8000-000000000002",
 };
 
-const EMP = {
-  alexChen: "40000000-0000-4000-8000-000000000001",
-  sarahJohnson: "40000000-0000-4000-8000-000000000002",
-  mikeWilliams: "40000000-0000-4000-8000-000000000003",
-  emilyBrown: "40000000-0000-4000-8000-000000000004",
-  davidKim: "40000000-0000-4000-8000-000000000005",
-  lisaAnderson: "40000000-0000-4000-8000-000000000006",
-  carlosRodriguez: "40000000-0000-4000-8000-000000000007",
-  rachelThompson: "40000000-0000-4000-8000-000000000008",
-  kevinObrien: "40000000-0000-4000-8000-000000000009",
-  amandaFoster: "40000000-0000-4000-8000-00000000000a",
-};
+function empId(n: number): string {
+  return `40000000-0000-4000-8000-${n.toString(16).padStart(12, "0")}`;
+}
 
 const DS = {
   zendesk: "50000000-0000-4000-8000-000000000001",
   assembled: "50000000-0000-4000-8000-000000000002",
-  rippling: "50000000-0000-4000-8000-000000000003",
 };
 
 const MD = {
@@ -75,24 +65,197 @@ const MD = {
   avgResponseTime: "60000000-0000-4000-8000-000000000007",
 };
 
-// ── Deterministic pseudo-random for repeatable fixture data ──
+// ── Real org roster (HungerRush POS Support + Menufy Support), pulled
+// from Microsoft Graph for the two pilot managers' direct reports ──
 
-function seededValue(seed: number, min: number, max: number): number {
-  const x = Math.sin(seed * 9301 + 49297) * 233280;
-  const t = x - Math.floor(x);
-  return min + t * (max - min);
+interface RosterEntry {
+  name: string;
+  email: string;
+  title: string;
 }
 
-function weekStart(weeksAgo: number): string {
-  const d = new Date("2026-08-17");
-  d.setDate(d.getDate() - weeksAgo * 7);
-  return d.toISOString().split("T")[0]!;
-}
+const POS_ROSTER: RosterEntry[] = [
+  { name: "Anthony Edge", email: "aedge@hungerrush.com", title: "Manager, Technical Support" },
+  {
+    name: "Michael VonHatten",
+    email: "michael.vonhatten@revention.onmicrosoft.com",
+    title: "Principal Support Specialist",
+  },
+  {
+    name: "John Howard",
+    email: "john.howard@revention.onmicrosoft.com",
+    title: "Senior Support Specialist",
+  },
+  { name: "Sara Moon", email: "sara.moon@hungerrush.com", title: "Manager, Technical Support" },
+  {
+    name: "Warren Oxcimer",
+    email: "warren.oxcimer@revention.onmicrosoft.com",
+    title: "Support Specialist",
+  },
+  {
+    name: "Christopher Courcy",
+    email: "christopher.courcy@hungerrush.com",
+    title: "Manager, Technical Support",
+  },
+  {
+    name: "Amher Pitogo",
+    email: "amher.pitogo@revention.onmicrosoft.com",
+    title: "Support Specialist",
+  },
+  {
+    name: "Kelly Breedlove",
+    email: "kelly.breedlove@hungerrush.com",
+    title: "Manager, Technical Support",
+  },
+  {
+    name: "Milo Vaflor",
+    email: "milo.vaflor@revention.onmicrosoft.com",
+    title: "Technical Support Specialist",
+  },
+  {
+    name: "Jeric Bastian",
+    email: "jeric.bastian@revention.onmicrosoft.com",
+    title: "Technical Support Specialist",
+  },
+  {
+    name: "Santiago Roldan",
+    email: "santiago.roldan@hungerrush.com",
+    title: "Technical Support Specialist",
+  },
+  {
+    name: "Kider Alvarez",
+    email: "kider.porras@hungerrush.com",
+    title: "Technical Support Specialist",
+  },
+  {
+    name: "Andres Lugo",
+    email: "andres.lugo@hungerrush.com",
+    title: "Technical Support Specialist",
+  },
+  {
+    name: "Angel Banquez",
+    email: "angel.banquez@hungerrush.com",
+    title: "Technical Support Specialist",
+  },
+  {
+    name: "Diego Salas",
+    email: "diego.salas@hungerrush.com",
+    title: "Technical Support Specialist",
+  },
+];
 
-function weekEnd(weeksAgo: number): string {
-  const d = new Date("2026-08-17");
-  d.setDate(d.getDate() - weeksAgo * 7 + 6);
-  return d.toISOString().split("T")[0]!;
+const MENUFY_ROSTER: RosterEntry[] = [
+  {
+    name: "James Maynard",
+    email: "james.maynard@hungerrush.com",
+    title: "Manager, Customer Support",
+  },
+  {
+    name: "Jacob Murray",
+    email: "jacob.murray@hungerrush.com",
+    title: "Manager, Customer Support",
+  },
+  {
+    name: "Norvel Crawford",
+    email: "norvel.crawford@hungerrush.com",
+    title: "Manager, Customer Support",
+  },
+  {
+    name: "Tazarrah Ramos",
+    email: "tazarrah.ramos@revention.onmicrosoft.com",
+    title: "Support Specialist",
+  },
+  {
+    name: "Crismarie Gabison",
+    email: "crismarie.gibson@revention.onmicrosoft.com",
+    title: "Client Support Specialist",
+  },
+  {
+    name: "Emmanuel Granzo",
+    email: "emmanuel.granzo@revention.onmicrosoft.com",
+    title: "Support Specialist",
+  },
+  {
+    name: "Patrisha De Belen",
+    email: "patrisha.debelen@revention.onmicrosoft.com",
+    title: "Support Specialist",
+  },
+  {
+    name: "Yuanting Zhou",
+    email: "yuanting.zhou@revention.onmicrosoft.com",
+    title: "Bilingual Mandarin Support Specialist",
+  },
+  {
+    name: "Hyrum Estrada",
+    email: "hyrum.estrada@revention.onmicrosoft.com",
+    title: "Bilingual Support Specialist",
+  },
+  {
+    name: "Camilo Sanchez",
+    email: "camilo.ramos@revention.onmicrosoft.com",
+    title: "Support Specialist",
+  },
+  {
+    name: "Reda Khaznadji",
+    email: "reda.khaznadji@revention.onmicrosoft.com",
+    title: "Support Specialist",
+  },
+  {
+    name: "Amira Baaziz",
+    email: "amira.baaziz@revention.onmicrosoft.com",
+    title: "Support Specialist",
+  },
+  {
+    name: "Mike Trinidad",
+    email: "mike.trinidad@revention.onmicrosoft.com",
+    title: "Support Specialist",
+  },
+  {
+    name: "Arnie Joy Jamero",
+    email: "arnie.jamero@revention.onmicrosoft.com",
+    title: "Support Specialist",
+  },
+  {
+    name: "Sarai Mendez",
+    email: "sarai.mendez@revention.onmicrosoft.com",
+    title: "Support Specialist",
+  },
+  {
+    name: "Yesenia Ortiz",
+    email: "yesenia.ortiz@revention.onmicrosoft.com",
+    title: "Support Specialist",
+  },
+  {
+    name: "Leslie Anne Candaza",
+    email: "leslie.candaza@revention.onmicrosoft.com",
+    title: "Customer Support Specialist",
+  },
+  {
+    name: "Jhessryl Dagohoy",
+    email: "jhessryl.dagohoy@revention.onmicrosoft.com",
+    title: "Customer Support Specialist",
+  },
+  {
+    name: "Jaine Cantre",
+    email: "jaine.cantre@revention.onmicrosoft.com",
+    title: "Customer Support Specialist",
+  },
+  {
+    name: "Paul Anthony Paco",
+    email: "paul.paco@revention.onmicrosoft.com",
+    title: "Support Specialist",
+  },
+  {
+    name: "Huan Nguyen",
+    email: "huan.nguyen@revention.onmicrosoft.com",
+    title: "Support Specialist",
+  },
+];
+
+function roleTypeFor(title: string): string {
+  if (title.includes("Manager")) return "lead";
+  if (title.includes("Senior") || title.includes("Principal")) return "senior";
+  return "member";
 }
 
 async function seed() {
@@ -144,69 +307,24 @@ async function seed() {
       },
     ]);
 
-    // Manager users
+    // Manager users — real pilot managers
     await tx.insert(users).values([
       {
-        id: USER.james,
+        id: USER.alexander,
         organizationId: ORG_ID,
-        email: "james.smith@hungerrush.dev",
-        displayName: "James Smith",
+        email: "alexander.smith@hungerrush.com",
+        displayName: "Alexander Smith",
       },
       {
-        id: USER.maria,
+        id: USER.barbara,
         organizationId: ORG_ID,
-        email: "maria.garcia@hungerrush.dev",
-        displayName: "Maria Garcia",
+        email: "barbara.maenza@hungerrush.com",
+        displayName: "Barbara Maenza",
       },
     ]);
 
-    // POS Support employees (6)
-    const posEmployees = [
-      { id: EMP.alexChen, name: "Alex Chen", title: "Support Agent", email: "alex.chen" },
-      {
-        id: EMP.sarahJohnson,
-        name: "Sarah Johnson",
-        title: "Senior Support Agent",
-        email: "sarah.johnson",
-      },
-      {
-        id: EMP.mikeWilliams,
-        name: "Mike Williams",
-        title: "Support Agent",
-        email: "mike.williams",
-      },
-      { id: EMP.emilyBrown, name: "Emily Brown", title: "Support Agent", email: "emily.brown" },
-      { id: EMP.davidKim, name: "David Kim", title: "Lead Support Agent", email: "david.kim" },
-      {
-        id: EMP.lisaAnderson,
-        name: "Lisa Anderson",
-        title: "Support Agent",
-        email: "lisa.anderson",
-      },
-    ];
-
-    // Menufy Support employees (4)
-    const menufyEmployees = [
-      {
-        id: EMP.carlosRodriguez,
-        name: "Carlos Rodriguez",
-        title: "Support Agent",
-        email: "carlos.rodriguez",
-      },
-      {
-        id: EMP.rachelThompson,
-        name: "Rachel Thompson",
-        title: "Senior Support Agent",
-        email: "rachel.thompson",
-      },
-      { id: EMP.kevinObrien, name: "Kevin O'Brien", title: "Support Agent", email: "kevin.obrien" },
-      {
-        id: EMP.amandaFoster,
-        name: "Amanda Foster",
-        title: "Support Agent",
-        email: "amanda.foster",
-      },
-    ];
+    const posEmployees = POS_ROSTER.map((e, i) => ({ ...e, id: empId(i + 1) }));
+    const menufyEmployees = MENUFY_ROSTER.map((e, i) => ({ ...e, id: empId(100 + i + 1) }));
 
     await tx.insert(employees).values([
       ...posEmployees.map((e) => ({
@@ -214,7 +332,7 @@ async function seed() {
         organizationId: ORG_ID,
         primaryTeamId: TEAM.pos,
         displayName: e.name,
-        email: `${e.email}@hungerrush.dev`,
+        email: e.email,
         jobTitle: e.title,
       })),
       ...menufyEmployees.map((e) => ({
@@ -222,7 +340,7 @@ async function seed() {
         organizationId: ORG_ID,
         primaryTeamId: TEAM.menufy,
         displayName: e.name,
-        email: `${e.email}@hungerrush.dev`,
+        email: e.email,
         jobTitle: e.title,
       })),
     ]);
@@ -234,33 +352,34 @@ async function seed() {
       ...posEmployees.map((e) => ({
         employeeId: e.id,
         teamId: TEAM.pos,
-        roleType: e.title.includes("Lead")
-          ? "lead"
-          : e.title.includes("Senior")
-            ? "senior"
-            : "member",
+        roleType: roleTypeFor(e.title),
         effectiveFrom: today,
       })),
       ...menufyEmployees.map((e) => ({
         employeeId: e.id,
         teamId: TEAM.menufy,
-        roleType: e.title.includes("Senior") ? "senior" : "member",
+        roleType: roleTypeFor(e.title),
         effectiveFrom: today,
       })),
     ]);
 
     // Manager assignments
     await tx.insert(managerAssignments).values([
-      { managerUserId: USER.james, teamId: TEAM.pos, assignmentType: "team", effectiveFrom: today },
       {
-        managerUserId: USER.maria,
+        managerUserId: USER.alexander,
+        teamId: TEAM.pos,
+        assignmentType: "team",
+        effectiveFrom: today,
+      },
+      {
+        managerUserId: USER.barbara,
         teamId: TEAM.menufy,
         assignmentType: "team",
         effectiveFrom: today,
       },
     ]);
 
-    // Data sources
+    // Data sources — real, live vendor connections
     await tx.insert(dataSources).values([
       {
         id: DS.zendesk,
@@ -276,53 +395,32 @@ async function seed() {
         displayName: "Assembled",
         status: "configured",
       },
-      {
-        id: DS.rippling,
-        organizationId: ORG_ID,
-        type: "rippling",
-        displayName: "Rippling",
-        status: "configured",
-      },
     ]);
 
-    // External identities — all employees across all three sources
+    // External identities — matched by real company email
     const allEmployees = [...posEmployees, ...menufyEmployees];
-    const identityValues = allEmployees.flatMap((emp, idx) => {
-      const zdNum = 1001 + idx;
-      const asmNum = 2001 + idx;
-      const ripNum = 3001 + idx;
-      return [
-        {
-          employeeId: emp.id,
-          dataSourceId: DS.zendesk,
-          externalEntityType: "agent",
-          externalId: `zd-agent-${zdNum}`,
-          externalEmail: `${emp.email}@hungerrush.dev`,
-          externalDisplayName: emp.name,
-          matchMethod: "email",
-          matchConfidence: 1.0,
-        },
-        {
-          employeeId: emp.id,
-          dataSourceId: DS.assembled,
-          externalEntityType: "user",
-          externalId: `asm-user-${asmNum}`,
-          externalEmail: `${emp.email}@hungerrush.dev`,
-          matchMethod: "email",
-          matchConfidence: 1.0,
-        },
-        {
-          employeeId: emp.id,
-          dataSourceId: DS.rippling,
-          externalEntityType: "employee",
-          externalId: `rip-emp-${ripNum}`,
-          externalEmail: `${emp.email}@hungerrush.dev`,
-          externalDisplayName: emp.name,
-          matchMethod: "hr_id",
-          matchConfidence: 1.0,
-        },
-      ];
-    });
+    const identityValues = allEmployees.flatMap((emp) => [
+      {
+        employeeId: emp.id,
+        dataSourceId: DS.zendesk,
+        externalEntityType: "agent",
+        externalId: emp.email,
+        externalEmail: emp.email,
+        externalDisplayName: emp.name,
+        matchMethod: "email",
+        matchConfidence: 1.0,
+      },
+      {
+        employeeId: emp.id,
+        dataSourceId: DS.assembled,
+        externalEntityType: "user",
+        externalId: emp.email,
+        externalEmail: emp.email,
+        externalDisplayName: emp.name,
+        matchMethod: "email",
+        matchConfidence: 1.0,
+      },
+    ]);
     await tx.insert(externalIdentities).values(identityValues);
 
     // ── Metric Definitions ─────────────────────────────────────
@@ -422,23 +520,26 @@ async function seed() {
     ]);
 
     // ── Metric Assignments (different per team) ────────────────
+    // first_contact_resolution stays in the catalog but unassigned — no
+    // live source produces it (Zendesk has no native FCR field).
 
-    // POS: tickets_resolved, avg_handle_time, csat_score, first_contact_resolution, schedule_adherence, backlog_count
+    // schedule_adherence stays in the catalog but unassigned — this Assembled
+    // account's /agents/state state-name vocabulary ("Offline", "Online...")
+    // never overlaps with /activity_types' productive names ("In/Out Calls",
+    // "Phone + Email"), so it can never be computed from this account's real
+    // data. The old system's own audit already flagged this metric as "0 rows
+    // ever" in real production for the same reason.
     const posMetrics = [
       { defId: MD.ticketsResolved, order: 0, primary: true },
       { defId: MD.avgHandleTime, order: 1, primary: true },
       { defId: MD.csatScore, order: 2, primary: true },
-      { defId: MD.firstContactResolution, order: 3, primary: false },
-      { defId: MD.scheduleAdherence, order: 4, primary: false },
-      { defId: MD.backlogCount, order: 5, primary: false },
+      { defId: MD.backlogCount, order: 3, primary: false },
     ];
 
-    // Menufy: tickets_resolved, avg_response_time, csat_score, schedule_adherence
     const menufyMetrics = [
       { defId: MD.ticketsResolved, order: 0, primary: true },
       { defId: MD.avgResponseTime, order: 1, primary: true },
       { defId: MD.csatScore, order: 2, primary: true },
-      { defId: MD.scheduleAdherence, order: 3, primary: false },
     ];
 
     await tx.insert(metricAssignments).values([
@@ -482,20 +583,6 @@ async function seed() {
         warningValue: 75,
       },
       {
-        metricDefinitionId: MD.firstContactResolution,
-        teamId: TEAM.pos,
-        targetType: "minimum",
-        targetValue: 70,
-        warningValue: 60,
-      },
-      {
-        metricDefinitionId: MD.scheduleAdherence,
-        teamId: TEAM.pos,
-        targetType: "minimum",
-        targetValue: 90,
-        warningValue: 85,
-      },
-      {
         metricDefinitionId: MD.backlogCount,
         teamId: TEAM.pos,
         targetType: "maximum",
@@ -525,199 +612,22 @@ async function seed() {
         targetValue: 80,
         warningValue: 70,
       },
-      {
-        metricDefinitionId: MD.scheduleAdherence,
-        teamId: TEAM.menufy,
-        targetType: "minimum",
-        targetValue: 90,
-        warningValue: 85,
-      },
-
-      // Employee-level override: David Kim (Lead) has higher ticket target
-      {
-        metricDefinitionId: MD.ticketsResolved,
-        employeeId: EMP.davidKim,
-        targetType: "minimum",
-        targetValue: 55,
-        warningValue: 45,
-        priority: 1,
-      },
     ]);
 
-    // ── Metric Values (8 weeks of history) ─────────────────────
-
-    const WEEKS = 8;
-
-    interface MetricProfile {
-      defId: string;
-      base: number;
-      variance: number;
-      trend: number;
-    }
-
-    const posProfiles: MetricProfile[] = [
-      { defId: MD.ticketsResolved, base: 48, variance: 8, trend: 0.5 },
-      { defId: MD.avgHandleTime, base: 11, variance: 3, trend: -0.1 },
-      { defId: MD.csatScore, base: 87, variance: 5, trend: 0.3 },
-      { defId: MD.firstContactResolution, base: 72, variance: 6, trend: 0.2 },
-      { defId: MD.scheduleAdherence, base: 92, variance: 4, trend: 0 },
-      { defId: MD.backlogCount, base: 6, variance: 4, trend: 0.1 },
-    ];
-
-    const menufyProfiles: MetricProfile[] = [
-      { defId: MD.ticketsResolved, base: 38, variance: 6, trend: 0.4 },
-      { defId: MD.avgResponseTime, base: 14, variance: 4, trend: -0.2 },
-      { defId: MD.csatScore, base: 82, variance: 6, trend: 0.2 },
-      { defId: MD.scheduleAdherence, base: 91, variance: 3, trend: 0 },
-    ];
-
-    const allValues: Array<{
-      metricDefinitionId: string;
-      employeeId: string;
-      teamId: string;
-      periodStart: string;
-      periodEnd: string;
-      numericValue: number;
-      calculationVersion: number;
-      qualityStatus: string;
-      dataFreshnessAt: Date;
-      provenanceJson: object;
-    }> = [];
-
-    function generateValues(empList: { id: string }[], teamId: string, profiles: MetricProfile[]) {
-      for (let empIdx = 0; empIdx < empList.length; empIdx++) {
-        const empId = empList[empIdx]!.id;
-        for (const profile of profiles) {
-          for (let w = WEEKS - 1; w >= 0; w--) {
-            const seed = empIdx * 1000 + profiles.indexOf(profile) * 100 + w;
-            const noise = seededValue(seed, -profile.variance, profile.variance);
-            const trendAdjust = profile.trend * (WEEKS - 1 - w);
-            let value = Math.round((profile.base + noise + trendAdjust + empIdx * 2) * 10) / 10;
-            if (
-              profile.defId === MD.csatScore ||
-              profile.defId === MD.firstContactResolution ||
-              profile.defId === MD.scheduleAdherence
-            ) {
-              value = Math.min(100, Math.max(0, value));
-            }
-            if (profile.defId === MD.backlogCount || profile.defId === MD.ticketsResolved) {
-              value = Math.max(0, Math.round(value));
-            }
-            if (profile.defId === MD.avgHandleTime || profile.defId === MD.avgResponseTime) {
-              value = Math.max(1, Math.round(value * 10) / 10);
-            }
-
-            const freshnessDate = new Date("2026-08-20T08:00:00Z");
-            freshnessDate.setDate(freshnessDate.getDate() - w * 7);
-
-            allValues.push({
-              metricDefinitionId: profile.defId,
-              employeeId: empId,
-              teamId,
-              periodStart: weekStart(w),
-              periodEnd: weekEnd(w),
-              numericValue: value,
-              calculationVersion: 1,
-              qualityStatus: w === 0 && empIdx === 0 ? "partial" : "complete",
-              dataFreshnessAt: freshnessDate,
-              provenanceJson: { source: "synthetic", generatedAt: "2026-08-20" },
-            });
-          }
-        }
-      }
-    }
-
-    generateValues(posEmployees, TEAM.pos, posProfiles);
-    generateValues(menufyEmployees, TEAM.menufy, menufyProfiles);
-
-    // Batch insert values (split into chunks to avoid query size limits)
-    const CHUNK_SIZE = 100;
-    for (let i = 0; i < allValues.length; i += CHUNK_SIZE) {
-      await tx.insert(metricValues).values(allValues.slice(i, i + CHUNK_SIZE));
-    }
-
-    // ── Metric Observations (auto-detected from values) ────────
-
-    // Generate a few notable observations for the current week
-    const observations = [
-      {
-        employeeId: EMP.mikeWilliams,
-        metricDefinitionId: MD.csatScore,
-        periodStart: weekStart(0),
-        periodEnd: weekEnd(0),
-        observationType: "threshold_crossed_below",
-        severity: "attention",
-        title: "CSAT Score dropped below target",
-        explanation: "CSAT Score fell below the team target of 85%, currently at 78%.",
-        currentValue: 78,
-        comparisonValue: 88,
-        targetValue: 85,
-      },
-      {
-        employeeId: EMP.sarahJohnson,
-        metricDefinitionId: MD.ticketsResolved,
-        periodStart: weekStart(0),
-        periodEnd: weekEnd(0),
-        observationType: "improving_trend",
-        severity: "info",
-        title: "Tickets Resolved trending upward",
-        explanation: "Tickets Resolved has been increasing for 3 consecutive weeks.",
-        currentValue: 55,
-        comparisonValue: 48,
-        targetValue: 45,
-      },
-      {
-        employeeId: EMP.emilyBrown,
-        metricDefinitionId: MD.avgHandleTime,
-        periodStart: weekStart(0),
-        periodEnd: weekEnd(0),
-        observationType: "significant_change",
-        severity: "watch",
-        title: "Avg Handle Time increased 18%",
-        explanation: "Avg Handle Time increased from 11.2 to 13.2 minutes (18% increase).",
-        currentValue: 13.2,
-        comparisonValue: 11.2,
-        targetValue: 12,
-      },
-      {
-        employeeId: EMP.rachelThompson,
-        metricDefinitionId: MD.csatScore,
-        periodStart: weekStart(0),
-        periodEnd: weekEnd(0),
-        observationType: "threshold_crossed_above",
-        severity: "info",
-        title: "CSAT Score reached target",
-        explanation: "CSAT Score improved from 78% to 84%, meeting the team target of 80%.",
-        currentValue: 84,
-        comparisonValue: 78,
-        targetValue: 80,
-      },
-      {
-        employeeId: EMP.kevinObrien,
-        metricDefinitionId: MD.avgResponseTime,
-        periodStart: weekStart(0),
-        periodEnd: weekEnd(0),
-        observationType: "declining_trend",
-        severity: "watch",
-        title: "Avg Response Time trending upward",
-        explanation: "Avg Response Time has been increasing for 3 consecutive weeks.",
-        currentValue: 19.5,
-        comparisonValue: 14.0,
-        targetValue: 15,
-      },
-    ];
-
-    await tx.insert(metricObservations).values(observations);
+    // Metric values are intentionally left empty here — real history comes
+    // from running the live Zendesk/Assembled sync against this real roster,
+    // not from fabricated numbers attached to real people.
   });
 
   console.log("Seed complete.");
   console.log("  Organization: HungerRush");
-  console.log("  Teams: POS Support (6 employees), Menufy Support (4 employees)");
-  console.log("  Managers: james.smith (POS), maria.garcia (Menufy)");
-  console.log("  Metric definitions: 7 (different assignments per team)");
-  console.log("  Metric targets: 10 team-level + 1 employee override");
-  console.log(`  Metric values: ${(6 * 6 + 4 * 4) * 8} data points (8 weeks x 10 employees)`);
-  console.log("  Metric observations: 5 notable events");
+  console.log(
+    `  Teams: HungerRush POS Support (${POS_ROSTER.length} employees), Menufy Support (${MENUFY_ROSTER.length} employees)`
+  );
+  console.log("  Managers: Alexander Smith (POS), Barbara Maenza (Menufy)");
+  console.log("  Metric definitions: 7 (first_contact_resolution unassigned — no live source)");
+  console.log("  Data sources: Zendesk, Assembled (real, live)");
+  console.log("  Metric values: none — run a live sync to populate real history");
 
   await client.end();
 }

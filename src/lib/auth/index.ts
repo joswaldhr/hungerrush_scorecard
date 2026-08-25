@@ -13,7 +13,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Credentials({
       name: "Development Login",
       credentials: {
-        email: { label: "Email", type: "email", placeholder: "james.smith@hungerrush.dev" },
+        email: { label: "Email", type: "email", placeholder: "alexander.smith@hungerrush.com" },
       },
       async authorize(credentials) {
         if (process.env.NODE_ENV === "production") {
