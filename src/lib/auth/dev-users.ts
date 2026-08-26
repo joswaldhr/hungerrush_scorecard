@@ -18,4 +18,10 @@ export const DEV_USERS: DevUser[] = [
     name: "Barbara Maenza",
     role: "manager",
   },
+  {
+    id: "dev-admin-james",
+    email: "james.oswald@hungerrush.com",
+    name: "James Oswald",
+    role: "admin",
+  },
 ];

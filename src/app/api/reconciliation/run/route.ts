@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth";
-import { getManagerContext, assertCanAccessTeam } from "@/lib/auth/authorization";
+import { getEffectiveManagerContext, assertCanAccessTeam } from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
 import { reconciliationRuns } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const ctx = await getManagerContext(session.user.email);
+  const { ctx } = await getEffectiveManagerContext(session.user.email);
   if (!ctx) {
     return NextResponse.json({ error: "Not a manager" }, { status: 403 });
   }
@@ -73,7 +73,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const ctx = await getManagerContext(session.user.email);
+  const { ctx } = await getEffectiveManagerContext(session.user.email);
   if (!ctx) {
     return NextResponse.json({ error: "Not a manager" }, { status: 403 });
   }

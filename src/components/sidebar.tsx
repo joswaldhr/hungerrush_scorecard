@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Home, Users, Calendar, Activity, Scale, LogOut } from "lucide-react";
+import { Home, Users, Calendar, Activity, Scale, LogOut, ShieldCheck } from "lucide-react";
 import { auth, signOut } from "@/lib/auth";
 import { headers } from "next/headers";
+import { isPlatformAdmin } from "@/lib/auth/authorization";
 
 const navItems = [
   { label: "Home", href: "/", icon: Home },
@@ -16,6 +17,10 @@ export async function Sidebar() {
   const user = session?.user;
   const headerList = await headers();
   const pathname = headerList.get("x-pathname") ?? "/";
+  const isAdmin = user?.email ? await isPlatformAdmin(user.email) : false;
+  const items = isAdmin
+    ? [...navItems, { label: "Admin", href: "/admin", icon: ShieldCheck }]
+    : navItems;
 
   return (
     <aside className="flex h-screen w-[var(--sidebar-width)] flex-col bg-sidebar-background text-sidebar-foreground">
@@ -24,7 +29,7 @@ export async function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-1 px-3" aria-label="Main navigation">
-        {navItems.map((item) => {
+        {items.map((item) => {
           const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 
           return (

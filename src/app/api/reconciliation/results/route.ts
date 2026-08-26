@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth";
-import { getManagerContext } from "@/lib/auth/authorization";
+import { getEffectiveManagerContext } from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
 import { reconciliationResults, reconciliationRuns } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const ctx = await getManagerContext(session.user.email);
+  const { ctx } = await getEffectiveManagerContext(session.user.email);
   if (!ctx) {
     return NextResponse.json({ error: "Not a manager" }, { status: 403 });
   }

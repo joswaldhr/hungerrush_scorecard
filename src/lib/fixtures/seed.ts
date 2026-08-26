@@ -44,6 +44,7 @@ const TEAM = {
 const USER = {
   alexander: "30000000-0000-4000-8000-000000000001",
   barbara: "30000000-0000-4000-8000-000000000002",
+  james: "30000000-0000-4000-8000-000000000003",
 };
 
 function empId(n: number): string {
@@ -320,6 +321,13 @@ async function seed() {
         organizationId: ORG_ID,
         email: "barbara.maenza@hungerrush.com",
         displayName: "Barbara Maenza",
+      },
+      {
+        id: USER.james,
+        organizationId: ORG_ID,
+        email: "james.oswald@hungerrush.com",
+        displayName: "James Oswald",
+        isPlatformAdmin: true,
       },
     ]);
 
@@ -625,6 +633,7 @@ async function seed() {
     `  Teams: HungerRush POS Support (${POS_ROSTER.length} employees), Menufy Support (${MENUFY_ROSTER.length} employees)`
   );
   console.log("  Managers: Alexander Smith (POS), Barbara Maenza (Menufy)");
+  console.log("  Platform admin: James Oswald");
   console.log("  Metric definitions: 7 (first_contact_resolution unassigned — no live source)");
   console.log("  Data sources: Zendesk, Assembled (real, live)");
   console.log("  Metric values: none — run a live sync to populate real history");

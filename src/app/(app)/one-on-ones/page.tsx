@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import {
-  getManagerContext,
+  getEffectiveManagerContext,
   getAssignedTeams,
   getAssignedEmployees,
 } from "@/lib/auth/authorization";
@@ -21,8 +21,9 @@ export default async function OneOnOnesPage() {
   const session = await auth();
   if (!session?.user?.email) redirect("/login");
 
-  const ctx = await getManagerContext(session.user.email);
+  const { ctx, isPlatformAdmin } = await getEffectiveManagerContext(session.user.email);
   if (!ctx) {
+    if (isPlatformAdmin) redirect("/admin");
     return <EmptyState title="No access" description="You are not assigned as a manager." />;
   }
 

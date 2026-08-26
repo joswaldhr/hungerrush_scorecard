@@ -33,6 +33,7 @@ export const users = pgTable(
     email: text("email").notNull().unique(),
     displayName: text("display_name").notNull(),
     status: text("status").notNull().default("active"),
+    isPlatformAdmin: boolean("is_platform_admin").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getManagerContext } from "@/lib/auth/authorization";
+import { getEffectiveManagerContext } from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
 import { reconciliationRuns, reconciliationResults, teams } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
@@ -51,8 +51,8 @@ export default async function ReconciliationPage() {
   const session = await auth();
   if (!session?.user?.email) redirect("/login");
 
-  const ctx = await getManagerContext(session.user.email);
-  if (!ctx) redirect("/");
+  const { ctx, isPlatformAdmin } = await getEffectiveManagerContext(session.user.email);
+  if (!ctx) redirect(isPlatformAdmin ? "/admin" : "/");
 
   const runs = await db
     .select()
