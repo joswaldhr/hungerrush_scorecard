@@ -68,6 +68,10 @@ export function describeTakeaway(
   },
   changes: MetricChange[]
 ): EvidencedStatement {
+  if (changes.length > 0 && changes.every((c) => c.changeDirection === "new")) {
+    return { text: `No metric data has been recorded for ${employeeName} yet.`, evidence: [] };
+  }
+
   const evidence: EvidenceRef[] = changes.slice(0, 3).map((c) => makeEvidenceRef(c));
 
   if (atAGlance.metricsDeclining === 0 && atAGlance.metricsOnTarget === atAGlance.totalMetrics) {

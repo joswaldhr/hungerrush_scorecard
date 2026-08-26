@@ -112,6 +112,22 @@ describe("describeTakeaway", () => {
     expect(result.text).toContain("fully on target");
   });
 
+  it("describes no data honestly instead of implying stability", () => {
+    const noData = makeChange({
+      currentValue: null,
+      previousValue: null,
+      changePercent: null,
+      changeDirection: "new",
+    });
+    const result = describeTakeaway(
+      "Alex",
+      { metricsOnTarget: 0, metricsImproving: 0, metricsDeclining: 0, totalMetrics: 1 },
+      [noData]
+    );
+    expect(result.text).toContain("No metric data");
+    expect(result.text).not.toContain("stable");
+  });
+
   it("flags declining metrics", () => {
     const declining = makeChange({ changeDirection: "declined", metricName: "Handle Time" });
     const result = describeTakeaway(
