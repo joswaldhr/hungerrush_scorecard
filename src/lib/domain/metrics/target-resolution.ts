@@ -70,10 +70,11 @@ function categorizeSource(
 }
 
 export function evaluateStatus(
-  value: number,
+  value: number | null,
   target: ResolvedTarget | null,
   direction: Direction
 ): MetricStatus {
+  if (value === null) return { status: "no_data", direction };
   if (!target) return { status: "no_target", direction };
 
   const { targetValue, warningValue, targetType } = target;

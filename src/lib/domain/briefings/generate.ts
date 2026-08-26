@@ -91,8 +91,13 @@ function buildChangeEvidence(m: EmployeeMetricRow, changePercent: number | null)
 
 function deriveOverallStatus(
   metrics: EmployeeMetricRow[]
-): "on_track" | "mixed" | "needs_attention" {
-  const withTargets = metrics.filter((m) => m.status.status !== "no_target");
+): "on_track" | "mixed" | "needs_attention" | "no_data" {
+  if (metrics.length === 0) return "on_track";
+  if (metrics.every((m) => m.status.status === "no_data")) return "no_data";
+
+  const withTargets = metrics.filter(
+    (m) => m.status.status !== "no_target" && m.status.status !== "no_data"
+  );
   if (withTargets.length === 0) return "on_track";
 
   const offTarget = withTargets.filter((m) => m.status.status === "off_target").length;
@@ -105,6 +110,7 @@ function deriveOverallStatus(
 
 function metricsToSnapshots(metrics: EmployeeMetricRow[]): MetricSnapshot[] {
   return metrics.map((m) => ({
+    metricDefinitionId: m.definitionId,
     metricKey: m.key,
     metricName: m.name,
     unit: m.unit,
@@ -159,6 +165,7 @@ export async function generateTeamBriefing(
     const overall = deriveOverallStatus(metrics);
     if (overall === "on_track") statusCounts.onTarget++;
     else if (overall === "needs_attention") statusCounts.offTarget++;
+    else if (overall === "no_data") statusCounts.noData++;
     else statusCounts.warning++;
 
     const changes = computeChanges(metrics);
@@ -251,6 +258,7 @@ export async function generateTeamBriefing(
         .filter((v): v is number => v !== null);
 
       teamPerformance.push({
+        metricDefinitionId: firstMetric.definitionId,
         metricKey: key,
         metricName: firstMetric.name,
         unit: firstMetric.unit,
@@ -268,8 +276,6 @@ export async function generateTeamBriefing(
       });
     }
   }
-
-  if (teamEmployees.length === 0) statusCounts.noData = 1;
 
   return {
     meta: makeMeta(periodStart, periodEnd, allFreshness),

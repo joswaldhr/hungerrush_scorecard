@@ -1,21 +1,18 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import {
-  getManagerContext,
+  getEffectiveManagerContext,
   getAssignedTeams,
   getAssignedEmployees,
 } from "@/lib/auth/authorization";
-import { getEmployeeMetrics } from "@/lib/domain/metrics/queries";
+import { getEmployeeMetrics, getMetricHistory } from "@/lib/domain/metrics/queries";
 import { db } from "@/lib/db";
-import { syncRuns, dataSources } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
-import { StatusBadge } from "@/components/status-badge";
-import { TrendIndicator } from "@/components/trend-indicator";
-import { MetricValue } from "@/components/metric-value";
+import { syncRuns, dataSources, meetingReferences } from "@/lib/db/schema";
+import { eq, desc, and, inArray, gte, asc } from "drizzle-orm";
 import { DataFreshness } from "@/components/data-freshness";
 import { EmptyState } from "@/components/empty-state";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import Link from "next/link";
+import { TeamRosterTable } from "@/components/team-roster-table";
+import type { RosterRow } from "@/components/team-roster-table";
 import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
 
 function weekDates() {
@@ -34,8 +31,13 @@ function weekDates() {
 
 function deriveOverallStatus(
   metrics: EmployeeMetricRow[]
-): "on_track" | "mixed" | "needs_attention" {
-  const withTargets = metrics.filter((m) => m.status.status !== "no_target");
+): "on_track" | "mixed" | "needs_attention" | "no_data" {
+  if (metrics.length === 0) return "on_track";
+  if (metrics.every((m) => m.status.status === "no_data")) return "no_data";
+
+  const withTargets = metrics.filter(
+    (m) => m.status.status !== "no_target" && m.status.status !== "no_data"
+  );
   if (withTargets.length === 0) return "on_track";
   const offTarget = withTargets.filter((m) => m.status.status === "off_target").length;
   const onTarget = withTargets.filter((m) => m.status.status === "on_target").length;
@@ -56,20 +58,13 @@ function findKeyChange(metrics: EmployeeMetricRow[]): { name: string; pct: numbe
   return best;
 }
 
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
-}
-
 export default async function TeamPage() {
   const session = await auth();
   if (!session?.user?.email) redirect("/login");
 
-  const ctx = await getManagerContext(session.user.email);
+  const { ctx, isPlatformAdmin } = await getEffectiveManagerContext(session.user.email);
   if (!ctx) {
+    if (isPlatformAdmin) redirect("/admin");
     return <EmptyState title="No access" description="You are not assigned as a manager." />;
   }
 
@@ -91,10 +86,42 @@ export default async function TeamPage() {
 
   const freshnessAt = latestSync?.completedAt?.toISOString() ?? null;
 
+  const upcomingByEmployee = new Map<string, string>();
+  if (ctx.assignedEmployeeIds.length > 0) {
+    const upcoming = await db
+      .select({
+        employeeId: meetingReferences.employeeId,
+        scheduledStart: meetingReferences.scheduledStart,
+      })
+      .from(meetingReferences)
+      .where(
+        and(
+          eq(meetingReferences.managerUserId, ctx.userId),
+          inArray(meetingReferences.employeeId, ctx.assignedEmployeeIds),
+          gte(meetingReferences.scheduledStart, new Date())
+        )
+      )
+      .orderBy(asc(meetingReferences.scheduledStart));
+
+    for (const m of upcoming) {
+      if (!upcomingByEmployee.has(m.employeeId)) {
+        upcomingByEmployee.set(m.employeeId, m.scheduledStart.toISOString());
+      }
+    }
+  }
+
   const employeeData = await Promise.all(
     employees.map(async (emp) => {
       const teamId = emp.primaryTeamId;
-      if (!teamId) return { employee: emp, metrics: [], teamId: null };
+      if (!teamId) {
+        return {
+          employee: emp,
+          metrics: [] as EmployeeMetricRow[],
+          teamId: null,
+          primary: null as EmployeeMetricRow | null,
+          trend: [] as Array<number | null>,
+        };
+      }
       const metrics = await getEmployeeMetrics(
         ctx,
         emp.id,
@@ -102,12 +129,19 @@ export default async function TeamPage() {
         periodStart,
         previousPeriodStart
       );
-      return { employee: emp, metrics, teamId };
+      const primary = metrics.find((m) => m.isPrimary) ?? metrics[0] ?? null;
+      const trend = primary
+        ? (await getMetricHistory(ctx, emp.id, primary.definitionId, 4))
+            .slice()
+            .reverse()
+            .map((v) => v.numericValue)
+        : [];
+      return { employee: emp, metrics, teamId, primary, trend };
     })
   );
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="max-w-5xl space-y-6">
       <header>
         <h1 className="text-xl font-semibold text-foreground">Team</h1>
         <p className="mt-1 text-sm text-muted-foreground">How is everyone doing?</p>
@@ -116,117 +150,44 @@ export default async function TeamPage() {
 
       {teams.map((team) => {
         const teamEmps = employeeData.filter((d) => d.teamId === team.id);
+        const rows: RosterRow[] = teamEmps.map(({ employee, metrics, primary, trend }) => {
+          const keyChangeRaw = findKeyChange(metrics);
+          const keyChange = keyChangeRaw
+            ? {
+                name: keyChangeRaw.name,
+                pct: keyChangeRaw.pct,
+                improved: metrics.some(
+                  (m) =>
+                    m.name === keyChangeRaw.name &&
+                    ((m.direction === "higher_is_better" && keyChangeRaw.pct > 0) ||
+                      (m.direction === "lower_is_better" && keyChangeRaw.pct < 0))
+                ),
+              }
+            : null;
+
+          return {
+            employeeId: employee.id,
+            displayName: employee.displayName,
+            jobTitle: employee.jobTitle,
+            overallStatus: deriveOverallStatus(metrics),
+            keyChange,
+            metricsOnTarget: metrics.filter((m) => m.status.status === "on_target").length,
+            metricsOffTarget: metrics.filter((m) => m.status.status === "off_target").length,
+            metricsNoData: metrics.filter((m) => m.status.status === "no_data").length,
+            metricsTotal: metrics.length,
+            trend,
+            trendDirection: primary?.direction ?? "neutral",
+            upcomingMeetingAt: upcomingByEmployee.get(employee.id) ?? null,
+          };
+        });
+
         return (
           <section key={team.id} className="space-y-3">
             <h2 className="text-sm font-semibold text-foreground">{team.name}</h2>
-            {teamEmps.length === 0 ? (
+            {rows.length === 0 ? (
               <EmptyState title="No employees" description="No employees on this team." />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <caption className="sr-only">{team.name} employee metrics</caption>
-                  <thead>
-                    <tr className="border-b text-left">
-                      <th className="pb-2 font-medium text-muted-foreground">Employee</th>
-                      <th className="pb-2 font-medium text-muted-foreground">Status</th>
-                      <th className="pb-2 font-medium text-muted-foreground">Key change</th>
-                      <th className="pb-2 font-medium text-muted-foreground text-right">
-                        Primary metrics
-                      </th>
-                      <th className="pb-2 font-medium text-muted-foreground text-right" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {teamEmps.map(({ employee, metrics }) => {
-                      const overall = deriveOverallStatus(metrics);
-                      const keyChange = findKeyChange(metrics);
-                      const primary = metrics.filter((m) => m.isPrimary).slice(0, 3);
-                      const isImproved =
-                        keyChange &&
-                        metrics.some(
-                          (m) =>
-                            m.name === keyChange.name &&
-                            ((m.direction === "higher_is_better" && keyChange.pct > 0) ||
-                              (m.direction === "lower_is_better" && keyChange.pct < 0))
-                        );
-
-                      return (
-                        <tr key={employee.id} className="border-b last:border-0">
-                          <td className="py-3">
-                            <Link
-                              href={`/employee/${employee.id}`}
-                              className="flex items-center gap-3 hover:underline"
-                            >
-                              <Avatar className="h-7 w-7">
-                                <AvatarFallback className="text-[10px]">
-                                  {initials(employee.displayName)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <span className="font-medium text-foreground">
-                                  {employee.displayName}
-                                </span>
-                                {employee.jobTitle && (
-                                  <p className="text-xs text-muted-foreground">
-                                    {employee.jobTitle}
-                                  </p>
-                                )}
-                              </div>
-                            </Link>
-                          </td>
-                          <td className="py-3">
-                            <StatusBadge status={overall} />
-                          </td>
-                          <td className="py-3">
-                            {keyChange ? (
-                              <span className="flex items-center gap-1.5 text-sm">
-                                <TrendIndicator
-                                  direction={
-                                    Math.abs(keyChange.pct) < 1
-                                      ? "stable"
-                                      : isImproved
-                                        ? "improved"
-                                        : "declined"
-                                  }
-                                />
-                                <span className="text-muted-foreground">
-                                  {keyChange.name} {Math.abs(keyChange.pct).toFixed(0)}%
-                                </span>
-                              </span>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </td>
-                          <td className="py-3 text-right">
-                            <div className="flex justify-end gap-4">
-                              {primary.map((m) => (
-                                <span key={m.key} className="text-xs text-muted-foreground">
-                                  <span className="font-medium text-foreground">
-                                    <MetricValue
-                                      value={m.currentValue}
-                                      unit={m.unit}
-                                      valueType={m.valueType}
-                                    />
-                                  </span>{" "}
-                                  {m.name}
-                                </span>
-                              ))}
-                            </div>
-                          </td>
-                          <td className="py-3 text-right">
-                            <Link
-                              href={`/one-on-ones/${employee.id}`}
-                              className="text-xs text-accent hover:underline"
-                            >
-                              Prep 1:1
-                            </Link>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+              <TeamRosterTable rows={rows} />
             )}
           </section>
         );

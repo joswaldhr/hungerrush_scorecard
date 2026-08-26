@@ -42,6 +42,7 @@ export interface ImprovementItem {
 }
 
 export interface TeamMetricSummary {
+  metricDefinitionId: string;
   metricKey: string;
   metricName: string;
   unit: string | null;
@@ -69,7 +70,7 @@ export interface EmployeeSummaryPayload {
   executiveSummary: EvidencedStatement;
   changes: MetricChange[];
   metricSnapshots: MetricSnapshot[];
-  overallStatus: "on_track" | "mixed" | "needs_attention";
+  overallStatus: "on_track" | "mixed" | "needs_attention" | "no_data";
 }
 
 export interface MetricChange {
@@ -86,6 +87,7 @@ export interface MetricChange {
 }
 
 export interface MetricSnapshot {
+  metricDefinitionId: string;
   metricKey: string;
   metricName: string;
   unit: string | null;

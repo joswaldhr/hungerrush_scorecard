@@ -1,7 +1,14 @@
 import { cn } from "@/lib/utils";
 
 type Status =
-  "on_target" | "warning" | "off_target" | "no_target" | "on_track" | "mixed" | "needs_attention";
+  | "on_target"
+  | "warning"
+  | "off_target"
+  | "no_target"
+  | "no_data"
+  | "on_track"
+  | "mixed"
+  | "needs_attention";
 
 const statusConfig: Record<Status, { label: string; className: string }> = {
   on_target: {
@@ -30,6 +37,10 @@ const statusConfig: Record<Status, { label: string; className: string }> = {
   },
   no_target: {
     label: "No target",
+    className: "bg-[oklch(var(--status-neutral-bg))] text-[oklch(var(--status-neutral))]",
+  },
+  no_data: {
+    label: "No data yet",
     className: "bg-[oklch(var(--status-neutral-bg))] text-[oklch(var(--status-neutral))]",
   },
 };

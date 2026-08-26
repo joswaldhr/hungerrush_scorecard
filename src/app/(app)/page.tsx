@@ -1,15 +1,24 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getManagerContext, getAssignedTeams } from "@/lib/auth/authorization";
+import {
+  getEffectiveManagerContext,
+  getAssignedTeams,
+  getAssignedEmployees,
+} from "@/lib/auth/authorization";
 import { generateTeamBriefing } from "@/lib/domain/briefings/generate";
-import { StatusBadge } from "@/components/status-badge";
+import { getTeamMetricTrend } from "@/lib/domain/metrics/queries";
+import { db } from "@/lib/db";
+import { meetingReferences, employees as employeesTable } from "@/lib/db/schema";
+import { and, eq, gte, asc, inArray } from "drizzle-orm";
 import { TrendIndicator } from "@/components/trend-indicator";
+import { TrendSparkline } from "@/components/trend-sparkline";
 import { MetricValue } from "@/components/metric-value";
 import { DataFreshness } from "@/components/data-freshness";
 import { BriefingSection } from "@/components/briefing-section";
 import { EmptyState } from "@/components/empty-state";
+import { StatCard } from "@/components/stat-card";
 import { Card, CardContent } from "@/components/ui/card";
-import { AlertTriangle, TrendingUp, Users } from "lucide-react";
+import { AlertTriangle, AlertCircle, CheckCircle2, TrendingUp, Users } from "lucide-react";
 import Link from "next/link";
 
 function weekDates() {
@@ -30,12 +39,29 @@ function weekDates() {
   };
 }
 
+function lastNWeekStarts(periodStart: string, n: number): string[] {
+  const base = new Date(`${periodStart}T00:00:00Z`);
+  const result: string[] = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(base);
+    d.setUTCDate(d.getUTCDate() - i * 7);
+    result.push(d.toISOString().split("T")[0]!);
+  }
+  return result;
+}
+
+function pctOfTeam(n: number, total: number): string {
+  if (total === 0) return "—";
+  return `${Math.round((n / total) * 100)}% of team`;
+}
+
 export default async function HomePage() {
   const session = await auth();
   if (!session?.user?.email) redirect("/login");
 
-  const ctx = await getManagerContext(session.user.email);
+  const { ctx, isPlatformAdmin } = await getEffectiveManagerContext(session.user.email);
   if (!ctx) {
+    if (isPlatformAdmin) redirect("/admin");
     return (
       <div className="max-w-3xl">
         <EmptyState
@@ -58,6 +84,7 @@ export default async function HomePage() {
     );
   }
 
+  const employees = await getAssignedEmployees(ctx);
   const { periodStart, periodEnd, previousPeriodStart, now, hour } = weekDates();
 
   const briefings = await Promise.all(
@@ -66,207 +93,357 @@ export default async function HomePage() {
     )
   );
 
+  const trendPeriods = lastNWeekStarts(periodStart, 4);
+  const teamTrends = await Promise.all(
+    briefings.map(async (briefing, i) => {
+      const team = teams[i]!;
+      const teamEmployeeIds = employees
+        .filter((e) => e.primaryTeamId === team.id)
+        .map((e) => e.id);
+      const rows = await Promise.all(
+        briefing.teamPerformance.map(async (metric) => ({
+          metric,
+          trend: await getTeamMetricTrend(teamEmployeeIds, metric.metricDefinitionId, trendPeriods),
+        }))
+      );
+      return { team, briefing, rows };
+    })
+  );
+
+  const totals = briefings.reduce(
+    (acc, b) => ({
+      employees: acc.employees + b.employeeCount,
+      onTrack: acc.onTrack + b.statusDistribution.onTarget,
+      watch: acc.watch + b.statusDistribution.warning,
+      attention: acc.attention + b.statusDistribution.offTarget,
+      noData: acc.noData + b.statusDistribution.noData,
+    }),
+    { employees: 0, onTrack: 0, watch: 0, attention: 0, noData: 0 }
+  );
+
+  const freshnessDates = briefings
+    .map((b) => b.meta.dataFreshnessAt)
+    .filter((d): d is string => d !== null)
+    .map((d) => new Date(d).getTime());
+  const overallFreshness =
+    freshnessDates.length > 0 ? new Date(Math.min(...freshnessDates)).toISOString() : null;
+
+  const allNeedsAttention = briefings.flatMap((b) => b.needsAttention);
+  const allImprovements = briefings.flatMap((b) => b.notableImprovements);
+
+  const upcomingMeetings =
+    ctx.assignedEmployeeIds.length > 0
+      ? await db
+          .select({
+            id: meetingReferences.id,
+            employeeId: meetingReferences.employeeId,
+            employeeName: employeesTable.displayName,
+            scheduledStart: meetingReferences.scheduledStart,
+          })
+          .from(meetingReferences)
+          .innerJoin(employeesTable, eq(meetingReferences.employeeId, employeesTable.id))
+          .where(
+            and(
+              eq(meetingReferences.managerUserId, ctx.userId),
+              inArray(meetingReferences.employeeId, ctx.assignedEmployeeIds),
+              gte(meetingReferences.scheduledStart, new Date())
+            )
+          )
+          .orderBy(asc(meetingReferences.scheduledStart))
+          .limit(5)
+      : [];
+
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
   return (
-    <div className="max-w-3xl space-y-8">
+    <div className="max-w-5xl space-y-8">
       <header>
         <h1 className="text-xl font-semibold text-foreground">
           {greeting}, {session.user.name}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">Your weekly manager briefing</p>
+        <DataFreshness freshnessAt={overallFreshness} now={now} className="mt-2" />
       </header>
 
-      {briefings.map((briefing, i) => {
-        const team = teams[i]!;
-        return (
-          <div key={team.id} className="space-y-6">
-            <BriefingSection title={briefing.teamName}>
-              <div className="flex flex-wrap items-center gap-4 text-sm">
-                <span className="flex items-center gap-1.5 text-muted-foreground">
-                  <Users className="h-4 w-4" aria-hidden="true" />
-                  {briefing.employeeCount} employees
-                </span>
-                <div className="flex gap-2">
-                  {briefing.statusDistribution.onTarget > 0 && <StatusBadge status="on_track" />}
-                  {briefing.statusDistribution.warning > 0 && (
-                    <span className="text-xs text-muted-foreground">
-                      {briefing.statusDistribution.warning} watch
-                    </span>
-                  )}
-                  {briefing.statusDistribution.offTarget > 0 && (
-                    <span className="text-xs text-[oklch(var(--status-attention))]">
-                      {briefing.statusDistribution.offTarget} need attention
-                    </span>
-                  )}
-                </div>
-                <DataFreshness freshnessAt={briefing.meta.dataFreshnessAt} now={now} />
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <StatCard
+          icon={Users}
+          iconClassName="bg-accent/10 text-accent"
+          value={totals.employees}
+          label="Employees"
+          detail="100% of team"
+        />
+        <StatCard
+          icon={CheckCircle2}
+          iconClassName="bg-[oklch(var(--status-on-track-bg))] text-[oklch(var(--status-on-track))]"
+          value={totals.onTrack}
+          label="On track"
+          detail={pctOfTeam(totals.onTrack, totals.employees)}
+        />
+        <StatCard
+          icon={AlertCircle}
+          iconClassName="bg-[oklch(var(--status-watch-bg))] text-[oklch(var(--status-watch))]"
+          value={totals.watch}
+          label="To watch"
+          detail={pctOfTeam(totals.watch, totals.employees)}
+        />
+        <StatCard
+          icon={AlertTriangle}
+          iconClassName="bg-[oklch(var(--status-attention-bg))] text-[oklch(var(--status-attention))]"
+          value={totals.attention}
+          label="Needs attention"
+          detail={pctOfTeam(totals.attention, totals.employees)}
+        />
+      </div>
+
+      {totals.noData > 0 && (
+        <p className="text-sm text-muted-foreground">
+          {totals.noData} of {totals.employees} employees have no synced metric data yet — run a
+          sync from{" "}
+          <Link href="/data-health" className="text-accent hover:underline">
+            Data Health
+          </Link>{" "}
+          to populate this.
+        </p>
+      )}
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:col-span-2">
+          <BriefingSection title="Needs attention" count={allNeedsAttention.length}>
+            {allNeedsAttention.length === 0 ? (
+              <EmptyState
+                title="Nothing urgent"
+                description="No employees need attention this week."
+              />
+            ) : (
+              <div className="space-y-2">
+                {allNeedsAttention.slice(0, 5).map((item) => (
+                  <Card key={item.employeeId}>
+                    <CardContent className="py-3 px-4">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle
+                          className="h-4 w-4 mt-0.5 text-[oklch(var(--status-attention))] shrink-0"
+                          aria-hidden="true"
+                        />
+                        <div className="min-w-0">
+                          <Link
+                            href={`/employee/${item.employeeId}`}
+                            className="text-sm font-medium text-foreground hover:underline"
+                          >
+                            {item.employeeName}
+                          </Link>
+                          <ul className="mt-1 space-y-0.5">
+                            {item.reasons.map((reason, j) => (
+                              <li key={j} className="text-sm text-muted-foreground">
+                                {reason.text}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                <Link href="/team" className="inline-block text-sm text-accent hover:underline">
+                  View all attention items →
+                </Link>
               </div>
-            </BriefingSection>
+            )}
+          </BriefingSection>
 
-            {briefing.needsAttention.length > 0 && (
-              <BriefingSection title="Needs attention" count={briefing.needsAttention.length}>
-                <div className="space-y-2">
-                  {briefing.needsAttention.map((item) => (
-                    <Card key={item.employeeId}>
-                      <CardContent className="py-3 px-4">
-                        <div className="flex items-start gap-3">
-                          <AlertTriangle
-                            className="h-4 w-4 mt-0.5 text-[oklch(var(--status-attention))] shrink-0"
-                            aria-hidden="true"
-                          />
-                          <div className="min-w-0">
-                            <Link
-                              href={`/employee/${item.employeeId}`}
-                              className="text-sm font-medium text-foreground hover:underline"
-                            >
-                              {item.employeeName}
-                            </Link>
-                            <ul className="mt-1 space-y-0.5">
-                              {item.reasons.map((reason, j) => (
-                                <li key={j} className="text-sm text-muted-foreground">
-                                  {reason.text}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
+          <BriefingSection title="Notable improvements" count={allImprovements.length}>
+            {allImprovements.length === 0 ? (
+              <EmptyState
+                title="No improvements yet"
+                description="Notable improvements will show up here."
+              />
+            ) : (
+              <div className="space-y-2">
+                {allImprovements.slice(0, 5).map((item) => (
+                  <Card key={item.employeeId}>
+                    <CardContent className="py-3 px-4">
+                      <div className="flex items-start gap-3">
+                        <TrendingUp
+                          className="h-4 w-4 mt-0.5 text-[oklch(var(--status-on-track))] shrink-0"
+                          aria-hidden="true"
+                        />
+                        <div className="min-w-0">
+                          <Link
+                            href={`/employee/${item.employeeId}`}
+                            className="text-sm font-medium text-foreground hover:underline"
+                          >
+                            {item.employeeName}
+                          </Link>
+                          <ul className="mt-1 space-y-0.5">
+                            {item.achievements.map((a, j) => (
+                              <li key={j} className="text-sm text-muted-foreground">
+                                {a.text}
+                              </li>
+                            ))}
+                          </ul>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </BriefingSection>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                <Link href="/team" className="inline-block text-sm text-accent hover:underline">
+                  View all improvements →
+                </Link>
+              </div>
             )}
+          </BriefingSection>
+        </div>
 
-            {briefing.notableImprovements.length > 0 && (
-              <BriefingSection
-                title="Notable improvements"
-                count={briefing.notableImprovements.length}
-              >
-                <div className="space-y-2">
-                  {briefing.notableImprovements.map((item) => (
-                    <Card key={item.employeeId}>
-                      <CardContent className="py-3 px-4">
-                        <div className="flex items-start gap-3">
-                          <TrendingUp
-                            className="h-4 w-4 mt-0.5 text-[oklch(var(--status-on-track))] shrink-0"
-                            aria-hidden="true"
-                          />
-                          <div className="min-w-0">
-                            <Link
-                              href={`/employee/${item.employeeId}`}
-                              className="text-sm font-medium text-foreground hover:underline"
-                            >
-                              {item.employeeName}
-                            </Link>
-                            <ul className="mt-1 space-y-0.5">
-                              {item.achievements.map((a, j) => (
-                                <li key={j} className="text-sm text-muted-foreground">
-                                  {a.text}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </BriefingSection>
-            )}
-
-            {briefing.teamPerformance.length > 0 && (
-              <BriefingSection title="Team performance">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <caption className="sr-only">Team performance metrics</caption>
-                    <thead>
-                      <tr className="border-b text-left">
-                        <th className="pb-2 font-medium text-muted-foreground">Metric</th>
-                        <th className="pb-2 font-medium text-muted-foreground text-right">
-                          Team Avg
-                        </th>
-                        <th className="pb-2 font-medium text-muted-foreground text-right">Prev</th>
-                        <th className="pb-2 font-medium text-muted-foreground text-right">
-                          Change
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {briefing.teamPerformance.map((metric) => {
-                        const change =
-                          metric.teamAverage !== null &&
-                          metric.previousTeamAverage !== null &&
-                          metric.previousTeamAverage !== 0
-                            ? ((metric.teamAverage - metric.previousTeamAverage) /
-                                Math.abs(metric.previousTeamAverage)) *
-                              100
-                            : null;
-                        const isImproved =
-                          change !== null &&
-                          ((metric.direction === "higher_is_better" && change > 0) ||
-                            (metric.direction === "lower_is_better" && change < 0));
-                        return (
-                          <tr key={metric.metricKey} className="border-b last:border-0">
-                            <td className="py-2.5 text-foreground">{metric.metricName}</td>
-                            <td className="py-2.5 text-right">
-                              <MetricValue
-                                value={
-                                  metric.teamAverage !== null
-                                    ? Math.round(metric.teamAverage * 10) / 10
-                                    : null
-                                }
-                                unit={metric.unit}
-                                valueType={metric.valueType}
-                              />
-                            </td>
-                            <td className="py-2.5 text-right text-muted-foreground">
-                              <MetricValue
-                                value={
-                                  metric.previousTeamAverage !== null
-                                    ? Math.round(metric.previousTeamAverage * 10) / 10
-                                    : null
-                                }
-                                unit={metric.unit}
-                                valueType={metric.valueType}
-                              />
-                            </td>
-                            <td className="py-2.5 text-right">
-                              {change !== null ? (
-                                <TrendIndicator
-                                  direction={
-                                    Math.abs(change) < 1
-                                      ? "stable"
-                                      : isImproved
-                                        ? "improved"
-                                        : "declined"
-                                  }
-                                  value={`${Math.abs(change).toFixed(0)}%`}
-                                />
-                              ) : (
-                                <span className="text-muted-foreground">—</span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </BriefingSection>
-            )}
-
-            {briefing.needsAttention.length === 0 &&
-              briefing.notableImprovements.length === 0 &&
-              briefing.teamPerformance.length === 0 && (
+        <div className="lg:col-span-1">
+          <Card className="overflow-hidden">
+            <div className="border-b px-4 py-3">
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Your upcoming 1:1s
+              </h2>
+            </div>
+            {upcomingMeetings.length === 0 ? (
+              <div className="px-4 py-8">
                 <EmptyState
-                  title="No metric data yet"
-                  description="Metric values will appear here once data is available."
+                  title="No 1:1s scheduled"
+                  description="Connect a calendar to see upcoming meetings here."
                 />
-              )}
-          </div>
-        );
-      })}
+              </div>
+            ) : (
+              <ul className="divide-y divide-border">
+                {upcomingMeetings.map((m) => (
+                  <li key={m.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(m.scheduledStart).toLocaleDateString(undefined, {
+                          weekday: "short",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </p>
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {m.employeeName}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(m.scheduledStart).toLocaleTimeString(undefined, {
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                    <Link
+                      href={`/one-on-ones/${m.employeeId}`}
+                      className="shrink-0 rounded-md border border-accent px-2.5 py-1 text-xs font-medium text-accent hover:bg-accent/10"
+                    >
+                      Prepare →
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="border-t px-4 py-2.5 text-center">
+              <Link href="/one-on-ones" className="text-sm text-accent hover:underline">
+                View all 1:1s →
+              </Link>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {teamTrends.map(({ team, briefing, rows }) => (
+        <div key={team.id} className="space-y-3">
+          <BriefingSection title={`${briefing.teamName} performance`}>
+            {rows.length === 0 ? (
+              <EmptyState
+                title="No metric data yet"
+                description="Metric values will appear here once data is available."
+              />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <caption className="sr-only">{briefing.teamName} performance metrics</caption>
+                  <thead>
+                    <tr className="border-b text-left">
+                      <th className="pb-2 font-medium text-muted-foreground">Metric</th>
+                      <th className="pb-2 font-medium text-muted-foreground text-right">
+                        Team Avg
+                      </th>
+                      <th className="pb-2 font-medium text-muted-foreground text-right">Prev</th>
+                      <th className="pb-2 font-medium text-muted-foreground text-right">Change</th>
+                      <th className="pb-2 font-medium text-muted-foreground text-right">
+                        Trend (4 weeks)
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map(({ metric, trend }) => {
+                      const change =
+                        metric.teamAverage !== null &&
+                        metric.previousTeamAverage !== null &&
+                        metric.previousTeamAverage !== 0
+                          ? ((metric.teamAverage - metric.previousTeamAverage) /
+                              Math.abs(metric.previousTeamAverage)) *
+                            100
+                          : null;
+                      const isImproved =
+                        change !== null &&
+                        ((metric.direction === "higher_is_better" && change > 0) ||
+                          (metric.direction === "lower_is_better" && change < 0));
+                      return (
+                        <tr key={metric.metricKey} className="border-b last:border-0">
+                          <td className="py-2.5 text-foreground">{metric.metricName}</td>
+                          <td className="py-2.5 text-right">
+                            <MetricValue
+                              value={
+                                metric.teamAverage !== null
+                                  ? Math.round(metric.teamAverage * 10) / 10
+                                  : null
+                              }
+                              unit={metric.unit}
+                              valueType={metric.valueType}
+                            />
+                          </td>
+                          <td className="py-2.5 text-right text-muted-foreground">
+                            <MetricValue
+                              value={
+                                metric.previousTeamAverage !== null
+                                  ? Math.round(metric.previousTeamAverage * 10) / 10
+                                  : null
+                              }
+                              unit={metric.unit}
+                              valueType={metric.valueType}
+                            />
+                          </td>
+                          <td className="py-2.5 text-right">
+                            {change !== null ? (
+                              <TrendIndicator
+                                direction={
+                                  Math.abs(change) < 1
+                                    ? "stable"
+                                    : isImproved
+                                      ? "improved"
+                                      : "declined"
+                                }
+                                value={`${Math.abs(change).toFixed(0)}%`}
+                              />
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </td>
+                          <td className="py-2.5 text-right">
+                            <div className="flex justify-end">
+                              <TrendSparkline values={trend} direction={metric.direction} />
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </BriefingSection>
+        </div>
+      ))}
     </div>
   );
 }

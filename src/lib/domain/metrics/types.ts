@@ -27,7 +27,7 @@ export interface ResolvedTarget {
 }
 
 export interface MetricStatus {
-  status: "on_target" | "warning" | "off_target" | "no_target";
+  status: "on_target" | "warning" | "off_target" | "no_target" | "no_data";
   direction: Direction;
 }
 

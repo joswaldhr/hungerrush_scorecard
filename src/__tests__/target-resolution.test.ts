@@ -152,6 +152,23 @@ describe("resolveTarget", () => {
 });
 
 describe("evaluateStatus", () => {
+  it("returns no_data when value is null, even with a target configured", () => {
+    const target = {
+      targetValue: 80,
+      warningValue: 70,
+      targetType: "minimum" as const,
+      source: "team" as const,
+      priority: 0,
+    };
+    const result = evaluateStatus(null, target, "higher_is_better");
+    expect(result.status).toBe("no_data");
+  });
+
+  it("returns no_data when value is null and there is no target either", () => {
+    const result = evaluateStatus(null, null, "higher_is_better");
+    expect(result.status).toBe("no_data");
+  });
+
   it("returns no_target when target is null", () => {
     const result = evaluateStatus(50, null, "higher_is_better");
     expect(result.status).toBe("no_target");

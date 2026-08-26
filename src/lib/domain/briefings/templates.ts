@@ -22,7 +22,7 @@ export function describeChange(change: MetricChange): string {
 export function describeExecutiveSummary(
   employeeName: string,
   changes: MetricChange[],
-  overallStatus: "on_track" | "mixed" | "needs_attention"
+  overallStatus: "on_track" | "mixed" | "needs_attention" | "no_data"
 ): EvidencedStatement {
   const improving = changes.filter((c) => c.changeDirection === "improved");
   const declining = changes.filter((c) => c.changeDirection === "declined");
@@ -30,7 +30,9 @@ export function describeExecutiveSummary(
   let text: string;
   const evidence: EvidenceRef[] = [];
 
-  if (overallStatus === "on_track") {
+  if (overallStatus === "no_data") {
+    text = `No metric data has been recorded for ${employeeName} yet.`;
+  } else if (overallStatus === "on_track") {
     if (improving.length > 0) {
       text = `${employeeName} is performing well this week with improvements in ${improving.map((c) => c.metricName).join(", ")}.`;
       evidence.push(...improving.map((c) => makeEvidenceRef(c)));

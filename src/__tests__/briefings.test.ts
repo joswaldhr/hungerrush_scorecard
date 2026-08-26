@@ -75,6 +75,12 @@ describe("describeExecutiveSummary", () => {
     expect(result.text).toContain("Handle Time");
   });
 
+  it("describes no_data honestly instead of implying performance", () => {
+    const result = describeExecutiveSummary("Alex", [], "no_data");
+    expect(result.text).toContain("No metric data");
+    expect(result.text).not.toContain("performing");
+  });
+
   it("describes mixed performance", () => {
     const result = describeExecutiveSummary(
       "Sarah",
