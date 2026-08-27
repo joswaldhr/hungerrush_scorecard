@@ -268,8 +268,20 @@ All are validated (when present) through `src/lib/env.ts`. There is no `AUTH_PRO
 
 - **Application**: Vercel (Next.js hosting with serverless functions), auto-deploying from `master`. No Vercel-specific APIs are used in the domain layer.
 - **Database**: Railway-managed PostgreSQL. Local development and CI both use a separate Postgres (Docker Compose locally, a GitHub Actions service container in CI) — never the real Railway instance.
-- **Migrations**: Drizzle-kit generates and applies SQL migrations; `drizzle/meta/` (the journal and per-migration snapshots) is tracked in git, not gitignored, so a fresh checkout can migrate reliably. CI runs `drizzle-kit migrate` against its test database on every push, but there is currently no equivalent automated step wired into the actual Vercel/Railway production deploy — migrations there have been run by hand each time. This should get a documented runbook or a wired-in pre-deploy step before this is truly hands-off.
+- **Migrations**: Drizzle-kit generates and applies SQL migrations; `drizzle/meta/` (the journal and per-migration snapshots) is tracked in git, not gitignored, so a fresh checkout can migrate reliably. CI runs `drizzle-kit migrate` against its test database on every push. Production (Railway) migrations are still a manual step — see the runbook below. Wiring this into the Vercel build itself (a `vercel-build` script running `pnpm db:migrate && next build`) was considered and deliberately not done here: it would auto-apply schema changes against production on every push with no human gate, which is a CI/CD pipeline change with real blast radius — worth James's explicit sign-off rather than a silent default.
 - **Background sync**: Not scheduled yet. A manager (or platform admin viewing as one) triggers a sync manually from the Data Health page; the request is rate-limited server-side. Moving to a real schedule (Vercel cron or similar) is still open.
+
+### Production Migration Runbook
+
+Until the pre-deploy step above is decided, apply schema changes to Railway by hand, in this order, for every commit that includes a new migration under `drizzle/`:
+
+1. Get the production `DATABASE_URL` from the Railway dashboard (the Postgres service's **Variables** tab) or `railway variables` if the Railway CLI is linked to this project. Don't put it in `.env` — pass it inline so it can't get committed by accident.
+2. Run the migration against production **before or as soon as** the corresponding commit reaches `master` (Vercel auto-deploys from `master`, so app code expecting a new column/table can otherwise go live before the schema does):
+   ```
+   DATABASE_URL="<railway-connection-string>" pnpm db:migrate
+   ```
+3. Confirm it applied cleanly — `drizzle-kit migrate` prints each migration file it ran; no output means nothing was pending.
+4. If the Vercel deploy for that commit already finished before step 2, check `/api/health` and the app's error logs (Vercel dashboard) for query failures against the missing schema, since there was a window where new code could have hit old schema.
 
 ## Testing Strategy
 

@@ -99,8 +99,10 @@ was run and turned into a phased plan. Status as of this pass:
       on pagination buttons; the Employee page's Context tabs now use `@radix-ui/react-tabs`
       (a new `src/components/ui/tabs.tsx` wrapper) instead of the CSS-only radio hack, giving
       real ARIA tab roles and keyboard navigation.
-- [ ] Phase 6 — wire/document the migration step for actual deploys (currently done by
-      hand each time); decide on a custom domain.
+- [ ] Phase 6 — documented the manual production-migration runbook in
+      `docs/ARCHITECTURE.md` ("Production Migration Runbook"). Still open, and needs
+      James's decision, not code: whether to also wire an automatic pre-deploy migration
+      step (a `vercel-build` script), and custom domain vs staying on `*.vercel.app`.
 - [ ] Phase 7 (decisions needed, not code) — data retention/PII policy; database
       backup/DR strategy (Railway dashboard config, outside this repo); Rippling
       real-vs-link-out decision; scope "permission review."
