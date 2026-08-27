@@ -4,7 +4,14 @@
 
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { db } from "@/lib/db";
-import { organizations, users, teams, employees, managerAssignments } from "@/lib/db/schema";
+import {
+  organizations,
+  users,
+  teams,
+  employees,
+  teamMemberships,
+  managerAssignments,
+} from "@/lib/db/schema";
 import { eq, inArray } from "drizzle-orm";
 
 let mockViewAsCookie: string | undefined;
@@ -57,6 +64,9 @@ async function cleanup() {
     .delete(managerAssignments)
     .where(inArray(managerAssignments.managerUserId, ALL_TEST_USER_IDS));
   await db.delete(users).where(inArray(users.id, ALL_TEST_USER_IDS));
+  await db
+    .delete(teamMemberships)
+    .where(inArray(teamMemberships.employeeId, [EMPLOYEE_ID, OTHER_EMPLOYEE_ID]));
   await db.delete(employees).where(inArray(employees.id, [EMPLOYEE_ID, OTHER_EMPLOYEE_ID]));
   await db.delete(teams).where(inArray(teams.id, [TEAM_ID, OTHER_TEAM_ID]));
   await db.delete(organizations).where(eq(organizations.id, ORG_ID));
@@ -83,6 +93,13 @@ beforeAll(async () => {
       primaryTeamId: OTHER_TEAM_ID,
       displayName: "Other Employee",
     },
+  ]);
+  // getManagerContext resolves assignedEmployeeIds via team_memberships, not
+  // employees.primary_team_id directly — both must be set for a team-scoped
+  // manager assignment to see the employee.
+  await db.insert(teamMemberships).values([
+    { employeeId: EMPLOYEE_ID, teamId: TEAM_ID, effectiveFrom: "2020-01-01" },
+    { employeeId: OTHER_EMPLOYEE_ID, teamId: OTHER_TEAM_ID, effectiveFrom: "2020-01-01" },
   ]);
   await db.insert(users).values([
     { id: MANAGER_ID, organizationId: ORG_ID, email: MANAGER_EMAIL, displayName: "Test Manager" },
