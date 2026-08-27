@@ -168,7 +168,9 @@ export function TeamRosterTable({ rows }: { rows: RosterRow[] }) {
                   <td className="py-3">
                     {row.keyChange ? (
                       <span className="flex items-center gap-1.5 text-sm">
-                        <TrendIndicator direction={row.keyChange.improved ? "improved" : "declined"} />
+                        <TrendIndicator
+                          direction={row.keyChange.improved ? "improved" : "declined"}
+                        />
                         <span className="text-muted-foreground">
                           {row.keyChange.name} {Math.abs(row.keyChange.pct).toFixed(0)}%
                         </span>

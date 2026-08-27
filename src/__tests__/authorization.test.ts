@@ -70,7 +70,12 @@ beforeAll(async () => {
     { id: OTHER_TEAM_ID, organizationId: ORG_ID, name: "Other Team", slug: "other-team" },
   ]);
   await db.insert(employees).values([
-    { id: EMPLOYEE_ID, organizationId: ORG_ID, primaryTeamId: TEAM_ID, displayName: "Test Employee" },
+    {
+      id: EMPLOYEE_ID,
+      organizationId: ORG_ID,
+      primaryTeamId: TEAM_ID,
+      displayName: "Test Employee",
+    },
     {
       id: OTHER_EMPLOYEE_ID,
       organizationId: ORG_ID,
@@ -87,7 +92,12 @@ beforeAll(async () => {
       displayName: "Test Admin",
       isPlatformAdmin: true,
     },
-    { id: OUTSIDER_ID, organizationId: ORG_ID, email: OUTSIDER_EMAIL, displayName: "Test Outsider" },
+    {
+      id: OUTSIDER_ID,
+      organizationId: ORG_ID,
+      email: OUTSIDER_EMAIL,
+      displayName: "Test Outsider",
+    },
     {
       id: INACTIVE_MANAGER_ID,
       organizationId: ORG_ID,

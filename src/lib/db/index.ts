@@ -17,6 +17,8 @@ export const db: DbInstance = new Proxy({} as DbInstance, {
   get(_, prop) {
     const instance = (globalForDb._cadenceDb ??= createDb());
     const val = (instance as unknown as Record<string | symbol, unknown>)[prop];
-    return typeof val === "function" ? (val as Function).bind(instance) : val;
+    return typeof val === "function"
+      ? (val as (...args: unknown[]) => unknown).bind(instance)
+      : val;
   },
 });

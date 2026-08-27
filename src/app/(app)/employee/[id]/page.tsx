@@ -144,7 +144,10 @@ export default async function EmployeePage({
   ).length;
   const improvingCount = summary.changes.filter((c) => c.changeDirection === "improved").length;
   const decliningSignificantly = summary.changes.filter(
-    (c) => c.changeDirection === "declined" && c.changePercent !== null && Math.abs(c.changePercent) >= 10
+    (c) =>
+      c.changeDirection === "declined" &&
+      c.changePercent !== null &&
+      Math.abs(c.changePercent) >= 10
   ).length;
 
   const snapshotTrends = await Promise.all(

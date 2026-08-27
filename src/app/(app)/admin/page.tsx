@@ -43,8 +43,7 @@ export default async function AdminPage() {
         <Card>
           <CardContent className="flex items-center justify-between py-3 px-4">
             <p className="text-sm text-foreground">
-              Currently viewing as{" "}
-              <span className="font-medium">{viewingAs.displayName}</span>
+              Currently viewing as <span className="font-medium">{viewingAs.displayName}</span>
             </p>
             <form action={clearViewAs}>
               <button type="submit" className="text-sm text-accent hover:underline">

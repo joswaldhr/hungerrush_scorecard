@@ -97,9 +97,7 @@ export default async function HomePage() {
   const teamTrends = await Promise.all(
     briefings.map(async (briefing, i) => {
       const team = teams[i]!;
-      const teamEmployeeIds = employees
-        .filter((e) => e.primaryTeamId === team.id)
-        .map((e) => e.id);
+      const teamEmployeeIds = employees.filter((e) => e.primaryTeamId === team.id).map((e) => e.id);
       const rows = await Promise.all(
         briefing.teamPerformance.map(async (metric) => ({
           metric,

@@ -8,6 +8,17 @@ const eslintConfig = defineConfig([
   ...nextTs,
   prettierConfig,
   globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
+  {
+    rules: {
+      // Mock connectors intentionally leave interface params unused to match
+      // the real connector's signature — underscore-prefixing is this
+      // codebase's existing convention for "yes, deliberately unused."
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;
