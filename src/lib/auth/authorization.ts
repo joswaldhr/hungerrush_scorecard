@@ -5,6 +5,8 @@ import { eq, and, isNull, inArray } from "drizzle-orm";
 
 export const VIEW_AS_COOKIE = "cadence_view_as";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export interface ManagerContext {
   userId: string;
   organizationId: string;
@@ -92,7 +94,9 @@ export async function getEffectiveManagerContext(email: string): Promise<Effecti
 
   const cookieStore = await cookies();
   const viewAsUserId = cookieStore.get(VIEW_AS_COOKIE)?.value;
-  if (!viewAsUserId) return { ctx: null, isPlatformAdmin: true, viewingAs: null };
+  if (!viewAsUserId || !UUID_RE.test(viewAsUserId)) {
+    return { ctx: null, isPlatformAdmin: true, viewingAs: null };
+  }
 
   const [targetUser] = await db
     .select()

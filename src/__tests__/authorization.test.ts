@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { db } from "@/lib/db";
 import { organizations, users, teams, employees, managerAssignments } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
 let mockViewAsCookie: string | undefined;
 vi.mock("next/headers", () => ({
@@ -44,20 +44,21 @@ const OUTSIDER_EMAIL = "test-outsider@test.cadence.internal";
 const INACTIVE_MANAGER_EMAIL = "test-inactive@test.cadence.internal";
 const ADMIN_WITH_OWN_TEAM_EMAIL = "test-admin-own-team@test.cadence.internal";
 
+const ALL_TEST_USER_IDS = [
+  MANAGER_ID,
+  ADMIN_ID,
+  OUTSIDER_ID,
+  INACTIVE_MANAGER_ID,
+  ADMIN_WITH_OWN_TEAM_ID,
+];
+
 async function cleanup() {
-  await db.delete(managerAssignments).where(eq(managerAssignments.managerUserId, MANAGER_ID));
   await db
     .delete(managerAssignments)
-    .where(eq(managerAssignments.managerUserId, ADMIN_WITH_OWN_TEAM_ID));
-  await db.delete(users).where(eq(users.id, MANAGER_ID));
-  await db.delete(users).where(eq(users.id, ADMIN_ID));
-  await db.delete(users).where(eq(users.id, OUTSIDER_ID));
-  await db.delete(users).where(eq(users.id, INACTIVE_MANAGER_ID));
-  await db.delete(users).where(eq(users.id, ADMIN_WITH_OWN_TEAM_ID));
-  await db.delete(employees).where(eq(employees.id, EMPLOYEE_ID));
-  await db.delete(employees).where(eq(employees.id, OTHER_EMPLOYEE_ID));
-  await db.delete(teams).where(eq(teams.id, TEAM_ID));
-  await db.delete(teams).where(eq(teams.id, OTHER_TEAM_ID));
+    .where(inArray(managerAssignments.managerUserId, ALL_TEST_USER_IDS));
+  await db.delete(users).where(inArray(users.id, ALL_TEST_USER_IDS));
+  await db.delete(employees).where(inArray(employees.id, [EMPLOYEE_ID, OTHER_EMPLOYEE_ID]));
+  await db.delete(teams).where(inArray(teams.id, [TEAM_ID, OTHER_TEAM_ID]));
   await db.delete(organizations).where(eq(organizations.id, ORG_ID));
 }
 
