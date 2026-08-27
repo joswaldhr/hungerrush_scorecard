@@ -26,6 +26,8 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { teams, meetingReferences } from "@/lib/db/schema";
 import { eq, and, gte, asc } from "drizzle-orm";
+import { env } from "@/lib/env";
+import { ExternalLink } from "lucide-react";
 
 function weekDates() {
   const now = new Date();
@@ -366,9 +368,22 @@ export default async function OneOnOnePage({ params }: { params: Promise<{ id: s
         >
           ← Full profile
         </Link>
-        <Link href="/team" className="text-sm text-muted-foreground hover:text-foreground">
-          Back to team
-        </Link>
+        <div className="flex items-center gap-4">
+          {env.RIPPLING_MANAGER_URL && (
+            <a
+              href={env.RIPPLING_MANAGER_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-sm text-accent hover:underline"
+            >
+              Open Rippling
+              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+            </a>
+          )}
+          <Link href="/team" className="text-sm text-muted-foreground hover:text-foreground">
+            Back to team
+          </Link>
+        </div>
       </div>
     </div>
   );

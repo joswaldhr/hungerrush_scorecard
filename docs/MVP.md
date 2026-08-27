@@ -103,9 +103,12 @@ was run and turned into a phased plan. Status as of this pass:
       `docs/ARCHITECTURE.md` ("Production Migration Runbook"). Still open, and needs
       James's decision, not code: whether to also wire an automatic pre-deploy migration
       step (a `vercel-build` script), and custom domain vs staying on `*.vercel.app`.
-- [ ] Phase 7 (decisions needed, not code) — data retention/PII policy; database
-      backup/DR strategy (Railway dashboard config, outside this repo); Rippling
-      real-vs-link-out decision; scope "permission review."
+- [x] Phase 7 (partial) — Rippling link-out implemented (`RIPPLING_MANAGER_URL` env var,
+      "Open Rippling" on the 1:1 Prep page); "permission review" scoped and completed (found
+      and fixed a real cross-team data leak in the reconciliation tool — see
+      `docs/ARCHITECTURE.md`'s Known Gaps). Still open, needing an actual policy answer from
+      James, not code: data retention/PII policy; database backup/DR strategy (a Railway
+      dashboard config, outside this repo).
 
 Full detail lives in the approved plan from that session — ask for it to be
 regenerated if the original plan file isn't available.

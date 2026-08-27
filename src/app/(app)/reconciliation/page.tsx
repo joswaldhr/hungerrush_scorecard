@@ -81,10 +81,15 @@ export default async function ReconciliationPage() {
   }> = [];
 
   if (runs.length > 0) {
-    latestResults = await db
+    const assignedIds = new Set(ctx.assignedEmployeeIds);
+    const allResults = await db
       .select()
       .from(reconciliationResults)
       .where(eq(reconciliationResults.reconciliationRunId, runs[0]!.id));
+    // A run may span employees outside this manager's own assignment (e.g. an
+    // org-wide run triggered by someone else) — never show another team's
+    // employee-level metric values just because the run itself is org-scoped.
+    latestResults = allResults.filter((r) => assignedIds.has(r.employeeId));
   }
 
   const managedTeamIds = ctx.assignedTeamIds;

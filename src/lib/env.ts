@@ -23,6 +23,12 @@ const envSchema = z.object({
   AUTH_MICROSOFT_ENTRA_ID_ID: z.string().min(1).optional(),
   AUTH_MICROSOFT_ENTRA_ID_SECRET: z.string().min(1).optional(),
   AUTH_MICROSOFT_ENTRA_ID_ISSUER: z.string().min(1).optional(),
+
+  // Rippling has no real integration yet (see docs/ARCHITECTURE.md's Known
+  // Gaps) — this is a plain link-out, not a deep link to a specific employee
+  // record, per PRODUCT.md's sanctioned fallback. Optional; the 1:1 Prep
+  // page's "Open Rippling" link only renders once this is set.
+  RIPPLING_MANAGER_URL: z.string().url().optional(),
 });
 
 function validateEnv() {

@@ -37,10 +37,16 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const results = await db
+    const allResults = await db
       .select()
       .from(reconciliationResults)
       .where(eq(reconciliationResults.reconciliationRunId, runId));
+
+    // A run may span employees outside this manager's own assignment (e.g. an
+    // org-wide run triggered by someone else) — never return another team's
+    // employee-level metric values just because the run itself is org-scoped.
+    const assignedIds = new Set(ctx.assignedEmployeeIds);
+    const results = allResults.filter((r) => assignedIds.has(r.employeeId));
 
     return NextResponse.json({
       run: {

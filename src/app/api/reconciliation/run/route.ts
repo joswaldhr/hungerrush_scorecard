@@ -68,6 +68,7 @@ export async function POST(request: Request) {
       organizationId: ctx.organizationId,
       triggeredBy: ctx.userId,
       teamId: body.teamId,
+      employeeIds: ctx.assignedEmployeeIds,
       periodStart: body.periodStart,
       periodEnd: body.periodEnd,
       thresholdPct: body.thresholdPct,

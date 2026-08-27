@@ -5,7 +5,6 @@ import {
   metricDefinitions,
   metricValues,
   normalizedFacts,
-  employees,
   teamMemberships,
 } from "@/lib/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
@@ -16,6 +15,10 @@ export interface ReconciliationParams {
   organizationId: string;
   triggeredBy: string;
   teamId?: string;
+  /** Employees to compare when teamId isn't set — the triggering manager's
+   * own assigned employees, never "every employee in the org" (a manager
+   * who omits teamId should still only see their own scope). */
+  employeeIds: string[];
   periodStart: string;
   periodEnd: string;
   thresholdPct?: number;
@@ -60,11 +63,7 @@ export async function runReconciliation(params: ReconciliationParams) {
         .where(eq(teamMemberships.teamId, params.teamId));
       employeeIds = memberships.map((m) => m.employeeId);
     } else {
-      const emps = await db
-        .select({ id: employees.id })
-        .from(employees)
-        .where(eq(employees.organizationId, params.organizationId));
-      employeeIds = emps.map((e) => e.id);
+      employeeIds = params.employeeIds;
     }
 
     if (employeeIds.length === 0 || activeMetrics.length === 0) {
