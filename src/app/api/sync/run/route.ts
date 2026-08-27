@@ -8,6 +8,7 @@ import type { Connector } from "@/lib/connectors";
 import { computeMetricValuesFromFacts } from "@/lib/domain/metrics/compute-values";
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
+import { isSyncRateLimited } from "@/lib/rate-limit";
 
 const CONNECTORS: Record<string, () => Connector> = {
   zendesk: () => new ZendeskConnector(),
@@ -46,6 +47,13 @@ export async function POST(request: Request) {
 
     if (!source) {
       return NextResponse.json({ error: "Data source not configured" }, { status: 404 });
+    }
+
+    if (await isSyncRateLimited(source.id)) {
+      return NextResponse.json(
+        { error: "A sync for this data source already ran recently. Try again in a few minutes." },
+        { status: 429 }
+      );
     }
 
     const connector = CONNECTORS[body.dataSourceType]!();

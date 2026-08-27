@@ -6,6 +6,7 @@ import { eq, desc } from "drizzle-orm";
 import { runReconciliation } from "@/lib/domain/reconciliation";
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
+import { isReconciliationRateLimited } from "@/lib/rate-limit";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -48,6 +49,13 @@ export async function POST(request: Request) {
 
   if (body.thresholdPct !== undefined && (body.thresholdPct < 0 || body.thresholdPct > 100)) {
     return NextResponse.json({ error: "thresholdPct must be 0-100" }, { status: 400 });
+  }
+
+  if (await isReconciliationRateLimited(ctx.organizationId)) {
+    return NextResponse.json(
+      { error: "A reconciliation run already started recently. Try again in a few minutes." },
+      { status: 429 }
+    );
   }
 
   try {

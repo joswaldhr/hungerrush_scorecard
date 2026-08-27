@@ -9,8 +9,8 @@ const entraConfigured = Boolean(
 );
 
 if (process.env.NODE_ENV === "production" && !entraConfigured) {
-  console.warn(
-    "Microsoft Entra ID is not configured — the Credentials provider is disabled in production, so no one can sign in until AUTH_MICROSOFT_ENTRA_ID_ID/SECRET are set."
+  throw new Error(
+    "Microsoft Entra ID is not configured in production (AUTH_MICROSOFT_ENTRA_ID_ID/SECRET missing) — the Credentials provider is disabled in production, so the app would boot with no working sign-in method. Refusing to start rather than deploying silently broken."
   );
 }
 
