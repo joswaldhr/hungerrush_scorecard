@@ -289,6 +289,5 @@ Tracked in more detail in the session that produced this pass — summarized her
 - No unauthenticated `/api/health` endpoint for uptime monitoring.
 - `next-auth` is pinned to a beta release (`5.0.0-beta.32`).
 - Accessibility: the Team page's filter chips/pagination indicate active state by color only (no `aria-pressed`/`aria-current`), and the Employee page's Context tabs are a CSS-only radio hack without real ARIA tab roles. `@radix-ui/react-tabs` is an installed-but-unused dependency that could replace the hand-rolled version.
-- `getEmployeeMetrics` re-runs team-scoped queries redundantly inside a per-employee loop on the Team and Home pages — 6 DB round-trips × employee count per load, worth batching.
 - Rippling has no real integration and no link-out placeholder yet (see Connector Architecture above).
 - "Permission review" (from `docs/MVP.md`'s pilot checklist) isn't scoped.

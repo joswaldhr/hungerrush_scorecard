@@ -5,7 +5,7 @@ import {
   getAssignedTeams,
   getAssignedEmployees,
 } from "@/lib/auth/authorization";
-import { getEmployeeMetrics, getMetricHistory } from "@/lib/domain/metrics/queries";
+import { getEmployeeMetricsBatch, getMetricHistoryBatch } from "@/lib/domain/metrics/queries";
 import { db } from "@/lib/db";
 import { syncRuns, dataSources, meetingReferences } from "@/lib/db/schema";
 import { eq, desc, and, inArray, gte, asc } from "drizzle-orm";
@@ -110,35 +110,57 @@ export default async function TeamPage() {
     }
   }
 
-  const employeeData = await Promise.all(
-    employees.map(async (emp) => {
-      const teamId = emp.primaryTeamId;
-      if (!teamId) {
-        return {
-          employee: emp,
-          metrics: [] as EmployeeMetricRow[],
-          teamId: null,
-          primary: null as EmployeeMetricRow | null,
-          trend: [] as Array<number | null>,
-        };
-      }
-      const metrics = await getEmployeeMetrics(
+  const employeesByTeam = new Map<string, typeof employees>();
+  for (const emp of employees) {
+    if (!emp.primaryTeamId) continue;
+    const forTeam = employeesByTeam.get(emp.primaryTeamId) ?? [];
+    forTeam.push(emp);
+    employeesByTeam.set(emp.primaryTeamId, forTeam);
+  }
+
+  const metricsByEmployee = new Map<string, EmployeeMetricRow[]>();
+  await Promise.all(
+    Array.from(employeesByTeam.entries()).map(async ([teamId, teamEmps]) => {
+      const batch = await getEmployeeMetricsBatch(
         ctx,
-        emp.id,
+        teamEmps.map((e) => e.id),
         teamId,
         periodStart,
         previousPeriodStart
       );
-      const primary = metrics.find((m) => m.isPrimary) ?? metrics[0] ?? null;
-      const trend = primary
-        ? (await getMetricHistory(ctx, emp.id, primary.definitionId, 4))
-            .slice()
-            .reverse()
-            .map((v) => v.numericValue)
-        : [];
-      return { employee: emp, metrics, teamId, primary, trend };
+      for (const [employeeId, metrics] of batch) {
+        metricsByEmployee.set(employeeId, metrics);
+      }
     })
   );
+
+  const primaryByEmployee = new Map<string, EmployeeMetricRow | null>();
+  for (const emp of employees) {
+    const metrics = metricsByEmployee.get(emp.id) ?? [];
+    primaryByEmployee.set(emp.id, metrics.find((m) => m.isPrimary) ?? metrics[0] ?? null);
+  }
+
+  const historyRequests = employees
+    .map((emp) => {
+      const primary = primaryByEmployee.get(emp.id);
+      return primary ? { employeeId: emp.id, metricDefinitionId: primary.definitionId } : null;
+    })
+    .filter((r): r is { employeeId: string; metricDefinitionId: string } => r !== null);
+
+  const historyByRequest = await getMetricHistoryBatch(ctx, historyRequests, 4);
+
+  const employeeData = employees.map((emp) => {
+    const teamId = emp.primaryTeamId ?? null;
+    const metrics = metricsByEmployee.get(emp.id) ?? [];
+    const primary = primaryByEmployee.get(emp.id) ?? null;
+    const trend = primary
+      ? (historyByRequest.get(`${emp.id}:${primary.definitionId}`) ?? [])
+          .slice()
+          .reverse()
+          .map((v) => v.numericValue)
+      : [];
+    return { employee: emp, metrics, teamId, primary, trend };
+  });
 
   return (
     <div className="max-w-5xl space-y-6">

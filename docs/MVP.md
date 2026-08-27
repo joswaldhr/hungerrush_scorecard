@@ -88,8 +88,9 @@ was run and turned into a phased plan. Status as of this pass:
       (a malformed view-as cookie crashed instead of degrading gracefully). Tracking
       `drizzle/meta/` in git (was gitignored — blocked reliable migrations in a fresh
       checkout/CI). All lint issues fixed (was 1 error + 11 warnings).
-- [ ] Phase 3 — fix the N+1 query pattern on Team/Home (`getEmployeeMetrics` re-runs
-      team-scoped queries per employee: 6 DB round-trips × headcount per page load).
+- [x] Phase 3 — fixed the N+1 query pattern on Team/Home: `getEmployeeMetricsBatch` and
+      `getMetricHistoryBatch` run the team-scoped and history queries once per team instead
+      of once per employee.
 - [ ] Phase 4 — zod validation on POST route bodies, security headers, `/api/health`,
       decide on the `next-auth` beta pin.
 - [ ] Phase 5 — accessibility (filter/pagination `aria-pressed`/`aria-current`, real ARIA

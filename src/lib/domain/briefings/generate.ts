@@ -1,6 +1,6 @@
 import type { ManagerContext } from "@/lib/auth/authorization";
 import { getAssignedEmployees } from "@/lib/auth/authorization";
-import { getEmployeeMetrics } from "../metrics/queries";
+import { getEmployeeMetrics, getEmployeeMetricsBatch } from "../metrics/queries";
 import type { EmployeeMetricRow } from "../metrics/queries";
 import type {
   TeamBriefingPayload,
@@ -144,12 +144,17 @@ export async function generateTeamBriefing(
   const employees = await getAssignedEmployees(ctx);
   const teamEmployees = employees.filter((e) => e.primaryTeamId === teamId);
 
-  const employeeMetrics = await Promise.all(
-    teamEmployees.map(async (emp) => ({
-      employee: emp,
-      metrics: await getEmployeeMetrics(ctx, emp.id, teamId, periodStart, previousPeriodStart),
-    }))
+  const metricsByEmployee = await getEmployeeMetricsBatch(
+    ctx,
+    teamEmployees.map((emp) => emp.id),
+    teamId,
+    periodStart,
+    previousPeriodStart
   );
+  const employeeMetrics = teamEmployees.map((emp) => ({
+    employee: emp,
+    metrics: metricsByEmployee.get(emp.id) ?? [],
+  }));
 
   let allFreshness: Date | null = null;
   const statusCounts = { onTarget: 0, warning: 0, offTarget: 0, noData: 0 };
