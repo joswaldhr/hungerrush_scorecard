@@ -15,6 +15,7 @@ import { EmptyState } from "@/components/empty-state";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/db";
@@ -50,44 +51,11 @@ function initials(name: string): string {
 // Context items are a free-text `context_type` column (no DB-level enum).
 // This is the taxonomy the manager-facing Context panel groups by; a future
 // connector or manual-entry feature should write one of these values.
-//
-// The peer/peer-checked class names below must appear as literal strings —
-// Tailwind's build-time scanner greps source text for class tokens and can't
-// see dynamically interpolated ones (`peer/${key}`), so each tab is spelled
-// out rather than templated.
 const CONTEXT_TABS = [
-  {
-    key: "coaching",
-    label: "Coaching",
-    peer: "peer/coaching sr-only",
-    label_cls:
-      "cursor-pointer border-b-2 border-transparent pb-1 text-muted-foreground peer-checked/coaching:border-accent peer-checked/coaching:text-foreground",
-    panel_cls: "order-2 hidden w-full pt-3 peer-checked/coaching:block",
-  },
-  {
-    key: "quality_review",
-    label: "Quality",
-    peer: "peer/quality sr-only",
-    label_cls:
-      "cursor-pointer border-b-2 border-transparent pb-1 text-muted-foreground peer-checked/quality:border-accent peer-checked/quality:text-foreground",
-    panel_cls: "order-2 hidden w-full pt-3 peer-checked/quality:block",
-  },
-  {
-    key: "attendance",
-    label: "Attendance",
-    peer: "peer/attendance sr-only",
-    label_cls:
-      "cursor-pointer border-b-2 border-transparent pb-1 text-muted-foreground peer-checked/attendance:border-accent peer-checked/attendance:text-foreground",
-    panel_cls: "order-2 hidden w-full pt-3 peer-checked/attendance:block",
-  },
-  {
-    key: "note",
-    label: "Notes",
-    peer: "peer/notes sr-only",
-    label_cls:
-      "cursor-pointer border-b-2 border-transparent pb-1 text-muted-foreground peer-checked/notes:border-accent peer-checked/notes:text-foreground",
-    panel_cls: "order-2 hidden w-full pt-3 peer-checked/notes:block",
-  },
+  { key: "coaching", label: "Coaching" },
+  { key: "quality_review", label: "Quality" },
+  { key: "attendance", label: "Attendance" },
+  { key: "note", label: "Notes" },
 ] as const;
 
 export default async function EmployeePage({
@@ -393,47 +361,25 @@ export default async function EmployeePage({
 
       {/* Context */}
       <BriefingSection title="Context">
-        <div className="flex flex-wrap rounded-lg border p-4">
-          <input
-            type="radio"
-            name="context-tab"
-            id="ctx-overview"
-            className="peer/overview sr-only"
-            defaultChecked
-          />
-          {CONTEXT_TABS.map((tab) => (
-            <input
-              key={tab.key}
-              type="radio"
-              name="context-tab"
-              id={`ctx-${tab.key}`}
-              className={tab.peer}
-            />
-          ))}
-
-          <div className="order-1 flex w-full flex-wrap gap-4 border-b pb-2 text-sm">
-            <label
-              htmlFor="ctx-overview"
-              className="cursor-pointer border-b-2 border-transparent pb-1 text-muted-foreground peer-checked/overview:border-accent peer-checked/overview:text-foreground"
-            >
-              Overview
-            </label>
+        <Tabs defaultValue="overview" className="rounded-lg border p-4">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
             {CONTEXT_TABS.map((tab) => (
-              <label key={tab.key} htmlFor={`ctx-${tab.key}`} className={tab.label_cls}>
+              <TabsTrigger key={tab.key} value={tab.key}>
                 {tab.label} ({contextRows.filter((c) => c.contextType === tab.key).length})
-              </label>
+              </TabsTrigger>
             ))}
-          </div>
+          </TabsList>
 
-          <div className="order-2 hidden w-full pt-3 peer-checked/overview:block">
+          <TabsContent value="overview">
             <ContextList items={contextRows.slice(0, 5)} />
-          </div>
+          </TabsContent>
           {CONTEXT_TABS.map((tab) => (
-            <div key={tab.key} className={tab.panel_cls}>
+            <TabsContent key={tab.key} value={tab.key}>
               <ContextList items={contextRows.filter((c) => c.contextType === tab.key)} />
-            </div>
+            </TabsContent>
           ))}
-        </div>
+        </Tabs>
       </BriefingSection>
 
       {/* Provenance footer */}

@@ -95,9 +95,10 @@ was run and turned into a phased plan. Status as of this pass:
       (closes the `thresholdPct` string-coercion gap); CSP/HSTS/X-Frame-Options/
       X-Content-Type-Options headers in `next.config.ts`; unauthenticated `/api/health`;
       `next-auth` beta pin decided (stays pinned — no stable v5 exists yet).
-- [ ] Phase 5 — accessibility (filter/pagination `aria-pressed`/`aria-current`, real ARIA
-      tab roles for the Employee page's Context tabs; `@radix-ui/react-tabs` is installed
-      but unused).
+- [x] Phase 5 — accessibility: `aria-pressed` on Team page filter chips and `aria-current`
+      on pagination buttons; the Employee page's Context tabs now use `@radix-ui/react-tabs`
+      (a new `src/components/ui/tabs.tsx` wrapper) instead of the CSS-only radio hack, giving
+      real ARIA tab roles and keyboard navigation.
 - [ ] Phase 6 — wire/document the migration step for actual deploys (currently done by
       hand each time); decide on a custom domain.
 - [ ] Phase 7 (decisions needed, not code) — data retention/PII policy; database

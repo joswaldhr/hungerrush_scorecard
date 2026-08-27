@@ -93,6 +93,7 @@ export function TeamRosterTable({ rows }: { rows: RosterRow[] }) {
               key={f.key}
               type="button"
               onClick={() => handleFilterChange(f.key)}
+              aria-pressed={filter === f.key}
               className={cn(
                 "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
                 filter === f.key
@@ -268,6 +269,7 @@ export function TeamRosterTable({ rows }: { rows: RosterRow[] }) {
                   key={p}
                   type="button"
                   onClick={() => setPage(p)}
+                  aria-current={p === currentPage ? "page" : undefined}
                   className={cn(
                     "rounded-md border px-2 py-1",
                     p === currentPage
