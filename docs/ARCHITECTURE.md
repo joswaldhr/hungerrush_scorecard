@@ -284,10 +284,8 @@ All are validated (when present) through `src/lib/env.ts`. There is no `AUTH_PRO
 Tracked in more detail in the session that produced this pass — summarized here so a fresh session doesn't have to rediscover them:
 
 - No documented backup/disaster-recovery plan for the Railway database, and no data-retention/PII policy for the real employee data this app stores indefinitely. Both need a decision from James/HungerRush before they can be implemented or written down.
-- POST API route bodies (`sync/run`, `reconciliation/run`) still use unchecked `as` casts instead of the zod schemas the project depends on.
-- No security headers (CSP/HSTS/X-Frame-Options) configured.
-- No unauthenticated `/api/health` endpoint for uptime monitoring.
-- `next-auth` is pinned to a beta release (`5.0.0-beta.32`).
+- **Decided (2026-08-27)**: `next-auth` stays pinned to `5.0.0-beta.32` (exact, not a range) — checked npm and no stable v5 has shipped yet, so there is nothing to move to. Re-check when picking up this project again.
+- The CSP set in `next.config.ts` allows `'unsafe-inline'` for `script-src`/`style-src` because the App Router injects inline RSC-streaming scripts (`self.__next_f.push(...)`) that a strict `'self'`-only policy would block. Tightening this to a per-request nonce would mean wrapping the `auth` proxy in `src/proxy.ts` to inject and forward the nonce — not done here since it touches the auth gate itself; worth revisiting if XSS hardening becomes a priority.
 - Accessibility: the Team page's filter chips/pagination indicate active state by color only (no `aria-pressed`/`aria-current`), and the Employee page's Context tabs are a CSS-only radio hack without real ARIA tab roles. `@radix-ui/react-tabs` is an installed-but-unused dependency that could replace the hand-rolled version.
 - Rippling has no real integration and no link-out placeholder yet (see Connector Architecture above).
 - "Permission review" (from `docs/MVP.md`'s pilot checklist) isn't scoped.

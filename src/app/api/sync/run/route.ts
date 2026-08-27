@@ -9,11 +9,18 @@ import { computeMetricValuesFromFacts } from "@/lib/domain/metrics/compute-value
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import { isSyncRateLimited } from "@/lib/rate-limit";
+import { z } from "zod";
 
-const CONNECTORS: Record<string, () => Connector> = {
+const CONNECTOR_TYPES = ["zendesk", "assembled"] as const;
+
+const CONNECTORS: Record<(typeof CONNECTOR_TYPES)[number], () => Connector> = {
   zendesk: () => new ZendeskConnector(),
   assembled: () => new AssembledConnector(),
 };
+
+const syncRunBodySchema = z.object({
+  dataSourceType: z.enum(CONNECTOR_TYPES),
+});
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -26,13 +33,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Not a manager" }, { status: 403 });
   }
 
-  const body = (await request.json()) as { dataSourceType?: string };
-  if (!body.dataSourceType || !(body.dataSourceType in CONNECTORS)) {
+  let json: unknown;
+  try {
+    json = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const parsed = syncRunBodySchema.safeParse(json);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: `dataSourceType must be one of: ${Object.keys(CONNECTORS).join(", ")}` },
+      { error: `dataSourceType must be one of: ${CONNECTOR_TYPES.join(", ")}` },
       { status: 400 }
     );
   }
+  const body = parsed.data;
 
   try {
     const [source] = await db
@@ -56,7 +71,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const connector = CONNECTORS[body.dataSourceType]!();
+    const connector = CONNECTORS[body.dataSourceType]();
     const result = await runSync(connector, {
       dataSourceId: source.id,
       organizationId: ctx.organizationId,

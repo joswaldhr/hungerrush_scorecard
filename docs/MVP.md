@@ -91,8 +91,10 @@ was run and turned into a phased plan. Status as of this pass:
 - [x] Phase 3 — fixed the N+1 query pattern on Team/Home: `getEmployeeMetricsBatch` and
       `getMetricHistoryBatch` run the team-scoped and history queries once per team instead
       of once per employee.
-- [ ] Phase 4 — zod validation on POST route bodies, security headers, `/api/health`,
-      decide on the `next-auth` beta pin.
+- [x] Phase 4 — zod validation on `sync/run` and `reconciliation/run` POST bodies
+      (closes the `thresholdPct` string-coercion gap); CSP/HSTS/X-Frame-Options/
+      X-Content-Type-Options headers in `next.config.ts`; unauthenticated `/api/health`;
+      `next-auth` beta pin decided (stays pinned — no stable v5 exists yet).
 - [ ] Phase 5 — accessibility (filter/pagination `aria-pressed`/`aria-current`, real ARIA
       tab roles for the Employee page's Context tabs; `@radix-ui/react-tabs` is installed
       but unused).
