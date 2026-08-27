@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: cadence
+          POSTGRES_PASSWORD: cadence_dev
+          POSTGRES_DB: cadence
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cadence"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://cadence:cadence_dev@localhost:5432/cadence
+      AUTH_SECRET: ci-test-secret-not-for-production-use
+      NODE_ENV: production
+      # Dummy values so the production-mode "fail loudly if SSO unconfigured"
+      # check in src/lib/auth/index.ts doesn't block the build — CI never
+      # actually signs anyone in.
+      AUTH_MICROSOFT_ENTRA_ID_ID: ci-placeholder
+      AUTH_MICROSOFT_ENTRA_ID_SECRET: ci-placeholder
+      AUTH_MICROSOFT_ENTRA_ID_ISSUER: https://login.microsoftonline.com/ci-placeholder/v2.0
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm typecheck
+
+      - run: pnpm lint
+
+      - name: Run database migrations
+        run: pnpm db:migrate
+
+      - run: pnpm test
+
+      - name: Verify production build
+        run: pnpm build
