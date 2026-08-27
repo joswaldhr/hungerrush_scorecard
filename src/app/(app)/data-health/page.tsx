@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/empty-state";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, AlertTriangle, XCircle, Clock } from "lucide-react";
+import { SyncNowButton } from "./actions";
 
 function syncStatusIcon(status: string) {
   switch (status) {
@@ -106,17 +107,20 @@ export default async function DataHealthPage() {
                     <p className="text-xs text-muted-foreground">{source.type}</p>
                   </div>
                 </div>
-                <Badge
-                  variant={
-                    latestRun?.status === "completed"
-                      ? "default"
-                      : latestRun?.status === "failed"
-                        ? "destructive"
-                        : "secondary"
-                  }
-                >
-                  {latestRun ? syncStatusLabel(latestRun.status) : "Never synced"}
-                </Badge>
+                <div className="flex items-center gap-3">
+                  <Badge
+                    variant={
+                      latestRun?.status === "completed"
+                        ? "default"
+                        : latestRun?.status === "failed"
+                          ? "destructive"
+                          : "secondary"
+                    }
+                  >
+                    {latestRun ? syncStatusLabel(latestRun.status) : "Never synced"}
+                  </Badge>
+                  <SyncNowButton dataSourceType={source.type} />
+                </div>
               </div>
 
               {latestRun && (
