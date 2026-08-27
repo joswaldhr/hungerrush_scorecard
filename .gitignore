@@ -40,9 +40,6 @@ Thumbs.db
 # testing
 coverage/
 
-# drizzle
-drizzle/meta/
-
 # misc
 *.tsbuildinfo
 next-env.d.ts
