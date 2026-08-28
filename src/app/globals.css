@@ -234,3 +234,66 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
 }
+
+@media print {
+  /* Hide chrome */
+  nav,
+  aside,
+  [data-sidebar],
+  .sr-only,
+  button,
+  [role="button"],
+  form,
+  textarea,
+  input,
+  select {
+    display: none !important;
+  }
+
+  /* Full-width main content */
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt;
+  }
+
+  /* Linearize grids */
+  .grid {
+    display: block !important;
+  }
+
+  .grid > * + * {
+    margin-top: 1rem;
+  }
+
+  /* Borders and cards flatten */
+  [class*="border"],
+  [class*="rounded"] {
+    border-color: #ddd !important;
+  }
+
+  /* Avoid page breaks inside cards */
+  [class*="card"],
+  section,
+  tr {
+    break-inside: avoid;
+  }
+
+  /* Links show URL */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+
+  a[href^="/"]::after {
+    display: none;
+  }
+}

@@ -359,7 +359,12 @@ export default async function EmployeePage({
                     {snapshotTrends.map(({ snap, trend }) => (
                       <tr key={snap.metricKey} className="border-b last:border-0">
                         <td className="py-2.5">
-                          <span className="text-foreground">{snap.metricName}</span>
+                          <Link
+                            href={`/employee/${employee.id}?period=${period}&metric=${snap.metricKey}`}
+                            className="text-foreground hover:text-accent hover:underline"
+                          >
+                            {snap.metricName}
+                          </Link>
                           {snap.qualityStatus !== "complete" && (
                             <span className="ml-1.5 text-xs text-status-watch">
                               ({snap.qualityStatus})

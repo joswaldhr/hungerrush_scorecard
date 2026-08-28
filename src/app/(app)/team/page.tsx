@@ -101,18 +101,24 @@ export default async function TeamPage({
     employeesByTeam.set(emp.primaryTeamId, forTeam);
   }
 
+  const twoWeeksAgo = new Date(`${previousPeriodStart}T00:00:00Z`);
+  twoWeeksAgo.setUTCDate(twoWeeksAgo.getUTCDate() - 7);
+  const twoWeeksAgoPeriodStart = twoWeeksAgo.toISOString().split("T")[0]!;
+
   const metricsByEmployee = new Map<string, EmployeeMetricRow[]>();
+  const prevMetricsByEmployee = new Map<string, EmployeeMetricRow[]>();
   await Promise.all(
     Array.from(employeesByTeam.entries()).map(async ([teamId, teamEmps]) => {
-      const batch = await getEmployeeMetricsBatch(
-        ctx,
-        teamEmps.map((e) => e.id),
-        teamId,
-        periodStart,
-        previousPeriodStart
-      );
+      const empIds = teamEmps.map((e) => e.id);
+      const [batch, prevBatch] = await Promise.all([
+        getEmployeeMetricsBatch(ctx, empIds, teamId, periodStart, previousPeriodStart),
+        getEmployeeMetricsBatch(ctx, empIds, teamId, previousPeriodStart, twoWeeksAgoPeriodStart),
+      ]);
       for (const [employeeId, metrics] of batch) {
         metricsByEmployee.set(employeeId, metrics);
+      }
+      for (const [employeeId, metrics] of prevBatch) {
+        prevMetricsByEmployee.set(employeeId, metrics);
       }
     })
   );
@@ -135,6 +141,7 @@ export default async function TeamPage({
   const employeeData = employees.map((emp) => {
     const teamId = emp.primaryTeamId ?? null;
     const metrics = metricsByEmployee.get(emp.id) ?? [];
+    const prevMetrics = prevMetricsByEmployee.get(emp.id) ?? [];
     const primary = primaryByEmployee.get(emp.id) ?? null;
     const trend = primary
       ? (historyByRequest.get(`${emp.id}:${primary.definitionId}`) ?? [])
@@ -143,7 +150,8 @@ export default async function TeamPage({
           .map((v) => v.numericValue)
       : [];
     const overallStatus = deriveOverallStatus(metrics);
-    return { employee: emp, metrics, teamId, primary, trend, overallStatus };
+    const prevOverallStatus = deriveOverallStatus(prevMetrics);
+    return { employee: emp, metrics, teamId, primary, trend, overallStatus, prevOverallStatus };
   });
 
   return (
@@ -196,6 +204,9 @@ export default async function TeamPage({
         const onTrack = teamEmps.filter((d) => d.overallStatus === "on_track").length;
         const watch = teamEmps.filter((d) => d.overallStatus === "mixed").length;
         const needsAttention = teamEmps.filter((d) => d.overallStatus === "needs_attention").length;
+        const prevOnTrack = teamEmps.filter((d) => d.prevOverallStatus === "on_track").length;
+        const prevWatch = teamEmps.filter((d) => d.prevOverallStatus === "mixed").length;
+        const prevNeedsAttention = teamEmps.filter((d) => d.prevOverallStatus === "needs_attention").length;
 
         const rows: RosterRow[] = teamEmps.map(
           ({ employee, metrics, primary, trend, overallStatus }) => {
@@ -247,18 +258,21 @@ export default async function TeamPage({
                 iconClassName="bg-status-on-track-bg text-status-on-track"
                 value={onTrack}
                 label="On Track"
+                change={onTrack - prevOnTrack}
               />
               <StatCard
                 icon={Eye}
                 iconClassName="bg-status-watch-bg text-status-watch"
                 value={watch}
                 label="Watch"
+                change={watch - prevWatch}
               />
               <StatCard
                 icon={AlertTriangle}
                 iconClassName="bg-status-attention-bg text-status-attention"
                 value={needsAttention}
                 label="Needs Attention"
+                change={needsAttention - prevNeedsAttention}
               />
             </div>
 

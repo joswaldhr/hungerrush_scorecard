@@ -7,6 +7,7 @@ export function StatCard({
   value,
   label,
   detail,
+  change,
   className,
 }: {
   icon: LucideIcon;
@@ -14,6 +15,7 @@ export function StatCard({
   value: string | number;
   label: string;
   detail?: string;
+  change?: number | null;
   className?: string;
 }) {
   return (
@@ -27,7 +29,20 @@ export function StatCard({
         <Icon className="h-5 w-5" aria-hidden="true" />
       </div>
       <div>
-        <p className="text-stat-value font-bold leading-none text-foreground">{value}</p>
+        <div className="flex items-baseline gap-2">
+          <p className="text-stat-value font-bold leading-none text-foreground">{value}</p>
+          {change != null && change !== 0 && (
+            <span
+              className={cn(
+                "text-xs font-medium",
+                change > 0 ? "text-status-on-track" : "text-status-attention"
+              )}
+            >
+              {change > 0 ? "+" : ""}
+              {change}
+            </span>
+          )}
+        </div>
         <p className="mt-1 text-sm text-foreground">{label}</p>
         {detail && <p className="mt-0.5 text-xs text-muted-foreground">{detail}</p>}
       </div>
