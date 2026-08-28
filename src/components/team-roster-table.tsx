@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { StatusBadge } from "@/components/status-badge";
@@ -58,6 +59,7 @@ function matchesFilter(row: RosterRow, filter: FilterKey): boolean {
 }
 
 export function TeamRosterTable({ rows }: { rows: RosterRow[] }) {
+  const router = useRouter();
   const [filter, setFilter] = useState<FilterKey>("all");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -144,14 +146,19 @@ export function TeamRosterTable({ rows }: { rows: RosterRow[] }) {
             </thead>
             <tbody>
               {pageRows.map((row) => (
-                <tr key={row.employeeId} className="border-b last:border-0">
+                <tr
+                  key={row.employeeId}
+                  onClick={() => router.push(`/employee/${row.employeeId}`)}
+                  className="border-b last:border-0 cursor-pointer transition-colors hover:bg-muted/50"
+                >
                   <td className="py-3">
                     <Link
                       href={`/employee/${row.employeeId}`}
                       className="flex items-center gap-3 hover:underline"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <Avatar className="h-7 w-7">
-                        <AvatarFallback className="text-[10px]">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="text-xs">
                           {initials(row.displayName)}
                         </AvatarFallback>
                       </Avatar>
@@ -236,6 +243,7 @@ export function TeamRosterTable({ rows }: { rows: RosterRow[] }) {
                     <Link
                       href={`/one-on-ones/${row.employeeId}`}
                       aria-label={`Prepare 1:1 with ${row.displayName}`}
+                      onClick={(e) => e.stopPropagation()}
                       className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-accent text-accent hover:bg-accent/10"
                     >
                       <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />

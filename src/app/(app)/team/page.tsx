@@ -12,6 +12,10 @@ import { eq, desc, and, inArray, gte, asc } from "drizzle-orm";
 import { DataFreshness } from "@/components/data-freshness";
 import { EmptyState } from "@/components/empty-state";
 import { TeamRosterTable } from "@/components/team-roster-table";
+import { StatCard } from "@/components/stat-card";
+import { Users, CheckCircle2, Eye, AlertTriangle } from "lucide-react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 import type { RosterRow } from "@/components/team-roster-table";
 import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
 
@@ -58,7 +62,12 @@ function findKeyChange(metrics: EmployeeMetricRow[]): { name: string; pct: numbe
   return best;
 }
 
-export default async function TeamPage() {
+export default async function TeamPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ team?: string }>;
+}) {
+  const { team: teamParam } = await searchParams;
   const session = await auth();
   if (!session?.user?.email) redirect("/login");
 
@@ -68,11 +77,14 @@ export default async function TeamPage() {
     return <EmptyState title="No access" description="You are not assigned as a manager." />;
   }
 
-  const teams = await getAssignedTeams(ctx);
+  const allTeams = await getAssignedTeams(ctx);
   const employees = await getAssignedEmployees(ctx);
-  if (teams.length === 0) {
+  if (allTeams.length === 0) {
     return <EmptyState title="No teams" description="No teams assigned." />;
   }
+
+  const selectedTeamId = teamParam && allTeams.some((t) => t.id === teamParam) ? teamParam : null;
+  const visibleTeams = selectedTeamId ? allTeams.filter((t) => t.id === selectedTeamId) : allTeams;
 
   const { periodStart, previousPeriodStart, now } = weekDates();
 
@@ -159,7 +171,8 @@ export default async function TeamPage() {
           .reverse()
           .map((v) => v.numericValue)
       : [];
-    return { employee: emp, metrics, teamId, primary, trend };
+    const overallStatus = deriveOverallStatus(metrics);
+    return { employee: emp, metrics, teamId, primary, trend, overallStatus };
   });
 
   return (
@@ -170,9 +183,46 @@ export default async function TeamPage() {
         <DataFreshness freshnessAt={freshnessAt} now={now} className="mt-2" />
       </header>
 
-      {teams.map((team) => {
+      {/* Team selector — only if multiple teams */}
+      {allTeams.length > 1 && (
+        <div className="flex items-center gap-1 rounded-md border border-border p-0.5 text-xs">
+          <Link
+            href="/team"
+            aria-pressed={!selectedTeamId}
+            className={cn(
+              "rounded px-2.5 py-1",
+              !selectedTeamId
+                ? "bg-accent/10 text-accent"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            All Teams
+          </Link>
+          {allTeams.map((t) => (
+            <Link
+              key={t.id}
+              href={`/team?team=${t.id}`}
+              aria-pressed={selectedTeamId === t.id}
+              className={cn(
+                "rounded px-2.5 py-1",
+                selectedTeamId === t.id
+                  ? "bg-accent/10 text-accent"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {t.name}
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {visibleTeams.map((team) => {
         const teamEmps = employeeData.filter((d) => d.teamId === team.id);
-        const rows: RosterRow[] = teamEmps.map(({ employee, metrics, primary, trend }) => {
+        const onTrack = teamEmps.filter((d) => d.overallStatus === "on_track").length;
+        const watch = teamEmps.filter((d) => d.overallStatus === "mixed").length;
+        const needsAttention = teamEmps.filter((d) => d.overallStatus === "needs_attention").length;
+
+        const rows: RosterRow[] = teamEmps.map(({ employee, metrics, primary, trend, overallStatus }) => {
           const keyChangeRaw = findKeyChange(metrics);
           const keyChange = keyChangeRaw
             ? {
@@ -191,7 +241,7 @@ export default async function TeamPage() {
             employeeId: employee.id,
             displayName: employee.displayName,
             jobTitle: employee.jobTitle,
-            overallStatus: deriveOverallStatus(metrics),
+            overallStatus,
             keyChange,
             metricsOnTarget: metrics.filter((m) => m.status.status === "on_target").length,
             metricsOffTarget: metrics.filter((m) => m.status.status === "off_target").length,
@@ -204,8 +254,37 @@ export default async function TeamPage() {
         });
 
         return (
-          <section key={team.id} className="space-y-3">
+          <section key={team.id} className="space-y-4">
             <h2 className="text-sm font-semibold text-foreground">{team.name}</h2>
+
+            {/* Summary stats bar */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <StatCard
+                icon={Users}
+                iconClassName="bg-muted text-foreground"
+                value={teamEmps.length}
+                label="Employees"
+              />
+              <StatCard
+                icon={CheckCircle2}
+                iconClassName="bg-status-on-track-bg text-[oklch(var(--status-on-track))]"
+                value={onTrack}
+                label="On Track"
+              />
+              <StatCard
+                icon={Eye}
+                iconClassName="bg-status-watch-bg text-[oklch(var(--status-watch))]"
+                value={watch}
+                label="Watch"
+              />
+              <StatCard
+                icon={AlertTriangle}
+                iconClassName="bg-status-attention-bg text-[oklch(var(--status-attention))]"
+                value={needsAttention}
+                label="Needs Attention"
+              />
+            </div>
+
             {rows.length === 0 ? (
               <EmptyState title="No employees" description="No employees on this team." />
             ) : (
