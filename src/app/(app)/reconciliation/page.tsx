@@ -12,7 +12,7 @@ import { eq, desc } from "drizzle-orm";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/empty-state";
-import { CheckCircle, XCircle, AlertTriangle, MinusCircle } from "lucide-react";
+import { CheckCircle, XCircle, AlertTriangle, MinusCircle, RefreshCw } from "lucide-react";
 import { ReconciliationActions } from "./actions";
 
 function statusIcon(status: string) {
@@ -106,6 +106,7 @@ export default async function ReconciliationPage() {
 
       {runs.length === 0 ? (
         <EmptyState
+          icon={RefreshCw}
           title="No reconciliation runs"
           description="Run a reconciliation to compare Cadence values against source data."
         />

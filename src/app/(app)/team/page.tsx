@@ -13,7 +13,7 @@ import { DataFreshness } from "@/components/data-freshness";
 import { EmptyState } from "@/components/empty-state";
 import { TeamRosterTable } from "@/components/team-roster-table";
 import { StatCard } from "@/components/stat-card";
-import { Users, CheckCircle2, Eye, AlertTriangle } from "lucide-react";
+import { Users, CheckCircle2, Eye, AlertTriangle, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { cn, weekDates } from "@/lib/utils";
 import { deriveOverallStatus } from "@/lib/domain/briefings/generate";
@@ -44,13 +44,13 @@ export default async function TeamPage({
   const { ctx, isPlatformAdmin } = await getEffectiveManagerContext(session.user.email);
   if (!ctx) {
     if (isPlatformAdmin) redirect("/admin");
-    return <EmptyState title="No access" description="You are not assigned as a manager." />;
+    return <EmptyState icon={ShieldAlert} title="No access" description="You are not assigned as a manager." />;
   }
 
   const allTeams = await getAssignedTeams(ctx);
   const employees = await getAssignedEmployees(ctx);
   if (allTeams.length === 0) {
-    return <EmptyState title="No teams" description="No teams assigned." />;
+    return <EmptyState icon={Users} title="No teams" description="No teams assigned." />;
   }
 
   const selectedTeamId = teamParam && allTeams.some((t) => t.id === teamParam) ? teamParam : null;
@@ -258,7 +258,7 @@ export default async function TeamPage({
             </div>
 
             {rows.length === 0 ? (
-              <EmptyState title="No employees" description="No employees on this team." />
+              <EmptyState icon={Users} title="No employees" description="No employees on this team." />
             ) : (
               <TeamRosterTable rows={rows} />
             )}

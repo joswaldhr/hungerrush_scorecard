@@ -8,6 +8,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/empty-state";
+import { Users } from "lucide-react";
 import { setViewAs, clearViewAs } from "./actions";
 import { initials } from "@/lib/utils";
 
@@ -50,7 +51,7 @@ export default async function AdminPage() {
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-foreground">Managers</h2>
         {managers.length === 0 ? (
-          <EmptyState title="No managers" description="No manager assignments exist yet." />
+          <EmptyState icon={Users} title="No managers" description="No manager assignments exist yet." />
         ) : (
           <div className="divide-y divide-border rounded-lg border">
             {managers.map((m) => (

@@ -16,7 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, BarChart3, FileText, Users } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { teams, externalIdentities, dataSources } from "@/lib/db/schema";
@@ -92,7 +92,7 @@ export default async function EmployeePage({
 
   const teamId = employee.primaryTeamId;
   if (!teamId) {
-    return <EmptyState title="No team" description="This employee is not assigned to a team." />;
+    return <EmptyState icon={Users} title="No team" description="This employee is not assigned to a team." />;
   }
 
   const team = await db
@@ -241,6 +241,7 @@ export default async function EmployeePage({
 
       {summary.changes.length === 0 && summary.metricSnapshots.length === 0 && (
         <EmptyState
+          icon={BarChart3}
           title="No metric data"
           description="No metrics are configured for this employee's team."
         />
@@ -451,6 +452,7 @@ function ContextList({
   if (items.length === 0) {
     return (
       <EmptyState
+        icon={FileText}
         title="Nothing recorded yet"
         description="Context will appear here once it's available."
       />

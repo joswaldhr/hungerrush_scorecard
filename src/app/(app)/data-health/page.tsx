@@ -8,8 +8,9 @@ import { DataFreshness } from "@/components/data-freshness";
 import { EmptyState } from "@/components/empty-state";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, AlertTriangle, XCircle, Clock } from "lucide-react";
+import { CheckCircle, AlertTriangle, XCircle, Clock, Database } from "lucide-react";
 import { SyncNowButton } from "./actions";
+import { AutoRefresh } from "./auto-refresh";
 
 function syncStatusIcon(status: string) {
   switch (status) {
@@ -60,7 +61,7 @@ export default async function DataHealthPage() {
   if (sources.length === 0) {
     return (
       <div className="max-w-3xl">
-        <EmptyState title="No data sources" description="No data sources have been configured." />
+        <EmptyState icon={Database} title="No data sources" description="No data sources have been configured." />
       </div>
     );
   }
@@ -82,8 +83,11 @@ export default async function DataHealthPage() {
     })
   );
 
+  const anySyncing = sourceHealth.some((s) => s.latestRun?.status === "running");
+
   return (
     <div className="max-w-3xl space-y-6">
+      <AutoRefresh active={anySyncing} />
       <header>
         <h1 className="text-xl font-semibold text-foreground">Data Health</h1>
         <p className="mt-1 text-sm text-muted-foreground">

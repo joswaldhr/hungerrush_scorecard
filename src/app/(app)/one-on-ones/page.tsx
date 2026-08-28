@@ -7,6 +7,7 @@ import {
 } from "@/lib/auth/authorization";
 import { EmptyState } from "@/components/empty-state";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ShieldAlert, Users } from "lucide-react";
 import Link from "next/link";
 import { initials } from "@/lib/utils";
 
@@ -17,13 +18,13 @@ export default async function OneOnOnesPage() {
   const { ctx, isPlatformAdmin } = await getEffectiveManagerContext(session.user.email);
   if (!ctx) {
     if (isPlatformAdmin) redirect("/admin");
-    return <EmptyState title="No access" description="You are not assigned as a manager." />;
+    return <EmptyState icon={ShieldAlert} title="No access" description="You are not assigned as a manager." />;
   }
 
   const teams = await getAssignedTeams(ctx);
   const employees = await getAssignedEmployees(ctx);
   if (teams.length === 0) {
-    return <EmptyState title="No teams" description="No teams assigned." />;
+    return <EmptyState icon={Users} title="No teams" description="No teams assigned." />;
   }
 
   return (
@@ -41,7 +42,7 @@ export default async function OneOnOnesPage() {
           <section key={team.id} className="space-y-2">
             <h2 className="text-sm font-semibold text-foreground">{team.name}</h2>
             {teamEmployees.length === 0 ? (
-              <EmptyState title="No employees" description="No employees on this team." />
+              <EmptyState icon={Users} title="No employees" description="No employees on this team." />
             ) : (
               <div className="divide-y divide-border rounded-lg border">
                 {teamEmployees.map((employee) => (

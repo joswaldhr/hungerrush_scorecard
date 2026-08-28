@@ -4,6 +4,7 @@ import { useState } from "react";
 import { formatMetricValue } from "@/lib/domain/metrics/types";
 import type { ValueType } from "@/lib/domain/metrics/types";
 import { EmptyState } from "@/components/empty-state";
+import { BarChart3 } from "lucide-react";
 
 interface HistoryPoint {
   periodStart: string;
@@ -30,6 +31,7 @@ export function MetricHistoryChart({
   if (points.length < 2) {
     return (
       <EmptyState
+        icon={BarChart3}
         title="Not enough history yet"
         description="This chart will fill in as more weekly data is recorded."
       />

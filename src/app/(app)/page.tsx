@@ -24,7 +24,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   AlertTriangle,
   AlertCircle,
+  BarChart3,
+  Calendar,
   CheckCircle2,
+  ShieldAlert,
+  TrendingUp,
   Users,
   ChevronLeft,
   ChevronRight,
@@ -72,6 +76,7 @@ export default async function HomePage({
     return (
       <div className="max-w-3xl">
         <EmptyState
+          icon={ShieldAlert}
           title="No access"
           description="You are not assigned as a manager for any teams."
         />
@@ -84,6 +89,7 @@ export default async function HomePage({
     return (
       <div className="max-w-3xl">
         <EmptyState
+          icon={Users}
           title="No teams assigned"
           description="Contact your administrator to get team access."
         />
@@ -263,6 +269,7 @@ export default async function HomePage({
           <BriefingSection title="Needs attention" count={allNeedsAttention.length}>
             {allNeedsAttention.length === 0 ? (
               <EmptyState
+                icon={CheckCircle2}
                 title="Nothing urgent"
                 description="No employees need attention this week."
               />
@@ -297,7 +304,7 @@ export default async function HomePage({
                   </Card>
                 ))}
                 <Link href="/team" className="inline-block text-sm text-accent hover:underline">
-                  View all attention items →
+                  View team →
                 </Link>
               </div>
             )}
@@ -306,6 +313,7 @@ export default async function HomePage({
           <BriefingSection title="Notable improvements" count={allImprovements.length}>
             {allImprovements.length === 0 ? (
               <EmptyState
+                icon={TrendingUp}
                 title="No improvements yet"
                 description="Notable improvements will show up here."
               />
@@ -340,7 +348,7 @@ export default async function HomePage({
                   </Card>
                 ))}
                 <Link href="/team" className="inline-block text-sm text-accent hover:underline">
-                  View all improvements →
+                  View team →
                 </Link>
               </div>
             )}
@@ -357,6 +365,7 @@ export default async function HomePage({
             {upcomingMeetings.length === 0 ? (
               <div className="px-4 py-8">
                 <EmptyState
+                  icon={Calendar}
                   title="No 1:1s scheduled"
                   description="Connect a calendar to see upcoming meetings here."
                 />
@@ -407,6 +416,7 @@ export default async function HomePage({
           <BriefingSection title={`${briefing.teamName} performance`}>
             {rows.length === 0 ? (
               <EmptyState
+                icon={BarChart3}
                 title="No metric data yet"
                 description="Metric values will appear here once data is available."
               />

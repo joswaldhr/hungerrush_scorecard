@@ -24,6 +24,8 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
+  ExternalLink,
+  BarChart3,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
@@ -31,7 +33,6 @@ import { db } from "@/lib/db";
 import { teams, meetingReferences } from "@/lib/db/schema";
 import { eq, and, gte, asc } from "drizzle-orm";
 import { env } from "@/lib/env";
-import { ExternalLink } from "lucide-react";
 import { weekDates, initials } from "@/lib/utils";
 
 const CONTEXT_ICONS: Record<string, LucideIcon> = {
@@ -57,7 +58,7 @@ export default async function OneOnOnePage({ params }: { params: Promise<{ id: s
 
   const teamId = employee.primaryTeamId;
   if (!teamId) {
-    return <EmptyState title="No team" description="This employee is not assigned to a team." />;
+    return <EmptyState icon={Users} title="No team" description="This employee is not assigned to a team." />;
   }
 
   const team = await db
@@ -117,7 +118,7 @@ export default async function OneOnOnePage({ params }: { params: Promise<{ id: s
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-sm text-accent hover:underline"
             >
-              Open Rippling
+              Rippling portal
               <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
             </a>
           )}
@@ -322,6 +323,7 @@ export default async function OneOnOnePage({ params }: { params: Promise<{ id: s
             prep.whatToRecognize.length === 0 &&
             prep.whatToDiscuss.length === 0 && (
               <EmptyState
+                icon={BarChart3}
                 title="No data for this period"
                 description="Metric data will appear here once available."
               />
@@ -333,6 +335,7 @@ export default async function OneOnOnePage({ params }: { params: Promise<{ id: s
           <BriefingSection title="Previous context">
             {previousContext.length === 0 ? (
               <EmptyState
+                icon={FileText}
                 title="Nothing recorded yet"
                 description="Coaching notes, quality reviews, and past 1:1s will show up here."
               />
