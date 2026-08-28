@@ -100,6 +100,7 @@ export default async function HomePage({
   const employees = await getAssignedEmployees(ctx);
   const { periodStart, periodEnd, previousPeriodStart, now, hour, isCurrentWeek } =
     weekDates(weeksAgo);
+  const weekQ = weeksAgo > 0 ? `?week=${weeksAgo}` : "";
 
   const briefings = await Promise.all(
     teams.map((team) =>
@@ -303,7 +304,7 @@ export default async function HomePage({
                     </CardContent>
                   </Card>
                 ))}
-                <Link href="/team" className="inline-block text-sm text-accent hover:underline">
+                <Link href={`/team${weekQ}`} className="inline-block text-sm text-accent hover:underline">
                   View team →
                 </Link>
               </div>
@@ -347,7 +348,7 @@ export default async function HomePage({
                     </CardContent>
                   </Card>
                 ))}
-                <Link href="/team" className="inline-block text-sm text-accent hover:underline">
+                <Link href={`/team${weekQ}`} className="inline-block text-sm text-accent hover:underline">
                   View team →
                 </Link>
               </div>
@@ -393,7 +394,7 @@ export default async function HomePage({
                       </p>
                     </div>
                     <Link
-                      href={`/one-on-ones/${m.employeeId}`}
+                      href={`/one-on-ones/${m.employeeId}${weekQ}`}
                       className="shrink-0 rounded-md border border-accent px-2.5 py-1 text-xs font-medium text-accent hover:bg-accent/10"
                     >
                       Prepare →
@@ -403,7 +404,7 @@ export default async function HomePage({
               </ul>
             )}
             <div className="border-t px-4 py-2.5 text-center">
-              <Link href="/one-on-ones" className="text-sm text-accent hover:underline">
+              <Link href={`/one-on-ones${weekQ}`} className="text-sm text-accent hover:underline">
                 View all 1:1s →
               </Link>
             </div>

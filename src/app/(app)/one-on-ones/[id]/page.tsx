@@ -44,8 +44,16 @@ const CONTEXT_ICONS: Record<string, LucideIcon> = {
   note: FileText,
 };
 
-export default async function OneOnOnePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function OneOnOnePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ week?: string }>;
+}) {
   const { id } = await params;
+  const { week: weekParam } = await searchParams;
+  const weeksAgo = Math.max(0, Math.min(12, parseInt(weekParam ?? "0", 10) || 0));
   const session = await auth();
   if (!session?.user?.email) redirect("/login");
 
@@ -68,7 +76,7 @@ export default async function OneOnOnePage({ params }: { params: Promise<{ id: s
     .then((r) => r[0]);
   const teamName = team?.name ?? "Unknown Team";
 
-  const { periodStart, periodEnd, previousPeriodStart, now } = weekDates();
+  const { periodStart, periodEnd, previousPeriodStart, now } = weekDates(weeksAgo);
 
   const prep = await generateOneOnOne(
     ctx,

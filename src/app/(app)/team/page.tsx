@@ -35,9 +35,10 @@ function findKeyChange(metrics: EmployeeMetricRow[]): { name: string; pct: numbe
 export default async function TeamPage({
   searchParams,
 }: {
-  searchParams: Promise<{ team?: string }>;
+  searchParams: Promise<{ team?: string; week?: string }>;
 }) {
-  const { team: teamParam } = await searchParams;
+  const { team: teamParam, week: weekParam } = await searchParams;
+  const weeksAgo = Math.max(0, Math.min(12, parseInt(weekParam ?? "0", 10) || 0));
   const session = await auth();
   if (!session?.user?.email) redirect("/login");
 
@@ -56,7 +57,7 @@ export default async function TeamPage({
   const selectedTeamId = teamParam && allTeams.some((t) => t.id === teamParam) ? teamParam : null;
   const visibleTeams = selectedTeamId ? allTeams.filter((t) => t.id === selectedTeamId) : allTeams;
 
-  const { periodStart, previousPeriodStart, now } = weekDates();
+  const { periodStart, periodEnd, previousPeriodStart, now, isCurrentWeek } = weekDates(weeksAgo);
 
   const [latestSync] = await db
     .select({ completedAt: syncRuns.completedAt })
@@ -149,7 +150,11 @@ export default async function TeamPage({
     <div className="max-w-6xl space-y-6">
       <header>
         <h1 className="text-xl font-semibold text-foreground">Team</h1>
-        <p className="mt-1 text-sm text-muted-foreground">How is everyone doing?</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {isCurrentWeek
+            ? "How is everyone doing?"
+            : `Week of ${new Date(`${periodStart}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${new Date(`${periodEnd}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
+        </p>
         <DataFreshness freshnessAt={freshnessAt} now={now} className="mt-2" />
       </header>
 
@@ -157,7 +162,7 @@ export default async function TeamPage({
       {allTeams.length > 1 && (
         <div className="flex items-center gap-1 rounded-md border border-border p-0.5 text-xs">
           <Link
-            href="/team"
+            href={`/team${weeksAgo > 0 ? `?week=${weeksAgo}` : ""}`}
             aria-pressed={!selectedTeamId}
             className={cn(
               "rounded px-2.5 py-1",
@@ -171,7 +176,7 @@ export default async function TeamPage({
           {allTeams.map((t) => (
             <Link
               key={t.id}
-              href={`/team?team=${t.id}`}
+              href={`/team?team=${t.id}${weeksAgo > 0 ? `&week=${weeksAgo}` : ""}`}
               aria-pressed={selectedTeamId === t.id}
               className={cn(
                 "rounded px-2.5 py-1",
