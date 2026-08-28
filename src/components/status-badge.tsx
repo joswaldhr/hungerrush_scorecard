@@ -13,35 +13,35 @@ type Status =
 const statusConfig: Record<Status, { label: string; className: string }> = {
   on_target: {
     label: "On target",
-    className: "bg-[oklch(var(--status-on-track-bg))] text-[oklch(var(--status-on-track))]",
+    className: "bg-status-on-track-bg text-status-on-track",
   },
   on_track: {
     label: "On track",
-    className: "bg-[oklch(var(--status-on-track-bg))] text-[oklch(var(--status-on-track))]",
+    className: "bg-status-on-track-bg text-status-on-track",
   },
   warning: {
     label: "Watch",
-    className: "bg-[oklch(var(--status-watch-bg))] text-[oklch(var(--status-watch))]",
+    className: "bg-status-watch-bg text-status-watch",
   },
   mixed: {
     label: "Mixed",
-    className: "bg-[oklch(var(--status-watch-bg))] text-[oklch(var(--status-watch))]",
+    className: "bg-status-watch-bg text-status-watch",
   },
   off_target: {
     label: "Needs attention",
-    className: "bg-[oklch(var(--status-attention-bg))] text-[oklch(var(--status-attention))]",
+    className: "bg-status-attention-bg text-status-attention",
   },
   needs_attention: {
     label: "Needs attention",
-    className: "bg-[oklch(var(--status-attention-bg))] text-[oklch(var(--status-attention))]",
+    className: "bg-status-attention-bg text-status-attention",
   },
   no_target: {
     label: "No target",
-    className: "bg-[oklch(var(--status-neutral-bg))] text-[oklch(var(--status-neutral))]",
+    className: "bg-status-neutral-bg text-status-neutral",
   },
   no_data: {
     label: "No data yet",
-    className: "bg-[oklch(var(--status-neutral-bg))] text-[oklch(var(--status-neutral))]",
+    className: "bg-status-neutral-bg text-status-neutral",
   },
 };
 

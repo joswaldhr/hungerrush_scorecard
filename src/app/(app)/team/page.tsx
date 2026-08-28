@@ -15,40 +15,10 @@ import { TeamRosterTable } from "@/components/team-roster-table";
 import { StatCard } from "@/components/stat-card";
 import { Users, CheckCircle2, Eye, AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn, weekDates } from "@/lib/utils";
+import { deriveOverallStatus } from "@/lib/domain/briefings/generate";
 import type { RosterRow } from "@/components/team-roster-table";
 import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
-
-function weekDates() {
-  const now = new Date();
-  const dayOfWeek = now.getDay();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
-  const prevMonday = new Date(monday);
-  prevMonday.setDate(monday.getDate() - 7);
-  return {
-    periodStart: monday.toISOString().split("T")[0]!,
-    previousPeriodStart: prevMonday.toISOString().split("T")[0]!,
-    now: now.getTime(),
-  };
-}
-
-function deriveOverallStatus(
-  metrics: EmployeeMetricRow[]
-): "on_track" | "mixed" | "needs_attention" | "no_data" {
-  if (metrics.length === 0) return "on_track";
-  if (metrics.every((m) => m.status.status === "no_data")) return "no_data";
-
-  const withTargets = metrics.filter(
-    (m) => m.status.status !== "no_target" && m.status.status !== "no_data"
-  );
-  if (withTargets.length === 0) return "on_track";
-  const offTarget = withTargets.filter((m) => m.status.status === "off_target").length;
-  const onTarget = withTargets.filter((m) => m.status.status === "on_target").length;
-  if (offTarget >= 2 || offTarget > withTargets.length / 2) return "needs_attention";
-  if (onTarget === withTargets.length) return "on_track";
-  return "mixed";
-}
 
 function findKeyChange(metrics: EmployeeMetricRow[]): { name: string; pct: number } | null {
   let best: { name: string; pct: number } | null = null;
@@ -267,19 +237,19 @@ export default async function TeamPage({
               />
               <StatCard
                 icon={CheckCircle2}
-                iconClassName="bg-status-on-track-bg text-[oklch(var(--status-on-track))]"
+                iconClassName="bg-status-on-track-bg text-status-on-track"
                 value={onTrack}
                 label="On Track"
               />
               <StatCard
                 icon={Eye}
-                iconClassName="bg-status-watch-bg text-[oklch(var(--status-watch))]"
+                iconClassName="bg-status-watch-bg text-status-watch"
                 value={watch}
                 label="Watch"
               />
               <StatCard
                 icon={AlertTriangle}
-                iconClassName="bg-status-attention-bg text-[oklch(var(--status-attention))]"
+                iconClassName="bg-status-attention-bg text-status-attention"
                 value={needsAttention}
                 label="Needs Attention"
               />

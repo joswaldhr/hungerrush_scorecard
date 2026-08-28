@@ -17,9 +17,9 @@ export function TrendIndicator({
 
   const colorClass =
     direction === "improved"
-      ? "text-[oklch(var(--status-on-track))]"
+      ? "text-status-on-track"
       : direction === "declined"
-        ? "text-[oklch(var(--status-attention))]"
+        ? "text-status-attention"
         : "text-muted-foreground";
 
   return (

@@ -1,4 +1,4 @@
-import { Clock } from "lucide-react";
+import { Clock, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function formatRelativeTime(dateStr: string | null, now: number): string {
@@ -14,10 +14,12 @@ function formatRelativeTime(dateStr: string | null, now: number): string {
 export function DataFreshness({
   freshnessAt,
   now,
+  syncError,
   className,
 }: {
   freshnessAt: string | null;
   now: number;
+  syncError?: string | null;
   className?: string;
 }) {
   const timestamp = now;
@@ -25,11 +27,30 @@ export function DataFreshness({
     ? timestamp - new Date(freshnessAt).getTime() > 24 * 60 * 60 * 1000
     : true;
 
+  if (syncError) {
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center gap-1 text-xs text-status-attention",
+          className
+        )}
+      >
+        <AlertTriangle className="h-3 w-3" aria-hidden="true" />
+        <span>Sync error</span>
+        {freshnessAt && (
+          <span className="text-muted-foreground">
+            · Last success {formatRelativeTime(freshnessAt, timestamp)}
+          </span>
+        )}
+      </span>
+    );
+  }
+
   return (
     <span
       className={cn(
         "inline-flex items-center gap-1 text-xs",
-        isStale ? "text-[oklch(var(--status-watch))]" : "text-muted-foreground",
+        isStale ? "text-status-watch" : "text-muted-foreground",
         className
       )}
     >

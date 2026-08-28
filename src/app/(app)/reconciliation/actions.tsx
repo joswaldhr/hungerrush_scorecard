@@ -4,19 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-
-function weekDates() {
-  const now = new Date();
-  const day = now.getDay();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((day + 6) % 7));
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  return {
-    periodStart: monday.toISOString().split("T")[0]!,
-    periodEnd: sunday.toISOString().split("T")[0]!,
-  };
-}
+import { weekDates } from "@/lib/utils";
 
 export function ReconciliationActions({
   teams,
@@ -101,7 +89,7 @@ export function ReconciliationActions({
           </Button>
         </div>
 
-        {error && <p className="mt-2 text-xs text-[oklch(var(--status-attention))]">{error}</p>}
+        {error && <p className="mt-2 text-xs text-status-attention">{error}</p>}
       </CardContent>
     </Card>
   );

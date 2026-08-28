@@ -15,20 +15,20 @@ function statusIcon(status: string) {
     case "match":
       return (
         <CheckCircle
-          className="h-3.5 w-3.5 text-[oklch(var(--status-on-track))]"
+          className="h-3.5 w-3.5 text-status-on-track"
           aria-hidden="true"
         />
       );
     case "mismatch":
       return (
-        <XCircle className="h-3.5 w-3.5 text-[oklch(var(--status-attention))]" aria-hidden="true" />
+        <XCircle className="h-3.5 w-3.5 text-status-attention" aria-hidden="true" />
       );
     case "source_missing":
       return <MinusCircle className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />;
     case "cadence_missing":
       return (
         <AlertTriangle
-          className="h-3.5 w-3.5 text-[oklch(var(--status-watch))]"
+          className="h-3.5 w-3.5 text-status-watch"
           aria-hidden="true"
         />
       );
@@ -133,15 +133,15 @@ export default async function ReconciliationPage() {
                     </div>
                     <div className="text-right text-xs text-muted-foreground">
                       <p>{run.totalComparisons} comparisons</p>
-                      <p className="text-[oklch(var(--status-on-track))]">{run.matchCount} match</p>
+                      <p className="text-status-on-track">{run.matchCount} match</p>
                       {run.mismatchCount > 0 && (
-                        <p className="text-[oklch(var(--status-attention))]">
+                        <p className="text-status-attention">
                           {run.mismatchCount} mismatch
                         </p>
                       )}
                       {run.sourceMissingCount > 0 && <p>{run.sourceMissingCount} source missing</p>}
                       {run.cadenceMissingCount > 0 && (
-                        <p className="text-[oklch(var(--status-watch))]">
+                        <p className="text-status-watch">
                           {run.cadenceMissingCount} cadence missing
                         </p>
                       )}

@@ -8,14 +8,7 @@ import {
 import { EmptyState } from "@/components/empty-state";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Link from "next/link";
-
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
-}
+import { initials } from "@/lib/utils";
 
 export default async function OneOnOnesPage() {
   const session = await auth();

@@ -21,7 +21,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { teams, externalIdentities, dataSources } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { cn } from "@/lib/utils";
+import { cn, initials } from "@/lib/utils";
 
 const PERIODS = [
   { key: "this_week", label: "This Week", weeksAgo: 0, span: 1 },
@@ -58,14 +58,6 @@ function periodDates(key: PeriodKey) {
     previousPeriodStart: prevStart.toISOString().split("T")[0]!,
     now: now.getTime(),
   };
-}
-
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
 }
 
 const CONTEXT_TABS = [
@@ -236,13 +228,13 @@ export default async function EmployeePage({
               {summary.metricSnapshots.length} on target
             </span>
             <span>
-              <span className="text-lg font-semibold text-[oklch(var(--status-on-track))]">
+              <span className="text-lg font-semibold text-status-on-track">
                 {improvingCount}
               </span>{" "}
               improving
             </span>
             <span>
-              <span className="text-lg font-semibold text-[oklch(var(--status-attention))]">
+              <span className="text-lg font-semibold text-status-attention">
                 {decliningSignificantly}
               </span>{" "}
               declining significantly
@@ -366,7 +358,7 @@ export default async function EmployeePage({
                         <td className="py-2.5">
                           <span className="text-foreground">{snap.metricName}</span>
                           {snap.qualityStatus !== "complete" && (
-                            <span className="ml-1.5 text-xs text-[oklch(var(--status-watch))]">
+                            <span className="ml-1.5 text-xs text-status-watch">
                               ({snap.qualityStatus})
                             </span>
                           )}

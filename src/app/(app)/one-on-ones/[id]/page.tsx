@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/empty-state";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { MeetingPrepChecklist } from "@/components/meeting-prep-checklist";
 import {
   MessageCircle,
   Star,
@@ -20,6 +21,9 @@ import {
   Users,
   CheckSquare,
   FileText,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
@@ -28,31 +32,7 @@ import { teams, meetingReferences } from "@/lib/db/schema";
 import { eq, and, gte, asc } from "drizzle-orm";
 import { env } from "@/lib/env";
 import { ExternalLink } from "lucide-react";
-
-function weekDates() {
-  const now = new Date();
-  const dayOfWeek = now.getDay();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  const prevMonday = new Date(monday);
-  prevMonday.setDate(monday.getDate() - 7);
-  return {
-    periodStart: monday.toISOString().split("T")[0]!,
-    periodEnd: sunday.toISOString().split("T")[0]!,
-    previousPeriodStart: prevMonday.toISOString().split("T")[0]!,
-    now: now.getTime(),
-  };
-}
-
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
-}
+import { weekDates, initials } from "@/lib/utils";
 
 const CONTEXT_ICONS: Record<string, LucideIcon> = {
   coaching: Users,
@@ -120,7 +100,33 @@ export default async function OneOnOnePage({ params }: { params: Promise<{ id: s
   const previousContext = await getEmployeeContext(ctx, employee.id, 6);
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl space-y-8">
+      {/* Back nav */}
+      <div className="flex items-center justify-between">
+        <Link
+          href={`/employee/${employee.id}`}
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          ← Full profile
+        </Link>
+        <div className="flex items-center gap-4">
+          {env.RIPPLING_MANAGER_URL && (
+            <a
+              href={env.RIPPLING_MANAGER_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-sm text-accent hover:underline"
+            >
+              Open Rippling
+              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+            </a>
+          )}
+          <Link href="/team" className="text-sm text-muted-foreground hover:text-foreground">
+            Back to team
+          </Link>
+        </div>
+      </div>
+
       {/* Meeting Header */}
       <header className="flex items-start gap-4">
         <Avatar className="h-12 w-12">
@@ -166,33 +172,52 @@ export default async function OneOnOnePage({ params }: { params: Promise<{ id: s
       <Separator />
 
       {/* At-a-glance Takeaway */}
-      <Card>
-        <CardContent className="py-4 px-5">
-          <p className="text-sm text-foreground leading-relaxed">{prep.takeaway.text}</p>
-          <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted-foreground">
-            <span>
-              <span className="font-medium text-foreground">{prep.atAGlance.metricsOnTarget}</span>{" "}
-              on target
-            </span>
-            <span>
-              <span className="font-medium text-[oklch(var(--status-on-track))]">
-                {prep.atAGlance.metricsImproving}
-              </span>{" "}
-              improving
-            </span>
-            <span>
-              <span className="font-medium text-[oklch(var(--status-attention))]">
-                {prep.atAGlance.metricsDeclining}
-              </span>{" "}
-              declining
-            </span>
-            <span>of {prep.atAGlance.totalMetrics} total</span>
-          </div>
-          <DataFreshness freshnessAt={prep.meta.dataFreshnessAt} now={now} className="mt-2" />
-        </CardContent>
-      </Card>
+      {(() => {
+        const improving = prep.atAGlance.metricsImproving > prep.atAGlance.metricsDeclining;
+        const declining = prep.atAGlance.metricsDeclining > prep.atAGlance.metricsImproving;
+        const TrendIcon = improving ? TrendingUp : declining ? TrendingDown : Minus;
+        const trendColor = improving
+          ? "bg-status-on-track-bg text-status-on-track"
+          : declining
+            ? "bg-status-attention-bg text-status-attention"
+            : "bg-muted text-muted-foreground";
+        return (
+          <Card>
+            <CardContent className="py-5 px-5">
+              <div className="flex gap-4">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${trendColor}`}>
+                  <TrendIcon className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[15px] text-foreground leading-relaxed">{prep.takeaway.text}</p>
+                  <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted-foreground">
+                    <span>
+                      <span className="font-medium text-foreground">{prep.atAGlance.metricsOnTarget}</span>{" "}
+                      on target
+                    </span>
+                    <span>
+                      <span className="font-medium text-status-on-track">
+                        {prep.atAGlance.metricsImproving}
+                      </span>{" "}
+                      improving
+                    </span>
+                    <span>
+                      <span className="font-medium text-status-attention">
+                        {prep.atAGlance.metricsDeclining}
+                      </span>{" "}
+                      declining
+                    </span>
+                    <span>of {prep.atAGlance.totalMetrics} total</span>
+                  </div>
+                  <DataFreshness freshnessAt={prep.meta.dataFreshnessAt} now={now} className="mt-2" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
         <div className="space-y-6">
           {/* What Changed */}
           {prep.whatChanged.length > 0 && (
@@ -239,7 +264,7 @@ export default async function OneOnOnePage({ params }: { params: Promise<{ id: s
                 {prep.whatToRecognize.map((item, i) => (
                   <div key={i} className="flex items-start gap-3 text-sm">
                     <Star
-                      className="h-4 w-4 mt-0.5 text-[oklch(var(--status-on-track))] shrink-0"
+                      className="h-4 w-4 mt-0.5 text-status-on-track shrink-0"
                       aria-hidden="true"
                     />
                     <span className="text-foreground">{item.text}</span>
@@ -256,7 +281,7 @@ export default async function OneOnOnePage({ params }: { params: Promise<{ id: s
                 {prep.whatToDiscuss.map((item, i) => (
                   <div key={i} className="flex items-start gap-3 text-sm">
                     <MessageCircle
-                      className="h-4 w-4 mt-0.5 text-[oklch(var(--status-watch))] shrink-0"
+                      className="h-4 w-4 mt-0.5 text-status-watch shrink-0"
                       aria-hidden="true"
                     />
                     <span className="text-foreground">{item.text}</span>
@@ -268,15 +293,15 @@ export default async function OneOnOnePage({ params }: { params: Promise<{ id: s
 
           {/* Suggested Questions */}
           {prep.suggestedQuestions.length > 0 && (
-            <BriefingSection title="Suggested questions">
-              <div className="space-y-2">
+            <BriefingSection title="Suggested questions (optional)">
+              <div className="space-y-2 rounded-lg bg-accent/5 px-4 py-3">
                 {prep.suggestedQuestions.map((q, i) => (
                   <div key={i} className="flex items-start gap-3 text-sm">
                     <HelpCircle
-                      className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0"
+                      className="h-4 w-4 mt-0.5 text-accent/60 shrink-0"
                       aria-hidden="true"
                     />
-                    <span className="text-muted-foreground italic">{q}</span>
+                    <span className="text-foreground/80">{q}</span>
                   </div>
                 ))}
               </div>
@@ -329,62 +354,11 @@ export default async function OneOnOnePage({ params }: { params: Promise<{ id: s
 
           {/* Meeting Prep Checklist */}
           <BriefingSection title="Meeting prep checklist">
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  defaultChecked
-                  disabled
-                  className="h-4 w-4 rounded border-border"
-                  aria-label="Review performance summary — shown above"
-                />
-                <span className="text-foreground">Review performance summary</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  defaultChecked={previousContext.length > 0}
-                  disabled={previousContext.length === 0}
-                  className="h-4 w-4 rounded border-border"
-                  aria-label="Review previous context — shown to the left"
-                />
-                <span className="text-foreground">Review previous context</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <input type="checkbox" className="h-4 w-4 rounded border-border" />
-                <span className="text-foreground">Add your own talking points</span>
-              </li>
-            </ul>
+            <MeetingPrepChecklist employeeId={employee.id} />
           </BriefingSection>
         </div>
       </div>
 
-      {/* Navigation */}
-      <Separator />
-      <div className="flex items-center justify-between">
-        <Link
-          href={`/employee/${employee.id}`}
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← Full profile
-        </Link>
-        <div className="flex items-center gap-4">
-          {env.RIPPLING_MANAGER_URL && (
-            <a
-              href={env.RIPPLING_MANAGER_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-sm text-accent hover:underline"
-            >
-              Open Rippling
-              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-            </a>
-          )}
-          <Link href="/team" className="text-sm text-muted-foreground hover:text-foreground">
-            Back to team
-          </Link>
-        </div>
-      </div>
     </div>
   );
 }

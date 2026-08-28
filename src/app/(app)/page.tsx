@@ -29,28 +29,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
-
-function weekDatesForOffset(weeksAgo: number) {
-  const now = new Date();
-  const dayOfWeek = now.getDay();
-  const currentMonday = new Date(now);
-  currentMonday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
-
-  const monday = new Date(currentMonday);
-  monday.setDate(currentMonday.getDate() - weeksAgo * 7);
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  const prevMonday = new Date(monday);
-  prevMonday.setDate(monday.getDate() - 7);
-  return {
-    periodStart: monday.toISOString().split("T")[0]!,
-    periodEnd: sunday.toISOString().split("T")[0]!,
-    previousPeriodStart: prevMonday.toISOString().split("T")[0]!,
-    now: now.getTime(),
-    hour: now.getHours(),
-    isCurrentWeek: weeksAgo === 0,
-  };
-}
+import { weekDates, initials } from "@/lib/utils";
 
 function lastNWeekStarts(periodStart: string, n: number): string[] {
   const base = new Date(`${periodStart}T00:00:00Z`);
@@ -66,14 +45,6 @@ function lastNWeekStarts(periodStart: string, n: number): string[] {
 function pctOfTeam(n: number, total: number): string {
   if (total === 0) return "—";
   return `${Math.round((n / total) * 100)}% of team`;
-}
-
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
 }
 
 function formatWeekRange(periodStart: string, periodEnd: string): string {
@@ -121,7 +92,7 @@ export default async function HomePage({
 
   const employees = await getAssignedEmployees(ctx);
   const { periodStart, periodEnd, previousPeriodStart, now, hour, isCurrentWeek } =
-    weekDatesForOffset(weeksAgo);
+    weekDates(weeksAgo);
 
   const briefings = await Promise.all(
     teams.map((team) =>
@@ -232,21 +203,21 @@ export default async function HomePage({
         />
         <StatCard
           icon={CheckCircle2}
-          iconClassName="bg-status-on-track-bg text-[oklch(var(--status-on-track))]"
+          iconClassName="bg-status-on-track-bg text-status-on-track"
           value={totals.onTrack}
           label="On track"
           detail={pctOfTeam(totals.onTrack, totals.employees)}
         />
         <StatCard
           icon={AlertCircle}
-          iconClassName="bg-status-watch-bg text-[oklch(var(--status-watch))]"
+          iconClassName="bg-status-watch-bg text-status-watch"
           value={totals.watch}
           label="To watch"
           detail={pctOfTeam(totals.watch, totals.employees)}
         />
         <StatCard
           icon={AlertTriangle}
-          iconClassName="bg-status-attention-bg text-[oklch(var(--status-attention))]"
+          iconClassName="bg-status-attention-bg text-status-attention"
           value={totals.attention}
           label="Needs attention"
           detail={pctOfTeam(totals.attention, totals.employees)}
@@ -279,7 +250,7 @@ export default async function HomePage({
                     <CardContent className="py-3 px-4">
                       <div className="flex items-start gap-3">
                         <Avatar className="h-8 w-8 shrink-0 mt-0.5">
-                          <AvatarFallback className="text-xs bg-status-attention-bg text-[oklch(var(--status-attention))]">
+                          <AvatarFallback className="text-xs bg-status-attention-bg text-status-attention">
                             {initials(item.employeeName)}
                           </AvatarFallback>
                         </Avatar>
@@ -322,7 +293,7 @@ export default async function HomePage({
                     <CardContent className="py-3 px-4">
                       <div className="flex items-start gap-3">
                         <Avatar className="h-8 w-8 shrink-0 mt-0.5">
-                          <AvatarFallback className="text-xs bg-status-on-track-bg text-[oklch(var(--status-on-track))]">
+                          <AvatarFallback className="text-xs bg-status-on-track-bg text-status-on-track">
                             {initials(item.employeeName)}
                           </AvatarFallback>
                         </Avatar>

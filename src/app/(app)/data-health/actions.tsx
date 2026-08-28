@@ -39,7 +39,7 @@ export function SyncNowButton({ dataSourceType }: { dataSourceType: string }) {
       <Button onClick={handleSync} disabled={loading} size="sm" variant="outline">
         {loading ? "Syncing..." : "Sync now"}
       </Button>
-      {error && <p className="text-xs text-[oklch(var(--status-attention))]">{error}</p>}
+      {error && <p className="text-xs text-status-attention">{error}</p>}
     </div>
   );
 }

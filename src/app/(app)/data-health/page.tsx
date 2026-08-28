@@ -15,13 +15,13 @@ function syncStatusIcon(status: string) {
   switch (status) {
     case "completed":
       return (
-        <CheckCircle className="h-4 w-4 text-[oklch(var(--status-on-track))]" aria-hidden="true" />
+        <CheckCircle className="h-4 w-4 text-status-on-track" aria-hidden="true" />
       );
     case "running":
-      return <Clock className="h-4 w-4 text-[oklch(var(--status-watch))]" aria-hidden="true" />;
+      return <Clock className="h-4 w-4 text-status-watch" aria-hidden="true" />;
     case "failed":
       return (
-        <XCircle className="h-4 w-4 text-[oklch(var(--status-attention))]" aria-hidden="true" />
+        <XCircle className="h-4 w-4 text-status-attention" aria-hidden="true" />
       );
     default:
       return <AlertTriangle className="h-4 w-4 text-muted-foreground" aria-hidden="true" />;
@@ -129,7 +129,7 @@ export default async function DataHealthPage() {
                   <span>{latestRun.recordsNormalized} normalized</span>
                   {latestRun.recordsSkipped > 0 && <span>{latestRun.recordsSkipped} skipped</span>}
                   {latestRun.errorCount > 0 && (
-                    <span className="text-[oklch(var(--status-attention))]">
+                    <span className="text-status-attention">
                       {latestRun.errorCount} errors
                     </span>
                   )}
@@ -146,7 +146,7 @@ export default async function DataHealthPage() {
               {errors.length > 0 && (
                 <div className="mt-3 space-y-1">
                   {errors.map((err) => (
-                    <p key={err.id} className="text-xs text-[oklch(var(--status-attention))]">
+                    <p key={err.id} className="text-xs text-status-attention">
                       {err.errorType}: {sanitizeErrorMessage(err.message)}
                       {err.retryable && <span className="text-muted-foreground"> (retryable)</span>}
                     </p>

@@ -193,7 +193,7 @@ export function TeamRosterTable({ rows }: { rows: RosterRow[] }) {
                     ) : row.metricsOffTarget > 0 ? (
                       <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <AlertTriangle
-                          className="h-3.5 w-3.5 text-[oklch(var(--status-attention))]"
+                          className="h-3.5 w-3.5 text-status-attention"
                           aria-hidden="true"
                         />
                         {row.metricsOffTarget} need attention
@@ -206,7 +206,7 @@ export function TeamRosterTable({ rows }: { rows: RosterRow[] }) {
                     ) : (
                       <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <CheckCircle2
-                          className="h-3.5 w-3.5 text-[oklch(var(--status-on-track))]"
+                          className="h-3.5 w-3.5 text-status-on-track"
                           aria-hidden="true"
                         />
                         {row.metricsOnTarget} / {row.metricsTotal - row.metricsNoData} on target

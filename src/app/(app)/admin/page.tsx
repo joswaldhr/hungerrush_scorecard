@@ -9,14 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/empty-state";
 import { setViewAs, clearViewAs } from "./actions";
-
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
-}
+import { initials } from "@/lib/utils";
 
 export default async function AdminPage() {
   const session = await auth();

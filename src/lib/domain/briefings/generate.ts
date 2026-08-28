@@ -89,7 +89,7 @@ function buildChangeEvidence(m: EmployeeMetricRow, changePercent: number | null)
   return `${m.name} ${dir} ${Math.abs(changePercent).toFixed(0)}% from ${m.previousValue} to ${m.currentValue}.`;
 }
 
-function deriveOverallStatus(
+export function deriveOverallStatus(
   metrics: EmployeeMetricRow[]
 ): "on_track" | "mixed" | "needs_attention" | "no_data" {
   if (metrics.length === 0) return "on_track";
