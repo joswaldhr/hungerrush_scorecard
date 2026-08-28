@@ -2,8 +2,6 @@ import type { MetricStatus, ResolvedTarget, ValueType, Direction } from "../metr
 
 // ── Briefing Types ─────────────────────────────────────────
 
-export type BriefingType = "team_weekly" | "employee_summary" | "one_on_one";
-
 export interface BriefingMeta {
   generatedAt: string;
   dataFreshnessAt: string | null;

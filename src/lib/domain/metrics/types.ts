@@ -14,8 +14,6 @@ export type ObservationType =
 
 export type Severity = "info" | "watch" | "attention" | "critical";
 
-export type QualityStatus = "complete" | "partial" | "stale" | "missing";
-
 export type TargetType = "minimum" | "maximum" | "exact" | "range";
 
 export interface ResolvedTarget {

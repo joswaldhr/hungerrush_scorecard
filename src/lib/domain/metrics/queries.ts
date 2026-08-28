@@ -4,11 +4,10 @@ import {
   metricAssignments,
   metricValues,
   metricTargets,
-  metricObservations,
 } from "@/lib/db/schema";
 import { eq, and, inArray, desc } from "drizzle-orm";
 import type { ManagerContext } from "@/lib/auth/authorization";
-import { assertCanAccessEmployee, assertCanAccessTeam } from "@/lib/auth/authorization";
+import { assertCanAccessEmployee } from "@/lib/auth/authorization";
 import { resolveTarget, evaluateStatus } from "./target-resolution";
 import type { Direction, ResolvedTarget, ValueType } from "./types";
 
@@ -247,42 +246,6 @@ export async function getMetricHistoryBatch(
   return results;
 }
 
-export async function getTeamMetricsSummary(
-  ctx: ManagerContext,
-  teamId: string,
-  periodStart: string
-) {
-  assertCanAccessTeam(ctx, teamId);
-
-  const employeeIds = ctx.assignedEmployeeIds;
-  if (employeeIds.length === 0) return [];
-
-  const assignments = await db
-    .select()
-    .from(metricAssignments)
-    .where(and(eq(metricAssignments.teamId, teamId), eq(metricAssignments.isPrimary, true)));
-
-  if (assignments.length === 0) return [];
-
-  const defIds = assignments.map((a) => a.metricDefinitionId);
-
-  const [definitions, values] = await Promise.all([
-    db.select().from(metricDefinitions).where(inArray(metricDefinitions.id, defIds)),
-    db
-      .select()
-      .from(metricValues)
-      .where(
-        and(
-          inArray(metricValues.employeeId, employeeIds),
-          inArray(metricValues.metricDefinitionId, defIds),
-          eq(metricValues.periodStart, periodStart)
-        )
-      ),
-  ]);
-
-  return { definitions, values, assignments };
-}
-
 /**
  * Team-average value per week for a single metric, across a set of period
  * starts. Returns null for any week with no recorded values — callers must
@@ -323,22 +286,3 @@ export async function getTeamMetricTrend(
   });
 }
 
-export async function getEmployeeObservations(
-  ctx: ManagerContext,
-  employeeId: string,
-  periodStart: string,
-  periodEnd: string
-) {
-  assertCanAccessEmployee(ctx, employeeId);
-
-  return db
-    .select()
-    .from(metricObservations)
-    .where(
-      and(
-        eq(metricObservations.employeeId, employeeId),
-        eq(metricObservations.periodStart, periodStart),
-        eq(metricObservations.periodEnd, periodEnd)
-      )
-    );
-}

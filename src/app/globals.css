@@ -51,8 +51,6 @@
   --status-watch-bg: oklch(0.95 0.04 70);
   --status-attention: oklch(0.55 0.2 25);
   --status-attention-bg: oklch(0.95 0.04 25);
-  --status-improving: oklch(0.65 0.15 185);
-  --status-improving-bg: oklch(0.95 0.04 185);
   --status-neutral: oklch(0.55 0.015 250);
   --status-neutral-bg: oklch(0.96 0.005 250);
 
@@ -134,8 +132,6 @@
   --status-watch-bg: oklch(0.22 0.04 70);
   --status-attention: oklch(0.6 0.18 25);
   --status-attention-bg: oklch(0.22 0.04 25);
-  --status-improving: oklch(0.65 0.13 185);
-  --status-improving-bg: oklch(0.22 0.04 185);
   --status-neutral: oklch(0.6 0.01 250);
   --status-neutral-bg: oklch(0.22 0.02 250);
 
@@ -196,8 +192,6 @@
   --color-status-watch-bg: var(--status-watch-bg);
   --color-status-attention: var(--status-attention);
   --color-status-attention-bg: var(--status-attention-bg);
-  --color-status-improving: var(--status-improving);
-  --color-status-improving-bg: var(--status-improving-bg);
   --color-status-neutral: var(--status-neutral);
   --color-status-neutral-bg: var(--status-neutral-bg);
 
