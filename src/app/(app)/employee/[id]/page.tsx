@@ -16,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ContextNoteForm } from "./context-note-form";
 import { ArrowRight, BarChart3, FileText, Users } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/db";
@@ -415,6 +416,7 @@ export default async function EmployeePage({
 
           {/* Context */}
           <BriefingSection title="Context">
+            <ContextNoteForm employeeId={employee.id} />
             <Tabs defaultValue="overview">
               <TabsList>
                 <TabsTrigger value="overview">Overview</TabsTrigger>
