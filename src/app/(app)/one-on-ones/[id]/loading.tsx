@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function OneOnOneLoading() {
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-3xl space-y-6">
       {/* Top nav: links + back */}
       <div className="flex items-center justify-between">
         <Skeleton className="h-4 w-24" />

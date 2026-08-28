@@ -27,7 +27,7 @@ export default async function OneOnOnesPage() {
   }
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-3xl space-y-6">
       <header>
         <h1 className="text-xl font-semibold text-foreground">1:1 Preparation</h1>
         <p className="mt-1 text-sm text-muted-foreground">

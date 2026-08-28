@@ -25,7 +25,7 @@ export default function TeamError({
   }, [error]);
 
   return (
-    <div className="max-w-5xl">
+    <div className="max-w-6xl">
       <div className="flex flex-col items-center gap-4 py-16">
         <ErrorState
           title="Couldn't load team data"

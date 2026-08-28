@@ -26,7 +26,7 @@ export default function OneOnOneError({
   }, [error]);
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-3xl">
       <div className="mb-6">
         <Link href="/team" className="text-sm text-muted-foreground hover:text-foreground">
           ← Back to team

@@ -146,7 +146,7 @@ export default async function TeamPage({
   });
 
   return (
-    <div className="max-w-5xl space-y-6">
+    <div className="max-w-6xl space-y-6">
       <header>
         <h1 className="text-xl font-semibold text-foreground">Team</h1>
         <p className="mt-1 text-sm text-muted-foreground">How is everyone doing?</p>

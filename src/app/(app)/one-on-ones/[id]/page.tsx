@@ -100,7 +100,7 @@ export default async function OneOnOnePage({ params }: { params: Promise<{ id: s
   const previousContext = await getEmployeeContext(ctx, employee.id, 6);
 
   return (
-    <div className="max-w-2xl space-y-8">
+    <div className="max-w-3xl space-y-8">
       {/* Back nav */}
       <div className="flex items-center justify-between">
         <Link
