@@ -11,34 +11,34 @@ import { db } from "@/lib/db";
 import { externalIdentities } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { env } from "@/lib/env";
-import { toIntervals, totalDuration, overlapDuration } from "./interval-math";
 
 const MAX_WEEKS_BACK = 4;
 const BASE_URL = "https://api.assembledhq.com/v0";
 const PAGE_LIMIT = 500;
+const REPORT_POLL_INTERVAL_MS = 1500;
+const REPORT_POLL_MAX_ATTEMPTS = 20;
 
 interface AssembledPerson {
   agent_id: string | null;
   email: string;
+  channels: string[];
 }
 
-interface AssembledAgentState {
-  state: string;
-  start_time: number;
-  end_time: number;
-}
-
-interface AssembledActivity {
-  agent_id: string;
-  type_id: string;
-  start_time: number;
-  end_time: number;
-}
-
-interface AssembledActivityType {
-  id: string;
+interface AssembledReportMetric {
   name: string;
-  productive: boolean;
+  value: number;
+  attributes: {
+    agent_id: string;
+    start_time: number;
+    end_time: number;
+    type: "full_interval" | "interval";
+  };
+}
+
+interface AssembledReport {
+  status: "in_progress" | "complete" | "error";
+  total_metric_count: number;
+  metrics: AssembledReportMetric[];
 }
 
 function authHeader(): string {
@@ -56,6 +56,22 @@ async function assembledGet<T>(path: string, params?: Record<string, string | nu
     throw new Error(`Assembled GET ${path} failed: ${res.status} ${res.statusText}`);
   }
   return (await res.json()) as T;
+}
+
+async function assembledPost<T>(path: string, body: Record<string, unknown>): Promise<T> {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method: "POST",
+    headers: { Authorization: authHeader(), "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    throw new Error(`Assembled POST ${path} failed: ${res.status} ${res.statusText}`);
+  }
+  return (await res.json()) as T;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function weekOf(weeksAgo: number): {
@@ -81,8 +97,6 @@ function weekOf(weeksAgo: number): {
 export class AssembledConnector implements Connector {
   readonly sourceType = "assembled";
   private peopleByEmail: Map<string, AssembledPerson> | null = null;
-  private productiveTypeIds: Set<string> | null = null;
-  private productiveStateNames: Set<string> | null = null;
 
   async healthCheck(_config: ConnectorConfig): Promise<HealthStatus> {
     try {
@@ -110,24 +124,54 @@ export class AssembledConnector implements Connector {
     return map;
   }
 
-  private async ensureProductiveSets(): Promise<{ typeIds: Set<string>; stateNames: Set<string> }> {
-    if (this.productiveTypeIds && this.productiveStateNames) {
-      return { typeIds: this.productiveTypeIds, stateNames: this.productiveStateNames };
+  /**
+   * Fetches Assembled's own computed schedule-adherence percentage per agent for one
+   * channel/week via the async Reports API (POST /reports/adherence, poll GET
+   * /reports/:reportID). Adherence can't be derived from /activities + /agents/state
+   * directly — the state-to-activity-type mapping that determines "productive" is a
+   * dashboard-only Administrator setting with no read API (confirmed against
+   * docs.assembled.com's Agent States reference), so Assembled's own report is the only
+   * correct source.
+   */
+  private async fetchAdherenceByAgent(
+    channel: string,
+    startTime: number,
+    endTime: number
+  ): Promise<Map<string, number>> {
+    const { report_id } = await assembledPost<{ report_id: string }>("/reports/adherence", {
+      report_type: "adherence",
+      start_time: startTime,
+      end_time: endTime,
+      interval: "1w",
+      channel,
+    });
+
+    let report: AssembledReport | null = null;
+    for (let attempt = 0; attempt < REPORT_POLL_MAX_ATTEMPTS; attempt++) {
+      const result = await assembledGet<AssembledReport>(`/reports/${report_id}`, {
+        metric: "schedule_adherence_percentage",
+        type: "full_interval",
+      });
+      if (result.status === "complete") {
+        report = result;
+        break;
+      }
+      if (result.status === "error") {
+        throw new Error(`Assembled adherence report ${report_id} failed to generate`);
+      }
+      await sleep(REPORT_POLL_INTERVAL_MS);
     }
-    const res = await assembledGet<{ activity_types: Record<string, AssembledActivityType> }>(
-      "/activity_types"
-    );
-    const typeIds = new Set<string>();
-    const stateNames = new Set<string>();
-    for (const at of Object.values(res.activity_types)) {
-      if (at.productive) {
-        typeIds.add(at.id);
-        stateNames.add(at.name);
+    if (!report) {
+      throw new Error(`Assembled adherence report ${report_id} did not complete in time`);
+    }
+
+    const byAgent = new Map<string, number>();
+    for (const metric of report.metrics) {
+      if (metric.name === "schedule_adherence_percentage" && metric.attributes.type === "full_interval") {
+        byAgent.set(metric.attributes.agent_id, Math.round(metric.value * 100) / 100);
       }
     }
-    this.productiveTypeIds = typeIds;
-    this.productiveStateNames = stateNames;
-    return { typeIds, stateNames };
+    return byAgent;
   }
 
   async resolveIdentities(
@@ -168,18 +212,26 @@ export class AssembledConnector implements Connector {
 
     const { periodStart, periodEnd, startTime, endTime } = weekOf(weekOffset);
     const people = await this.ensurePeople();
-    const { typeIds, stateNames } = await this.ensureProductiveSets();
 
     const identities = await db
       .select()
       .from(externalIdentities)
       .where(eq(externalIdentities.dataSourceId, config.dataSourceId));
 
-    const activitiesRes = await assembledGet<{ activities: Record<string, AssembledActivity> }>(
-      "/activities",
-      { start_time: startTime, end_time: endTime }
-    );
-    const allActivities = Object.values(activitiesRes.activities);
+    // Adherence reports are requested per channel, not per agent — group known
+    // identities by each person's primary channel so we issue one report call per
+    // distinct channel instead of one per person.
+    const channelsNeeded = new Set<string>();
+    for (const identity of identities) {
+      const person = people.get(identity.externalId.toLowerCase());
+      const channel = person?.channels?.[0];
+      if (channel) channelsNeeded.add(channel);
+    }
+
+    const adherenceByChannel = new Map<string, Map<string, number>>();
+    for (const channel of channelsNeeded) {
+      adherenceByChannel.set(channel, await this.fetchAdherenceByAgent(channel, startTime, endTime));
+    }
 
     const now = new Date();
     const records: IngestedRecord[] = [];
@@ -189,21 +241,10 @@ export class AssembledConnector implements Connector {
       const person = people.get(email.toLowerCase());
       if (!person?.agent_id) continue;
 
-      const agentActivities = allActivities.filter((a) => a.agent_id === person.agent_id);
-      const scheduled = toIntervals(agentActivities.filter((a) => typeIds.has(a.type_id)));
-      const scheduledTotal = totalDuration(scheduled);
-
-      let scheduleAdherence: number | null = null;
-      if (scheduledTotal > 0) {
-        const states = await this.fetchAgentStates(person.agent_id, startTime, endTime);
-        const actualStates = states.filter((s) => stateNames.has(s.state));
-        if (actualStates.length > 0) {
-          scheduleAdherence =
-            Math.round(
-              (overlapDuration(scheduled, toIntervals(actualStates)) / scheduledTotal) * 10000
-            ) / 100;
-        }
-      }
+      const channel = person.channels?.[0] ?? null;
+      const scheduleAdherence = channel
+        ? adherenceByChannel.get(channel)?.get(person.agent_id) ?? null
+        : null;
 
       records.push({
         externalRecordType: "schedule_stats",
@@ -222,28 +263,6 @@ export class AssembledConnector implements Connector {
       cursor: String(weekOffset + 1),
       hasMore: weekOffset + 1 < MAX_WEEKS_BACK,
     };
-  }
-
-  private async fetchAgentStates(
-    agentId: string,
-    startTime: number,
-    endTime: number
-  ): Promise<AssembledAgentState[]> {
-    const all: AssembledAgentState[] = [];
-    let offset = 0;
-    for (;;) {
-      const res = await assembledGet<{ agent_states: AssembledAgentState[] }>("/agents/state", {
-        agent_id: agentId,
-        start_time: startTime,
-        end_time: endTime,
-        limit: PAGE_LIMIT,
-        offset,
-      });
-      all.push(...res.agent_states);
-      if (res.agent_states.length < PAGE_LIMIT) break;
-      offset += PAGE_LIMIT;
-    }
-    return all;
   }
 
   normalizeRecords(
