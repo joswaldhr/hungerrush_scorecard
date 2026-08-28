@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useTheme } from "next-themes";
 import {
   Home,
   Users,
@@ -12,6 +13,8 @@ import {
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { cn, initials } from "@/lib/utils";
 
@@ -51,6 +54,7 @@ export function SidebarClient({
 }: SidebarClientProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const { resolvedTheme, setTheme } = useTheme();
 
   useEffect(() => {
     const narrow = window.matchMedia("(max-width: 1279px)").matches;
@@ -168,6 +172,30 @@ export function SidebarClient({
           </div>
         )}
       </nav>
+
+      {/* Theme toggle */}
+      <div className="px-2 py-2">
+        <button
+          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+          aria-label={hydrated && resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          title={collapsed ? "Toggle theme" : undefined}
+          className={cn(
+            "flex w-full items-center rounded-md py-2 text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground",
+            collapsed ? "justify-center px-0" : "gap-3 px-3"
+          )}
+        >
+          {hydrated && resolvedTheme === "dark" ? (
+            <Sun className="h-4 w-4" />
+          ) : (
+            <Moon className="h-4 w-4" />
+          )}
+          {!collapsed && (
+            <span className="text-xs">
+              {hydrated && resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
+            </span>
+          )}
+        </button>
+      </div>
 
       {/* Collapse toggle */}
       <div className="px-2 py-2">
