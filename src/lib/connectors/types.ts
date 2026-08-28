@@ -43,6 +43,18 @@ export interface IdentityMatch {
   matchConfidence: number;
 }
 
+export interface RosterGroupMapping {
+  externalGroupId: string;
+  teamId: string;
+}
+
+export interface DiscoveredRosterMember {
+  externalId: string;
+  externalEmail: string | null;
+  externalDisplayName: string | null;
+  teamId: string;
+}
+
 export interface SyncResult {
   recordsIngested: number;
   recordsNormalized: number;
@@ -77,4 +89,15 @@ export interface Connector {
   ): NormalizedFactInput[];
 
   resolveIdentities(config: ConnectorConfig, externalIds: string[]): Promise<IdentityMatch[]>;
+
+  /**
+   * Lists the current members of each mapped external group/team, for diffing against
+   * known external_identities to surface new-hire/departure candidates. Returns [] when
+   * groupMappings is empty rather than guessing at a default scope — roster discovery for
+   * a data source with no configured mapping should surface nothing, not something wrong.
+   */
+  discoverRoster(
+    config: ConnectorConfig,
+    groupMappings: RosterGroupMapping[]
+  ): Promise<DiscoveredRosterMember[]>;
 }

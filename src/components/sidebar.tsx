@@ -14,6 +14,7 @@ const adminNav = [
   { label: "Reconciliation", href: "/reconciliation", iconName: "Scale" },
   { label: "Employees", href: "/admin/employees", iconName: "Users" },
   { label: "Teams", href: "/admin/teams", iconName: "Users" },
+  { label: "Roster Review", href: "/admin/roster-review", iconName: "Users" },
   { label: "Admin", href: "/admin", iconName: "ShieldCheck" },
 ];
 

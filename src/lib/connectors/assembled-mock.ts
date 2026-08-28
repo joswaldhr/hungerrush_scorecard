@@ -6,6 +6,8 @@ import type {
   NormalizedFactInput,
   IdentityMatch,
   HealthStatus,
+  RosterGroupMapping,
+  DiscoveredRosterMember,
 } from "./types";
 import { db } from "@/lib/db";
 import { externalIdentities } from "@/lib/db/schema";
@@ -125,5 +127,12 @@ export class AssembledMockConnector implements Connector {
     }
 
     return matches;
+  }
+
+  async discoverRoster(
+    _config: ConnectorConfig,
+    _groupMappings: RosterGroupMapping[]
+  ): Promise<DiscoveredRosterMember[]> {
+    return [];
   }
 }

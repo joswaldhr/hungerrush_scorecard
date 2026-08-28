@@ -506,6 +506,49 @@ export const meetingReferences = pgTable(
   ]
 );
 
+// ── Roster Discovery (Rippling stopgap) ──────────────────
+
+export const rosterSourceTeamMappings = pgTable(
+  "roster_source_team_mappings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    dataSourceId: uuid("data_source_id")
+      .notNull()
+      .references(() => dataSources.id),
+    externalGroupId: text("external_group_id").notNull(),
+    externalGroupLabel: text("external_group_label").notNull(),
+    teamId: uuid("team_id")
+      .notNull()
+      .references(() => teams.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("roster_mappings_data_source_id_idx").on(table.dataSourceId)]
+);
+
+export const rosterCandidates = pgTable(
+  "roster_candidates",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    dataSourceId: uuid("data_source_id")
+      .notNull()
+      .references(() => dataSources.id),
+    externalId: text("external_id").notNull(),
+    externalEmail: text("external_email"),
+    externalDisplayName: text("external_display_name"),
+    changeType: text("change_type").notNull(),
+    employeeId: uuid("employee_id").references(() => employees.id),
+    suggestedTeamId: uuid("suggested_team_id").references(() => teams.id),
+    status: text("status").notNull().default("pending"),
+    reviewedBy: uuid("reviewed_by").references(() => users.id),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("roster_candidates_data_source_id_idx").on(table.dataSourceId),
+    index("roster_candidates_status_idx").on(table.status),
+  ]
+);
+
 // ── Meeting Notes & Action Items ─────────────────────────
 
 export const meetingNotes = pgTable(

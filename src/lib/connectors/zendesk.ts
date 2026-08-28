@@ -6,6 +6,8 @@ import type {
   NormalizedFactInput,
   IdentityMatch,
   HealthStatus,
+  RosterGroupMapping,
+  DiscoveredRosterMember,
 } from "./types";
 import { db } from "@/lib/db";
 import { externalIdentities } from "@/lib/db/schema";
@@ -54,6 +56,27 @@ interface ZendeskSatisfactionRatingsResponse {
 
 interface ZendeskUserSearchResponse {
   users: Array<{ id: number; email: string }>;
+}
+
+interface ZendeskGroupMembership {
+  user_id: number;
+  group_id: number;
+}
+
+interface ZendeskGroupMembershipsResponse {
+  group_memberships: ZendeskGroupMembership[];
+  next_page: string | null;
+}
+
+interface ZendeskUserDetail {
+  id: number;
+  email: string | null;
+  name: string;
+  active: boolean;
+}
+
+interface ZendeskShowManyUsersResponse {
+  users: ZendeskUserDetail[];
 }
 
 function authHeader(): string {
@@ -393,5 +416,47 @@ export class ZendeskConnector implements Connector {
     }
 
     return facts;
+  }
+
+  async discoverRoster(
+    _config: ConnectorConfig,
+    groupMappings: RosterGroupMapping[]
+  ): Promise<DiscoveredRosterMember[]> {
+    if (groupMappings.length === 0) return [];
+
+    const members: DiscoveredRosterMember[] = [];
+    const seenExternalIds = new Set<string>();
+
+    for (const mapping of groupMappings) {
+      const userIds: number[] = [];
+      let path: string | null = `/groups/${mapping.externalGroupId}/memberships.json`;
+      while (path) {
+        const res: ZendeskGroupMembershipsResponse =
+          await zendeskGet<ZendeskGroupMembershipsResponse>(path);
+        userIds.push(...res.group_memberships.map((m) => m.user_id));
+        path = res.next_page;
+      }
+
+      for (let i = 0; i < userIds.length; i += 100) {
+        const batch = userIds.slice(i, i + 100);
+        if (batch.length === 0) continue;
+        const res = await zendeskGet<ZendeskShowManyUsersResponse>(
+          `/users/show_many.json?ids=${batch.join(",")}`
+        );
+        for (const user of res.users) {
+          if (!user.active || !user.email) continue;
+          if (seenExternalIds.has(user.email)) continue;
+          seenExternalIds.add(user.email);
+          members.push({
+            externalId: user.email,
+            externalEmail: user.email,
+            externalDisplayName: user.name,
+            teamId: mapping.teamId,
+          });
+        }
+      }
+    }
+
+    return members;
   }
 }

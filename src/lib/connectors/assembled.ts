@@ -6,6 +6,8 @@ import type {
   NormalizedFactInput,
   IdentityMatch,
   HealthStatus,
+  RosterGroupMapping,
+  DiscoveredRosterMember,
 } from "./types";
 import { db } from "@/lib/db";
 import { externalIdentities } from "@/lib/db/schema";
@@ -22,6 +24,9 @@ interface AssembledPerson {
   agent_id: string | null;
   email: string;
   channels: string[];
+  first_name?: string;
+  last_name?: string;
+  deleted?: boolean;
 }
 
 interface AssembledReportMetric {
@@ -290,5 +295,37 @@ export class AssembledConnector implements Connector {
       }
     }
     return facts;
+  }
+
+  async discoverRoster(
+    _config: ConnectorConfig,
+    groupMappings: RosterGroupMapping[]
+  ): Promise<DiscoveredRosterMember[]> {
+    if (groupMappings.length === 0) return [];
+
+    const members: DiscoveredRosterMember[] = [];
+    const seenExternalIds = new Set<string>();
+
+    for (const mapping of groupMappings) {
+      const res = await assembledGet<{ people: Record<string, AssembledPerson> }>("/people", {
+        team: mapping.externalGroupId,
+        limit: PAGE_LIMIT,
+        include_deleted: "false",
+      });
+      for (const person of Object.values(res.people)) {
+        if (person.deleted || !person.email) continue;
+        if (seenExternalIds.has(person.email)) continue;
+        seenExternalIds.add(person.email);
+        const displayName = [person.first_name, person.last_name].filter(Boolean).join(" ") || null;
+        members.push({
+          externalId: person.email,
+          externalEmail: person.email,
+          externalDisplayName: displayName,
+          teamId: mapping.teamId,
+        });
+      }
+    }
+
+    return members;
   }
 }
