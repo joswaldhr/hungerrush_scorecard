@@ -58,21 +58,30 @@ Calm / distilled / meeting-focused.
 
 ## Components
 
-Build reusable components for:
+Reusable components in `src/components/`:
 - MetricValue
 - TrendIndicator
+- TrendSparkline
 - StatusBadge
-- EmployeeRow
-- AttentionItem
 - BriefingSection
 - DataFreshness
-- MetricTable
-- Sparkline
-- ContextItem
-- PeriodSelector
+- MetricHistoryChart
+- TeamRosterTable
+- StatCard
+- MeetingPrepChecklist
+- Sidebar
 - EmptyState
 - ErrorState
-- LoadingSkeleton
+- ViewAsBanner
+
+UI primitives in `src/components/ui/` (shadcn/Radix):
+- Avatar
+- Badge
+- Button
+- Card
+- Separator
+- Skeleton
+- Tabs
 
 Components must be domain-generic.
 

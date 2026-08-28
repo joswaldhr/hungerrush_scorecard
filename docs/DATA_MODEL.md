@@ -1,4 +1,6 @@
-# HungerRush Cadence — Data Model Reference v0.1
+# HungerRush Cadence — Data Model Reference v0.2
+
+Source of truth: `src/lib/db/schema.ts`. This document is an overview — see the schema file for exact types, defaults, and foreign keys.
 
 ## People
 
@@ -10,14 +12,15 @@ User
 - id
 - organization_id
 - identity_provider_subject
-- email
+- email (unique)
 - display_name
 - status
+- is_platform_admin
 
 Team
 - id
 - organization_id
-- parent_team_id
+- parent_team_id (self-referential)
 - name
 - slug
 - status
@@ -32,6 +35,7 @@ Employee
 - employment_status
 
 TeamMembership
+- id
 - employee_id
 - team_id
 - role_type
@@ -39,6 +43,7 @@ TeamMembership
 - effective_to
 
 ManagerAssignment
+- id
 - manager_user_id
 - team_id
 - employee_id
@@ -58,6 +63,7 @@ DataSource
 - last_successful_sync_at
 
 ExternalIdentity
+- id
 - employee_id
 - data_source_id
 - external_entity_type
@@ -70,6 +76,7 @@ ExternalIdentity
 - metadata_json
 
 SourceRecord
+- id
 - data_source_id
 - external_record_type
 - external_record_id
@@ -81,8 +88,10 @@ SourceRecord
 - payload_hash
 - source_updated_at
 - ingested_at
+- sync_run_id
 
 NormalizedFact
+- id
 - organization_id
 - employee_id
 - team_id
@@ -100,6 +109,7 @@ NormalizedFact
 ## Metrics
 
 MetricDefinition
+- id
 - organization_id
 - key
 - name
@@ -119,6 +129,7 @@ MetricDefinition
 - effective_to
 
 MetricAssignment
+- id
 - metric_definition_id
 - team_id
 - employee_id
@@ -132,6 +143,7 @@ MetricAssignment
 - effective_to
 
 MetricTarget
+- id
 - metric_definition_id
 - team_id
 - employee_id
@@ -144,6 +156,7 @@ MetricTarget
 - priority
 
 MetricValue
+- id
 - metric_definition_id
 - employee_id
 - team_id
@@ -158,6 +171,7 @@ MetricValue
 - quality_status
 
 MetricObservation
+- id
 - employee_id
 - metric_definition_id
 - period_start
@@ -171,35 +185,11 @@ MetricObservation
 - target_value
 - rule_version
 - evidence_json
-- created_at
 
-## Context / Meetings
-
-ContextItem
-- organization_id
-- employee_id
-- context_type
-- title
-- summary
-- occurred_at
-- effective_until
-- data_source_id
-- external_reference
-- visibility
-- metadata_json
-
-MeetingReference
-- employee_id
-- manager_user_id
-- meeting_type
-- scheduled_start
-- scheduled_end
-- external_system
-- external_id
-- external_url
-- status
+## Briefings
 
 BriefingSnapshot
+- id
 - organization_id
 - briefing_type
 - manager_user_id
@@ -215,24 +205,87 @@ BriefingSnapshot
 ## Sync
 
 SyncRun
+- id
 - data_source_id
-- sync_type
 - status
 - started_at
 - completed_at
-- cursor_before
-- cursor_after
-- records_read
-- records_written
-- warnings_count
-- errors_count
-- error_summary
+- records_ingested
+- records_normalized
+- records_skipped
+- error_count
+- cursor
+- metadata_json
 
 SyncError
+- id
 - sync_run_id
-- external_record_id
-- error_code
+- error_type
 - message
+- external_record_id
 - retryable
+- context (jsonb)
+
+## Context / Meetings
+
+ContextItem
+- id
+- organization_id
+- employee_id
+- context_type
+- title
+- summary
+- occurred_at
+- effective_until
+- data_source_id
+- external_reference
+- visibility
 - metadata_json
-- created_at
+
+MeetingReference
+- id
+- employee_id
+- manager_user_id
+- meeting_type
+- scheduled_start
+- scheduled_end
+- external_system
+- external_id
+- external_url
+- status
+
+## Reconciliation
+
+ReconciliationRun
+- id
+- organization_id
+- triggered_by (user_id)
+- status
+- team_id
+- period_start
+- period_end
+- threshold_pct
+- total_comparisons
+- match_count
+- mismatch_count
+- source_missing_count
+- cadence_missing_count
+- started_at
+- completed_at
+
+ReconciliationResult
+- id
+- reconciliation_run_id
+- metric_definition_id
+- employee_id
+- period_start
+- period_end
+- cadence_value
+- source_value
+- absolute_delta
+- relative_delta_pct
+- status
+- cadence_calculation_version
+- metric_key
+- fact_type
+- notes

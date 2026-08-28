@@ -88,7 +88,7 @@ MetricDefinition, MetricAssignment, MetricTarget, MetricValue, MetricObservation
 
 Metric definitions are data-driven and versioned. Different teams can have different metric sets. Targets resolve through a deterministic priority chain (employee-specific > role > team > org default). Calculations use typed strategies, not arbitrary executable formulas. Historical values are persisted, never recomputed in place.
 
-`MetricStatus.status` includes a `no_data` value distinct from `off_target` — a metric with no recorded value for a period is never silently evaluated as if it were zero.
+The `MetricStatus` TypeScript type (computed at query time, not a DB column) includes a `no_data` value distinct from `off_target` — a metric with no recorded value for a period is never silently evaluated as if it were zero.
 
 ### Briefings
 
@@ -214,7 +214,7 @@ Fuzzy name matching alone is not permitted. In practice, the live Zendesk/Assemb
 |---|---|---|
 | Zendesk | Support/ticket operational metrics (tickets resolved, handle time, CSAT, backlog) | **Live**, real API, verified end-to-end against the real HungerRush account |
 | Assembled | Workforce/scheduling metrics | **Live**, real API — but its only defined metric (`schedule_adherence`) is structurally uncomputable from this account (two Assembled endpoints use non-overlapping state-name vocabularies) and is unassigned from both pilot teams |
-| Rippling | Employee identity, org structure, meeting context | **Stub only.** `rippling-mock.ts` reads Cadence's own tables back to itself, calls no external API, and is not wired into the sync map. No "Open in Rippling" link exists anywhere in the UI yet. Real integration is blocked on HungerRush confirming API access/scopes — do not guess at this; see `docs/INTEGRATIONS.md` |
+| Rippling | Employee identity, org structure, meeting context | **Stub only.** `rippling-mock.ts` reads Cadence's own tables back to itself, calls no external API, and is not wired into the sync map. A plain "Open Rippling" link-out exists on the 1:1 Prep page (via `RIPPLING_MANAGER_URL`). Real API integration is blocked on HungerRush confirming API access/scopes — do not guess at this; see `docs/INTEGRATIONS.md` |
 
 ## Key Architectural Decisions
 

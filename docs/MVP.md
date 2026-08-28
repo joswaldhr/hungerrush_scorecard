@@ -70,9 +70,9 @@
 - [x] Source reconciliation — tooling built and confirmed working live: a
       run correctly reported "source missing" for everything, since no
       sync has populated source data yet.
-- [ ] Permission review — not yet scoped. Needs a decision on what this
-      review covers (access model audit? real-manager sign-off on scope?)
-      before it can be tracked as done.
+- [x] Permission review — completed in Phase 7 prod-readiness. Found and
+      fixed a cross-team data leak in reconciliation; all other pages/routes
+      correctly enforce the authorization model.
 
 ## Production Readiness
 
