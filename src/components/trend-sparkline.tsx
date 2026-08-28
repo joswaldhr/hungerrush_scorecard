@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 export function TrendSparkline({
   values,
   direction,
-  width = 72,
+  width = 96,
   height = 24,
   className,
 }: {
@@ -52,8 +52,14 @@ export function TrendSparkline({
       ? "var(--status-attention)"
       : "var(--status-neutral)";
 
-  const label = improved ? "Trending up" : declined ? "Trending down" : "Stable";
+  const label = improved
+    ? `Trending up from ${first} to ${last}`
+    : declined
+      ? `Trending down from ${first} to ${last}`
+      : `Stable at ${last}`;
   const lastCoord = coords[coords.length - 1]!;
+  const firstCoord = coords[0]!;
+  const areaPath = `${path} L${lastCoord.x.toFixed(1)},${height} L${firstCoord.x.toFixed(1)},${height} Z`;
 
   return (
     <svg
@@ -64,6 +70,7 @@ export function TrendSparkline({
       role="img"
       aria-label={label}
     >
+      <path d={areaPath} fill={`oklch(${colorVar} / 0.1)`} stroke="none" />
       <path
         d={path}
         fill="none"
