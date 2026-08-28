@@ -104,3 +104,23 @@ export function evaluateStatus(
 
   return { status: "no_target", direction };
 }
+
+/**
+ * Evaluate status from period-over-period percentage change (used for team-level summaries
+ * where no absolute target exists).
+ */
+export function evaluateChangeStatus(
+  changePct: number | null,
+  direction: Direction
+): { status: "on_target" | "warning" | "off_target" | "no_data"; isImproved: boolean } {
+  if (changePct === null) return { status: "no_data", isImproved: false };
+
+  const isImproved =
+    (direction === "higher_is_better" && changePct > 0) ||
+    (direction === "lower_is_better" && changePct < 0);
+
+  if (Math.abs(changePct) < 1) return { status: "on_target", isImproved };
+  if (isImproved) return { status: "on_target", isImproved };
+  if (Math.abs(changePct) >= 10) return { status: "off_target", isImproved };
+  return { status: "warning", isImproved };
+}

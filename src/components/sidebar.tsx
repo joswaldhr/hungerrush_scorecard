@@ -89,7 +89,7 @@ export async function Sidebar() {
         {/* Secondary nav */}
         <div className="mt-8 space-y-1">
           <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
-            Settings
+            Operations
           </p>
           {secondary.map((item) => {
             const isActive = pathname.startsWith(item.href);

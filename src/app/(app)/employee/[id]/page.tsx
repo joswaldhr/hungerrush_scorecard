@@ -167,12 +167,9 @@ export default async function EmployeePage({
   return (
     <div className="max-w-5xl space-y-6">
       {/* Back nav */}
-      <div className="flex items-center justify-between">
+      <div>
         <Link href="/team" className="text-sm text-muted-foreground hover:text-foreground">
           ← Back to team
-        </Link>
-        <Link href={`/one-on-ones/${employee.id}`} className="text-sm text-accent hover:underline">
-          Prepare 1:1 →
         </Link>
       </div>
 
@@ -467,7 +464,7 @@ function ContextList({
           <p className="font-medium text-foreground">{item.title}</p>
           {item.summary && <p className="text-muted-foreground">{item.summary}</p>}
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {item.occurredAt.toLocaleDateString(undefined, {
+            {item.occurredAt.toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
               year: "numeric",

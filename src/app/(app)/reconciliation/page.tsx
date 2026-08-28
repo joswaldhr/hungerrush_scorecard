@@ -2,7 +2,12 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getEffectiveManagerContext } from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
-import { reconciliationRuns, reconciliationResults, teams } from "@/lib/db/schema";
+import {
+  reconciliationRuns,
+  reconciliationResults,
+  teams,
+  metricDefinitions,
+} from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -55,6 +60,12 @@ export default async function ReconciliationPage() {
     .where(eq(teams.organizationId, ctx.organizationId));
 
   const teamMap = new Map(teamList.map((t) => [t.id, t.name]));
+
+  const metricDefs = await db
+    .select({ key: metricDefinitions.key, name: metricDefinitions.name })
+    .from(metricDefinitions)
+    .where(eq(metricDefinitions.organizationId, ctx.organizationId));
+  const metricNameMap = new Map(metricDefs.map((m) => [m.key, m.name]));
 
   let latestResults: Array<{
     id: string;
@@ -162,10 +173,12 @@ export default async function ReconciliationPage() {
                         <td className="py-2 pr-4">
                           <div className="flex items-center gap-1.5">
                             {statusIcon(r.status)}
-                            <span className="text-xs">{r.status.replace("_", " ")}</span>
+                            <span className="text-xs">{r.status.replace(/_/g, " ")}</span>
                           </div>
                         </td>
-                        <td className="py-2 pr-4 font-medium">{r.metricKey.replace(/_/g, " ")}</td>
+                        <td className="py-2 pr-4 font-medium">
+                          {metricNameMap.get(r.metricKey) ?? r.metricKey.replace(/_/g, " ")}
+                        </td>
                         <td className="py-2 pr-4 text-right tabular-nums">
                           {r.cadenceValue !== null ? r.cadenceValue.toFixed(1) : "—"}
                         </td>

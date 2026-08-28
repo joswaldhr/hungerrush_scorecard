@@ -8,7 +8,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { TrendIndicator } from "@/components/trend-indicator";
 import { TrendSparkline } from "@/components/trend-sparkline";
 import { Search, ArrowRight, CheckCircle2, AlertTriangle, MinusCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, initials } from "@/lib/utils";
 
 export interface RosterRow {
   employeeId: string;
@@ -34,14 +34,6 @@ const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "needs_attention", label: "Needs Attention" },
   { key: "no_change", label: "No Change" },
 ];
-
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
-}
 
 function matchesFilter(row: RosterRow, filter: FilterKey): boolean {
   switch (filter) {

@@ -144,7 +144,7 @@ export default async function OneOnOnePage({ params }: { params: Promise<{ id: s
             <>
               <p className="flex items-center justify-end gap-1.5 font-medium text-foreground">
                 <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
-                {nextMeeting.scheduledStart.toLocaleDateString(undefined, {
+                {nextMeeting.scheduledStart.toLocaleDateString("en-US", {
                   weekday: "long",
                   month: "long",
                   day: "numeric",
@@ -152,12 +152,12 @@ export default async function OneOnOnePage({ params }: { params: Promise<{ id: s
               </p>
               <p className="mt-0.5 flex items-center justify-end gap-1.5 text-muted-foreground">
                 <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-                {nextMeeting.scheduledStart.toLocaleTimeString(undefined, {
+                {nextMeeting.scheduledStart.toLocaleTimeString("en-US", {
                   hour: "numeric",
                   minute: "2-digit",
                 })}
                 {nextMeeting.scheduledEnd &&
-                  ` – ${nextMeeting.scheduledEnd.toLocaleTimeString(undefined, {
+                  ` – ${nextMeeting.scheduledEnd.toLocaleTimeString("en-US", {
                     hour: "numeric",
                     minute: "2-digit",
                   })}`}
@@ -350,7 +350,7 @@ export default async function OneOnOnePage({ params }: { params: Promise<{ id: s
                         <p className="text-sm text-muted-foreground">{item.summary}</p>
                       )}
                       <p className="text-xs text-muted-foreground">
-                        {item.occurredAt.toLocaleDateString(undefined, {
+                        {item.occurredAt.toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
                         })}

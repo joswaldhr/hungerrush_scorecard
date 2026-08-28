@@ -7,6 +7,7 @@ import {
 } from "@/lib/auth/authorization";
 import { generateTeamBriefing } from "@/lib/domain/briefings/generate";
 import { getTeamMetricTrend } from "@/lib/domain/metrics/queries";
+import { evaluateChangeStatus } from "@/lib/domain/metrics/target-resolution";
 import { db } from "@/lib/db";
 import { meetingReferences, employees as employeesTable } from "@/lib/db/schema";
 import { and, eq, gte, asc, inArray } from "drizzle-orm";
@@ -51,7 +52,7 @@ function formatWeekRange(periodStart: string, periodEnd: string): string {
   const start = new Date(`${periodStart}T00:00:00Z`);
   const end = new Date(`${periodEnd}T00:00:00Z`);
   const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
-  return `${start.toLocaleDateString(undefined, opts)} – ${end.toLocaleDateString(undefined, opts)}`;
+  return `${start.toLocaleDateString("en-US", opts)} – ${end.toLocaleDateString("en-US", opts)}`;
 }
 
 export default async function HomePage({
@@ -173,23 +174,45 @@ export default async function HomePage({
           <DataFreshness freshnessAt={overallFreshness} now={now} className="mt-2" />
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <Link
-            href={weeksAgo < 12 ? `/?week=${weeksAgo + 1}` : "#"}
-            aria-label="Previous week"
-            className={`flex h-8 w-8 items-center justify-center rounded-md border border-border ${weeksAgo < 12 ? "text-muted-foreground hover:text-foreground" : "pointer-events-none opacity-30"}`}
-          >
-            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          </Link>
+          {weeksAgo < 12 ? (
+            <Link
+              href={`/?week=${weeksAgo + 1}`}
+              aria-label="Previous week"
+              className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground hover:text-foreground"
+            >
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          ) : (
+            <span
+              role="link"
+              aria-disabled="true"
+              aria-label="Previous week"
+              className="flex h-8 w-8 items-center justify-center rounded-md border border-border opacity-30"
+            >
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+            </span>
+          )}
           <span className="min-w-[10rem] text-center text-sm text-foreground">
             {formatWeekRange(periodStart, periodEnd)}
           </span>
-          <Link
-            href={weeksAgo > 0 ? `/?week=${weeksAgo - 1}` : "#"}
-            aria-label="Next week"
-            className={`flex h-8 w-8 items-center justify-center rounded-md border border-border ${weeksAgo > 0 ? "text-muted-foreground hover:text-foreground" : "pointer-events-none opacity-30"}`}
-          >
-            <ChevronRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
+          {weeksAgo > 0 ? (
+            <Link
+              href={`/?week=${weeksAgo - 1}`}
+              aria-label="Next week"
+              className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground hover:text-foreground"
+            >
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          ) : (
+            <span
+              role="link"
+              aria-disabled="true"
+              aria-label="Next week"
+              className="flex h-8 w-8 items-center justify-center rounded-md border border-border opacity-30"
+            >
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            </span>
+          )}
         </div>
       </header>
 
@@ -344,7 +367,7 @@ export default async function HomePage({
                   <li key={m.id} className="flex items-center justify-between gap-3 px-4 py-3">
                     <div className="min-w-0">
                       <p className="text-xs text-muted-foreground">
-                        {new Date(m.scheduledStart).toLocaleDateString(undefined, {
+                        {new Date(m.scheduledStart).toLocaleDateString("en-US", {
                           weekday: "short",
                           month: "short",
                           day: "numeric",
@@ -354,7 +377,7 @@ export default async function HomePage({
                         {m.employeeName}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(m.scheduledStart).toLocaleTimeString(undefined, {
+                        {new Date(m.scheduledStart).toLocaleTimeString("en-US", {
                           hour: "numeric",
                           minute: "2-digit",
                         })}
@@ -415,20 +438,10 @@ export default async function HomePage({
                               Math.abs(metric.previousTeamAverage)) *
                             100
                           : null;
-                      const isImproved =
-                        change !== null &&
-                        ((metric.direction === "higher_is_better" && change > 0) ||
-                          (metric.direction === "lower_is_better" && change < 0));
-                      const metricStatus =
-                        change === null
-                          ? "no_data"
-                          : Math.abs(change) < 1
-                            ? "on_target"
-                            : isImproved
-                              ? "on_target"
-                              : Math.abs(change) >= 10
-                                ? "off_target"
-                                : "warning";
+                      const { status: metricStatus, isImproved } = evaluateChangeStatus(
+                        change,
+                        metric.direction
+                      );
                       return (
                         <tr key={metric.metricKey} className="border-b last:border-0">
                           <td className="py-2.5 text-foreground">{metric.metricName}</td>
