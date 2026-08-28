@@ -136,35 +136,37 @@ export function SidebarClient({
         </div>
 
         {/* Secondary nav */}
-        <div className="mt-8 space-y-1">
-          {!collapsed && (
-            <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
-              Operations
-            </p>
-          )}
-          {secondaryNav.map((item) => {
-            const active = isActive(item.href);
-            const Icon = ICON_MAP[item.iconName];
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                title={collapsed ? item.label : undefined}
-                className={cn(
-                  "flex items-center rounded-md py-2 text-sm font-medium transition-colors",
-                  collapsed ? "justify-center px-0" : "gap-3 px-3",
-                  active
-                    ? "bg-sidebar-primary/15 text-white"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                )}
-              >
-                {Icon && <Icon className="h-4 w-4 shrink-0" />}
-                {!collapsed && item.label}
-              </Link>
-            );
-          })}
-        </div>
+        {secondaryNav.length > 0 && (
+          <div className="mt-8 space-y-1">
+            {!collapsed && (
+              <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
+                Operations
+              </p>
+            )}
+            {secondaryNav.map((item) => {
+              const active = isActive(item.href);
+              const Icon = ICON_MAP[item.iconName];
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  title={collapsed ? item.label : undefined}
+                  className={cn(
+                    "flex items-center rounded-md py-2 text-sm font-medium transition-colors",
+                    collapsed ? "justify-center px-0" : "gap-3 px-3",
+                    active
+                      ? "bg-sidebar-primary/15 text-white"
+                      : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  )}
+                >
+                  {Icon && <Icon className="h-4 w-4 shrink-0" />}
+                  {!collapsed && item.label}
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </nav>
 
       {/* Collapse toggle */}

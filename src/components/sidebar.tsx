@@ -9,9 +9,10 @@ const primaryNav = [
   { label: "1:1s", href: "/one-on-ones", iconName: "Calendar" },
 ];
 
-const secondaryNav = [
+const adminNav = [
   { label: "Data Health", href: "/data-health", iconName: "Activity" },
   { label: "Reconciliation", href: "/reconciliation", iconName: "Scale" },
+  { label: "Admin", href: "/admin", iconName: "ShieldCheck" },
 ];
 
 function BrandMark() {
@@ -42,9 +43,7 @@ export async function Sidebar() {
   const headerList = await headers();
   const pathname = headerList.get("x-pathname") ?? "/";
   const isAdmin = user?.email ? await isPlatformAdmin(user.email) : false;
-  const secondary = isAdmin
-    ? [...secondaryNav, { label: "Admin", href: "/admin", iconName: "ShieldCheck" }]
-    : secondaryNav;
+  const secondary = isAdmin ? adminNav : [];
 
   async function handleSignOut() {
     "use server";
