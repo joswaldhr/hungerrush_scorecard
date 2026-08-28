@@ -139,7 +139,7 @@ export default async function EmployeePage({
 
   const selectedMetricKey = metricParam ?? null;
   const selectedSnapshot = selectedMetricKey
-    ? summary.metricSnapshots.find((s) => s.metricKey === selectedMetricKey) ?? null
+    ? (summary.metricSnapshots.find((s) => s.metricKey === selectedMetricKey) ?? null)
     : null;
   const chartSnapshot =
     selectedSnapshot ??
@@ -228,9 +228,7 @@ export default async function EmployeePage({
               {summary.metricSnapshots.length} on target
             </span>
             <span>
-              <span className="text-lg font-semibold text-status-on-track">
-                {improvingCount}
-              </span>{" "}
+              <span className="text-lg font-semibold text-status-on-track">{improvingCount}</span>{" "}
               improving
             </span>
             <span>
@@ -261,9 +259,14 @@ export default async function EmployeePage({
               <div className="space-y-1.5">
                 {summary.changes.map((change) => {
                   const pct =
-                    change.changePercent !== null ? Math.abs(change.changePercent).toFixed(0) : null;
+                    change.changePercent !== null
+                      ? Math.abs(change.changePercent).toFixed(0)
+                      : null;
                   return (
-                    <div key={change.metricKey} className="flex items-center justify-between py-1.5">
+                    <div
+                      key={change.metricKey}
+                      className="flex items-center justify-between py-1.5"
+                    >
                       <span className="text-sm text-foreground">{change.metricName}</span>
                       <div className="flex items-center gap-2">
                         <MetricValue
@@ -346,7 +349,9 @@ export default async function EmployeePage({
                     <tr className="border-b text-left">
                       <th className="pb-2 font-medium text-muted-foreground">Metric</th>
                       <th className="pb-2 font-medium text-muted-foreground text-right">Current</th>
-                      <th className="pb-2 font-medium text-muted-foreground text-right">Previous</th>
+                      <th className="pb-2 font-medium text-muted-foreground text-right">
+                        Previous
+                      </th>
                       <th className="pb-2 font-medium text-muted-foreground text-right">Target</th>
                       <th className="pb-2 font-medium text-muted-foreground text-right">Status</th>
                       <th className="pb-2 font-medium text-muted-foreground text-right">Trend</th>

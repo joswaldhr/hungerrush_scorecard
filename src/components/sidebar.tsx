@@ -33,11 +33,7 @@ function BrandMark() {
         strokeWidth="1.5"
         strokeLinejoin="round"
       />
-      <path
-        d="M14 17V3"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
+      <path d="M14 17V3" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   );
 }
@@ -60,7 +56,9 @@ export async function Sidebar() {
           <BrandMark />
           <div className="leading-none">
             <span className="text-xs font-semibold tracking-widest text-white">HUNGERRUSH</span>
-            <span className="mt-0.5 block text-[10px] font-semibold tracking-widest text-sidebar-primary">CADENCE</span>
+            <span className="mt-0.5 block text-[10px] font-semibold tracking-widest text-sidebar-primary">
+              CADENCE
+            </span>
           </div>
         </div>
       </div>

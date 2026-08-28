@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { formatMetricValue } from "@/lib/domain/metrics/types";
 import type { ValueType } from "@/lib/domain/metrics/types";
 import { EmptyState } from "@/components/empty-state";
@@ -18,6 +21,8 @@ export function MetricHistoryChart({
   unit: string | null;
   valueType: ValueType;
 }) {
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
   const points = history
     .map((h, i) => (h.value === null ? null : { i, value: h.value }))
     .filter((p): p is { i: number; value: number } => p !== null);
@@ -66,12 +71,15 @@ export function MetricHistoryChart({
     (v, i, arr) => arr.indexOf(v) === i
   );
 
+  const hoveredPoint = hoveredIdx !== null ? points.find((p) => p.i === hoveredIdx) : null;
+
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
       className="w-full"
       role="img"
       aria-label="Historical performance chart"
+      onMouseLeave={() => setHoveredIdx(null)}
     >
       {yTicks.map((tick, i) => (
         <g key={i}>
@@ -129,8 +137,82 @@ export function MetricHistoryChart({
         strokeLinejoin="round"
       />
       {points.map((p) => (
-        <circle key={p.i} cx={xFor(p.i)} cy={yFor(p.value)} r={2.5} fill="oklch(var(--accent))" />
+        <circle
+          key={p.i}
+          cx={xFor(p.i)}
+          cy={yFor(p.value)}
+          r={hoveredIdx === p.i ? 4 : 2.5}
+          fill="oklch(var(--accent))"
+        />
       ))}
+
+      {/* Invisible hover zones for each data point */}
+      {points.map((p) => (
+        <rect
+          key={`hover-${p.i}`}
+          x={xFor(p.i) - stepX / 2}
+          y={padTop}
+          width={stepX}
+          height={plotHeight}
+          fill="transparent"
+          onMouseEnter={() => setHoveredIdx(p.i)}
+        />
+      ))}
+
+      {/* Tooltip */}
+      {hoveredPoint &&
+        (() => {
+          const tx = xFor(hoveredPoint.i);
+          const ty = yFor(hoveredPoint.value);
+          const label = new Date(
+            `${history[hoveredPoint.i]!.periodStart}T00:00:00Z`
+          ).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+          const val = formatMetricValue(hoveredPoint.value, unit, valueType);
+          const tooltipAbove = ty > padTop + 40;
+          const tooltipY = tooltipAbove ? ty - 12 : ty + 20;
+
+          return (
+            <g>
+              <line
+                x1={tx}
+                x2={tx}
+                y1={padTop}
+                y2={padTop + plotHeight}
+                stroke="oklch(var(--accent) / 0.3)"
+                strokeWidth={1}
+                strokeDasharray="3 2"
+              />
+              <rect
+                x={tx - 42}
+                y={tooltipY - 14}
+                width={84}
+                height={30}
+                rx={4}
+                fill="oklch(var(--foreground))"
+                opacity={0.9}
+              />
+              <text
+                x={tx}
+                y={tooltipY - 1}
+                textAnchor="middle"
+                fill="oklch(var(--background))"
+                fontSize={10}
+                fontWeight={600}
+              >
+                {val}
+              </text>
+              <text
+                x={tx}
+                y={tooltipY + 10}
+                textAnchor="middle"
+                fill="oklch(var(--background) / 0.7)"
+                fontSize={9}
+              >
+                {label}
+              </text>
+            </g>
+          );
+        })()}
 
       {labelIndices.map((i) => (
         <text

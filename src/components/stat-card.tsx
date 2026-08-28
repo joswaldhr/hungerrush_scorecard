@@ -17,7 +17,7 @@ export function StatCard({
   className?: string;
 }) {
   return (
-    <div className={cn("flex items-center gap-3 rounded-lg border bg-card p-4", className)}>
+    <div className={cn("flex items-center gap-4 rounded-lg border bg-card p-5", className)}>
       <div
         className={cn(
           "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
@@ -27,9 +27,9 @@ export function StatCard({
         <Icon className="h-5 w-5" aria-hidden="true" />
       </div>
       <div>
-        <p className="text-2xl font-semibold leading-none text-foreground">{value}</p>
+        <p className="text-stat-value font-bold leading-none text-foreground">{value}</p>
         <p className="mt-1 text-sm text-foreground">{label}</p>
-        {detail && <p className="text-xs text-muted-foreground">{detail}</p>}
+        {detail && <p className="mt-0.5 text-xs text-muted-foreground">{detail}</p>}
       </div>
     </div>
   );

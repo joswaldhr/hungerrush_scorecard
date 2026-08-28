@@ -192,36 +192,38 @@ export default async function TeamPage({
         const watch = teamEmps.filter((d) => d.overallStatus === "mixed").length;
         const needsAttention = teamEmps.filter((d) => d.overallStatus === "needs_attention").length;
 
-        const rows: RosterRow[] = teamEmps.map(({ employee, metrics, primary, trend, overallStatus }) => {
-          const keyChangeRaw = findKeyChange(metrics);
-          const keyChange = keyChangeRaw
-            ? {
-                name: keyChangeRaw.name,
-                pct: keyChangeRaw.pct,
-                improved: metrics.some(
-                  (m) =>
-                    m.name === keyChangeRaw.name &&
-                    ((m.direction === "higher_is_better" && keyChangeRaw.pct > 0) ||
-                      (m.direction === "lower_is_better" && keyChangeRaw.pct < 0))
-                ),
-              }
-            : null;
+        const rows: RosterRow[] = teamEmps.map(
+          ({ employee, metrics, primary, trend, overallStatus }) => {
+            const keyChangeRaw = findKeyChange(metrics);
+            const keyChange = keyChangeRaw
+              ? {
+                  name: keyChangeRaw.name,
+                  pct: keyChangeRaw.pct,
+                  improved: metrics.some(
+                    (m) =>
+                      m.name === keyChangeRaw.name &&
+                      ((m.direction === "higher_is_better" && keyChangeRaw.pct > 0) ||
+                        (m.direction === "lower_is_better" && keyChangeRaw.pct < 0))
+                  ),
+                }
+              : null;
 
-          return {
-            employeeId: employee.id,
-            displayName: employee.displayName,
-            jobTitle: employee.jobTitle,
-            overallStatus,
-            keyChange,
-            metricsOnTarget: metrics.filter((m) => m.status.status === "on_target").length,
-            metricsOffTarget: metrics.filter((m) => m.status.status === "off_target").length,
-            metricsNoData: metrics.filter((m) => m.status.status === "no_data").length,
-            metricsTotal: metrics.length,
-            trend,
-            trendDirection: primary?.direction ?? "neutral",
-            upcomingMeetingAt: upcomingByEmployee.get(employee.id) ?? null,
-          };
-        });
+            return {
+              employeeId: employee.id,
+              displayName: employee.displayName,
+              jobTitle: employee.jobTitle,
+              overallStatus,
+              keyChange,
+              metricsOnTarget: metrics.filter((m) => m.status.status === "on_target").length,
+              metricsOffTarget: metrics.filter((m) => m.status.status === "off_target").length,
+              metricsNoData: metrics.filter((m) => m.status.status === "no_data").length,
+              metricsTotal: metrics.length,
+              trend,
+              trendDirection: primary?.direction ?? "neutral",
+              upcomingMeetingAt: upcomingByEmployee.get(employee.id) ?? null,
+            };
+          }
+        );
 
         return (
           <section key={team.id} className="space-y-4">

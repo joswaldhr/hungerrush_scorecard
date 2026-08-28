@@ -13,25 +13,13 @@ import { ReconciliationActions } from "./actions";
 function statusIcon(status: string) {
   switch (status) {
     case "match":
-      return (
-        <CheckCircle
-          className="h-3.5 w-3.5 text-status-on-track"
-          aria-hidden="true"
-        />
-      );
+      return <CheckCircle className="h-3.5 w-3.5 text-status-on-track" aria-hidden="true" />;
     case "mismatch":
-      return (
-        <XCircle className="h-3.5 w-3.5 text-status-attention" aria-hidden="true" />
-      );
+      return <XCircle className="h-3.5 w-3.5 text-status-attention" aria-hidden="true" />;
     case "source_missing":
       return <MinusCircle className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />;
     case "cadence_missing":
-      return (
-        <AlertTriangle
-          className="h-3.5 w-3.5 text-status-watch"
-          aria-hidden="true"
-        />
-      );
+      return <AlertTriangle className="h-3.5 w-3.5 text-status-watch" aria-hidden="true" />;
     default:
       return null;
   }
@@ -135,9 +123,7 @@ export default async function ReconciliationPage() {
                       <p>{run.totalComparisons} comparisons</p>
                       <p className="text-status-on-track">{run.matchCount} match</p>
                       {run.mismatchCount > 0 && (
-                        <p className="text-status-attention">
-                          {run.mismatchCount} mismatch
-                        </p>
+                        <p className="text-status-attention">{run.mismatchCount} mismatch</p>
                       )}
                       {run.sourceMissingCount > 0 && <p>{run.sourceMissingCount} source missing</p>}
                       {run.cadenceMissingCount > 0 && (

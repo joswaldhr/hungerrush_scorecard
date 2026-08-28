@@ -30,10 +30,7 @@ export function DataFreshness({
   if (syncError) {
     return (
       <span
-        className={cn(
-          "inline-flex items-center gap-1 text-xs text-status-attention",
-          className
-        )}
+        className={cn("inline-flex items-center gap-1 text-xs text-status-attention", className)}
       >
         <AlertTriangle className="h-3 w-3" aria-hidden="true" />
         <span>Sync error</span>

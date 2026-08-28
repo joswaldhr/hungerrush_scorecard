@@ -185,14 +185,20 @@ export default async function OneOnOnePage({ params }: { params: Promise<{ id: s
           <Card>
             <CardContent className="py-5 px-5">
               <div className="flex gap-4">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${trendColor}`}>
+                <div
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${trendColor}`}
+                >
                   <TrendIcon className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-[15px] text-foreground leading-relaxed">{prep.takeaway.text}</p>
+                  <p className="text-[15px] text-foreground leading-relaxed">
+                    {prep.takeaway.text}
+                  </p>
                   <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted-foreground">
                     <span>
-                      <span className="font-medium text-foreground">{prep.atAGlance.metricsOnTarget}</span>{" "}
+                      <span className="font-medium text-foreground">
+                        {prep.atAGlance.metricsOnTarget}
+                      </span>{" "}
                       on target
                     </span>
                     <span>
@@ -209,7 +215,11 @@ export default async function OneOnOnePage({ params }: { params: Promise<{ id: s
                     </span>
                     <span>of {prep.atAGlance.totalMetrics} total</span>
                   </div>
-                  <DataFreshness freshnessAt={prep.meta.dataFreshnessAt} now={now} className="mt-2" />
+                  <DataFreshness
+                    freshnessAt={prep.meta.dataFreshnessAt}
+                    now={now}
+                    className="mt-2"
+                  />
                 </div>
               </div>
             </CardContent>
@@ -358,7 +368,6 @@ export default async function OneOnOnePage({ params }: { params: Promise<{ id: s
           </BriefingSection>
         </div>
       </div>
-
     </div>
   );
 }

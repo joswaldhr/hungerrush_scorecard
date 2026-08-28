@@ -1,10 +1,5 @@
 import { db } from "@/lib/db";
-import {
-  metricDefinitions,
-  metricAssignments,
-  metricValues,
-  metricTargets,
-} from "@/lib/db/schema";
+import { metricDefinitions, metricAssignments, metricValues, metricTargets } from "@/lib/db/schema";
 import { eq, and, inArray, desc } from "drizzle-orm";
 import type { ManagerContext } from "@/lib/auth/authorization";
 import { assertCanAccessEmployee } from "@/lib/auth/authorization";
@@ -285,4 +280,3 @@ export async function getTeamMetricTrend(
     return values && values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null;
   });
 }
-

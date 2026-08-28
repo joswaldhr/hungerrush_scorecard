@@ -17,7 +17,9 @@ export interface ManagerContext {
 
 type UserRow = typeof users.$inferSelect;
 
-const getActiveUserByEmail = cache(async function getActiveUserByEmail(email: string): Promise<UserRow | null> {
+const getActiveUserByEmail = cache(async function getActiveUserByEmail(
+  email: string
+): Promise<UserRow | null> {
   const [user] = await db
     .select()
     .from(users)
@@ -67,7 +69,9 @@ export async function getManagerContext(email: string): Promise<ManagerContext |
   return buildManagerContext(user);
 }
 
-export const isPlatformAdmin = cache(async function isPlatformAdmin(email: string): Promise<boolean> {
+export const isPlatformAdmin = cache(async function isPlatformAdmin(
+  email: string
+): Promise<boolean> {
   const user = await getActiveUserByEmail(email);
   return user?.isPlatformAdmin ?? false;
 });
@@ -84,7 +88,9 @@ export interface EffectiveManagerContext {
  * to view as (via the cadence_view_as cookie) — set only through the /admin
  * "View as" flow, which itself re-checks isPlatformAdmin server-side.
  */
-export const getEffectiveManagerContext = cache(async function getEffectiveManagerContext(email: string): Promise<EffectiveManagerContext> {
+export const getEffectiveManagerContext = cache(async function getEffectiveManagerContext(
+  email: string
+): Promise<EffectiveManagerContext> {
   const user = await getActiveUserByEmail(email);
   if (!user) return { ctx: null, isPlatformAdmin: false, viewingAs: null };
 

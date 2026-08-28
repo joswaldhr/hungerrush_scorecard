@@ -14,15 +14,11 @@ import { SyncNowButton } from "./actions";
 function syncStatusIcon(status: string) {
   switch (status) {
     case "completed":
-      return (
-        <CheckCircle className="h-4 w-4 text-status-on-track" aria-hidden="true" />
-      );
+      return <CheckCircle className="h-4 w-4 text-status-on-track" aria-hidden="true" />;
     case "running":
       return <Clock className="h-4 w-4 text-status-watch" aria-hidden="true" />;
     case "failed":
-      return (
-        <XCircle className="h-4 w-4 text-status-attention" aria-hidden="true" />
-      );
+      return <XCircle className="h-4 w-4 text-status-attention" aria-hidden="true" />;
     default:
       return <AlertTriangle className="h-4 w-4 text-muted-foreground" aria-hidden="true" />;
   }
@@ -129,9 +125,7 @@ export default async function DataHealthPage() {
                   <span>{latestRun.recordsNormalized} normalized</span>
                   {latestRun.recordsSkipped > 0 && <span>{latestRun.recordsSkipped} skipped</span>}
                   {latestRun.errorCount > 0 && (
-                    <span className="text-status-attention">
-                      {latestRun.errorCount} errors
-                    </span>
+                    <span className="text-status-attention">{latestRun.errorCount} errors</span>
                   )}
                 </div>
               )}
