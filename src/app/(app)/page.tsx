@@ -15,17 +15,30 @@ import { TrendSparkline } from "@/components/trend-sparkline";
 import { MetricValue } from "@/components/metric-value";
 import { DataFreshness } from "@/components/data-freshness";
 import { BriefingSection } from "@/components/briefing-section";
+import { StatusBadge } from "@/components/status-badge";
 import { EmptyState } from "@/components/empty-state";
 import { StatCard } from "@/components/stat-card";
 import { Card, CardContent } from "@/components/ui/card";
-import { AlertTriangle, AlertCircle, CheckCircle2, TrendingUp, Users } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  AlertTriangle,
+  AlertCircle,
+  CheckCircle2,
+  TrendingUp,
+  Users,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import Link from "next/link";
 
-function weekDates() {
+function weekDatesForOffset(weeksAgo: number) {
   const now = new Date();
   const dayOfWeek = now.getDay();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
+  const currentMonday = new Date(now);
+  currentMonday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
+
+  const monday = new Date(currentMonday);
+  monday.setDate(currentMonday.getDate() - weeksAgo * 7);
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
   const prevMonday = new Date(monday);
@@ -36,6 +49,7 @@ function weekDates() {
     previousPeriodStart: prevMonday.toISOString().split("T")[0]!,
     now: now.getTime(),
     hour: now.getHours(),
+    isCurrentWeek: weeksAgo === 0,
   };
 }
 
@@ -55,7 +69,29 @@ function pctOfTeam(n: number, total: number): string {
   return `${Math.round((n / total) * 100)}% of team`;
 }
 
-export default async function HomePage() {
+function initials(name: string): string {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+}
+
+function formatWeekRange(periodStart: string, periodEnd: string): string {
+  const start = new Date(`${periodStart}T00:00:00Z`);
+  const end = new Date(`${periodEnd}T00:00:00Z`);
+  const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
+  return `${start.toLocaleDateString(undefined, opts)} – ${end.toLocaleDateString(undefined, opts)}`;
+}
+
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ week?: string }>;
+}) {
+  const { week: weekParam } = await searchParams;
+  const weeksAgo = Math.max(0, Math.min(12, parseInt(weekParam ?? "0", 10) || 0));
+
   const session = await auth();
   if (!session?.user?.email) redirect("/login");
 
@@ -85,7 +121,8 @@ export default async function HomePage() {
   }
 
   const employees = await getAssignedEmployees(ctx);
-  const { periodStart, periodEnd, previousPeriodStart, now, hour } = weekDates();
+  const { periodStart, periodEnd, previousPeriodStart, now, hour, isCurrentWeek } =
+    weekDatesForOffset(weeksAgo);
 
   const briefings = await Promise.all(
     teams.map((team) =>
@@ -154,13 +191,36 @@ export default async function HomePage() {
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
   return (
-    <div className="max-w-5xl space-y-8">
-      <header>
-        <h1 className="text-xl font-semibold text-foreground">
-          {greeting}, {session.user.name}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">Your weekly manager briefing</p>
-        <DataFreshness freshnessAt={overallFreshness} now={now} className="mt-2" />
+    <div className="max-w-6xl space-y-8">
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold text-foreground">
+            {greeting}, {session.user.name}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {isCurrentWeek ? "Your weekly manager briefing" : "Historical briefing"}
+          </p>
+          <DataFreshness freshnessAt={overallFreshness} now={now} className="mt-2" />
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <Link
+            href={weeksAgo < 12 ? `/?week=${weeksAgo + 1}` : "#"}
+            aria-label="Previous week"
+            className={`flex h-8 w-8 items-center justify-center rounded-md border border-border ${weeksAgo < 12 ? "text-muted-foreground hover:text-foreground" : "pointer-events-none opacity-30"}`}
+          >
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          </Link>
+          <span className="min-w-[10rem] text-center text-sm text-foreground">
+            {formatWeekRange(periodStart, periodEnd)}
+          </span>
+          <Link
+            href={weeksAgo > 0 ? `/?week=${weeksAgo - 1}` : "#"}
+            aria-label="Next week"
+            className={`flex h-8 w-8 items-center justify-center rounded-md border border-border ${weeksAgo > 0 ? "text-muted-foreground hover:text-foreground" : "pointer-events-none opacity-30"}`}
+          >
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        </div>
       </header>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -173,21 +233,21 @@ export default async function HomePage() {
         />
         <StatCard
           icon={CheckCircle2}
-          iconClassName="bg-[oklch(var(--status-on-track-bg))] text-[oklch(var(--status-on-track))]"
+          iconClassName="bg-status-on-track-bg text-[oklch(var(--status-on-track))]"
           value={totals.onTrack}
           label="On track"
           detail={pctOfTeam(totals.onTrack, totals.employees)}
         />
         <StatCard
           icon={AlertCircle}
-          iconClassName="bg-[oklch(var(--status-watch-bg))] text-[oklch(var(--status-watch))]"
+          iconClassName="bg-status-watch-bg text-[oklch(var(--status-watch))]"
           value={totals.watch}
           label="To watch"
           detail={pctOfTeam(totals.watch, totals.employees)}
         />
         <StatCard
           icon={AlertTriangle}
-          iconClassName="bg-[oklch(var(--status-attention-bg))] text-[oklch(var(--status-attention))]"
+          iconClassName="bg-status-attention-bg text-[oklch(var(--status-attention))]"
           value={totals.attention}
           label="Needs attention"
           detail={pctOfTeam(totals.attention, totals.employees)}
@@ -219,10 +279,11 @@ export default async function HomePage() {
                   <Card key={item.employeeId}>
                     <CardContent className="py-3 px-4">
                       <div className="flex items-start gap-3">
-                        <AlertTriangle
-                          className="h-4 w-4 mt-0.5 text-[oklch(var(--status-attention))] shrink-0"
-                          aria-hidden="true"
-                        />
+                        <Avatar className="h-8 w-8 shrink-0 mt-0.5">
+                          <AvatarFallback className="text-xs bg-status-attention-bg text-[oklch(var(--status-attention))]">
+                            {initials(item.employeeName)}
+                          </AvatarFallback>
+                        </Avatar>
                         <div className="min-w-0">
                           <Link
                             href={`/employee/${item.employeeId}`}
@@ -261,10 +322,11 @@ export default async function HomePage() {
                   <Card key={item.employeeId}>
                     <CardContent className="py-3 px-4">
                       <div className="flex items-start gap-3">
-                        <TrendingUp
-                          className="h-4 w-4 mt-0.5 text-[oklch(var(--status-on-track))] shrink-0"
-                          aria-hidden="true"
-                        />
+                        <Avatar className="h-8 w-8 shrink-0 mt-0.5">
+                          <AvatarFallback className="text-xs bg-status-on-track-bg text-[oklch(var(--status-on-track))]">
+                            {initials(item.employeeName)}
+                          </AvatarFallback>
+                        </Avatar>
                         <div className="min-w-0">
                           <Link
                             href={`/employee/${item.employeeId}`}
@@ -366,6 +428,7 @@ export default async function HomePage() {
                         Team Avg
                       </th>
                       <th className="pb-2 font-medium text-muted-foreground text-right">Prev</th>
+                      <th className="pb-2 font-medium text-muted-foreground text-right">Status</th>
                       <th className="pb-2 font-medium text-muted-foreground text-right">Change</th>
                       <th className="pb-2 font-medium text-muted-foreground text-right">
                         Trend (4 weeks)
@@ -386,6 +449,16 @@ export default async function HomePage() {
                         change !== null &&
                         ((metric.direction === "higher_is_better" && change > 0) ||
                           (metric.direction === "lower_is_better" && change < 0));
+                      const metricStatus =
+                        change === null
+                          ? "no_data"
+                          : Math.abs(change) < 1
+                            ? "on_target"
+                            : isImproved
+                              ? "on_target"
+                              : Math.abs(change) >= 10
+                                ? "off_target"
+                                : "warning";
                       return (
                         <tr key={metric.metricKey} className="border-b last:border-0">
                           <td className="py-2.5 text-foreground">{metric.metricName}</td>
@@ -398,6 +471,7 @@ export default async function HomePage() {
                               }
                               unit={metric.unit}
                               valueType={metric.valueType}
+                              className="font-medium"
                             />
                           </td>
                           <td className="py-2.5 text-right text-muted-foreground">
@@ -410,6 +484,11 @@ export default async function HomePage() {
                               unit={metric.unit}
                               valueType={metric.valueType}
                             />
+                          </td>
+                          <td className="py-2.5 text-right">
+                            <div className="flex justify-end">
+                              <StatusBadge status={metricStatus} />
+                            </div>
                           </td>
                           <td className="py-2.5 text-right">
                             {change !== null ? (
