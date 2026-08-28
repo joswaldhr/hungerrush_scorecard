@@ -6,13 +6,18 @@ import {
   getAssignedEmployees,
 } from "@/lib/auth/authorization";
 import { getEmployeeMetricsBatch } from "@/lib/domain/metrics/queries";
-import { deriveOverallStatus } from "@/lib/domain/briefings/generate";
+import {
+  deriveOverallStatus,
+  getStalenessSignals,
+  getCadenceGapDays,
+  STALE_MEETING_CADENCE_DAYS,
+} from "@/lib/domain/briefings/generate";
 import { db } from "@/lib/db";
 import { meetingReferences } from "@/lib/db/schema";
 import { and, eq, gte, asc, inArray } from "drizzle-orm";
 import { EmptyState } from "@/components/empty-state";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ShieldAlert, Users, Calendar } from "lucide-react";
+import { ShieldAlert, Users, Calendar, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { initials, weekDates } from "@/lib/utils";
 
@@ -40,6 +45,9 @@ export default async function OneOnOnesPage() {
   }
 
   const { periodStart, previousPeriodStart } = weekDates();
+  const now = new Date();
+
+  const stalenessSignals = await getStalenessSignals(ctx.assignedEmployeeIds);
 
   const upcomingByEmployee = new Map<string, Date>();
   if (ctx.assignedEmployeeIds.length > 0) {
@@ -110,6 +118,9 @@ export default async function OneOnOnesPage() {
                 {teamEmployees.map((employee) => {
                   const nextMeeting = upcomingByEmployee.get(employee.id);
                   const status = statusByEmployee.get(employee.id) ?? "no_data";
+                  const cadenceGapDays = getCadenceGapDays(employee.id, stalenessSignals, now);
+                  const cadenceStale =
+                    cadenceGapDays === null || cadenceGapDays >= STALE_MEETING_CADENCE_DAYS;
                   return (
                     <Link
                       key={employee.id}
@@ -133,6 +144,19 @@ export default async function OneOnOnesPage() {
                           <p className="text-xs text-muted-foreground">{employee.jobTitle}</p>
                         )}
                       </div>
+                      {cadenceStale && (
+                        <span
+                          className="flex items-center gap-1 text-xs text-status-attention"
+                          title={
+                            cadenceGapDays === null
+                              ? "No 1:1 on record"
+                              : `No 1:1 recorded in ${cadenceGapDays} days`
+                          }
+                        >
+                          <AlertTriangle className="h-3 w-3" aria-hidden="true" />
+                          {cadenceGapDays === null ? "No 1:1 yet" : `${cadenceGapDays}d`}
+                        </span>
+                      )}
                       {nextMeeting && (
                         <span className="flex items-center gap-1 text-xs text-muted-foreground">
                           <Calendar className="h-3 w-3" aria-hidden="true" />

@@ -2,6 +2,9 @@ import type { ManagerContext } from "@/lib/auth/authorization";
 import { getAssignedEmployees } from "@/lib/auth/authorization";
 import { getEmployeeMetrics, getEmployeeMetricsBatch } from "../metrics/queries";
 import type { EmployeeMetricRow } from "../metrics/queries";
+import { db } from "@/lib/db";
+import { actionItems, meetingReferences, meetingNotes } from "@/lib/db/schema";
+import { and, eq, inArray, lt } from "drizzle-orm";
 import type {
   TeamBriefingPayload,
   EmployeeSummaryPayload,
@@ -12,6 +15,7 @@ import type {
   AttentionItem,
   ImprovementItem,
   TeamMetricSummary,
+  EvidencedStatement,
 } from "./types";
 import {
   describeExecutiveSummary,
@@ -131,6 +135,107 @@ function oldestFreshness(metrics: EmployeeMetricRow[]): Date | null {
   return new Date(Math.min(...dates.map((d) => d.getTime())));
 }
 
+const STALE_ACTION_ITEM_DAYS = 14;
+const STALE_MEETING_CADENCE_DAYS = 21;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+interface StalenessSignals {
+  oldestOpenActionItem: Map<string, Date>;
+  openActionItemCount: Map<string, number>;
+  lastContact: Map<string, Date>;
+}
+
+export async function getStalenessSignals(employeeIds: string[]): Promise<StalenessSignals> {
+  const oldestOpenActionItem = new Map<string, Date>();
+  const openActionItemCount = new Map<string, number>();
+  const lastContact = new Map<string, Date>();
+
+  if (employeeIds.length === 0) {
+    return { oldestOpenActionItem, openActionItemCount, lastContact };
+  }
+
+  const now = new Date();
+
+  const [openItems, notes, pastMeetings] = await Promise.all([
+    db
+      .select({ employeeId: actionItems.employeeId, createdAt: actionItems.createdAt })
+      .from(actionItems)
+      .where(and(inArray(actionItems.employeeId, employeeIds), eq(actionItems.status, "open"))),
+    db
+      .select({ employeeId: meetingNotes.employeeId, createdAt: meetingNotes.createdAt })
+      .from(meetingNotes)
+      .where(inArray(meetingNotes.employeeId, employeeIds)),
+    db
+      .select({
+        employeeId: meetingReferences.employeeId,
+        scheduledStart: meetingReferences.scheduledStart,
+      })
+      .from(meetingReferences)
+      .where(and(inArray(meetingReferences.employeeId, employeeIds), lt(meetingReferences.scheduledStart, now))),
+  ]);
+
+  for (const item of openItems) {
+    openActionItemCount.set(item.employeeId, (openActionItemCount.get(item.employeeId) ?? 0) + 1);
+    const existing = oldestOpenActionItem.get(item.employeeId);
+    if (!existing || item.createdAt < existing) {
+      oldestOpenActionItem.set(item.employeeId, item.createdAt);
+    }
+  }
+
+  for (const n of notes) {
+    const existing = lastContact.get(n.employeeId);
+    if (!existing || n.createdAt > existing) lastContact.set(n.employeeId, n.createdAt);
+  }
+  for (const m of pastMeetings) {
+    const existing = lastContact.get(m.employeeId);
+    if (!existing || m.scheduledStart > existing) lastContact.set(m.employeeId, m.scheduledStart);
+  }
+
+  return { oldestOpenActionItem, openActionItemCount, lastContact };
+}
+
+export function getCadenceGapDays(
+  employeeId: string,
+  signals: StalenessSignals,
+  now: Date
+): number | null {
+  const lastContact = signals.lastContact.get(employeeId);
+  return lastContact ? Math.floor((now.getTime() - lastContact.getTime()) / MS_PER_DAY) : null;
+}
+
+export { STALE_MEETING_CADENCE_DAYS };
+
+function buildStalenessReasons(
+  employeeId: string,
+  signals: StalenessSignals,
+  now: Date
+): EvidencedStatement[] {
+  const reasons: EvidencedStatement[] = [];
+
+  const oldestOpen = signals.oldestOpenActionItem.get(employeeId);
+  if (oldestOpen) {
+    const ageDays = Math.floor((now.getTime() - oldestOpen.getTime()) / MS_PER_DAY);
+    if (ageDays >= STALE_ACTION_ITEM_DAYS) {
+      const count = signals.openActionItemCount.get(employeeId) ?? 1;
+      reasons.push({
+        text: `${count} action item${count > 1 ? "s" : ""} open ${ageDays}+ days`,
+        evidence: [{ type: "observation" }],
+      });
+    }
+  }
+
+  const lastContact = signals.lastContact.get(employeeId);
+  const gapDays = lastContact ? Math.floor((now.getTime() - lastContact.getTime()) / MS_PER_DAY) : null;
+  if (gapDays === null || gapDays >= STALE_MEETING_CADENCE_DAYS) {
+    reasons.push({
+      text: gapDays === null ? "No 1:1 on record" : `No 1:1 recorded in ${gapDays} days`,
+      evidence: [{ type: "observation" }],
+    });
+  }
+
+  return reasons;
+}
+
 // ── Public Generators ──────────────────────────────────────
 
 export async function generateTeamBriefing(
@@ -155,6 +260,9 @@ export async function generateTeamBriefing(
     employee: emp,
     metrics: metricsByEmployee.get(emp.id) ?? [],
   }));
+
+  const stalenessSignals = await getStalenessSignals(teamEmployees.map((emp) => emp.id));
+  const now = new Date();
 
   let allFreshness: Date | null = null;
   const statusCounts = { onTarget: 0, warning: 0, offTarget: 0, noData: 0 };
@@ -187,22 +295,27 @@ export async function generateTeamBriefing(
         Math.abs(c.changePercent) >= 10
     );
 
-    if (declining.length > 0) {
+    const stalenessReasons = buildStalenessReasons(employee.id, stalenessSignals, now);
+
+    if (declining.length > 0 || stalenessReasons.length > 0) {
       needsAttention.push({
         employeeId: employee.id,
         employeeName: employee.displayName,
-        reasons: declining.map((c) => ({
-          text: c.evidence,
-          evidence: [
-            {
-              type: "metric_value" as const,
-              metricKey: c.metricKey,
-              metricName: c.metricName,
-              value: c.currentValue ?? undefined,
-              comparisonValue: c.previousValue ?? undefined,
-            },
-          ],
-        })),
+        reasons: [
+          ...declining.map((c) => ({
+            text: c.evidence,
+            evidence: [
+              {
+                type: "metric_value" as const,
+                metricKey: c.metricKey,
+                metricName: c.metricName,
+                value: c.currentValue ?? undefined,
+                comparisonValue: c.previousValue ?? undefined,
+              },
+            ],
+          })),
+          ...stalenessReasons,
+        ],
       });
     }
 
