@@ -12,6 +12,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { MeetingPrepChecklist } from "@/components/meeting-prep-checklist";
+import { MeetingNotesForm } from "./meeting-notes-form";
+import { ActionItemsPanel } from "./action-items-panel";
 import {
   MessageCircle,
   Star,
@@ -30,8 +32,8 @@ import {
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { teams, meetingReferences } from "@/lib/db/schema";
-import { eq, and, gte, asc } from "drizzle-orm";
+import { teams, meetingReferences, meetingNotes, actionItems } from "@/lib/db/schema";
+import { eq, and, gte, asc, desc } from "drizzle-orm";
 import { env } from "@/lib/env";
 import { weekDates, initials } from "@/lib/utils";
 
@@ -107,6 +109,55 @@ export default async function OneOnOnePage({
     .limit(1);
 
   const previousContext = await getEmployeeContext(ctx, employee.id, 6);
+
+  const [existingNote] = await db
+    .select({
+      id: meetingNotes.id,
+      outcome: meetingNotes.outcome,
+      body: meetingNotes.body,
+    })
+    .from(meetingNotes)
+    .where(
+      and(
+        eq(meetingNotes.employeeId, employee.id),
+        eq(meetingNotes.managerUserId, ctx.userId)
+      )
+    )
+    .orderBy(desc(meetingNotes.updatedAt))
+    .limit(1);
+
+  const openActions = await db
+    .select({
+      id: actionItems.id,
+      title: actionItems.title,
+      status: actionItems.status,
+      completedAt: actionItems.completedAt,
+    })
+    .from(actionItems)
+    .where(
+      and(
+        eq(actionItems.employeeId, employee.id),
+        eq(actionItems.managerUserId, ctx.userId)
+      )
+    )
+    .orderBy(asc(actionItems.createdAt))
+    .limit(20);
+
+  const nextMeetingId = nextMeeting
+    ? (
+        await db
+          .select({ id: meetingReferences.id })
+          .from(meetingReferences)
+          .where(
+            and(
+              eq(meetingReferences.employeeId, employee.id),
+              eq(meetingReferences.managerUserId, ctx.userId),
+              eq(meetingReferences.scheduledStart, nextMeeting.scheduledStart)
+            )
+          )
+          .limit(1)
+      )[0]?.id ?? null
+    : null;
 
   return (
     <div className="max-w-3xl space-y-8">
@@ -376,6 +427,20 @@ export default async function OneOnOnePage({
           {/* Meeting Prep Checklist */}
           <BriefingSection title="Meeting prep checklist">
             <MeetingPrepChecklist employeeId={employee.id} />
+          </BriefingSection>
+
+          {/* Action Items */}
+          <BriefingSection title="Action items">
+            <ActionItemsPanel employeeId={employee.id} items={openActions} />
+          </BriefingSection>
+
+          {/* Meeting Notes */}
+          <BriefingSection title="Meeting notes">
+            <MeetingNotesForm
+              employeeId={employee.id}
+              meetingReferenceId={nextMeetingId}
+              existing={existingNote ?? null}
+            />
           </BriefingSection>
         </div>
       </div>

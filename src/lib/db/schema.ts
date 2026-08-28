@@ -506,6 +506,57 @@ export const meetingReferences = pgTable(
   ]
 );
 
+// ── Meeting Notes & Action Items ─────────────────────────
+
+export const meetingNotes = pgTable(
+  "meeting_notes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    meetingReferenceId: uuid("meeting_reference_id").references(
+      () => meetingReferences.id
+    ),
+    employeeId: uuid("employee_id")
+      .notNull()
+      .references(() => employees.id),
+    managerUserId: uuid("manager_user_id")
+      .notNull()
+      .references(() => users.id),
+    outcome: text("outcome"),
+    body: text("body"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("meeting_notes_employee_id_idx").on(table.employeeId),
+    index("meeting_notes_manager_id_idx").on(table.managerUserId),
+    index("meeting_notes_meeting_ref_idx").on(table.meetingReferenceId),
+  ]
+);
+
+export const actionItems = pgTable(
+  "action_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    employeeId: uuid("employee_id")
+      .notNull()
+      .references(() => employees.id),
+    managerUserId: uuid("manager_user_id")
+      .notNull()
+      .references(() => users.id),
+    meetingNoteId: uuid("meeting_note_id").references(() => meetingNotes.id),
+    title: text("title").notNull(),
+    status: text("status").notNull().default("open"),
+    dueDate: timestamp("due_date", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("action_items_employee_id_idx").on(table.employeeId),
+    index("action_items_manager_id_idx").on(table.managerUserId),
+    index("action_items_status_idx").on(table.status),
+  ]
+);
+
 // ── Reconciliation ───────────────────────────────────────
 
 export const reconciliationRuns = pgTable(

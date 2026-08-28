@@ -43,6 +43,13 @@
       "when": 1787765832177,
       "tag": "0005_absent_the_order",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787937510589,
+      "tag": "0006_natural_nextwave",
+      "breakpoints": true
     }
   ]
 }
