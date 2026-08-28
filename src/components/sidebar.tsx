@@ -12,6 +12,8 @@ const primaryNav = [
 const adminNav = [
   { label: "Data Health", href: "/data-health", iconName: "Activity" },
   { label: "Reconciliation", href: "/reconciliation", iconName: "Scale" },
+  { label: "Employees", href: "/admin/employees", iconName: "Users" },
+  { label: "Teams", href: "/admin/teams", iconName: "Users" },
   { label: "Admin", href: "/admin", iconName: "ShieldCheck" },
 ];
 
