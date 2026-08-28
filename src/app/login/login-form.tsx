@@ -4,13 +4,29 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { DEV_USERS } from "@/lib/auth/dev-users";
 import { initials } from "@/lib/utils";
+import { toast } from "sonner";
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleLogin(email: string) {
     setIsLoading(true);
-    await signIn("credentials", { email, callbackUrl: "/" });
+    try {
+      const result = await signIn("credentials", {
+        email,
+        callbackUrl: "/",
+        redirect: false,
+      });
+      if (result?.error) {
+        toast.error("Sign-in failed. Please try again.");
+        setIsLoading(false);
+      } else if (result?.url) {
+        window.location.href = result.url;
+      }
+    } catch {
+      toast.error("Sign-in failed. Please try again.");
+      setIsLoading(false);
+    }
   }
 
   return (

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { weekDates } from "@/lib/utils";
+import { toast } from "sonner";
 
 export function ReconciliationActions({
   teams,
@@ -16,13 +17,11 @@ export function ReconciliationActions({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState("");
-  const [error, setError] = useState<string | null>(null);
 
   const defaults = weekDates();
 
   async function handleRun() {
     setLoading(true);
-    setError(null);
 
     try {
       const res = await fetch("/api/reconciliation/run", {
@@ -37,13 +36,14 @@ export function ReconciliationActions({
 
       if (!res.ok) {
         const body = await res.json();
-        setError(body.error ?? "Failed to run reconciliation");
+        toast.error(body.error ?? "Failed to run reconciliation");
         return;
       }
 
+      toast.success("Reconciliation complete");
       router.refresh();
     } catch {
-      setError("Network error");
+      toast.error("Network error — could not reach the server");
     } finally {
       setLoading(false);
     }
@@ -85,11 +85,9 @@ export function ReconciliationActions({
           </div>
 
           <Button onClick={handleRun} disabled={loading} size="sm">
-            {loading ? "Running..." : "Run Reconciliation"}
+            {loading ? "Running…" : "Run Reconciliation"}
           </Button>
         </div>
-
-        {error && <p className="mt-2 text-xs text-status-attention">{error}</p>}
       </CardContent>
     </Card>
   );

@@ -1,12 +1,18 @@
 import { signIn } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { LoginForm } from "./login-form";
+import { SSOButton } from "./sso-button";
 
 export default function LoginPage() {
   const entraConfigured = Boolean(
     env.AUTH_MICROSOFT_ENTRA_ID_ID && env.AUTH_MICROSOFT_ENTRA_ID_SECRET
   );
   const showDevLogin = process.env.NODE_ENV !== "production";
+
+  async function handleSSO() {
+    "use server";
+    await signIn("microsoft-entra-id", { redirectTo: "/" });
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
@@ -18,21 +24,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {entraConfigured && (
-          <form
-            action={async () => {
-              "use server";
-              await signIn("microsoft-entra-id", { redirectTo: "/" });
-            }}
-          >
-            <button
-              type="submit"
-              className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              Sign in with Microsoft
-            </button>
-          </form>
-        )}
+        {entraConfigured && <SSOButton action={handleSSO} />}
 
         {showDevLogin && <LoginForm />}
       </div>
