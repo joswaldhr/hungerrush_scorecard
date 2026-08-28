@@ -24,7 +24,6 @@ import {
   AlertTriangle,
   AlertCircle,
   CheckCircle2,
-  TrendingUp,
   Users,
   ChevronLeft,
   ChevronRight,

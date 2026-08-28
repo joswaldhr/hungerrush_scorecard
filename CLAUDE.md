@@ -153,8 +153,8 @@ It must:
 
 ## Current Build Constraint
 
-Until live vendor access is explicitly confirmed, use realistic synthetic fixtures and adapters.
+Zendesk, Assembled, and Entra ID integrations are live in production. Only Rippling remains a stub — use synthetic fixtures and adapters for Rippling until live access is confirmed.
 
-Never invent API endpoints, credentials, scopes, response fields, or Rippling capabilities.
+Never invent API endpoints, credentials, scopes, or response fields for any vendor.
 
 When a vendor integration requires unknown information, stop at the connector boundary and document the exact missing requirement rather than guessing.
