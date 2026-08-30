@@ -29,6 +29,11 @@ const envSchema = z.object({
   // record, per PRODUCT.md's sanctioned fallback. Optional; the 1:1 Prep
   // page's "Open Rippling" link only renders once this is set.
   RIPPLING_MANAGER_URL: z.string().url().optional(),
+
+  // Shared secret the Vercel Cron job sends as a header to authenticate
+  // /api/cron/sync, since that route runs with no user session. Optional so
+  // local dev doesn't need it, but the route itself requires it be set.
+  CRON_SECRET: z.string().min(1).optional(),
 });
 
 function validateEnv() {
