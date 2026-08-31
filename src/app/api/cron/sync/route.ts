@@ -5,6 +5,8 @@ import { runSync, ZendeskConnector, AssembledConnector } from "@/lib/connectors"
 import type { Connector } from "@/lib/connectors";
 import { computeMetricValuesFromFacts } from "@/lib/domain/metrics/compute-values";
 import { discoverRosterCandidates } from "@/lib/domain/roster/reconcile";
+import { checkEntraAccountStatus } from "@/lib/domain/roster/entra-check";
+import { EntraClient } from "@/lib/connectors/entra";
 import { isSyncRateLimited } from "@/lib/rate-limit";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
@@ -29,13 +31,28 @@ export async function GET(request: Request) {
   const results = [];
 
   for (const source of sources) {
-    const connectorFactory = CONNECTORS[source.type];
-    if (!connectorFactory) continue;
-
     if (await isSyncRateLimited(source.id)) {
       results.push({ dataSourceId: source.id, type: source.type, skipped: "rate_limited" });
       continue;
     }
+
+    if (source.type === "entra") {
+      try {
+        const entraResult = await checkEntraAccountStatus(new EntraClient(), source.id);
+        results.push({ dataSourceId: source.id, type: source.type, entra: entraResult });
+      } catch (err) {
+        logger.error("Cron Entra check failed", { error: err, dataSourceId: source.id });
+        results.push({
+          dataSourceId: source.id,
+          type: source.type,
+          error: err instanceof Error ? err.message : "Unknown error",
+        });
+      }
+      continue;
+    }
+
+    const connectorFactory = CONNECTORS[source.type];
+    if (!connectorFactory) continue;
 
     try {
       const connector = connectorFactory();

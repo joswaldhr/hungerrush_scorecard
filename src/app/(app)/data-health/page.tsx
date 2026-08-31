@@ -119,15 +119,26 @@ export default async function DataHealthPage() {
                   >
                     {latestRun ? syncStatusLabel(latestRun.status) : "Never synced"}
                   </Badge>
-                  <SyncNowButton dataSourceType={source.type} />
+                  {source.type !== "entra" && <SyncNowButton dataSourceType={source.type} />}
                 </div>
               </div>
 
               {latestRun && (
                 <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
-                  <span>{latestRun.recordsIngested} ingested</span>
-                  <span>{latestRun.recordsNormalized} normalized</span>
-                  {latestRun.recordsSkipped > 0 && <span>{latestRun.recordsSkipped} skipped</span>}
+                  {source.type === "entra" ? (
+                    <>
+                      <span>{latestRun.recordsIngested} employees checked</span>
+                      <span>{latestRun.recordsNormalized} flagged as disabled</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{latestRun.recordsIngested} ingested</span>
+                      <span>{latestRun.recordsNormalized} normalized</span>
+                      {latestRun.recordsSkipped > 0 && (
+                        <span>{latestRun.recordsSkipped} skipped</span>
+                      )}
+                    </>
+                  )}
                   {latestRun.errorCount > 0 && (
                     <span className="text-status-attention">{latestRun.errorCount} errors</span>
                   )}
