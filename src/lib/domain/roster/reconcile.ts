@@ -5,6 +5,7 @@ import {
   rosterCandidates,
   dataSources,
   employees,
+  users,
 } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import type { Connector } from "@/lib/connectors";
@@ -52,12 +53,18 @@ export async function discoverRosterCandidates(
     );
   const pendingExternalIds = new Set(existingPending.map((c) => c.externalId));
 
+  const managerUsers = await db.select({ email: users.email }).from(users);
+  const managerEmails = new Set(managerUsers.map((u) => u.email.toLowerCase()));
+
   let newCandidates = 0;
   let departedCandidates = 0;
 
   for (const member of discovered) {
     if (knownExternalIds.has(member.externalId)) continue;
     if (pendingExternalIds.has(member.externalId)) continue;
+    // Managers are sometimes members of the ticket-handling group for oversight --
+    // they're tracked as users/manager_assignments, not as employees to onboard.
+    if (member.externalEmail && managerEmails.has(member.externalEmail.toLowerCase())) continue;
 
     await db.insert(rosterCandidates).values({
       dataSourceId,
