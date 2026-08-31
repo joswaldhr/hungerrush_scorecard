@@ -166,7 +166,12 @@ export const getAssignedTeams = cache(async function getAssignedTeams(ctx: Manag
 
 export const getAssignedEmployees = cache(async function getAssignedEmployees(ctx: ManagerContext) {
   if (ctx.assignedEmployeeIds.length === 0) return [];
-  return db.select().from(employees).where(inArray(employees.id, ctx.assignedEmployeeIds));
+  return db
+    .select()
+    .from(employees)
+    .where(
+      and(inArray(employees.id, ctx.assignedEmployeeIds), eq(employees.employmentStatus, "active"))
+    );
 });
 
 export function assertCanAccessEmployee(ctx: ManagerContext, employeeId: string): void {
