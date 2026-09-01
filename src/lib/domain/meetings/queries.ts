@@ -5,9 +5,8 @@ import {
   actionItems,
   coachingRecords,
   ticketReviews,
-  discussionTopics,
 } from "@/lib/db/schema";
-import { eq, and, desc, asc, sql, count } from "drizzle-orm";
+import { eq, desc, count } from "drizzle-orm";
 import type { ManagerContext } from "@/lib/auth/authorization";
 import { assertCanAccessEmployee } from "@/lib/auth/authorization";
 
@@ -96,10 +95,7 @@ export async function getMeetingHistory(
   return entries;
 }
 
-export async function getLatestMeetingNote(
-  ctx: ManagerContext,
-  employeeId: string
-) {
+export async function getLatestMeetingNote(ctx: ManagerContext, employeeId: string) {
   assertCanAccessEmployee(ctx, employeeId);
   const [note] = await db
     .select()

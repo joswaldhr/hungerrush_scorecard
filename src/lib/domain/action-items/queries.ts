@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
-import { actionItems, meetingNotes } from "@/lib/db/schema";
-import { eq, and, desc, inArray, or, isNull } from "drizzle-orm";
+import { actionItems } from "@/lib/db/schema";
+import { eq, and, desc, inArray } from "drizzle-orm";
 import type { ManagerContext } from "@/lib/auth/authorization";
 import { assertCanAccessEmployee } from "@/lib/auth/authorization";
 
@@ -27,10 +27,7 @@ export async function getOpenActionItemsForManager(ctx: ManagerContext) {
     .select()
     .from(actionItems)
     .where(
-      and(
-        inArray(actionItems.employeeId, ctx.assignedEmployeeIds),
-        eq(actionItems.status, "open")
-      )
+      and(inArray(actionItems.employeeId, ctx.assignedEmployeeIds), eq(actionItems.status, "open"))
     )
     .orderBy(desc(actionItems.createdAt));
 }
@@ -76,10 +73,7 @@ export async function updateActionItem(
     dueDate?: Date | null;
   }
 ) {
-  const [existing] = await db
-    .select()
-    .from(actionItems)
-    .where(eq(actionItems.id, itemId));
+  const [existing] = await db.select().from(actionItems).where(eq(actionItems.id, itemId));
   if (!existing) throw new Error("Action item not found");
   assertCanAccessEmployee(ctx, existing.employeeId);
 

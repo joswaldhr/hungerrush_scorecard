@@ -1,14 +1,10 @@
 import { db } from "@/lib/db";
 import { ticketReviews } from "@/lib/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import type { ManagerContext } from "@/lib/auth/authorization";
 import { assertCanAccessEmployee } from "@/lib/auth/authorization";
 
-export async function getTicketReviews(
-  ctx: ManagerContext,
-  employeeId: string,
-  limit = 20
-) {
+export async function getTicketReviews(ctx: ManagerContext, employeeId: string, limit = 20) {
   assertCanAccessEmployee(ctx, employeeId);
   return db
     .select()

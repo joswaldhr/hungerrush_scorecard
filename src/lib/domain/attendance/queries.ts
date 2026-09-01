@@ -1,14 +1,10 @@
 import { db } from "@/lib/db";
 import { attendanceEvents } from "@/lib/db/schema";
-import { eq, and, desc, gte, sql } from "drizzle-orm";
+import { eq, and, desc, gte } from "drizzle-orm";
 import type { ManagerContext } from "@/lib/auth/authorization";
 import { assertCanAccessEmployee } from "@/lib/auth/authorization";
 
-export async function getAttendanceEvents(
-  ctx: ManagerContext,
-  employeeId: string,
-  limit = 30
-) {
+export async function getAttendanceEvents(ctx: ManagerContext, employeeId: string, limit = 30) {
   assertCanAccessEmployee(ctx, employeeId);
   return db
     .select()
@@ -46,10 +42,7 @@ export async function getAttendanceSummary(
     .select()
     .from(attendanceEvents)
     .where(
-      and(
-        eq(attendanceEvents.employeeId, employeeId),
-        gte(attendanceEvents.occurredAt, cutoffStr)
-      )
+      and(eq(attendanceEvents.employeeId, employeeId), gte(attendanceEvents.occurredAt, cutoffStr))
     )
     .orderBy(desc(attendanceEvents.occurredAt));
 

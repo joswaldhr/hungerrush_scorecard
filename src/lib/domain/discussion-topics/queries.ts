@@ -78,11 +78,7 @@ export async function markTopicDiscussed(
   return updated!;
 }
 
-export async function updateTopicStatus(
-  _ctx: ManagerContext,
-  topicId: string,
-  status: string
-) {
+export async function updateTopicStatus(_ctx: ManagerContext, topicId: string, status: string) {
   const [updated] = await db
     .update(discussionTopics)
     .set({ status })

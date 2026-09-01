@@ -33,7 +33,12 @@ export function MeetingNotesForm({
 }: {
   employeeId: string;
   meetingReferenceId: string | null;
-  existing: { id: string; outcome: string | null; body: string | null } | null;
+  existing: {
+    id: string;
+    outcome: string | null;
+    body: string | null;
+    lifeCheckIn: string | null;
+  } | null;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -47,7 +52,7 @@ export function MeetingNotesForm({
   }
 
   return (
-    <form ref={formRef} action={handleAction} className="space-y-3">
+    <form ref={formRef} action={handleAction} className="space-y-4">
       <input type="hidden" name="employeeId" value={employeeId} />
       {existing?.id && <input type="hidden" name="noteId" value={existing.id} />}
       {meetingReferenceId && (
@@ -73,8 +78,25 @@ export function MeetingNotesForm({
       </div>
 
       <div>
+        <label
+          htmlFor="lifeCheckIn"
+          className="block text-xs font-medium text-muted-foreground mb-1"
+        >
+          Life check-in
+        </label>
+        <textarea
+          id="lifeCheckIn"
+          name="lifeCheckIn"
+          defaultValue={existing?.lifeCheckIn ?? ""}
+          rows={2}
+          placeholder="How are they doing outside of work? Family, hobbies, energy level..."
+          className="w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-accent"
+        />
+      </div>
+
+      <div>
         <label htmlFor="body" className="block text-xs font-medium text-muted-foreground mb-1">
-          Notes
+          Meeting notes
         </label>
         <textarea
           id="body"
