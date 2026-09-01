@@ -96,7 +96,7 @@ export function EntraMatchCard({
                 <input type="hidden" name="userPrincipalName" value={c.userPrincipalName} />
                 <button
                   type="submit"
-                  className="rounded-md bg-accent px-2.5 py-1 font-medium text-white hover:bg-accent/90"
+                  className="rounded-md bg-accent px-2.5 py-1 font-medium text-accent-foreground hover:bg-accent/90"
                 >
                   This is them
                 </button>

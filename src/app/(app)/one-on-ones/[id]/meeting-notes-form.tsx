@@ -19,7 +19,7 @@ function SaveButton() {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-white hover:bg-accent/90 disabled:opacity-50"
+      className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground hover:bg-accent/90 disabled:opacity-50"
     >
       {pending ? "Saving…" : "Save notes"}
     </button>

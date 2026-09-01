@@ -24,7 +24,10 @@ export default async function AdminTeamsPage() {
 
       <section className="space-y-2">
         <h2 className="text-sm font-semibold text-foreground">Add team</h2>
-        <form action={createTeam} className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4">
+        <form
+          action={createTeam}
+          className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4"
+        >
           <div>
             <label htmlFor="name" className="block text-xs font-medium text-muted-foreground mb-1">
               Name
@@ -38,7 +41,10 @@ export default async function AdminTeamsPage() {
           </div>
           {allOrgs.length > 1 && (
             <div>
-              <label htmlFor="organizationId" className="block text-xs font-medium text-muted-foreground mb-1">
+              <label
+                htmlFor="organizationId"
+                className="block text-xs font-medium text-muted-foreground mb-1"
+              >
                 Organization
               </label>
               <select
@@ -59,7 +65,7 @@ export default async function AdminTeamsPage() {
           )}
           <button
             type="submit"
-            className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-white hover:bg-accent/90"
+            className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground hover:bg-accent/90"
           >
             Add
           </button>

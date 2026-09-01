@@ -70,16 +70,16 @@ export function TrendSparkline({
       role="img"
       aria-label={label}
     >
-      <path d={areaPath} fill={`oklch(${colorVar} / 0.1)`} stroke="none" />
+      <path d={areaPath} fill={`color-mix(in oklch, ${colorVar} 12%, transparent)`} stroke="none" />
       <path
         d={path}
         fill="none"
-        stroke={`oklch(${colorVar})`}
+        stroke={colorVar}
         strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx={lastCoord.x} cy={lastCoord.y} r={2} fill={`oklch(${colorVar})`} />
+      <circle cx={lastCoord.x} cy={lastCoord.y} r={2} fill={colorVar} />
     </svg>
   );
 }

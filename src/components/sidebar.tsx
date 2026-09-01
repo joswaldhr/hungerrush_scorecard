@@ -1,5 +1,4 @@
 import { auth, signOut } from "@/lib/auth";
-import { headers } from "next/headers";
 import { isPlatformAdmin } from "@/lib/auth/authorization";
 import { SidebarClient } from "./sidebar-client";
 
@@ -44,8 +43,6 @@ function BrandMark() {
 export async function Sidebar() {
   const session = await auth();
   const user = session?.user;
-  const headerList = await headers();
-  const pathname = headerList.get("x-pathname") ?? "/";
   const isAdmin = user?.email ? await isPlatformAdmin(user.email) : false;
   const secondary = isAdmin ? adminNav : [];
 
@@ -56,7 +53,6 @@ export async function Sidebar() {
 
   return (
     <SidebarClient
-      pathname={pathname}
       user={user ? { name: user.name } : null}
       primaryNav={primaryNav}
       secondaryNav={secondary}

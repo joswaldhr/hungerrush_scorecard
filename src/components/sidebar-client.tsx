@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
   Home,
@@ -34,7 +35,6 @@ interface NavItem {
 }
 
 interface SidebarClientProps {
-  pathname: string;
   user: { name?: string | null } | null;
   primaryNav: NavItem[];
   secondaryNav: NavItem[];
@@ -45,13 +45,13 @@ interface SidebarClientProps {
 const STORAGE_KEY = "sidebar-collapsed";
 
 export function SidebarClient({
-  pathname,
   user,
   primaryNav,
   secondaryNav,
   signOutAction,
   brandMark,
 }: SidebarClientProps) {
+  const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
@@ -85,8 +85,7 @@ export function SidebarClient({
     } catch {}
   }
 
-  const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href);
+  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
   return (
     <aside
@@ -101,9 +100,7 @@ export function SidebarClient({
           {brandMark}
           {!collapsed && (
             <div className="leading-none">
-              <span className="text-xs font-semibold tracking-widest text-white">
-                HUNGERRUSH
-              </span>
+              <span className="text-xs font-semibold tracking-widest text-white">HUNGERRUSH</span>
               <span className="mt-0.5 block text-[10px] font-semibold tracking-widest text-sidebar-primary">
                 CADENCE
               </span>
@@ -128,7 +125,7 @@ export function SidebarClient({
                   "flex items-center rounded-md py-2 text-sm font-medium transition-colors",
                   collapsed ? "justify-center px-0" : "gap-3 px-3",
                   active
-                    ? "bg-sidebar-primary/15 text-white"
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
                     : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 )}
               >
@@ -160,7 +157,7 @@ export function SidebarClient({
                     "flex items-center rounded-md py-2 text-sm font-medium transition-colors",
                     collapsed ? "justify-center px-0" : "gap-3 px-3",
                     active
-                      ? "bg-sidebar-primary/15 text-white"
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground"
                       : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   )}
                 >
@@ -177,7 +174,9 @@ export function SidebarClient({
       <div className="px-2 py-2">
         <button
           onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-          aria-label={hydrated && resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          aria-label={
+            hydrated && resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+          }
           title={collapsed ? "Toggle theme" : undefined}
           className={cn(
             "flex w-full items-center rounded-md py-2 text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground",
@@ -221,12 +220,7 @@ export function SidebarClient({
       {/* User */}
       {user && (
         <div className="border-t border-sidebar-border px-2 py-4">
-          <div
-            className={cn(
-              "flex items-center",
-              collapsed ? "justify-center" : "gap-3 px-3"
-            )}
-          >
+          <div className={cn("flex items-center", collapsed ? "justify-center" : "gap-3 px-3")}>
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-xs font-medium text-sidebar-accent-foreground">
               {user.name ? initials(user.name) : "?"}
             </div>

@@ -58,7 +58,10 @@ export default async function AdminEmployeeDetailPage({
         <form action={updateEmployee} className="space-y-3">
           <input type="hidden" name="employeeId" value={employee.id} />
           <div>
-            <label htmlFor="displayName" className="block text-xs font-medium text-muted-foreground mb-1">
+            <label
+              htmlFor="displayName"
+              className="block text-xs font-medium text-muted-foreground mb-1"
+            >
               Name
             </label>
             <input
@@ -82,7 +85,10 @@ export default async function AdminEmployeeDetailPage({
             />
           </div>
           <div>
-            <label htmlFor="jobTitle" className="block text-xs font-medium text-muted-foreground mb-1">
+            <label
+              htmlFor="jobTitle"
+              className="block text-xs font-medium text-muted-foreground mb-1"
+            >
               Job title
             </label>
             <input
@@ -93,7 +99,10 @@ export default async function AdminEmployeeDetailPage({
             />
           </div>
           <div>
-            <label htmlFor="employmentStatus" className="block text-xs font-medium text-muted-foreground mb-1">
+            <label
+              htmlFor="employmentStatus"
+              className="block text-xs font-medium text-muted-foreground mb-1"
+            >
               Employment status
             </label>
             <select
@@ -109,7 +118,7 @@ export default async function AdminEmployeeDetailPage({
           </div>
           <button
             type="submit"
-            className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-white hover:bg-accent/90"
+            className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground hover:bg-accent/90"
           >
             Save
           </button>
@@ -119,7 +128,11 @@ export default async function AdminEmployeeDetailPage({
       <section className="space-y-3 rounded-lg border border-border p-4">
         <h2 className="text-sm font-semibold text-foreground">Team</h2>
         <p className="text-xs text-muted-foreground">
-          Manager assignment follows the team — {currentManager ? `currently managed by ${currentManager.displayName}` : "this team has no manager assigned yet"}.
+          Manager assignment follows the team —{" "}
+          {currentManager
+            ? `currently managed by ${currentManager.displayName}`
+            : "this team has no manager assigned yet"}
+          .
         </p>
         <form action={setEmployeeTeam} className="flex items-end gap-3">
           <input type="hidden" name="employeeId" value={employee.id} />
@@ -139,7 +152,7 @@ export default async function AdminEmployeeDetailPage({
           </div>
           <button
             type="submit"
-            className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-white hover:bg-accent/90"
+            className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground hover:bg-accent/90"
           >
             Update team
           </button>

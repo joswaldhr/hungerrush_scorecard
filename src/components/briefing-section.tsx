@@ -14,7 +14,9 @@ export function BriefingSection({
   return (
     <section className={cn("space-y-3", className)}>
       <div className="flex items-center gap-2">
-        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+        <h2 className="text-section-title font-semibold uppercase tracking-wider text-foreground">
+          {title}
+        </h2>
         {count !== undefined && (
           <span className="text-xs text-muted-foreground tabular-nums">{count}</span>
         )}

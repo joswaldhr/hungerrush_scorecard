@@ -31,9 +31,15 @@ export default async function AdminEmployeesPage() {
 
       <section className="space-y-2">
         <h2 className="text-sm font-semibold text-foreground">Add employee</h2>
-        <form action={createEmployee} className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4">
+        <form
+          action={createEmployee}
+          className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4"
+        >
           <div>
-            <label htmlFor="displayName" className="block text-xs font-medium text-muted-foreground mb-1">
+            <label
+              htmlFor="displayName"
+              className="block text-xs font-medium text-muted-foreground mb-1"
+            >
               Name
             </label>
             <input
@@ -55,7 +61,10 @@ export default async function AdminEmployeesPage() {
             />
           </div>
           <div>
-            <label htmlFor="jobTitle" className="block text-xs font-medium text-muted-foreground mb-1">
+            <label
+              htmlFor="jobTitle"
+              className="block text-xs font-medium text-muted-foreground mb-1"
+            >
               Job title
             </label>
             <input
@@ -65,7 +74,10 @@ export default async function AdminEmployeesPage() {
             />
           </div>
           <div>
-            <label htmlFor="teamId" className="block text-xs font-medium text-muted-foreground mb-1">
+            <label
+              htmlFor="teamId"
+              className="block text-xs font-medium text-muted-foreground mb-1"
+            >
               Team
             </label>
             <select
@@ -83,7 +95,10 @@ export default async function AdminEmployeesPage() {
           </div>
           {allOrgs.length > 1 && (
             <div>
-              <label htmlFor="organizationId" className="block text-xs font-medium text-muted-foreground mb-1">
+              <label
+                htmlFor="organizationId"
+                className="block text-xs font-medium text-muted-foreground mb-1"
+              >
                 Organization
               </label>
               <select
@@ -104,7 +119,7 @@ export default async function AdminEmployeesPage() {
           )}
           <button
             type="submit"
-            className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-white hover:bg-accent/90"
+            className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground hover:bg-accent/90"
           >
             Add
           </button>
@@ -112,7 +127,9 @@ export default async function AdminEmployeesPage() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-semibold text-foreground">All employees ({allEmployees.length})</h2>
+        <h2 className="text-sm font-semibold text-foreground">
+          All employees ({allEmployees.length})
+        </h2>
         <div className="divide-y divide-border rounded-lg border">
           {allEmployees.map((e) => (
             <Link
@@ -123,7 +140,10 @@ export default async function AdminEmployeesPage() {
               <div>
                 <p className="text-sm font-medium text-foreground">{e.displayName}</p>
                 <p className="text-xs text-muted-foreground">
-                  {e.jobTitle ?? "—"} · {e.primaryTeamId ? teamNameById.get(e.primaryTeamId) ?? "Unknown team" : "Unassigned"}
+                  {e.jobTitle ?? "—"} ·{" "}
+                  {e.primaryTeamId
+                    ? (teamNameById.get(e.primaryTeamId) ?? "Unknown team")
+                    : "Unassigned"}
                 </p>
               </div>
               <span

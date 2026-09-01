@@ -2,12 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { isPlatformAdmin } from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
-import {
-  dataSources,
-  rosterSourceTeamMappings,
-  rosterCandidates,
-  teams,
-} from "@/lib/db/schema";
+import { dataSources, rosterSourceTeamMappings, rosterCandidates, teams } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import {
   addGroupMapping,
@@ -39,9 +34,9 @@ export default async function RosterReviewPage() {
       <header>
         <h1 className="text-xl font-semibold text-foreground">Roster Review</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          A stopgap for Rippling: diffs each connected source&apos;s configured groups against
-          known people and surfaces new hires and departures for review. Nothing here is
-          auto-created or auto-deactivated.
+          A stopgap for Rippling: diffs each connected source&apos;s configured groups against known
+          people and surfaces new hires and departures for review. Nothing here is auto-created or
+          auto-deactivated.
         </p>
       </header>
 
@@ -76,7 +71,8 @@ export default async function RosterReviewPage() {
                   {sourceMappings.map((m) => (
                     <li key={m.id} className="flex items-center justify-between">
                       <span>
-                        {m.externalGroupLabel} ({m.externalGroupId}) → {teamNameById.get(m.teamId) ?? "Unknown team"}
+                        {m.externalGroupLabel} ({m.externalGroupId}) →{" "}
+                        {teamNameById.get(m.teamId) ?? "Unknown team"}
                       </span>
                       <form action={removeGroupMapping}>
                         <input type="hidden" name="mappingId" value={m.id} />
@@ -117,7 +113,7 @@ export default async function RosterReviewPage() {
                 </select>
                 <button
                   type="submit"
-                  className="rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-white hover:bg-accent/90"
+                  className="rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground hover:bg-accent/90"
                 >
                   Add mapping
                 </button>
@@ -128,7 +124,9 @@ export default async function RosterReviewPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-foreground">New hires ({newCandidates.length})</h2>
+        <h2 className="text-sm font-semibold text-foreground">
+          New hires ({newCandidates.length})
+        </h2>
         {newCandidates.length === 0 ? (
           <p className="text-sm text-muted-foreground">No pending new-hire candidates.</p>
         ) : (
@@ -140,7 +138,10 @@ export default async function RosterReviewPage() {
                     {c.externalDisplayName ?? c.externalEmail ?? c.externalId}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {c.externalEmail} · suggested: {c.suggestedTeamId ? teamNameById.get(c.suggestedTeamId) ?? "Unknown team" : "None"}
+                    {c.externalEmail} · suggested:{" "}
+                    {c.suggestedTeamId
+                      ? (teamNameById.get(c.suggestedTeamId) ?? "Unknown team")
+                      : "None"}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -160,7 +161,7 @@ export default async function RosterReviewPage() {
                     </select>
                     <button
                       type="submit"
-                      className="rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-white hover:bg-accent/90"
+                      className="rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground hover:bg-accent/90"
                     >
                       Approve
                     </button>

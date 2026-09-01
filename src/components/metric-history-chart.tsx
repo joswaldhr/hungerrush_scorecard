@@ -90,7 +90,7 @@ export function MetricHistoryChart({
             x2={width - padRight}
             y1={yFor(tick)}
             y2={yFor(tick)}
-            stroke="oklch(var(--border))"
+            stroke="var(--border)"
             strokeWidth={1}
           />
           <text
@@ -113,7 +113,7 @@ export function MetricHistoryChart({
             x2={width - padRight}
             y1={yFor(target)}
             y2={yFor(target)}
-            stroke="oklch(var(--status-neutral))"
+            stroke="var(--status-neutral)"
             strokeWidth={1}
             strokeDasharray="4 3"
           />
@@ -129,11 +129,11 @@ export function MetricHistoryChart({
         </>
       )}
 
-      <path d={areaPath} fill="oklch(var(--accent) / 0.08)" stroke="none" />
+      <path d={areaPath} fill="color-mix(in oklch, var(--accent) 10%, transparent)" stroke="none" />
       <path
         d={path}
         fill="none"
-        stroke="oklch(var(--accent))"
+        stroke="var(--accent)"
         strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -144,7 +144,7 @@ export function MetricHistoryChart({
           cx={xFor(p.i)}
           cy={yFor(p.value)}
           r={hoveredIdx === p.i ? 4 : 2.5}
-          fill="oklch(var(--accent))"
+          fill="var(--accent)"
         />
       ))}
 
@@ -180,7 +180,7 @@ export function MetricHistoryChart({
                 x2={tx}
                 y1={padTop}
                 y2={padTop + plotHeight}
-                stroke="oklch(var(--accent) / 0.3)"
+                stroke="color-mix(in oklch, var(--accent) 30%, transparent)"
                 strokeWidth={1}
                 strokeDasharray="3 2"
               />
@@ -190,14 +190,14 @@ export function MetricHistoryChart({
                 width={84}
                 height={30}
                 rx={4}
-                fill="oklch(var(--foreground))"
+                fill="var(--foreground)"
                 opacity={0.9}
               />
               <text
                 x={tx}
                 y={tooltipY - 1}
                 textAnchor="middle"
-                fill="oklch(var(--background))"
+                fill="var(--background)"
                 fontSize={10}
                 fontWeight={600}
               >
@@ -207,7 +207,7 @@ export function MetricHistoryChart({
                 x={tx}
                 y={tooltipY + 10}
                 textAnchor="middle"
-                fill="oklch(var(--background) / 0.7)"
+                fill="color-mix(in oklch, var(--background) 70%, transparent)"
                 fontSize={9}
               >
                 {label}

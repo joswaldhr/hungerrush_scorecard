@@ -33,7 +33,7 @@
 
   /* Accent */
   --accent: oklch(0.65 0.15 185);
-  --accent-foreground: oklch(0.98 0 0);
+  --accent-foreground: oklch(0.16 0.03 250);
 
   /* Destructive */
   --destructive: oklch(0.55 0.2 25);
@@ -202,6 +202,7 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, monospace;
   --font-size-page-title: var(--text-page-title);
+  --font-size-section-title: var(--text-section-title);
   --font-size-stat-value: var(--text-stat-value);
   --font-size-body: var(--text-body);
   --font-size-small: var(--text-small);
@@ -225,7 +226,7 @@
 }
 
 :focus-visible {
-  outline: 2px solid oklch(var(--brand-teal));
+  outline: 2px solid var(--brand-teal);
   outline-offset: 2px;
 }
 
