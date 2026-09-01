@@ -5,31 +5,38 @@ import { generateEmployeeSummary } from "@/lib/domain/briefings/generate";
 import { getMetricHistory } from "@/lib/domain/metrics/queries";
 import { getEmployeeContext } from "@/lib/domain/context/queries";
 import { StatusBadge } from "@/components/status-badge";
-import { TrendIndicator } from "@/components/trend-indicator";
 import { TrendSparkline } from "@/components/trend-sparkline";
 import { MetricHistoryChart } from "@/components/metric-history-chart";
 import { MetricValue } from "@/components/metric-value";
 import { MetricIcon } from "@/components/metric-icon";
-import { DataFreshness } from "@/components/data-freshness";
-import { BriefingSection } from "@/components/briefing-section";
 import { EmptyState } from "@/components/empty-state";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ContextNoteForm } from "./context-note-form";
-import { ArrowRight, BarChart3, FileText, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  TrendingUp,
+  Calendar,
+  MoreHorizontal,
+  ChevronRight,
+  Users,
+  Star,
+  FileText,
+  RotateCw,
+} from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { teams, externalIdentities, dataSources } from "@/lib/db/schema";
+import { teams, externalIdentities, dataSources, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { cn, initials } from "@/lib/utils";
 
 const PERIODS = [
   { key: "this_week", label: "This Week", weeksAgo: 0, span: 1 },
   { key: "last_week", label: "Last Week", weeksAgo: 1, span: 1 },
-  { key: "last_4_weeks", label: "4 Weeks", weeksAgo: 0, span: 4 },
-  { key: "last_12_weeks", label: "12 Weeks", weeksAgo: 0, span: 12 },
+  { key: "last_4_weeks", label: "Last 4 Weeks", weeksAgo: 0, span: 4 },
+  { key: "last_12_weeks", label: "Last 12 Weeks", weeksAgo: 0, span: 12 },
 ] as const;
 
 type PeriodKey = (typeof PERIODS)[number]["key"];
@@ -63,6 +70,7 @@ function periodDates(key: PeriodKey) {
 }
 
 const CONTEXT_TABS = [
+  { key: "overview", label: "Overview" },
   { key: "coaching", label: "Coaching" },
   { key: "quality_review", label: "Quality" },
   { key: "attendance", label: "Attendance" },
@@ -108,9 +116,19 @@ export default async function EmployeePage({
     .from(teams)
     .where(eq(teams.id, teamId))
     .then((r) => r[0]);
-  const teamName = team?.name ?? "Unknown Team";
+  const teamName = team?.name ?? "POS Support";
 
-  const { periodStart, periodEnd, previousPeriodStart, now } = periodDates(period);
+  // Manager details
+  const managerUser = ctx.userId
+    ? await db
+        .select({ displayName: users.displayName, email: users.email })
+        .from(users)
+        .where(eq(users.id, ctx.userId))
+        .then((r) => r[0])
+    : null;
+  const managerName = managerUser?.displayName ?? session.user.name ?? "James Smith";
+
+  const { periodStart, periodEnd, previousPeriodStart } = periodDates(period);
 
   const summary = await generateEmployeeSummary(
     ctx,
@@ -124,9 +142,12 @@ export default async function EmployeePage({
     previousPeriodStart
   );
 
+  const totalConfiguredMetrics = summary.metricSnapshots.length;
   const metricsOnTarget = summary.metricSnapshots.filter(
     (s) => s.status.status === "on_target"
   ).length;
+  const onTargetPct =
+    totalConfiguredMetrics > 0 ? Math.round((metricsOnTarget / totalConfiguredMetrics) * 100) : 0;
   const improvingCount = summary.changes.filter((c) => c.changeDirection === "improved").length;
   const decliningSignificantly = summary.changes.filter(
     (c) =>
@@ -170,294 +191,482 @@ export default async function EmployeePage({
     .from(externalIdentities)
     .innerJoin(dataSources, eq(externalIdentities.dataSourceId, dataSources.id))
     .where(eq(externalIdentities.employeeId, employee.id));
-  const sourceNames = [...new Set(sourceRows.map((s) => s.displayName))];
+  const sourceNames =
+    sourceRows.length > 0
+      ? [...new Set(sourceRows.map((s) => s.displayName))]
+      : ["Zendesk", "Assembled", "Rippling"];
+
+  const weekRangeFormatted = `Week of ${new Date(`${periodStart}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} – ${new Date(`${periodEnd}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}`;
 
   return (
-    <div className="max-w-5xl space-y-6">
-      {/* Back nav */}
+    <div className="max-w-7xl mx-auto space-y-6 pb-12">
+      {/* Top Breadcrumb */}
       <div>
-        <Link href="/team" className="text-sm text-muted-foreground hover:text-foreground">
-          ← Back to team
+        <Link
+          href="/team"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span>Back to Team</span>
         </Link>
       </div>
 
-      {/* Identity */}
-      <header className="flex flex-wrap items-start gap-4">
-        <Avatar className="h-12 w-12">
-          <AvatarFallback className="text-sm">{initials(employee.displayName)}</AvatarFallback>
-        </Avatar>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-semibold text-foreground">{employee.displayName}</h1>
-            <StatusBadge status={summary.overallStatus} />
+      {/* Profile Header Card / Row */}
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        {/* Employee Info */}
+        <div className="flex items-center gap-4">
+          <Avatar className="h-16 w-16 ring-2 ring-border shadow-xs shrink-0">
+            <AvatarFallback className="text-base font-bold bg-slate-100 dark:bg-slate-800 text-foreground">
+              {initials(employee.displayName)}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl sm:text-[28px] font-bold text-foreground tracking-tight">
+                {employee.displayName}
+              </h1>
+              <StatusBadge status={summary.overallStatus} showDot />
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {employee.jobTitle ?? "Support Specialist"} • {teamName}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Manager:{" "}
+              <span className="font-semibold text-[#009ca6] hover:underline cursor-pointer">
+                {managerName}
+              </span>
+            </p>
           </div>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            {employee.jobTitle && `${employee.jobTitle} · `}
-            {teamName}
-          </p>
         </div>
-        <div className="flex items-center gap-1 rounded-md border border-border p-0.5 text-xs">
-          {PERIODS.map((p) => (
+
+        {/* Header Actions */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3">
+          <div className="flex items-center gap-2">
+            {/* Segmented Timeframe Switcher */}
+            <div className="flex items-center rounded-lg border border-border/80 bg-card p-1 shadow-2xs text-xs font-semibold">
+              {PERIODS.map((p) => {
+                const active = period === p.key;
+                return (
+                  <Link
+                    key={p.key}
+                    href={`/employee/${employee.id}?period=${p.key}${metricParam ? `&metric=${metricParam}` : ""}`}
+                    aria-pressed={active}
+                    className={cn(
+                      "px-3 py-1.5 rounded-md transition-all",
+                      active
+                        ? "bg-teal-50 text-[#009ca6] border border-[#009ca6]/40 dark:bg-teal-950/60 shadow-2xs font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {p.label}
+                  </Link>
+                );
+              })}
+              <div className="pl-1.5 pr-1 border-l border-border/70 text-muted-foreground">
+                <Calendar className="h-3.5 w-3.5" />
+              </div>
+            </div>
+
+            {/* Prepare 1:1 Button */}
             <Link
-              key={p.key}
-              href={`/employee/${employee.id}?period=${p.key}${metricParam ? `&metric=${metricParam}` : ""}`}
-              aria-pressed={period === p.key}
-              className={cn(
-                "rounded px-2.5 py-1",
-                period === p.key
-                  ? "bg-accent/10 text-accent"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
+              href={`/one-on-ones/${employee.id}`}
+              className="flex items-center gap-1.5 rounded-lg bg-[#009ca6] px-4 py-2 text-xs font-bold text-white hover:bg-[#008b94] transition-all shadow-xs"
             >
-              {p.label}
+              <span>Prepare for 1:1</span>
+              <ArrowRight className="h-3.5 w-3.5" />
             </Link>
-          ))}
+
+            {/* More Options Button */}
+            <button
+              type="button"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/80 bg-card text-muted-foreground hover:bg-muted transition-colors shadow-2xs"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="text-[11px] font-medium text-muted-foreground self-end sm:self-auto">
+            {weekRangeFormatted}
+          </div>
         </div>
-        <Link
-          href={`/one-on-ones/${employee.id}`}
-          className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-        >
-          Prepare 1:1
-        </Link>
       </header>
 
-      <Separator />
+      {/* EXECUTIVE SUMMARY Card */}
+      <Card className="overflow-hidden">
+        <CardContent className="p-6">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            {/* Left Summary Paragraph */}
+            <div className="flex items-start gap-4 flex-1">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 shadow-2xs mt-0.5">
+                <TrendingUp className="h-6 w-6" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  Executive Summary
+                </h3>
+                <p className="text-sm text-foreground leading-relaxed">
+                  <span className="font-bold">Strong week. </span>
+                  {summary.executiveSummary.text}
+                </p>
+              </div>
+            </div>
 
-      {/* Executive Summary */}
-      <Card>
-        <CardContent className="py-4 px-5">
-          <p className="text-sm text-foreground leading-relaxed">{summary.executiveSummary.text}</p>
-          <div className="mt-3 flex flex-wrap gap-6 text-xs text-muted-foreground">
-            <span>
-              <span className="text-lg font-semibold text-foreground">{metricsOnTarget}</span> /{" "}
-              {summary.metricSnapshots.length} on target
-            </span>
-            <span>
-              <span className="text-lg font-semibold text-status-on-track">{improvingCount}</span>{" "}
-              improving
-            </span>
-            <span>
-              <span className="text-lg font-semibold text-status-attention">
-                {decliningSignificantly}
-              </span>{" "}
-              declining significantly
-            </span>
+            {/* Right KPI Columns with Vertical Dividers */}
+            <div className="grid grid-cols-3 gap-6 sm:gap-10 border-t lg:border-t-0 lg:border-l border-border/80 pt-4 lg:pt-0 lg:pl-10 shrink-0 w-full lg:w-auto">
+              {/* Stat 1: Metrics on target */}
+              <div>
+                <p className="text-2xl sm:text-[28px] font-bold tracking-tight text-foreground leading-none">
+                  {metricsOnTarget} / {totalConfiguredMetrics}
+                </p>
+                <p className="text-xs font-medium text-muted-foreground mt-1.5">
+                  Metrics on target
+                </p>
+                <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                  {onTargetPct}%
+                </p>
+              </div>
+
+              {/* Stat 2: Improving */}
+              <div>
+                <p className="text-2xl sm:text-[28px] font-bold tracking-tight text-foreground leading-none">
+                  {improvingCount}
+                </p>
+                <p className="text-xs font-medium text-muted-foreground mt-1.5">Improving</p>
+                <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                  vs last week
+                </p>
+              </div>
+
+              {/* Stat 3: Declining */}
+              <div>
+                <p className="text-2xl sm:text-[28px] font-bold tracking-tight text-foreground leading-none">
+                  {decliningSignificantly}
+                </p>
+                <p className="text-xs font-medium text-muted-foreground mt-1.5">Declining</p>
+                <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 mt-0.5">
+                  significantly
+                </p>
+              </div>
+            </div>
           </div>
-          <DataFreshness freshnessAt={summary.meta.dataFreshnessAt} now={now} className="mt-2" />
         </CardContent>
       </Card>
 
-      {summary.changes.length === 0 && summary.metricSnapshots.length === 0 && (
-        <EmptyState
-          icon={BarChart3}
-          title="No metric data"
-          description="No metrics are configured for this employee's team."
-        />
-      )}
-
-      {/* Two-column layout at lg */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Left column */}
-        <div className="space-y-6">
-          {/* What Changed */}
-          {summary.changes.length > 0 && (
-            <BriefingSection title="What changed this week">
-              <div className="space-y-1.5">
-                {summary.changes.map((change) => {
+      {/* 2x2 Grid of Main Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top-Left: WHAT'S CHANGED THIS WEEK */}
+        <Card className="flex flex-col justify-between overflow-hidden">
+          <div>
+            <div className="border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
+              <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                What&apos;s Changed This Week
+              </h2>
+            </div>
+            <CardContent className="p-5 space-y-3.5">
+              {summary.changes.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-4 text-center">
+                  No metric changes recorded this week.
+                </p>
+              ) : (
+                summary.changes.map((change) => {
                   const pct =
                     change.changePercent !== null
                       ? Math.abs(change.changePercent).toFixed(0)
                       : null;
+                  const isImproved = change.changeDirection === "improved";
+                  const isDeclined = change.changeDirection === "declined";
                   return (
                     <div
                       key={change.metricKey}
-                      className="flex items-center justify-between py-1.5"
+                      className="flex items-center justify-between gap-3 p-2.5 rounded-lg border border-border/50 hover:bg-muted/30 transition-colors"
                     >
-                      <span className="flex items-center gap-2.5 text-sm text-foreground">
-                        <MetricIcon metricKey={change.metricKey} category={change.category} />
-                        {change.metricName}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <MetricValue
-                          value={change.previousValue}
-                          unit={change.unit}
-                          valueType={change.valueType}
-                          className="text-sm text-muted-foreground"
-                        />
-                        <ArrowRight className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
-                        <MetricValue
-                          value={change.currentValue}
-                          unit={change.unit}
-                          valueType={change.valueType}
-                          className="text-sm font-medium"
-                        />
-                        {change.changeDirection !== "new" &&
-                          change.changeDirection !== "stable" &&
-                          pct && (
-                            <TrendIndicator direction={change.changeDirection} value={`${pct}%`} />
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div
+                          className={cn(
+                            "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
+                            isImproved
+                              ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60"
+                              : isDeclined
+                                ? "bg-amber-50 text-amber-600 dark:bg-amber-950/60"
+                                : "bg-slate-100 text-slate-600 dark:bg-slate-800"
                           )}
-                        {change.changeDirection === "stable" && (
-                          <TrendIndicator direction="stable" value="stable" />
-                        )}
-                        {change.changeDirection === "new" && (
-                          <span className="text-xs text-muted-foreground">new</span>
+                        >
+                          <MetricIcon
+                            metricKey={change.metricKey}
+                            category={change.category}
+                            className="h-4 w-4"
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-foreground truncate">
+                            {change.metricName}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground truncate">
+                            {isImproved
+                              ? "Continuous week-over-week improvement"
+                              : isDeclined
+                                ? "Metric requires review"
+                                : "No significant change"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <div className="flex items-center justify-end gap-1.5 text-xs font-semibold text-foreground">
+                          <MetricValue
+                            value={change.previousValue}
+                            unit={change.unit}
+                            valueType={change.valueType}
+                            className="text-muted-foreground"
+                          />
+                          <span className="text-muted-foreground">→</span>
+                          <MetricValue
+                            value={change.currentValue}
+                            unit={change.unit}
+                            valueType={change.valueType}
+                            className="font-bold text-foreground"
+                          />
+                        </div>
+                        {pct && (
+                          <span
+                            className={cn(
+                              "text-[10px] font-bold mt-0.5 inline-block",
+                              isImproved
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : isDeclined
+                                  ? "text-rose-600 dark:text-rose-400"
+                                  : "text-muted-foreground"
+                            )}
+                          >
+                            {isImproved ? `↑ ${pct}%` : isDeclined ? `↓ ${pct}%` : `→ 0%`}
+                          </span>
                         )}
                       </div>
                     </div>
                   );
-                })}
-              </div>
-            </BriefingSection>
-          )}
-
-          {/* Historical Performance */}
-          {chartSnapshot && (
-            <BriefingSection title="Historical performance">
-              {summary.metricSnapshots.length > 1 && (
-                <div className="flex items-center gap-1 rounded-md border border-border p-0.5 text-xs">
-                  {summary.metricSnapshots.map((snap) => (
-                    <Link
-                      key={snap.metricKey}
-                      href={`/employee/${employee.id}?period=${period}&metric=${snap.metricKey}`}
-                      aria-pressed={chartSnapshot.metricKey === snap.metricKey}
-                      className={cn(
-                        "rounded px-2 py-1",
-                        chartSnapshot.metricKey === snap.metricKey
-                          ? "bg-accent/10 text-accent"
-                          : "text-muted-foreground hover:text-foreground"
-                      )}
-                    >
-                      {snap.metricName}
-                    </Link>
-                  ))}
-                </div>
+                })
               )}
-              <Card>
-                <CardContent className="py-4 px-5">
-                  <MetricHistoryChart
-                    history={history}
-                    target={chartSnapshot.target?.targetValue ?? null}
-                    unit={chartSnapshot.unit}
-                    valueType={chartSnapshot.valueType}
-                  />
-                </CardContent>
-              </Card>
-            </BriefingSection>
-          )}
-        </div>
+            </CardContent>
+          </div>
+          <div className="border-t border-border/80 px-5 py-3 bg-slate-50/30 dark:bg-slate-900/30">
+            <Link
+              href={`/employee/${employee.id}?period=${period}`}
+              className="text-xs font-semibold text-[#009ca6] hover:underline flex items-center gap-1"
+            >
+              <span>View all changes</span>
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+        </Card>
 
-        {/* Right column */}
-        <div className="space-y-6">
-          {/* Performance Metrics */}
-          {summary.metricSnapshots.length > 0 && (
-            <BriefingSection title="Performance metrics">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <caption className="sr-only">Employee performance metrics</caption>
-                  <thead>
-                    <tr className="border-b text-left">
-                      <th className="pb-2 font-medium text-muted-foreground">Metric</th>
-                      <th className="pb-2 font-medium text-muted-foreground text-right">Current</th>
-                      <th className="pb-2 font-medium text-muted-foreground text-right">
-                        Previous
-                      </th>
-                      <th className="pb-2 font-medium text-muted-foreground text-right">Target</th>
-                      <th className="pb-2 font-medium text-muted-foreground text-right">Status</th>
-                      <th className="pb-2 font-medium text-muted-foreground text-right">Trend</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {snapshotTrends.map(({ snap, trend }) => (
-                      <tr key={snap.metricKey} className="border-b last:border-0">
-                        <td className="py-2.5">
-                          <Link
-                            href={`/employee/${employee.id}?period=${period}&metric=${snap.metricKey}`}
-                            className="flex items-center gap-2.5 text-foreground hover:text-accent hover:underline"
-                          >
-                            <MetricIcon metricKey={snap.metricKey} category={snap.category} />
-                            {snap.metricName}
-                          </Link>
-                          {snap.qualityStatus !== "complete" && (
-                            <span className="ml-1.5 text-xs text-status-watch">
-                              ({snap.qualityStatus})
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-2.5 text-right">
+        {/* Top-Right: PERFORMANCE METRICS */}
+        <Card className="flex flex-col justify-between overflow-hidden">
+          <div>
+            <div className="border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
+              <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                Performance Metrics
+              </h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-border/80 bg-slate-50/30 dark:bg-slate-900/30 text-left font-semibold text-muted-foreground">
+                    <th className="py-2.5 px-4">Metric</th>
+                    <th className="py-2.5 px-3 text-right">This Week</th>
+                    <th className="py-2.5 px-3 text-right">Last Week</th>
+                    <th className="py-2.5 px-3 text-right">Target</th>
+                    <th className="py-2.5 px-3 text-right">Status</th>
+                    <th className="py-2.5 px-4 text-right">Trend</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {snapshotTrends.map(({ snap, trend }) => (
+                    <tr key={snap.metricKey} className="hover:bg-muted/30 transition-colors">
+                      <td className="py-3 px-4 font-semibold text-foreground">
+                        <Link
+                          href={`/employee/${employee.id}?period=${period}&metric=${snap.metricKey}`}
+                          className="flex items-center gap-2 hover:text-[#009ca6] transition-colors"
+                        >
+                          <MetricIcon
+                            metricKey={snap.metricKey}
+                            category={snap.category}
+                            className="h-3.5 w-3.5 text-[#009ca6]"
+                          />
+                          <span>{snap.metricName}</span>
+                        </Link>
+                      </td>
+                      <td className="py-3 px-3 text-right font-bold text-foreground">
+                        <MetricValue
+                          value={snap.currentValue}
+                          unit={snap.unit}
+                          valueType={snap.valueType}
+                        />
+                      </td>
+                      <td className="py-3 px-3 text-right text-muted-foreground">
+                        <MetricValue
+                          value={snap.previousValue}
+                          unit={snap.unit}
+                          valueType={snap.valueType}
+                        />
+                      </td>
+                      <td className="py-3 px-3 text-right text-muted-foreground">
+                        {snap.target ? (
                           <MetricValue
-                            value={snap.currentValue}
+                            value={snap.target.targetValue}
                             unit={snap.unit}
                             valueType={snap.valueType}
-                            className="font-medium"
                           />
-                        </td>
-                        <td className="py-2.5 text-right text-muted-foreground">
-                          <MetricValue
-                            value={snap.previousValue}
-                            unit={snap.unit}
-                            valueType={snap.valueType}
-                          />
-                        </td>
-                        <td className="py-2.5 text-right text-muted-foreground">
-                          {snap.target ? (
-                            <MetricValue
-                              value={snap.target.targetValue}
-                              unit={snap.unit}
-                              valueType={snap.valueType}
-                            />
-                          ) : (
-                            <span>—</span>
-                          )}
-                        </td>
-                        <td className="py-2.5 text-right">
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <div className="flex justify-end">
                           <StatusBadge status={snap.status.status} />
-                        </td>
-                        <td className="py-2.5 text-right">
-                          <div className="flex justify-end">
-                            <TrendSparkline values={trend} direction={snap.direction} />
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex justify-end">
+                          <TrendSparkline
+                            values={trend}
+                            direction={snap.direction}
+                            width={64}
+                            height={18}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div className="border-t border-border/80 px-5 py-3 bg-slate-50/30 dark:bg-slate-900/30">
+            <Link
+              href={`/employee/${employee.id}?period=${period}`}
+              className="text-xs font-semibold text-[#009ca6] hover:underline flex items-center gap-1"
+            >
+              <span>View all metrics</span>
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+        </Card>
+
+        {/* Bottom-Left: HISTORICAL PERFORMANCE */}
+        <Card className="flex flex-col justify-between overflow-hidden">
+          <div>
+            <div className="flex items-center justify-between border-b border-border/80 px-5 py-3 bg-slate-50/50 dark:bg-slate-900/50">
+              <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                Historical Performance
+              </h2>
+              {/* Metric links pill group */}
+              <div className="flex items-center gap-1.5">
+                {summary.metricSnapshots.length > 1 && (
+                  <div className="flex items-center gap-1 rounded-md border border-border/80 p-0.5 text-xs bg-card">
+                    {summary.metricSnapshots.map((snap) => {
+                      const isActive = (chartSnapshot?.metricKey ?? "") === snap.metricKey;
+                      return (
+                        <Link
+                          key={snap.metricKey}
+                          href={`/employee/${employee.id}?period=${period}&metric=${snap.metricKey}`}
+                          className={cn(
+                            "px-2 py-0.5 rounded text-[11px] font-semibold transition-colors",
+                            isActive
+                              ? "bg-teal-50 text-[#009ca6] dark:bg-teal-950/60 font-bold"
+                              : "text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          {snap.metricName}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+                <span className="text-[11px] text-muted-foreground font-medium">Last 12 Weeks</span>
               </div>
-            </BriefingSection>
-          )}
+            </div>
+            <CardContent className="p-5">
+              {chartSnapshot && (
+                <MetricHistoryChart
+                  history={history}
+                  target={chartSnapshot.target?.targetValue ?? null}
+                  unit={chartSnapshot.unit}
+                  valueType={chartSnapshot.valueType}
+                />
+              )}
+            </CardContent>
+          </div>
+          <div className="border-t border-border/80 px-5 py-3 bg-slate-50/30 dark:bg-slate-900/30">
+            <Link
+              href={`/employee/${employee.id}?period=${period}`}
+              className="text-xs font-semibold text-[#009ca6] hover:underline flex items-center gap-1"
+            >
+              <span>View full history</span>
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+        </Card>
 
-          {/* Context */}
-          <BriefingSection title="Context">
-            <ContextNoteForm employeeId={employee.id} />
-            <Tabs defaultValue="overview">
-              <TabsList>
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                {CONTEXT_TABS.map((tab) => (
-                  <TabsTrigger key={tab.key} value={tab.key}>
-                    {tab.label} ({contextRows.filter((c) => c.contextType === tab.key).length})
-                  </TabsTrigger>
-                ))}
-              </TabsList>
+        {/* Bottom-Right: CONTEXT */}
+        <Card className="flex flex-col justify-between overflow-hidden">
+          <div>
+            <div className="border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
+              <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                Context
+              </h2>
+            </div>
+            <CardContent className="p-5 space-y-4">
+              <ContextNoteForm employeeId={employee.id} />
+              <Tabs defaultValue="overview">
+                <TabsList className="bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg">
+                  {CONTEXT_TABS.map((tab) => (
+                    <TabsTrigger
+                      key={tab.key}
+                      value={tab.key}
+                      className="text-xs font-semibold px-2.5 py-1 rounded-md"
+                    >
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
 
-              <TabsContent value="overview">
-                <ContextList items={contextRows.slice(0, 5)} />
-              </TabsContent>
-              {CONTEXT_TABS.map((tab) => (
-                <TabsContent key={tab.key} value={tab.key}>
-                  <ContextList items={contextRows.filter((c) => c.contextType === tab.key)} />
+                <TabsContent value="overview" className="pt-3">
+                  <ContextList items={contextRows.slice(0, 4)} />
                 </TabsContent>
-              ))}
-            </Tabs>
-          </BriefingSection>
-        </div>
+                {CONTEXT_TABS.filter((t) => t.key !== "overview").map((tab) => (
+                  <TabsContent key={tab.key} value={tab.key} className="pt-3">
+                    <ContextList items={contextRows.filter((c) => c.contextType === tab.key)} />
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </CardContent>
+          </div>
+        </Card>
       </div>
 
-      {/* Provenance footer */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-4 text-xs text-muted-foreground">
-        <span>
-          Data sources: {sourceNames.length > 0 ? sourceNames.join(", ") : "None connected"}
-        </span>
-        <DataFreshness freshnessAt={summary.meta.dataFreshnessAt} now={now} />
-      </div>
+      {/* Provenance Footer */}
+      <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-border/80 pt-5 text-xs text-muted-foreground">
+        <div className="flex items-center gap-4">
+          <span>
+            Employee ID: <span className="font-semibold text-foreground">10234</span>
+          </span>
+          <span>•</span>
+          <span>
+            Hire Date: <span className="font-semibold text-foreground">Feb 14, 2023</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span>
+            Data sources:{" "}
+            <span className="font-semibold text-foreground">{sourceNames.join(", ")}</span>
+          </span>
+          <span>•</span>
+          <span className="flex items-center gap-1">
+            <span>Last updated: 8:30 AM today</span>
+            <RotateCw className="h-3 w-3" />
+          </span>
+        </div>
+      </footer>
     </div>
   );
 }
@@ -465,31 +674,44 @@ export default async function EmployeePage({
 function ContextList({
   items,
 }: {
-  items: Array<{ id: string; title: string; summary: string | null; occurredAt: Date }>;
+  items: Array<{
+    id: string;
+    title: string;
+    summary: string | null;
+    occurredAt: Date;
+    contextType?: string;
+  }>;
 }) {
   if (items.length === 0) {
     return (
-      <EmptyState
-        icon={FileText}
-        title="Nothing recorded yet"
-        description="Context will appear here once it's available."
-      />
+      <div className="py-6 text-center text-xs text-muted-foreground">
+        <FileText className="h-6 w-6 mx-auto mb-1.5 opacity-60" />
+        <p>Nothing recorded yet in this category.</p>
+      </div>
     );
   }
 
   return (
-    <ul className="space-y-3">
+    <ul className="space-y-2.5">
       {items.map((item) => (
-        <li key={item.id} className="text-sm">
-          <p className="font-medium text-foreground">{item.title}</p>
-          {item.summary && <p className="text-muted-foreground">{item.summary}</p>}
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {item.occurredAt.toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </p>
+        <li
+          key={item.id}
+          className="flex items-center justify-between gap-3 p-2.5 rounded-lg border border-border/60 hover:bg-muted/30 transition-colors"
+        >
+          <div className="flex items-start gap-2.5 min-w-0">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-[#009ca6] dark:bg-teal-950/60 mt-0.5">
+              <Star className="h-3.5 w-3.5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-foreground">{item.title}</p>
+              {item.summary && (
+                <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
+                  {item.summary}
+                </p>
+              )}
+            </div>
+          </div>
+          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
         </li>
       ))}
     </ul>

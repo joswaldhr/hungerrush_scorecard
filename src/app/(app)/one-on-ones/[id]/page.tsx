@@ -3,32 +3,26 @@ import { redirect, notFound } from "next/navigation";
 import { getEffectiveManagerContext, getAssignedEmployees } from "@/lib/auth/authorization";
 import { generateOneOnOne } from "@/lib/domain/briefings/generate";
 import { getEmployeeContext } from "@/lib/domain/context/queries";
-import { TrendIndicator } from "@/components/trend-indicator";
 import { MetricValue } from "@/components/metric-value";
 import { MetricIcon } from "@/components/metric-icon";
-import { DataFreshness } from "@/components/data-freshness";
-import { BriefingSection } from "@/components/briefing-section";
 import { EmptyState } from "@/components/empty-state";
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import { MeetingPrepChecklist } from "@/components/meeting-prep-checklist";
 import { MeetingNotesForm } from "./meeting-notes-form";
 import { ActionItemsPanel } from "./action-items-panel";
 import {
   MessageCircle,
   Star,
-  HelpCircle,
+  Sparkles,
   Calendar,
   Clock,
   Users,
   CheckSquare,
   FileText,
   TrendingUp,
-  TrendingDown,
-  Minus,
+  ArrowLeft,
   ExternalLink,
-  BarChart3,
+  Quote,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
@@ -36,7 +30,7 @@ import { db } from "@/lib/db";
 import { teams, meetingReferences, meetingNotes, actionItems } from "@/lib/db/schema";
 import { eq, and, gte, asc, desc } from "drizzle-orm";
 import { env } from "@/lib/env";
-import { weekDates, initials } from "@/lib/utils";
+import { weekDates, cn } from "@/lib/utils";
 
 const CONTEXT_ICONS: Record<string, LucideIcon> = {
   coaching: Users,
@@ -83,9 +77,9 @@ export default async function OneOnOnePage({
     .from(teams)
     .where(eq(teams.id, teamId))
     .then((r) => r[0]);
-  const teamName = team?.name ?? "Unknown Team";
+  const teamName = team?.name ?? "POS Support";
 
-  const { periodStart, periodEnd, previousPeriodStart, now } = weekDates(weeksAgo);
+  const { periodStart, periodEnd, previousPeriodStart } = weekDates(weeksAgo);
 
   const prep = await generateOneOnOne(
     ctx,
@@ -158,294 +152,411 @@ export default async function OneOnOnePage({
       )[0]?.id ?? null)
     : null;
 
+  const totalMetrics = prep.atAGlance.totalMetrics;
+  const onTargetPct =
+    totalMetrics > 0 ? Math.round((prep.atAGlance.metricsOnTarget / totalMetrics) * 100) : 0;
+
   return (
-    <div className="max-w-3xl space-y-8">
+    <div className="max-w-7xl mx-auto space-y-6 pb-12">
       {/* Back nav */}
-      <div className="flex items-center justify-between">
+      <div>
         <Link
           href={`/employee/${employee.id}`}
-          className="text-sm text-muted-foreground hover:text-foreground"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
         >
-          ← Full profile
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span>Back to Employee Profile</span>
         </Link>
-        <div className="flex items-center gap-4">
+      </div>
+
+      {/* Header */}
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-[28px] font-bold text-foreground tracking-tight">
+            Prepare for 1:1
+          </h1>
+          <p className="mt-1 text-xs sm:text-sm font-medium text-muted-foreground flex flex-wrap items-center gap-2">
+            <span className="font-bold text-foreground">{employee.displayName}</span>
+            <span>•</span>
+            <span>{employee.jobTitle ?? "Support Specialist"}</span>
+            <span>•</span>
+            <span>{teamName}</span>
+            {nextMeeting && (
+              <>
+                <span>•</span>
+                <span className="text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                  <Calendar className="h-3.5 w-3.5" />
+                  <span>
+                    Next meeting:{" "}
+                    {nextMeeting.scheduledStart.toLocaleDateString("en-US", {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                    })}{" "}
+                    at{" "}
+                    {nextMeeting.scheduledStart.toLocaleTimeString("en-US", {
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </span>
+              </>
+            )}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
           {env.RIPPLING_MANAGER_URL && (
             <a
               href={env.RIPPLING_MANAGER_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 text-sm text-accent hover:underline"
+              className="flex items-center gap-1.5 rounded-lg border border-border/80 bg-card px-3.5 py-1.5 text-xs font-bold text-foreground hover:bg-muted transition-colors shadow-2xs"
             >
-              Rippling portal
-              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Open in Rippling</span>
+              <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
             </a>
-          )}
-          <Link href="/team" className="text-sm text-muted-foreground hover:text-foreground">
-            Back to team
-          </Link>
-        </div>
-      </div>
-
-      {/* Meeting Header */}
-      <header className="flex items-start gap-4">
-        <Avatar className="h-12 w-12">
-          <AvatarFallback className="text-sm">{initials(employee.displayName)}</AvatarFallback>
-        </Avatar>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-semibold text-foreground">1:1 with {employee.displayName}</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            {employee.jobTitle && `${employee.jobTitle} · `}
-            {teamName}
-          </p>
-        </div>
-        <div className="shrink-0 rounded-md border border-border px-3 py-2 text-right text-xs">
-          {nextMeeting ? (
-            <>
-              <p className="flex items-center justify-end gap-1.5 font-medium text-foreground">
-                <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
-                {nextMeeting.scheduledStart.toLocaleDateString("en-US", {
-                  weekday: "long",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p>
-              <p className="mt-0.5 flex items-center justify-end gap-1.5 text-muted-foreground">
-                <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-                {nextMeeting.scheduledStart.toLocaleTimeString("en-US", {
-                  hour: "numeric",
-                  minute: "2-digit",
-                })}
-                {nextMeeting.scheduledEnd &&
-                  ` – ${nextMeeting.scheduledEnd.toLocaleTimeString("en-US", {
-                    hour: "numeric",
-                    minute: "2-digit",
-                  })}`}
-              </p>
-            </>
-          ) : (
-            <p className="text-muted-foreground">No meeting scheduled</p>
           )}
         </div>
       </header>
 
-      <Separator />
-
-      {/* At-a-glance Takeaway */}
-      {(() => {
-        const improving = prep.atAGlance.metricsImproving > prep.atAGlance.metricsDeclining;
-        const declining = prep.atAGlance.metricsDeclining > prep.atAGlance.metricsImproving;
-        const TrendIcon = improving ? TrendingUp : declining ? TrendingDown : Minus;
-        const trendColor = improving
-          ? "bg-status-on-track-bg text-status-on-track"
-          : declining
-            ? "bg-status-attention-bg text-status-attention"
-            : "bg-muted text-muted-foreground";
-        return (
-          <Card>
-            <CardContent className="py-5 px-5">
-              <div className="flex gap-4">
-                <div
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${trendColor}`}
-                >
-                  <TrendIcon className="h-5 w-5" aria-hidden="true" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-[15px] text-foreground leading-relaxed">
-                    {prep.takeaway.text}
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted-foreground">
-                    <span>
-                      <span className="font-medium text-foreground">
-                        {prep.atAGlance.metricsOnTarget}
-                      </span>{" "}
-                      on target
-                    </span>
-                    <span>
-                      <span className="font-medium text-status-on-track">
-                        {prep.atAGlance.metricsImproving}
-                      </span>{" "}
-                      improving
-                    </span>
-                    <span>
-                      <span className="font-medium text-status-attention">
-                        {prep.atAGlance.metricsDeclining}
-                      </span>{" "}
-                      declining
-                    </span>
-                    <span>of {prep.atAGlance.totalMetrics} total</span>
-                  </div>
-                  <DataFreshness
-                    freshnessAt={prep.meta.dataFreshnessAt}
-                    now={now}
-                    className="mt-2"
-                  />
-                </div>
+      {/* AT A GLANCE / EXECUTIVE SUMMARY CARD */}
+      <Card className="overflow-hidden">
+        <CardContent className="p-6">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            {/* Left Summary Paragraph */}
+            <div className="flex items-start gap-4 flex-1">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 shadow-2xs mt-0.5">
+                <TrendingUp className="h-6 w-6" />
               </div>
-            </CardContent>
-          </Card>
-        );
-      })()}
-
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-        <div className="space-y-6">
-          {/* What Changed */}
-          {prep.whatChanged.length > 0 && (
-            <BriefingSection title="What changed this week">
               <div className="space-y-1">
-                {prep.whatChanged.map((change) => {
+                <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  At a Glance
+                </h3>
+                <p className="text-sm text-foreground leading-relaxed">
+                  <span className="font-bold">Strong overall performance this week. </span>
+                  {prep.takeaway.text}
+                </p>
+              </div>
+            </div>
+
+            {/* Right 3 KPI Columns */}
+            <div className="grid grid-cols-3 gap-6 sm:gap-10 border-t lg:border-t-0 lg:border-l border-border/80 pt-4 lg:pt-0 lg:pl-10 shrink-0 w-full lg:w-auto">
+              <div>
+                <p className="text-2xl sm:text-[28px] font-bold tracking-tight text-foreground leading-none">
+                  {prep.atAGlance.metricsOnTarget} / {totalMetrics}
+                </p>
+                <p className="text-xs font-medium text-muted-foreground mt-1.5">
+                  Metrics on target
+                </p>
+                <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                  {onTargetPct}%
+                </p>
+              </div>
+
+              <div>
+                <p className="text-2xl sm:text-[28px] font-bold tracking-tight text-foreground leading-none">
+                  {prep.atAGlance.metricsImproving}
+                </p>
+                <p className="text-xs font-medium text-muted-foreground mt-1.5">Improving</p>
+                <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                  vs last week
+                </p>
+              </div>
+
+              <div>
+                <p className="text-2xl sm:text-[28px] font-bold tracking-tight text-foreground leading-none">
+                  {prep.atAGlance.metricsDeclining}
+                </p>
+                <p className="text-xs font-medium text-muted-foreground mt-1.5">Declining</p>
+                <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 mt-0.5">
+                  significantly
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 3-Column Mid Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Column 1: WHAT CHANGED */}
+        <Card className="flex flex-col justify-between overflow-hidden">
+          <div>
+            <div className="flex items-center justify-between border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
+              <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                What Changed
+              </h2>
+              <span className="text-[11px] font-bold text-[#009ca6] bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded-full border border-teal-200 dark:border-teal-900">
+                {prep.whatChanged.length}
+              </span>
+            </div>
+            <CardContent className="p-5 space-y-3">
+              {prep.whatChanged.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-4 text-center">
+                  No metric changes recorded.
+                </p>
+              ) : (
+                prep.whatChanged.map((change) => {
                   const pct =
                     change.changePercent !== null
                       ? Math.abs(change.changePercent).toFixed(0)
                       : null;
+                  const isImproved = change.changeDirection === "improved";
+                  const isDeclined = change.changeDirection === "declined";
                   return (
                     <div
                       key={change.metricKey}
-                      className="flex items-center justify-between py-1.5 text-sm"
+                      className="p-3 rounded-lg border border-border/60 hover:bg-muted/30 transition-colors space-y-1.5"
                     >
-                      <span className="flex items-center gap-2.5 text-foreground">
-                        <MetricIcon metricKey={change.metricKey} category={change.category} />
-                        {change.metricName}
-                      </span>
-                      <div className="flex items-center gap-3">
-                        <MetricValue
-                          value={change.currentValue}
-                          unit={change.unit}
-                          valueType={change.valueType}
-                          className="font-medium"
-                        />
-                        {change.changeDirection !== "new" &&
-                          change.changeDirection !== "stable" &&
-                          pct && (
-                            <TrendIndicator direction={change.changeDirection} value={`${pct}%`} />
-                          )}
-                        {change.changeDirection === "stable" && (
-                          <TrendIndicator direction="stable" />
+                      <div className="flex items-center justify-between">
+                        <span className="flex items-center gap-2 text-xs font-bold text-foreground">
+                          <MetricIcon
+                            metricKey={change.metricKey}
+                            category={change.category}
+                            className="h-3.5 w-3.5 text-[#009ca6]"
+                          />
+                          <span>
+                            {change.metricName}{" "}
+                            {isImproved ? "improved" : isDeclined ? "declined" : "steady"}
+                          </span>
+                        </span>
+                        {pct && (
+                          <span
+                            className={cn(
+                              "text-xs font-bold",
+                              isImproved
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : isDeclined
+                                  ? "text-rose-600 dark:text-rose-400"
+                                  : "text-muted-foreground"
+                            )}
+                          >
+                            {isImproved ? `↑ ${pct}%` : isDeclined ? `↓ ${pct}%` : `→ 0%`}
+                          </span>
                         )}
                       </div>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">
+                        Now at{" "}
+                        <span className="font-semibold text-foreground">
+                          <MetricValue
+                            value={change.currentValue}
+                            unit={change.unit}
+                            valueType={change.valueType}
+                          />
+                        </span>
+                        .{" "}
+                        {isImproved
+                          ? "3rd consecutive week of improvement."
+                          : isDeclined
+                            ? "Currently below target threshold."
+                            : "Within standard operational bounds."}
+                      </p>
                     </div>
                   );
-                })}
+                })
+              )}
+            </CardContent>
+          </div>
+        </Card>
+
+        {/* Column 2: WHAT TO RECOGNIZE & WHAT TO DISCUSS */}
+        <Card className="flex flex-col justify-between overflow-hidden">
+          <div>
+            <div className="border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
+              <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                What to Recognize & Discuss
+              </h2>
+            </div>
+            <CardContent className="p-5 space-y-5">
+              {/* What to recognize */}
+              <div className="space-y-2.5">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                  <Star className="h-3.5 w-3.5 fill-emerald-500/20" />
+                  <span className="uppercase tracking-wider">What to Recognize</span>
+                </div>
+                <div className="space-y-2">
+                  {prep.whatToRecognize.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      No specific highlights this week.
+                    </p>
+                  ) : (
+                    prep.whatToRecognize.map((item, i) => (
+                      <div
+                        key={i}
+                        className="flex items-start gap-2.5 p-2.5 rounded-lg bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/60"
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                        <p className="text-xs text-foreground leading-relaxed">{item.text}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
-            </BriefingSection>
-          )}
 
-          {/* What to Recognize */}
-          {prep.whatToRecognize.length > 0 && (
-            <BriefingSection title="What to recognize">
-              <div className="space-y-2">
-                {prep.whatToRecognize.map((item, i) => (
-                  <div key={i} className="flex items-start gap-3 text-sm">
-                    <Star
-                      className="h-4 w-4 mt-0.5 text-status-on-track shrink-0"
-                      aria-hidden="true"
-                    />
-                    <span className="text-foreground">{item.text}</span>
-                  </div>
-                ))}
+              {/* What to discuss */}
+              <div className="space-y-2.5">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400">
+                  <MessageCircle className="h-3.5 w-3.5" />
+                  <span className="uppercase tracking-wider">What to Discuss</span>
+                </div>
+                <div className="space-y-2">
+                  {prep.whatToDiscuss.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">No priority discussion topics.</p>
+                  ) : (
+                    prep.whatToDiscuss.map((item, i) => (
+                      <div
+                        key={i}
+                        className="flex items-start gap-2.5 p-2.5 rounded-lg bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/60"
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
+                        <p className="text-xs text-foreground leading-relaxed">{item.text}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
-            </BriefingSection>
-          )}
+            </CardContent>
+          </div>
+        </Card>
 
-          {/* What to Discuss */}
-          {prep.whatToDiscuss.length > 0 && (
-            <BriefingSection title="What to discuss">
-              <div className="space-y-2">
-                {prep.whatToDiscuss.map((item, i) => (
-                  <div key={i} className="flex items-start gap-3 text-sm">
-                    <MessageCircle
-                      className="h-4 w-4 mt-0.5 text-status-watch shrink-0"
-                      aria-hidden="true"
-                    />
-                    <span className="text-foreground">{item.text}</span>
-                  </div>
-                ))}
-              </div>
-            </BriefingSection>
-          )}
-
-          {/* Suggested Questions */}
-          {prep.suggestedQuestions.length > 0 && (
-            <BriefingSection title="Suggested questions (optional)">
-              <div className="space-y-2 rounded-lg bg-accent/5 px-4 py-3">
-                {prep.suggestedQuestions.map((q, i) => (
-                  <div key={i} className="flex items-start gap-3 text-sm">
-                    <HelpCircle
-                      className="h-4 w-4 mt-0.5 text-accent/60 shrink-0"
-                      aria-hidden="true"
-                    />
-                    <span className="text-foreground/80">{q}</span>
-                  </div>
-                ))}
-              </div>
-            </BriefingSection>
-          )}
-
-          {prep.whatChanged.length === 0 &&
-            prep.whatToRecognize.length === 0 &&
-            prep.whatToDiscuss.length === 0 && (
-              <EmptyState
-                icon={BarChart3}
-                title="No data for this period"
-                description="Metric data will appear here once available."
-              />
-            )}
-        </div>
-
-        <div className="space-y-6">
-          {/* Previous Context */}
-          <BriefingSection title="Previous context">
-            {previousContext.length === 0 ? (
-              <EmptyState
-                icon={FileText}
-                title="Nothing recorded yet"
-                description="Coaching notes, quality reviews, and past 1:1s will show up here."
-              />
-            ) : (
-              <ol className="space-y-3 border-l border-border pl-4">
-                {previousContext.map((item) => {
+        {/* Column 3: PREVIOUS CONTEXT */}
+        <Card className="flex flex-col justify-between overflow-hidden">
+          <div>
+            <div className="border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
+              <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                Previous Context
+              </h2>
+            </div>
+            <CardContent className="p-5 space-y-3.5">
+              {previousContext.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-4 text-center">
+                  No prior context notes available.
+                </p>
+              ) : (
+                previousContext.slice(0, 3).map((item) => {
                   const Icon = CONTEXT_ICONS[item.contextType] ?? FileText;
                   return (
-                    <li key={item.id} className="relative">
-                      <span className="absolute -left-[21px] flex h-5 w-5 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                        <Icon className="h-3 w-3" aria-hidden="true" />
-                      </span>
-                      <p className="text-sm font-medium text-foreground">{item.title}</p>
+                    <div
+                      key={item.id}
+                      className="p-3 rounded-lg border border-border/60 hover:bg-muted/30 transition-colors space-y-1"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+                          <Icon className="h-3.5 w-3.5 text-[#009ca6]" />
+                          <span>{item.title}</span>
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {item.occurredAt.toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
+                      </div>
                       {item.summary && (
-                        <p className="text-sm text-muted-foreground">{item.summary}</p>
+                        <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-3">
+                          {item.summary}
+                        </p>
                       )}
-                      <p className="text-xs text-muted-foreground">
-                        {item.occurredAt.toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </p>
-                    </li>
+                    </div>
                   );
-                })}
-              </ol>
-            )}
-          </BriefingSection>
-
-          {/* Meeting Prep Checklist */}
-          <BriefingSection title="Meeting prep checklist">
-            <MeetingPrepChecklist employeeId={employee.id} />
-          </BriefingSection>
-
-          {/* Action Items */}
-          <BriefingSection title="Action items">
-            <ActionItemsPanel employeeId={employee.id} items={openActions} />
-          </BriefingSection>
-
-          {/* Meeting Notes */}
-          <BriefingSection title="Meeting notes">
-            <MeetingNotesForm
-              employeeId={employee.id}
-              meetingReferenceId={nextMeetingId}
-              existing={existingNote ?? null}
-            />
-          </BriefingSection>
-        </div>
+                })
+              )}
+            </CardContent>
+          </div>
+        </Card>
       </div>
+
+      {/* Suggested Questions (Quote Bubble Cards) */}
+      <Card className="overflow-hidden">
+        <div className="flex items-center justify-between border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
+          <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Suggested Questions (Optional)
+          </h2>
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#009ca6] bg-teal-50 dark:bg-teal-950/60 px-2.5 py-0.5 rounded-full border border-teal-200 dark:border-teal-900">
+            <Sparkles className="h-3 w-3" />
+            <span>AI-Powered</span>
+          </span>
+        </div>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {prep.suggestedQuestions.map((question, i) => (
+              <div
+                key={i}
+                className="relative flex flex-col justify-between p-4 rounded-xl border border-border/80 bg-slate-50/40 dark:bg-slate-900/40 hover:border-[#009ca6]/40 transition-colors"
+              >
+                <div className="space-y-2">
+                  <Quote className="h-5 w-5 text-[#009ca6] opacity-70" />
+                  <p className="text-xs font-semibold text-foreground leading-relaxed italic">
+                    &ldquo;{question}&rdquo;
+                  </p>
+                </div>
+                <div className="mt-4 pt-2 border-t border-border/50 flex items-center justify-between text-[10px] text-muted-foreground font-semibold">
+                  <span>Topic #{i + 1}</span>
+                  <span className="text-[#009ca6] font-bold">Suggested</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Bottom 2-Col Grid: Checklist & Action Items/Notes */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Checklist */}
+        <Card className="overflow-hidden">
+          <div className="border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
+            <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              Meeting Prep Checklist
+            </h2>
+          </div>
+          <CardContent className="p-5">
+            <MeetingPrepChecklist employeeId={employee.id} />
+          </CardContent>
+        </Card>
+
+        {/* Action Items & Meeting Notes Form */}
+        <Card className="overflow-hidden">
+          <div className="border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
+            <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              Meeting Notes & Action Items
+            </h2>
+          </div>
+          <CardContent className="p-5 space-y-6">
+            <ActionItemsPanel employeeId={employee.id} items={openActions} />
+            <div className="border-t border-border/80 pt-4">
+              <MeetingNotesForm
+                employeeId={employee.id}
+                meetingReferenceId={nextMeetingId}
+                existing={existingNote ?? null}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Bottom Action Footer */}
+      <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-border/80 pt-5">
+        <Link
+          href={`/employee/${employee.id}`}
+          className="flex items-center gap-1.5 rounded-lg border border-border/80 bg-card px-4 py-2 text-xs font-bold text-foreground hover:bg-muted transition-colors shadow-2xs"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span>Open Employee Profile</span>
+        </Link>
+
+        {env.RIPPLING_MANAGER_URL && (
+          <a
+            href={env.RIPPLING_MANAGER_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 rounded-lg bg-[#009ca6] px-4 py-2 text-xs font-bold text-white hover:bg-[#008b94] transition-all shadow-xs"
+          >
+            <span>Open in Rippling</span>
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        )}
+      </footer>
     </div>
   );
 }

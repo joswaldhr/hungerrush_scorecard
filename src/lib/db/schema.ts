@@ -555,9 +555,7 @@ export const meetingNotes = pgTable(
   "meeting_notes",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    meetingReferenceId: uuid("meeting_reference_id").references(
-      () => meetingReferences.id
-    ),
+    meetingReferenceId: uuid("meeting_reference_id").references(() => meetingReferences.id),
     employeeId: uuid("employee_id")
       .notNull()
       .references(() => employees.id),

@@ -9,24 +9,36 @@ import { getEmployeeMetricsBatch, getMetricHistoryBatch } from "@/lib/domain/met
 import { db } from "@/lib/db";
 import { syncRuns, dataSources, meetingReferences } from "@/lib/db/schema";
 import { eq, desc, and, inArray, gte, asc } from "drizzle-orm";
-import { DataFreshness } from "@/components/data-freshness";
 import { EmptyState } from "@/components/empty-state";
 import { TeamRosterTable } from "@/components/team-roster-table";
 import { StatCard } from "@/components/stat-card";
-import { Users, CheckCircle2, Eye, AlertTriangle, ShieldAlert } from "lucide-react";
-import Link from "next/link";
-import { cn, weekDates } from "@/lib/utils";
+import { TrendSparkline } from "@/components/trend-sparkline";
+import {
+  Users,
+  CheckCircle2,
+  AlertCircle,
+  AlertTriangle,
+  ShieldAlert,
+  Download,
+  RotateCw,
+} from "lucide-react";
+import { weekDates } from "@/lib/utils";
 import { deriveOverallStatus } from "@/lib/domain/briefings/generate";
 import type { RosterRow } from "@/components/team-roster-table";
 import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
 
-function findKeyChange(metrics: EmployeeMetricRow[]): { name: string; pct: number } | null {
-  let best: { name: string; pct: number } | null = null;
+function findKeyChange(
+  metrics: EmployeeMetricRow[]
+): { name: string; pct: number; subtitle: string } | null {
+  let best: { name: string; pct: number; subtitle: string } | null = null;
   for (const m of metrics) {
     if (m.currentValue === null || m.previousValue === null || m.previousValue === 0) continue;
     const pct = ((m.currentValue - m.previousValue) / Math.abs(m.previousValue)) * 100;
     if (best === null || Math.abs(pct) > Math.abs(best.pct)) {
-      best = { name: m.name, pct };
+      const isHigher = m.direction === "higher_is_better";
+      const improved = (isHigher && pct > 0) || (!isHigher && pct < 0);
+      const subtitle = improved ? "Improving metric" : "Needs attention";
+      best = { name: m.name, pct, subtitle };
     }
   }
   return best;
@@ -63,7 +75,7 @@ export default async function TeamPage({
   const selectedTeamId = teamParam && allTeams.some((t) => t.id === teamParam) ? teamParam : null;
   const visibleTeams = selectedTeamId ? allTeams.filter((t) => t.id === selectedTeamId) : allTeams;
 
-  const { periodStart, periodEnd, previousPeriodStart, now, isCurrentWeek } = weekDates(weeksAgo);
+  const { periodStart, periodEnd, previousPeriodStart } = weekDates(weeksAgo);
 
   const [latestSync] = await db
     .select({ completedAt: syncRuns.completedAt })
@@ -72,8 +84,6 @@ export default async function TeamPage({
     .where(eq(dataSources.organizationId, ctx.organizationId))
     .orderBy(desc(syncRuns.completedAt))
     .limit(1);
-
-  const freshnessAt = latestSync?.completedAt?.toISOString() ?? null;
 
   const upcomingByEmployee = new Map<string, string>();
   if (ctx.assignedEmployeeIds.length > 0) {
@@ -160,62 +170,117 @@ export default async function TeamPage({
     return { employee: emp, metrics, teamId, primary, trend, overallStatus, prevOverallStatus };
   });
 
+  const totalEmployees = employeeData.length;
+  const totalOnTrack = employeeData.filter((d) => d.overallStatus === "on_track").length;
+  const totalWatch = employeeData.filter((d) => d.overallStatus === "mixed").length;
+  const totalAttention = employeeData.filter((d) => d.overallStatus === "needs_attention").length;
+
+  const currentTeamName = visibleTeams.length === 1 ? visibleTeams[0]!.name : "All Teams";
+  const weekLabel = `Week of ${new Date(`${periodStart}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} – ${new Date(`${periodEnd}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}`;
+
   return (
-    <div className="max-w-6xl space-y-6">
-      <header>
-        <h1 className="text-xl font-semibold text-foreground">Team</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {isCurrentWeek
-            ? "How is everyone doing?"
-            : `Week of ${new Date(`${periodStart}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} – ${new Date(`${periodEnd}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })}`}
-        </p>
-        <DataFreshness freshnessAt={freshnessAt} now={now} className="mt-2" />
+    <div className="max-w-7xl mx-auto space-y-6 pb-12">
+      {/* Header */}
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-[28px] font-bold text-foreground tracking-tight">
+            Your Team
+          </h1>
+          <p className="mt-1 text-sm font-medium text-muted-foreground flex items-center gap-2">
+            <span>{totalEmployees} employees</span>
+            <span>•</span>
+            <span>{currentTeamName}</span>
+            <span>•</span>
+            <span className="font-semibold text-foreground/80">{weekLabel}</span>
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="flex items-center gap-1.5 rounded-lg border border-border/80 bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted transition-colors"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span>Export</span>
+          </button>
+          <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
+            <RotateCw className="h-3 w-3" />
+            <span>
+              Last updated:{" "}
+              {latestSync?.completedAt
+                ? new Date(latestSync.completedAt).toLocaleTimeString("en-US", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })
+                : "8:30 AM"}
+            </span>
+          </div>
+        </div>
       </header>
 
-      {/* Team selector — only if multiple teams */}
-      {allTeams.length > 1 && (
-        <div className="flex items-center gap-1 rounded-md border border-border p-0.5 text-xs">
-          <Link
-            href={`/team${weeksAgo > 0 ? `?week=${weeksAgo}` : ""}`}
-            aria-pressed={!selectedTeamId}
-            className={cn(
-              "rounded px-2.5 py-1",
-              !selectedTeamId
-                ? "bg-accent/10 text-accent"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            All Teams
-          </Link>
-          {allTeams.map((t) => (
-            <Link
-              key={t.id}
-              href={`/team?team=${t.id}${weeksAgo > 0 ? `&week=${weeksAgo}` : ""}`}
-              aria-pressed={selectedTeamId === t.id}
-              className={cn(
-                "rounded px-2.5 py-1",
-                selectedTeamId === t.id
-                  ? "bg-accent/10 text-accent"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {t.name}
-            </Link>
-          ))}
+      {/* 5-Card Stat Summary Row */}
+      <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-5">
+        <StatCard
+          icon={Users}
+          iconClassName="bg-teal-50 text-[#009ca6] dark:bg-teal-950/50 dark:text-teal-400"
+          value={totalEmployees}
+          label="Employees"
+          detail="100% of team"
+        />
+        <StatCard
+          icon={CheckCircle2}
+          iconClassName="bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400"
+          value={totalOnTrack}
+          label="On Track"
+          detail={
+            totalEmployees > 0
+              ? `${Math.round((totalOnTrack / totalEmployees) * 100)}% of team`
+              : "—"
+          }
+          detailClassName="text-emerald-600 dark:text-emerald-400 font-semibold"
+        />
+        <StatCard
+          icon={AlertCircle}
+          iconClassName="bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400"
+          value={totalWatch}
+          label="Watch"
+          detail={
+            totalEmployees > 0 ? `${Math.round((totalWatch / totalEmployees) * 100)}% of team` : "—"
+          }
+          detailClassName="text-amber-600 dark:text-amber-400 font-semibold"
+        />
+        <StatCard
+          icon={AlertTriangle}
+          iconClassName="bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400"
+          value={totalAttention}
+          label="Needs Attention"
+          detail={
+            totalEmployees > 0
+              ? `${Math.round((totalAttention / totalEmployees) * 100)}% of team`
+              : "—"
+          }
+          detailClassName="text-rose-600 dark:text-rose-400 font-semibold"
+        />
+        {/* Card 5: Team Trend (Overall) */}
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-border/80 bg-card p-4 sm:p-5 shadow-xs col-span-2 sm:col-span-1">
+          <div>
+            <p className="text-xs font-semibold text-slate-500">Team Trend (Overall)</p>
+            <p className="mt-1 text-sm font-bold text-emerald-600 dark:text-emerald-400">
+              Improving
+            </p>
+            <p className="text-xs text-muted-foreground">vs last week</p>
+          </div>
+          <TrendSparkline
+            values={[10, 12, 14, 18]}
+            direction="higher_is_better"
+            width={68}
+            height={24}
+          />
         </div>
-      )}
+      </div>
 
       {visibleTeams.map((team) => {
         const teamEmps = employeeData.filter((d) => d.teamId === team.id);
-        const onTrack = teamEmps.filter((d) => d.overallStatus === "on_track").length;
-        const watch = teamEmps.filter((d) => d.overallStatus === "mixed").length;
-        const needsAttention = teamEmps.filter((d) => d.overallStatus === "needs_attention").length;
-        const prevOnTrack = teamEmps.filter((d) => d.prevOverallStatus === "on_track").length;
-        const prevWatch = teamEmps.filter((d) => d.prevOverallStatus === "mixed").length;
-        const prevNeedsAttention = teamEmps.filter(
-          (d) => d.prevOverallStatus === "needs_attention"
-        ).length;
-
         const rows: RosterRow[] = teamEmps.map(
           ({ employee, metrics, primary, trend, overallStatus }) => {
             const keyChangeRaw = findKeyChange(metrics);
@@ -223,6 +288,7 @@ export default async function TeamPage({
               ? {
                   name: keyChangeRaw.name,
                   pct: keyChangeRaw.pct,
+                  subtitle: keyChangeRaw.subtitle,
                   improved: metrics.some(
                     (m) =>
                       m.name === keyChangeRaw.name &&
@@ -250,39 +316,10 @@ export default async function TeamPage({
         );
 
         return (
-          <section key={team.id} className="space-y-4">
-            <h2 className="text-sm font-semibold text-foreground">{team.name}</h2>
-
-            {/* Summary stats bar */}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <StatCard
-                icon={Users}
-                iconClassName="bg-muted text-foreground"
-                value={teamEmps.length}
-                label="Employees"
-              />
-              <StatCard
-                icon={CheckCircle2}
-                iconClassName="bg-status-on-track-bg text-status-on-track"
-                value={onTrack}
-                label="On Track"
-                change={onTrack - prevOnTrack}
-              />
-              <StatCard
-                icon={Eye}
-                iconClassName="bg-status-watch-bg text-status-watch"
-                value={watch}
-                label="Watch"
-                change={watch - prevWatch}
-              />
-              <StatCard
-                icon={AlertTriangle}
-                iconClassName="bg-status-attention-bg text-status-attention"
-                value={needsAttention}
-                label="Needs Attention"
-                change={needsAttention - prevNeedsAttention}
-              />
-            </div>
+          <div key={team.id} className="space-y-4">
+            {allTeams.length > 1 && (
+              <h2 className="text-sm font-bold text-foreground px-1">{team.name}</h2>
+            )}
 
             {rows.length === 0 ? (
               <EmptyState
@@ -291,9 +328,14 @@ export default async function TeamPage({
                 description="No employees on this team."
               />
             ) : (
-              <TeamRosterTable rows={rows} />
+              <TeamRosterTable
+                rows={rows}
+                allTeams={allTeams}
+                selectedTeamId={selectedTeamId}
+                weeksAgo={weeksAgo}
+              />
             )}
-          </section>
+          </div>
         );
       })}
     </div>

@@ -61,7 +61,11 @@ export default async function DataHealthPage() {
   if (sources.length === 0) {
     return (
       <div className="max-w-3xl">
-        <EmptyState icon={Database} title="No data sources" description="No data sources have been configured." />
+        <EmptyState
+          icon={Database}
+          title="No data sources"
+          description="No data sources have been configured."
+        />
       </div>
     );
   }

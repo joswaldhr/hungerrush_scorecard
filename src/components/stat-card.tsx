@@ -7,35 +7,50 @@ export function StatCard({
   value,
   label,
   detail,
+  detailClassName,
   change,
+  children,
   className,
 }: {
-  icon: LucideIcon;
+  icon?: LucideIcon;
   iconClassName?: string;
   value: string | number;
   label: string;
   detail?: string;
+  detailClassName?: string;
   change?: number | null;
+  children?: React.ReactNode;
   className?: string;
 }) {
   return (
-    <div className={cn("flex items-center gap-4 rounded-lg border bg-card p-5", className)}>
-      <div
-        className={cn(
-          "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
-          iconClassName
-        )}
-      >
-        <Icon className="h-5 w-5" aria-hidden="true" />
-      </div>
-      <div>
+    <div
+      className={cn(
+        "flex items-center gap-4 rounded-xl border border-border/80 bg-card p-4 sm:p-5 shadow-xs transition-shadow hover:shadow-sm",
+        className
+      )}
+    >
+      {Icon && (
+        <div
+          className={cn(
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-full shadow-2xs",
+            iconClassName ?? "bg-slate-100 text-slate-600"
+          )}
+        >
+          <Icon className="h-5 w-5" aria-hidden="true" />
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2">
-          <p className="text-stat-value font-bold leading-none text-foreground">{value}</p>
+          <p className="text-2xl sm:text-[28px] font-bold tracking-tight text-foreground leading-none">
+            {value}
+          </p>
           {change != null && change !== 0 && (
             <span
               className={cn(
-                "text-xs font-medium",
-                change > 0 ? "text-status-on-track" : "text-status-attention"
+                "text-xs font-semibold px-1.5 py-0.5 rounded",
+                change > 0
+                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
+                  : "bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400"
               )}
             >
               {change > 0 ? "+" : ""}
@@ -43,8 +58,18 @@ export function StatCard({
             </span>
           )}
         </div>
-        <p className="mt-1 text-sm text-foreground">{label}</p>
-        {detail && <p className="mt-0.5 text-xs text-muted-foreground">{detail}</p>}
+        <p className="mt-1 text-sm font-semibold text-foreground/90 truncate">{label}</p>
+        {detail && (
+          <p
+            className={cn(
+              "mt-0.5 text-xs font-medium text-muted-foreground truncate",
+              detailClassName
+            )}
+          >
+            {detail}
+          </p>
+        )}
+        {children}
       </div>
     </div>
   );

@@ -51,7 +51,11 @@ export default async function AdminPage() {
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-foreground">Managers</h2>
         {managers.length === 0 ? (
-          <EmptyState icon={Users} title="No managers" description="No manager assignments exist yet." />
+          <EmptyState
+            icon={Users}
+            title="No managers"
+            description="No manager assignments exist yet."
+          />
         ) : (
           <div className="divide-y divide-border rounded-lg border">
             {managers.map((m) => (

@@ -35,7 +35,13 @@ export default async function OneOnOnesPage() {
   const { ctx, isPlatformAdmin } = await getEffectiveManagerContext(session.user.email);
   if (!ctx) {
     if (isPlatformAdmin) redirect("/admin");
-    return <EmptyState icon={ShieldAlert} title="No access" description="You are not assigned as a manager." />;
+    return (
+      <EmptyState
+        icon={ShieldAlert}
+        title="No access"
+        description="You are not assigned as a manager."
+      />
+    );
   }
 
   const allTeams = await getAssignedTeams(ctx);
@@ -112,7 +118,11 @@ export default async function OneOnOnesPage() {
           <section key={team.id} className="space-y-2">
             <h2 className="text-sm font-semibold text-foreground">{team.name}</h2>
             {teamEmployees.length === 0 ? (
-              <EmptyState icon={Users} title="No employees" description="No employees on this team." />
+              <EmptyState
+                icon={Users}
+                title="No employees"
+                description="No employees on this team."
+              />
             ) : (
               <div className="divide-y divide-border rounded-lg border">
                 {teamEmployees.map((employee) => {
@@ -139,7 +149,9 @@ export default async function OneOnOnesPage() {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground">{employee.displayName}</p>
+                        <p className="text-sm font-medium text-foreground">
+                          {employee.displayName}
+                        </p>
                         {employee.jobTitle && (
                           <p className="text-xs text-muted-foreground">{employee.jobTitle}</p>
                         )}

@@ -2,11 +2,13 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { DEV_USERS } from "@/lib/auth/dev-users";
 import { initials } from "@/lib/utils";
 import { toast } from "sonner";
 
 export function LoginForm() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleLogin(email: string) {
@@ -21,7 +23,7 @@ export function LoginForm() {
         toast.error("Sign-in failed. Please try again.");
         setIsLoading(false);
       } else if (result?.url) {
-        window.location.href = result.url;
+        router.push(result.url);
       }
     } catch {
       toast.error("Sign-in failed. Please try again.");

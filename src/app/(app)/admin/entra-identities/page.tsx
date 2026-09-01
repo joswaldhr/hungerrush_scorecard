@@ -43,7 +43,10 @@ export default async function EntraIdentitiesPage() {
     .from(employees)
     .where(
       handledEmployeeIds.length > 0
-        ? and(eq(employees.employmentStatus, "active"), notInArray(employees.id, handledEmployeeIds))
+        ? and(
+            eq(employees.employmentStatus, "active"),
+            notInArray(employees.id, handledEmployeeIds)
+          )
         : eq(employees.employmentStatus, "active")
     );
 
@@ -52,8 +55,8 @@ export default async function EntraIdentitiesPage() {
       <header>
         <h1 className="text-xl font-semibold text-foreground">Entra Identities</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Match each active employee to their real Entra account once, by name — never guessed
-          by email, since Zendesk/Assembled emails have been found to drift from the real Entra
+          Match each active employee to their real Entra account once, by name — never guessed by
+          email, since Zendesk/Assembled emails have been found to drift from the real Entra
           address. Once matched, the daily check flags anyone whose account gets disabled.
         </p>
       </header>

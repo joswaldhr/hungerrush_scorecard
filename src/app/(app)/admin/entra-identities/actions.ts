@@ -18,7 +18,10 @@ async function requireAdmin() {
 }
 
 async function getEntraDataSourceId(): Promise<string> {
-  const [source] = await db.select({ id: dataSources.id }).from(dataSources).where(eq(dataSources.type, "entra"));
+  const [source] = await db
+    .select({ id: dataSources.id })
+    .from(dataSources)
+    .where(eq(dataSources.type, "entra"));
   if (!source) throw new Error("Entra data source not configured");
   return source.id;
 }

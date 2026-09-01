@@ -8,14 +8,17 @@ import {
   Home,
   Users,
   Calendar,
+  BarChart3,
+  Settings,
+  Link2,
   Activity,
   Scale,
   ShieldCheck,
   LogOut,
   PanelLeftClose,
-  PanelLeftOpen,
   Sun,
   Moon,
+  ChevronDown,
 } from "lucide-react";
 import { cn, initials } from "@/lib/utils";
 
@@ -23,6 +26,9 @@ const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
   Home,
   Users,
   Calendar,
+  BarChart3,
+  Settings,
+  Link2,
   Activity,
   Scale,
   ShieldCheck,
@@ -35,8 +41,9 @@ interface NavItem {
 }
 
 interface SidebarClientProps {
-  user: { name?: string | null } | null;
+  user: { name?: string | null; email?: string | null } | null;
   primaryNav: NavItem[];
+  utilityNav?: NavItem[];
   secondaryNav: NavItem[];
   signOutAction: () => Promise<void>;
   brandMark: React.ReactNode;
@@ -47,6 +54,7 @@ const STORAGE_KEY = "sidebar-collapsed";
 export function SidebarClient({
   user,
   primaryNav,
+  utilityNav = [],
   secondaryNav,
   signOutAction,
   brandMark,
@@ -54,17 +62,22 @@ export function SidebarClient({
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
 
   useEffect(() => {
     const narrow = window.matchMedia("(max-width: 1279px)").matches;
+    let initialCollapsed = narrow;
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      setCollapsed(stored !== null ? stored === "true" : narrow);
-    } catch {
-      setCollapsed(narrow);
-    }
-    setHydrated(true);
+      if (stored !== null) initialCollapsed = stored === "true";
+    } catch {}
+
+    // Set hydrated and initial state
+    requestAnimationFrame(() => {
+      setCollapsed(initialCollapsed);
+      setHydrated(true);
+    });
   }, []);
 
   useEffect(() => {
@@ -90,28 +103,30 @@ export function SidebarClient({
   return (
     <aside
       className={cn(
-        "flex h-screen flex-col bg-sidebar-background text-sidebar-foreground transition-[width] duration-200",
-        collapsed ? "w-14" : "w-[var(--sidebar-width)]"
+        "flex h-screen flex-col bg-sidebar-background text-sidebar-foreground transition-[width] duration-200 shrink-0 border-r border-sidebar-border/40 select-none",
+        collapsed ? "w-16" : "w-[var(--sidebar-width)]"
       )}
     >
       {/* Brand */}
-      <div className={cn("py-6", collapsed ? "px-3" : "px-5")}>
-        <div className={cn("flex items-center", collapsed ? "justify-center" : "gap-3")}>
+      <div className={cn("pt-6 pb-6", collapsed ? "px-3" : "px-5")}>
+        <Link href="/" className={cn("flex items-center gap-3 group")}>
           {brandMark}
           {!collapsed && (
-            <div className="leading-none">
-              <span className="text-xs font-semibold tracking-widest text-white">HUNGERRUSH</span>
-              <span className="mt-0.5 block text-[10px] font-semibold tracking-widest text-sidebar-primary">
+            <div className="leading-tight">
+              <span className="block text-sm font-bold tracking-widest text-white">
+                HUNGER<span className="font-extrabold text-white">RUSH</span>
+              </span>
+              <span className="block text-[11px] font-semibold tracking-wider text-[#00c4cc]">
                 CADENCE
               </span>
             </div>
           )}
-        </div>
+        </Link>
       </div>
 
       {/* Primary nav */}
-      <nav className="flex-1 px-2" aria-label="Main navigation">
-        <div className="space-y-1">
+      <nav className="flex-1 px-3 space-y-1 overflow-y-auto" aria-label="Main navigation">
+        <div className="space-y-1.5">
           {primaryNav.map((item) => {
             const active = isActive(item.href);
             const Icon = ICON_MAP[item.iconName];
@@ -122,25 +137,29 @@ export function SidebarClient({
                 aria-current={active ? "page" : undefined}
                 title={collapsed ? item.label : undefined}
                 className={cn(
-                  "flex items-center rounded-md py-2 text-sm font-medium transition-colors",
-                  collapsed ? "justify-center px-0" : "gap-3 px-3",
+                  "flex items-center rounded-lg py-2.5 text-sm font-medium transition-all",
+                  collapsed ? "justify-center px-0" : "gap-3.5 px-3.5",
                   active
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    ? "bg-[#009ca6] text-white shadow-sm font-semibold"
+                    : "text-slate-300/80 hover:bg-sidebar-accent hover:text-white"
                 )}
               >
-                {Icon && <Icon className="h-4 w-4 shrink-0" />}
-                {!collapsed && item.label}
+                {Icon && (
+                  <Icon
+                    className={cn("h-4.5 w-4.5 shrink-0", active ? "text-white" : "text-slate-400")}
+                  />
+                )}
+                {!collapsed && <span>{item.label}</span>}
               </Link>
             );
           })}
         </div>
 
-        {/* Secondary nav */}
+        {/* Secondary / Admin nav if present */}
         {secondaryNav.length > 0 && (
-          <div className="mt-8 space-y-1">
+          <div className="pt-6 space-y-1">
             {!collapsed && (
-              <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
+              <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400/60">
                 Operations
               </p>
             )}
@@ -154,15 +173,15 @@ export function SidebarClient({
                   aria-current={active ? "page" : undefined}
                   title={collapsed ? item.label : undefined}
                   className={cn(
-                    "flex items-center rounded-md py-2 text-sm font-medium transition-colors",
-                    collapsed ? "justify-center px-0" : "gap-3 px-3",
+                    "flex items-center rounded-lg py-2 text-sm font-medium transition-colors",
+                    collapsed ? "justify-center px-0" : "gap-3.5 px-3.5",
                     active
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                      : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      ? "bg-[#009ca6] text-white font-semibold"
+                      : "text-slate-400 hover:bg-sidebar-accent hover:text-slate-200"
                   )}
                 >
                   {Icon && <Icon className="h-4 w-4 shrink-0" />}
-                  {!collapsed && item.label}
+                  {!collapsed && <span>{item.label}</span>}
                 </Link>
               );
             })}
@@ -170,77 +189,104 @@ export function SidebarClient({
         )}
       </nav>
 
-      {/* Theme toggle */}
-      <div className="px-2 py-2">
-        <button
-          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-          aria-label={
-            hydrated && resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"
-          }
-          title={collapsed ? "Toggle theme" : undefined}
-          className={cn(
-            "flex w-full items-center rounded-md py-2 text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground",
-            collapsed ? "justify-center px-0" : "gap-3 px-3"
-          )}
-        >
-          {hydrated && resolvedTheme === "dark" ? (
-            <Sun className="h-4 w-4" />
-          ) : (
-            <Moon className="h-4 w-4" />
-          )}
+      {/* Utility Nav: Settings, Connections, Theme */}
+      <div className="px-3 py-2 space-y-1 border-t border-sidebar-border/50">
+        {utilityNav.map((item) => {
+          const active = isActive(item.href);
+          const Icon = ICON_MAP[item.iconName];
+          return (
+            <Link
+              key={item.label}
+              href={item.href}
+              title={collapsed ? item.label : undefined}
+              className={cn(
+                "flex items-center rounded-lg py-2 text-sm font-medium transition-colors text-slate-400 hover:bg-sidebar-accent hover:text-white",
+                collapsed ? "justify-center px-0" : "gap-3 px-3",
+                active && "text-white"
+              )}
+            >
+              {Icon && <Icon className="h-4 w-4 shrink-0" />}
+              {!collapsed && <span>{item.label}</span>}
+            </Link>
+          );
+        })}
+
+        <div className="flex items-center justify-between pt-1">
+          <button
+            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+            aria-label={
+              hydrated && resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+            }
+            title={collapsed ? "Toggle theme" : undefined}
+            className={cn(
+              "flex items-center rounded-md p-1.5 text-slate-400 hover:bg-sidebar-accent hover:text-white transition-colors",
+              collapsed ? "w-full justify-center" : ""
+            )}
+          >
+            {hydrated && resolvedTheme === "dark" ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
+          </button>
+
           {!collapsed && (
-            <span className="text-xs">
-              {hydrated && resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
-            </span>
-          )}
-        </button>
-      </div>
-
-      {/* Collapse toggle */}
-      <div className="px-2 py-2">
-        <button
-          onClick={toggle}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className={cn(
-            "flex w-full items-center rounded-md py-2 text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground",
-            collapsed ? "justify-center px-0" : "gap-3 px-3"
-          )}
-        >
-          {collapsed ? (
-            <PanelLeftOpen className="h-4 w-4" />
-          ) : (
-            <>
+            <button
+              onClick={toggle}
+              aria-label="Collapse sidebar"
+              className="flex items-center gap-1 rounded-md p-1.5 text-xs text-slate-400 hover:bg-sidebar-accent hover:text-white transition-colors"
+            >
               <PanelLeftClose className="h-4 w-4" />
-              <span className="text-xs">Collapse</span>
-            </>
+            </button>
           )}
-        </button>
+        </div>
       </div>
 
-      {/* User */}
+      {/* User profile card */}
       {user && (
-        <div className="border-t border-sidebar-border px-2 py-4">
-          <div className={cn("flex items-center", collapsed ? "justify-center" : "gap-3 px-3")}>
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-xs font-medium text-sidebar-accent-foreground">
-              {user.name ? initials(user.name) : "?"}
+        <div className="border-t border-sidebar-border/70 p-3 relative">
+          <button
+            onClick={() => setUserMenuOpen(!userMenuOpen)}
+            className={cn(
+              "w-full flex items-center rounded-lg p-1.5 text-left transition-colors hover:bg-sidebar-accent/80",
+              collapsed ? "justify-center" : "gap-3"
+            )}
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#009ca6] text-xs font-bold text-white shadow-xs">
+              {user.name ? initials(user.name) : "JS"}
             </div>
             {!collapsed && (
               <>
-                <div className="flex-1 truncate">
-                  <div className="text-sm font-medium">{user.name}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-white truncate">
+                    {user.name ?? "James Smith"}
+                  </div>
+                  <div className="text-[11px] text-slate-400 truncate">Support Manager</div>
                 </div>
-                <form action={signOutAction}>
-                  <button
-                    type="submit"
-                    aria-label="Sign out"
-                    className="rounded-md p-1.5 text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
-                  >
-                    <LogOut className="h-4 w-4" />
-                  </button>
-                </form>
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 text-slate-400 transition-transform",
+                    userMenuOpen && "rotate-180"
+                  )}
+                />
               </>
             )}
-          </div>
+          </button>
+
+          {userMenuOpen && (
+            <div className="absolute bottom-full left-3 right-3 mb-2 rounded-lg bg-slate-900 border border-slate-700 p-1.5 shadow-xl z-50">
+              <div className="px-2 py-1 text-xs text-slate-400 truncate">{user.email}</div>
+              <form action={signOutAction}>
+                <button
+                  type="submit"
+                  className="w-full flex items-center gap-2 rounded px-2 py-1.5 text-xs text-rose-400 hover:bg-slate-800 transition-colors"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  Sign out
+                </button>
+              </form>
+            </div>
+          )}
         </div>
       )}
     </aside>

@@ -93,7 +93,10 @@ async function performCheck(
     .select({ employeeId: rosterCandidates.employeeId })
     .from(rosterCandidates)
     .where(
-      and(eq(rosterCandidates.dataSourceId, entraDataSourceId), eq(rosterCandidates.status, "pending"))
+      and(
+        eq(rosterCandidates.dataSourceId, entraDataSourceId),
+        eq(rosterCandidates.status, "pending")
+      )
     );
   const pendingEmployeeIds = new Set(existingPending.map((c) => c.employeeId));
 

@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { isPlatformAdmin } from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
 import { employees, teams, organizations } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { createEmployee } from "../roster-actions";
 

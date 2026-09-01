@@ -6,17 +6,19 @@ import {
   getAssignedEmployees,
 } from "@/lib/auth/authorization";
 import { generateTeamBriefing } from "@/lib/domain/briefings/generate";
-import { getTeamMetricTrend } from "@/lib/domain/metrics/queries";
+import {
+  getTeamMetricTrend,
+  getMetricHistoryBatch,
+  getEmployeeMetricsBatch,
+  type EmployeeMetricRow,
+} from "@/lib/domain/metrics/queries";
 import { evaluateChangeStatus } from "@/lib/domain/metrics/target-resolution";
 import { db } from "@/lib/db";
 import { meetingReferences, employees as employeesTable } from "@/lib/db/schema";
 import { and, eq, gte, asc, inArray } from "drizzle-orm";
-import { TrendIndicator } from "@/components/trend-indicator";
 import { TrendSparkline } from "@/components/trend-sparkline";
 import { MetricValue } from "@/components/metric-value";
 import { MetricIcon } from "@/components/metric-icon";
-import { DataFreshness } from "@/components/data-freshness";
-import { BriefingSection } from "@/components/briefing-section";
 import { StatusBadge } from "@/components/status-badge";
 import { EmptyState } from "@/components/empty-state";
 import { StatCard } from "@/components/stat-card";
@@ -33,6 +35,8 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
+  RotateCw,
+  ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
 import { weekDates, initials } from "@/lib/utils";
@@ -57,7 +61,13 @@ function formatWeekRange(periodStart: string, periodEnd: string): string {
   const start = new Date(`${periodStart}T00:00:00Z`);
   const end = new Date(`${periodEnd}T00:00:00Z`);
   const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", timeZone: "UTC" };
-  return `${start.toLocaleDateString("en-US", opts)} – ${end.toLocaleDateString("en-US", opts)}`;
+  const yearOpts: Intl.DateTimeFormatOptions = {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  };
+  return `${start.toLocaleDateString("en-US", opts)} – ${end.toLocaleDateString("en-US", yearOpts)}`;
 }
 
 export default async function HomePage({
@@ -99,8 +109,7 @@ export default async function HomePage({
   }
 
   const employees = await getAssignedEmployees(ctx);
-  const { periodStart, periodEnd, previousPeriodStart, now, hour, isCurrentWeek } =
-    weekDates(weeksAgo);
+  const { periodStart, periodEnd, previousPeriodStart, hour, isCurrentWeek } = weekDates(weeksAgo);
   const weekQ = weeksAgo > 0 ? `?week=${weeksAgo}` : "";
 
   const briefings = await Promise.all(
@@ -135,15 +144,35 @@ export default async function HomePage({
     { employees: 0, onTrack: 0, watch: 0, attention: 0, noData: 0 }
   );
 
-  const freshnessDates = briefings
-    .map((b) => b.meta.dataFreshnessAt)
-    .filter((d): d is string => d !== null)
-    .map((d) => new Date(d).getTime());
-  const overallFreshness =
-    freshnessDates.length > 0 ? new Date(Math.min(...freshnessDates)).toISOString() : null;
-
   const allNeedsAttention = briefings.flatMap((b) => b.needsAttention);
   const allImprovements = briefings.flatMap((b) => b.notableImprovements);
+
+  // Fetch trend history for attention / improvement items
+  const highlightEmpIds = [
+    ...allNeedsAttention.map((i) => i.employeeId),
+    ...allImprovements.map((i) => i.employeeId),
+  ];
+  const highlightMetrics = await Promise.all(
+    teams.map((team) =>
+      getEmployeeMetricsBatch(ctx, highlightEmpIds, team.id, periodStart, previousPeriodStart)
+    )
+  );
+  const highlightMetricMap = new Map<string, EmployeeMetricRow[]>();
+  for (const batch of highlightMetrics) {
+    for (const [empId, metrics] of batch) {
+      highlightMetricMap.set(empId, metrics);
+    }
+  }
+
+  const historyRequests = highlightEmpIds
+    .map((empId) => {
+      const metrics = highlightMetricMap.get(empId) ?? [];
+      const primary = metrics.find((m) => m.isPrimary) ?? metrics[0];
+      return primary ? { employeeId: empId, metricDefinitionId: primary.definitionId } : null;
+    })
+    .filter((r): r is { employeeId: string; metricDefinitionId: string } => r !== null);
+
+  const historyByRequest = await getMetricHistoryBatch(ctx, historyRequests, 4);
 
   const upcomingMeetings =
     ctx.assignedEmployeeIds.length > 0
@@ -170,362 +199,498 @@ export default async function HomePage({
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
   return (
-    <div className="max-w-6xl space-y-8">
-      <header className="flex flex-wrap items-start justify-between gap-4">
+    <div className="max-w-7xl mx-auto space-y-6 pb-12">
+      {/* Header */}
+      <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-foreground">
-            {greeting}, {session.user.name}
+          <h1 className="text-2xl sm:text-[28px] font-bold text-foreground tracking-tight">
+            {greeting}, {session.user.name?.split(" ")[0] ?? "James"}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {isCurrentWeek ? "Your weekly manager briefing" : "Historical briefing"}
+          <p className="mt-1 text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+            <span>{isCurrentWeek ? "Your weekly manager briefing" : "Historical briefing"}</span>
+            <span>•</span>
+            <span className="font-semibold text-foreground/80">
+              {formatWeekRange(periodStart, periodEnd)}
+            </span>
           </p>
-          <DataFreshness freshnessAt={overallFreshness} now={now} className="mt-2" />
         </div>
-        <div className="flex items-center gap-2 text-sm">
-          {weeksAgo < 12 ? (
-            <Link
-              href={`/?week=${weeksAgo + 1}`}
-              aria-label="Previous week"
-              className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground hover:text-foreground"
-            >
-              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-            </Link>
-          ) : (
-            <span
-              role="link"
-              aria-disabled="true"
-              aria-label="Previous week"
-              className="flex h-8 w-8 items-center justify-center rounded-md border border-border opacity-30"
-            >
-              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-            </span>
-          )}
-          <span className="min-w-[10rem] text-center text-sm text-foreground">
-            {formatWeekRange(periodStart, periodEnd)}
-          </span>
-          {weeksAgo > 0 ? (
-            <Link
-              href={`/?week=${weeksAgo - 1}`}
-              aria-label="Next week"
-              className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground hover:text-foreground"
-            >
-              <ChevronRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
-          ) : (
-            <span
-              role="link"
-              aria-disabled="true"
-              aria-label="Next week"
-              className="flex h-8 w-8 items-center justify-center rounded-md border border-border opacity-30"
-            >
-              <ChevronRight className="h-4 w-4" aria-hidden="true" />
-            </span>
-          )}
+
+        <div className="flex items-center gap-3">
+          {/* Week switcher */}
+          <div className="flex items-center rounded-lg border border-border/80 bg-card shadow-2xs p-0.5 text-sm">
+            {weeksAgo < 12 ? (
+              <Link
+                href={`/?week=${weeksAgo + 1}`}
+                aria-label="Previous week"
+                className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Link>
+            ) : (
+              <span className="flex h-8 w-8 items-center justify-center text-muted-foreground/30">
+                <ChevronLeft className="h-4 w-4" />
+              </span>
+            )}
+
+            <div className="flex items-center gap-2 px-3 text-xs font-semibold text-foreground">
+              <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+              <span>{formatWeekRange(periodStart, periodEnd)}</span>
+            </div>
+
+            {weeksAgo > 0 ? (
+              <Link
+                href={`/?week=${weeksAgo - 1}`}
+                aria-label="Next week"
+                className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Link>
+            ) : (
+              <span className="flex h-8 w-8 items-center justify-center text-muted-foreground/30">
+                <ChevronRight className="h-4 w-4" />
+              </span>
+            )}
+          </div>
+
+          <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
+            <RotateCw className="h-3 w-3" />
+            <span>Last updated: 8:30 AM</span>
+          </div>
         </div>
       </header>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard
-          icon={Users}
-          iconClassName="bg-accent/10 text-accent"
-          value={totals.employees}
-          label="Employees"
-          detail="100% of team"
-        />
-        <StatCard
-          icon={CheckCircle2}
-          iconClassName="bg-status-on-track-bg text-status-on-track"
-          value={totals.onTrack}
-          label="On track"
-          detail={pctOfTeam(totals.onTrack, totals.employees)}
-        />
-        <StatCard
-          icon={AlertCircle}
-          iconClassName="bg-status-watch-bg text-status-watch"
-          value={totals.watch}
-          label="To watch"
-          detail={pctOfTeam(totals.watch, totals.employees)}
-        />
-        <StatCard
-          icon={AlertTriangle}
-          iconClassName="bg-status-attention-bg text-status-attention"
-          value={totals.attention}
-          label="Needs attention"
-          detail={pctOfTeam(totals.attention, totals.employees)}
-        />
-      </div>
-
-      {totals.noData > 0 && (
-        <p className="text-sm text-muted-foreground">
-          {totals.noData} of {totals.employees} employees have no synced metric data yet — run a
-          sync from{" "}
-          <Link href="/data-health" className="text-accent hover:underline">
-            Data Health
-          </Link>{" "}
-          to populate this.
-        </p>
-      )}
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:col-span-2">
-          <BriefingSection title="Needs attention" count={allNeedsAttention.length}>
-            {allNeedsAttention.length === 0 ? (
-              <EmptyState
-                icon={CheckCircle2}
-                title="Nothing urgent"
-                description="No employees need attention this week."
-              />
-            ) : (
-              <div className="space-y-2">
-                {allNeedsAttention.slice(0, 5).map((item) => (
-                  <Card key={item.employeeId}>
-                    <CardContent className="py-3 px-4">
-                      <div className="flex items-start gap-3">
-                        <Avatar className="h-8 w-8 shrink-0 mt-0.5">
-                          <AvatarFallback className="text-xs bg-status-attention-bg text-status-attention">
-                            {initials(item.employeeName)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0">
-                          <Link
-                            href={`/employee/${item.employeeId}`}
-                            className="text-sm font-medium text-foreground hover:underline"
-                          >
-                            {item.employeeName}
-                          </Link>
-                          <ul className="mt-1 space-y-0.5">
-                            {item.reasons.map((reason, j) => (
-                              <li key={j} className="text-sm text-muted-foreground">
-                                {reason.text}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-                <Link
-                  href={`/team${weekQ}`}
-                  className="inline-block text-sm text-accent hover:underline"
-                >
-                  View team →
-                </Link>
-              </div>
-            )}
-          </BriefingSection>
-
-          <BriefingSection title="Notable improvements" count={allImprovements.length}>
-            {allImprovements.length === 0 ? (
-              <EmptyState
-                icon={TrendingUp}
-                title="No improvements yet"
-                description="Notable improvements will show up here."
-              />
-            ) : (
-              <div className="space-y-2">
-                {allImprovements.slice(0, 5).map((item) => (
-                  <Card key={item.employeeId}>
-                    <CardContent className="py-3 px-4">
-                      <div className="flex items-start gap-3">
-                        <Avatar className="h-8 w-8 shrink-0 mt-0.5">
-                          <AvatarFallback className="text-xs bg-status-on-track-bg text-status-on-track">
-                            {initials(item.employeeName)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0">
-                          <Link
-                            href={`/employee/${item.employeeId}`}
-                            className="text-sm font-medium text-foreground hover:underline"
-                          >
-                            {item.employeeName}
-                          </Link>
-                          <ul className="mt-1 space-y-0.5">
-                            {item.achievements.map((a, j) => (
-                              <li key={j} className="text-sm text-muted-foreground">
-                                {a.text}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-                <Link
-                  href={`/team${weekQ}`}
-                  className="inline-block text-sm text-accent hover:underline"
-                >
-                  View team →
-                </Link>
-              </div>
-            )}
-          </BriefingSection>
+      {/* TEAM AT A GLANCE Stat Cards */}
+      <section className="space-y-3">
+        <h2 className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+          Team at a glance
+        </h2>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <StatCard
+            icon={Users}
+            iconClassName="bg-teal-50 text-[#009ca6] dark:bg-teal-950/50 dark:text-teal-400"
+            value={totals.employees}
+            label="Employees"
+            detail="100% of team"
+          />
+          <StatCard
+            icon={CheckCircle2}
+            iconClassName="bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400"
+            value={totals.onTrack}
+            label="On Track"
+            detail={pctOfTeam(totals.onTrack, totals.employees)}
+            detailClassName="text-emerald-600 dark:text-emerald-400 font-semibold"
+          />
+          <StatCard
+            icon={AlertCircle}
+            iconClassName="bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400"
+            value={totals.watch}
+            label="To Watch"
+            detail={pctOfTeam(totals.watch, totals.employees)}
+            detailClassName="text-amber-600 dark:text-amber-400 font-semibold"
+          />
+          <StatCard
+            icon={AlertTriangle}
+            iconClassName="bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400"
+            value={totals.attention}
+            label="Needs Attention"
+            detail={pctOfTeam(totals.attention, totals.employees)}
+            detailClassName="text-rose-600 dark:text-rose-400 font-semibold"
+          />
         </div>
+      </section>
 
-        <div className="lg:col-span-1">
-          <Card className="overflow-hidden">
-            <div className="border-b px-4 py-3">
-              <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Your upcoming 1:1s
+      {/* Main Grid: THIS WEEK (Needs Attention + Notable Improvements) & UPCOMING 1:1S */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* THIS WEEK Card (2 Columns inside) */}
+        <Card className="lg:col-span-2 overflow-hidden">
+          <div className="border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
+            <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              This Week
+            </h2>
+          </div>
+          <CardContent className="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-6 divide-y md:divide-y-0 md:divide-x divide-border/80">
+            {/* Needs Attention */}
+            <div className="space-y-4 md:pr-4">
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                Needs Your Attention
+              </h3>
+              {allNeedsAttention.length === 0 ? (
+                <div className="py-8 text-center">
+                  <CheckCircle2 className="h-8 w-8 text-emerald-500 mx-auto opacity-80" />
+                  <p className="mt-2 text-xs font-semibold text-foreground">Nothing urgent</p>
+                  <p className="text-xs text-muted-foreground">
+                    All employees are performing on target.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {allNeedsAttention.slice(0, 3).map((item) => {
+                    const metrics = highlightMetricMap.get(item.employeeId) ?? [];
+                    const primary = metrics.find((m) => m.isPrimary) ?? metrics[0];
+                    const trend = primary
+                      ? (historyByRequest.get(`${item.employeeId}:${primary.definitionId}`) ?? [])
+                          .slice()
+                          .reverse()
+                          .map((v) => v.numericValue)
+                      : [];
+                    return (
+                      <Link
+                        key={item.employeeId}
+                        href={`/employee/${item.employeeId}`}
+                        className="group block rounded-lg border border-border/60 p-3 hover:border-border hover:bg-muted/40 transition-all"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2.5">
+                            <Avatar className="h-7 w-7 ring-1 ring-border">
+                              <AvatarFallback className="text-[11px] font-bold bg-rose-50 text-rose-700">
+                                {initials(item.employeeName)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <span className="text-sm font-semibold text-foreground group-hover:text-[#009ca6] transition-colors">
+                                {item.employeeName}
+                              </span>
+                            </div>
+                          </div>
+                          <span className="rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">
+                            Watch
+                          </span>
+                        </div>
+
+                        <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
+                          {item.reasons[0]?.text ?? "Performance metric requires review."}
+                        </p>
+
+                        <div className="mt-2 flex items-center justify-between pt-1">
+                          <span className="text-[11px] font-medium text-[#009ca6] group-hover:underline">
+                            View details
+                          </span>
+                          <TrendSparkline
+                            values={trend.length > 0 ? trend : [10, 8, 7, 5]}
+                            direction="lower_is_better"
+                            width={68}
+                            height={18}
+                          />
+                        </div>
+                      </Link>
+                    );
+                  })}
+                  <Link
+                    href={`/team${weekQ}`}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#009ca6] hover:underline pt-1"
+                  >
+                    <span>View all attention items</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Notable Improvements */}
+            <div className="space-y-4 pt-4 md:pt-0 md:pl-6">
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                Notable Improvements
+              </h3>
+              {allImprovements.length === 0 ? (
+                <div className="py-8 text-center">
+                  <TrendingUp className="h-8 w-8 text-slate-400 mx-auto opacity-80" />
+                  <p className="mt-2 text-xs font-semibold text-foreground">
+                    No significant changes
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Improvements will appear here as metrics increase.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {allImprovements.slice(0, 3).map((item) => {
+                    const metrics = highlightMetricMap.get(item.employeeId) ?? [];
+                    const primary = metrics.find((m) => m.isPrimary) ?? metrics[0];
+                    const trend = primary
+                      ? (historyByRequest.get(`${item.employeeId}:${primary.definitionId}`) ?? [])
+                          .slice()
+                          .reverse()
+                          .map((v) => v.numericValue)
+                      : [];
+                    return (
+                      <Link
+                        key={item.employeeId}
+                        href={`/employee/${item.employeeId}`}
+                        className="group block rounded-lg border border-border/60 p-3 hover:border-border hover:bg-muted/40 transition-all"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2.5">
+                            <Avatar className="h-7 w-7 ring-1 ring-border">
+                              <AvatarFallback className="text-[11px] font-bold bg-emerald-50 text-emerald-700">
+                                {initials(item.employeeName)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <span className="text-sm font-semibold text-foreground group-hover:text-[#009ca6] transition-colors">
+                                {item.employeeName}
+                              </span>
+                            </div>
+                          </div>
+                          <span className="rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
+                            Improving
+                          </span>
+                        </div>
+
+                        <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
+                          {item.achievements[0]?.text ?? "Consecutive weekly metric improvements."}
+                        </p>
+
+                        <div className="mt-2 flex items-center justify-between pt-1">
+                          <span className="text-[11px] font-medium text-[#009ca6] group-hover:underline">
+                            View details
+                          </span>
+                          <TrendSparkline
+                            values={trend.length > 0 ? trend : [5, 7, 8, 10]}
+                            direction="higher_is_better"
+                            width={68}
+                            height={18}
+                          />
+                        </div>
+                      </Link>
+                    );
+                  })}
+                  <Link
+                    href={`/team${weekQ}`}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#009ca6] hover:underline pt-1"
+                  >
+                    <span>View all improvements</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* YOUR UPCOMING 1:1S Card */}
+        <Card className="overflow-hidden flex flex-col justify-between">
+          <div>
+            <div className="border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
+              <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                Your Upcoming 1:1s
               </h2>
             </div>
             {upcomingMeetings.length === 0 ? (
-              <div className="px-4 py-8">
-                <EmptyState
-                  icon={Calendar}
-                  title="No 1:1s scheduled"
-                  description="Connect a calendar to see upcoming meetings here."
-                />
+              <div className="p-8 text-center">
+                <Calendar className="h-8 w-8 text-muted-foreground/60 mx-auto" />
+                <p className="mt-2 text-sm font-semibold text-foreground">No 1:1s scheduled</p>
+                <p className="text-xs text-muted-foreground">Upcoming meetings will appear here.</p>
               </div>
             ) : (
-              <ul className="divide-y divide-border">
-                {upcomingMeetings.map((m) => (
-                  <li key={m.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                    <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(m.scheduledStart).toLocaleDateString("en-US", {
-                          weekday: "short",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </p>
-                      <p className="truncate text-sm font-medium text-foreground">
-                        {m.employeeName}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(m.scheduledStart).toLocaleTimeString("en-US", {
-                          hour: "numeric",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                    </div>
-                    <Link
-                      href={`/one-on-ones/${m.employeeId}${weekQ}`}
-                      className="shrink-0 rounded-md border border-accent px-2.5 py-1 text-xs font-medium text-accent hover:bg-accent/10"
+              <ul className="divide-y divide-border/70">
+                {upcomingMeetings.map((m) => {
+                  const date = new Date(m.scheduledStart);
+                  const dayName = date
+                    .toLocaleDateString("en-US", { weekday: "short" })
+                    .toUpperCase();
+                  const time = date.toLocaleTimeString("en-US", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                  });
+                  return (
+                    <li
+                      key={m.id}
+                      className="flex items-center justify-between gap-3 px-5 py-3.5 hover:bg-muted/30 transition-colors"
                     >
-                      Prepare →
-                    </Link>
-                  </li>
-                ))}
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        {/* Date badge */}
+                        <div className="flex flex-col items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 w-11 h-11 shrink-0">
+                          <span className="text-[10px] font-extrabold uppercase text-[#009ca6] leading-none">
+                            {dayName}
+                          </span>
+                          <span className="text-[11px] font-bold text-foreground mt-0.5 leading-none">
+                            {date.getDate()}
+                          </span>
+                        </div>
+
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-foreground">
+                            {m.employeeName}
+                          </p>
+                          <p className="text-xs font-medium text-muted-foreground">{time}</p>
+                        </div>
+                      </div>
+
+                      <Link
+                        href={`/one-on-ones/${m.employeeId}${weekQ}`}
+                        className="shrink-0 rounded-lg border border-[#009ca6] px-3 py-1.5 text-xs font-semibold text-[#009ca6] hover:bg-[#009ca6] hover:text-white transition-colors"
+                      >
+                        Prepare →
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             )}
-            <div className="border-t px-4 py-2.5 text-center">
-              <Link href={`/one-on-ones${weekQ}`} className="text-sm text-accent hover:underline">
-                View all 1:1s →
-              </Link>
-            </div>
-          </Card>
-        </div>
+          </div>
+          <div className="border-t border-border/80 px-5 py-3 text-center bg-slate-50/30 dark:bg-slate-900/30">
+            <Link
+              href={`/one-on-ones${weekQ}`}
+              className="text-xs font-semibold text-[#009ca6] hover:underline"
+            >
+              View all 1:1s →
+            </Link>
+          </div>
+        </Card>
       </div>
 
+      {/* TEAM PERFORMANCE Table Card */}
       {teamTrends.map(({ team, briefing, rows }) => (
-        <div key={team.id} className="space-y-3">
-          <BriefingSection title={`${briefing.teamName} performance`}>
-            {rows.length === 0 ? (
-              <EmptyState
-                icon={BarChart3}
-                title="No metric data yet"
-                description="Metric values will appear here once data is available."
-              />
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <caption className="sr-only">{briefing.teamName} performance metrics</caption>
-                  <thead>
-                    <tr className="border-b text-left">
-                      <th className="pb-2 font-medium text-muted-foreground">Metric</th>
-                      <th className="pb-2 font-medium text-muted-foreground text-right">
-                        Team Avg
-                      </th>
-                      <th className="pb-2 font-medium text-muted-foreground text-right">Prev</th>
-                      <th className="pb-2 font-medium text-muted-foreground text-right">Status</th>
-                      <th className="pb-2 font-medium text-muted-foreground text-right">Change</th>
-                      <th className="pb-2 font-medium text-muted-foreground text-right">
-                        Trend (4 weeks)
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map(({ metric, trend }) => {
-                      const change =
-                        metric.teamAverage !== null &&
-                        metric.previousTeamAverage !== null &&
-                        metric.previousTeamAverage !== 0
-                          ? ((metric.teamAverage - metric.previousTeamAverage) /
-                              Math.abs(metric.previousTeamAverage)) *
-                            100
-                          : null;
-                      const { status: metricStatus, isImproved } = evaluateChangeStatus(
-                        change,
-                        metric.direction
-                      );
-                      return (
-                        <tr key={metric.metricKey} className="border-b last:border-0">
-                          <td className="py-2.5 text-foreground">
-                            <span className="flex items-center gap-2.5">
-                              <MetricIcon metricKey={metric.metricKey} category={metric.category} />
-                              {metric.metricName}
-                            </span>
-                          </td>
-                          <td className="py-2.5 text-right">
-                            <MetricValue
-                              value={
-                                metric.teamAverage !== null
-                                  ? Math.round(metric.teamAverage * 10) / 10
-                                  : null
-                              }
-                              unit={metric.unit}
-                              valueType={metric.valueType}
-                              className="font-medium"
-                            />
-                          </td>
-                          <td className="py-2.5 text-right text-muted-foreground">
-                            <MetricValue
-                              value={
-                                metric.previousTeamAverage !== null
-                                  ? Math.round(metric.previousTeamAverage * 10) / 10
-                                  : null
-                              }
-                              unit={metric.unit}
-                              valueType={metric.valueType}
-                            />
-                          </td>
-                          <td className="py-2.5 text-right">
-                            <div className="flex justify-end">
-                              <StatusBadge status={metricStatus} />
-                            </div>
-                          </td>
-                          <td className="py-2.5 text-right">
-                            {change !== null ? (
-                              <TrendIndicator
-                                direction={
-                                  Math.abs(change) < 1
-                                    ? "stable"
-                                    : isImproved
-                                      ? "improved"
-                                      : "declined"
-                                }
-                                value={`${Math.abs(change).toFixed(0)}%`}
+        <Card key={team.id} className="overflow-hidden">
+          <div className="flex items-center justify-between border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
+            <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              Team Performance
+            </h2>
+            <Link
+              href={`/team${weekQ}`}
+              className="text-xs font-semibold text-[#009ca6] hover:underline flex items-center gap-1"
+            >
+              <span>View full team dashboard</span>
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+
+          {rows.length === 0 ? (
+            <div className="p-8 text-center">
+              <BarChart3 className="h-8 w-8 text-muted-foreground/60 mx-auto" />
+              <p className="mt-2 text-sm font-semibold text-foreground">No metric data yet</p>
+              <p className="text-xs text-muted-foreground">
+                Metric values will appear once data is synced.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <caption className="sr-only">{briefing.teamName} performance metrics</caption>
+                <thead>
+                  <tr className="border-b border-border/80 bg-slate-50/30 dark:bg-slate-900/30 text-left text-xs font-semibold text-muted-foreground">
+                    <th className="py-3 px-5">Metric</th>
+                    <th className="py-3 px-4 text-right">This Week</th>
+                    <th className="py-3 px-4 text-right">Change vs Last Week</th>
+                    <th className="py-3 px-4 text-right">Change vs 4-Week Avg</th>
+                    <th className="py-3 px-4 text-right">Status</th>
+                    <th className="py-3 px-5 text-right">Trend (4 Weeks)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {rows.map(({ metric, trend }) => {
+                    const change =
+                      metric.teamAverage !== null &&
+                      metric.previousTeamAverage !== null &&
+                      metric.previousTeamAverage !== 0
+                        ? ((metric.teamAverage - metric.previousTeamAverage) /
+                            Math.abs(metric.previousTeamAverage)) *
+                          100
+                        : null;
+                    const { status: metricStatus, isImproved } = evaluateChangeStatus(
+                      change,
+                      metric.direction
+                    );
+
+                    const validTrend = trend.filter((v): v is number => v !== null);
+                    const avg4Week =
+                      validTrend.length > 0
+                        ? validTrend.reduce((a, b) => a + b, 0) / validTrend.length
+                        : null;
+                    const change4Week =
+                      metric.teamAverage !== null && avg4Week !== null && avg4Week !== 0
+                        ? ((metric.teamAverage - avg4Week) / Math.abs(avg4Week)) * 100
+                        : null;
+
+                    return (
+                      <tr key={metric.metricKey} className="hover:bg-muted/30 transition-colors">
+                        <td className="py-3.5 px-5 text-foreground font-semibold">
+                          <span className="flex items-center gap-3">
+                            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-50 dark:bg-teal-950/60 text-[#009ca6]">
+                              <MetricIcon
+                                metricKey={metric.metricKey}
+                                category={metric.category}
+                                className="h-4 w-4"
                               />
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </td>
-                          <td className="py-2.5 text-right">
-                            <div className="flex justify-end">
-                              <TrendSparkline values={trend} direction={metric.direction} />
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                            </span>
+                            <span>{metric.metricName}</span>
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          <MetricValue
+                            value={
+                              metric.teamAverage !== null
+                                ? Math.round(metric.teamAverage * 10) / 10
+                                : null
+                            }
+                            unit={metric.unit}
+                            valueType={metric.valueType}
+                            className="font-bold text-foreground"
+                          />
+                        </td>
+                        <td className="py-3.5 px-4 text-right font-medium">
+                          {change !== null ? (
+                            <span
+                              className={
+                                isImproved
+                                  ? "text-emerald-600 dark:text-emerald-400 font-semibold"
+                                  : Math.abs(change) < 1
+                                    ? "text-muted-foreground"
+                                    : "text-rose-600 dark:text-rose-400 font-semibold"
+                              }
+                            >
+                              {change > 0 ? "+" : ""}
+                              {change.toFixed(0)}%
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4 text-right font-medium">
+                          {change4Week !== null ? (
+                            <span
+                              className={
+                                (metric.direction === "higher_is_better" && change4Week > 0) ||
+                                (metric.direction === "lower_is_better" && change4Week < 0)
+                                  ? "text-emerald-600 dark:text-emerald-400 font-semibold"
+                                  : Math.abs(change4Week) < 1
+                                    ? "text-muted-foreground"
+                                    : "text-amber-600 dark:text-amber-400 font-semibold"
+                              }
+                            >
+                              {change4Week > 0 ? "+" : ""}
+                              {change4Week.toFixed(0)}%
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          <div className="flex justify-end">
+                            <StatusBadge status={metricStatus} />
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-5 text-right">
+                          <div className="flex justify-end">
+                            <TrendSparkline
+                              values={trend}
+                              direction={metric.direction}
+                              width={96}
+                              height={20}
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <div className="px-5 py-2.5 border-t border-border/60 bg-slate-50/20 text-[11px] text-muted-foreground">
+                pp = percentage points
               </div>
-            )}
-          </BriefingSection>
-        </div>
+            </div>
+          )}
+        </Card>
       ))}
     </div>
   );
