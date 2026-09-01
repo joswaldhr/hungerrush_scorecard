@@ -57,6 +57,13 @@
       "when": 1787946151975,
       "tag": "0007_slow_bloodstorm",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788284064188,
+      "tag": "0008_previous_golden_guardian",
+      "breakpoints": true
     }
   ]
 }

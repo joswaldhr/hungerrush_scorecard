@@ -71,6 +71,7 @@ export const employees = pgTable(
     displayName: text("display_name").notNull(),
     email: text("email"),
     jobTitle: text("job_title"),
+    photoUrl: text("photo_url"),
     employmentStatus: text("employment_status").notNull().default("active"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -564,6 +565,7 @@ export const meetingNotes = pgTable(
       .references(() => users.id),
     outcome: text("outcome"),
     body: text("body"),
+    lifeCheckIn: text("life_check_in"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -586,6 +588,9 @@ export const actionItems = pgTable(
       .references(() => users.id),
     meetingNoteId: uuid("meeting_note_id").references(() => meetingNotes.id),
     title: text("title").notNull(),
+    owner: text("owner").notNull().default("employee"),
+    priority: text("priority").notNull().default("normal"),
+    notes: text("notes"),
     status: text("status").notNull().default("open"),
     dueDate: timestamp("due_date", { withTimezone: true }),
     completedAt: timestamp("completed_at", { withTimezone: true }),
@@ -595,6 +600,117 @@ export const actionItems = pgTable(
     index("action_items_employee_id_idx").on(table.employeeId),
     index("action_items_manager_id_idx").on(table.managerUserId),
     index("action_items_status_idx").on(table.status),
+  ]
+);
+
+// ── Discussion Topics ───────────────────────────────────
+
+export const discussionTopics = pgTable(
+  "discussion_topics",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
+    employeeId: uuid("employee_id").references(() => employees.id),
+    teamId: uuid("team_id").references(() => teams.id),
+    managerUserId: uuid("manager_user_id")
+      .notNull()
+      .references(() => users.id),
+    title: text("title").notNull(),
+    notes: text("notes"),
+    source: text("source").notNull().default("manager"),
+    status: text("status").notNull().default("pending"),
+    discussedAt: timestamp("discussed_at", { withTimezone: true }),
+    meetingNoteId: uuid("meeting_note_id").references(() => meetingNotes.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("discussion_topics_employee_id_idx").on(table.employeeId),
+    index("discussion_topics_team_id_idx").on(table.teamId),
+    index("discussion_topics_status_idx").on(table.status),
+  ]
+);
+
+// ── Ticket Reviews ──────────────────────────────────────
+
+export const ticketReviews = pgTable(
+  "ticket_reviews",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    employeeId: uuid("employee_id")
+      .notNull()
+      .references(() => employees.id),
+    managerUserId: uuid("manager_user_id")
+      .notNull()
+      .references(() => users.id),
+    meetingNoteId: uuid("meeting_note_id").references(() => meetingNotes.id),
+    ticketId: text("ticket_id").notNull(),
+    ticketUrl: text("ticket_url"),
+    category: text("category").notNull(),
+    notes: text("notes"),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("ticket_reviews_employee_id_idx").on(table.employeeId),
+    index("ticket_reviews_manager_id_idx").on(table.managerUserId),
+  ]
+);
+
+// ── Attendance Events ───────────────────────────────────
+
+export const attendanceEvents = pgTable(
+  "attendance_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    employeeId: uuid("employee_id")
+      .notNull()
+      .references(() => employees.id),
+    managerUserId: uuid("manager_user_id")
+      .notNull()
+      .references(() => users.id),
+    eventType: text("event_type").notNull(),
+    occurredAt: date("occurred_at").notNull(),
+    minutesLate: integer("minutes_late"),
+    pointsAssigned: real("points_assigned"),
+    notes: text("notes"),
+    excused: boolean("excused").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("attendance_events_employee_id_idx").on(table.employeeId),
+    index("attendance_events_occurred_at_idx").on(table.occurredAt),
+  ]
+);
+
+// ── Coaching Records ────────────────────────────────────
+
+export const coachingRecords = pgTable(
+  "coaching_records",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    employeeId: uuid("employee_id")
+      .notNull()
+      .references(() => employees.id),
+    managerUserId: uuid("manager_user_id")
+      .notNull()
+      .references(() => users.id),
+    meetingNoteId: uuid("meeting_note_id").references(() => meetingNotes.id),
+    metricDefinitionId: uuid("metric_definition_id").references(() => metricDefinitions.id),
+    topic: text("topic").notNull(),
+    notes: text("notes"),
+    expectedImprovement: text("expected_improvement"),
+    followUpDate: date("follow_up_date"),
+    outcome: text("outcome"),
+    outcomeNotes: text("outcome_notes"),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("coaching_records_employee_id_idx").on(table.employeeId),
+    index("coaching_records_manager_id_idx").on(table.managerUserId),
+    index("coaching_records_metric_id_idx").on(table.metricDefinitionId),
   ]
 );
 
