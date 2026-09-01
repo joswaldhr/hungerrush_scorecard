@@ -104,9 +104,9 @@ async function zendeskGet<T>(pathOrUrl: string): Promise<T> {
 function weekOf(weeksAgo: number): { periodStart: string; periodEnd: string } {
   const now = new Date();
   const monday = new Date(now);
-  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7) - weeksAgo * 7);
+  monday.setUTCDate(now.getUTCDate() - ((now.getUTCDay() + 6) % 7) - weeksAgo * 7);
   const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
+  sunday.setUTCDate(monday.getUTCDate() + 6);
   return {
     periodStart: monday.toISOString().split("T")[0]!,
     periodEnd: sunday.toISOString().split("T")[0]!,

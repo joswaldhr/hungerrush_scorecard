@@ -168,7 +168,7 @@ export function MetricHistoryChart({
           const ty = yFor(hoveredPoint.value);
           const label = new Date(
             `${history[hoveredPoint.i]!.periodStart}T00:00:00Z`
-          ).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+          ).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
           const val = formatMetricValue(hoveredPoint.value, unit, valueType);
           const tooltipAbove = ty > padTop + 40;
           const tooltipY = tooltipAbove ? ty - 12 : ty + 20;
@@ -228,6 +228,7 @@ export function MetricHistoryChart({
           {new Date(`${history[i]!.periodStart}T00:00:00Z`).toLocaleDateString(undefined, {
             month: "short",
             day: "numeric",
+            timeZone: "UTC",
           })}
         </text>
       ))}

@@ -45,7 +45,13 @@ export default async function TeamPage({
   const { ctx, isPlatformAdmin } = await getEffectiveManagerContext(session.user.email);
   if (!ctx) {
     if (isPlatformAdmin) redirect("/admin");
-    return <EmptyState icon={ShieldAlert} title="No access" description="You are not assigned as a manager." />;
+    return (
+      <EmptyState
+        icon={ShieldAlert}
+        title="No access"
+        description="You are not assigned as a manager."
+      />
+    );
   }
 
   const allTeams = await getAssignedTeams(ctx);
@@ -161,7 +167,7 @@ export default async function TeamPage({
         <p className="mt-1 text-sm text-muted-foreground">
           {isCurrentWeek
             ? "How is everyone doing?"
-            : `Week of ${new Date(`${periodStart}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${new Date(`${periodEnd}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
+            : `Week of ${new Date(`${periodStart}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} – ${new Date(`${periodEnd}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })}`}
         </p>
         <DataFreshness freshnessAt={freshnessAt} now={now} className="mt-2" />
       </header>
@@ -206,7 +212,9 @@ export default async function TeamPage({
         const needsAttention = teamEmps.filter((d) => d.overallStatus === "needs_attention").length;
         const prevOnTrack = teamEmps.filter((d) => d.prevOverallStatus === "on_track").length;
         const prevWatch = teamEmps.filter((d) => d.prevOverallStatus === "mixed").length;
-        const prevNeedsAttention = teamEmps.filter((d) => d.prevOverallStatus === "needs_attention").length;
+        const prevNeedsAttention = teamEmps.filter(
+          (d) => d.prevOverallStatus === "needs_attention"
+        ).length;
 
         const rows: RosterRow[] = teamEmps.map(
           ({ employee, metrics, primary, trend, overallStatus }) => {
@@ -277,7 +285,11 @@ export default async function TeamPage({
             </div>
 
             {rows.length === 0 ? (
-              <EmptyState icon={Users} title="No employees" description="No employees on this team." />
+              <EmptyState
+                icon={Users}
+                title="No employees"
+                description="No employees on this team."
+              />
             ) : (
               <TeamRosterTable rows={rows} />
             )}

@@ -87,10 +87,10 @@ function weekOf(weeksAgo: number): {
 } {
   const now = new Date();
   const monday = new Date(now);
-  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7) - weeksAgo * 7);
-  monday.setHours(0, 0, 0, 0);
+  monday.setUTCDate(now.getUTCDate() - ((now.getUTCDay() + 6) % 7) - weeksAgo * 7);
+  monday.setUTCHours(0, 0, 0, 0);
   const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 7);
+  sunday.setUTCDate(monday.getUTCDate() + 7);
   return {
     periodStart: monday.toISOString().split("T")[0]!,
     periodEnd: new Date(sunday.getTime() - 1).toISOString().split("T")[0]!,
@@ -172,7 +172,10 @@ export class AssembledConnector implements Connector {
 
     const byAgent = new Map<string, number>();
     for (const metric of report.metrics) {
-      if (metric.name === "schedule_adherence_percentage" && metric.attributes.type === "full_interval") {
+      if (
+        metric.name === "schedule_adherence_percentage" &&
+        metric.attributes.type === "full_interval"
+      ) {
         byAgent.set(metric.attributes.agent_id, Math.round(metric.value * 100) / 100);
       }
     }
@@ -235,7 +238,10 @@ export class AssembledConnector implements Connector {
 
     const adherenceByChannel = new Map<string, Map<string, number>>();
     for (const channel of channelsNeeded) {
-      adherenceByChannel.set(channel, await this.fetchAdherenceByAgent(channel, startTime, endTime));
+      adherenceByChannel.set(
+        channel,
+        await this.fetchAdherenceByAgent(channel, startTime, endTime)
+      );
     }
 
     const now = new Date();
@@ -248,7 +254,7 @@ export class AssembledConnector implements Connector {
 
       const channel = person.channels?.[0] ?? null;
       const scheduleAdherence = channel
-        ? adherenceByChannel.get(channel)?.get(person.agent_id) ?? null
+        ? (adherenceByChannel.get(channel)?.get(person.agent_id) ?? null)
         : null;
 
       records.push({
