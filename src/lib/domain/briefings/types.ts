@@ -43,6 +43,7 @@ export interface TeamMetricSummary {
   metricDefinitionId: string;
   metricKey: string;
   metricName: string;
+  category: string | null;
   unit: string | null;
   valueType: ValueType;
   direction: Direction;
@@ -74,6 +75,7 @@ export interface EmployeeSummaryPayload {
 export interface MetricChange {
   metricKey: string;
   metricName: string;
+  category: string | null;
   unit: string | null;
   valueType: ValueType;
   direction: Direction;
@@ -88,6 +90,7 @@ export interface MetricSnapshot {
   metricDefinitionId: string;
   metricKey: string;
   metricName: string;
+  category: string | null;
   unit: string | null;
   valueType: ValueType;
   direction: Direction;

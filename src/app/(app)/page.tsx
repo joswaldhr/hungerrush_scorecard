@@ -14,6 +14,7 @@ import { and, eq, gte, asc, inArray } from "drizzle-orm";
 import { TrendIndicator } from "@/components/trend-indicator";
 import { TrendSparkline } from "@/components/trend-sparkline";
 import { MetricValue } from "@/components/metric-value";
+import { MetricIcon } from "@/components/metric-icon";
 import { DataFreshness } from "@/components/data-freshness";
 import { BriefingSection } from "@/components/briefing-section";
 import { StatusBadge } from "@/components/status-badge";
@@ -55,7 +56,7 @@ function pctOfTeam(n: number, total: number): string {
 function formatWeekRange(periodStart: string, periodEnd: string): string {
   const start = new Date(`${periodStart}T00:00:00Z`);
   const end = new Date(`${periodEnd}T00:00:00Z`);
-  const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
+  const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", timeZone: "UTC" };
   return `${start.toLocaleDateString("en-US", opts)} – ${end.toLocaleDateString("en-US", opts)}`;
 }
 
@@ -304,7 +305,10 @@ export default async function HomePage({
                     </CardContent>
                   </Card>
                 ))}
-                <Link href={`/team${weekQ}`} className="inline-block text-sm text-accent hover:underline">
+                <Link
+                  href={`/team${weekQ}`}
+                  className="inline-block text-sm text-accent hover:underline"
+                >
                   View team →
                 </Link>
               </div>
@@ -348,7 +352,10 @@ export default async function HomePage({
                     </CardContent>
                   </Card>
                 ))}
-                <Link href={`/team${weekQ}`} className="inline-block text-sm text-accent hover:underline">
+                <Link
+                  href={`/team${weekQ}`}
+                  className="inline-block text-sm text-accent hover:underline"
+                >
                   View team →
                 </Link>
               </div>
@@ -455,7 +462,12 @@ export default async function HomePage({
                       );
                       return (
                         <tr key={metric.metricKey} className="border-b last:border-0">
-                          <td className="py-2.5 text-foreground">{metric.metricName}</td>
+                          <td className="py-2.5 text-foreground">
+                            <span className="flex items-center gap-2.5">
+                              <MetricIcon metricKey={metric.metricKey} category={metric.category} />
+                              {metric.metricName}
+                            </span>
+                          </td>
                           <td className="py-2.5 text-right">
                             <MetricValue
                               value={

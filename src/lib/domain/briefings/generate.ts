@@ -71,6 +71,7 @@ function computeChanges(metrics: EmployeeMetricRow[]): MetricChange[] {
     return {
       metricKey: m.key,
       metricName: m.name,
+      category: m.category,
       unit: m.unit,
       valueType: m.valueType,
       direction: m.direction,
@@ -117,6 +118,7 @@ function metricsToSnapshots(metrics: EmployeeMetricRow[]): MetricSnapshot[] {
     metricDefinitionId: m.definitionId,
     metricKey: m.key,
     metricName: m.name,
+    category: m.category,
     unit: m.unit,
     valueType: m.valueType,
     direction: m.direction,
@@ -171,7 +173,12 @@ export async function getStalenessSignals(employeeIds: string[]): Promise<Stalen
         scheduledStart: meetingReferences.scheduledStart,
       })
       .from(meetingReferences)
-      .where(and(inArray(meetingReferences.employeeId, employeeIds), lt(meetingReferences.scheduledStart, now))),
+      .where(
+        and(
+          inArray(meetingReferences.employeeId, employeeIds),
+          lt(meetingReferences.scheduledStart, now)
+        )
+      ),
   ]);
 
   for (const item of openItems) {
@@ -225,7 +232,9 @@ function buildStalenessReasons(
   }
 
   const lastContact = signals.lastContact.get(employeeId);
-  const gapDays = lastContact ? Math.floor((now.getTime() - lastContact.getTime()) / MS_PER_DAY) : null;
+  const gapDays = lastContact
+    ? Math.floor((now.getTime() - lastContact.getTime()) / MS_PER_DAY)
+    : null;
   if (gapDays === null || gapDays >= STALE_MEETING_CADENCE_DAYS) {
     reasons.push({
       text: gapDays === null ? "No 1:1 on record" : `No 1:1 recorded in ${gapDays} days`,
@@ -379,6 +388,7 @@ export async function generateTeamBriefing(
         metricDefinitionId: firstMetric.definitionId,
         metricKey: key,
         metricName: firstMetric.name,
+        category: firstMetric.category,
         unit: firstMetric.unit,
         valueType: firstMetric.valueType,
         direction: firstMetric.direction,

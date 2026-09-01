@@ -13,6 +13,7 @@ function makeChange(overrides: Partial<MetricChange> = {}): MetricChange {
   return {
     metricKey: "csat_score",
     metricName: "CSAT Score",
+    category: "quality",
     unit: "%",
     valueType: "percentage",
     direction: "higher_is_better",

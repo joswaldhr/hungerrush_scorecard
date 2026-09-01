@@ -5,6 +5,7 @@ import { generateOneOnOne } from "@/lib/domain/briefings/generate";
 import { getEmployeeContext } from "@/lib/domain/context/queries";
 import { TrendIndicator } from "@/components/trend-indicator";
 import { MetricValue } from "@/components/metric-value";
+import { MetricIcon } from "@/components/metric-icon";
 import { DataFreshness } from "@/components/data-freshness";
 import { BriefingSection } from "@/components/briefing-section";
 import { EmptyState } from "@/components/empty-state";
@@ -68,7 +69,13 @@ export default async function OneOnOnePage({
 
   const teamId = employee.primaryTeamId;
   if (!teamId) {
-    return <EmptyState icon={Users} title="No team" description="This employee is not assigned to a team." />;
+    return (
+      <EmptyState
+        icon={Users}
+        title="No team"
+        description="This employee is not assigned to a team."
+      />
+    );
   }
 
   const team = await db
@@ -118,10 +125,7 @@ export default async function OneOnOnePage({
     })
     .from(meetingNotes)
     .where(
-      and(
-        eq(meetingNotes.employeeId, employee.id),
-        eq(meetingNotes.managerUserId, ctx.userId)
-      )
+      and(eq(meetingNotes.employeeId, employee.id), eq(meetingNotes.managerUserId, ctx.userId))
     )
     .orderBy(desc(meetingNotes.updatedAt))
     .limit(1);
@@ -134,17 +138,12 @@ export default async function OneOnOnePage({
       completedAt: actionItems.completedAt,
     })
     .from(actionItems)
-    .where(
-      and(
-        eq(actionItems.employeeId, employee.id),
-        eq(actionItems.managerUserId, ctx.userId)
-      )
-    )
+    .where(and(eq(actionItems.employeeId, employee.id), eq(actionItems.managerUserId, ctx.userId)))
     .orderBy(asc(actionItems.createdAt))
     .limit(20);
 
   const nextMeetingId = nextMeeting
-    ? (
+    ? ((
         await db
           .select({ id: meetingReferences.id })
           .from(meetingReferences)
@@ -156,7 +155,7 @@ export default async function OneOnOnePage({
             )
           )
           .limit(1)
-      )[0]?.id ?? null
+      )[0]?.id ?? null)
     : null;
 
   return (
@@ -303,7 +302,10 @@ export default async function OneOnOnePage({
                       key={change.metricKey}
                       className="flex items-center justify-between py-1.5 text-sm"
                     >
-                      <span className="text-foreground">{change.metricName}</span>
+                      <span className="flex items-center gap-2.5 text-foreground">
+                        <MetricIcon metricKey={change.metricKey} category={change.category} />
+                        {change.metricName}
+                      </span>
                       <div className="flex items-center gap-3">
                         <MetricValue
                           value={change.currentValue}

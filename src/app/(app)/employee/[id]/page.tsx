@@ -9,6 +9,7 @@ import { TrendIndicator } from "@/components/trend-indicator";
 import { TrendSparkline } from "@/components/trend-sparkline";
 import { MetricHistoryChart } from "@/components/metric-history-chart";
 import { MetricValue } from "@/components/metric-value";
+import { MetricIcon } from "@/components/metric-icon";
 import { DataFreshness } from "@/components/data-freshness";
 import { BriefingSection } from "@/components/briefing-section";
 import { EmptyState } from "@/components/empty-state";
@@ -35,23 +36,23 @@ type PeriodKey = (typeof PERIODS)[number]["key"];
 
 function periodDates(key: PeriodKey) {
   const now = new Date();
-  const dayOfWeek = now.getDay();
+  const dayOfWeek = now.getUTCDay();
   const currentMonday = new Date(now);
-  currentMonday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
+  currentMonday.setUTCDate(now.getUTCDate() - ((dayOfWeek + 6) % 7));
 
   const config = PERIODS.find((p) => p.key === key)!;
 
   const endMonday = new Date(currentMonday);
-  endMonday.setDate(currentMonday.getDate() - config.weeksAgo * 7);
+  endMonday.setUTCDate(currentMonday.getUTCDate() - config.weeksAgo * 7);
 
   const startMonday = new Date(endMonday);
-  startMonday.setDate(endMonday.getDate() - (config.span - 1) * 7);
+  startMonday.setUTCDate(endMonday.getUTCDate() - (config.span - 1) * 7);
 
   const sunday = new Date(endMonday);
-  sunday.setDate(endMonday.getDate() + 6);
+  sunday.setUTCDate(endMonday.getUTCDate() + 6);
 
   const prevStart = new Date(startMonday);
-  prevStart.setDate(startMonday.getDate() - config.span * 7);
+  prevStart.setUTCDate(startMonday.getUTCDate() - config.span * 7);
 
   return {
     periodStart: startMonday.toISOString().split("T")[0]!,
@@ -93,7 +94,13 @@ export default async function EmployeePage({
 
   const teamId = employee.primaryTeamId;
   if (!teamId) {
-    return <EmptyState icon={Users} title="No team" description="This employee is not assigned to a team." />;
+    return (
+      <EmptyState
+        icon={Users}
+        title="No team"
+        description="This employee is not assigned to a team."
+      />
+    );
   }
 
   const team = await db
@@ -266,7 +273,10 @@ export default async function EmployeePage({
                       key={change.metricKey}
                       className="flex items-center justify-between py-1.5"
                     >
-                      <span className="text-sm text-foreground">{change.metricName}</span>
+                      <span className="flex items-center gap-2.5 text-sm text-foreground">
+                        <MetricIcon metricKey={change.metricKey} category={change.category} />
+                        {change.metricName}
+                      </span>
                       <div className="flex items-center gap-2">
                         <MetricValue
                           value={change.previousValue}
@@ -362,8 +372,9 @@ export default async function EmployeePage({
                         <td className="py-2.5">
                           <Link
                             href={`/employee/${employee.id}?period=${period}&metric=${snap.metricKey}`}
-                            className="text-foreground hover:text-accent hover:underline"
+                            className="flex items-center gap-2.5 text-foreground hover:text-accent hover:underline"
                           >
+                            <MetricIcon metricKey={snap.metricKey} category={snap.category} />
                             {snap.metricName}
                           </Link>
                           {snap.qualityStatus !== "complete" && (
