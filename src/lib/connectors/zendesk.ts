@@ -300,6 +300,7 @@ export class ZendeskConnector implements Connector {
         periodEnd,
         payload: {
           ticketsResolved: resolvedCount,
+          ticketsUpdated: tickets.length,
           avgHandleTimeMinutes,
           avgResponseTimeMinutes,
           backlogCount,
@@ -355,6 +356,20 @@ export class ZendeskConnector implements Connector {
           periodEnd,
           dimensionsJson: null,
         });
+        if (payload.ticketsUpdated != null) {
+          facts.push({
+            employeeId,
+            teamId,
+            factType: "tickets_updated",
+            numericValue: payload.ticketsUpdated as number,
+            textValue: null,
+            booleanValue: null,
+            unit: "count",
+            periodStart,
+            periodEnd,
+            dimensionsJson: null,
+          });
+        }
         if (payload.avgHandleTimeMinutes != null) {
           facts.push({
             employeeId,

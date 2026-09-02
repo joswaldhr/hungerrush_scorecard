@@ -22,6 +22,14 @@ import {
   meetingReferences,
   reconciliationRuns,
   reconciliationResults,
+  rosterCandidates,
+  rosterSourceTeamMappings,
+  meetingNotes,
+  actionItems,
+  discussionTopics,
+  ticketReviews,
+  attendanceEvents,
+  coachingRecords,
 } from "../db/schema";
 
 const connectionString = process.env.DATABASE_URL;
@@ -64,6 +72,7 @@ const MD = {
   scheduleAdherence: "60000000-0000-4000-8000-000000000005",
   backlogCount: "60000000-0000-4000-8000-000000000006",
   avgResponseTime: "60000000-0000-4000-8000-000000000007",
+  ticketsUpdated: "60000000-0000-4000-8000-000000000008",
 };
 
 // ── Real org roster (HungerRush POS Support + Menufy Support), pulled
@@ -266,6 +275,12 @@ async function seed() {
     // Clear in reverse FK order
     await tx.delete(reconciliationResults).execute();
     await tx.delete(reconciliationRuns).execute();
+    await tx.delete(coachingRecords).execute();
+    await tx.delete(ticketReviews).execute();
+    await tx.delete(attendanceEvents).execute();
+    await tx.delete(actionItems).execute();
+    await tx.delete(discussionTopics).execute();
+    await tx.delete(meetingNotes).execute();
     await tx.delete(meetingReferences).execute();
     await tx.delete(contextItems).execute();
     await tx.delete(normalizedFacts).execute();
@@ -277,6 +292,8 @@ async function seed() {
     await tx.delete(metricTargets).execute();
     await tx.delete(metricAssignments).execute();
     await tx.delete(metricDefinitions).execute();
+    await tx.delete(rosterCandidates).execute();
+    await tx.delete(rosterSourceTeamMappings).execute();
     await tx.delete(externalIdentities).execute();
     await tx.delete(dataSources).execute();
     await tx.delete(managerAssignments).execute();
@@ -525,6 +542,19 @@ async function seed() {
         calculationType: "average",
         sourceStrategy: "zendesk",
       },
+      {
+        id: MD.ticketsUpdated,
+        organizationId: ORG_ID,
+        key: "tickets_updated",
+        name: "Tickets Updated",
+        description: "Number of tickets with any activity during the period",
+        category: "productivity",
+        unit: "tickets",
+        valueType: "count",
+        direction: "higher_is_better",
+        calculationType: "sum",
+        sourceStrategy: "zendesk",
+      },
     ]);
 
     // ── Metric Assignments (different per team) ────────────────
@@ -542,12 +572,14 @@ async function seed() {
       { defId: MD.avgHandleTime, order: 1, primary: true },
       { defId: MD.csatScore, order: 2, primary: true },
       { defId: MD.backlogCount, order: 3, primary: false },
+      { defId: MD.ticketsUpdated, order: 4, primary: false },
     ];
 
     const menufyMetrics = [
       { defId: MD.ticketsResolved, order: 0, primary: true },
       { defId: MD.avgResponseTime, order: 1, primary: true },
       { defId: MD.csatScore, order: 2, primary: true },
+      { defId: MD.ticketsUpdated, order: 3, primary: false },
     ];
 
     await tx.insert(metricAssignments).values([
@@ -634,7 +666,7 @@ async function seed() {
   );
   console.log("  Managers: Alexander Smith (POS), Barbara Maenza (Menufy)");
   console.log("  Platform admin: James Oswald");
-  console.log("  Metric definitions: 7 (first_contact_resolution unassigned — no live source)");
+  console.log("  Metric definitions: 8 (first_contact_resolution unassigned — no live source)");
   console.log("  Data sources: Zendesk, Assembled (real, live)");
   console.log("  Metric values: none — run a live sync to populate real history");
 
