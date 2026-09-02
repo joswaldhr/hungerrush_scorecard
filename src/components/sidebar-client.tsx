@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   LogOut,
   PanelLeftClose,
+  PanelLeftOpen,
   Sun,
   Moon,
   ChevronDown,
@@ -211,7 +212,9 @@ export function SidebarClient({
           );
         })}
 
-        <div className="flex items-center justify-between pt-1">
+        <div
+          className={cn("flex items-center pt-1", collapsed ? "flex-col gap-1" : "justify-between")}
+        >
           <button
             onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
             aria-label={
@@ -230,15 +233,21 @@ export function SidebarClient({
             )}
           </button>
 
-          {!collapsed && (
-            <button
-              onClick={toggle}
-              aria-label="Collapse sidebar"
-              className="flex items-center gap-1 rounded-md p-1.5 text-xs text-slate-400 hover:bg-sidebar-accent hover:text-white transition-colors"
-            >
+          <button
+            onClick={toggle}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={collapsed ? "Expand sidebar" : undefined}
+            className={cn(
+              "flex items-center rounded-md p-1.5 text-slate-400 hover:bg-sidebar-accent hover:text-white transition-colors",
+              collapsed ? "w-full justify-center" : "gap-1 text-xs"
+            )}
+          >
+            {collapsed ? (
+              <PanelLeftOpen className="h-4 w-4" />
+            ) : (
               <PanelLeftClose className="h-4 w-4" />
-            </button>
-          )}
+            )}
+          </button>
         </div>
       </div>
 
