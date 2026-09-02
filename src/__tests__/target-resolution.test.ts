@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { resolveTarget, evaluateStatus } from "@/lib/domain/metrics/target-resolution";
+import {
+  resolveTarget,
+  evaluateStatus,
+  evaluateChangeStatus,
+} from "@/lib/domain/metrics/target-resolution";
+import { GOLDEN_STATUS_SCENARIOS } from "@/lib/fixtures/golden-dataset";
 
 const EMP_ID = "emp-1";
 const TEAM_ID = "team-1";
@@ -218,5 +223,105 @@ describe("evaluateStatus", () => {
     expect(evaluateStatus(8, target, "lower_is_better").status).toBe("on_target");
     expect(evaluateStatus(12, target, "lower_is_better").status).toBe("warning");
     expect(evaluateStatus(20, target, "lower_is_better").status).toBe("off_target");
+  });
+
+  it("handles minimum + lower_is_better (golden dataset scenario)", () => {
+    const { target, direction, onTargetValue, warningValue, offTargetValue } =
+      GOLDEN_STATUS_SCENARIOS.minimumLowerIsBetter;
+    const resolved = { ...target, source: "team" as const, priority: 0 };
+    expect(evaluateStatus(onTargetValue, resolved, direction).status).toBe("on_target");
+    expect(evaluateStatus(warningValue, resolved, direction).status).toBe("warning");
+    expect(evaluateStatus(offTargetValue, resolved, direction).status).toBe("off_target");
+  });
+
+  it(
+    "handles maximum + higher_is_better identically to maximum + lower_is_better " +
+      "(golden dataset scenario — evaluateStatus's maximum branch does not actually " +
+      "branch on direction; see target-resolution.ts:94-103, documented as an " +
+      "architecture note in the 2026-09-01 Metric Integrity Report)",
+    () => {
+      const { target, direction, onTargetValue, warningValue, offTargetValue } =
+        GOLDEN_STATUS_SCENARIOS.maximumHigherIsBetter;
+      const resolved = { ...target, source: "team" as const, priority: 0 };
+      expect(evaluateStatus(onTargetValue, resolved, direction).status).toBe("on_target");
+      expect(evaluateStatus(warningValue, resolved, direction).status).toBe("warning");
+      expect(evaluateStatus(offTargetValue, resolved, direction).status).toBe("off_target");
+    }
+  );
+
+  it(
+    "KNOWN GAP: targetType 'exact' is evaluated identically to 'minimum' — no " +
+      "equality check exists (target-resolution.ts:82). Unreachable today (no " +
+      "seed data uses 'exact'), but documents the latent bug rather than leaving " +
+      "it undiscovered.",
+    () => {
+      const target = {
+        targetValue: 80,
+        warningValue: 70,
+        targetType: "exact" as const,
+        source: "team" as const,
+        priority: 0,
+      };
+      // A true "exact" semantics would treat 95 as off_target (not equal to 80).
+      // Current behavior treats it as on_target, same as "minimum".
+      expect(evaluateStatus(95, target, "higher_is_better").status).toBe("on_target");
+    }
+  );
+
+  it(
+    "KNOWN GAP: targetType 'range' silently falls through to no_target even " +
+      "though a target row exists (target-resolution.ts:105). Unreachable today " +
+      "(no seed data uses 'range'), but the schema's target_type column accepts " +
+      "any text value, so this is a live landmine if 'range' targets are ever added.",
+    () => {
+      const target = {
+        targetValue: 80,
+        warningValue: 70,
+        targetType: "range" as const,
+        source: "team" as const,
+        priority: 0,
+      };
+      expect(evaluateStatus(75, target, "higher_is_better").status).toBe("no_target");
+    }
+  );
+});
+
+describe("evaluateChangeStatus", () => {
+  it("returns no_data when changePct is null", () => {
+    const result = evaluateChangeStatus(null, "higher_is_better");
+    expect(result.status).toBe("no_data");
+    expect(result.isImproved).toBe(false);
+  });
+
+  it("returns on_target for a change under 1% regardless of direction", () => {
+    expect(evaluateChangeStatus(0.5, "higher_is_better").status).toBe("on_target");
+    expect(evaluateChangeStatus(-0.5, "lower_is_better").status).toBe("on_target");
+  });
+
+  it("treats a positive change as improvement when higher_is_better", () => {
+    const result = evaluateChangeStatus(15, "higher_is_better");
+    expect(result.isImproved).toBe(true);
+    expect(result.status).toBe("on_target");
+  });
+
+  it("treats a negative change as improvement when lower_is_better", () => {
+    const result = evaluateChangeStatus(-15, "lower_is_better");
+    expect(result.isImproved).toBe(true);
+    expect(result.status).toBe("on_target");
+  });
+
+  it("treats a positive change as regression when lower_is_better, scaling with magnitude", () => {
+    expect(evaluateChangeStatus(5, "lower_is_better").status).toBe("warning"); // 1% <= |5%| < 10%
+    expect(evaluateChangeStatus(15, "lower_is_better").status).toBe("off_target"); // |15%| >= 10%
+  });
+
+  it("treats a negative change as regression when higher_is_better, scaling with magnitude", () => {
+    expect(evaluateChangeStatus(-5, "higher_is_better").status).toBe("warning");
+    expect(evaluateChangeStatus(-15, "higher_is_better").status).toBe("off_target");
+  });
+
+  it("handles the exact 10% off_target boundary", () => {
+    expect(evaluateChangeStatus(-10, "higher_is_better").status).toBe("off_target");
+    expect(evaluateChangeStatus(-9.99, "higher_is_better").status).toBe("warning");
   });
 });

@@ -1,0 +1,345 @@
+{
+  "timestamp": "2026-09-02T20:36:48.263Z",
+  "migration": "0009_fact_identity",
+  "factsBefore": 955,
+  "factsAfter": 354,
+  "duplicatesRemoved": 601,
+  "metricValuesBefore": 354,
+  "metricValuesAfter": 354,
+  "valuesChanged": 41,
+  "changes": [
+    {
+      "metricKey": "tickets_resolved",
+      "employeeId": "40000000-0000-4000-8000-000000000001",
+      "periodStart": "2026-08-31",
+      "periodEnd": "2026-09-06",
+      "previousValue": 16,
+      "newValue": 4
+    },
+    {
+      "metricKey": "tickets_resolved",
+      "employeeId": "40000000-0000-4000-8000-000000000067",
+      "periodStart": "2026-08-31",
+      "periodEnd": "2026-09-06",
+      "previousValue": 24,
+      "newValue": 6
+    },
+    {
+      "metricKey": "tickets_resolved",
+      "employeeId": "40000000-0000-4000-8000-000000000004",
+      "periodStart": "2026-08-24",
+      "periodEnd": "2026-08-30",
+      "previousValue": 96,
+      "newValue": 32
+    },
+    {
+      "metricKey": "tickets_resolved",
+      "employeeId": "40000000-0000-4000-8000-000000000066",
+      "periodStart": "2026-08-31",
+      "periodEnd": "2026-09-06",
+      "previousValue": 24,
+      "newValue": 6
+    },
+    {
+      "metricKey": "tickets_resolved",
+      "employeeId": "40000000-0000-4000-8000-000000000065",
+      "periodStart": "2026-08-24",
+      "periodEnd": "2026-08-30",
+      "previousValue": 171,
+      "newValue": 57
+    },
+    {
+      "metricKey": "tickets_resolved",
+      "employeeId": "40000000-0000-4000-8000-000000000001",
+      "periodStart": "2026-08-24",
+      "periodEnd": "2026-08-30",
+      "previousValue": 12,
+      "newValue": 4
+    },
+    {
+      "metricKey": "tickets_resolved",
+      "employeeId": "40000000-0000-4000-8000-000000000066",
+      "periodStart": "2026-08-24",
+      "periodEnd": "2026-08-30",
+      "previousValue": 96,
+      "newValue": 32
+    },
+    {
+      "metricKey": "tickets_resolved",
+      "employeeId": "40000000-0000-4000-8000-000000000067",
+      "periodStart": "2026-08-24",
+      "periodEnd": "2026-08-30",
+      "previousValue": 42,
+      "newValue": 14
+    },
+    {
+      "metricKey": "tickets_resolved",
+      "employeeId": "40000000-0000-4000-8000-000000000004",
+      "periodStart": "2026-08-31",
+      "periodEnd": "2026-09-06",
+      "previousValue": 80,
+      "newValue": 20
+    },
+    {
+      "metricKey": "tickets_resolved",
+      "employeeId": "40000000-0000-4000-8000-000000000006",
+      "periodStart": "2026-08-31",
+      "periodEnd": "2026-09-06",
+      "previousValue": 28,
+      "newValue": 7
+    },
+    {
+      "metricKey": "tickets_resolved",
+      "employeeId": "40000000-0000-4000-8000-000000000065",
+      "periodStart": "2026-08-17",
+      "periodEnd": "2026-08-23",
+      "previousValue": 752,
+      "newValue": 376
+    },
+    {
+      "metricKey": "tickets_resolved",
+      "employeeId": "40000000-0000-4000-8000-000000000004",
+      "periodStart": "2026-08-17",
+      "periodEnd": "2026-08-23",
+      "previousValue": 38,
+      "newValue": 19
+    },
+    {
+      "metricKey": "tickets_resolved",
+      "employeeId": "40000000-0000-4000-8000-000000000001",
+      "periodStart": "2026-08-17",
+      "periodEnd": "2026-08-23",
+      "previousValue": 12,
+      "newValue": 6
+    },
+    {
+      "metricKey": "tickets_resolved",
+      "employeeId": "40000000-0000-4000-8000-000000000067",
+      "periodStart": "2026-08-17",
+      "periodEnd": "2026-08-23",
+      "previousValue": 8,
+      "newValue": 4
+    },
+    {
+      "metricKey": "tickets_resolved",
+      "employeeId": "40000000-0000-4000-8000-000000000006",
+      "periodStart": "2026-08-24",
+      "periodEnd": "2026-08-30",
+      "previousValue": 60,
+      "newValue": 20
+    },
+    {
+      "metricKey": "tickets_resolved",
+      "employeeId": "40000000-0000-4000-8000-000000000006",
+      "periodStart": "2026-08-17",
+      "periodEnd": "2026-08-23",
+      "previousValue": 16,
+      "newValue": 8
+    },
+    {
+      "metricKey": "tickets_resolved",
+      "employeeId": "40000000-0000-4000-8000-000000000065",
+      "periodStart": "2026-08-31",
+      "periodEnd": "2026-09-06",
+      "previousValue": 444,
+      "newValue": 56
+    },
+    {
+      "metricKey": "avg_handle_time",
+      "employeeId": "40000000-0000-4000-8000-000000000065",
+      "periodStart": "2026-08-31",
+      "periodEnd": "2026-09-06",
+      "previousValue": 317.15,
+      "newValue": 311.8
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-000000000001",
+      "periodStart": "2026-08-31",
+      "periodEnd": "2026-09-06",
+      "previousValue": 16,
+      "newValue": 4
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-000000000001",
+      "periodStart": "2026-08-24",
+      "periodEnd": "2026-08-30",
+      "previousValue": 12,
+      "newValue": 4
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-000000000067",
+      "periodStart": "2026-08-24",
+      "periodEnd": "2026-08-30",
+      "previousValue": 42,
+      "newValue": 14
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-000000000067",
+      "periodStart": "2026-08-31",
+      "periodEnd": "2026-09-06",
+      "previousValue": 24,
+      "newValue": 6
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-000000000006",
+      "periodStart": "2026-08-24",
+      "periodEnd": "2026-08-30",
+      "previousValue": 72,
+      "newValue": 24
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-000000000006",
+      "periodStart": "2026-08-17",
+      "periodEnd": "2026-08-23",
+      "previousValue": 16,
+      "newValue": 8
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-00000000000f",
+      "periodStart": "2026-08-24",
+      "periodEnd": "2026-08-30",
+      "previousValue": 6,
+      "newValue": 2
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-00000000000b",
+      "periodStart": "2026-08-24",
+      "periodEnd": "2026-08-30",
+      "previousValue": 6,
+      "newValue": 2
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-000000000004",
+      "periodStart": "2026-08-24",
+      "periodEnd": "2026-08-30",
+      "previousValue": 96,
+      "newValue": 32
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-00000000000c",
+      "periodStart": "2026-08-24",
+      "periodEnd": "2026-08-30",
+      "previousValue": 6,
+      "newValue": 2
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-000000000004",
+      "periodStart": "2026-08-17",
+      "periodEnd": "2026-08-23",
+      "previousValue": 42,
+      "newValue": 21
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-000000000066",
+      "periodStart": "2026-08-31",
+      "periodEnd": "2026-09-06",
+      "previousValue": 32,
+      "newValue": 8
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-00000000000d",
+      "periodStart": "2026-08-24",
+      "periodEnd": "2026-08-30",
+      "previousValue": 6,
+      "newValue": 2
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-000000000065",
+      "periodStart": "2026-08-24",
+      "periodEnd": "2026-08-30",
+      "previousValue": 180,
+      "newValue": 60
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-000000000066",
+      "periodStart": "2026-08-24",
+      "periodEnd": "2026-08-30",
+      "previousValue": 99,
+      "newValue": 33
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-00000000000e",
+      "periodStart": "2026-08-24",
+      "periodEnd": "2026-08-30",
+      "previousValue": 3,
+      "newValue": 1
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-000000000001",
+      "periodStart": "2026-08-17",
+      "periodEnd": "2026-08-23",
+      "previousValue": 12,
+      "newValue": 6
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-000000000004",
+      "periodStart": "2026-08-31",
+      "periodEnd": "2026-09-06",
+      "previousValue": 112,
+      "newValue": 28
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-000000000006",
+      "periodStart": "2026-08-31",
+      "periodEnd": "2026-09-06",
+      "previousValue": 32,
+      "newValue": 8
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-000000000065",
+      "periodStart": "2026-08-17",
+      "periodEnd": "2026-08-23",
+      "previousValue": 758,
+      "newValue": 379
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-000000000066",
+      "periodStart": "2026-08-17",
+      "periodEnd": "2026-08-23",
+      "previousValue": 2,
+      "newValue": 1
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-000000000067",
+      "periodStart": "2026-08-17",
+      "periodEnd": "2026-08-23",
+      "previousValue": 8,
+      "newValue": 4
+    },
+    {
+      "metricKey": "tickets_updated",
+      "employeeId": "40000000-0000-4000-8000-000000000065",
+      "periodStart": "2026-08-31",
+      "periodEnd": "2026-09-06",
+      "previousValue": 512,
+      "newValue": 64
+    }
+  ],
+  "reproducibilityCheck": {
+    "factsBefore": 354,
+    "factsAfter": 354,
+    "passed": true
+  }
+}

@@ -187,6 +187,7 @@ export const metricDefinitions = pgTable(
     calculationConfigJson: jsonb("calculation_config_json"),
     defaultPeriod: text("default_period").notNull().default("week"),
     sourceStrategy: text("source_strategy"),
+    teamAggregation: text("team_aggregation").notNull().default("simple_average"),
     status: text("status").notNull().default("active"),
     version: integer("version").notNull().default(1),
     effectiveFrom: date("effective_from"),
@@ -441,7 +442,10 @@ export const normalizedFacts = pgTable(
     dataSourceId: uuid("data_source_id")
       .notNull()
       .references(() => dataSources.id),
-    sourceRecordId: uuid("source_record_id").references(() => sourceRecords.id),
+    sourceRecordId: uuid("source_record_id")
+      .notNull()
+      .references(() => sourceRecords.id),
+    sourceObservedAt: timestamp("source_observed_at", { withTimezone: true }).notNull(),
     dimensionsJson: jsonb("dimensions_json"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -450,6 +454,7 @@ export const normalizedFacts = pgTable(
     index("normalized_facts_fact_type_idx").on(table.factType),
     index("normalized_facts_period_idx").on(table.periodStart, table.periodEnd),
     index("normalized_facts_source_record_id_idx").on(table.sourceRecordId),
+    uniqueIndex("normalized_facts_identity_idx").on(table.sourceRecordId, table.factType),
   ]
 );
 

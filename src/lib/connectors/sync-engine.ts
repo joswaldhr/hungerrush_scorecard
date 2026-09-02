@@ -242,22 +242,37 @@ async function normalizeIngestedRecords(
       record.periodEnd
     );
 
+    const sourceObservedAt = record.sourceUpdatedAt ?? record.occurredAt ?? record.ingestedAt;
+
     for (const fact of facts) {
-      await db.insert(normalizedFacts).values({
-        organizationId: config.organizationId,
-        employeeId: fact.employeeId,
-        teamId: fact.teamId,
-        factType: fact.factType,
-        numericValue: fact.numericValue,
-        textValue: fact.textValue,
-        booleanValue: fact.booleanValue,
-        unit: fact.unit,
-        periodStart: fact.periodStart,
-        periodEnd: fact.periodEnd,
-        dataSourceId: config.dataSourceId,
-        sourceRecordId: record.id,
-        dimensionsJson: fact.dimensionsJson,
-      });
+      await db
+        .insert(normalizedFacts)
+        .values({
+          organizationId: config.organizationId,
+          employeeId: fact.employeeId,
+          teamId: fact.teamId,
+          factType: fact.factType,
+          numericValue: fact.numericValue,
+          textValue: fact.textValue,
+          booleanValue: fact.booleanValue,
+          unit: fact.unit,
+          periodStart: fact.periodStart,
+          periodEnd: fact.periodEnd,
+          dataSourceId: config.dataSourceId,
+          sourceRecordId: record.id,
+          sourceObservedAt: sourceObservedAt,
+          dimensionsJson: fact.dimensionsJson,
+        })
+        .onConflictDoUpdate({
+          target: [normalizedFacts.sourceRecordId, normalizedFacts.factType],
+          set: {
+            numericValue: fact.numericValue,
+            textValue: fact.textValue,
+            booleanValue: fact.booleanValue,
+            unit: fact.unit,
+            sourceObservedAt: sourceObservedAt,
+          },
+        });
       normalized++;
     }
   }

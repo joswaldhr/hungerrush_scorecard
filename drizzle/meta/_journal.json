@@ -64,6 +64,13 @@
       "when": 1788284064188,
       "tag": "0008_previous_golden_guardian",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788508800000,
+      "tag": "0009_fact_identity",
+      "breakpoints": true
     }
   ]
 }

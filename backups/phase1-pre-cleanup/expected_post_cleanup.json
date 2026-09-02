@@ -1,0 +1,3188 @@
+[
+  {
+    "fact_type": "avg_handle_time",
+    "employee_id": "40000000-0000-4000-8000-000000000001",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 123.5,
+    "avg_val": 123.5
+  },
+  {
+    "fact_type": "avg_handle_time",
+    "employee_id": "40000000-0000-4000-8000-000000000001",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 293.29998779296875,
+    "avg_val": 293.29998779296875
+  },
+  {
+    "fact_type": "avg_handle_time",
+    "employee_id": "40000000-0000-4000-8000-000000000001",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 53.5,
+    "avg_val": 53.5
+  },
+  {
+    "fact_type": "avg_handle_time",
+    "employee_id": "40000000-0000-4000-8000-000000000001",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 84,
+    "avg_val": 84
+  },
+  {
+    "fact_type": "avg_handle_time",
+    "employee_id": "40000000-0000-4000-8000-000000000004",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 204.5,
+    "avg_val": 204.5
+  },
+  {
+    "fact_type": "avg_handle_time",
+    "employee_id": "40000000-0000-4000-8000-000000000004",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 276.6000061035156,
+    "avg_val": 276.6000061035156
+  },
+  {
+    "fact_type": "avg_handle_time",
+    "employee_id": "40000000-0000-4000-8000-000000000004",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 703.2999877929688,
+    "avg_val": 703.2999877929688
+  },
+  {
+    "fact_type": "avg_handle_time",
+    "employee_id": "40000000-0000-4000-8000-000000000004",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 360.79998779296875,
+    "avg_val": 360.79998779296875
+  },
+  {
+    "fact_type": "avg_handle_time",
+    "employee_id": "40000000-0000-4000-8000-000000000006",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 26.5,
+    "avg_val": 26.5
+  },
+  {
+    "fact_type": "avg_handle_time",
+    "employee_id": "40000000-0000-4000-8000-000000000006",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 300.5,
+    "avg_val": 300.5
+  },
+  {
+    "fact_type": "avg_handle_time",
+    "employee_id": "40000000-0000-4000-8000-000000000065",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 173.5,
+    "avg_val": 173.5
+  },
+  {
+    "fact_type": "avg_handle_time",
+    "employee_id": "40000000-0000-4000-8000-000000000065",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 257.29998779296875,
+    "avg_val": 257.29998779296875
+  },
+  {
+    "fact_type": "avg_handle_time",
+    "employee_id": "40000000-0000-4000-8000-000000000065",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 353.29998779296875,
+    "avg_val": 353.29998779296875
+  },
+  {
+    "fact_type": "avg_handle_time",
+    "employee_id": "40000000-0000-4000-8000-000000000065",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 311.79998779296875,
+    "avg_val": 311.79998779296875
+  },
+  {
+    "fact_type": "avg_handle_time",
+    "employee_id": "40000000-0000-4000-8000-000000000066",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 310.79998779296875,
+    "avg_val": 310.79998779296875
+  },
+  {
+    "fact_type": "avg_handle_time",
+    "employee_id": "40000000-0000-4000-8000-000000000066",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 483.70001220703125,
+    "avg_val": 483.70001220703125
+  },
+  {
+    "fact_type": "avg_handle_time",
+    "employee_id": "40000000-0000-4000-8000-000000000066",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 38.29999923706055,
+    "avg_val": 38.29999923706055
+  },
+  {
+    "fact_type": "avg_handle_time",
+    "employee_id": "40000000-0000-4000-8000-000000000067",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 2,
+    "avg_val": 2
+  },
+  {
+    "fact_type": "avg_handle_time",
+    "employee_id": "40000000-0000-4000-8000-000000000067",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 24,
+    "avg_val": 24
+  },
+  {
+    "fact_type": "avg_handle_time",
+    "employee_id": "40000000-0000-4000-8000-000000000067",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 150.5,
+    "avg_val": 150.5
+  },
+  {
+    "fact_type": "avg_response_time",
+    "employee_id": "40000000-0000-4000-8000-000000000001",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 128,
+    "avg_val": 128
+  },
+  {
+    "fact_type": "avg_response_time",
+    "employee_id": "40000000-0000-4000-8000-000000000001",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 27,
+    "avg_val": 27
+  },
+  {
+    "fact_type": "avg_response_time",
+    "employee_id": "40000000-0000-4000-8000-000000000001",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 83.5,
+    "avg_val": 83.5
+  },
+  {
+    "fact_type": "avg_response_time",
+    "employee_id": "40000000-0000-4000-8000-000000000004",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 25.5,
+    "avg_val": 25.5
+  },
+  {
+    "fact_type": "avg_response_time",
+    "employee_id": "40000000-0000-4000-8000-000000000004",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 375,
+    "avg_val": 375
+  },
+  {
+    "fact_type": "avg_response_time",
+    "employee_id": "40000000-0000-4000-8000-000000000004",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 65,
+    "avg_val": 65
+  },
+  {
+    "fact_type": "avg_response_time",
+    "employee_id": "40000000-0000-4000-8000-000000000006",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 251,
+    "avg_val": 251
+  },
+  {
+    "fact_type": "avg_response_time",
+    "employee_id": "40000000-0000-4000-8000-000000000065",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 16,
+    "avg_val": 16
+  },
+  {
+    "fact_type": "avg_response_time",
+    "employee_id": "40000000-0000-4000-8000-000000000065",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 259,
+    "avg_val": 259
+  },
+  {
+    "fact_type": "avg_response_time",
+    "employee_id": "40000000-0000-4000-8000-000000000066",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 36,
+    "avg_val": 36
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000001",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 13,
+    "avg_val": 13
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000002",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000003",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000004",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 14,
+    "avg_val": 14
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000005",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000006",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 8,
+    "avg_val": 8
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000007",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000008",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000009",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-00000000000a",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-00000000000b",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 2,
+    "avg_val": 2
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-00000000000c",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 2,
+    "avg_val": 2
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-00000000000d",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 2,
+    "avg_val": 2
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-00000000000e",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 1,
+    "avg_val": 1
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-00000000000f",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 2,
+    "avg_val": 2
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000065",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 26,
+    "avg_val": 26
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000066",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 13,
+    "avg_val": 13
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000067",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000068",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000069",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-00000000006a",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-00000000006b",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-00000000006c",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-00000000006d",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-00000000006e",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-00000000006f",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000070",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000071",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000072",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000073",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000074",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000075",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000076",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000077",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000078",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "backlog_count",
+    "employee_id": "40000000-0000-4000-8000-000000000079",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000001",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 3,
+    "avg_val": 3
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000001",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 6,
+    "avg_val": 6
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000001",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 4,
+    "avg_val": 4
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000001",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 4,
+    "avg_val": 4
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000002",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000002",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000002",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000002",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000003",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000003",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000003",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000003",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000004",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 7,
+    "avg_val": 7
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000004",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 19,
+    "avg_val": 19
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000004",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 32,
+    "avg_val": 32
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000004",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 20,
+    "avg_val": 20
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000005",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000005",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000005",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000005",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000006",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 13,
+    "avg_val": 13
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000006",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 8,
+    "avg_val": 8
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000006",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 20,
+    "avg_val": 20
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000006",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 7,
+    "avg_val": 7
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000007",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000007",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000007",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000007",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000008",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000008",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000008",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000008",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000009",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000009",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000009",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000009",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000a",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000a",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000a",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000a",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000b",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000b",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000b",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000b",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000c",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000c",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000c",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000c",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000d",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000d",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000d",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000d",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000e",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000e",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000e",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000e",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000f",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000f",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000f",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000000f",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000065",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 186,
+    "avg_val": 186
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000065",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 376,
+    "avg_val": 376
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000065",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 57,
+    "avg_val": 57
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000065",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 56,
+    "avg_val": 56
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000066",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 31,
+    "avg_val": 31
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000066",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000066",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 32,
+    "avg_val": 32
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000066",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 6,
+    "avg_val": 6
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000067",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 122,
+    "avg_val": 122
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000067",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 4,
+    "avg_val": 4
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000067",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 14,
+    "avg_val": 14
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000067",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 6,
+    "avg_val": 6
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000068",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000068",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000068",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000068",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000069",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000069",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000069",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000069",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006a",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006a",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006a",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006a",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006b",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006b",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006b",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006b",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006c",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006c",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006c",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006c",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006d",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006d",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006d",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006d",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006e",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006e",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006e",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006e",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006f",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006f",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006f",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-00000000006f",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000070",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000070",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000070",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000070",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000071",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000071",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000071",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000071",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000072",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000072",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000072",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000072",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000073",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000073",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000073",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000073",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000074",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000074",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000074",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000074",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000075",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000075",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000075",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000075",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000076",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000076",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000076",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000076",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000077",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000077",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000077",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000077",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000078",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000078",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000078",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000078",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000079",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000079",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000079",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_resolved",
+    "employee_id": "40000000-0000-4000-8000-000000000079",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000001",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 3,
+    "avg_val": 3
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000001",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 6,
+    "avg_val": 6
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000001",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 4,
+    "avg_val": 4
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000001",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 4,
+    "avg_val": 4
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000002",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000002",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000002",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000002",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000003",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000003",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000003",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000003",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000004",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 8,
+    "avg_val": 8
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000004",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 21,
+    "avg_val": 21
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000004",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 32,
+    "avg_val": 32
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000004",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 28,
+    "avg_val": 28
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000005",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000005",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000005",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000005",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000006",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 13,
+    "avg_val": 13
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000006",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 8,
+    "avg_val": 8
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000006",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 24,
+    "avg_val": 24
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000006",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 8,
+    "avg_val": 8
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000007",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000007",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000007",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000007",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000008",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000008",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000008",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000008",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000009",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000009",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000009",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000009",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000a",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000a",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000a",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000a",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000b",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000b",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000b",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 2,
+    "avg_val": 2
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000b",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000c",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000c",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000c",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 2,
+    "avg_val": 2
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000c",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000d",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000d",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000d",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 2,
+    "avg_val": 2
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000d",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000e",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000e",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000e",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 1,
+    "avg_val": 1
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000e",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000f",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000f",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000f",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 2,
+    "avg_val": 2
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000000f",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000065",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 189,
+    "avg_val": 189
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000065",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 379,
+    "avg_val": 379
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000065",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 60,
+    "avg_val": 60
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000065",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 64,
+    "avg_val": 64
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000066",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 32,
+    "avg_val": 32
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000066",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 1,
+    "avg_val": 1
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000066",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 33,
+    "avg_val": 33
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000066",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 8,
+    "avg_val": 8
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000067",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 122,
+    "avg_val": 122
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000067",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 4,
+    "avg_val": 4
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000067",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 14,
+    "avg_val": 14
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000067",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 6,
+    "avg_val": 6
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000068",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000068",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000068",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000068",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000069",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000069",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000069",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000069",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006a",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006a",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006a",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006a",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006b",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006b",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006b",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006b",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006c",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006c",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006c",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006c",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006d",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006d",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006d",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006d",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006e",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006e",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006e",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006e",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006f",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006f",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006f",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-00000000006f",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000070",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000070",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000070",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000070",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000071",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000071",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000071",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000071",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000072",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000072",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000072",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000072",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000073",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000073",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000073",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000073",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000074",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000074",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000074",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000074",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000075",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000075",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000075",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000075",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000076",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000076",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000076",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000076",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000077",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000077",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000077",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000077",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000078",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000078",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000078",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000078",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000079",
+    "period_start": "2026-08-10",
+    "period_end": "2026-08-16",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000079",
+    "period_start": "2026-08-17",
+    "period_end": "2026-08-23",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000079",
+    "period_start": "2026-08-24",
+    "period_end": "2026-08-30",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  },
+  {
+    "fact_type": "tickets_updated",
+    "employee_id": "40000000-0000-4000-8000-000000000079",
+    "period_start": "2026-08-31",
+    "period_end": "2026-09-06",
+    "fact_count": 1,
+    "sum_val": 0,
+    "avg_val": 0
+  }
+]
