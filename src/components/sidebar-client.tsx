@@ -109,7 +109,12 @@ export function SidebarClient({
       )}
     >
       {/* Brand */}
-      <div className={cn("pt-6 pb-6", collapsed ? "px-3" : "px-5")}>
+      <div
+        className={cn(
+          "flex items-center pt-6 pb-6",
+          collapsed ? "flex-col gap-2 px-3" : "justify-between px-5"
+        )}
+      >
         <Link href="/" className={cn("flex items-center gap-3 group")}>
           {brandMark}
           {!collapsed && (
@@ -123,6 +128,19 @@ export function SidebarClient({
             </div>
           )}
         </Link>
+
+        <button
+          onClick={toggle}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={collapsed ? "Expand sidebar" : undefined}
+          className="flex shrink-0 items-center justify-center rounded-md p-1.5 text-slate-400 hover:bg-sidebar-accent hover:text-white transition-colors"
+        >
+          {collapsed ? (
+            <PanelLeftOpen className="h-4 w-4" />
+          ) : (
+            <PanelLeftClose className="h-4 w-4" />
+          )}
+        </button>
       </div>
 
       {/* Primary nav */}
@@ -212,9 +230,7 @@ export function SidebarClient({
           );
         })}
 
-        <div
-          className={cn("flex items-center pt-1", collapsed ? "flex-col gap-1" : "justify-between")}
-        >
+        <div className="flex items-center pt-1">
           <button
             onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
             aria-label={
@@ -230,22 +246,6 @@ export function SidebarClient({
               <Sun className="h-4 w-4" />
             ) : (
               <Moon className="h-4 w-4" />
-            )}
-          </button>
-
-          <button
-            onClick={toggle}
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            title={collapsed ? "Expand sidebar" : undefined}
-            className={cn(
-              "flex items-center rounded-md p-1.5 text-slate-400 hover:bg-sidebar-accent hover:text-white transition-colors",
-              collapsed ? "w-full justify-center" : "gap-1 text-xs"
-            )}
-          >
-            {collapsed ? (
-              <PanelLeftOpen className="h-4 w-4" />
-            ) : (
-              <PanelLeftClose className="h-4 w-4" />
             )}
           </button>
         </div>
