@@ -9,6 +9,7 @@ import {
   discussionTopics,
   coachingRecords,
   ticketReviews,
+  attendanceEvents,
 } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -203,6 +204,35 @@ export async function updateCoachingOutcome(formData: FormData) {
       closedAt: close ? new Date() : null,
     })
     .where(eq(coachingRecords.id, recordId));
+
+  revalidate(employeeId);
+}
+
+// ── Attendance Events ─────────────────────────────────
+
+export async function createAttendanceEvent(formData: FormData) {
+  const employeeId = formData.get("employeeId") as string;
+  const eventType = formData.get("eventType") as string;
+  const occurredAt = formData.get("occurredAt") as string;
+  if (!eventType || !occurredAt) return;
+
+  const minutesLateStr = formData.get("minutesLate") as string | null;
+  const pointsStr = formData.get("pointsAssigned") as string | null;
+  const notes = (formData.get("notes") as string) || null;
+  const excused = formData.get("excused") === "true";
+
+  const ctx = await authorizeForEmployee(employeeId);
+
+  await db.insert(attendanceEvents).values({
+    employeeId,
+    managerUserId: ctx.userId,
+    eventType,
+    occurredAt,
+    minutesLate: minutesLateStr ? parseFloat(minutesLateStr) : null,
+    pointsAssigned: pointsStr ? parseFloat(pointsStr) : null,
+    notes,
+    excused,
+  });
 
   revalidate(employeeId);
 }

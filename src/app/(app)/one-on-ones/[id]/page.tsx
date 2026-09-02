@@ -2,40 +2,41 @@ import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { getEffectiveManagerContext, getAssignedEmployees } from "@/lib/auth/authorization";
 import { generateOneOnOne } from "@/lib/domain/briefings/generate";
-import { getEmployeeContext } from "@/lib/domain/context/queries";
+import { getEmployeeMetrics } from "@/lib/domain/metrics/queries";
 import { getDiscussionTopics } from "@/lib/domain/discussion-topics/queries";
 import { getCoachingRecords } from "@/lib/domain/coaching/queries";
 import { getTicketReviews } from "@/lib/domain/ticket-reviews/queries";
 import { getMeetingHistory } from "@/lib/domain/meetings/queries";
+import { getAttendanceSummary } from "@/lib/domain/attendance/queries";
 import { MetricValue } from "@/components/metric-value";
 import { MetricIcon } from "@/components/metric-icon";
 import { EmptyState } from "@/components/empty-state";
 import { Card, CardContent } from "@/components/ui/card";
+import { SectionNav } from "./section-nav";
+import { ScorecardSection } from "./scorecard-section";
+import { AttendanceSection } from "./attendance-section";
 import { MeetingNotesForm } from "./meeting-notes-form";
 import { ActionItemsPanel } from "./action-items-panel";
 import { DiscussionTopicsPanel } from "./discussion-topics-panel";
 import { CoachingPanel } from "./coaching-panel";
 import { TicketReviewPanel } from "./ticket-review-panel";
 import { MeetingHistory } from "./meeting-history";
-import { OneOnOneTabs } from "./tabs-wrapper";
 import {
   MessageCircle,
   Star,
-  Sparkles,
-  Calendar,
-  Clock,
-  Users,
-  CheckSquare,
-  FileText,
   TrendingUp,
   ArrowLeft,
   ExternalLink,
-  Quote,
+  Calendar,
+  Users,
   Target,
   Ticket,
+  FileText,
   History,
+  CheckSquare,
+  ClipboardList,
+  Shield,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import {
@@ -49,24 +50,15 @@ import { eq, and, gte, asc, desc } from "drizzle-orm";
 import { env } from "@/lib/env";
 import { weekDates, cn } from "@/lib/utils";
 
-const CONTEXT_ICONS: Record<string, LucideIcon> = {
-  coaching: Users,
-  quality_review: Star,
-  attendance: Clock,
-  one_on_one: Calendar,
-  action_item: CheckSquare,
-  note: FileText,
-};
-
 export default async function OneOnOnePage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ week?: string; tab?: string }>;
+  searchParams: Promise<{ week?: string }>;
 }) {
   const { id } = await params;
-  const { week: weekParam, tab: initialTab } = await searchParams;
+  const { week: weekParam } = await searchParams;
   const weeksAgo = Math.max(0, Math.min(12, parseInt(weekParam ?? "0", 10) || 0));
   const session = await auth();
   if (!session?.user?.email) redirect("/login");
@@ -94,15 +86,14 @@ export default async function OneOnOnePage({
     .from(teams)
     .where(eq(teams.id, teamId))
     .then((r) => r[0]);
-  const teamName = team?.name ?? "POS Support";
+  const teamName = team?.name ?? "Unknown Team";
 
   const { periodStart, periodEnd, previousPeriodStart } = weekDates(weeksAgo);
 
-  // Parallel data fetching
   const [
     prep,
+    metricsResult,
     nextMeetingResult,
-    previousContext,
     existingNoteResult,
     openActionsResult,
     discussionTopicsResult,
@@ -110,6 +101,7 @@ export default async function OneOnOnePage({
     ticketReviewsResult,
     meetingHistoryResult,
     metricDefsResult,
+    attendanceSummary,
   ] = await Promise.all([
     generateOneOnOne(
       ctx,
@@ -122,6 +114,7 @@ export default async function OneOnOnePage({
       periodEnd,
       previousPeriodStart
     ),
+    getEmployeeMetrics(ctx, employee.id, teamId, periodStart, previousPeriodStart),
     db
       .select({
         id: meetingReferences.id,
@@ -138,7 +131,6 @@ export default async function OneOnOnePage({
       )
       .orderBy(asc(meetingReferences.scheduledStart))
       .limit(1),
-    getEmployeeContext(ctx, employee.id, 6),
     db
       .select({
         id: meetingNotes.id,
@@ -176,6 +168,7 @@ export default async function OneOnOnePage({
       .select({ id: metricDefinitions.id, name: metricDefinitions.name })
       .from(metricDefinitions)
       .where(eq(metricDefinitions.organizationId, ctx.organizationId)),
+    getAttendanceSummary(ctx, employee.id),
   ]);
 
   const nextMeeting = nextMeetingResult[0] ?? null;
@@ -189,392 +182,32 @@ export default async function OneOnOnePage({
   const pendingTopicCount = discussionTopicsResult.filter((t) => t.status === "pending").length;
   const openCoachingCount = coachingRecordsResult.filter((r) => !r.closedAt).length;
 
-  // ── Render Sections ──────────────────────────────────────
+  const hasAttendanceData = attendanceSummary.totalEvents > 0;
 
-  const prepareContent = (
-    <div className="space-y-6">
-      {/* AT A GLANCE */}
-      <Card className="overflow-hidden">
-        <CardContent className="p-6">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-            <div className="flex items-start gap-4 flex-1">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 shadow-2xs mt-0.5">
-                <TrendingUp className="h-6 w-6" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                  At a Glance
-                </h3>
-                <p className="text-sm text-foreground leading-relaxed">{prep.takeaway.text}</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-6 sm:gap-10 border-t lg:border-t-0 lg:border-l border-border/80 pt-4 lg:pt-0 lg:pl-10 shrink-0 w-full lg:w-auto">
-              <div>
-                <p className="text-2xl sm:text-[28px] font-bold tracking-tight text-foreground leading-none">
-                  {prep.atAGlance.metricsOnTarget} / {totalMetrics}
-                </p>
-                <p className="text-xs font-medium text-muted-foreground mt-1.5">
-                  Metrics on target
-                </p>
-                <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                  {onTargetPct}%
-                </p>
-              </div>
-              <div>
-                <p className="text-2xl sm:text-[28px] font-bold tracking-tight text-foreground leading-none">
-                  {prep.atAGlance.metricsImproving}
-                </p>
-                <p className="text-xs font-medium text-muted-foreground mt-1.5">Improving</p>
-                <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                  vs last week
-                </p>
-              </div>
-              <div>
-                <p className="text-2xl sm:text-[28px] font-bold tracking-tight text-foreground leading-none">
-                  {prep.atAGlance.metricsDeclining}
-                </p>
-                <p className="text-xs font-medium text-muted-foreground mt-1.5">Declining</p>
-                <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 mt-0.5">
-                  significantly
-                </p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+  const periodEndDate = new Date(periodEnd + "T00:00:00Z");
+  const periodLabel = periodEndDate.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 
-      {/* 3-Column: What Changed, Recognize/Discuss, Context */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* WHAT CHANGED */}
-        <Card className="flex flex-col justify-between overflow-hidden">
-          <div>
-            <div className="flex items-center justify-between border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
-              <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                What Changed
-              </h2>
-              <span className="text-[11px] font-bold text-[#009ca6] bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded-full border border-teal-200 dark:border-teal-900">
-                {prep.whatChanged.length}
-              </span>
-            </div>
-            <CardContent className="p-5 space-y-3">
-              {prep.whatChanged.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-4 text-center">
-                  No metric changes recorded.
-                </p>
-              ) : (
-                prep.whatChanged.map((change) => {
-                  const pct =
-                    change.changePercent !== null
-                      ? Math.abs(change.changePercent).toFixed(0)
-                      : null;
-                  const isImproved = change.changeDirection === "improved";
-                  const isDeclined = change.changeDirection === "declined";
-                  return (
-                    <div
-                      key={change.metricKey}
-                      className="p-3 rounded-lg border border-border/60 hover:bg-muted/30 transition-colors space-y-1.5"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="flex items-center gap-2 text-xs font-bold text-foreground">
-                          <MetricIcon
-                            metricKey={change.metricKey}
-                            category={change.category}
-                            className="h-3.5 w-3.5 text-[#009ca6]"
-                          />
-                          <span>
-                            {change.metricName}{" "}
-                            {isImproved ? "improved" : isDeclined ? "declined" : "steady"}
-                          </span>
-                        </span>
-                        {pct && (
-                          <span
-                            className={cn(
-                              "text-xs font-bold",
-                              isImproved
-                                ? "text-emerald-600 dark:text-emerald-400"
-                                : isDeclined
-                                  ? "text-rose-600 dark:text-rose-400"
-                                  : "text-muted-foreground"
-                            )}
-                          >
-                            {isImproved ? `↑ ${pct}%` : isDeclined ? `↓ ${pct}%` : `→ 0%`}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed">
-                        Now at{" "}
-                        <span className="font-semibold text-foreground">
-                          <MetricValue
-                            value={change.currentValue}
-                            unit={change.unit}
-                            valueType={change.valueType}
-                          />
-                        </span>
-                      </p>
-                    </div>
-                  );
-                })
-              )}
-            </CardContent>
-          </div>
-        </Card>
-
-        {/* RECOGNIZE & DISCUSS */}
-        <Card className="flex flex-col justify-between overflow-hidden">
-          <div>
-            <div className="border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
-              <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                What to Recognize & Discuss
-              </h2>
-            </div>
-            <CardContent className="p-5 space-y-5">
-              <div className="space-y-2.5">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">
-                  <Star className="h-3.5 w-3.5 fill-emerald-500/20" />
-                  <span className="uppercase tracking-wider">What to Recognize</span>
-                </div>
-                <div className="space-y-2">
-                  {prep.whatToRecognize.length === 0 ? (
-                    <p className="text-xs text-muted-foreground">
-                      No specific highlights this week.
-                    </p>
-                  ) : (
-                    prep.whatToRecognize.map((item, i) => (
-                      <div
-                        key={i}
-                        className="flex items-start gap-2.5 p-2.5 rounded-lg bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/60"
-                      >
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
-                        <p className="text-xs text-foreground leading-relaxed">{item.text}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-              <div className="space-y-2.5">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400">
-                  <MessageCircle className="h-3.5 w-3.5" />
-                  <span className="uppercase tracking-wider">What to Discuss</span>
-                </div>
-                <div className="space-y-2">
-                  {prep.whatToDiscuss.length === 0 ? (
-                    <p className="text-xs text-muted-foreground">No priority discussion topics.</p>
-                  ) : (
-                    prep.whatToDiscuss.map((item, i) => (
-                      <div
-                        key={i}
-                        className="flex items-start gap-2.5 p-2.5 rounded-lg bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/60"
-                      >
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
-                        <p className="text-xs text-foreground leading-relaxed">{item.text}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </div>
-        </Card>
-
-        {/* PREVIOUS CONTEXT */}
-        <Card className="flex flex-col justify-between overflow-hidden">
-          <div>
-            <div className="border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
-              <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                Previous Context
-              </h2>
-            </div>
-            <CardContent className="p-5 space-y-3.5">
-              {previousContext.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-4 text-center">
-                  No prior context notes available.
-                </p>
-              ) : (
-                previousContext.slice(0, 3).map((item) => {
-                  const Icon = CONTEXT_ICONS[item.contextType] ?? FileText;
-                  return (
-                    <div
-                      key={item.id}
-                      className="p-3 rounded-lg border border-border/60 hover:bg-muted/30 transition-colors space-y-1"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="flex items-center gap-1.5 text-xs font-bold text-foreground">
-                          <Icon className="h-3.5 w-3.5 text-[#009ca6]" />
-                          <span>{item.title}</span>
-                        </span>
-                        <span className="text-[10px] text-muted-foreground">
-                          {item.occurredAt.toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </span>
-                      </div>
-                      {item.summary && (
-                        <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-3">
-                          {item.summary}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })
-              )}
-            </CardContent>
-          </div>
-        </Card>
-      </div>
-
-      {/* SUGGESTED QUESTIONS */}
-      <Card className="overflow-hidden">
-        <div className="flex items-center justify-between border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
-          <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-            Suggested Questions
-          </h2>
-          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#009ca6] bg-teal-50 dark:bg-teal-950/60 px-2.5 py-0.5 rounded-full border border-teal-200 dark:border-teal-900">
-            <Sparkles className="h-3 w-3" />
-            <span>AI-Powered</span>
-          </span>
-        </div>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {prep.suggestedQuestions.map((question, i) => (
-              <div
-                key={i}
-                className="relative flex flex-col justify-between p-4 rounded-xl border border-border/80 bg-slate-50/40 dark:bg-slate-900/40 hover:border-[#009ca6]/40 transition-colors"
-              >
-                <div className="space-y-2">
-                  <Quote className="h-5 w-5 text-[#009ca6] opacity-70" />
-                  <p className="text-xs font-semibold text-foreground leading-relaxed italic">
-                    &ldquo;{question}&rdquo;
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const duringContent = (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Discussion Topics */}
-        <Card className="overflow-hidden">
-          <div className="flex items-center justify-between border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
-            <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Discussion Topics
-            </h2>
-            {pendingTopicCount > 0 && (
-              <span className="text-[11px] font-bold text-[#009ca6] bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded-full border border-teal-200 dark:border-teal-900">
-                {pendingTopicCount} pending
-              </span>
-            )}
-          </div>
-          <CardContent className="p-5">
-            <DiscussionTopicsPanel employeeId={employee.id} topics={discussionTopicsResult} />
-          </CardContent>
-        </Card>
-
-        {/* Action Items */}
-        <Card className="overflow-hidden">
-          <div className="flex items-center justify-between border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
-            <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Action Items
-            </h2>
-            {openActionCount > 0 && (
-              <span className="text-[11px] font-bold text-[#009ca6] bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded-full border border-teal-200 dark:border-teal-900">
-                {openActionCount} open
-              </span>
-            )}
-          </div>
-          <CardContent className="p-5">
-            <ActionItemsPanel employeeId={employee.id} items={openActionsResult} />
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Coaching */}
-        <Card className="overflow-hidden">
-          <div className="flex items-center justify-between border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
-            <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-              <Target className="h-3.5 w-3.5" />
-              Coaching
-            </h2>
-            {openCoachingCount > 0 && (
-              <span className="text-[11px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-900">
-                {openCoachingCount} active
-              </span>
-            )}
-          </div>
-          <CardContent className="p-5">
-            <CoachingPanel
-              employeeId={employee.id}
-              records={coachingRecordsResult}
-              metrics={metricDefsResult}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Ticket Reviews */}
-        <Card className="overflow-hidden">
-          <div className="flex items-center justify-between border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
-            <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-              <Ticket className="h-3.5 w-3.5" />
-              Ticket Reviews
-            </h2>
-            {ticketReviewsResult.length > 0 && (
-              <span className="text-[11px] font-bold text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full border border-border">
-                {ticketReviewsResult.length} logged
-              </span>
-            )}
-          </div>
-          <CardContent className="p-5">
-            <TicketReviewPanel employeeId={employee.id} reviews={ticketReviewsResult} />
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-
-  const afterContent = (
-    <div className="space-y-6">
-      {/* Meeting Notes */}
-      <Card className="overflow-hidden">
-        <div className="border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
-          <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-            <FileText className="h-3.5 w-3.5" />
-            Meeting Notes
-          </h2>
-        </div>
-        <CardContent className="p-5">
-          <MeetingNotesForm
-            employeeId={employee.id}
-            meetingReferenceId={nextMeeting?.id ?? null}
-            existing={existingNote}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Meeting History */}
-      <Card className="overflow-hidden">
-        <div className="border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
-          <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-            <History className="h-3.5 w-3.5" />
-            Meeting History
-          </h2>
-        </div>
-        <CardContent className="p-5">
-          <MeetingHistory entries={meetingHistoryResult} />
-        </CardContent>
-      </Card>
-    </div>
-  );
+  const sections = [
+    { id: "summary", label: "Summary" },
+    { id: "scorecard", label: "Scorecard" },
+    { id: "discussion", label: "Discussion" },
+    { id: "attendance", label: "Attendance", hidden: !hasAttendanceData },
+    { id: "tickets", label: "Tickets" },
+    { id: "coaching", label: "Coaching" },
+    { id: "actions", label: "Actions" },
+    { id: "notes", label: "Notes" },
+    { id: "history", label: "History" },
+  ];
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-12">
+    <div className="max-w-5xl mx-auto space-y-0 pb-12">
       {/* Back nav */}
-      <div>
+      <div className="mb-4">
         <Link
           href={`/employee/${employee.id}`}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
@@ -584,19 +217,21 @@ export default async function OneOnOnePage({
         </Link>
       </div>
 
-      {/* Header */}
-      <header className="flex flex-wrap items-center justify-between gap-4">
+      {/* ── Header ────────────────────────────────────── */}
+      <header className="flex flex-wrap items-center justify-between gap-4 mb-2">
         <div>
           <h1 className="text-2xl sm:text-[28px] font-bold text-foreground tracking-tight">
             1:1 with {employee.displayName}
           </h1>
           <p className="mt-1 text-xs sm:text-sm font-medium text-muted-foreground flex flex-wrap items-center gap-2">
-            <span>{employee.jobTitle ?? "Support Specialist"}</span>
-            <span>•</span>
+            {employee.jobTitle && <span>{employee.jobTitle}</span>}
+            {employee.jobTitle && <span>·</span>}
             <span>{teamName}</span>
+            <span>·</span>
+            <span>Week ending {periodLabel}</span>
             {nextMeeting && (
               <>
-                <span>•</span>
+                <span>·</span>
                 <span className="text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1">
                   <Calendar className="h-3.5 w-3.5" />
                   <span>
@@ -618,6 +253,12 @@ export default async function OneOnOnePage({
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Link
+            href={`/employee/${employee.id}`}
+            className="flex items-center gap-1.5 rounded-lg border border-border/80 bg-card px-3.5 py-1.5 text-xs font-bold text-foreground hover:bg-muted transition-colors shadow-2xs"
+          >
+            <span>Employee Profile</span>
+          </Link>
           {env.RIPPLING_MANAGER_URL && (
             <a
               href={env.RIPPLING_MANAGER_URL}
@@ -632,40 +273,342 @@ export default async function OneOnOnePage({
         </div>
       </header>
 
-      {/* Tabbed Workflow */}
-      <OneOnOneTabs
-        defaultTab={initialTab}
-        prepareContent={prepareContent}
-        duringContent={duringContent}
-        afterContent={afterContent}
-        badges={{
-          prepare: prep.whatChanged.length,
-          during: openActionCount + pendingTopicCount,
-          after: meetingHistoryResult.length,
-        }}
-      />
+      {/* ── Sticky Section Nav ────────────────────────── */}
+      <SectionNav sections={sections} />
 
-      {/* Footer */}
-      <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-border/80 pt-5">
-        <Link
-          href={`/employee/${employee.id}`}
-          className="flex items-center gap-1.5 rounded-lg border border-border/80 bg-card px-4 py-2 text-xs font-bold text-foreground hover:bg-muted transition-colors shadow-2xs"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          <span>Open Employee Profile</span>
-        </Link>
-        {env.RIPPLING_MANAGER_URL && (
-          <a
-            href={env.RIPPLING_MANAGER_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 rounded-lg bg-[#009ca6] px-4 py-2 text-xs font-bold text-white hover:bg-[#008b94] transition-all shadow-xs"
-          >
-            <span>Open in Rippling</span>
-            <ExternalLink className="h-3.5 w-3.5" />
-          </a>
+      <div className="space-y-8 pt-6">
+        {/* ── 1. Weekly Summary ──────────────────────── */}
+        <section id="summary">
+          <Card className="overflow-hidden">
+            <CardContent className="p-6">
+              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                <div className="flex items-start gap-4 flex-1">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 shadow-2xs mt-0.5">
+                    <TrendingUp className="h-6 w-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                      Weekly Summary
+                    </h3>
+                    <p className="text-sm text-foreground leading-relaxed">{prep.takeaway.text}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      Based on this week&apos;s data
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-6 sm:gap-10 border-t lg:border-t-0 lg:border-l border-border/80 pt-4 lg:pt-0 lg:pl-10 shrink-0 w-full lg:w-auto">
+                  <div>
+                    <p className="text-2xl sm:text-[28px] font-bold tracking-tight text-foreground leading-none tabular-nums">
+                      {prep.atAGlance.metricsOnTarget} / {totalMetrics}
+                    </p>
+                    <p className="text-xs font-medium text-muted-foreground mt-1.5">On target</p>
+                    <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 tabular-nums">
+                      {onTargetPct}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-2xl sm:text-[28px] font-bold tracking-tight text-foreground leading-none tabular-nums">
+                      {prep.atAGlance.metricsImproving}
+                    </p>
+                    <p className="text-xs font-medium text-muted-foreground mt-1.5">Improving</p>
+                    <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                      vs last week
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-2xl sm:text-[28px] font-bold tracking-tight text-foreground leading-none tabular-nums">
+                      {prep.atAGlance.metricsDeclining}
+                    </p>
+                    <p className="text-xs font-medium text-muted-foreground mt-1.5">Declining</p>
+                    {prep.atAGlance.metricsDeclining > 0 && (
+                      <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 mt-0.5">
+                        significantly
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* What Changed / Recognize / Discuss */}
+          {(prep.whatChanged.length > 0 ||
+            prep.whatToRecognize.length > 0 ||
+            prep.whatToDiscuss.length > 0) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+              {/* What Changed */}
+              {prep.whatChanged.length > 0 && (
+                <Card className="overflow-hidden">
+                  <div className="flex items-center justify-between border-b border-border/80 px-5 py-3 bg-slate-50/50 dark:bg-slate-900/50">
+                    <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                      What Changed
+                    </h3>
+                    <span className="text-[11px] font-bold text-[#009ca6] bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded-full border border-teal-200 dark:border-teal-900 tabular-nums">
+                      {prep.whatChanged.length}
+                    </span>
+                  </div>
+                  <CardContent className="p-4 space-y-2">
+                    {prep.whatChanged.map((change) => {
+                      const pct =
+                        change.changePercent !== null
+                          ? Math.abs(change.changePercent).toFixed(0)
+                          : null;
+                      const isImproved = change.changeDirection === "improved";
+                      const isDeclined = change.changeDirection === "declined";
+                      return (
+                        <div
+                          key={change.metricKey}
+                          className="flex items-center justify-between gap-2 p-2.5 rounded-lg border border-border/40"
+                        >
+                          <span className="flex items-center gap-2 text-xs font-medium text-foreground">
+                            <MetricIcon
+                              metricKey={change.metricKey}
+                              category={change.category}
+                              className="h-3.5 w-3.5 text-[#009ca6]"
+                            />
+                            {change.metricName}
+                          </span>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-xs text-muted-foreground">
+                              <MetricValue
+                                value={change.currentValue}
+                                unit={change.unit}
+                                valueType={change.valueType}
+                              />
+                            </span>
+                            {pct && (
+                              <span
+                                className={cn(
+                                  "text-xs font-bold tabular-nums",
+                                  isImproved
+                                    ? "text-emerald-600 dark:text-emerald-400"
+                                    : isDeclined
+                                      ? "text-rose-600 dark:text-rose-400"
+                                      : "text-muted-foreground"
+                                )}
+                              >
+                                {isImproved ? `↑${pct}%` : isDeclined ? `↓${pct}%` : `→`}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Recognize */}
+              {prep.whatToRecognize.length > 0 && (
+                <Card className="overflow-hidden">
+                  <div className="border-b border-border/80 px-5 py-3 bg-slate-50/50 dark:bg-slate-900/50">
+                    <h3 className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                      <Star className="h-3.5 w-3.5 fill-emerald-500/20" />
+                      Recognize
+                    </h3>
+                  </div>
+                  <CardContent className="p-4 space-y-2">
+                    {prep.whatToRecognize.map((item, i) => (
+                      <div
+                        key={i}
+                        className="flex items-start gap-2 p-2.5 rounded-lg bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/60"
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                        <p className="text-xs text-foreground leading-relaxed">{item.text}</p>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Discuss */}
+              {prep.whatToDiscuss.length > 0 && (
+                <Card className="overflow-hidden">
+                  <div className="border-b border-border/80 px-5 py-3 bg-slate-50/50 dark:bg-slate-900/50">
+                    <h3 className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+                      <MessageCircle className="h-3.5 w-3.5" />
+                      Discuss
+                    </h3>
+                  </div>
+                  <CardContent className="p-4 space-y-2">
+                    {prep.whatToDiscuss.map((item, i) => (
+                      <div
+                        key={i}
+                        className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/60"
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
+                        <p className="text-xs text-foreground leading-relaxed">{item.text}</p>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* ── 2. Scorecard ───────────────────────────── */}
+        <section id="scorecard">
+          <SectionHeader icon={ClipboardList} title="Scorecard" />
+          <ScorecardSection metrics={metricsResult} />
+        </section>
+
+        {/* ── 3. Discussion & Check-In ───────────────── */}
+        <section id="discussion">
+          <SectionHeader
+            icon={MessageCircle}
+            title="Discussion Topics"
+            badge={pendingTopicCount > 0 ? `${pendingTopicCount} pending` : undefined}
+            badgeVariant="teal"
+          />
+          <Card className="overflow-hidden">
+            <CardContent className="p-5">
+              <DiscussionTopicsPanel employeeId={employee.id} topics={discussionTopicsResult} />
+            </CardContent>
+          </Card>
+          {prep.suggestedQuestions.length > 0 && (
+            <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+              {prep.suggestedQuestions.map((question, i) => (
+                <div
+                  key={i}
+                  className="p-3 rounded-lg border border-border/60 bg-slate-50/40 dark:bg-slate-900/40 text-xs text-muted-foreground italic leading-relaxed"
+                >
+                  &ldquo;{question}&rdquo;
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* ── 4. Attendance & Reliability ─────────────── */}
+        {hasAttendanceData && (
+          <section id="attendance">
+            <SectionHeader icon={Shield} title="Attendance & Reliability" />
+            <Card className="overflow-hidden">
+              <CardContent className="p-5">
+                <AttendanceSection employeeId={employee.id} summary={attendanceSummary} />
+              </CardContent>
+            </Card>
+          </section>
         )}
-      </footer>
+
+        {/* ── 5. Ticket / Quality Review ──────────────── */}
+        <section id="tickets">
+          <SectionHeader
+            icon={Ticket}
+            title="Ticket Reviews"
+            badge={
+              ticketReviewsResult.length > 0 ? `${ticketReviewsResult.length} logged` : undefined
+            }
+            badgeVariant="muted"
+          />
+          <Card className="overflow-hidden">
+            <CardContent className="p-5">
+              <TicketReviewPanel employeeId={employee.id} reviews={ticketReviewsResult} />
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* ── 6. Coaching ─────────────────────────────── */}
+        <section id="coaching">
+          <SectionHeader
+            icon={Target}
+            title="Coaching"
+            badge={openCoachingCount > 0 ? `${openCoachingCount} active` : undefined}
+            badgeVariant="amber"
+          />
+          <Card className="overflow-hidden">
+            <CardContent className="p-5">
+              <CoachingPanel
+                employeeId={employee.id}
+                records={coachingRecordsResult}
+                metrics={metricDefsResult}
+              />
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* ── 7. Action Items ─────────────────────────── */}
+        <section id="actions">
+          <SectionHeader
+            icon={CheckSquare}
+            title="Action Items"
+            badge={openActionCount > 0 ? `${openActionCount} open` : undefined}
+            badgeVariant="teal"
+          />
+          <Card className="overflow-hidden">
+            <CardContent className="p-5">
+              <ActionItemsPanel employeeId={employee.id} items={openActionsResult} />
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* ── 8. Meeting Notes ────────────────────────── */}
+        <section id="notes">
+          <SectionHeader icon={FileText} title="Meeting Notes" />
+          <Card className="overflow-hidden">
+            <CardContent className="p-5">
+              <MeetingNotesForm
+                employeeId={employee.id}
+                meetingReferenceId={nextMeeting?.id ?? null}
+                existing={existingNote}
+              />
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* ── 9. Meeting History ──────────────────────── */}
+        <section id="history">
+          <SectionHeader
+            icon={History}
+            title="Meeting History"
+            badge={meetingHistoryResult.length > 0 ? `${meetingHistoryResult.length}` : undefined}
+            badgeVariant="muted"
+          />
+          <Card className="overflow-hidden">
+            <CardContent className="p-5">
+              <MeetingHistory entries={meetingHistoryResult} />
+            </CardContent>
+          </Card>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function SectionHeader({
+  icon: Icon,
+  title,
+  badge,
+  badgeVariant = "teal",
+}: {
+  icon: React.FC<{ className?: string }>;
+  title: string;
+  badge?: string;
+  badgeVariant?: "teal" | "amber" | "muted";
+}) {
+  const badgeStyles = {
+    teal: "text-[#009ca6] bg-teal-50 dark:bg-teal-950/60 border-teal-200 dark:border-teal-900",
+    amber: "text-amber-600 bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-900",
+    muted: "text-muted-foreground bg-muted/60 border-border",
+  };
+
+  return (
+    <div className="flex items-center justify-between mb-3">
+      <h2 className="flex items-center gap-1.5 text-sm font-bold text-foreground">
+        <Icon className="h-4 w-4 text-muted-foreground" />
+        {title}
+      </h2>
+      {badge && (
+        <span
+          className={cn(
+            "text-[11px] font-bold px-2 py-0.5 rounded-full border",
+            badgeStyles[badgeVariant]
+          )}
+        >
+          {badge}
+        </span>
+      )}
     </div>
   );
 }

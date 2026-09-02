@@ -6,7 +6,7 @@ import {
   coachingRecords,
   ticketReviews,
 } from "@/lib/db/schema";
-import { eq, desc, count } from "drizzle-orm";
+import { eq, desc, count, inArray } from "drizzle-orm";
 import type { ManagerContext } from "@/lib/auth/authorization";
 import { assertCanAccessEmployee } from "@/lib/auth/authorization";
 
@@ -43,41 +43,40 @@ export async function getMeetingHistory(
     .orderBy(desc(meetingNotes.createdAt))
     .limit(limit);
 
-  const entries: MeetingHistoryEntry[] = [];
+  if (notes.length === 0) return [];
 
-  for (const note of notes) {
-    let ref = null;
-    if (note.meetingReferenceId) {
-      const [r] = await db
-        .select()
-        .from(meetingReferences)
-        .where(eq(meetingReferences.id, note.meetingReferenceId));
-      if (r) {
-        ref = {
-          id: r.id,
-          scheduledStart: r.scheduledStart,
-          meetingType: r.meetingType,
-          status: r.status,
-        };
-      }
-    }
+  const noteIds = notes.map((n) => n.id);
+  const refIds = notes.map((n) => n.meetingReferenceId).filter((id): id is string => id !== null);
 
-    const [aiCount] = await db
-      .select({ count: count() })
+  const [refs, aiCounts, crCounts, trCounts] = await Promise.all([
+    refIds.length > 0
+      ? db.select().from(meetingReferences).where(inArray(meetingReferences.id, refIds))
+      : Promise.resolve([]),
+    db
+      .select({ noteId: actionItems.meetingNoteId, count: count() })
       .from(actionItems)
-      .where(eq(actionItems.meetingNoteId, note.id));
-
-    const [crCount] = await db
-      .select({ count: count() })
+      .where(inArray(actionItems.meetingNoteId, noteIds))
+      .groupBy(actionItems.meetingNoteId),
+    db
+      .select({ noteId: coachingRecords.meetingNoteId, count: count() })
       .from(coachingRecords)
-      .where(eq(coachingRecords.meetingNoteId, note.id));
-
-    const [trCount] = await db
-      .select({ count: count() })
+      .where(inArray(coachingRecords.meetingNoteId, noteIds))
+      .groupBy(coachingRecords.meetingNoteId),
+    db
+      .select({ noteId: ticketReviews.meetingNoteId, count: count() })
       .from(ticketReviews)
-      .where(eq(ticketReviews.meetingNoteId, note.id));
+      .where(inArray(ticketReviews.meetingNoteId, noteIds))
+      .groupBy(ticketReviews.meetingNoteId),
+  ]);
 
-    entries.push({
+  const refMap = new Map(refs.map((r) => [r.id, r]));
+  const aiMap = new Map(aiCounts.map((r) => [r.noteId, r.count]));
+  const crMap = new Map(crCounts.map((r) => [r.noteId, r.count]));
+  const trMap = new Map(trCounts.map((r) => [r.noteId, r.count]));
+
+  return notes.map((note) => {
+    const r = note.meetingReferenceId ? refMap.get(note.meetingReferenceId) : undefined;
+    return {
       meetingNote: {
         id: note.id,
         outcome: note.outcome,
@@ -85,14 +84,19 @@ export async function getMeetingHistory(
         lifeCheckIn: note.lifeCheckIn,
         createdAt: note.createdAt,
       },
-      meetingReference: ref,
-      actionItemCount: aiCount?.count ?? 0,
-      coachingRecordCount: crCount?.count ?? 0,
-      ticketReviewCount: trCount?.count ?? 0,
-    });
-  }
-
-  return entries;
+      meetingReference: r
+        ? {
+            id: r.id,
+            scheduledStart: r.scheduledStart,
+            meetingType: r.meetingType,
+            status: r.status,
+          }
+        : null,
+      actionItemCount: aiMap.get(note.id) ?? 0,
+      coachingRecordCount: crMap.get(note.id) ?? 0,
+      ticketReviewCount: trMap.get(note.id) ?? 0,
+    };
+  });
 }
 
 export async function getLatestMeetingNote(ctx: ManagerContext, employeeId: string) {
