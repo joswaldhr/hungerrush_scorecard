@@ -267,15 +267,6 @@ export default async function EmployeePage({
               </div>
             </div>
 
-            {/* Prepare 1:1 Button */}
-            <Link
-              href={`/one-on-ones/${employee.id}`}
-              className="flex items-center gap-1.5 rounded-lg bg-[#009ca6] px-4 py-2 text-xs font-bold text-white hover:bg-[#008b94] transition-all shadow-xs"
-            >
-              <span>Prepare for 1:1</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-
             {/* More Options Button */}
             <button
               type="button"

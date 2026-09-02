@@ -12,7 +12,7 @@ import type {
 import { db } from "@/lib/db";
 import { externalIdentities } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { env } from "@/lib/env";
+import { zendeskGet } from "./zendesk-shared";
 
 const MAX_WEEKS_BACK = 4;
 
@@ -77,28 +77,6 @@ interface ZendeskUserDetail {
 
 interface ZendeskShowManyUsersResponse {
   users: ZendeskUserDetail[];
-}
-
-function authHeader(): string {
-  const { ZENDESK_EMAIL, ZENDESK_API_KEY } = env;
-  if (!ZENDESK_EMAIL || !ZENDESK_API_KEY) {
-    throw new Error("ZENDESK_EMAIL and ZENDESK_API_KEY must be set");
-  }
-  return `Basic ${Buffer.from(`${ZENDESK_EMAIL}/token:${ZENDESK_API_KEY}`).toString("base64")}`;
-}
-
-function baseUrl(): string {
-  if (!env.ZENDESK_SUBDOMAIN) throw new Error("ZENDESK_SUBDOMAIN must be set");
-  return `https://${env.ZENDESK_SUBDOMAIN}.zendesk.com/api/v2`;
-}
-
-async function zendeskGet<T>(pathOrUrl: string): Promise<T> {
-  const url = pathOrUrl.startsWith("http") ? pathOrUrl : `${baseUrl()}${pathOrUrl}`;
-  const res = await fetch(url, { headers: { Authorization: authHeader() } });
-  if (!res.ok) {
-    throw new Error(`Zendesk GET ${pathOrUrl} failed: ${res.status} ${res.statusText}`);
-  }
-  return (await res.json()) as T;
 }
 
 function weekOf(weeksAgo: number): { periodStart: string; periodEnd: string } {

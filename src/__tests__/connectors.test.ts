@@ -5,8 +5,6 @@ vi.mock("@/lib/db/schema", () => ({ externalIdentities: {}, employees: {} }));
 vi.mock("drizzle-orm", () => ({ eq: vi.fn() }));
 
 import { ZendeskMockConnector } from "@/lib/connectors/zendesk-mock";
-import { AssembledMockConnector } from "@/lib/connectors/assembled-mock";
-import { RipplingMockConnector } from "@/lib/connectors/rippling-mock";
 import type { ConnectorConfig } from "@/lib/connectors/types";
 
 const mockConfig: ConnectorConfig = {
@@ -92,86 +90,14 @@ describe("ZendeskMockConnector", () => {
   });
 });
 
-describe("AssembledMockConnector", () => {
-  const connector = new AssembledMockConnector();
-
-  it("has sourceType assembled", () => {
-    expect(connector.sourceType).toBe("assembled");
-  });
-
-  it("healthCheck returns connected", async () => {
-    const health = await connector.healthCheck(mockConfig);
-    expect(health.connected).toBe(true);
-  });
-
-  it("normalizeRecords produces schedule_adherence", () => {
-    const facts = connector.normalizeRecords(
-      [
-        {
-          sourceRecordId: "sr-1",
-          payload: { adherencePct: 94.5, scheduledMinutes: 2400, actualMinutes: 2268 },
-        },
-      ],
-      "emp-1",
-      "team-1",
-      "2026-08-17",
-      "2026-08-23"
-    );
-
-    expect(facts.length).toBe(1);
-    expect(facts[0]!.factType).toBe("schedule_adherence");
-    expect(facts[0]!.numericValue).toBe(94.5);
-    expect(facts[0]!.dimensionsJson).toEqual({
-      scheduledMinutes: 2400,
-      actualMinutes: 2268,
-    });
-  });
-});
-
-describe("RipplingMockConnector", () => {
-  const connector = new RipplingMockConnector();
-
-  it("has sourceType rippling", () => {
-    expect(connector.sourceType).toBe("rippling");
-  });
-
-  it("healthCheck returns connected", async () => {
-    const health = await connector.healthCheck(mockConfig);
-    expect(health.connected).toBe(true);
-  });
-
-  it("normalizeRecords returns empty (identity source, no metrics)", () => {
-    const facts = connector.normalizeRecords(
-      [
-        {
-          sourceRecordId: "sr-1",
-          payload: { name: "Test Person", email: "test@example.com" },
-        },
-      ],
-      "emp-1",
-      null,
-      "2026-08-17",
-      "2026-08-23"
-    );
-
-    expect(facts.length).toBe(0);
-  });
-});
-
 describe("Connector interface contract", () => {
-  const connectors = [
-    new ZendeskMockConnector(),
-    new AssembledMockConnector(),
-    new RipplingMockConnector(),
-  ];
+  const connector = new ZendeskMockConnector();
 
-  for (const connector of connectors) {
-    it(`${connector.sourceType} implements full interface`, () => {
-      expect(typeof connector.healthCheck).toBe("function");
-      expect(typeof connector.fetchRecords).toBe("function");
-      expect(typeof connector.normalizeRecords).toBe("function");
-      expect(typeof connector.resolveIdentities).toBe("function");
-      expect(typeof connector.sourceType).toBe("string");
-    });
-  }
+  it("ZendeskMockConnector implements full interface", () => {
+    expect(typeof connector.healthCheck).toBe("function");
+    expect(typeof connector.fetchRecords).toBe("function");
+    expect(typeof connector.normalizeRecords).toBe("function");
+    expect(typeof connector.resolveIdentities).toBe("function");
+    expect(typeof connector.sourceType).toBe("string");
+  });
 });

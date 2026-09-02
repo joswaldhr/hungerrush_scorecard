@@ -20,6 +20,22 @@ export interface SyncOptions {
   maxPages?: number;
 }
 
+/**
+ * Sync architecture: fetch-then-publish.
+ *
+ * FETCH PHASE — all network I/O completes first, collecting records in memory.
+ * No DB writes happen during this phase (except creating the sync run row).
+ *
+ * PUBLISH PHASE — runs inside a single short DB transaction:
+ *   ingest (upsert source records) → normalize (upsert facts) → checkpoint cursor.
+ * If anything fails, the transaction rolls back: no partial data visible,
+ * cursor not advanced, previous values remain intact.
+ *
+ * Incremental semantics: the Zendesk connector uses the Search API with a
+ * bounded-window refresh (week-offset cursor, MAX_WEEKS_BACK=4). This is NOT
+ * a true incremental export — it re-fetches each week's data on every sync.
+ * The source record hash-dedup prevents redundant writes when data hasn't changed.
+ */
 export async function runSync(
   connector: Connector,
   config: ConnectorConfig,
@@ -40,14 +56,16 @@ export async function runSync(
   if (!run) throw new Error("Failed to create sync run");
 
   const syncRunId = run.id;
-  let totalIngested = 0;
-  let totalNormalized = 0;
-  let totalSkipped = 0;
-  let totalErrors = 0;
-  let cursor: string | null = null;
   let success = true;
 
+  // ── FETCH PHASE ──────────────────────────────────────────────
+  // All network I/O happens here. No DB transaction is open.
+  const allFetchedRecords: IngestedRecord[] = [];
+  const fetchErrors: Array<{ message: string }> = [];
+  let finalCursor: string | null = null;
+
   try {
+    let cursor: string | null = null;
     for (let page = 0; page < maxPages; page++) {
       const ctx: SyncContext = {
         syncRunId,
@@ -57,44 +75,79 @@ export async function runSync(
       };
 
       const fetchResult = await connector.fetchRecords(config, ctx);
-
-      const { ingested, skipped, errors } = await ingestRecords(
-        fetchResult.records,
-        config.dataSourceId,
-        syncRunId
-      );
-      totalIngested += ingested;
-      totalSkipped += skipped;
-
-      for (const err of errors) {
-        totalErrors++;
-        await db.insert(syncErrors).values({
-          syncRunId,
-          errorType: "ingest",
-          message: err.message,
-          externalRecordId: err.externalRecordId,
-          retryable: true,
-        });
-      }
-
-      const normalized = await normalizeIngestedRecords(connector, config, syncRunId);
-      totalNormalized += normalized;
+      allFetchedRecords.push(...fetchResult.records);
 
       cursor = fetchResult.cursor;
+      finalCursor = cursor;
       if (!fetchResult.hasMore) break;
     }
   } catch (err) {
     success = false;
-    totalErrors++;
-    await db.insert(syncErrors).values({
-      syncRunId,
-      errorType: "sync_fatal",
-      message: err instanceof Error ? err.message : String(err),
-      retryable: true,
-    });
-    logger.error("Sync failed", { syncRunId, error: err });
+    fetchErrors.push({ message: err instanceof Error ? err.message : String(err) });
+    logger.error("Sync fetch phase failed", { syncRunId, error: err });
   }
 
+  // ── PUBLISH PHASE ────────────────────────────────────────────
+  // Short DB transaction: ingest → normalize → checkpoint.
+  // If this fails, everything rolls back.
+  let totalIngested = 0;
+  let totalNormalized = 0;
+  let totalSkipped = 0;
+  let totalErrors = fetchErrors.length;
+
+  if (success && allFetchedRecords.length > 0) {
+    try {
+      await db.transaction(async (tx) => {
+        const { ingested, skipped, errors } = await ingestRecords(
+          tx,
+          allFetchedRecords,
+          config.dataSourceId,
+          syncRunId
+        );
+        totalIngested = ingested;
+        totalSkipped = skipped;
+
+        for (const err of errors) {
+          totalErrors++;
+          await tx.insert(syncErrors).values({
+            syncRunId,
+            errorType: "ingest",
+            message: err.message,
+            externalRecordId: err.externalRecordId,
+            retryable: true,
+          });
+        }
+
+        totalNormalized = await normalizeIngestedRecords(tx, connector, config, syncRunId);
+      });
+    } catch (err) {
+      success = false;
+      totalErrors++;
+      logger.error("Sync publish phase failed (transaction rolled back)", {
+        syncRunId,
+        error: err,
+      });
+      await db.insert(syncErrors).values({
+        syncRunId,
+        errorType: "publish_fatal",
+        message: err instanceof Error ? err.message : String(err),
+        retryable: true,
+      });
+    }
+  }
+
+  // Record any fetch-phase errors outside the transaction
+  for (const err of fetchErrors) {
+    await db.insert(syncErrors).values({
+      syncRunId,
+      errorType: "fetch_fatal",
+      message: err.message,
+      retryable: true,
+    });
+  }
+
+  // ── CHECKPOINT ───────────────────────────────────────────────
+  // Cursor advances only after a successful publish.
   await db
     .update(syncRuns)
     .set({
@@ -104,7 +157,7 @@ export async function runSync(
       recordsNormalized: totalNormalized,
       recordsSkipped: totalSkipped,
       errorCount: totalErrors,
-      cursor,
+      cursor: success ? finalCursor : null,
     })
     .where(eq(syncRuns.id, syncRunId));
 
@@ -118,7 +171,10 @@ export async function runSync(
   return { syncRunId, success };
 }
 
+type TxOrDb = typeof db;
+
 async function ingestRecords(
+  tx: TxOrDb,
   records: IngestedRecord[],
   dataSourceId: string,
   syncRunId: string
@@ -135,7 +191,7 @@ async function ingestRecords(
     try {
       const hash = payloadHash(record.payload);
 
-      const existing = await db
+      const existing = await tx
         .select({ id: sourceRecords.id, payloadHash: sourceRecords.payloadHash })
         .from(sourceRecords)
         .where(
@@ -153,11 +209,11 @@ async function ingestRecords(
       }
 
       const employeeId = record.employeeExternalId
-        ? await resolveEmployeeId(dataSourceId, record.employeeExternalId)
+        ? await resolveEmployeeId(tx, dataSourceId, record.employeeExternalId)
         : null;
 
       if (existing) {
-        await db
+        await tx
           .update(sourceRecords)
           .set({
             employeeId,
@@ -172,7 +228,7 @@ async function ingestRecords(
           })
           .where(eq(sourceRecords.id, existing.id));
       } else {
-        await db.insert(sourceRecords).values({
+        await tx.insert(sourceRecords).values({
           dataSourceId,
           externalRecordType: record.externalRecordType,
           externalRecordId: record.externalRecordId,
@@ -199,8 +255,12 @@ async function ingestRecords(
   return { ingested, skipped, errors };
 }
 
-async function resolveEmployeeId(dataSourceId: string, externalId: string): Promise<string | null> {
-  const match = await db
+async function resolveEmployeeId(
+  tx: TxOrDb,
+  dataSourceId: string,
+  externalId: string
+): Promise<string | null> {
+  const match = await tx
     .select({ employeeId: externalIdentities.employeeId })
     .from(externalIdentities)
     .where(
@@ -215,11 +275,12 @@ async function resolveEmployeeId(dataSourceId: string, externalId: string): Prom
 }
 
 async function normalizeIngestedRecords(
+  tx: TxOrDb,
   connector: Connector,
   config: ConnectorConfig,
   syncRunId: string
 ): Promise<number> {
-  const records = await db
+  const records = await tx
     .select()
     .from(sourceRecords)
     .where(
@@ -245,7 +306,7 @@ async function normalizeIngestedRecords(
     const sourceObservedAt = record.sourceUpdatedAt ?? record.occurredAt ?? record.ingestedAt;
 
     for (const fact of facts) {
-      await db
+      await tx
         .insert(normalizedFacts)
         .values({
           organizationId: config.organizationId,

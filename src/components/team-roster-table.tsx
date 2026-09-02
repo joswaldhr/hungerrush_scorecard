@@ -430,9 +430,9 @@ export function TeamRosterTable({
                       {/* Action Button */}
                       <td className="py-3.5 px-5 text-right">
                         <Link
-                          href={`/one-on-ones/${row.employeeId}`}
+                          href={`/employee/${row.employeeId}`}
                           onClick={(e) => e.stopPropagation()}
-                          title="Prepare 1:1"
+                          title="View details"
                           className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[#009ca6] text-[#009ca6] hover:bg-[#009ca6] hover:text-white transition-colors shadow-2xs"
                         >
                           <ArrowRight className="h-4 w-4" />

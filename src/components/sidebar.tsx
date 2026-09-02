@@ -5,7 +5,6 @@ import { SidebarClient } from "./sidebar-client";
 const primaryNav = [
   { label: "Home", href: "/", iconName: "Home" },
   { label: "Team", href: "/team", iconName: "Users" },
-  { label: "1:1s", href: "/one-on-ones", iconName: "Calendar" },
   { label: "Reports", href: "/data-health", iconName: "BarChart3" },
 ];
 
@@ -20,7 +19,6 @@ const adminNav = [
   { label: "Employees", href: "/admin/employees", iconName: "Users" },
   { label: "Teams", href: "/admin/teams", iconName: "Users" },
   { label: "Roster Review", href: "/admin/roster-review", iconName: "Users" },
-  { label: "Entra Identities", href: "/admin/entra-identities", iconName: "Users" },
   { label: "Admin", href: "/admin", iconName: "ShieldCheck" },
 ];
 

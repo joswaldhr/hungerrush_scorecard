@@ -35,5 +35,4 @@ export async function addContextNote(formData: FormData) {
   });
 
   revalidatePath(`/employee/${employeeId}`);
-  revalidatePath(`/one-on-ones/${employeeId}`);
 }

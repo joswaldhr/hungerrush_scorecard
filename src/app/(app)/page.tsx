@@ -13,9 +13,6 @@ import {
   type EmployeeMetricRow,
 } from "@/lib/domain/metrics/queries";
 import { evaluateChangeStatus } from "@/lib/domain/metrics/target-resolution";
-import { db } from "@/lib/db";
-import { meetingReferences, employees as employeesTable } from "@/lib/db/schema";
-import { and, eq, gte, asc, inArray } from "drizzle-orm";
 import { TrendSparkline } from "@/components/trend-sparkline";
 import { MetricValue } from "@/components/metric-value";
 import { MetricIcon } from "@/components/metric-icon";
@@ -174,28 +171,6 @@ export default async function HomePage({
 
   const historyByRequest = await getMetricHistoryBatch(ctx, historyRequests, 4);
 
-  const upcomingMeetings =
-    ctx.assignedEmployeeIds.length > 0
-      ? await db
-          .select({
-            id: meetingReferences.id,
-            employeeId: meetingReferences.employeeId,
-            employeeName: employeesTable.displayName,
-            scheduledStart: meetingReferences.scheduledStart,
-          })
-          .from(meetingReferences)
-          .innerJoin(employeesTable, eq(meetingReferences.employeeId, employeesTable.id))
-          .where(
-            and(
-              eq(meetingReferences.managerUserId, ctx.userId),
-              inArray(meetingReferences.employeeId, ctx.assignedEmployeeIds),
-              gte(meetingReferences.scheduledStart, new Date())
-            )
-          )
-          .orderBy(asc(meetingReferences.scheduledStart))
-          .limit(5)
-      : [];
-
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
   return (
@@ -299,10 +274,9 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* Main Grid: THIS WEEK (Needs Attention + Notable Improvements) & UPCOMING 1:1S */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* THIS WEEK Card (2 Columns inside) */}
-        <Card className="lg:col-span-2 overflow-hidden">
+      {/* THIS WEEK: Needs Attention + Notable Improvements */}
+      <div className="grid grid-cols-1 gap-6">
+        <Card className="overflow-hidden">
           <div className="border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
             <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
               This Week
@@ -467,76 +441,6 @@ export default async function HomePage({
           </CardContent>
         </Card>
 
-        {/* YOUR UPCOMING 1:1S Card */}
-        <Card className="overflow-hidden flex flex-col justify-between">
-          <div>
-            <div className="border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
-              <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                Your Upcoming 1:1s
-              </h2>
-            </div>
-            {upcomingMeetings.length === 0 ? (
-              <div className="p-8 text-center">
-                <Calendar className="h-8 w-8 text-muted-foreground/60 mx-auto" />
-                <p className="mt-2 text-sm font-semibold text-foreground">No 1:1s scheduled</p>
-                <p className="text-xs text-muted-foreground">Upcoming meetings will appear here.</p>
-              </div>
-            ) : (
-              <ul className="divide-y divide-border/70">
-                {upcomingMeetings.map((m) => {
-                  const date = new Date(m.scheduledStart);
-                  const dayName = date
-                    .toLocaleDateString("en-US", { weekday: "short" })
-                    .toUpperCase();
-                  const time = date.toLocaleTimeString("en-US", {
-                    hour: "numeric",
-                    minute: "2-digit",
-                  });
-                  return (
-                    <li
-                      key={m.id}
-                      className="flex items-center justify-between gap-3 px-5 py-3.5 hover:bg-muted/30 transition-colors"
-                    >
-                      <div className="flex items-center gap-3.5 min-w-0">
-                        {/* Date badge */}
-                        <div className="flex flex-col items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 w-11 h-11 shrink-0">
-                          <span className="text-[10px] font-extrabold uppercase text-[#009ca6] leading-none">
-                            {dayName}
-                          </span>
-                          <span className="text-[11px] font-bold text-foreground mt-0.5 leading-none">
-                            {date.getDate()}
-                          </span>
-                        </div>
-
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-foreground">
-                            {m.employeeName}
-                          </p>
-                          <p className="text-xs font-medium text-muted-foreground">{time}</p>
-                        </div>
-                      </div>
-
-                      <Link
-                        href={`/one-on-ones/${m.employeeId}${weekQ}`}
-                        className="shrink-0 rounded-lg border border-[#009ca6] px-3 py-1.5 text-xs font-semibold text-[#009ca6] hover:bg-[#009ca6] hover:text-white transition-colors"
-                      >
-                        Prepare →
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-          <div className="border-t border-border/80 px-5 py-3 text-center bg-slate-50/30 dark:bg-slate-900/30">
-            <Link
-              href={`/one-on-ones${weekQ}`}
-              className="text-xs font-semibold text-[#009ca6] hover:underline"
-            >
-              View all 1:1s →
-            </Link>
-          </div>
-        </Card>
       </div>
 
       {/* TEAM PERFORMANCE Table Card */}

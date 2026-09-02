@@ -14,13 +14,12 @@ import {
 } from "@/lib/db/schema";
 import { eq, and, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { ZendeskConnector, AssembledConnector } from "@/lib/connectors";
+import { ZendeskConnector } from "@/lib/connectors";
 import type { Connector } from "@/lib/connectors";
 import { discoverRosterCandidates } from "@/lib/domain/roster/reconcile";
 
 const CONNECTORS: Record<string, () => Connector> = {
   zendesk: () => new ZendeskConnector(),
-  assembled: () => new AssembledConnector(),
 };
 
 async function requireAdmin() {
