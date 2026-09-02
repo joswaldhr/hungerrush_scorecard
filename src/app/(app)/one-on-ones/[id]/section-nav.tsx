@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { cn } from "@/lib/utils";
 
 interface SectionDef {
@@ -9,16 +9,27 @@ interface SectionDef {
   hidden?: boolean;
 }
 
+function getScrollContainer(): HTMLElement {
+  return document.getElementById("main-content") ?? document.documentElement;
+}
+
 export function SectionNav({ sections }: { sections: SectionDef[] }) {
   const [activeId, setActiveId] = useState(sections[0]?.id ?? "");
   const navRef = useRef<HTMLElement>(null);
+  const scrollingRef = useRef(false);
+
+  const visibleIds = useMemo(
+    () => sections.filter((s) => !s.hidden).map((s) => s.id),
+    [sections]
+  );
 
   const visible = sections.filter((s) => !s.hidden);
 
   useEffect(() => {
-    const ids = visible.map((s) => s.id);
+    const root = getScrollContainer();
     const observer = new IntersectionObserver(
       (entries) => {
+        if (scrollingRef.current) return;
         for (const entry of entries) {
           if (entry.isIntersecting) {
             setActiveId(entry.target.id);
@@ -26,22 +37,31 @@ export function SectionNav({ sections }: { sections: SectionDef[] }) {
           }
         }
       },
-      { rootMargin: "-80px 0px -60% 0px", threshold: 0 }
+      { root, rootMargin: "-80px 0px -60% 0px", threshold: 0 }
     );
 
-    for (const id of ids) {
+    for (const id of visibleIds) {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
     }
     return () => observer.disconnect();
-  }, [visible]);
+  }, [visibleIds]);
 
   function scrollTo(id: string) {
     const el = document.getElementById(id);
     if (!el) return;
-    const offset = navRef.current?.offsetHeight ?? 48;
-    const top = el.getBoundingClientRect().top + window.scrollY - offset - 16;
-    window.scrollTo({ top, behavior: "smooth" });
+    const container = getScrollContainer();
+    const navHeight = navRef.current?.offsetHeight ?? 48;
+    const elRect = el.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const top = elRect.top - containerRect.top + container.scrollTop - navHeight - 16;
+
+    scrollingRef.current = true;
+    setActiveId(id);
+    container.scrollTop = top;
+    setTimeout(() => {
+      scrollingRef.current = false;
+    }, 300);
   }
 
   return (
