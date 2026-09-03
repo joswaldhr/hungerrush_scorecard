@@ -22,21 +22,21 @@ const adminNav = [
   { label: "Admin", href: "/admin", iconName: "ShieldCheck" },
 ];
 
-function BrandMark() {
+function BrandLogo() {
   return (
-    <svg
-      width="32"
-      height="32"
-      viewBox="0 0 40 40"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-      className="shrink-0 text-[#009ca6]"
-    >
-      <path d="M8 26L22 12L20 28L8 26Z" fill="currentColor" opacity="0.8" />
-      <path d="M14 18L32 6L26 24L14 18Z" fill="#00c4cc" />
-      <path d="M18 30L34 16L30 32L18 30Z" fill="#007f87" />
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src="/hungerrush-logo-reversed.png" alt="HungerRush" className="h-5 w-auto shrink-0" />
+  );
+}
+
+function BrandIcon() {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/hungerrush-mark-reversed.png"
+      alt="HungerRush"
+      className="h-7 w-7 shrink-0 object-contain"
+    />
   );
 }
 
@@ -58,7 +58,8 @@ export async function Sidebar() {
       utilityNav={utilityNav}
       secondaryNav={secondary}
       signOutAction={handleSignOut}
-      brandMark={<BrandMark />}
+      brandLogo={<BrandLogo />}
+      brandIcon={<BrandIcon />}
     />
   );
 }

@@ -47,7 +47,8 @@ interface SidebarClientProps {
   utilityNav?: NavItem[];
   secondaryNav: NavItem[];
   signOutAction: () => Promise<void>;
-  brandMark: React.ReactNode;
+  brandLogo: React.ReactNode;
+  brandIcon: React.ReactNode;
 }
 
 const STORAGE_KEY = "sidebar-collapsed";
@@ -58,7 +59,8 @@ export function SidebarClient({
   utilityNav = [],
   secondaryNav,
   signOutAction,
-  brandMark,
+  brandLogo,
+  brandIcon,
 }: SidebarClientProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
@@ -116,13 +118,12 @@ export function SidebarClient({
         )}
       >
         <Link href="/" className={cn("flex items-center gap-3 group")}>
-          {brandMark}
-          {!collapsed && (
-            <div className="leading-tight">
-              <span className="block text-sm font-bold tracking-widest text-white">
-                HUNGER<span className="font-extrabold text-white">RUSH</span>
-              </span>
-              <span className="block text-[11px] font-semibold tracking-wider text-[#00c4cc]">
+          {collapsed ? (
+            brandIcon
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              {brandLogo}
+              <span className="block text-[11px] font-semibold tracking-wider text-[#108574] pl-0.5">
                 CADENCE
               </span>
             </div>

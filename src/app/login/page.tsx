@@ -20,42 +20,23 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm overflow-hidden shadow-sm border-border/80">
         <CardContent className="p-8 space-y-6">
           <div className="space-y-3 text-center">
-            {/* HungerRush 3-swoosh logo */}
             <div className="flex justify-center">
-              <svg
-                className="h-10 w-10 text-[#009ca6]"
-                viewBox="0 0 32 32"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M4 16C4 9.37258 9.37258 4 16 4C20.4183 4 24.2678 6.38198 26.3421 9.93245"
-                  stroke="currentColor"
-                  strokeWidth="3.2"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M7 19C7 14.0294 11.0294 10 16 10C19.3137 10 22.2009 11.7865 23.7566 14.4493"
-                  stroke="currentColor"
-                  strokeWidth="2.8"
-                  strokeLinecap="round"
-                  opacity="0.8"
-                />
-                <path
-                  d="M10 22C10 18.6863 12.6863 16 16 16C18.2091 16 20.1339 17.191 21.1711 18.9662"
-                  stroke="currentColor"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  opacity="0.6"
-                />
-              </svg>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/hungerrush-logo.png"
+                alt="HungerRush"
+                className="h-8 w-auto dark:hidden"
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/hungerrush-logo-reversed.png"
+                alt="HungerRush"
+                className="hidden h-8 w-auto dark:block"
+              />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">Cadence</h1>
-              <p className="text-xs font-semibold uppercase tracking-widest text-[#009ca6] mt-0.5">
-                HungerRush
-              </p>
-            </div>
+            <h1 className="text-lg font-semibold tracking-wide text-[#108574] uppercase">
+              Cadence
+            </h1>
             <p className="text-xs text-muted-foreground">
               {entraConfigured
                 ? "Sign in with your HungerRush account"
