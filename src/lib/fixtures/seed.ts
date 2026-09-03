@@ -73,6 +73,8 @@ const MD = {
   backlogCount: "60000000-0000-4000-8000-000000000006",
   avgResponseTime: "60000000-0000-4000-8000-000000000007",
   ticketsUpdated: "60000000-0000-4000-8000-000000000008",
+  workedElevatedTickets: "60000000-0000-4000-8000-000000000009",
+  avoidableWorkedElevatedTickets: "60000000-0000-4000-8000-000000000010",
 };
 
 // ── Real org roster (HungerRush POS Support + Menufy Support), pulled
@@ -555,6 +557,32 @@ async function seed() {
         calculationType: "sum",
         sourceStrategy: "zendesk",
       },
+      {
+        id: MD.workedElevatedTickets,
+        organizationId: ORG_ID,
+        key: "worked_elevated_tickets",
+        name: "Worked Elevated Tickets",
+        description: "Number of assigned tickets tagged as elevated/escalated during the period",
+        category: "ticket_case_work",
+        unit: "tickets",
+        valueType: "count",
+        direction: "higher_is_better",
+        calculationType: "sum",
+        sourceStrategy: "zendesk",
+      },
+      {
+        id: MD.avoidableWorkedElevatedTickets,
+        organizationId: ORG_ID,
+        key: "avoidable_worked_elevated_tickets",
+        name: "Avoidable Worked Elevated Tickets",
+        description: "Number of assigned tickets tagged as an unnecessary/avoidable escalation",
+        category: "ticket_case_work",
+        unit: "tickets",
+        valueType: "count",
+        direction: "lower_is_better",
+        calculationType: "sum",
+        sourceStrategy: "zendesk",
+      },
     ]);
 
     // ── Metric Assignments (different per team) ────────────────
@@ -573,6 +601,8 @@ async function seed() {
       { defId: MD.csatScore, order: 2, primary: true },
       { defId: MD.backlogCount, order: 3, primary: false },
       { defId: MD.ticketsUpdated, order: 4, primary: false },
+      { defId: MD.workedElevatedTickets, order: 5, primary: false },
+      { defId: MD.avoidableWorkedElevatedTickets, order: 6, primary: false },
     ];
 
     const menufyMetrics = [
@@ -580,6 +610,8 @@ async function seed() {
       { defId: MD.avgResponseTime, order: 1, primary: true },
       { defId: MD.csatScore, order: 2, primary: true },
       { defId: MD.ticketsUpdated, order: 3, primary: false },
+      { defId: MD.workedElevatedTickets, order: 4, primary: false },
+      { defId: MD.avoidableWorkedElevatedTickets, order: 5, primary: false },
     ];
 
     await tx.insert(metricAssignments).values([

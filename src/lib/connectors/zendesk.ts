@@ -22,6 +22,7 @@ interface ZendeskTicket {
   assignee_id: number;
   created_at: string;
   updated_at: string;
+  tags: string[];
 }
 
 interface ZendeskSearchResponse {
@@ -155,6 +156,23 @@ function averageOf(values: Array<number | null>): number | null {
   return Math.round((present.reduce((a, b) => a + b, 0) / present.length) * 10) / 10;
 }
 
+// Elevation is tracked with two different tagging conventions in this Zendesk
+// instance: POS/CSG tickets carry a flat "elevated_csg" tag (plus a per-agent
+// "elevated_<name>" tag), while Menufy tickets carry a per-agent
+// "<name>_elevated" tag from the "Elevated by _MFY" field. Matching both
+// patterns lets this stay one connector path instead of branching per team.
+function isElevatedTicket(tags: string[]): boolean {
+  return tags.some((t) => /^elevated_/i.test(t) || /_elevated$/i.test(t));
+}
+
+// Same two-convention split for "was the escalation avoidable": POS/CSG uses
+// the "Unnecessary/Avoidable Escalation? _CSG" checkbox (tag
+// "unnecessary_escalation"), Menufy uses the "Elevation Avoidable? _MFY"
+// tagger field (tag "yes_avoidable").
+function isAvoidableElevation(tags: string[]): boolean {
+  return tags.includes("unnecessary_escalation") || tags.includes("yes_avoidable");
+}
+
 export class ZendeskConnector implements Connector {
   readonly sourceType = "zendesk";
   private emailToId = new Map<string, number>();
@@ -269,6 +287,11 @@ export class ZendeskConnector implements Connector {
 
       const backlogCount = weekOffset === 0 ? (perEmployeeOpen.get(email)?.length ?? 0) : null;
 
+      const workedElevatedTickets = tickets.filter((t) => isElevatedTicket(t.tags)).length;
+      const avoidableWorkedElevatedTickets = tickets.filter((t) =>
+        isAvoidableElevation(t.tags)
+      ).length;
+
       records.push({
         externalRecordType: "agent_stats",
         externalRecordId: `stats-${email}-${periodStart}`,
@@ -282,6 +305,8 @@ export class ZendeskConnector implements Connector {
           avgHandleTimeMinutes,
           avgResponseTimeMinutes,
           backlogCount,
+          workedElevatedTickets,
+          avoidableWorkedElevatedTickets,
         },
         sourceUpdatedAt: now,
       });
@@ -382,6 +407,34 @@ export class ZendeskConnector implements Connector {
             teamId,
             factType: "backlog_count",
             numericValue: payload.backlogCount as number,
+            textValue: null,
+            booleanValue: null,
+            unit: "count",
+            periodStart,
+            periodEnd,
+            dimensionsJson: null,
+          });
+        }
+        if (payload.workedElevatedTickets != null) {
+          facts.push({
+            employeeId,
+            teamId,
+            factType: "worked_elevated_tickets",
+            numericValue: payload.workedElevatedTickets as number,
+            textValue: null,
+            booleanValue: null,
+            unit: "count",
+            periodStart,
+            periodEnd,
+            dimensionsJson: null,
+          });
+        }
+        if (payload.avoidableWorkedElevatedTickets != null) {
+          facts.push({
+            employeeId,
+            teamId,
+            factType: "avoidable_worked_elevated_tickets",
+            numericValue: payload.avoidableWorkedElevatedTickets as number,
             textValue: null,
             booleanValue: null,
             unit: "count",
