@@ -22,7 +22,7 @@ import {
   Download,
   RotateCw,
 } from "lucide-react";
-import { weekDates } from "@/lib/utils";
+import { weekDates, cn } from "@/lib/utils";
 import { deriveOverallStatus } from "@/lib/domain/briefings/generate";
 import type { RosterRow } from "@/components/team-roster-table";
 import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
@@ -174,6 +174,21 @@ export default async function TeamPage({
   const totalOnTrack = employeeData.filter((d) => d.overallStatus === "on_track").length;
   const totalWatch = employeeData.filter((d) => d.overallStatus === "mixed").length;
   const totalAttention = employeeData.filter((d) => d.overallStatus === "needs_attention").length;
+  const totalOnTrackPrevWeek = employeeData.filter(
+    (d) => d.prevOverallStatus === "on_track"
+  ).length;
+  const teamTrendLabel =
+    totalOnTrack > totalOnTrackPrevWeek
+      ? "Improving"
+      : totalOnTrack < totalOnTrackPrevWeek
+        ? "Declining"
+        : "Steady";
+  const teamTrendClassName =
+    totalOnTrack > totalOnTrackPrevWeek
+      ? "text-emerald-600 dark:text-emerald-400"
+      : totalOnTrack < totalOnTrackPrevWeek
+        ? "text-rose-600 dark:text-rose-400"
+        : "text-muted-foreground";
 
   const currentTeamName = visibleTeams.length === 1 ? visibleTeams[0]!.name : "All Teams";
   const weekLabel = `Week of ${new Date(`${periodStart}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} – ${new Date(`${periodEnd}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}`;
@@ -265,13 +280,11 @@ export default async function TeamPage({
         <div className="flex items-center justify-between gap-3 rounded-xl border border-border/80 bg-card p-4 sm:p-5 shadow-xs col-span-2 sm:col-span-1">
           <div>
             <p className="text-xs font-semibold text-slate-500">Team Trend (Overall)</p>
-            <p className="mt-1 text-sm font-bold text-emerald-600 dark:text-emerald-400">
-              Improving
-            </p>
-            <p className="text-xs text-muted-foreground">vs last week</p>
+            <p className={cn("mt-1 text-sm font-bold", teamTrendClassName)}>{teamTrendLabel}</p>
+            <p className="text-xs text-muted-foreground">on-track count vs last week</p>
           </div>
           <TrendSparkline
-            values={[10, 12, 14, 18]}
+            values={[totalOnTrackPrevWeek, totalOnTrack]}
             direction="higher_is_better"
             width={68}
             height={24}

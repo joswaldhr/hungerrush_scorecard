@@ -3,9 +3,8 @@ import { isPlatformAdmin } from "@/lib/auth/authorization";
 import { SidebarClient } from "./sidebar-client";
 
 const primaryNav = [
-  { label: "Home", href: "/", iconName: "Home" },
   { label: "Team", href: "/team", iconName: "Users" },
-  { label: "Reports", href: "/data-health", iconName: "BarChart3" },
+  { label: "1:1s", href: "/one-on-ones", iconName: "Calendar" },
 ];
 
 const utilityNav = [

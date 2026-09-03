@@ -305,7 +305,7 @@ export function TeamRosterTable({
                   return (
                     <tr
                       key={row.employeeId}
-                      onClick={() => router.push(`/employee/${row.employeeId}`)}
+                      onClick={() => router.push(`/one-on-ones/${row.employeeId}`)}
                       className="cursor-pointer hover:bg-muted/30 transition-colors group"
                     >
                       {/* Employee Avatar & Info */}
@@ -430,9 +430,9 @@ export function TeamRosterTable({
                       {/* Action Button */}
                       <td className="py-3.5 px-5 text-right">
                         <Link
-                          href={`/employee/${row.employeeId}`}
+                          href={`/one-on-ones/${row.employeeId}`}
                           onClick={(e) => e.stopPropagation()}
-                          title="View details"
+                          title="View 1:1"
                           className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[#009ca6] text-[#009ca6] hover:bg-[#009ca6] hover:text-white transition-colors shadow-2xs"
                         >
                           <ArrowRight className="h-4 w-4" />

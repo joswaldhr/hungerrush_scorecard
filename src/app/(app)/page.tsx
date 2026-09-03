@@ -310,7 +310,7 @@ export default async function HomePage({
                     return (
                       <Link
                         key={item.employeeId}
-                        href={`/employee/${item.employeeId}`}
+                        href={`/one-on-ones/${item.employeeId}`}
                         className="group block rounded-lg border border-border/60 p-3 hover:border-border hover:bg-muted/40 transition-all"
                       >
                         <div className="flex items-start justify-between gap-2">
@@ -389,7 +389,7 @@ export default async function HomePage({
                     return (
                       <Link
                         key={item.employeeId}
-                        href={`/employee/${item.employeeId}`}
+                        href={`/one-on-ones/${item.employeeId}`}
                         className="group block rounded-lg border border-border/60 p-3 hover:border-border hover:bg-muted/40 transition-all"
                       >
                         <div className="flex items-start justify-between gap-2">
