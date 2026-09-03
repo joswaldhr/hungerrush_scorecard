@@ -15,11 +15,16 @@ import { teams, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { cn, initials } from "@/lib/utils";
 
+// Only single-week options -- the connector writes one metricValues row per
+// calendar week, so a "Last 4/12 Weeks" option that requested a multi-week
+// span here would never match a real row and would silently show "No Data"
+// for every metric. A true multi-week rollup would need weighted
+// re-aggregation from normalizedFacts, not a wider exact-match query.
 const PERIODS = [
-  { key: "this_week", label: "This Week", weeksAgo: 0, span: 1 },
-  { key: "last_week", label: "Last Week", weeksAgo: 1, span: 1 },
-  { key: "last_4_weeks", label: "Last 4 Weeks", weeksAgo: 0, span: 4 },
-  { key: "last_12_weeks", label: "Last 12 Weeks", weeksAgo: 0, span: 12 },
+  { key: "this_week", label: "This Week", weeksAgo: 0 },
+  { key: "last_week", label: "Last Week", weeksAgo: 1 },
+  { key: "two_weeks_ago", label: "2 Weeks Ago", weeksAgo: 2 },
+  { key: "three_weeks_ago", label: "3 Weeks Ago", weeksAgo: 3 },
 ] as const;
 
 type PeriodKey = (typeof PERIODS)[number]["key"];
@@ -32,22 +37,19 @@ function periodDates(key: PeriodKey) {
 
   const config = PERIODS.find((p) => p.key === key)!;
 
-  const endMonday = new Date(currentMonday);
-  endMonday.setUTCDate(currentMonday.getUTCDate() - config.weeksAgo * 7);
+  const monday = new Date(currentMonday);
+  monday.setUTCDate(currentMonday.getUTCDate() - config.weeksAgo * 7);
 
-  const startMonday = new Date(endMonday);
-  startMonday.setUTCDate(endMonday.getUTCDate() - (config.span - 1) * 7);
+  const sunday = new Date(monday);
+  sunday.setUTCDate(monday.getUTCDate() + 6);
 
-  const sunday = new Date(endMonday);
-  sunday.setUTCDate(endMonday.getUTCDate() + 6);
-
-  const prevStart = new Date(startMonday);
-  prevStart.setUTCDate(startMonday.getUTCDate() - config.span * 7);
+  const prevMonday = new Date(monday);
+  prevMonday.setUTCDate(monday.getUTCDate() - 7);
 
   return {
-    periodStart: startMonday.toISOString().split("T")[0]!,
+    periodStart: monday.toISOString().split("T")[0]!,
     periodEnd: sunday.toISOString().split("T")[0]!,
-    previousPeriodStart: prevStart.toISOString().split("T")[0]!,
+    previousPeriodStart: prevMonday.toISOString().split("T")[0]!,
   };
 }
 
