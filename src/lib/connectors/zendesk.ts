@@ -80,6 +80,38 @@ interface ZendeskShowManyUsersResponse {
   users: ZendeskUserDetail[];
 }
 
+interface ZendeskCall {
+  agent_id: number | null;
+  direction: string;
+  completion_status: string;
+  duration: number;
+  talk_time: number;
+  hold_time: number;
+  consultation_time: number;
+  created_at: string;
+}
+
+interface ZendeskCallsResponse {
+  calls: ZendeskCall[];
+  next_page: string | null;
+  end_of_stream: boolean;
+}
+
+interface CallAggregate {
+  inboundOffered: number;
+  inboundAccepted: number;
+  inboundAbandonedOnHold: number;
+  avgTalkTimeInbound: number | null;
+  avgHoldTimeInbound: number | null;
+  avgDurationInbound: number | null;
+  avgConsultationTimeInbound: number | null;
+  outboundTotal: number;
+  outboundCompleted: number;
+  outboundNonAnswered: number;
+  avgTalkTimeOutbound: number | null;
+  avgHoldTimeOutbound: number | null;
+}
+
 function weekOf(weeksAgo: number): { periodStart: string; periodEnd: string } {
   const now = new Date();
   const monday = new Date(now);
@@ -142,6 +174,61 @@ async function fetchRatings(
     path = res.next_page;
   }
   return byAssignee;
+}
+
+// The Talk incremental-calls endpoint is a forward cursor export (start_time
+// only, no end_time) rather than a bounded search -- so pages are consumed
+// until either Zendesk says end_of_stream or an entire page comes back past
+// the target week, with a hard page cap as a safety valve.
+async function fetchCallsForWeek(periodStart: string, periodEnd: string): Promise<ZendeskCall[]> {
+  const startTime = Math.floor(new Date(`${periodStart}T00:00:00Z`).getTime() / 1000);
+  const endTime = new Date(`${periodEnd}T23:59:59Z`).getTime();
+  const calls: ZendeskCall[] = [];
+  let path: string | null = `/channels/voice/stats/incremental/calls.json?start_time=${startTime}`;
+  let pages = 0;
+  while (path && pages < 50) {
+    const res: ZendeskCallsResponse = await zendeskGet<ZendeskCallsResponse>(path);
+    pages++;
+    let allPastWindow = res.calls.length > 0;
+    for (const call of res.calls) {
+      if (new Date(call.created_at).getTime() <= endTime) {
+        calls.push(call);
+        allPastWindow = false;
+      }
+    }
+    if (res.end_of_stream || allPastWindow) break;
+    path = res.next_page;
+  }
+  return calls;
+}
+
+// Only the fields confirmed on real call records map cleanly here. "Missed",
+// "Declined", and transfer counts (w/ and w/o consult) are NOT available on
+// individual call records in this Zendesk instance -- they only exist on the
+// live-only agents_overview/agents_activity endpoints (see [[phone-system]]
+// memory), which can't be queried historically. Deliberately not
+// approximated from a proxy signal here.
+function aggregateCalls(calls: ZendeskCall[]): CallAggregate {
+  const inbound = calls.filter((c) => c.direction === "inbound");
+  const outbound = calls.filter((c) => c.direction === "outbound");
+  const inboundConsult = inbound.filter((c) => c.consultation_time > 0);
+
+  return {
+    inboundOffered: inbound.length,
+    inboundAccepted: inbound.filter((c) => c.completion_status === "completed").length,
+    inboundAbandonedOnHold: inbound.filter((c) => c.completion_status === "abandoned_on_hold")
+      .length,
+    avgTalkTimeInbound: averageOf(inbound.map((c) => c.talk_time)),
+    avgHoldTimeInbound: averageOf(inbound.map((c) => c.hold_time)),
+    avgDurationInbound: averageOf(inbound.map((c) => c.duration)),
+    avgConsultationTimeInbound:
+      inboundConsult.length > 0 ? averageOf(inboundConsult.map((c) => c.consultation_time)) : null,
+    outboundTotal: outbound.length,
+    outboundCompleted: outbound.filter((c) => c.completion_status === "completed").length,
+    outboundNonAnswered: outbound.filter((c) => c.completion_status === "failed").length,
+    avgTalkTimeOutbound: averageOf(outbound.map((c) => c.talk_time)),
+    avgHoldTimeOutbound: averageOf(outbound.map((c) => c.hold_time)),
+  };
 }
 
 function businessMinutes(metric: ZendeskTimeMetric | null | undefined): number | null {
@@ -243,6 +330,7 @@ export class ZendeskConnector implements Connector {
       .where(eq(externalIdentities.dataSourceId, config.dataSourceId));
 
     const ratingsByAssignee = await fetchRatings(periodStart, periodEnd);
+    const calls = await fetchCallsForWeek(periodStart, periodEnd);
 
     const perEmployeeTickets = new Map<string, ZendeskTicket[]>();
     const perEmployeeOpen = new Map<string, ZendeskTicket[]>();
@@ -316,6 +404,36 @@ export class ZendeskConnector implements Connector {
       const rated = ratings.filter((r) => r.score === "good" || r.score === "bad");
       const good = rated.filter((r) => r.score === "good").length;
       const csatScore = rated.length === 0 ? null : Math.round((good / rated.length) * 10000) / 100;
+
+      // null (not aggregated) when the agent's Zendesk id can't be resolved --
+      // that's missing data, not a confirmed zero. An empty call list for a
+      // resolved agent IS a confirmed zero and aggregates normally.
+      const employeeCalls = numericId !== null ? calls.filter((c) => c.agent_id === numericId) : null;
+      const callAgg = employeeCalls !== null ? aggregateCalls(employeeCalls) : null;
+
+      records.push({
+        externalRecordType: "call_stats",
+        externalRecordId: `calls-${email}-${periodStart}`,
+        employeeExternalId: email,
+        occurredAt: now,
+        periodStart,
+        periodEnd,
+        payload: {
+          inboundOffered: callAgg?.inboundOffered ?? null,
+          inboundAccepted: callAgg?.inboundAccepted ?? null,
+          inboundAbandonedOnHold: callAgg?.inboundAbandonedOnHold ?? null,
+          avgTalkTimeInbound: callAgg?.avgTalkTimeInbound ?? null,
+          avgHoldTimeInbound: callAgg?.avgHoldTimeInbound ?? null,
+          avgDurationInbound: callAgg?.avgDurationInbound ?? null,
+          avgConsultationTimeInbound: callAgg?.avgConsultationTimeInbound ?? null,
+          outboundTotal: callAgg?.outboundTotal ?? null,
+          outboundCompleted: callAgg?.outboundCompleted ?? null,
+          outboundNonAnswered: callAgg?.outboundNonAnswered ?? null,
+          avgTalkTimeOutbound: callAgg?.avgTalkTimeOutbound ?? null,
+          avgHoldTimeOutbound: callAgg?.avgHoldTimeOutbound ?? null,
+        },
+        sourceUpdatedAt: now,
+      });
 
       records.push({
         externalRecordType: "csat_summary",
@@ -438,6 +556,38 @@ export class ZendeskConnector implements Connector {
             textValue: null,
             booleanValue: null,
             unit: "count",
+            periodStart,
+            periodEnd,
+            dimensionsJson: null,
+          });
+        }
+      }
+
+      if ("inboundOffered" in payload) {
+        const callFactMap: Array<[string, unknown, string]> = [
+          ["inbound_calls_offered", payload.inboundOffered, "count"],
+          ["inbound_calls_accepted", payload.inboundAccepted, "count"],
+          ["inbound_calls_abandoned_on_hold", payload.inboundAbandonedOnHold, "count"],
+          ["avg_talk_time_inbound", payload.avgTalkTimeInbound, "s"],
+          ["avg_hold_time_inbound", payload.avgHoldTimeInbound, "s"],
+          ["avg_call_duration_inbound", payload.avgDurationInbound, "s"],
+          ["avg_consultation_time_inbound", payload.avgConsultationTimeInbound, "s"],
+          ["outbound_calls", payload.outboundTotal, "count"],
+          ["outbound_calls_completed", payload.outboundCompleted, "count"],
+          ["outbound_calls_non_answered", payload.outboundNonAnswered, "count"],
+          ["avg_talk_time_outbound", payload.avgTalkTimeOutbound, "s"],
+          ["avg_hold_time_outbound", payload.avgHoldTimeOutbound, "s"],
+        ];
+        for (const [factType, value, unit] of callFactMap) {
+          if (value == null) continue;
+          facts.push({
+            employeeId,
+            teamId,
+            factType,
+            numericValue: value as number,
+            textValue: null,
+            booleanValue: null,
+            unit,
             periodStart,
             periodEnd,
             dimensionsJson: null,
