@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import { isSyncRateLimited } from "@/lib/rate-limit";
 
-export async function POST(request: Request) {
+export async function POST(_request: Request) {
   const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
