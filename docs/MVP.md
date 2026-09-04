@@ -1,5 +1,14 @@
 # HungerRush Cadence — MVP Checklist v0.1
 
+**Update (2026-09-03):** everything below reflects the state through the "Phase 7 prod-readiness"
+pass. Since then, a stakeholder review triggered a real scope cut: Home and the workflow-heavy
+"1:1 Preparation" page (with its coaching/quality/action-item/meeting-notes tabs) were deleted;
+"Employee" was replaced by a simple metrics-only "1:1s" scorecard; Assembled and Rippling were
+both dropped entirely (their integrations below are no longer live — the `[ ] Rippling capability
+discovery` item is now moot, not just blocked). Manager UI is now **Team + 1:1s only**. See
+`docs/PRODUCT.md`'s revision note for the full reasoning and current spec. Do not treat the
+"Manager UI" checklist below as current — it documents what was true as of Phase 7, not today.
+
 ## Must Have
 
 ### Platform
