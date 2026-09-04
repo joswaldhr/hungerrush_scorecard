@@ -1,0 +1,912 @@
+<title>Cadence Rebuild Audit</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #f7f8fa;
+  --bg-surface: #ffffff;
+  --bg-inset: #eef0f4;
+  --text: #1a1d23;
+  --text-secondary: #5a6070;
+  --text-tertiary: #8890a0;
+  --border: #d8dce6;
+  --border-light: #e8ecf2;
+  --navy: #1B2A4A;
+  --teal: #009CA6;
+  --teal-bg: #e6f7f8;
+  --red: #c53030;
+  --red-bg: #fef2f2;
+  --amber: #b45309;
+  --amber-bg: #fffbeb;
+  --blue: #2563eb;
+  --blue-bg: #eff6ff;
+  --green: #16a34a;
+  --green-bg: #f0fdf4;
+  --purple: #7c3aed;
+  --purple-bg: #f5f3ff;
+  --font: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: 'IBM Plex Mono', 'Cascadia Code', monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1117;
+    --bg-surface: #1a1d27;
+    --bg-inset: #12141c;
+    --text: #e2e4ea;
+    --text-secondary: #9ba1b0;
+    --text-tertiary: #6b7280;
+    --border: #2d3140;
+    --border-light: #232738;
+    --navy: #8fa4cc;
+    --teal: #2ec4ce;
+    --teal-bg: #0d2a2c;
+    --red-bg: #2a1215;
+    --amber-bg: #2a1f0a;
+    --blue-bg: #0f1a2e;
+    --green-bg: #0a1f12;
+    --purple-bg: #1a142e;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1117;
+  --bg-surface: #1a1d27;
+  --bg-inset: #12141c;
+  --text: #e2e4ea;
+  --text-secondary: #9ba1b0;
+  --text-tertiary: #6b7280;
+  --border: #2d3140;
+  --border-light: #232738;
+  --navy: #8fa4cc;
+  --teal: #2ec4ce;
+  --teal-bg: #0d2a2c;
+  --red-bg: #2a1215;
+  --amber-bg: #2a1f0a;
+  --blue-bg: #0f1a2e;
+  --green-bg: #0a1f12;
+  --purple-bg: #1a142e;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.6;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+h1 { font-size: 1.75rem; font-weight: 700; color: var(--navy); margin: 0 0 0.25rem; text-wrap: balance; }
+h2 { font-size: 1.25rem; font-weight: 700; color: var(--navy); margin: 2.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--teal); text-wrap: balance; }
+h3 { font-size: 1rem; font-weight: 600; margin: 1.5rem 0 0.75rem; text-wrap: balance; }
+p { margin: 0.5rem 0; max-width: 65ch; }
+code { font-family: var(--mono); font-size: 0.85em; background: var(--bg-inset); padding: 0.125em 0.35em; border-radius: 3px; }
+.subtitle { color: var(--text-secondary); font-size: 0.95rem; margin: 0 0 2rem; }
+.badge { display: inline-block; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 0.2em 0.55em; border-radius: 3px; white-space: nowrap; vertical-align: middle; }
+.badge-critical { background: var(--red-bg); color: var(--red); }
+.badge-moderate { background: var(--amber-bg); color: var(--amber); }
+.badge-info { background: var(--blue-bg); color: var(--blue); }
+.badge-ok { background: var(--green-bg); color: var(--green); }
+.badge-biz { background: var(--purple-bg); color: var(--purple); }
+.badge-source { background: var(--amber-bg); color: var(--amber); }
+.summary-box { background: var(--bg-surface); border: 1px solid var(--border); border-left: 4px solid var(--teal); padding: 1rem 1.25rem; margin: 1rem 0; border-radius: 0 4px 4px 0; }
+.summary-box p { margin: 0.25rem 0; }
+.table-wrap { overflow-x: auto; margin: 1rem 0; }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+th { text-align: left; font-weight: 600; padding: 0.5rem 0.75rem; border-bottom: 2px solid var(--border); color: var(--text-secondary); font-size: 0.75rem; letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap; }
+td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border-light); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+details { margin: 0.75rem 0; }
+summary { cursor: pointer; font-weight: 600; color: var(--navy); padding: 0.5rem 0; }
+summary:hover { color: var(--teal); }
+.finding { background: var(--bg-surface); border: 1px solid var(--border); padding: 0.75rem 1rem; margin: 0.5rem 0; border-radius: 4px; }
+.finding-id { font-family: var(--mono); font-size: 0.75rem; color: var(--text-tertiary); }
+.toc { background: var(--bg-surface); border: 1px solid var(--border); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 4px; }
+.toc ol { margin: 0; padding-left: 1.5rem; }
+.toc li { margin: 0.2rem 0; font-size: 0.85rem; }
+.toc a { color: var(--teal); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+a { color: var(--teal); }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin: 1rem 0; }
+.stat { background: var(--bg-surface); border: 1px solid var(--border); padding: 0.75rem 1rem; border-radius: 4px; text-align: center; }
+.stat-value { font-size: 1.5rem; font-weight: 700; color: var(--navy); }
+.stat-label { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 0.25rem; }
+ul { margin: 0.5rem 0; padding-left: 1.5rem; }
+li { margin: 0.2rem 0; }
+</style>
+
+<h1>Cadence Rebuild Planning Report</h1>
+<p class="subtitle">Global 1:1 Scorecard + Production Metric Integrity — Audit & Implementation Plan<br>September 2, 2026</p>
+
+<div class="stat-grid">
+  <div class="stat"><div class="stat-value">5</div><div class="stat-label">Working Metrics</div></div>
+  <div class="stat"><div class="stat-value" style="color:var(--red)">1</div><div class="stat-label">Broken (CSAT)</div></div>
+  <div class="stat"><div class="stat-value">7</div><div class="stat-label">Implementable</div></div>
+  <div class="stat"><div class="stat-value">30+</div><div class="stat-label">Blocked by Source</div></div>
+  <div class="stat"><div class="stat-value">12</div><div class="stat-label">Critical Findings</div></div>
+</div>
+
+<nav class="toc">
+<strong>Contents</strong>
+<ol>
+  <li><a href="#arch">Current Architecture</a></li>
+  <li><a href="#oneone">Current 1:1 Implementation</a></li>
+  <li><a href="#inventory">Complete Metric Inventory</a></li>
+  <li><a href="#working">Working Metrics</a></li>
+  <li><a href="#broken">Broken / Partial Metrics</a></li>
+  <li><a href="#csat">Exact CSAT Failure</a></li>
+  <li><a href="#source">Source / API Limitations</a></li>
+  <li><a href="#bizgaps">Business-Definition Gaps</a></li>
+  <li><a href="#sync">Sync Architecture Findings</a></li>
+  <li><a href="#pagination">Pagination Risks</a></li>
+  <li><a href="#idempotency">Idempotency Risks</a></li>
+  <li><a href="#timezone">Timezone / Period Risks</a></li>
+  <li><a href="#identity">Identity Risks</a></li>
+  <li><a href="#calc">Calculation / Aggregation Risks</a></li>
+  <li><a href="#target">Target Risks</a></li>
+  <li><a href="#dbquery">Database / Query Risks</a></li>
+  <li><a href="#schema-changes">Proposed Schema Changes</a></li>
+  <li><a href="#sync-changes">Proposed Sync Changes</a></li>
+  <li><a href="#engine-changes">Proposed Metric-Engine Changes</a></li>
+  <li><a href="#recon">Proposed Reconciliation System</a></li>
+  <li><a href="#explain">Proposed Explain Metric</a></li>
+  <li><a href="#datahealth">Proposed Data Health Changes</a></li>
+  <li><a href="#oneone-rebuild">Proposed 1:1 Hierarchy</a></li>
+  <li><a href="#migration">Migration / Backfill Implications</a></li>
+  <li><a href="#test">Test Strategy</a></li>
+  <li><a href="#phases">Implementation Phases</a></li>
+</ol>
+</nav>
+
+<!-- ===== 1. ARCHITECTURE ===== -->
+<h2 id="arch">1. Current Architecture</h2>
+
+<div class="summary-box">
+<p><strong>Stack:</strong> Next.js 16.3 (App Router, Turbopack) · React 19 · TypeScript · Drizzle ORM · PostgreSQL (Railway) · Vercel hosting · NextAuth v5 (Entra SSO)</p>
+<p><strong>Schema:</strong> 30 tables, 9 migrations, 47 indexes, 5 unique constraints. No pg enums — all text columns with TypeScript unions.</p>
+</div>
+
+<h3>Data Flow</h3>
+<p>Vendor API → <code>Connector.fetchRecords()</code> → <code>sourceRecords</code> (deduplicated by hash) → <code>Connector.normalizeRecords()</code> → <code>normalizedFacts</code> (NOT deduplicated) → <code>computeMetricValuesFromFacts()</code> → <code>metricValues</code> (upserted) → reporting queries → UI</p>
+
+<h3>Connectors</h3>
+<div class="table-wrap"><table>
+<tr><th>Connector</th><th>Status</th><th>Produces</th><th>Rate Limits</th></tr>
+<tr><td>Zendesk</td><td><span class="badge badge-ok">Live</span></td><td>tickets_resolved, tickets_updated, avg_handle_time, avg_response_time, backlog_count, csat_score</td><td>None handled</td></tr>
+<tr><td>Assembled</td><td><span class="badge badge-ok">Live</span></td><td>schedule_adherence</td><td>None handled</td></tr>
+<tr><td>Entra</td><td><span class="badge badge-ok">Live</span></td><td>Account status checks (departure detection)</td><td>Uses $batch</td></tr>
+<tr><td>Rippling</td><td><span class="badge badge-moderate">Stub</span></td><td>Nothing — reads existing DB, normalizes nothing</td><td>N/A</td></tr>
+</table></div>
+
+<h3>Pages</h3>
+<div class="table-wrap"><table>
+<tr><th>Route</th><th>Purpose</th></tr>
+<tr><td><code>/</code></td><td>Home dashboard — weekly briefing for each team</td></tr>
+<tr><td><code>/team</code></td><td>Team comparison — roster with metric summaries</td></tr>
+<tr><td><code>/employee/[id]</code></td><td>Employee detail — trends, metric history, context</td></tr>
+<tr><td><code>/one-on-ones</code></td><td>1:1 list — employees grouped by team, cadence warnings</td></tr>
+<tr><td><code>/one-on-ones/[id]</code></td><td>1:1 detail — scorecard + meeting workspace</td></tr>
+<tr><td><code>/data-health</code></td><td>Source status, sync runs, errors</td></tr>
+<tr><td><code>/reconciliation</code></td><td>MetricValue vs NormalizedFact drift detection</td></tr>
+<tr><td><code>/admin/*</code></td><td>Employees, teams, Entra identities, roster review</td></tr>
+</table></div>
+
+<h3>Sync Trigger</h3>
+<p>Single Vercel cron: <code>0 6 * * *</code> (daily 06:00 UTC) hits <code>GET /api/cron/sync</code>. Processes all data sources sequentially. Manual trigger via <code>POST /api/sync/run</code> with 5-minute cooldown.</p>
+
+<!-- ===== 2. 1:1 IMPLEMENTATION ===== -->
+<h2 id="oneone">2. Current 1:1 Implementation</h2>
+
+<div class="summary-box">
+<p>The 1:1 page was rebuilt from a 3-tab layout (Prepare/During/After) to a single continuous page in Phases 1-3 (completed 2026-09-02). No further structural changes are needed for the page itself.</p>
+</div>
+
+<h3>Current Sections (in order)</h3>
+<div class="table-wrap"><table>
+<tr><th>#</th><th>Section</th><th>Data Source</th><th>Status</th></tr>
+<tr><td>1</td><td>Summary</td><td><code>generateOneOnOne()</code> briefing engine</td><td><span class="badge badge-ok">Complete</span></td></tr>
+<tr><td>2</td><td>Scorecard</td><td><code>getEmployeeMetrics()</code></td><td><span class="badge badge-ok">Complete</span></td></tr>
+<tr><td>3</td><td>Discussion</td><td><code>getDiscussionTopics()</code> + suggested questions</td><td><span class="badge badge-ok">Complete</span></td></tr>
+<tr><td>4</td><td>Attendance</td><td><code>getAttendanceSummary()</code></td><td><span class="badge badge-ok">Complete</span></td></tr>
+<tr><td>5</td><td>Tickets</td><td><code>getTicketReviews()</code></td><td><span class="badge badge-ok">Complete</span></td></tr>
+<tr><td>6</td><td>Coaching</td><td><code>getCoachingRecords()</code></td><td><span class="badge badge-ok">Complete</span></td></tr>
+<tr><td>7</td><td>Actions</td><td>Direct DB query (open action items)</td><td><span class="badge badge-ok">Complete</span></td></tr>
+<tr><td>8</td><td>Notes</td><td>Direct DB query (latest meeting note), autosave 2s debounce</td><td><span class="badge badge-ok">Complete</span></td></tr>
+<tr><td>9</td><td>History</td><td><code>getMeetingHistory()</code></td><td><span class="badge badge-ok">Complete</span></td></tr>
+</table></div>
+
+<p><strong>Data fetching:</strong> 11 parallel queries via <code>Promise.all</code>. No N+1 (fixed in Phase 2). <code>getMeetingHistory</code> uses batched <code>inArray</code> queries.</p>
+<p><strong>Authorization:</strong> 3-layer defense (session → manager context → employee scope). All server actions re-check via <code>authorizeForEmployee()</code>.</p>
+<p><strong>Briefing engine:</strong> Fully deterministic template-based generation. No LLM/AI. No "AI-Powered" labels.</p>
+
+<h3>Known Issues</h3>
+<ul>
+<li><span class="badge badge-moderate">Code Issue</span> Metrics fetched twice: <code>generateOneOnOne()</code> internally calls <code>getEmployeeMetrics()</code>, and the page also calls it directly.</li>
+<li><span class="badge badge-info">Code Issue</span> Hardcoded fallback job title <code>"Support Specialist"</code> in 3 files.</li>
+<li><span class="badge badge-info">Code Issue</span> Hardcoded <code>CATEGORY_LABELS</code> map in scorecard — won't auto-discover new categories.</li>
+<li><span class="badge badge-info">Code Issue</span> Brand color <code>#009ca6</code> hardcoded in 15+ files instead of CSS variable.</li>
+</ul>
+
+<!-- ===== 3. METRIC INVENTORY ===== -->
+<h2 id="inventory">3. Complete Metric Inventory</h2>
+
+<details open>
+<summary>Productivity / Tickets (6 metrics)</summary>
+<div class="table-wrap"><table>
+<tr><th>Metric</th><th>Key</th><th>Source</th><th>Teams</th><th>Status</th></tr>
+<tr><td>Tickets Resolved</td><td><code>tickets_resolved</code></td><td>Zendesk search <code>status:solved|closed</code></td><td>POS, Menufy</td><td><span class="badge badge-ok">Working</span></td></tr>
+<tr><td>Tickets Updated</td><td><code>tickets_updated</code></td><td>Zendesk search <code>updated>= / updated<=</code></td><td>POS, Menufy</td><td><span class="badge badge-ok">Working</span></td></tr>
+<tr><td>Productivity %</td><td>—</td><td>—</td><td>—</td><td><span class="badge badge-biz">Definition Required</span></td></tr>
+<tr><td>Cases Solved / Day</td><td>—</td><td>Derivable from tickets_resolved ÷ working days</td><td>—</td><td><span class="badge badge-biz">Definition Required</span></td></tr>
+<tr><td>Worked Elevated Tickets</td><td>—</td><td>—</td><td>—</td><td><span class="badge badge-biz">Definition Required</span></td></tr>
+<tr><td>Avoidable Elevated Tickets</td><td>—</td><td>—</td><td>—</td><td><span class="badge badge-biz">Definition Required</span></td></tr>
+</table></div>
+</details>
+
+<details>
+<summary>Calls (19 metrics) — All Blocked</summary>
+<div class="table-wrap"><table>
+<tr><th>Metric</th><th>Status</th></tr>
+<tr><td>IB Calls Offered / Answered / Declined / Missed / % Answered / Abandoned / Transfer w/o Consult / Transfer w/ Consult</td><td><span class="badge badge-source">Blocked by Source</span></td></tr>
+<tr><td>OB Calls / Completed / Non-answer</td><td><span class="badge badge-source">Blocked by Source</span></td></tr>
+<tr><td>Total IB Talk Time / OB Talk Time / Avg IB Talk / Avg OB Talk / Avg Hold / Avg Duration / Avg Consult</td><td><span class="badge badge-source">Blocked by Source</span></td></tr>
+</table></div>
+<p><span class="badge badge-source">External Infrastructure Decision</span> No phone system connector exists. Need to identify: what phone system do POS and Menufy teams use? Zendesk Talk? RingCentral? Five9? Other? Each requires a new connector.</p>
+</details>
+
+<details>
+<summary>Efficiency / Customer (5 metrics)</summary>
+<div class="table-wrap"><table>
+<tr><th>Metric</th><th>Key</th><th>Source</th><th>Teams</th><th>Status</th></tr>
+<tr><td>Avg Handle Time</td><td><code>avg_handle_time</code></td><td>Zendesk <code>full_resolution_time_in_minutes.business</code></td><td>POS</td><td><span class="badge badge-ok">Working</span></td></tr>
+<tr><td>CSAT</td><td><code>csat_score</code></td><td>Zendesk <code>/satisfaction_ratings.json</code></td><td>POS, Menufy</td><td><span class="badge badge-critical">Broken</span></td></tr>
+<tr><td>NPS</td><td>—</td><td>—</td><td>—</td><td><span class="badge badge-source">Blocked by Source</span></td></tr>
+<tr><td>FCR</td><td><code>first_contact_resolution</code></td><td>—</td><td>—</td><td><span class="badge badge-biz">Definition Required</span></td></tr>
+<tr><td>Reopen Rate</td><td>—</td><td>Zendesk (ticket reopen count derivable)</td><td>—</td><td><span class="badge badge-info">Implementable</span></td></tr>
+</table></div>
+</details>
+
+<details>
+<summary>Availability (9 metrics) — All Blocked</summary>
+<div class="table-wrap"><table>
+<tr><th>Metric</th><th>Status</th></tr>
+<tr><td>Online Hours / Away Hours / Transfer Hours / Total Available</td><td><span class="badge badge-source">Blocked by Source</span></td></tr>
+<tr><td>Avg Online / Away / Transfer / Available per Day</td><td><span class="badge badge-source">Blocked by Source</span></td></tr>
+<tr><td>Avg Available per Day</td><td><span class="badge badge-source">Blocked by Source</span></td></tr>
+</table></div>
+<p><span class="badge badge-source">Source/API Limitation</span> Assembled's state-to-activity mapping is dashboard-only with no read API. Even if available, only 31% of roster has an Assembled account.</p>
+</details>
+
+<details>
+<summary>Workforce (2 metrics)</summary>
+<div class="table-wrap"><table>
+<tr><th>Metric</th><th>Key</th><th>Source</th><th>Status</th></tr>
+<tr><td>Schedule Adherence</td><td><code>schedule_adherence</code></td><td>Assembled Reports API</td><td><span class="badge badge-moderate">Partial</span> (31% coverage)</td></tr>
+<tr><td>Occupancy</td><td>—</td><td>Requires phone + schedule data</td><td><span class="badge badge-source">Blocked by Source</span></td></tr>
+</table></div>
+</details>
+
+<details>
+<summary>Backlog (3 metrics)</summary>
+<div class="table-wrap"><table>
+<tr><th>Metric</th><th>Key</th><th>Source</th><th>Status</th></tr>
+<tr><td>Active Backlog</td><td><code>backlog_count</code></td><td>Zendesk <code>status<solved</code></td><td><span class="badge badge-ok">Working</span></td></tr>
+<tr><td>SLA Breaches</td><td>—</td><td>Zendesk SLA policy API</td><td><span class="badge badge-info">Implementable</span></td></tr>
+<tr><td>Oldest Ticket</td><td>—</td><td>Zendesk (min created_at from backlog)</td><td><span class="badge badge-info">Implementable</span></td></tr>
+</table></div>
+</details>
+
+<details>
+<summary>Attendance (2 metrics)</summary>
+<div class="table-wrap"><table>
+<tr><th>Metric</th><th>Key</th><th>Source</th><th>Status</th></tr>
+<tr><td>Current Points</td><td>—</td><td><code>attendanceEvents.pointsAssigned</code> (manual)</td><td><span class="badge badge-info">Implementable</span></td></tr>
+<tr><td>Rolling 90-Day Unplanned</td><td>—</td><td><code>getAttendanceSummary().unexcusedCount</code></td><td><span class="badge badge-info">Implementable</span></td></tr>
+</table></div>
+<p>Both use existing domain layer (<code>getAttendanceSummary</code>). Currently manual entry only — no external source.</p>
+</details>
+
+<details>
+<summary>Avg Response Time (1 metric)</summary>
+<div class="table-wrap"><table>
+<tr><th>Metric</th><th>Key</th><th>Source</th><th>Teams</th><th>Status</th></tr>
+<tr><td>Avg Response Time</td><td><code>avg_response_time</code></td><td>Zendesk <code>reply_time_in_minutes.business</code></td><td>Menufy</td><td><span class="badge badge-ok">Working</span></td></tr>
+</table></div>
+</details>
+
+<!-- ===== 4-5. WORKING / BROKEN ===== -->
+<h2 id="working">4. Working Metrics</h2>
+
+<p>Verified end-to-end: source API → sourceRecords → normalizedFacts → metricValues → UI display.</p>
+
+<div class="table-wrap"><table>
+<tr><th>Metric</th><th>Key</th><th>Facts in DB</th><th>Values in DB</th><th>Teams</th></tr>
+<tr><td>Tickets Resolved</td><td><code>tickets_resolved</code></td><td>364</td><td>—</td><td>POS, Menufy</td></tr>
+<tr><td>Tickets Updated</td><td><code>tickets_updated</code></td><td>364</td><td>—</td><td>POS, Menufy</td></tr>
+<tr><td>Avg Handle Time</td><td><code>avg_handle_time</code></td><td>55</td><td>—</td><td>POS</td></tr>
+<tr><td>Avg Response Time</td><td><code>avg_response_time</code></td><td>24</td><td>—</td><td>Menufy</td></tr>
+<tr><td>Backlog</td><td><code>backlog_count</code></td><td>148</td><td>—</td><td>POS</td></tr>
+</table></div>
+<p>Total: 955 normalizedFacts, 354 metricValues across all metrics and periods.</p>
+
+<h2 id="broken">5. Broken / Partial Metrics</h2>
+
+<div class="finding">
+<span class="badge badge-critical">Broken</span> <strong>CSAT Score</strong>
+<p>0 normalizedFacts. 0 metricValues. 144 sourceRecords exist but ALL have <code>csatScore: null</code>, <code>totalRatings: 0</code>. See <a href="#csat">Section 6</a> for root cause.</p>
+</div>
+
+<div class="finding">
+<span class="badge badge-moderate">Partial</span> <strong>Schedule Adherence</strong>
+<p>Connector exists and is functional, but only 11 of 36 roster employees (31%) have Assembled accounts. Results are accurate for those 11 but invisible for the other 25.</p>
+<p><span class="badge badge-source">External Infrastructure Decision</span> Requires Assembled account provisioning by IT/ops.</p>
+</div>
+
+<!-- ===== 6. CSAT ===== -->
+<h2 id="csat">6. Exact CSAT Failure</h2>
+
+<div class="summary-box">
+<p><strong>Root cause:</strong> The Zendesk <code>/satisfaction_ratings.json</code> API returns zero results for every queried time window. All 144 <code>csat_summary</code> source records have <code>csatScore: null</code> and <code>totalRatings: 0</code>.</p>
+<p><strong>Classification:</strong> <span class="badge badge-source">Source/API Limitation</span> — not a pipeline bug.</p>
+</div>
+
+<h3>Trace</h3>
+<ol>
+<li><strong>Zendesk API request:</strong> <code>GET /satisfaction_ratings.json?score=received&start_time={epoch}&end_time={epoch}</code></li>
+<li><strong>Pagination:</strong> Correct — follows <code>next_page</code> in a while loop. But loop never executes because the first response has zero results.</li>
+<li><strong>Time window:</strong> <code>start_time</code> = Monday 00:00 UTC, <code>end_time</code> = min(Sunday 23:59:59 UTC, now - 90s). Arithmetic verified correct.</li>
+<li><strong>Employee attribution:</strong> Never reached — zero ratings to attribute.</li>
+<li><strong>SourceRecords created:</strong> 144 records (36 employees × 4 weeks) all with null csatScore. Hash-based dedup correctly skips on re-sync.</li>
+<li><strong>NormalizedFacts:</strong> <code>normalizeRecords</code> checks <code>if ("csatScore" in payload && payload.csatScore != null)</code> — correctly skips null scores. Zero facts created.</li>
+<li><strong>MetricValues:</strong> Zero — no facts to aggregate.</li>
+<li><strong>UI:</strong> Shows "No Data" correctly (not fabricating a zero).</li>
+</ol>
+
+<h3>Most likely explanations</h3>
+<ol>
+<li><strong>CSAT surveys not enabled</strong> in the HungerRush Zendesk instance. The satisfaction_ratings endpoint returns an empty list when surveys are off.</li>
+<li><strong>Surveys enabled but no responses</strong> in the queried 4-week window.</li>
+<li><strong><code>score=received</code> filter</strong> may be excluding results. This parameter filters for ratings that have been submitted (good/bad). If the Zendesk instance uses an alternative satisfaction mechanism, this filter may not match.</li>
+</ol>
+
+<h3>Required investigation</h3>
+<p><span class="badge badge-source">External Infrastructure Decision</span> Check the Zendesk admin panel: <strong>Admin > Manage > Satisfaction</strong>. Confirm whether customer satisfaction ratings are enabled. If enabled, check whether any ratings exist in the Zendesk reporting UI for the same time period. This is not an engineering question — it requires Zendesk admin access.</p>
+
+<!-- ===== 7. SOURCE LIMITATIONS ===== -->
+<h2 id="source">7. Source / API Limitations</h2>
+
+<div class="finding">
+<span class="badge badge-source">Source/API Limitation</span> <strong>No phone system connector</strong>
+<p>31 call/availability metrics are blocked. No phone system has been identified for either POS or Menufy teams. Candidates: Zendesk Talk, RingCentral, Five9, Genesys, or another system.</p>
+</div>
+
+<div class="finding">
+<span class="badge badge-source">Source/API Limitation</span> <strong>Assembled roster coverage: 31%</strong>
+<p>Only 11/36 employees have Assembled accounts. Schedule adherence, availability metrics, and occupancy are blocked for the other 25.</p>
+</div>
+
+<div class="finding">
+<span class="badge badge-source">Source/API Limitation</span> <strong>Assembled state-to-activity mapping is admin-only</strong>
+<p>The mapping that translates agent states to activities (online, away, transfer) is a dashboard-only admin setting with no API. Even if Assembled accounts were fully provisioned, availability breakdowns cannot be computed.</p>
+</div>
+
+<div class="finding">
+<span class="badge badge-source">Source/API Limitation</span> <strong>Zendesk Search API 1000-result cap</strong>
+<p>Per-agent weekly queries are unlikely to hit this, but it's a hard ceiling. No error or indication when results are truncated.</p>
+</div>
+
+<div class="finding">
+<span class="badge badge-source">Source/API Limitation</span> <strong>Rippling API access not confirmed</strong>
+<p>The connector is a stub reading existing DB data. No API credentials, scopes, or response fields have been verified.</p>
+</div>
+
+<div class="finding">
+<span class="badge badge-source">Source/API Limitation</span> <strong>NPS source not identified</strong>
+<p>No NPS survey system has been named. NPS and CSAT are separate metrics and must not be substituted for each other.</p>
+</div>
+
+<!-- ===== 8. BUSINESS GAPS ===== -->
+<h2 id="bizgaps">8. Business-Definition Gaps</h2>
+
+<div class="finding">
+<span class="badge badge-biz">Business Definition Required</span> <strong>Productivity %</strong>
+<p>What is the formula? Tickets per hour? Per scheduled hour? Per online hour? This requires a denominator from either the phone system or scheduling system.</p>
+</div>
+
+<div class="finding">
+<span class="badge badge-biz">Business Definition Required</span> <strong>Cases Solved per Day</strong>
+<p>What is the denominator? Calendar days? Working days (M-F)? Scheduled days? Days with at least one login? The metric value changes significantly depending on the answer.</p>
+</div>
+
+<div class="finding">
+<span class="badge badge-biz">Business Definition Required</span> <strong>Worked Elevated Tickets</strong>
+<p>What defines "elevated"? Options: Zendesk ticket priority field (urgent/high), a custom field, a specific tag, a specific group/form. Needs a concrete Zendesk field mapping.</p>
+</div>
+
+<div class="finding">
+<span class="badge badge-biz">Business Definition Required</span> <strong>Avoidable Worked Elevated Tickets</strong>
+<p>What defines "avoidable"? This requires a classification scheme — a tag, a custom field, or a post-hoc manager judgment. Cannot be computed automatically without a classification source.</p>
+</div>
+
+<div class="finding">
+<span class="badge badge-biz">Business Definition Required</span> <strong>First Contact Resolution (FCR)</strong>
+<p>A metric definition row exists (<code>first_contact_resolution</code>) but there is no Zendesk native FCR field. Options: single-touch tickets (1 public reply → solved), no reopen within N days, a custom field. Each produces very different numbers. Needs an agreed formula and verification method.</p>
+</div>
+
+<div class="finding">
+<span class="badge badge-biz">Business Definition Required</span> <strong>Phone system identity</strong>
+<p>Which phone system do POS and Menufy teams use? This gates 31 metrics. Without an answer, no call/availability work can begin.</p>
+</div>
+
+<!-- ===== 9. SYNC ARCHITECTURE ===== -->
+<h2 id="sync">9. Sync Architecture Findings</h2>
+
+<div class="finding">
+<span class="finding-id">SYNC-01</span> <span class="badge badge-critical">Code Issue</span> <strong>No HTTP 429 / rate-limit handling</strong>
+<p><code>zendeskGet()</code> throws on any non-2xx status including 429. No retry, no backoff, no <code>Retry-After</code> inspection. A single 429 from Zendesk kills the entire sync run. Zendesk enforces 400 requests/minute on Search API. With 36 employees × 4 weeks × 2 queries each = 288 search requests per sync, plus metric lookups and rating lookups, this is at risk.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">SYNC-02</span> <span class="badge badge-critical">Code Issue</span> <strong>No retry on transient errors</strong>
+<p>Network timeouts, 503s, and connection resets immediately fail the sync. The <code>retryable: true</code> flag is recorded on sync errors but nothing ever reads it to retry.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">SYNC-03</span> <span class="badge badge-moderate">Code Issue</span> <strong>Full re-fetch every sync</strong>
+<p>Every daily sync re-fetches the full 4-week window from scratch. The cursor resets to week 0 each time (not loaded from previous run). No use of Zendesk's Incremental Exports API for delta syncing.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">SYNC-04</span> <span class="badge badge-info">Code Issue</span> <strong>No overlap window</strong>
+<p>Week boundaries are exact. Records updated near the boundary could be missed if the Zendesk <code>updated_at</code> timestamp lags slightly behind the boundary.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">SYNC-05</span> <span class="badge badge-info">Code Issue</span> <strong>Sequential source processing</strong>
+<p>The cron route processes all data sources one by one. With Vercel's function timeout limits, this could be a concern as sources grow.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">SYNC-06</span> <span class="badge badge-moderate">Code Issue</span> <strong>Failed sync replaces data with nothing</strong>
+<p>If a sync fails partway through (e.g., after ingesting some source records but before normalizing), the partial state persists. The status is correctly set to "failed" but previously good metricValues are not protected — the next successful sync overwrites them, but if that also fails, there's no fallback to the last-known-good state.</p>
+</div>
+
+<!-- ===== 10. PAGINATION ===== -->
+<h2 id="pagination">10. Pagination Risks</h2>
+
+<div class="finding">
+<span class="finding-id">PAG-01</span> <span class="badge badge-critical">Code Issue</span> <strong>Assembled <code>/people</code> pagination missing</strong>
+<p><code>ensurePeople()</code> and <code>discoverRoster()</code> both use <code>limit: 500</code> with no <code>next_page</code> handling. Organizations with 500+ Assembled agents will have silently incomplete data.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">PAG-02</span> <span class="badge badge-moderate">Code Issue</span> <strong>Zendesk Search API 1000-result hard cap</strong>
+<p>Zendesk returns at most 1000 results per search query. Per-agent weekly queries are unlikely to hit this, but there is no detection or warning if truncation occurs.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">PAG-03</span> <span class="badge badge-ok">OK</span> <strong>Zendesk satisfaction_ratings, group_memberships, and show_many</strong>
+<p>All correctly paginated via <code>next_page</code> / batched ID lists.</p>
+</div>
+
+<!-- ===== 11. IDEMPOTENCY ===== -->
+<h2 id="idempotency">11. Idempotency Risks</h2>
+
+<div class="finding">
+<span class="finding-id">IDEM-01</span> <span class="badge badge-critical">Code Issue</span> <strong>normalizedFacts are not deduplicated</strong>
+<p><code>normalizeIngestedRecords()</code> in <code>sync-engine.ts:217-266</code> does a plain <code>INSERT</code> for every fact on every sync run. There is no upsert, no dedup check, and no unique constraint on <code>normalizedFacts</code>. Re-running a sync for the same period creates duplicate fact rows.</p>
+<p>Currently masked because <code>source_records</code> are deduplicated by hash (unchanged records are skipped), and <code>normalizeIngestedRecords</code> only processes records from the current <code>syncRunId</code>. But if a source record's hash changes (e.g., the Zendesk ticket count changes mid-week), the record is re-ingested with a new <code>syncRunId</code>, and normalization creates new fact rows alongside the old ones.</p>
+<p><strong>Impact on calculations:</strong> <code>computeMetricValuesFromFacts</code> queries ALL facts matching <code>(organizationId, factType)</code> and groups by <code>(employeeId, periodStart, periodEnd)</code>. Duplicate facts for the same period would be aggregated together — doubling <code>sum</code> counts, or averaging with extra weight. For <code>tickets_resolved</code> (sum), a duplicate fact would double the count.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">IDEM-02</span> <span class="badge badge-ok">OK</span> <strong>sourceRecords deduplication</strong>
+<p>Correctly uses <code>(dataSourceId, externalRecordType, externalRecordId)</code> unique index + SHA-256 payload hash. Unchanged records are skipped; changed records are updated in place.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">IDEM-03</span> <span class="badge badge-ok">OK</span> <strong>metricValues upsert</strong>
+<p>Uses <code>onConflictDoUpdate</code> on <code>(metricDefinitionId, employeeId, periodStart, periodEnd)</code> unique index. Re-computation is idempotent at this layer.</p>
+</div>
+
+<!-- ===== 12. TIMEZONE ===== -->
+<h2 id="timezone">12. Timezone / Period Risks</h2>
+
+<div class="finding">
+<span class="finding-id">TZ-01</span> <span class="badge badge-ok">OK</span> <strong>UTC throughout</strong>
+<p><code>weekDates()</code> in <code>src/lib/utils.ts</code> uses <code>getUTCDay()</code>, <code>setUTCDate()</code> consistently. The Zendesk connector's <code>weekOf()</code> uses the same UTC pattern. No accidental local-timezone drift.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">TZ-02</span> <span class="badge badge-moderate">Code Issue</span> <strong>Period completeness not tracked</strong>
+<p>No distinction between OPEN (current incomplete week) and COMPLETE (prior full week) periods. The briefing engine compares partial current-week values against full prior-week values without adjustment. A manager viewing on Tuesday sees "Tickets Resolved declined 70%" because only 2/7 days of the current week have elapsed.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">TZ-03</span> <span class="badge badge-info">Code Issue</span> <strong>Duplicate period logic</strong>
+<p><code>weekDates()</code> in <code>src/lib/utils.ts</code> and <code>weekOf()</code> in the Zendesk connector implement the same Monday-Sunday calculation independently. Both are correct but should be consolidated.</p>
+</div>
+
+<!-- ===== 13. IDENTITY ===== -->
+<h2 id="identity">13. Identity Risks</h2>
+
+<div class="finding">
+<span class="finding-id">ID-01</span> <span class="badge badge-moderate">Code Issue</span> <strong>CSAT attribution chain is fragile</strong>
+<p>CSAT ratings use Zendesk numeric <code>assignee_id</code>. The connector resolves email → numeric ID via <code>/users/search.json</code> with an in-memory cache. If the lookup fails (user not found, API error), ratings for that agent are silently empty — no warning, no sync error logged.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">ID-02</span> <span class="badge badge-info">Code Issue</span> <strong>No UNMATCHED/AMBIGUOUS state tracking</strong>
+<p><code>resolveEmployeeId()</code> returns <code>null</code> for unmatched external IDs. Source records with null <code>employeeId</code> are created but silently excluded from normalization (line 235: <code>if (!record.employeeId ...) continue</code>). No record of which external IDs failed to match — they disappear.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">ID-03</span> <span class="badge badge-info">Info</span> <strong>Identity drift acknowledged</strong>
+<p>A person's email can differ across Zendesk/Assembled/Entra. The <code>external_identities</code> table correctly maps each system independently. The system does not guess one system's email from another's.</p>
+</div>
+
+<!-- ===== 14. CALCULATION ===== -->
+<h2 id="calc">14. Calculation / Aggregation Risks</h2>
+
+<div class="finding">
+<span class="finding-id">CALC-01</span> <span class="badge badge-critical">Code Issue</span> <strong>Team aggregation uses unweighted mean for rates and percentages</strong>
+<p><code>getTeamMetricTrend()</code> and <code>generateTeamBriefing()</code> both compute <code>values.reduce(sum) / values.length</code> for all metric types. For CSAT (percentage), Avg Handle Time (duration), etc., this produces meaningfully wrong team averages when employees handle different volumes.</p>
+<p>Example from golden dataset: Alice handles 5 tickets at 40min AHT, Bob handles 500 tickets at 8min AHT. Unweighted mean = 24min. Volume-weighted = ~8.3min.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">CALC-02</span> <span class="badge badge-moderate">Code Issue</span> <strong>"latest" aggregation depends on insertion order</strong>
+<p><code>aggregateSourceValues(..., "latest")</code> returns <code>values[values.length - 1]</code>. Facts are returned from the DB in insertion order (no <code>ORDER BY</code>). A bulk re-import that inserts rows out of order would silently change the "latest" value. Currently affects <code>backlog_count</code> only.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">CALC-03</span> <span class="badge badge-moderate">Code Issue</span> <strong>computeChanges labels 0→N as "stable"</strong>
+<p>Division-by-zero guard at <code>generate.ts:53</code>: if <code>previousValue === 0</code>, <code>changePercent</code> stays null and direction is "stable". A metric going from 0 to 100 is labeled "stable" rather than showing improvement.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">CALC-04</span> <span class="badge badge-info">Code Issue</span> <strong>computeChanges labels null current as "new"</strong>
+<p>When <code>currentValue</code> is null but <code>previousValue</code> exists, direction is "new" (suggesting the metric just appeared) rather than something like "missing" or "no_data".</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">CALC-05</span> <span class="badge badge-info">Code Issue</span> <strong>Observations pipeline disconnected</strong>
+<p><code>detectObservations()</code> exists and works, but is never called from the sync pipeline. The <code>metricObservations</code> table is always empty. Observations shown on the 1:1 page come from <code>computeChanges()</code> in the briefing engine, not from persisted observations.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">CALC-06</span> <span class="badge badge-info">Code Issue</span> <strong>evaluateChangeStatus treats neutral metrics as regressions</strong>
+<p>The <code>"neutral"</code> direction is not explicitly handled. Any neutral metric with a change >= 1% will be classified as warning or off_target.</p>
+</div>
+
+<!-- ===== 15. TARGET ===== -->
+<h2 id="target">15. Target Risks</h2>
+
+<div class="finding">
+<span class="finding-id">TGT-01</span> <span class="badge badge-moderate">Code Issue</span> <strong>evaluateStatus: 3 dormant bugs (documented in tests)</strong>
+<ul>
+<li><code>maximum</code> + <code>higher_is_better</code>: both direction branches produce identical logic. Unreachable with current data.</li>
+<li><code>exact</code> target type: treated identically to <code>minimum</code> — no equality check.</li>
+<li><code>range</code> target type: falls through to <code>no_target</code>. No range logic exists.</li>
+</ul>
+<p>All three are documented in <code>src/__tests__/target-resolution.test.ts</code> as known architecture gaps.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">TGT-02</span> <span class="badge badge-info">Code Issue</span> <strong>roleKey always null</strong>
+<p><code>resolveTarget</code> in <code>queries.ts:145</code> passes <code>roleKey: null</code>. Role-based targets are wired in the schema and scoring logic but never activated.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">TGT-03</span> <span class="badge badge-info">Code Issue</span> <strong>No effective-dating enforcement</strong>
+<p><code>metricTargets</code> has <code>effective_from</code> / <code>effective_to</code> columns, but target resolution does not filter by date. Changing a target today silently changes the historical status evaluation for past periods.</p>
+</div>
+
+<!-- ===== 16. DB/QUERY ===== -->
+<h2 id="dbquery">16. Database / Query Risks</h2>
+
+<div class="finding">
+<span class="finding-id">DB-01</span> <span class="badge badge-moderate">Code Issue</span> <strong>No cascade deletes</strong>
+<p>All FKs use <code>ON DELETE no action</code>. Seed cleanup requires manual ordering of 15+ deletes. Production data cleanup would be similarly error-prone.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">DB-02</span> <span class="badge badge-info">Code Issue</span> <strong>No retention policy for sync_runs / sync_errors</strong>
+<p>These tables accumulate indefinitely. With daily syncs, sync_runs grows by 3+ rows/day (one per source) with no cleanup.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">DB-03</span> <span class="badge badge-info">Code Issue</span> <strong>contextItems table has no producer</strong>
+<p>The <code>context_items</code> table exists (migration 0003) but no connector or action writes to it. "Previous Context" in the 1:1 page will always be empty.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">DB-04</span> <span class="badge badge-info">Code Issue</span> <strong>force-dynamic on root layout</strong>
+<p><code>export const dynamic = "force-dynamic"</code> disables all Next.js static caching. Every page view runs full DB queries. Acceptable at current scale but will need caching for growth.</p>
+</div>
+
+<div class="finding">
+<span class="finding-id">DB-05</span> <span class="badge badge-info">Code Issue</span> <strong>Metrics fetched twice in 1:1 page</strong>
+<p><code>generateOneOnOne()</code> internally calls <code>getEmployeeMetrics()</code>, and the page also calls <code>getEmployeeMetrics()</code> directly. Same query runs twice per page load.</p>
+</div>
+
+<!-- ===== 17. SCHEMA CHANGES ===== -->
+<h2 id="schema-changes">17. Proposed Schema Changes</h2>
+
+<h3>New: normalizedFacts dedup constraint</h3>
+<p>Add a unique index on <code>(employee_id, fact_type, period_start, period_end, data_source_id)</code> and switch the insert to an upsert. This is the single most important schema change — it prevents the duplicate fact accumulation in IDEM-01.</p>
+
+<h3>New: period completeness column on metricValues</h3>
+<p>Add <code>period_status text NOT NULL DEFAULT 'complete'</code> to <code>metricValues</code> with values <code>open | complete | revised</code>. This enables TZ-02 (distinguishing partial from complete periods).</p>
+
+<h3>New: metric provenance enhancement</h3>
+<p>Expand <code>provenance_json</code> on <code>metricValues</code> to store <code>{ sourceStrategy, factCount, calculationType, calculationVersion }</code>. For ratio metrics, store numerator/denominator.</p>
+
+<h3>Modify: metricDefinitions aggregation_type</h3>
+<p>The column exists but is nullable and unused. Populate it with the team-level aggregation method (<code>sum | simple_average | weighted_average | recalculate_from_facts | latest | not_applicable</code>) so team aggregation is configuration-driven.</p>
+
+<h3>Optional: sync checkpoint table</h3>
+<p>A <code>sync_checkpoints</code> table storing the last safe checkpoint per data source for incremental sync. Not required if we keep the 4-week full-refresh model (which is pragmatic for the current scale).</p>
+
+<!-- ===== 18. SYNC CHANGES ===== -->
+<h2 id="sync-changes">18. Proposed Sync Changes</h2>
+
+<h3>Priority 1: Rate-limit handling (SYNC-01, SYNC-02)</h3>
+<p>Wrap <code>zendeskGet()</code> and <code>assembledGet()</code> with a retry layer: exponential backoff (1s, 2s, 4s), max 3 retries, respect <code>Retry-After</code> header on 429. Distinguish transient (429, 500, 502, 503, 504, network errors) from permanent (401, 403, 404) failures. Record retry count in <code>sync_runs.metadata_json</code>.</p>
+
+<h3>Priority 2: Fact deduplication (IDEM-01)</h3>
+<p>Two options (propose option A):</p>
+<ul>
+<li><strong>A:</strong> Delete existing facts for the affected <code>(employeeId, factType, periodStart, periodEnd, dataSourceId)</code> before inserting new ones in the same transaction. Simple, correct, no schema change needed.</li>
+<li><strong>B:</strong> Add a unique constraint and use upsert. Cleaner long-term but requires a migration that first cleans up existing duplicates.</li>
+</ul>
+
+<h3>Priority 3: Assembled pagination (PAG-01)</h3>
+<p>Add <code>next_page</code> handling to <code>ensurePeople()</code> and <code>discoverRoster()</code>.</p>
+
+<h3>Lower priority: Overlap window, incremental sync</h3>
+<p>At current scale (36 employees, 4-week window, daily sync), the full re-fetch model works. The source record hash-based dedup means unchanged data is skipped efficiently. Overlap windows and incremental cursors become valuable at larger scale.</p>
+
+<!-- ===== 19. METRIC ENGINE ===== -->
+<h2 id="engine-changes">19. Proposed Metric-Engine Changes</h2>
+
+<h3>Fix team aggregation (CALC-01)</h3>
+<p>Use the <code>aggregation_type</code> column on <code>metricDefinitions</code> to drive team-level computation. For percentage/rate metrics, use <code>weighted_average</code> (weight by the denominator, e.g., total ratings for CSAT, ticket count for AHT). For count metrics, use <code>sum</code>. For snapshot metrics (backlog), use <code>sum</code> or <code>simple_average</code> depending on the business definition.</p>
+
+<h3>Fix "latest" ordering (CALC-02)</h3>
+<p>Add an <code>ORDER BY created_at ASC</code> to the facts query in <code>computeMetricValuesFromFacts</code>, or use the fact's <code>source_record_id</code> → <code>source_updated_at</code> as the ordering key.</p>
+
+<h3>Fix change detection edge cases (CALC-03, CALC-04)</h3>
+<p>When <code>previousValue === 0</code> and <code>currentValue > 0</code>, classify as "improved" (or "new" if there was genuinely no prior period). When <code>currentValue</code> is null but <code>previousValue</code> existed, classify as "missing" or "no_data" rather than "new".</p>
+
+<h3>Wire observations pipeline (CALC-05)</h3>
+<p>Call <code>detectObservations()</code> after <code>computeMetricValuesFromFacts()</code> in both the cron route and manual sync route. Persist results to <code>metricObservations</code>.</p>
+
+<h3>Fix evaluateStatus bugs (TGT-01)</h3>
+<p>Implement correct logic for <code>maximum</code> + <code>higher_is_better</code>, <code>exact</code> target type (equality with tolerance), and <code>range</code> target type (value between min and max). All three are already documented in tests — the tests should be updated to expect correct behavior, then the implementation fixed.</p>
+
+<!-- ===== 20. RECONCILIATION ===== -->
+<h2 id="recon">20. Proposed Reconciliation System</h2>
+
+<div class="summary-box">
+<p>A reconciliation system already exists (<code>reconciliation_runs</code> + <code>reconciliation_results</code> tables, engine in <code>src/lib/domain/reconciliation/engine.ts</code>, UI at <code>/reconciliation</code>).</p>
+</div>
+
+<h3>Current state</h3>
+<p>The existing reconciliation compares <code>metricValues</code> against re-aggregated <code>normalizedFacts</code>. This catches drift between the two Cadence layers but does NOT compare against the authoritative external source.</p>
+
+<h3>Proposed enhancement</h3>
+<ol>
+<li><strong>Source-side reconciliation:</strong> For each reconciliation run, fetch fresh counts directly from the Zendesk API (e.g., re-run the search query for a specific employee+period) and compare against the Cadence <code>metricValue</code>. This is the true source-of-truth comparison the spec requires.</li>
+<li><strong>Metric-specific tolerances:</strong> Ticket counts: 0 tolerance. Percentages: 0.5% tolerance (rounding). Durations: 0.5min tolerance.</li>
+<li><strong>Automated scheduling:</strong> Run reconciliation for the prior completed week after each sync, not just on-demand.</li>
+</ol>
+
+<!-- ===== 21. EXPLAIN METRIC ===== -->
+<h2 id="explain">21. Proposed Explain Metric</h2>
+
+<h3>Interface</h3>
+<p>Admin/developer tool accessible via a query parameter or admin-only button on the employee page. Accepts: <code>employeeId</code>, <code>metricKey</code>, <code>periodStart</code>, <code>periodEnd</code>.</p>
+
+<h3>Output</h3>
+<p>A structured diagnostic showing the full pipeline trace for one metric, one employee, one period:</p>
+<ul>
+<li>Metric definition (key, category, unit, direction, calculationType, sourceStrategy)</li>
+<li>Assignment (team, display order, isPrimary)</li>
+<li>Resolved target (value, type, source level, priority)</li>
+<li>Data source (type, last successful sync, time since sync)</li>
+<li>Source records (count, qualifying count, employee-matched count)</li>
+<li>Normalized facts (count, rejected facts with reasons)</li>
+<li>Calculation (type, input values, result, version)</li>
+<li>For ratio metrics: numerator / denominator</li>
+<li>MetricValue (numeric value, quality status, freshness)</li>
+<li>Observations derived from this metric</li>
+</ul>
+
+<h3>Implementation</h3>
+<p>A server action or API route that queries across <code>metricDefinitions</code>, <code>metricAssignments</code>, <code>metricTargets</code>, <code>dataSources</code>, <code>syncRuns</code>, <code>sourceRecords</code>, <code>normalizedFacts</code>, <code>metricValues</code>, and <code>metricObservations</code> for the specified employee+metric+period. Returns a structured JSON object rendered by a client component. Platform admin only.</p>
+
+<!-- ===== 22. DATA HEALTH ===== -->
+<h2 id="datahealth">22. Proposed Data Health Changes</h2>
+
+<h3>Current state</h3>
+<p>The Data Health page shows: source connection status, last sync time, records ingested/normalized/skipped/errored per sync run. This is functional but limited.</p>
+
+<h3>Proposed additions</h3>
+<ul>
+<li><strong>Unmatched identities:</strong> Show external IDs that failed <code>resolveEmployeeId()</code> — currently silently dropped.</li>
+<li><strong>Stale metrics:</strong> Flag metricValues where <code>dataFreshnessAt</code> is older than the expected freshness window (e.g., 26 hours for daily sync).</li>
+<li><strong>Fact validation failures:</strong> If fact validation is added, surface rejected facts with reasons.</li>
+<li><strong>Volume anomaly detection:</strong> Compare current sync's <code>recordsIngested</code> against a rolling average. Flag if < 50% of typical volume.</li>
+<li><strong>Reconciliation summary:</strong> Show latest reconciliation pass/fail counts inline.</li>
+<li><strong>Per-metric coverage:</strong> For each assigned metric, show how many employees have data vs. how many should.</li>
+</ul>
+
+<!-- ===== 23. 1:1 HIERARCHY ===== -->
+<h2 id="oneone-rebuild">23. Proposed 1:1 Hierarchy</h2>
+
+<div class="summary-box">
+<p>The 1:1 page was already rebuilt as a continuous page with the correct section order. The structural work is done. Remaining changes are data-quality and metric-integrity improvements that feed into the existing sections.</p>
+</div>
+
+<h3>Current section order (already implemented)</h3>
+<ol>
+<li>Header (employee name, team, period, freshness, Rippling link)</li>
+<li>Section Nav (sticky anchor bar)</li>
+<li>Summary (takeaway, at-a-glance, What Changed, Recognize, Discuss)</li>
+<li>Scorecard (metrics table grouped by category)</li>
+<li>Discussion (topics + suggested questions)</li>
+<li>Attendance (points, events, log form)</li>
+<li>Tickets (reviews with category badges)</li>
+<li>Coaching (records with metric links)</li>
+<li>Actions (items with owner/priority/due)</li>
+<li>Notes (autosave form)</li>
+<li>History (expandable past meetings)</li>
+</ol>
+
+<h3>Changes needed in existing sections</h3>
+<ul>
+<li><strong>Scorecard:</strong> Add data quality indicators (STALE, PARTIAL, NO_DATA badges). Add freshness tooltip per metric. Extend <code>CATEGORY_LABELS</code> to be data-driven.</li>
+<li><strong>Summary:</strong> Do not generate observations from metrics with quality status other than COMPLETE. Show period completeness context ("week-to-date" vs "full week").</li>
+<li><strong>Header:</strong> Remove hardcoded <code>"Support Specialist"</code> fallback. Show data freshness indicator.</li>
+</ul>
+
+<!-- ===== 24. MIGRATION ===== -->
+<h2 id="migration">24. Migration / Backfill Implications</h2>
+
+<h3>normalizedFacts dedup cleanup</h3>
+<p>Before adding a unique constraint, existing duplicates must be cleaned. Strategy: identify duplicate groups by <code>(employeeId, factType, periodStart, periodEnd, dataSourceId)</code>, keep the most recent row (by <code>created_at</code>), delete the rest. Then add the constraint. Run this as a one-time migration script, not a Drizzle migration.</p>
+
+<h3>metricValues period_status backfill</h3>
+<p>All existing metricValues can be set to <code>'complete'</code> since they're for past periods. Only future writes need the open/complete distinction.</p>
+
+<h3>Historical backfill</h3>
+<p>If the sync is enhanced with deeper history (beyond 4 weeks), implement as a separate idempotent script that processes one week at a time with progress tracking. Must not interfere with daily live sync.</p>
+
+<!-- ===== 25. TEST STRATEGY ===== -->
+<h2 id="test">25. Test Strategy</h2>
+
+<h3>Golden Dataset</h3>
+<p>A golden dataset fixture already exists at <code>src/lib/fixtures/golden-dataset.ts</code> with manually computed expected values. Extend it to cover:</p>
+<ul>
+<li>All 5 working metrics + CSAT (when fixed)</li>
+<li>Edge cases: zero values, null values, single-fact periods, duplicate facts</li>
+<li>Team aggregation: employees with different volumes to verify weighted averaging</li>
+<li>Target resolution: employee > role > team > org precedence</li>
+<li>Period completeness: partial vs complete week comparisons</li>
+</ul>
+
+<h3>Sync idempotency tests</h3>
+<p>For each connector: run sync, run same sync again, verify identical fact/value counts. Currently no such test exists.</p>
+
+<h3>Reconciliation tests</h3>
+<p>Use golden dataset to verify <code>metricValue</code> matches independently computed expected values with metric-specific tolerances.</p>
+
+<h3>Fact validation tests</h3>
+<p>Test rejection of: NaN, Infinity, negative counts, invalid percentages, invalid timestamps, missing required fields.</p>
+
+<h3>Existing test coverage</h3>
+<p>11 test files exist covering: observations, connectors, reconciliation, authorization, roster, briefings, week dates, compute values, metrics queries, target resolution. These form a good foundation to build on.</p>
+
+<!-- ===== 26. PHASES ===== -->
+<h2 id="phases">26. Implementation Phases</h2>
+
+<h3>Phase 1: Fix Critical Data Integrity</h3>
+<p><em>Addresses: IDEM-01, SYNC-01, SYNC-02, PAG-01</em></p>
+<ul>
+<li>Add retry/backoff to <code>zendeskGet()</code> and <code>assembledGet()</code></li>
+<li>Fix normalizedFacts deduplication (delete-before-insert or upsert)</li>
+<li>Clean up existing duplicate facts in production</li>
+<li>Fix Assembled pagination in <code>ensurePeople()</code> and <code>discoverRoster()</code></li>
+<li>Add sync idempotency tests</li>
+</ul>
+
+<h3>Phase 2: Investigate CSAT</h3>
+<p><em>Addresses: CSAT failure</em></p>
+<ul>
+<li>Verify Zendesk CSAT survey configuration (requires admin access)</li>
+<li>If surveys are enabled: test the API directly with a minimal script</li>
+<li>If surveys are not enabled: document as BLOCKED_BY_SOURCE, remove assignment, update seed</li>
+<li>If the API issue is fixable: verify end-to-end flow from API → UI</li>
+</ul>
+
+<h3>Phase 3: Harden Metric Calculations</h3>
+<p><em>Addresses: CALC-01, CALC-02, CALC-03, CALC-04, TGT-01</em></p>
+<ul>
+<li>Fix team aggregation (weighted average for rates/percentages)</li>
+<li>Fix "latest" ordering (explicit timestamp sort)</li>
+<li>Fix change detection edge cases (0→N, null current)</li>
+<li>Fix evaluateStatus bugs (maximum+higher_is_better, exact, range)</li>
+<li>Extend golden dataset tests for all fixes</li>
+</ul>
+
+<h3>Phase 4: Period Completeness & Observations</h3>
+<p><em>Addresses: TZ-02, CALC-05, TGT-03</em></p>
+<ul>
+<li>Add period_status to metricValues schema</li>
+<li>Mark current-week values as OPEN, prior-week as COMPLETE</li>
+<li>Adjust briefing engine to not compare partial vs complete periods without context</li>
+<li>Wire detectObservations() into sync pipeline</li>
+<li>Add effective-date filtering to target resolution</li>
+</ul>
+
+<h3>Phase 5: Data Quality & Explain Metric</h3>
+<p><em>Addresses: Explain Metric, Data Health enhancements, fact validation</em></p>
+<ul>
+<li>Build Explain Metric diagnostic tool (platform admin only)</li>
+<li>Add fact validation (reject NaN, Infinity, negative counts, etc.)</li>
+<li>Surface unmatched identities in Data Health</li>
+<li>Add stale metric detection and volume anomaly warnings</li>
+<li>Add per-metric coverage display</li>
+</ul>
+
+<h3>Phase 6: Source Reconciliation & Golden Dataset</h3>
+<p><em>Addresses: reconciliation enhancement, golden dataset</em></p>
+<ul>
+<li>Extend reconciliation to compare against fresh Zendesk API data (not just internal facts vs values)</li>
+<li>Add metric-specific tolerances</li>
+<li>Expand golden dataset to cover all working metrics</li>
+<li>Add CI-failing tests for unexpected calculation changes</li>
+<li>Add data invariant checks (counts >= 0, percentages 0-100, etc.)</li>
+</ul>
+
+<h3>Phase 7: Scorecard UI Polish</h3>
+<p><em>Addresses: quality indicators, freshness, category labels</em></p>
+<ul>
+<li>Add STALE/PARTIAL/NO_DATA badges to scorecard cells</li>
+<li>Add freshness tooltip per metric</li>
+<li>Make category labels data-driven (from metricDefinitions.category)</li>
+<li>Remove hardcoded "Support Specialist" fallback</li>
+<li>Extract brand color to CSS variable</li>
+</ul>
+
+<h3>Phase 8: New Metrics (one at a time)</h3>
+<p><em>For each: SOURCE VERIFIED → FORMULA VERIFIED → PIPELINE VERIFIED → RECONCILIATION PASS → TEST PASS</em></p>
+<ul>
+<li>Reopen Rate (Zendesk ticket status transitions)</li>
+<li>SLA Breaches (Zendesk SLA policies API)</li>
+<li>Oldest Ticket (min created_at from backlog, snapshot semantics)</li>
+<li>Current Attendance Points (from existing getAttendanceSummary)</li>
+<li>Rolling 90-Day Unplanned (from existing getAttendanceSummary)</li>
+</ul>
+
+<h3>Phase 9: Performance</h3>
+<ul>
+<li>Profile key pages (Home, Team, Employee, 1:1)</li>
+<li>Eliminate duplicate metric fetch in 1:1 page</li>
+<li>Add targeted caching (React cache + revalidation on sync completion)</li>
+<li>Add missing DB indexes based on measured query plans</li>
+<li>Consider sync parallelism for multiple data sources</li>
+</ul>
+
+<h3>Deferred (blocked by external decisions)</h3>
+<ul>
+<li>Phone system connector (blocked by: which phone system?)</li>
+<li>Availability metrics (blocked by: Assembled API limitations + roster coverage)</li>
+<li>Productivity % (blocked by: business definition of denominator)</li>
+<li>Elevated tickets (blocked by: business definition)</li>
+<li>FCR (blocked by: business definition + source)</li>
+<li>NPS (blocked by: source identification)</li>
+<li>Rippling live integration (blocked by: API access confirmation)</li>
+</ul>
+
+<hr style="margin-top: 3rem; border: none; border-top: 2px solid var(--border);">
+<p style="color: var(--text-tertiary); font-size: 0.8rem; text-align: center;">Cadence Rebuild Planning Report · Generated 2026-09-02 · Awaiting approval before implementation</p>

@@ -1,0 +1,1585 @@
+<title>Cadence Experience Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --navy: #1a2744;
+  --teal: #0ea5a0;
+  --teal-dim: #0d8a86;
+  --slate: #3d4f6b;
+  --mist: #e8ecf1;
+  --cloud: #f4f6f9;
+  --bone: #fafbfc;
+  --ink: #111927;
+  --body: #384457;
+  --caption: #6b7a8d;
+  --surface: #ffffff;
+  --border: #dfe4eb;
+  --accent-bg: rgba(14, 165, 160, 0.07);
+  --green: #1a8d5f;
+  --amber: #c27b1a;
+  --red: #c43c3c;
+  --green-bg: #ecf7f1;
+  --amber-bg: #fef6e8;
+  --red-bg: #fdf0f0;
+  --font-display: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --measure: 68ch;
+  --page-max: 960px;
+  --gap-section: 3.5rem;
+  --gap-block: 1.75rem;
+  --radius: 3px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --navy: #c9d3e2;
+    --teal: #2ccec8;
+    --teal-dim: #29b8b3;
+    --slate: #9eafc6;
+    --mist: #232e3e;
+    --cloud: #1a2333;
+    --bone: #141c28;
+    --ink: #e8ecf1;
+    --body: #b8c4d4;
+    --caption: #7d8da0;
+    --surface: #1e2836;
+    --border: #2d3a4d;
+    --accent-bg: rgba(44, 206, 200, 0.08);
+    --green: #3cc98a;
+    --amber: #e0a030;
+    --red: #e05858;
+    --green-bg: rgba(60, 201, 138, 0.1);
+    --amber-bg: rgba(224, 160, 48, 0.1);
+    --red-bg: rgba(224, 88, 88, 0.1);
+  }
+}
+
+:root[data-theme="dark"] {
+  --navy: #c9d3e2;
+  --teal: #2ccec8;
+  --teal-dim: #29b8b3;
+  --slate: #9eafc6;
+  --mist: #232e3e;
+  --cloud: #1a2333;
+  --bone: #141c28;
+  --ink: #e8ecf1;
+  --body: #b8c4d4;
+  --caption: #7d8da0;
+  --surface: #1e2836;
+  --border: #2d3a4d;
+  --accent-bg: rgba(44, 206, 200, 0.08);
+  --green: #3cc98a;
+  --amber: #e0a030;
+  --red: #e05858;
+  --green-bg: rgba(60, 201, 138, 0.1);
+  --amber-bg: rgba(224, 160, 48, 0.1);
+  --red-bg: rgba(224, 88, 88, 0.1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bone);
+  color: var(--body);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.page {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 3rem 2rem 6rem;
+}
+
+/* Header */
+.doc-header {
+  padding-bottom: var(--gap-section);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--gap-section);
+}
+
+.doc-eyebrow {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 1rem;
+}
+
+.doc-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--ink);
+  text-wrap: balance;
+  max-width: 20ch;
+}
+
+.doc-subtitle {
+  font-size: 16px;
+  color: var(--caption);
+  margin-top: 0.75rem;
+  max-width: var(--measure);
+  line-height: 1.6;
+}
+
+.doc-meta {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1.25rem;
+  font-size: 12px;
+  color: var(--caption);
+  font-weight: 500;
+}
+
+.doc-meta span::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--teal);
+  margin-right: 0.5rem;
+  vertical-align: 1px;
+}
+
+/* TOC */
+.toc {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem 2rem;
+  margin-bottom: var(--gap-section);
+}
+
+.toc-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--caption);
+  margin-bottom: 1rem;
+}
+
+.toc-list {
+  list-style: none;
+  columns: 2;
+  column-gap: 2rem;
+}
+
+.toc-list li {
+  break-inside: avoid;
+  padding: 0.25rem 0;
+}
+
+.toc-list a {
+  font-size: 13px;
+  color: var(--slate);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.toc-list a:hover { color: var(--teal); }
+
+.toc-list .toc-num {
+  font-variant-numeric: tabular-nums;
+  color: var(--caption);
+  margin-right: 0.5rem;
+  font-size: 12px;
+}
+
+/* Sections */
+.section {
+  margin-top: var(--gap-section);
+}
+
+.section + .section {
+  padding-top: var(--gap-section);
+  border-top: 1px solid var(--border);
+}
+
+.section-num {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 0.5rem;
+}
+
+h2 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.3;
+  text-wrap: balance;
+  margin-bottom: var(--gap-block);
+}
+
+h3 {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-top: var(--gap-block);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+h4 {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--slate);
+  margin-top: 1.25rem;
+  margin-bottom: 0.35rem;
+}
+
+p {
+  max-width: var(--measure);
+  margin-bottom: 0.75rem;
+}
+
+p:last-child { margin-bottom: 0; }
+
+strong { color: var(--ink); font-weight: 600; }
+
+em { font-family: var(--font-display); font-style: italic; }
+
+/* Lists */
+ul, ol {
+  max-width: var(--measure);
+  padding-left: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+li {
+  margin-bottom: 0.35rem;
+}
+
+li::marker {
+  color: var(--caption);
+}
+
+/* Callout boxes */
+.callout {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--teal);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin: var(--gap-block) 0;
+  font-size: 14px;
+}
+
+.callout-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 0.35rem;
+}
+
+.callout.warn {
+  border-left-color: var(--amber);
+}
+.callout.warn .callout-label { color: var(--amber); }
+
+.callout.good {
+  border-left-color: var(--green);
+}
+.callout.good .callout-label { color: var(--green); }
+
+/* Verdict cards */
+.verdict-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: var(--gap-block) 0;
+}
+
+.verdict {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+}
+
+.verdict-keep { border-top: 2px solid var(--green); }
+.verdict-change { border-top: 2px solid var(--amber); }
+.verdict-add { border-top: 2px solid var(--teal); }
+.verdict-remove { border-top: 2px solid var(--red); }
+
+.verdict-tag {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.verdict-keep .verdict-tag { color: var(--green); }
+.verdict-change .verdict-tag { color: var(--amber); }
+.verdict-add .verdict-tag { color: var(--teal); }
+.verdict-remove .verdict-tag { color: var(--red); }
+
+.verdict p {
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* Decision list */
+.decision-list {
+  list-style: none;
+  padding: 0;
+  margin: var(--gap-block) 0;
+}
+
+.decision-list li {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.decision-list li:last-child { border-bottom: none; }
+
+.decision-marker {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+.lock .decision-marker {
+  background: var(--green-bg);
+  color: var(--green);
+}
+
+.flex-item .decision-marker {
+  background: var(--amber-bg);
+  color: var(--amber);
+}
+
+/* Token table */
+.token-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--gap-block) 0;
+  font-size: 13px;
+}
+
+.token-table th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--caption);
+  padding: 0.5rem 0.75rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.token-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.token-table tr:last-child td { border-bottom: none; }
+
+.token-table code {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  background: var(--cloud);
+  padding: 0.1rem 0.35rem;
+  border-radius: 2px;
+  color: var(--slate);
+}
+
+.swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  vertical-align: -2px;
+  margin-right: 0.4rem;
+  border: 1px solid var(--border);
+}
+
+/* Phase order */
+.phase-list {
+  list-style: none;
+  padding: 0;
+  margin: var(--gap-block) 0;
+  counter-reset: phase;
+}
+
+.phase-list li {
+  counter-increment: phase;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.phase-list li:last-child { border-bottom: none; }
+
+.phase-num {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent-bg);
+  color: var(--teal);
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.phase-num::before { content: counter(phase); }
+
+.phase-body { flex: 1; }
+
+.phase-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.phase-desc {
+  font-size: 13px;
+  color: var(--body);
+  margin-top: 0.2rem;
+}
+
+.phase-why {
+  font-size: 12px;
+  color: var(--caption);
+  margin-top: 0.3rem;
+  font-style: italic;
+  font-family: var(--font-display);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .page { padding: 2rem 1.25rem 4rem; }
+  .toc-list { columns: 1; }
+  .verdict-grid { grid-template-columns: 1fr; }
+  .doc-meta { flex-direction: column; gap: 0.5rem; }
+}
+</style>
+
+<div class="page">
+
+<header class="doc-header">
+  <div class="doc-eyebrow">HungerRush Cadence</div>
+  <h1 class="doc-title">UX, Visual &amp; Frontend Experience Plan</h1>
+  <p class="doc-subtitle">A senior-level design review of the four core experiences, comparing the visual mockups against the current implementation, with a concrete plan for turning Cadence into a polished production application.</p>
+  <div class="doc-meta">
+    <span>August 2026</span>
+    <span>Pre-implementation blueprint</span>
+    <span>For review before development</span>
+  </div>
+</header>
+
+<!-- TOC -->
+<nav class="toc" aria-label="Table of contents">
+  <div class="toc-title">Contents</div>
+  <ol class="toc-list">
+    <li><a href="#s1"><span class="toc-num">01</span>Executive design direction</a></li>
+    <li><a href="#s2"><span class="toc-num">02</span>Product UX principles</a></li>
+    <li><a href="#s3"><span class="toc-num">03</span>Home experience</a></li>
+    <li><a href="#s4"><span class="toc-num">04</span>Team experience</a></li>
+    <li><a href="#s5"><span class="toc-num">05</span>Employee experience</a></li>
+    <li><a href="#s6"><span class="toc-num">06</span>1:1 Preparation experience</a></li>
+    <li><a href="#s7"><span class="toc-num">07</span>Navigation and application shell</a></li>
+    <li><a href="#s8"><span class="toc-num">08</span>Reusable component system</a></li>
+    <li><a href="#s9"><span class="toc-num">09</span>Design token system</a></li>
+    <li><a href="#s10"><span class="toc-num">10</span>Motion and interaction system</a></li>
+    <li><a href="#s11"><span class="toc-num">11</span>Data-state system</a></li>
+    <li><a href="#s12"><span class="toc-num">12</span>Responsive strategy</a></li>
+    <li><a href="#s13"><span class="toc-num">13</span>Accessibility strategy</a></li>
+    <li><a href="#s14"><span class="toc-num">14</span>Performance strategy</a></li>
+    <li><a href="#s15"><span class="toc-num">15</span>Visualization strategy</a></li>
+    <li><a href="#s16"><span class="toc-num">16</span>Future-proofing strategy</a></li>
+    <li><a href="#s17"><span class="toc-num">17</span>Mockup improvements</a></li>
+    <li><a href="#s18"><span class="toc-num">18</span>Frontend architecture</a></li>
+    <li><a href="#s19"><span class="toc-num">19</span>Risks and over-engineering</a></li>
+    <li><a href="#s20"><span class="toc-num">20</span>Final recommended direction</a></li>
+    <li><a href="#lock"><span class="toc-num">&mdash;</span>Decisions to lock in</a></li>
+    <li><a href="#flex"><span class="toc-num">&mdash;</span>Decisions to keep flexible</a></li>
+    <li><a href="#order"><span class="toc-num">&mdash;</span>Implementation order</a></li>
+  </ol>
+</nav>
+
+<!-- ============================================================ -->
+<!-- SECTION 1 -->
+<!-- ============================================================ -->
+<section class="section" id="s1">
+  <div class="section-num">01</div>
+  <h2>Executive Design Direction</h2>
+
+  <p>The mockups establish a strong visual direction. The gap between them and the current implementation is not conceptual&mdash;the right information is on each page&mdash;but one of <strong>execution quality</strong>: typography scale, spatial rhythm, component polish, interaction states, and the sense of confidence a manager feels when the application loads.</p>
+
+  <p>The mockups look like a product someone paid for. The current implementation looks like the engineering prototype behind it. Closing that gap is the work.</p>
+
+  <h3>What the gap consists of</h3>
+  <ul>
+    <li><strong>Brand presence.</strong> The mockups show the HungerRush logo mark and wordmark in the sidebar, with "CADENCE" as a sub-brand in teal. The current sidebar shows only "CADENCE" in white text&mdash;no logo, no brand hierarchy.</li>
+    <li><strong>Typography scale.</strong> The current implementation uses a narrow range of sizes (text-sm / text-xs / text-xl) applied somewhat uniformly. The mockups use a more deliberate hierarchy: large greeting headings, clear section labels in uppercase tracking, well-sized data figures.</li>
+    <li><strong>Spatial rhythm.</strong> The current <code>p-8</code> content padding is uniform and generous but the internal spacing within sections is tight and inconsistent. The mockups have more breathing room between sections and more compact internal density&mdash;the opposite pattern.</li>
+    <li><strong>Component refinement.</strong> The current StatCards, filter pills, pagination, and table rows are functional but lack the visual weight and polish of the mockup equivalents. The mockups' status summary cards have colored left-accent icons with distinct backgrounds; the current ones have smaller icons with less visual separation.</li>
+    <li><strong>Interactive states.</strong> The current implementation has minimal hover states (underlines on links, background changes on nav items). The mockups imply richer interaction: hover rows in tables, hover elevation on cards, clickable metric rows with drill-down.</li>
+    <li><strong>No dark mode.</strong> Tokens are declared but no dark palette exists.</li>
+  </ul>
+
+  <h3>Design stance</h3>
+  <p>The direction is right. This is not a redesign. It is a <strong>refinement pass</strong>&mdash;promoting the existing prototype to the visual quality the mockups promise, while correcting specific layout and interaction decisions that won't hold up in production use.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 2 -->
+<!-- ============================================================ -->
+<section class="section" id="s2">
+  <div class="section-num">02</div>
+  <h2>Product UX Principles</h2>
+
+  <p>These principles should govern every design and implementation decision. They are derived from PRODUCT.md but sharpened for the frontend.</p>
+
+  <h3>1. The manager's time is the interface</h3>
+  <p>Every element exists to save a manager time before a conversation. If something doesn't contribute to the question the page answers, it creates cognitive load that slows the manager down. The default should always be <em>remove</em>, not add.</p>
+
+  <h3>2. Briefing, not dashboard</h3>
+  <p>Dashboards show everything. Briefings show what matters. Home and 1:1 Prep are briefings&mdash;they should feel editorial, with clear hierarchy and narrative flow. Team and Employee are analytical&mdash;they should feel efficient and scannable. None of the four should feel like a reporting portal.</p>
+
+  <h3>3. Status through form, not just color</h3>
+  <p>A manager glancing at the Team page should be able to identify who needs attention from the shape of the row, not only from a color badge. Size, weight, icon presence, and position all carry status information.</p>
+
+  <h3>4. Progressive disclosure as navigation</h3>
+  <p>Home summarizes. Team compares. Employee explains. 1:1 Prep distills. Each page is a zoom level. The manager drills in when they need more; they should never need to drill in to understand the summary.</p>
+
+  <h3>5. Data honesty over visual comfort</h3>
+  <p>A missing value is not zero. A stale sync is not fresh data. The UI must communicate these states without making the manager anxious. Calm design, honest data.</p>
+
+  <h3>6. Metric-agnostic layouts</h3>
+  <p>The UI must work equally well whether a team has 3 metrics or 8, whether the metrics are percentages or durations or counts. No layout should depend on a specific metric count or type.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 3 -->
+<!-- ============================================================ -->
+<section class="section" id="s3">
+  <div class="section-num">03</div>
+  <h2>Home Experience</h2>
+
+  <p><strong>Question:</strong> <em>"What happened this week that I need to know?"</em></p>
+
+  <h3>Current state</h3>
+  <p>The current Home page has the right sections: greeting, stat cards, needs-attention items, improvements, upcoming 1:1s, and team performance tables. The information hierarchy is correct. The problems are visual polish and density calibration.</p>
+
+  <div class="verdict-grid">
+    <div class="verdict verdict-keep">
+      <div class="verdict-tag">Keep</div>
+      <p>Time-of-day greeting with the manager's name. Sets a personal, calm tone. The mockup does the same.</p>
+    </div>
+    <div class="verdict verdict-keep">
+      <div class="verdict-tag">Keep</div>
+      <p>4-stat summary row (Employees, On Track, To Watch, Needs Attention). The mockup validates this layout. It's the right opening signal.</p>
+    </div>
+    <div class="verdict verdict-change">
+      <div class="verdict-tag">Change</div>
+      <p><strong>Stat cards need more visual weight.</strong> The mockup shows each stat card as a distinct bordered box with a colored status icon on a tinted background circle. Current StatCards feel lighter and less scannable. Match the mockup's treatment: larger numbers, clearer icon containers, subtle status-colored icon backgrounds.</p>
+    </div>
+    <div class="verdict verdict-change">
+      <div class="verdict-tag">Change</div>
+      <p><strong>Content width.</strong> Current <code>max-w-5xl</code> (64rem) is narrower than the mockup suggests. The Home page should use a wider container (around 72rem / <code>max-w-6xl</code>) for the 3-column layout to breathe. The mockup clearly has more horizontal room.</p>
+    </div>
+    <div class="verdict verdict-change">
+      <div class="verdict-tag">Change</div>
+      <p><strong>"Needs attention" and "Improvements" are side-by-side columns in the mockup, not stacked.</strong> The mockup uses a clear two-column split within the left 2/3 of a 3-column grid. Current implementation nests them in <code>md:grid-cols-2 lg:col-span-2</code> which works, but the visual treatment needs polish: the mockup uses section headers in red/teal uppercase with employee avatar cards, not just plain Card components with alert-triangle icons.</p>
+    </div>
+    <div class="verdict verdict-add">
+      <div class="verdict-tag">Add</div>
+      <p><strong>Period navigation.</strong> The mockup shows left/right arrows and a date range display for navigating between weeks. The current implementation is locked to the current week with no way to look back. Add a simple prev/next week navigation.</p>
+    </div>
+    <div class="verdict verdict-add">
+      <div class="verdict-tag">Add</div>
+      <p><strong>Employee avatars in the attention/improvement cards.</strong> The mockup shows face photos (or avatar fallbacks) next to each employee name. This creates a human connection the icon-only current version lacks. Add Avatar components to these cards.</p>
+    </div>
+    <div class="verdict verdict-change">
+      <div class="verdict-tag">Change</div>
+      <p><strong>Team Performance table styling.</strong> The mockup shows status badges (colored pills) in the performance table and more prominent metric sparklines. The current table is plain text with small sparklines. Add StatusBadge for the status column and increase sparkline width.</p>
+    </div>
+  </div>
+
+  <h3>Information hierarchy (recommended)</h3>
+  <ol>
+    <li><strong>Greeting + period + freshness</strong>&mdash;one line of orientation</li>
+    <li><strong>Status distribution cards</strong>&mdash;four stat boxes, always visible</li>
+    <li><strong>This Week (attention + improvements) + Upcoming 1:1s</strong>&mdash;the core briefing, 3 columns</li>
+    <li><strong>Team Performance summary table</strong>&mdash;the metrics context, scrollable if needed</li>
+  </ol>
+
+  <h3>Loading state</h3>
+  <p>Show skeleton cards for the stat row immediately. Stream the briefing content below as data resolves using Suspense boundaries. The manager should see the page structure within 200ms; content fills in progressively.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 4 -->
+<!-- ============================================================ -->
+<section class="section" id="s4">
+  <div class="section-num">04</div>
+  <h2>Team Experience</h2>
+
+  <p><strong>Question:</strong> <em>"How is everyone doing?"</em></p>
+
+  <h3>Current state</h3>
+  <p>The current Team page renders each team as a separate section with a TeamRosterTable. The table has filter chips, search, pagination, and the right columns. The main gaps are: no team-level summary stats above the table, no filter dropdowns for team/period/view selection (the mockup shows all four), no "Metrics View" alternate tab, and no Export button.</p>
+
+  <div class="verdict-grid">
+    <div class="verdict verdict-keep">
+      <div class="verdict-tag">Keep</div>
+      <p><strong>Filter pill chips</strong> (All, Improving, Declining, Needs Attention, No Change). The mockup has the same pattern. Keep the <code>aria-pressed</code> attribute.</p>
+    </div>
+    <div class="verdict verdict-keep">
+      <div class="verdict-tag">Keep</div>
+      <p><strong>Table columns</strong>. Employee (avatar + name + title), Status, Key Change, This Week, Trend sparkline, 1:1 Upcoming, Action arrow. This matches the mockup closely.</p>
+    </div>
+    <div class="verdict verdict-add">
+      <div class="verdict-tag">Add</div>
+      <p><strong>Team summary bar above the table.</strong> The mockup shows a horizontal row of colored stat cards (Employees, On Track, Watch, Needs Attention) plus a "Team Trend (Overall)" indicator. This is the same pattern as Home's stat row. Add it.</p>
+    </div>
+    <div class="verdict verdict-change">
+      <div class="verdict-tag">Change</div>
+      <p><strong>Simplify the mockup's filter bar.</strong> The mockup shows 4 dropdown selectors (Team, Period, View, Filter) plus search. This is overbuilt for the pilot's two 12-person teams. Start with: a Team selector (only if the manager has multiple teams), the status filter chips, and search. Period and View toggles add later once there's user demand. Don't build UI for hypothetical use cases.</p>
+    </div>
+    <div class="verdict verdict-change">
+      <div class="verdict-tag">Change</div>
+      <p><strong>Table row hover state.</strong> The mockup implies rows are clickable (arrow button on the right). Add a subtle background highlight on hover for the entire row to signal interactivity, not just the arrow button.</p>
+    </div>
+    <div class="verdict verdict-change">
+      <div class="verdict-tag">Change</div>
+      <p><strong>Avatar size.</strong> Current avatars are 28px (<code>h-7 w-7</code>). The mockup shows slightly larger ones (~32-36px) with more visual presence. Increase to <code>h-8 w-8</code>.</p>
+    </div>
+    <div class="verdict verdict-remove">
+      <div class="verdict-tag">Defer</div>
+      <p><strong>"Metrics View" alternate tab and Export button.</strong> The mockup shows these but neither adds value for the pilot with its two small teams. These are real features but belong after the pilot proves the core flow. Don't build them now.</p>
+    </div>
+  </div>
+
+  <h3>Key interaction: drill-down</h3>
+  <p>Clicking any employee row (not just the arrow) should navigate to their Employee page. The entire row should be a link target. The arrow button should navigate to 1:1 Prep for that employee. These are two different destinations&mdash;make the distinction clear through placement and labeling.</p>
+
+  <div class="callout">
+    <div class="callout-label">Decision point</div>
+    <p>Should clicking a Team row go to <strong>Employee</strong> or <strong>1:1 Prep</strong>? The mockup's arrow goes to Prep. But the product's journey is Home &rarr; Team &rarr; Employee &rarr; Prep. Recommendation: row click goes to Employee, arrow button goes to Prep. This matches the natural drill-down flow and avoids skipping the analytical layer.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 5 -->
+<!-- ============================================================ -->
+<section class="section" id="s5">
+  <div class="section-num">05</div>
+  <h2>Employee Experience</h2>
+
+  <p><strong>Question:</strong> <em>"What's actually going on with this person?"</em></p>
+
+  <h3>Current state</h3>
+  <p>The Employee page is the densest of the four and has the most content. The current implementation is a single-column layout at <code>max-w-3xl</code> (48rem), which stacks everything vertically. The mockup shows a wider two-column layout with "What Changed" and "Performance Metrics" side by side, and "Historical Performance" and "Context" side by side below that.</p>
+
+  <div class="verdict-grid">
+    <div class="verdict verdict-change">
+      <div class="verdict-tag">Change</div>
+      <p><strong>Widen to two-column layout.</strong> At <code>max-w-5xl</code>+, use a 2-column grid for the metrics content area. Left column: What Changed + Historical Performance chart. Right column: Performance Metrics table + Context tabs. The mockup's side-by-side layout reduces scrolling and lets the manager scan related information simultaneously.</p>
+    </div>
+    <div class="verdict verdict-keep">
+      <div class="verdict-tag">Keep</div>
+      <p><strong>Executive summary card.</strong> The narrative text with inline stat figures is effective. Both mockup and implementation agree here.</p>
+    </div>
+    <div class="verdict verdict-change">
+      <div class="verdict-tag">Change</div>
+      <p><strong>Period selector.</strong> The mockup shows 4 options (This Week, Last Week, Last 4 Weeks, Last 12 Weeks) plus a calendar icon. The current implementation only has This Week / Last Week. Extend to 4 options. The longer periods should aggregate metrics, not just show a single week.</p>
+    </div>
+    <div class="verdict verdict-add">
+      <div class="verdict-tag">Add</div>
+      <p><strong>Metric selector for the history chart.</strong> The mockup shows a dropdown to choose which metric's history to view. The current implementation always shows the primary metric. Add a <code>&lt;select&gt;</code> (or a small dropdown) to let the manager pick any of their metrics for the chart. This is a high-value, low-complexity addition.</p>
+    </div>
+    <div class="verdict verdict-change">
+      <div class="verdict-tag">Change</div>
+      <p><strong>Context section density.</strong> The current context section has a border around the tabs area that feels heavy. The mockup integrates context more naturally into the page flow with tab triggers that look like inline navigation, not a bordered container. Match the mockup: tab triggers as underline-style text tabs, content flows directly below without an enclosing border.</p>
+    </div>
+    <div class="verdict verdict-add">
+      <div class="verdict-tag">Add</div>
+      <p><strong>Provenance footer.</strong> The mockup shows Employee ID, Hire Date, Data Sources, and Last Updated in a subtle footer bar. The current implementation has data sources and freshness but not Employee ID or Hire Date. Add these&mdash;they're useful for the manager when cross-referencing with HR systems.</p>
+    </div>
+    <div class="verdict verdict-keep">
+      <div class="verdict-tag">Keep</div>
+      <p><strong>"Prepare 1:1" CTA in the header.</strong> Both mockup and implementation place this prominently. It's the primary action from this page.</p>
+    </div>
+  </div>
+
+  <h3>Chart interaction</h3>
+  <p>The MetricHistoryChart is currently pure SVG with no interactivity. The mockup shows a tooltip on hover showing the period dates and value. Add a hover tooltip using a lightweight approach (CSS + data attributes or a tiny client component that tracks mouse position). Do not add a charting library for this.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 6 -->
+<!-- ============================================================ -->
+<section class="section" id="s6">
+  <div class="section-num">06</div>
+  <h2>1:1 Preparation Experience</h2>
+
+  <p><strong>Question:</strong> <em>"What do I need to know before I meet this person?"</em></p>
+
+  <p>This is the most important page. It's the page that directly saves the manager time. If only one page gets the visual refinement pass, it should be this one.</p>
+
+  <h3>Current state</h3>
+  <p>The current implementation has the right content sections in the right order. The main issue is that it feels too similar to the Employee page&mdash;same density, same visual treatment. The mockup makes the 1:1 Prep page feel distinctly calmer and more meeting-focused.</p>
+
+  <div class="verdict-grid">
+    <div class="verdict verdict-change">
+      <div class="verdict-tag">Change</div>
+      <p><strong>Visual tone shift.</strong> The 1:1 Prep page should feel like a printed briefing document, not a data page. Use slightly larger body text (15px instead of 14px), more generous section spacing, and a narrower overall measure. The mockup achieves this through whitespace and card-based sections with clear borders.</p>
+    </div>
+    <div class="verdict verdict-change">
+      <div class="verdict-tag">Change</div>
+      <p><strong>Three-column middle section.</strong> The mockup uses a 3-column layout: What Changed | What to Recognize + What to Discuss | Previous Context. The current implementation uses 2 columns. The 3-column layout gives more breathing room and separates the recognition/discussion sections from the metric changes. However, on common 1366px laptop screens, three narrow columns may feel cramped. Recommendation: use 2 columns at <code>md</code> (What Changed + Recognize/Discuss on left, Context + Checklist on right), and let it stretch to 3 at <code>xl</code> if the viewport supports it.</p>
+    </div>
+    <div class="verdict verdict-keep">
+      <div class="verdict-tag">Keep</div>
+      <p><strong>"At a Glance" summary card with the trend icon.</strong> The mockup's green trend-arrow icon in a tinted circle is a nice touch. It gives instant visual confirmation of the employee's overall direction. Replicate this.</p>
+    </div>
+    <div class="verdict verdict-change">
+      <div class="verdict-tag">Change</div>
+      <p><strong>Meeting prep checklist.</strong> The current checklist has 2 pre-checked disabled checkboxes and 1 interactive one. This is decorative, not functional. The checkboxes don't persist and can't be shared. Either remove the checklist entirely (it's cargo-cult meeting prep) or make it genuinely useful by persisting checkbox state to localStorage so the manager can track their own prep progress within a session. Recommendation: keep it, persist to localStorage, and add a 4th item "Review action items from last meeting."</p>
+    </div>
+    <div class="verdict verdict-change">
+      <div class="verdict-tag">Change</div>
+      <p><strong>Suggested questions styling.</strong> The current italic + muted color treatment makes suggested questions feel like an afterthought. The mockup wraps them in cards with a teal icon, giving them more visual weight. Find a middle ground: use a subtle tinted background section (not full cards per question), with a clear "(Optional)" label so the manager doesn't feel obligated.</p>
+    </div>
+    <div class="verdict verdict-add">
+      <div class="verdict-tag">Add</div>
+      <p><strong>Header "Open in Rippling" button.</strong> The mockup places this prominently in the page header alongside a more-actions menu. Currently it's a text link in the footer. Move it up. When <code>RIPPLING_MANAGER_URL</code> is set, show it as a teal-outlined button in the header area.</p>
+    </div>
+  </div>
+
+  <div class="callout good">
+    <div class="callout-label">Strongest element</div>
+    <p>The mockup's 1:1 Prep page is the single strongest design in the set. It successfully makes a data-dense application feel like a calm meeting briefing. The information architecture&mdash;At a Glance, then Changes, then Recognition, then Discussion, then Context, then Questions, then Checklist&mdash;follows the natural flow of a manager preparing for a conversation. Preserve this flow exactly.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 7 -->
+<!-- ============================================================ -->
+<section class="section" id="s7">
+  <div class="section-num">07</div>
+  <h2>Navigation and Application Shell</h2>
+
+  <h3>Sidebar</h3>
+  <p>The mockup sidebar is substantially more polished than the current one.</p>
+
+  <div class="verdict-grid">
+    <div class="verdict verdict-change">
+      <div class="verdict-tag">Change</div>
+      <p><strong>Add the HungerRush logo.</strong> The mockup shows the brand mark (a stylized chevron/arrow) above "HUNGER RUSH" in white with "CADENCE" below in teal. Current sidebar shows only "CADENCE". The brand mark anchors the application's identity. Add it as an inline SVG.</p>
+    </div>
+    <div class="verdict verdict-change">
+      <div class="verdict-tag">Change</div>
+      <p><strong>Navigation item active state.</strong> The mockup uses a filled teal background pill for the active item, with a white icon and label. The current implementation uses a slightly lighter navy (<code>bg-sidebar-accent</code>). The mockup's treatment is more visually distinct. Match it: the active item should have a teal-tinted background with white text, clearly different from hover states on inactive items.</p>
+    </div>
+    <div class="verdict verdict-change">
+      <div class="verdict-tag">Change</div>
+      <p><strong>Sidebar sections.</strong> The mockup separates primary navigation (Home, Team, 1:1s, Reports) from secondary items (Settings, Connections) with visual spacing. The current sidebar has Data Health, Reconciliation, and Admin mixed into primary nav. Recommendation: primary nav is Home, Team, 1:1s. Secondary (below a spacer): Settings (combines Data Health, Reconciliation, and admin functions). This reduces visual clutter.</p>
+    </div>
+    <div class="verdict verdict-keep">
+      <div class="verdict-tag">Keep</div>
+      <p><strong>User profile area</strong> at the bottom with initials avatar, name, and sign-out. Both mockup and implementation agree.</p>
+    </div>
+  </div>
+
+  <h3>Main content area</h3>
+  <p>The current <code>p-8</code> padding is reasonable. Consider reducing to <code>p-6 lg:p-8</code> so the content has more room on 1366px laptops (the most common corporate display). The view-as banner should remain at the top of the content area, not in the sidebar.</p>
+
+  <h3>Breadcrumb navigation</h3>
+  <p>The mockup shows contextual back-links ("&larr; Back to Team", "&larr; Back to Employee Profile"). The current implementation has these as footer links. Move them to the <strong>top of the page</strong>, above the page title, matching the mockup's placement. This is more discoverable and follows standard SaaS patterns.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 8 -->
+<!-- ============================================================ -->
+<section class="section" id="s8">
+  <div class="section-num">08</div>
+  <h2>Reusable Component System</h2>
+
+  <p>The current component inventory is solid: 13 domain components + 7 UI primitives. The mockups suggest a few additions and refinements.</p>
+
+  <h3>Components to refine</h3>
+
+  <h4>StatCard</h4>
+  <p>Increase the visual weight. The mockup shows: a circular colored icon container (~40px), a large number (28-32px, font-weight 700), a label below, and a detail line. The current StatCard is smaller and lighter. Match the mockup's proportions.</p>
+
+  <h4>StatusBadge</h4>
+  <p>The current badge maps 8 status values to labels and colors. This is correct. The mockup's badges are compact rounded pills with tinted backgrounds. Verify the pill sizing is consistent&mdash;padding should be <code>px-2 py-0.5</code> with <code>text-xs font-medium</code>. The current implementation appears correct but verify optical alignment.</p>
+
+  <h4>TrendSparkline</h4>
+  <p>Increase default width from 72px to ~96px. The mockup shows wider sparklines with more visual presence. The current 72x24 is too small to communicate meaningful trends with only 4 data points.</p>
+
+  <h4>MetricHistoryChart</h4>
+  <p>Add hover interaction (tooltip showing period + value). Add metric selector prop so the parent can switch between metrics. Keep the pure-SVG approach but wrap in a thin client component for mouse tracking.</p>
+
+  <h3>Components to add</h3>
+
+  <h4>TeamSummaryBar</h4>
+  <p>A horizontal bar showing the status distribution for a team (employees count, on track, watch, needs attention) plus an overall trend indicator. Used on both Home and Team pages. Renders as a row of StatCards or compact stat cells inside a bordered container.</p>
+
+  <h4>PeriodSelector</h4>
+  <p>A segmented control or button group for selecting time periods (This Week, Last Week, Last 4 Weeks, Last 12 Weeks). Used on Employee and potentially Home. Server component with URL-based state (<code>?period=</code> query param).</p>
+
+  <h4>WeekNavigator</h4>
+  <p>Left/right arrows + date range display for navigating between weeks. Used on Home. Manages state via URL query params.</p>
+
+  <h4>EmployeeCard</h4>
+  <p>A compact card showing employee avatar, name, a brief reason text, a status badge or trend sparkline, and optionally a link-out. Used in the Home page's attention/improvement sections. Currently this is inlined as JSX in the Home page; extract it.</p>
+
+  <h4>MetricChangeRow</h4>
+  <p>A single metric's week-over-week change: name, previous value, arrow, current value, trend indicator. Used on both Employee and 1:1 Prep pages. Currently duplicated in both pages' JSX; extract it.</p>
+
+  <h4>ContextTimeline</h4>
+  <p>The timeline-style context list with left border and icon dots. Used on 1:1 Prep. Currently inlined; extract for reuse on Employee's context overview tab.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 9 -->
+<!-- ============================================================ -->
+<section class="section" id="s9">
+  <div class="section-num">09</div>
+  <h2>Design Token System</h2>
+
+  <p>The current token system is well-structured: OKLCH colors, CSS custom properties mapped through Tailwind v4's <code>@theme inline</code>. The foundation is correct. Refinements needed:</p>
+
+  <h3>Typography tokens to add</h3>
+  <table class="token-table">
+    <thead>
+      <tr>
+        <th>Token</th>
+        <th>Value</th>
+        <th>Use</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>--text-page-title</code></td>
+        <td>24px / 600</td>
+        <td>Page headings (h1)</td>
+      </tr>
+      <tr>
+        <td><code>--text-section-title</code></td>
+        <td>11px / 600 / uppercase / 0.06em tracking</td>
+        <td>Section labels ("WHAT CHANGED THIS WEEK")</td>
+      </tr>
+      <tr>
+        <td><code>--text-stat-value</code></td>
+        <td>28px / 700</td>
+        <td>Large numbers in stat cards</td>
+      </tr>
+      <tr>
+        <td><code>--text-body</code></td>
+        <td>14px / 400</td>
+        <td>Default body text</td>
+      </tr>
+      <tr>
+        <td><code>--text-small</code></td>
+        <td>13px / 400</td>
+        <td>Secondary text, table cells</td>
+      </tr>
+      <tr>
+        <td><code>--text-caption</code></td>
+        <td>12px / 500</td>
+        <td>Timestamps, metadata</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Spacing tokens to add</h3>
+  <p>The current system relies on Tailwind's default spacing scale (p-8, gap-6, space-y-3, etc.). This works but creates inconsistency across pages. Define named section-level spacing:</p>
+  <table class="token-table">
+    <thead>
+      <tr>
+        <th>Token</th>
+        <th>Value</th>
+        <th>Use</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>--space-page-padding</code></td>
+        <td>24px (lg: 32px)</td>
+        <td>Main content area padding</td>
+      </tr>
+      <tr>
+        <td><code>--space-section-gap</code></td>
+        <td>32px</td>
+        <td>Between major page sections</td>
+      </tr>
+      <tr>
+        <td><code>--space-block-gap</code></td>
+        <td>16px</td>
+        <td>Between items within a section</td>
+      </tr>
+      <tr>
+        <td><code>--space-inline-gap</code></td>
+        <td>8px</td>
+        <td>Between inline elements</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Color refinements</h3>
+  <p>The current palette is good. Two additions:</p>
+  <ul>
+    <li><strong>A "surface-raised" token</strong> for elements that sit on top of the card surface (like hover states or nested containers). Currently the only distinction is <code>--card</code> (white) vs <code>--background</code> (near-white). A third level helps with hover states on cards.</li>
+    <li><strong>Dark mode palette.</strong> The <code>@custom-variant dark</code> declaration exists but has no token overrides. Define a full dark palette: navy-900 background, slightly elevated card surfaces, desaturated-but-legible status colors. This is a production app managers may use in the evening; dark mode is real, not decorative.</li>
+  </ul>
+
+  <h3>Border radius</h3>
+  <p>The current 0.5rem (8px) radius is slightly large for a professional tool. The mockups appear to use a smaller radius (~4-6px). Recommend <code>--radius: 0.375rem</code> (6px) for cards and containers, keeping <code>rounded-full</code> for pills and avatars.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 10 -->
+<!-- ============================================================ -->
+<section class="section" id="s10">
+  <div class="section-num">10</div>
+  <h2>Motion and Interaction System</h2>
+
+  <h3>Where motion should exist</h3>
+  <ul>
+    <li><strong>Page transitions:</strong> None. Server Component pages render immediately; adding cross-page transitions adds complexity for no manager benefit. Let the browser handle paint.</li>
+    <li><strong>Hover states:</strong> All interactive elements should have a 150ms ease-out transition on background-color and color. Table rows should have a subtle <code>bg-muted/50</code> hover. Card-style list items should have a very subtle shadow lift or border-color change.</li>
+    <li><strong>Focus states:</strong> A 2px teal ring offset by 2px. Visible on keyboard focus only (<code>:focus-visible</code>), not on click.</li>
+    <li><strong>Filter chip selection:</strong> 150ms background-color + border-color transition. No bounce or spring effects.</li>
+    <li><strong>Accordion/tab switching:</strong> Content should appear instantly. No slide or fade&mdash;instant swap is faster and respects the manager's scanning speed.</li>
+    <li><strong>Tooltip appearance:</strong> 100ms fade-in after a 300ms hover delay. Prevents flicker when the mouse crosses interactive elements.</li>
+    <li><strong>Loading skeletons:</strong> A single <code>animate-pulse</code> at 2s duration is correct. No shimmer effects (they draw the eye to loading rather than content).</li>
+  </ul>
+
+  <h3>Where motion should not exist</h3>
+  <ul>
+    <li>No page-load animations (fade-in-up, staggered reveals). This is a work tool, not a marketing site.</li>
+    <li>No counter-up animations on stat numbers. They slow down the manager's read.</li>
+    <li>No chart draw animations. The chart should be there when the section renders.</li>
+    <li>No skeleton-to-content crossfade. The skeleton simply disappears and the content is there.</li>
+  </ul>
+
+  <h3>Reduced motion</h3>
+  <p>Wrap all transitions in <code>@media (prefers-reduced-motion: no-preference)</code>. Under reduced motion, all state changes should be instantaneous. The <code>animate-pulse</code> on skeletons should use a static gray background instead.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 11 -->
+<!-- ============================================================ -->
+<section class="section" id="s11">
+  <div class="section-num">11</div>
+  <h2>Data-State System</h2>
+
+  <p>Every data-driven component must handle these states. The current implementation handles some but not all.</p>
+
+  <h3>State inventory</h3>
+  <table class="token-table">
+    <thead>
+      <tr>
+        <th>State</th>
+        <th>Visual treatment</th>
+        <th>Current status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Loading</strong></td>
+        <td>Skeleton shapes matching final layout dimensions</td>
+        <td>Skeleton component exists but no Suspense boundaries in pages</td>
+      </tr>
+      <tr>
+        <td><strong>Empty</strong></td>
+        <td>EmptyState component (icon + title + description)</td>
+        <td>Implemented correctly throughout</td>
+      </tr>
+      <tr>
+        <td><strong>Missing value</strong></td>
+        <td>Em-dash (&mdash;) in muted foreground, never zero</td>
+        <td>Implemented correctly (MetricValue returns &mdash; for null)</td>
+      </tr>
+      <tr>
+        <td><strong>Stale data</strong></td>
+        <td>Amber clock icon + "Updated Xd ago" text</td>
+        <td>DataFreshness marks &gt; 24h as stale. Correct.</td>
+      </tr>
+      <tr>
+        <td><strong>Partial data</strong></td>
+        <td>"3 of 5 metrics available" text + individual &mdash; values</td>
+        <td>Partially handled; no explicit "X of Y" framing</td>
+      </tr>
+      <tr>
+        <td><strong>Sync error</strong></td>
+        <td>Inline warning banner with link to Data Health</td>
+        <td>Not surfaced on manager-facing pages; only visible on Data Health</td>
+      </tr>
+      <tr>
+        <td><strong>No historical comparison</strong></td>
+        <td>Current value shown, "Previous" shows &mdash;, change shows "new"</td>
+        <td>Implemented (changeDirection === "new")</td>
+      </tr>
+      <tr>
+        <td><strong>No target configured</strong></td>
+        <td>StatusBadge shows "No target" in neutral gray</td>
+        <td>Implemented (no_target status)</td>
+      </tr>
+      <tr>
+        <td><strong>Metric without assignment</strong></td>
+        <td>Not shown (correctly filtered by assignment)</td>
+        <td>Correct</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>What to improve</h3>
+  <ul>
+    <li><strong>Add Suspense boundaries</strong> around the three data-heavy sections of each page so the page structure renders immediately and content streams in. Currently each page is a single async Server Component with no streaming.</li>
+    <li><strong>Surface sync errors on Home.</strong> If the most recent sync for any data source failed, show a small inline warning on the Home page: "Zendesk data may be stale&mdash;last sync failed 2h ago." Link to Data Health.</li>
+    <li><strong>Add "X of Y metrics available" framing</strong> to the Executive Summary when some metrics have no data. Currently it just shows the counts without making the denominator context clear.</li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 12 -->
+<!-- ============================================================ -->
+<section class="section" id="s12">
+  <div class="section-num">12</div>
+  <h2>Responsive Strategy</h2>
+
+  <p>The product is desktop-first. The primary viewport is a corporate laptop: <strong>1366x768</strong> to <strong>1920x1080</strong>. But a manager checking Cadence on an iPad or from their phone before a meeting is a realistic scenario.</p>
+
+  <h3>Breakpoints</h3>
+  <table class="token-table">
+    <thead>
+      <tr>
+        <th>Breakpoint</th>
+        <th>Target</th>
+        <th>Behavior</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>&lt; 768px</code></td>
+        <td>Phone / small tablet</td>
+        <td>Sidebar collapses to a hamburger menu. Content is single-column. Tables become card lists. Charts shrink. Period selectors become a dropdown.</td>
+      </tr>
+      <tr>
+        <td><code>768-1024px</code></td>
+        <td>Tablet / small laptop</td>
+        <td>Sidebar stays visible but narrower (48px icon-only, expandable on hover). Content uses 2-column layouts where the mockup shows 2 or 3.</td>
+      </tr>
+      <tr>
+        <td><code>1024-1440px</code></td>
+        <td>Common laptop</td>
+        <td>Full layout, sidebar expanded. Content areas at comfortable width. This is the primary target.</td>
+      </tr>
+      <tr>
+        <td><code>&gt; 1440px</code></td>
+        <td>Large monitor</td>
+        <td>Content remains max-width constrained (72rem). Whitespace fills sides. No stretching to fill.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>What collapses on small screens</h3>
+  <ul>
+    <li>Stat cards: 4-column &rarr; 2-column grid</li>
+    <li>Attention/Improvements: side-by-side &rarr; stacked</li>
+    <li>Team Performance table: horizontal scroll with sticky first column</li>
+    <li>Employee 2-column layout: stacked, with "What Changed" first</li>
+    <li>1:1 Prep columns: stacked</li>
+    <li>Sparklines in tables: hidden below <code>md</code></li>
+    <li>Period selector: segmented control &rarr; compact dropdown</li>
+  </ul>
+
+  <h3>What never collapses</h3>
+  <ul>
+    <li>The greeting and stat summary on Home</li>
+    <li>Employee name, status, and executive summary</li>
+    <li>1:1 Prep "At a Glance" and "What to Discuss" sections</li>
+    <li>Navigation (just changes form)</li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 13 -->
+<!-- ============================================================ -->
+<section class="section" id="s13">
+  <div class="section-num">13</div>
+  <h2>Accessibility Strategy</h2>
+
+  <p>Accessibility is already partially in place: <code>aria-pressed</code> on filter chips, <code>aria-current</code> on pagination, Radix tabs with real ARIA roles, <code>sr-only</code> captions on tables, and <code>role="status"</code> on empty states. What's missing:</p>
+
+  <h3>Heading hierarchy</h3>
+  <p>Currently inconsistent. Some pages use <code>&lt;h1&gt;</code> for the page title and <code>&lt;h2&gt;</code> for sections, but BriefingSection uses bold text, not a heading element. Standardize: every page has one <code>&lt;h1&gt;</code>, each major section has an <code>&lt;h2&gt;</code>, sub-sections use <code>&lt;h3&gt;</code>. BriefingSection's title prop should render as <code>&lt;h2&gt;</code> (or accept a heading-level prop).</p>
+
+  <h3>Chart accessibility</h3>
+  <p>The SVG sparklines and history chart have no text alternatives. Add <code>role="img"</code> and <code>aria-label</code> to each SVG describing the trend ("FCR trend over 4 weeks: improving from 72% to 81%"). For the larger MetricHistoryChart, also provide a visually-hidden data table as an alternative.</p>
+
+  <h3>Focus management</h3>
+  <p>When a filter chip is selected on the Team page, focus should remain on the chip group, not jump. When tab content changes, the content panel should not steal focus. These are standard Radix behaviors but verify they work correctly.</p>
+
+  <h3>Color independence</h3>
+  <p>Status badges use both color and text labels&mdash;correct. Trend indicators use both color and icon direction&mdash;correct. Sparklines use only color to indicate improving/declining. Add a secondary cue: a small dot or arrow marker at the end of the sparkline path to indicate direction independent of color.</p>
+
+  <h3>Contrast</h3>
+  <p>The current OKLCH values need verification against WCAG 2.1 AA (4.5:1 for normal text, 3:1 for large text). Specifically check: <code>--muted-foreground</code> on <code>--background</code>, and status colors on their tinted backgrounds. OKLCH perceptual uniformity helps, but verify the actual ratios.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 14 -->
+<!-- ============================================================ -->
+<section class="section" id="s14">
+  <div class="section-num">14</div>
+  <h2>Performance Strategy</h2>
+
+  <h3>Current architecture (what's right)</h3>
+  <ul>
+    <li>All four pages are async Server Components. No client-side data fetching. This is the correct foundation.</li>
+    <li>Only 4 of 20 components are client-side (<code>"use client"</code>). The client bundle is minimal.</li>
+    <li>The N+1 query issue was fixed (batched queries). Database access is efficient.</li>
+    <li>Charts are pure SVG, rendered server-side. No charting library in the client bundle.</li>
+    <li>Manager-facing pages read Cadence-owned data only; no vendor API calls at render time.</li>
+  </ul>
+
+  <h3>What to improve</h3>
+
+  <h4>Suspense streaming</h4>
+  <p>Each page currently awaits all data before rendering anything. The Home page makes 8+ database calls before returning any HTML. Split each page into a fast header section (greeting, employee identity) and slower data sections (metrics, briefings) wrapped in <code>&lt;Suspense&gt;</code> with skeleton fallbacks. This gives the manager visible structure within the first paint.</p>
+
+  <h4>React cache() for request deduplication</h4>
+  <p>Multiple components on the same page call <code>auth()</code> and <code>getEffectiveManagerContext()</code>. The layout calls them, then the page calls them again. Wrap these in React's <code>cache()</code> to deduplicate within a single request. This is free performance.</p>
+
+  <h4>Static shells</h4>
+  <p>The sidebar navigation, logo, and layout chrome are the same for every request. Consider extracting the outer shell as a static layout with the dynamic content area as the streaming target. Next.js App Router already does this with nested layouts, but verify the sidebar isn't re-rendering on every navigation.</p>
+
+  <h4>Image optimization</h4>
+  <p>If employee photos are ever added, use <code>next/image</code> with proper sizing. For the HungerRush logo in the sidebar, use an inline SVG (no network request).</p>
+
+  <h4>Database indexing</h4>
+  <p>Verify indexes exist on: <code>metric_values(employee_id, metric_definition_id, period_start)</code>, <code>meeting_references(manager_user_id, employee_id, scheduled_start)</code>, <code>context_items(employee_id, occurred_at)</code>. These are the hot query paths for the manager-facing pages.</p>
+
+  <h4>What to avoid</h4>
+  <ul>
+    <li>Do not add client-side state management (Redux, Zustand, etc.). Server Components eliminate the need.</li>
+    <li>Do not add a client-side caching layer (SWR, React Query). Data is server-rendered and fresh on each page load.</li>
+    <li>Do not add prefetching beyond what Next.js Link provides by default. The navigation is shallow enough that prefetching adds complexity without measurable benefit.</li>
+    <li>Do not add a service worker. This is a data-fresh application, not an offline-first one.</li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 15 -->
+<!-- ============================================================ -->
+<section class="section" id="s15">
+  <div class="section-num">15</div>
+  <h2>Visualization Strategy</h2>
+
+  <p>Charts in Cadence answer specific manager questions. Every chart must justify its existence by naming the question it answers.</p>
+
+  <h3>Sparklines (TrendSparkline)</h3>
+  <p><strong>Question:</strong> "Is this metric getting better or worse over the last few weeks?"</p>
+  <p>Used in: Team table rows, Employee performance metrics table, Home team performance table.</p>
+  <p>Current implementation is correct: a 4-point SVG path colored by trend direction. Increase width to 96px for better readability. Add an endpoint dot (already present) and consider adding a very faint fill below the line to increase visual weight.</p>
+
+  <h3>Historical chart (MetricHistoryChart)</h3>
+  <p><strong>Question:</strong> "How has this metric moved over the past 12 weeks relative to its target?"</p>
+  <p>Used in: Employee page, one chart.</p>
+  <p>Current implementation is a 640x220 area chart with a dashed target line. This is the right format. Add: hover tooltips with period + value, a metric selector dropdown, and subtle gridlines for the Y axis. Keep the area fill but reduce its opacity slightly (currently too prominent).</p>
+
+  <h3>Visualizations to avoid</h3>
+  <ul>
+    <li><strong>Pie/donut charts</strong> for status distribution. The stat cards communicate this more effectively and take less space.</li>
+    <li><strong>Bar charts</strong> for metric comparison across employees. The table is the better format for comparison.</li>
+    <li><strong>Gauges or radial progress</strong> for target attainment. Status badges communicate on/off target more efficiently.</li>
+    <li><strong>Stacked area charts</strong> for team-level trends. Too complex for a quick-scan briefing.</li>
+  </ul>
+
+  <h3>Charting library decision</h3>
+  <p>Stay with pure SVG. The visualization needs are simple (sparklines + one area chart with hover). A charting library (Recharts, Chart.js, Nivo) would add 30-100KB to the client bundle for features Cadence doesn't need. The current pure-SVG approach renders server-side, loads instantly, and has zero client-side JavaScript cost for the sparklines. Only the MetricHistoryChart needs a thin client wrapper for tooltip hover tracking.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 16 -->
+<!-- ============================================================ -->
+<section class="section" id="s16">
+  <div class="section-num">16</div>
+  <h2>Future-Proofing Strategy</h2>
+
+  <h3>Variable metric counts</h3>
+  <p>A team might have 3 metrics or 12. The layouts must work for both. The current approach (rendering a table with one row per metric) handles this naturally. The Home page's team performance table, the Employee page's performance metrics table, and the 1:1 Prep's "What Changed" list all use this pattern correctly. No changes needed here.</p>
+
+  <h3>Variable metric types</h3>
+  <p>Metrics can be percentages, durations, counts, or ratings. The <code>MetricValue</code> component handles formatting based on <code>valueType</code> and <code>unit</code>. This is correct. Ensure sparklines and the history chart work with all value types (they currently assume numeric values, which is fine since all metric types are numeric).</p>
+
+  <h3>Multiple teams per manager</h3>
+  <p>The current implementation already handles this: Home shows all teams, Team shows per-team sections. If a manager gains a third team, no code changes are needed. The Team selector (recommended above) should appear only when the manager has &gt;1 team.</p>
+
+  <h3>Additional data sources</h3>
+  <p>New sources produce new NormalizedFacts, which produce new MetricDefinitions and MetricValues. The UI consumes these through the same domain queries. No UI changes needed for a new source. The Data Health page already shows per-source sync status.</p>
+
+  <h3>What to avoid building now</h3>
+  <ul>
+    <li>A configurable dashboard layout. Cadence has 4 fixed experiences, not a drag-and-drop dashboard builder.</li>
+    <li>User-customizable metric display order or visibility toggles. This is data-driven through MetricAssignment, not a UI preference.</li>
+    <li>A theme editor or white-labeling system. The HungerRush brand is the brand.</li>
+    <li>Multi-language support. English only for the pilot.</li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 17 -->
+<!-- ============================================================ -->
+<section class="section" id="s17">
+  <div class="section-num">17</div>
+  <h2>Mockup Improvements</h2>
+
+  <p>The mockups are strong, but they are static designs. Here's what should change when they become a real application.</p>
+
+  <h3>Things the mockups do particularly well</h3>
+  <ol>
+    <li>The <strong>sidebar brand treatment</strong>: logo + wordmark + "CADENCE" creates professional identity.</li>
+    <li>The <strong>status summary bar</strong> pattern (Home + Team): four stat cards with colored icons is immediately scannable.</li>
+    <li>The <strong>1:1 Prep page's "At a Glance" section</strong>: trend icon + narrative + stats is the most effective information design in the set.</li>
+    <li>The <strong>"What to Recognize" / "What to Discuss"</strong> split: separating positive and concerning items helps the manager structure their conversation.</li>
+    <li>The <strong>table design</strong> with avatar + name + title in one cell: human and scannable.</li>
+    <li>The <strong>sparklines</strong> in table rows: provide trend context without taking up space.</li>
+    <li>The <strong>meeting prep checklist</strong>: a small practical touch that makes the tool feel meeting-oriented.</li>
+    <li>The <strong>period selector</strong> on the Employee page: gives the manager immediate access to last week for comparison.</li>
+    <li>The <strong>provenance footer</strong>: data source attribution and freshness without cluttering the content.</li>
+  </ol>
+
+  <h3>Things that should change</h3>
+  <ol>
+    <li><strong>Team page filter bar (4 dropdowns + search)</strong>: overbuilt for the pilot. Simplify to team selector + filter chips + search.</li>
+    <li><strong>Employee page single-column-to-two-column shift</strong>: the mockup's two-column layout is better than the current narrow single-column. Adopt it.</li>
+    <li><strong>1:1 Prep three-column middle section</strong>: too narrow on 1366px screens. Use 2 columns, consider 3 at xl breakpoints.</li>
+    <li><strong>Suggested questions</strong>: the mockup gives them prominent cards, but they should be visually secondary (they're optional and may not always be relevant).</li>
+    <li><strong>Meeting prep checklist disabled checkboxes</strong>: either make them all interactive or remove them. Disabled checkboxes that are pre-checked are confusing.</li>
+    <li><strong>Home page "Reports" nav item</strong>: appears in the mockup sidebar but doesn't exist in the product spec. Don't build it.</li>
+    <li><strong>"Export" button on Team page</strong>: not in MVP scope. Defer.</li>
+    <li><strong>"Rows per page" dropdown</strong>: over-engineering for 12-person teams. Fixed pagination at 10 rows is fine.</li>
+    <li><strong>Employee photos</strong>: the mockups show face photos. These would need to come from Rippling (which has no integration). Use initial-based avatars consistently and don't build a photo upload feature for the pilot.</li>
+  </ol>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 18 -->
+<!-- ============================================================ -->
+<section class="section" id="s18">
+  <div class="section-num">18</div>
+  <h2>Recommended Frontend Architecture</h2>
+
+  <h3>Keep: Server Components by default</h3>
+  <p>The current architecture is correct: all four pages are async Server Components. Only interactive elements (filter chips, search, tabs, chart tooltips) need <code>"use client"</code>. This minimizes the client bundle and ensures fast page loads.</p>
+
+  <h3>Keep: Tailwind v4 with CSS custom properties</h3>
+  <p>The token system through <code>@theme inline</code> is the right approach. No tailwind.config.ts needed. All theme tokens flow through CSS custom properties.</p>
+
+  <h3>Keep: Pure SVG charts</h3>
+  <p>Sparklines render server-side with zero client JavaScript. The history chart needs a thin client wrapper for tooltips but no charting library.</p>
+
+  <h3>Add: Suspense boundaries</h3>
+  <p>Each page should be split into a fast static shell (header, navigation chrome) and streaming data sections. Skeleton fallbacks should match the final layout dimensions closely so the page doesn't reflow when data arrives.</p>
+
+  <h3>Add: React cache() for auth deduplication</h3>
+  <p>Wrap <code>auth()</code>, <code>getEffectiveManagerContext()</code>, <code>getAssignedTeams()</code>, and <code>getAssignedEmployees()</code> in React's <code>cache()</code> function. This deduplicates calls within a single request without adding a caching layer.</p>
+
+  <h3>Add: URL-based state for all user-facing selections</h3>
+  <p>Period selection, team selection, and filter state should use URL query parameters, not React state. This makes the state shareable, bookmarkable, and compatible with Server Components. The current period toggle on the Employee page already does this correctly (<code>?period=this_week</code>). Extend the pattern.</p>
+
+  <h3>Component file organization</h3>
+  <p>The current flat <code>src/components/</code> directory with 20 files is manageable but getting large. Recommended structure:</p>
+  <ul>
+    <li><code>src/components/ui/</code> &mdash; shadcn primitives (button, card, tabs, avatar, etc.)</li>
+    <li><code>src/components/</code> &mdash; domain components (StatusBadge, TrendSparkline, MetricValue, etc.)</li>
+    <li>Keep it flat within each directory. Don't create nested subdirectories for 20 files.</li>
+  </ul>
+
+  <h3>What not to add</h3>
+  <ul>
+    <li>No CSS-in-JS. Tailwind + CSS custom properties is the system.</li>
+    <li>No component library beyond shadcn/ui + Radix. The component count is small enough that bespoke components are better.</li>
+    <li>No Storybook. The component set is small and each component is used in only 1-3 places. Direct page testing is more valuable.</li>
+    <li>No design-token build pipeline (Style Dictionary, etc.). CSS custom properties are the pipeline.</li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 19 -->
+<!-- ============================================================ -->
+<section class="section" id="s19">
+  <div class="section-num">19</div>
+  <h2>Risks and Potential Over-Engineering</h2>
+
+  <h3>Risk: Spending too much time on dark mode</h3>
+  <p>Dark mode is a real need but a significant token-design effort. Recommendation: define the dark palette now (it's part of the token system), implement it, but don't spend time polishing edge cases until the pilot managers actually request it. The token architecture supports it; the visual refinement can come later.</p>
+
+  <h3>Risk: Building the "Metrics View" tab on the Team page</h3>
+  <p>The mockup shows an alternate table view. For two 12-person teams with 5 metrics each, this view adds complexity without proportional value. Defer until a manager asks for it or the team sizes grow.</p>
+
+  <h3>Risk: Over-investing in responsive mobile layouts</h3>
+  <p>The product spec explicitly says "Not a mobile app" and "desktop-first." Make the tables scrollable and the layout stack on small screens, but don't spend significant effort on mobile-specific interactions. A manager opening this on their phone should see a usable layout, not a redesigned experience.</p>
+
+  <h3>Risk: Adding a notification system</h3>
+  <p>Nothing in the mockups or product spec suggests notifications. Don't build alerts, badges, or real-time updates. The sync is manual; the data is weekly.</p>
+
+  <h3>Risk: Premature component abstraction</h3>
+  <p>Some components appear similar across pages (MetricChangeRow on Employee and 1:1 Prep) but have subtle differences in layout and information density. Extract only when you've confirmed the API is truly shared. Two pages with slightly different inline JSX is better than a component with 8 props and 3 render modes.</p>
+
+  <h3>Risk: Chart interactivity scope creep</h3>
+  <p>Adding hover tooltips to the MetricHistoryChart is justified. But don't then add: zoom, pan, date range selection, comparison overlays, or CSV export. The chart answers one question (12-week trend vs target). Keep it focused.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 20 -->
+<!-- ============================================================ -->
+<section class="section" id="s20">
+  <div class="section-num">20</div>
+  <h2>Final Recommended UX Direction</h2>
+
+  <p>Cadence is a briefing tool, not a dashboard. The mockups correctly establish this with their calm density, clear hierarchy, and meeting-oriented 1:1 Prep page. The current implementation has the right information architecture but needs a visual refinement pass to reach the quality the mockups promise.</p>
+
+  <h3>The work is a refinement, not a redesign</h3>
+  <p>No pages need to be torn down and rebuilt from scratch. The changes are:</p>
+  <ol>
+    <li>Tighten the typography scale and apply it consistently</li>
+    <li>Match the mockups' spatial rhythm (more section breathing room, tighter internal density)</li>
+    <li>Polish components to match mockup quality (larger stat cards, wider sparklines, better hover states)</li>
+    <li>Add brand presence to the sidebar (logo + wordmark)</li>
+    <li>Widen the Employee page to a two-column layout</li>
+    <li>Add period navigation to Home and extend the Employee period selector</li>
+    <li>Add team summary stats above the Team table</li>
+    <li>Add Suspense boundaries for progressive loading</li>
+    <li>Add a dark mode token set</li>
+    <li>Add a metric selector to the history chart</li>
+  </ol>
+
+  <p>The information architecture, authorization model, domain layer, and data flow are all correct and should not change. The frontend refinement is purely visual and interactional.</p>
+
+  <div class="callout">
+    <div class="callout-label">Guiding principle</div>
+    <p>When in doubt about a design decision, ask: <em>"Does this help a manager prepare for a 1:1 faster?"</em> If the answer is no, don't build it. If the answer is "maybe," defer it until a pilot manager asks.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- DECISIONS TO LOCK IN -->
+<!-- ============================================================ -->
+<section class="section" id="lock">
+  <h2>Decisions I Recommend We Lock In</h2>
+
+  <ul class="decision-list">
+    <li class="lock">
+      <span class="decision-marker">&#10003;</span>
+      <span><strong>Server Components for all four pages.</strong> No client-side data fetching. Interactive elements (filters, search, tabs, chart tooltips) are the only client components.</span>
+    </li>
+    <li class="lock">
+      <span class="decision-marker">&#10003;</span>
+      <span><strong>Pure SVG for all charts.</strong> No charting library. Sparklines render server-side. History chart gets a thin client wrapper for tooltips only.</span>
+    </li>
+    <li class="lock">
+      <span class="decision-marker">&#10003;</span>
+      <span><strong>URL-based state for all selections.</strong> Period, team, and filter state use query parameters, not React state. Shareable and Server Component-compatible.</span>
+    </li>
+    <li class="lock">
+      <span class="decision-marker">&#10003;</span>
+      <span><strong>Employee page uses two-column layout</strong> at <code>lg</code>+ breakpoints, matching the mockup. Single column below that.</span>
+    </li>
+    <li class="lock">
+      <span class="decision-marker">&#10003;</span>
+      <span><strong>1:1 Prep is the highest-priority visual refinement target.</strong> It's the page that directly saves manager time and has the most room for polish.</span>
+    </li>
+    <li class="lock">
+      <span class="decision-marker">&#10003;</span>
+      <span><strong>Brand treatment in sidebar: HungerRush logo + wordmark + "CADENCE" sub-brand.</strong> No more plain-text "CADENCE" alone.</span>
+    </li>
+    <li class="lock">
+      <span class="decision-marker">&#10003;</span>
+      <span><strong>Border radius: 6px (0.375rem) for cards and containers.</strong> Current 8px is slightly large for the professional aesthetic.</span>
+    </li>
+    <li class="lock">
+      <span class="decision-marker">&#10003;</span>
+      <span><strong>No page-load animations, counter-up effects, or chart draw sequences.</strong> This is a work tool. Instant rendering.</span>
+    </li>
+    <li class="lock">
+      <span class="decision-marker">&#10003;</span>
+      <span><strong>Suspense boundaries on every page</strong> for progressive loading. Skeleton shapes match final layout.</span>
+    </li>
+    <li class="lock">
+      <span class="decision-marker">&#10003;</span>
+      <span><strong>Back-link navigation at the top of pages</strong> (above the title), not in the footer. Matches the mockup and standard SaaS convention.</span>
+    </li>
+    <li class="lock">
+      <span class="decision-marker">&#10003;</span>
+      <span><strong>React cache() for auth/context deduplication.</strong> Free performance, no downside.</span>
+    </li>
+    <li class="lock">
+      <span class="decision-marker">&#10003;</span>
+      <span><strong>Hover state on Team table rows.</strong> Subtle background change signals the row is clickable.</span>
+    </li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<!-- DECISIONS TO KEEP FLEXIBLE -->
+<!-- ============================================================ -->
+<section class="section" id="flex">
+  <h2>Decisions That Should Remain Flexible</h2>
+
+  <ul class="decision-list">
+    <li class="flex-item">
+      <span class="decision-marker">?</span>
+      <span><strong>Dark mode polish level.</strong> Define the token palette now, implement the basics, but don't spend time perfecting every edge case until a pilot manager requests it.</span>
+    </li>
+    <li class="flex-item">
+      <span class="decision-marker">?</span>
+      <span><strong>"Metrics View" tab on Team page.</strong> The mockup shows it but the pilot may not need it. Build the Overview tab well; add Metrics View only if a manager asks for cross-employee metric comparison.</span>
+    </li>
+    <li class="flex-item">
+      <span class="decision-marker">?</span>
+      <span><strong>Period navigation on Home page.</strong> Left/right arrows for week navigation are shown in the mockup. Useful, but the weekly briefing is naturally "this week." Build it if straightforward; don't over-invest in historical browsing.</span>
+    </li>
+    <li class="flex-item">
+      <span class="decision-marker">?</span>
+      <span><strong>Meeting prep checklist persistence.</strong> localStorage is simple but the feature itself may not matter. Build it with localStorage, observe if managers use it, and decide whether server persistence is needed later.</span>
+    </li>
+    <li class="flex-item">
+      <span class="decision-marker">?</span>
+      <span><strong>Suggested questions styling.</strong> The right visual weight depends on how relevant the rule-generated questions actually are for pilot managers. Start with a subtle treatment and promote it if the content proves valuable.</span>
+    </li>
+    <li class="flex-item">
+      <span class="decision-marker">?</span>
+      <span><strong>Sidebar collapse behavior at tablet widths.</strong> Icon-only vs. hamburger depends on how managers actually navigate. Start with icon-only collapse; switch to hamburger if testing shows confusion.</span>
+    </li>
+    <li class="flex-item">
+      <span class="decision-marker">?</span>
+      <span><strong>Export functionality.</strong> Not in the MVP spec. If a manager asks to export their team data, build it then. Don't pre-build.</span>
+    </li>
+    <li class="flex-item">
+      <span class="decision-marker">?</span>
+      <span><strong>Component extraction threshold.</strong> Extract components (MetricChangeRow, ContextTimeline, EmployeeCard) only when the pattern is used identically in 2+ places. Premature extraction creates rigid APIs.</span>
+    </li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<!-- IMPLEMENTATION ORDER -->
+<!-- ============================================================ -->
+<section class="section" id="order">
+  <h2>Implementation Order</h2>
+
+  <p>Start with the foundation (tokens and components), then move outward to individual pages. The 1:1 Prep page is the highest-value refinement target and should come before the others.</p>
+
+  <ol class="phase-list">
+    <li>
+      <span class="phase-num"></span>
+      <div class="phase-body">
+        <div class="phase-title">Design token refinement + dark mode palette</div>
+        <div class="phase-desc">Typography scale tokens, spacing tokens, reduced border radius, surface-raised token, complete dark-mode token set in globals.css. Reduced-motion media query.</div>
+        <div class="phase-why">Every subsequent phase depends on these tokens being right. Changing tokens after pages are built means re-verifying everything.</div>
+      </div>
+    </li>
+    <li>
+      <span class="phase-num"></span>
+      <div class="phase-body">
+        <div class="phase-title">Component polish</div>
+        <div class="phase-desc">StatCard (larger, mockup proportions), TrendSparkline (96px width, area fill), StatusBadge (verify sizing), MetricHistoryChart (hover tooltip), DataFreshness (sync-error awareness). Extract MetricChangeRow if pattern is identical on Employee and 1:1 Prep.</div>
+        <div class="phase-why">Polished components make every page better without page-specific work.</div>
+      </div>
+    </li>
+    <li>
+      <span class="phase-num"></span>
+      <div class="phase-body">
+        <div class="phase-title">Application shell + sidebar</div>
+        <div class="phase-desc">HungerRush logo in sidebar, active-state refinement, nav reorganization (primary/secondary split), content-area padding adjustment, breadcrumb-at-top pattern.</div>
+        <div class="phase-why">The shell wraps every page. Getting it right first makes individual page work look better immediately.</div>
+      </div>
+    </li>
+    <li>
+      <span class="phase-num"></span>
+      <div class="phase-body">
+        <div class="phase-title">1:1 Preparation page</div>
+        <div class="phase-desc">Visual tone shift (calmer, meeting-focused), At a Glance card with trend icon, column layout refinement, "Open Rippling" in header, checklist with localStorage, suggested questions subtle treatment.</div>
+        <div class="phase-why">Highest product value. This is the page that directly reduces manager prep time.</div>
+      </div>
+    </li>
+    <li>
+      <span class="phase-num"></span>
+      <div class="phase-body">
+        <div class="phase-title">Employee page</div>
+        <div class="phase-desc">Two-column layout, extended period selector (4 options), metric selector for history chart, context tabs refinement, provenance footer with Employee ID + Hire Date.</div>
+        <div class="phase-why">Second most detailed page. The manager needs this to understand individual context before preparing for the 1:1.</div>
+      </div>
+    </li>
+    <li>
+      <span class="phase-num"></span>
+      <div class="phase-body">
+        <div class="phase-title">Team page</div>
+        <div class="phase-desc">Team summary stats bar, table row hover states, larger avatars, row-click navigates to Employee (arrow to Prep), conditional team selector.</div>
+        <div class="phase-why">The comparison layer. Most of the heavy lifting was already done in Phase 2 (component polish).</div>
+      </div>
+    </li>
+    <li>
+      <span class="phase-num"></span>
+      <div class="phase-body">
+        <div class="phase-title">Home page</div>
+        <div class="phase-desc">Wider container, stat card polish, employee avatars in attention/improvement cards, team performance table styling, optional week navigation.</div>
+        <div class="phase-why">Home is the entry point but benefits most from the component improvements done in earlier phases. Much of the visual improvement comes "for free" from Phases 1-2.</div>
+      </div>
+    </li>
+    <li>
+      <span class="phase-num"></span>
+      <div class="phase-body">
+        <div class="phase-title">Suspense + performance + accessibility</div>
+        <div class="phase-desc">Add Suspense boundaries to all four pages, React cache() for request dedup, aria-label on charts, heading hierarchy audit, contrast verification, focus-visible ring, chart color-independence.</div>
+        <div class="phase-why">Performance and accessibility are production requirements but benefit from all pages being stable first. Doing this last avoids rework when layouts change.</div>
+      </div>
+    </li>
+  </ol>
+
+  <div class="callout">
+    <div class="callout-label">Time estimate</div>
+    <p>At the current pace, this is roughly 4&ndash;6 working sessions. Each phase is a committable unit that passes typecheck/lint/build. The phases are ordered so each one is useful independently&mdash;if the pilot launches after Phase 4, the 1:1 Prep page and component system are polished, which is the highest-value outcome.</p>
+  </div>
+</section>
+
+</div>
