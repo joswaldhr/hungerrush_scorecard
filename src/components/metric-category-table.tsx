@@ -15,7 +15,7 @@ export function MetricCategoryTable({
   trendByDefinitionId: Map<string, Array<number | null>>;
 }) {
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden print:break-inside-avoid">
       <div className="border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
         <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{title}</h2>
       </div>
@@ -48,7 +48,11 @@ export function MetricCategoryTable({
                   <MetricValue value={row.currentValue} unit={row.unit} valueType={row.valueType} />
                 </td>
                 <td className="py-3 px-3 text-right text-muted-foreground">
-                  <MetricValue value={row.previousValue} unit={row.unit} valueType={row.valueType} />
+                  <MetricValue
+                    value={row.previousValue}
+                    unit={row.unit}
+                    valueType={row.valueType}
+                  />
                 </td>
                 <td className="py-3 px-3 text-right text-muted-foreground">
                   {row.target ? (

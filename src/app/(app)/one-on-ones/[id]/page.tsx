@@ -5,6 +5,7 @@ import { getEmployeeMetrics, getMetricHistoryBatch } from "@/lib/domain/metrics/
 import { formatCategoryLabel } from "@/lib/domain/metrics/category-labels";
 import { StatusBadge } from "@/components/status-badge";
 import { MetricCategoryTable } from "@/components/metric-category-table";
+import { OneOnOneActions } from "@/components/one-on-one-actions";
 import { EmptyState } from "@/components/empty-state";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { deriveOverallStatus } from "@/lib/domain/briefings/generate";
@@ -87,7 +88,11 @@ export default async function OneOnOnePage({
     );
   }
 
-  const team = await db.select().from(teams).where(eq(teams.id, teamId)).then((r) => r[0]);
+  const team = await db
+    .select()
+    .from(teams)
+    .where(eq(teams.id, teamId))
+    .then((r) => r[0]);
   const managerUser = ctx.userId
     ? await db
         .select({ displayName: users.displayName })
@@ -131,7 +136,7 @@ export default async function OneOnOnePage({
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-12">
-      <div>
+      <div className="print:hidden">
         <Link
           href="/one-on-ones"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
@@ -163,27 +168,30 @@ export default async function OneOnOnePage({
         </div>
 
         <div className="flex flex-col items-end gap-1.5">
-          <div className="flex items-center rounded-lg border border-border/80 bg-card p-1 shadow-2xs text-xs font-semibold">
-            {PERIODS.map((p) => {
-              const active = period === p.key;
-              return (
-                <Link
-                  key={p.key}
-                  href={`/one-on-ones/${employee.id}?period=${p.key}`}
-                  aria-pressed={active}
-                  className={cn(
-                    "px-3 py-1.5 rounded-md transition-all",
-                    active
-                      ? "bg-teal-50 text-[#009ca6] border border-[#009ca6]/40 dark:bg-teal-950/60 shadow-2xs font-bold"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {p.label}
-                </Link>
-              );
-            })}
-            <div className="pl-1.5 pr-1 border-l border-border/70 text-muted-foreground">
-              <Calendar className="h-3.5 w-3.5" />
+          <div className="flex items-center gap-2">
+            <OneOnOneActions />
+            <div className="flex items-center rounded-lg border border-border/80 bg-card p-1 shadow-2xs text-xs font-semibold print:hidden">
+              {PERIODS.map((p) => {
+                const active = period === p.key;
+                return (
+                  <Link
+                    key={p.key}
+                    href={`/one-on-ones/${employee.id}?period=${p.key}`}
+                    aria-pressed={active}
+                    className={cn(
+                      "px-3 py-1.5 rounded-md transition-all",
+                      active
+                        ? "bg-teal-50 text-[#009ca6] border border-[#009ca6]/40 dark:bg-teal-950/60 shadow-2xs font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {p.label}
+                  </Link>
+                );
+              })}
+              <div className="pl-1.5 pr-1 border-l border-border/70 text-muted-foreground">
+                <Calendar className="h-3.5 w-3.5" />
+              </div>
             </div>
           </div>
           <div className="text-[11px] font-medium text-muted-foreground">{weekRangeFormatted}</div>
