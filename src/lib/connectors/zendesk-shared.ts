@@ -2,6 +2,14 @@ import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 
 const MAX_RETRIES = 3;
+// A stalled connection with no timeout hangs the whole sync forever — nothing
+// ever throws, so the fetch phase's try/catch (sync-engine.ts) never gets a
+// chance to run, and the sync_runs row is left at "running" indefinitely.
+// Found empirically: a real sync attempt hung with zero progress for 15+
+// minutes with no error anywhere. 30s is generous for a single Zendesk call
+// (429 backoff is handled separately, below) while still failing fast on a
+// genuinely dead connection.
+const REQUEST_TIMEOUT_MS = 30_000;
 
 export function authHeader(): string {
   const { ZENDESK_EMAIL, ZENDESK_API_KEY } = env;
@@ -20,7 +28,10 @@ export async function zendeskGet<T>(pathOrUrl: string): Promise<T> {
   const url = pathOrUrl.startsWith("http") ? pathOrUrl : `${baseUrl()}${pathOrUrl}`;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const res = await fetch(url, { headers: { Authorization: authHeader() } });
+    const res = await fetch(url, {
+      headers: { Authorization: authHeader() },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
 
     if (res.status === 429) {
       if (attempt === MAX_RETRIES) {

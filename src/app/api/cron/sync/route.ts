@@ -9,20 +9,33 @@ import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import { NextResponse } from "next/server";
 
+// This route is hit by Vercel Cron once a day and does real work (network
+// calls + DB writes) every time — it must never be served from a cached
+// response. Route Handlers do NOT inherit `dynamic` from a parent layout.
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   if (!env.CRON_SECRET) {
+    // No sync_runs row exists yet at this point, and sync_errors.syncRunId is
+    // NOT NULL — there's nothing to attach a DB row to. This is the only
+    // record this failure leaves anywhere, so it needs to be unmistakable.
+    logger.error("Cron sync rejected: CRON_SECRET not configured on this environment", {
+      route: "/api/cron/sync",
+    });
     return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
   }
 
   const authHeader = request.headers.get("authorization");
   if (authHeader !== `Bearer ${env.CRON_SECRET}`) {
+    logger.error("Cron sync rejected: Authorization header did not match CRON_SECRET", {
+      route: "/api/cron/sync",
+      hasAuthHeader: !!authHeader,
+      authHeaderLength: authHeader?.length ?? 0,
+    });
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const sources = await db
-    .select()
-    .from(dataSources)
-    .where(eq(dataSources.type, "zendesk"));
+  const sources = await db.select().from(dataSources).where(eq(dataSources.type, "zendesk"));
   const results = [];
 
   for (const source of sources) {
@@ -62,6 +75,22 @@ export async function GET(request: Request) {
         dataSourceId: source.id,
         type: source.type,
         error: err instanceof Error ? err.message : "Unknown error",
+      });
+    }
+  }
+
+  // Dead-man's-switch heartbeat: confirms the cron actually reached and ran
+  // this logic (not just that Vercel invoked the route). Deliberately NOT
+  // pinged from the 401/500 early-returns above — those mean the real work
+  // never happened, which is exactly what should make the switch go silent
+  // and alert. Best-effort only: a failure here must never affect the
+  // response this route returns to Vercel's cron caller.
+  if (env.SYNC_HEARTBEAT_URL) {
+    try {
+      await fetch(env.SYNC_HEARTBEAT_URL, { method: "GET", signal: AbortSignal.timeout(5000) });
+    } catch (err) {
+      logger.warn("Sync heartbeat ping failed", {
+        error: err instanceof Error ? err.message : String(err),
       });
     }
   }

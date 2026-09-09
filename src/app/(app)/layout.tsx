@@ -1,12 +1,26 @@
 import { Sidebar } from "@/components/sidebar";
 import { ViewAsBanner } from "@/components/view-as-banner";
+import { SyncStalenessBanner } from "@/components/sync-staleness-banner";
 import { auth } from "@/lib/auth";
 import { getEffectiveManagerContext } from "@/lib/auth/authorization";
+import { db } from "@/lib/db";
+import { dataSources } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
-  const viewingAs = session?.user?.email
-    ? (await getEffectiveManagerContext(session.user.email)).viewingAs
+  const { ctx, viewingAs } = session?.user?.email
+    ? await getEffectiveManagerContext(session.user.email)
+    : { ctx: null, viewingAs: null };
+
+  const zendeskSource = ctx
+    ? await db
+        .select({ lastSuccessfulSyncAt: dataSources.lastSuccessfulSyncAt })
+        .from(dataSources)
+        .where(
+          and(eq(dataSources.organizationId, ctx.organizationId), eq(dataSources.type, "zendesk"))
+        )
+        .then((r) => r[0])
     : null;
 
   return (
@@ -22,6 +36,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         {viewingAs && (
           <div className="print:hidden">
             <ViewAsBanner displayName={viewingAs.displayName} />
+          </div>
+        )}
+        {zendeskSource && (
+          <div className="print:hidden">
+            <SyncStalenessBanner lastSuccessfulSyncAt={zendeskSource.lastSuccessfulSyncAt} />
           </div>
         )}
         <main

@@ -150,6 +150,61 @@ It must:
 - avoid unnecessary client-side work
 - pass type checking/lint/tests
 - be documented when it introduces a meaningful architectural decision
+- if it involves data (a sync, a metric, an aggregation, a migration): be verified against real
+  data with actual query/output results pasted somewhere reviewable — "should work now" is not
+  a valid stopping point
+- if it touches a scheduled/cron job: be triggered for real using the platform's own test/trigger
+  tooling if one exists, rather than reasoned about from the code alone — auth and caching
+  failures on cron jobs are frequently silent and invisible from a code read
+- if an investigation or report file already exists for the task at hand (e.g.
+  `INVESTIGATION.md`), have been read in full first — don't re-diagnose from scratch or
+  contradict its findings without new evidence
+- if the fix surfaces unrelated problems, have them logged to `FOLLOWUPS.md` with a pointer to
+  where they were found, rather than bundled into the same change
+- when genuinely blocked on something only a human can check (dashboard access, a business
+  decision, credentials), stop and ask for the specific fact needed — don't guess and ship a
+  "covers both cases" change
+
+## Metrics/sync system — known facts (see INVESTIGATION.md for detail)
+
+- All Zendesk data arrives via polling (daily Vercel Cron + a manual "Sync Now" button) — no
+  incoming webhooks exist anywhere in this app.
+- Ticketing metrics and Talk (call) metrics are separate Zendesk API surfaces with independent
+  failure modes.
+- The connector assumes a single Zendesk subdomain — unverified whether the real account is
+  multi-brand (see `FOLLOWUPS.md`).
+- Week-boundary math (Monday–Sunday, UTC) is independently reimplemented in 5+ places; the
+  mocks/scripts use local server time, not UTC, which is a known divergence confined to
+  dev/test fixtures. Reuse an existing UTC implementation (e.g. `zendesk.ts`'s `weekOf()`) —
+  don't write a new one.
+- No error-monitoring/APM tool and no test coverage on the sync orchestration path
+  (`sync-engine.ts`, the cron/sync API routes). Treat this area as untested until that changes.
+- `csat_score` is a known, separately-broken metric (Zendesk data limitation, not a pipeline
+  bug) — don't conflate it with sync pipeline work.
+- Any external HTTP call to Zendesk must have a timeout (`AbortSignal.timeout(...)`). One was
+  missing until 2026-09-09 and caused an indefinite hang with zero errors anywhere — see the
+  incident note below.
+
+## Incident: Silent 5-Day Sync Outage (2026-09-09)
+
+The scheduled Zendesk sync produced no data for 5 days with zero errors anywhere in the app —
+a manager noticed only because "This Week" was empty on the scorecard. Full diagnosis in
+`INVESTIGATION.md`, the actual fix in `FIX_LOG.md`. Don't duplicate either here; the short
+version:
+
+- **Confirmed root cause**: nothing upstream of `runSync()` (the cron route's `CRON_SECRET`
+  check, or Vercel simply not invoking the cron) ever reached the sync logic — proven because
+  `runSync()` unconditionally writes a `sync_runs` row before doing any work, and none existed
+  for 5 days. The exact Vercel-side reason (not invoked vs. silently 401'd) needed Vercel
+  dashboard access this environment didn't have — see `FOLLOWUPS.md` item 4 if that's still
+  open when you read this.
+- **Separately found while verifying**: `zendesk-shared.ts`'s `fetch()` call had no timeout,
+  so a stalled connection could hang a sync forever with no error. Fixed alongside.
+- **Verification method that actually worked**: triggering a sync through the app's own
+  authenticated route (`/api/sync/run`, logged in as a real manager) and then querying
+  `sync_runs`/`metric_values`/`data_sources` directly — reasoning about the code was not
+  sufficient to catch either bug. If you hit a silent cron failure again, reach for a real
+  trigger + real query before guessing from a code read.
 
 ## Current Build Constraint
 

@@ -29,6 +29,12 @@ const envSchema = z.object({
   // /api/cron/sync, since that route runs with no user session. Optional so
   // local dev doesn't need it, but the route itself requires it be set.
   CRON_SECRET: z.string().min(1).optional(),
+
+  // Optional dead-man's-switch URL (e.g. a Healthchecks.io or Cronitor check
+  // URL) pinged after /api/cron/sync completes its real work. Left unset,
+  // the ping is skipped entirely — this app never creates the monitoring
+  // account itself, a human wires up the URL once one exists.
+  SYNC_HEARTBEAT_URL: z.string().url().optional(),
 });
 
 function validateEnv() {
