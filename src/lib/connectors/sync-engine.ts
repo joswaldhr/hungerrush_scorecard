@@ -7,14 +7,20 @@ import {
   normalizedFacts,
   externalIdentities,
 } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql, inArray } from "drizzle-orm";
 import { createHash } from "crypto";
 import type { Connector, ConnectorConfig, SyncContext, IngestedRecord } from "./types";
 import { logger } from "@/lib/logger";
+import { chunk } from "@/lib/utils";
 
 function payloadHash(payload: Record<string, unknown>): string {
   return createHash("sha256").update(JSON.stringify(payload)).digest("hex");
 }
+
+// Rows per bulk INSERT/upsert statement. Keeps parameter counts well under
+// Postgres's 65,535-per-statement limit for these tables (~12-14 columns
+// each), while turning thousands of sequential round-trips into a handful.
+const WRITE_CHUNK_SIZE = 500;
 
 export interface SyncOptions {
   maxPages?: number;
@@ -63,6 +69,7 @@ export async function runSync(
   const allFetchedRecords: IngestedRecord[] = [];
   const fetchErrors: Array<{ message: string }> = [];
   let finalCursor: string | null = null;
+  const fetchStartedAt = Date.now();
 
   try {
     let cursor: string | null = null;
@@ -87,6 +94,8 @@ export async function runSync(
     logger.error("Sync fetch phase failed", { syncRunId, error: err });
   }
 
+  const fetchMs = Date.now() - fetchStartedAt;
+
   // ── PUBLISH PHASE ────────────────────────────────────────────
   // Short DB transaction: ingest → normalize → checkpoint.
   // If this fails, everything rolls back.
@@ -94,6 +103,7 @@ export async function runSync(
   let totalNormalized = 0;
   let totalSkipped = 0;
   let totalErrors = fetchErrors.length;
+  const publishStartedAt = Date.now();
 
   if (success && allFetchedRecords.length > 0) {
     try {
@@ -146,6 +156,8 @@ export async function runSync(
     });
   }
 
+  const publishMs = Date.now() - publishStartedAt;
+
   // ── CHECKPOINT ───────────────────────────────────────────────
   // Cursor advances only after a successful publish.
   await db
@@ -158,6 +170,11 @@ export async function runSync(
       recordsSkipped: totalSkipped,
       errorCount: totalErrors,
       cursor: success ? finalCursor : null,
+      // Timing breakdown, added to isolate network-fetch time (untouched by
+      // the write-batching work) from DB-write time (what batching targets)
+      // — see FOLLOWUPS.md item 5. Nothing reads this yet besides humans
+      // querying it directly.
+      metadataJson: { fetchMs, publishMs },
     })
     .where(eq(syncRuns.id, syncRunId));
 
@@ -171,9 +188,34 @@ export async function runSync(
   return { syncRunId, success };
 }
 
+// computeMetricValuesFromFacts() runs as a separate step after runSync()
+// resolves (both route handlers call it that way) — this merges its timing
+// into the same sync_runs row's metadataJson rather than threading a whole
+// extra return value through the route handlers just for one number.
+export async function recordComputeValuesTiming(
+  syncRunId: string,
+  computeValuesMs: number
+): Promise<void> {
+  await db
+    .update(syncRuns)
+    .set({
+      metadataJson: sql`coalesce(${syncRuns.metadataJson}, '{}'::jsonb) || ${JSON.stringify({ computeValuesMs })}::jsonb`,
+    })
+    .where(eq(syncRuns.id, syncRunId));
+}
+
 type TxOrDb = typeof db;
 
-async function ingestRecords(
+// A single row shape shared by the bulk write path and the per-record
+// fallback below, matching sourceRecords' actual insert/update columns.
+type SourceRecordRow = typeof sourceRecords.$inferInsert;
+
+// Exported for direct unit testing (sync-engine.test.ts) — sync-engine.ts
+// otherwise has zero test coverage today, and ingestRecords is the one
+// function here with real logic (skip-set computation, dedup, a
+// chunk-failure fallback) worth testing directly rather than only through
+// the full runSync() orchestration.
+export async function ingestRecords(
   tx: TxOrDb,
   records: IngestedRecord[],
   dataSourceId: string,
@@ -183,95 +225,187 @@ async function ingestRecords(
   skipped: number;
   errors: Array<{ externalRecordId: string; message: string }>;
 }> {
-  let ingested = 0;
-  let skipped = 0;
   const errors: Array<{ externalRecordId: string; message: string }> = [];
 
+  // ── Bulk existence/hash check ────────────────────────────────
+  // The real unique key is (dataSourceId, externalRecordType, externalRecordId)
+  // — group by type (a small, bounded set) and do one IN() lookup per type
+  // instead of one per record.
+  const recordsByType = new Map<string, IngestedRecord[]>();
   for (const record of records) {
-    try {
-      const hash = payloadHash(record.payload);
+    const list = recordsByType.get(record.externalRecordType) ?? [];
+    list.push(record);
+    recordsByType.set(record.externalRecordType, list);
+  }
 
+  const existingByKey = new Map<string, { id: string; payloadHash: string }>();
+  for (const [type, typeRecords] of recordsByType) {
+    for (const idBatch of chunk(
+      typeRecords.map((r) => r.externalRecordId),
+      WRITE_CHUNK_SIZE
+    )) {
       const existing = await tx
-        .select({ id: sourceRecords.id, payloadHash: sourceRecords.payloadHash })
+        .select({
+          id: sourceRecords.id,
+          externalRecordId: sourceRecords.externalRecordId,
+          payloadHash: sourceRecords.payloadHash,
+        })
         .from(sourceRecords)
         .where(
           and(
             eq(sourceRecords.dataSourceId, dataSourceId),
-            eq(sourceRecords.externalRecordType, record.externalRecordType),
-            eq(sourceRecords.externalRecordId, record.externalRecordId)
+            eq(sourceRecords.externalRecordType, type),
+            inArray(sourceRecords.externalRecordId, idBatch)
           )
-        )
-        .then((r) => r[0]);
-
-      if (existing && existing.payloadHash === hash) {
-        skipped++;
-        continue;
-      }
-
-      const employeeId = record.employeeExternalId
-        ? await resolveEmployeeId(tx, dataSourceId, record.employeeExternalId)
-        : null;
-
-      if (existing) {
-        await tx
-          .update(sourceRecords)
-          .set({
-            employeeId,
-            occurredAt: record.occurredAt,
-            periodStart: record.periodStart,
-            periodEnd: record.periodEnd,
-            payloadJson: record.payload,
-            payloadHash: hash,
-            sourceUpdatedAt: record.sourceUpdatedAt,
-            ingestedAt: new Date(),
-            syncRunId,
-          })
-          .where(eq(sourceRecords.id, existing.id));
-      } else {
-        await tx.insert(sourceRecords).values({
-          dataSourceId,
-          externalRecordType: record.externalRecordType,
-          externalRecordId: record.externalRecordId,
-          employeeId,
-          occurredAt: record.occurredAt,
-          periodStart: record.periodStart,
-          periodEnd: record.periodEnd,
-          payloadJson: record.payload,
-          payloadHash: hash,
-          sourceUpdatedAt: record.sourceUpdatedAt,
-          syncRunId,
+        );
+      for (const row of existing) {
+        existingByKey.set(`${type}:${row.externalRecordId}`, {
+          id: row.id,
+          payloadHash: row.payloadHash,
         });
       }
+    }
+  }
 
-      ingested++;
+  // ── Skip vs. write set, exactly matching today's hash-dedup logic ────
+  let skipped = 0;
+  const toWrite: Array<{ record: IngestedRecord; hash: string }> = [];
+  for (const record of records) {
+    const hash = payloadHash(record.payload);
+    const existing = existingByKey.get(`${record.externalRecordType}:${record.externalRecordId}`);
+    if (existing && existing.payloadHash === hash) {
+      skipped++;
+      continue;
+    }
+    toWrite.push({ record, hash });
+  }
+
+  // ── Bulk employee resolution ──────────────────────────────────
+  // Only for records that will actually be written, matching today's
+  // optimization of not resolving identities for skipped records.
+  const externalIds = [
+    ...new Set(
+      toWrite
+        .map(({ record }) => record.employeeExternalId)
+        .filter((id): id is string => id !== null)
+    ),
+  ];
+  const employeeIdByExternalId = new Map<string, string | null>();
+  for (const idBatch of chunk(externalIds, WRITE_CHUNK_SIZE)) {
+    const matches = await tx
+      .select({
+        externalId: externalIdentities.externalId,
+        employeeId: externalIdentities.employeeId,
+      })
+      .from(externalIdentities)
+      .where(
+        and(
+          eq(externalIdentities.dataSourceId, dataSourceId),
+          inArray(externalIdentities.externalId, idBatch)
+        )
+      );
+    for (const m of matches) employeeIdByExternalId.set(m.externalId, m.employeeId);
+  }
+
+  // ── Dedup the write set by (externalRecordType, externalRecordId),
+  // last-write-wins. Not reachable for the current Zendesk connector (each
+  // week-offset produces a distinct periodStart, so no duplicate key within
+  // one run) — but ingestRecords is connector-agnostic, and a bulk upsert
+  // throws if the same conflict target appears twice in one statement.
+  // Cheap, permanent insurance.
+  const dedupedRows = new Map<string, SourceRecordRow>();
+  for (const { record, hash } of toWrite) {
+    const employeeId = record.employeeExternalId
+      ? (employeeIdByExternalId.get(record.employeeExternalId) ?? null)
+      : null;
+    dedupedRows.set(`${record.externalRecordType}:${record.externalRecordId}`, {
+      dataSourceId,
+      externalRecordType: record.externalRecordType,
+      externalRecordId: record.externalRecordId,
+      employeeId,
+      occurredAt: record.occurredAt,
+      periodStart: record.periodStart,
+      periodEnd: record.periodEnd,
+      payloadJson: record.payload,
+      payloadHash: hash,
+      sourceUpdatedAt: record.sourceUpdatedAt,
+      ingestedAt: new Date(),
+      syncRunId,
+    });
+  }
+  const rows = [...dedupedRows.values()];
+
+  // ── Bulk upsert, falling back to one-by-one on a chunk failure ────────
+  // A whole chunk failing because of one bad row would otherwise abort the
+  // entire sync (not just that record) — the fallback preserves the
+  // per-record error isolation the rest of this pipeline relies on. In
+  // production history this fallback has never been exercised
+  // (sync_errors has had zero rows, ever), but the isolation contract
+  // shouldn't silently regress.
+  let ingested = 0;
+  const conflictTarget = [
+    sourceRecords.dataSourceId,
+    sourceRecords.externalRecordType,
+    sourceRecords.externalRecordId,
+  ];
+
+  for (const batch of chunk(rows, WRITE_CHUNK_SIZE)) {
+    try {
+      await tx
+        .insert(sourceRecords)
+        .values(batch)
+        .onConflictDoUpdate({
+          target: conflictTarget,
+          set: {
+            employeeId: sql`excluded.employee_id`,
+            occurredAt: sql`excluded.occurred_at`,
+            periodStart: sql`excluded.period_start`,
+            periodEnd: sql`excluded.period_end`,
+            payloadJson: sql`excluded.payload_json`,
+            payloadHash: sql`excluded.payload_hash`,
+            sourceUpdatedAt: sql`excluded.source_updated_at`,
+            ingestedAt: sql`excluded.ingested_at`,
+            syncRunId: sql`excluded.sync_run_id`,
+          },
+        });
+      ingested += batch.length;
     } catch (err) {
-      errors.push({
-        externalRecordId: record.externalRecordId,
-        message: err instanceof Error ? err.message : String(err),
+      logger.warn("Bulk source_records upsert failed for a chunk, falling back to one-by-one", {
+        syncRunId,
+        chunkSize: batch.length,
+        error: err instanceof Error ? err.message : String(err),
       });
+      for (const row of batch) {
+        try {
+          await tx
+            .insert(sourceRecords)
+            .values(row)
+            .onConflictDoUpdate({
+              target: conflictTarget,
+              set: {
+                employeeId: row.employeeId,
+                occurredAt: row.occurredAt,
+                periodStart: row.periodStart,
+                periodEnd: row.periodEnd,
+                payloadJson: row.payloadJson,
+                payloadHash: row.payloadHash,
+                sourceUpdatedAt: row.sourceUpdatedAt,
+                ingestedAt: row.ingestedAt,
+                syncRunId: row.syncRunId,
+              },
+            });
+          ingested++;
+        } catch (rowErr) {
+          errors.push({
+            externalRecordId: row.externalRecordId,
+            message: rowErr instanceof Error ? rowErr.message : String(rowErr),
+          });
+        }
+      }
     }
   }
 
   return { ingested, skipped, errors };
-}
-
-async function resolveEmployeeId(
-  tx: TxOrDb,
-  dataSourceId: string,
-  externalId: string
-): Promise<string | null> {
-  const match = await tx
-    .select({ employeeId: externalIdentities.employeeId })
-    .from(externalIdentities)
-    .where(
-      and(
-        eq(externalIdentities.dataSourceId, dataSourceId),
-        eq(externalIdentities.externalId, externalId)
-      )
-    )
-    .then((r) => r[0]);
-
-  return match?.employeeId ?? null;
 }
 
 async function normalizeIngestedRecords(
@@ -290,7 +424,12 @@ async function normalizeIngestedRecords(
       )
     );
 
-  let normalized = 0;
+  // Compute every fact in memory first (pure, no I/O) — the DB write is
+  // batched below. Safe to batch arbitrarily: each source record has a
+  // unique id and normalizeRecords() never returns the same factType twice
+  // for one record, so no (sourceRecordId, factType) conflict target can
+  // appear twice within a single INSERT statement.
+  const rows: (typeof normalizedFacts.$inferInsert)[] = [];
 
   for (const record of records) {
     if (!record.employeeId || !record.periodStart || !record.periodEnd) continue;
@@ -306,37 +445,40 @@ async function normalizeIngestedRecords(
     const sourceObservedAt = record.sourceUpdatedAt ?? record.occurredAt ?? record.ingestedAt;
 
     for (const fact of facts) {
-      await tx
-        .insert(normalizedFacts)
-        .values({
-          organizationId: config.organizationId,
-          employeeId: fact.employeeId,
-          teamId: fact.teamId,
-          factType: fact.factType,
-          numericValue: fact.numericValue,
-          textValue: fact.textValue,
-          booleanValue: fact.booleanValue,
-          unit: fact.unit,
-          periodStart: fact.periodStart,
-          periodEnd: fact.periodEnd,
-          dataSourceId: config.dataSourceId,
-          sourceRecordId: record.id,
-          sourceObservedAt: sourceObservedAt,
-          dimensionsJson: fact.dimensionsJson,
-        })
-        .onConflictDoUpdate({
-          target: [normalizedFacts.sourceRecordId, normalizedFacts.factType],
-          set: {
-            numericValue: fact.numericValue,
-            textValue: fact.textValue,
-            booleanValue: fact.booleanValue,
-            unit: fact.unit,
-            sourceObservedAt: sourceObservedAt,
-          },
-        });
-      normalized++;
+      rows.push({
+        organizationId: config.organizationId,
+        employeeId: fact.employeeId,
+        teamId: fact.teamId,
+        factType: fact.factType,
+        numericValue: fact.numericValue,
+        textValue: fact.textValue,
+        booleanValue: fact.booleanValue,
+        unit: fact.unit,
+        periodStart: fact.periodStart,
+        periodEnd: fact.periodEnd,
+        dataSourceId: config.dataSourceId,
+        sourceRecordId: record.id,
+        sourceObservedAt: sourceObservedAt,
+        dimensionsJson: fact.dimensionsJson,
+      });
     }
   }
 
-  return normalized;
+  for (const batch of chunk(rows, WRITE_CHUNK_SIZE)) {
+    await tx
+      .insert(normalizedFacts)
+      .values(batch)
+      .onConflictDoUpdate({
+        target: [normalizedFacts.sourceRecordId, normalizedFacts.factType],
+        set: {
+          numericValue: sql`excluded.numeric_value`,
+          textValue: sql`excluded.text_value`,
+          booleanValue: sql`excluded.boolean_value`,
+          unit: sql`excluded.unit`,
+          sourceObservedAt: sql`excluded.source_observed_at`,
+        },
+      });
+  }
+
+  return rows.length;
 }

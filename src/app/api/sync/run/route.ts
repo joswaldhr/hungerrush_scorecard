@@ -3,7 +3,7 @@ import { getEffectiveManagerContext } from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
 import { dataSources } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
-import { runSync, ZendeskConnector } from "@/lib/connectors";
+import { runSync, recordComputeValuesTiming, ZendeskConnector } from "@/lib/connectors";
 import { computeMetricValuesFromFacts } from "@/lib/domain/metrics/compute-values";
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
@@ -25,10 +25,7 @@ export async function POST(_request: Request) {
       .select()
       .from(dataSources)
       .where(
-        and(
-          eq(dataSources.organizationId, ctx.organizationId),
-          eq(dataSources.type, "zendesk")
-        )
+        and(eq(dataSources.organizationId, ctx.organizationId), eq(dataSources.type, "zendesk"))
       );
 
     if (!source) {
@@ -48,7 +45,9 @@ export async function POST(_request: Request) {
       organizationId: ctx.organizationId,
     });
 
+    const computeStartedAt = Date.now();
     const valuesWritten = await computeMetricValuesFromFacts(ctx.organizationId, "zendesk");
+    await recordComputeValuesTiming(result.syncRunId, Date.now() - computeStartedAt);
 
     return NextResponse.json({ ...result, valuesWritten });
   } catch (err) {

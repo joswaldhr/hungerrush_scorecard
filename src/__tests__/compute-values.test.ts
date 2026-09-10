@@ -4,7 +4,10 @@
 //   1. select defs        (metricDefinitions)
 //   2. select employees    (employees)
 //   3..N. select facts     (normalizedFacts, once per definition)
-//   then one insert(...).values(...).onConflictDoUpdate(...) per (employee, period) group.
+//   then one insert(...).values([...]).onConflictDoUpdate(...) per write-chunk
+//   (all groups across all definitions batched into chunks of WRITE_CHUNK_SIZE —
+//   these tests all use far fewer rows than that, so every test below produces
+//   exactly one chunk/insert call, containing an array of every row).
 // If compute-values.ts's internal query structure changes, this mock's call-order
 // assumption must change with it — that coupling is the cost of testing
 // DB-orchestrating code without refactoring it into a pure function (out of
@@ -35,7 +38,7 @@ vi.mock("@/lib/db/schema", () => ({
   employees: {},
   metricValues: {},
 }));
-vi.mock("drizzle-orm", () => ({ eq: vi.fn(), and: vi.fn() }));
+vi.mock("drizzle-orm", () => ({ eq: vi.fn(), and: vi.fn(), sql: vi.fn() }));
 
 import { computeMetricValuesFromFacts } from "@/lib/domain/metrics/compute-values";
 
@@ -43,7 +46,7 @@ const ORG_ID = "10000000-0000-4000-8000-000000000001";
 const DEF_ID = "60000000-0000-4000-8000-000000000001";
 
 interface Setup {
-  insertedRows: Array<{ values: Record<string, unknown> }>;
+  insertedRows: Array<Record<string, unknown>>;
 }
 
 /**
@@ -59,7 +62,7 @@ function setup(
     numericValue: number | null;
   }>
 ): Setup {
-  const insertedRows: Array<{ values: Record<string, unknown> }> = [];
+  const insertedRows: Array<Record<string, unknown>> = [];
   let selectCall = 0;
 
   mockDb.select.mockImplementation((_projection?: unknown) => ({
@@ -81,8 +84,8 @@ function setup(
   }));
 
   mockDb.insert.mockImplementation(() => ({
-    values: (values: Record<string, unknown>) => {
-      insertedRows.push({ values });
+    values: (values: Record<string, unknown> | Record<string, unknown>[]) => {
+      insertedRows.push(...(Array.isArray(values) ? values : [values]));
       return { onConflictDoUpdate: () => Promise.resolve() };
     },
   }));
@@ -102,8 +105,8 @@ describe("computeMetricValuesFromFacts", () => {
 
     expect(written).toBe(1);
     expect(insertedRows).toHaveLength(1);
-    expect(insertedRows[0]!.values.numericValue).toBe(GOLDEN_SUM_EXPECTED);
-    expect(insertedRows[0]!.values.employeeId).toBe(GOLDEN_EMPLOYEE.alice);
+    expect(insertedRows[0]!.numericValue).toBe(GOLDEN_SUM_EXPECTED);
+    expect(insertedRows[0]!.employeeId).toBe(GOLDEN_EMPLOYEE.alice);
   });
 
   it("averages facts and skips null values rather than coercing to zero (golden dataset)", async () => {
@@ -111,7 +114,7 @@ describe("computeMetricValuesFromFacts", () => {
     await computeMetricValuesFromFacts(ORG_ID, "golden");
 
     expect(insertedRows).toHaveLength(1);
-    expect(insertedRows[0]!.values.numericValue).toBe(GOLDEN_AVERAGE_WITH_NULL_EXPECTED);
+    expect(insertedRows[0]!.numericValue).toBe(GOLDEN_AVERAGE_WITH_NULL_EXPECTED);
   });
 
   it("takes the last recorded value for a latest-type metric (golden dataset)", async () => {
@@ -119,7 +122,7 @@ describe("computeMetricValuesFromFacts", () => {
     await computeMetricValuesFromFacts(ORG_ID, "golden");
 
     expect(insertedRows).toHaveLength(1);
-    expect(insertedRows[0]!.values.numericValue).toBe(GOLDEN_LATEST_EXPECTED);
+    expect(insertedRows[0]!.numericValue).toBe(GOLDEN_LATEST_EXPECTED);
   });
 
   it("never merges facts from different periods into one group (golden dataset)", async () => {
@@ -128,7 +131,7 @@ describe("computeMetricValuesFromFacts", () => {
 
     expect(insertedRows).toHaveLength(2);
     const byPeriod = Object.fromEntries(
-      insertedRows.map((r) => [r.values.periodStart as string, r.values.numericValue as number])
+      insertedRows.map((r) => [r.periodStart as string, r.numericValue as number])
     );
     expect(byPeriod).toEqual(GOLDEN_TWO_PERIOD_EXPECTED);
   });
@@ -172,7 +175,7 @@ describe("computeMetricValuesFromFacts", () => {
     await computeMetricValuesFromFacts(ORG_ID, "golden");
 
     // (10 + 11 + 11) / 3 = 10.666... -> rounded to 10.67
-    expect(insertedRows[0]!.values.numericValue).toBe(10.67);
+    expect(insertedRows[0]!.numericValue).toBe(10.67);
   });
 
   it("calls onConflictDoUpdate for idempotent upsert on every insert", async () => {

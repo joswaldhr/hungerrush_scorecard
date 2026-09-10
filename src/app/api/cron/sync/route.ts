@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { dataSources, rosterSourceTeamMappings } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { runSync, ZendeskConnector } from "@/lib/connectors";
+import { runSync, recordComputeValuesTiming, ZendeskConnector } from "@/lib/connectors";
 import { computeMetricValuesFromFacts } from "@/lib/domain/metrics/compute-values";
 import { discoverRosterCandidates } from "@/lib/domain/roster/reconcile";
 import { isSyncRateLimited } from "@/lib/rate-limit";
@@ -50,7 +50,9 @@ export async function GET(request: Request) {
         dataSourceId: source.id,
         organizationId: source.organizationId,
       });
+      const computeStartedAt = Date.now();
       const valuesWritten = await computeMetricValuesFromFacts(source.organizationId, source.type);
+      await recordComputeValuesTiming(syncResult.syncRunId, Date.now() - computeStartedAt);
 
       let rosterResult: { newCandidates: number; departedCandidates: number } | null = null;
       const [mapping] = await db

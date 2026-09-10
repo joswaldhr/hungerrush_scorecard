@@ -1,8 +1,14 @@
 import { db } from "@/lib/db";
 import { normalizedFacts, metricDefinitions, employees, metricValues } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { aggregateSourceValues } from "@/lib/domain/reconciliation/compare";
+import { chunk } from "@/lib/utils";
 import type { CalculationType } from "./types";
+
+// Rows per bulk upsert statement — see the same constant's comment in
+// sync-engine.ts. metricValues has fewer columns than normalizedFacts but
+// the same reasoning applies.
+const WRITE_CHUNK_SIZE = 500;
 
 // Aggregates normalizedFacts (raw per-sync numbers) into metricValues (the
 // values manager-facing pages read) for every metric definition fed by the
@@ -28,7 +34,11 @@ export async function computeMetricValuesFromFacts(
     .where(eq(employees.organizationId, organizationId));
   const teamByEmployee = new Map(employeeRows.map((e) => [e.id, e.teamId]));
 
-  let written = 0;
+  // Collect every row to write in memory first — safe to batch arbitrarily:
+  // each metric definition has a distinct id and groups within one
+  // definition are keyed by (employeeId, periodStart, periodEnd), so the
+  // full 4-column conflict target is unique across this entire array.
+  const rows: (typeof metricValues.$inferInsert)[] = [];
 
   for (const def of defs) {
     const facts = await db
@@ -62,37 +72,40 @@ export async function computeMetricValuesFromFacts(
       const value = aggregateSourceValues(group.values, def.calculationType as CalculationType);
       if (value === null) continue;
 
-      await db
-        .insert(metricValues)
-        .values({
-          metricDefinitionId: def.id,
-          employeeId: group.employeeId,
-          teamId: teamByEmployee.get(group.employeeId) ?? null,
-          periodStart: group.periodStart,
-          periodEnd: group.periodEnd,
-          numericValue: Math.round(value * 100) / 100,
-          calculationVersion: 1,
-          dataFreshnessAt: new Date(),
-          qualityStatus: "complete",
-          provenanceJson: { sourceStrategy },
-        })
-        .onConflictDoUpdate({
-          target: [
-            metricValues.metricDefinitionId,
-            metricValues.employeeId,
-            metricValues.periodStart,
-            metricValues.periodEnd,
-          ],
-          set: {
-            numericValue: Math.round(value * 100) / 100,
-            dataFreshnessAt: new Date(),
-            qualityStatus: "complete",
-            provenanceJson: { sourceStrategy },
-          },
-        });
-      written++;
+      rows.push({
+        metricDefinitionId: def.id,
+        employeeId: group.employeeId,
+        teamId: teamByEmployee.get(group.employeeId) ?? null,
+        periodStart: group.periodStart,
+        periodEnd: group.periodEnd,
+        numericValue: Math.round(value * 100) / 100,
+        calculationVersion: 1,
+        dataFreshnessAt: new Date(),
+        qualityStatus: "complete",
+        provenanceJson: { sourceStrategy },
+      });
     }
   }
 
-  return written;
+  for (const batch of chunk(rows, WRITE_CHUNK_SIZE)) {
+    await db
+      .insert(metricValues)
+      .values(batch)
+      .onConflictDoUpdate({
+        target: [
+          metricValues.metricDefinitionId,
+          metricValues.employeeId,
+          metricValues.periodStart,
+          metricValues.periodEnd,
+        ],
+        set: {
+          numericValue: sql`excluded.numeric_value`,
+          dataFreshnessAt: sql`excluded.data_freshness_at`,
+          qualityStatus: sql`excluded.quality_status`,
+          provenanceJson: sql`excluded.provenance_json`,
+        },
+      });
+  }
+
+  return rows.length;
 }
