@@ -34,6 +34,21 @@ export function chunk<T>(items: T[], size: number): T[][] {
   return chunks;
 }
 
+// Runs `fn` over `items` with at most `concurrency` in flight at once,
+// batch by batch (not a sliding window) -- simple and sufficient for
+// bounded-fanout API calls where per-item latency is roughly uniform.
+export async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  fn: (item: T) => Promise<R>
+): Promise<R[]> {
+  const results: R[] = [];
+  for (const batch of chunk(items, concurrency)) {
+    results.push(...(await Promise.all(batch.map(fn))));
+  }
+  return results;
+}
+
 export function initials(name: string): string {
   return name
     .split(" ")

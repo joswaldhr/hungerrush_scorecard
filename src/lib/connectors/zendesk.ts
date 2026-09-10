@@ -14,6 +14,17 @@ import { externalIdentities } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { zendeskGet, type RequestStats } from "./zendesk-shared";
 import { logger } from "@/lib/logger";
+import { mapWithConcurrency } from "@/lib/utils";
+
+// Real timing data (2026-09-10, see FOLLOWUPS.md) showed the per-employee
+// ticket-search and identity-resolution loops -- not the Talk calls fetch --
+// dominating fetch time: ~84 sequential requests each, one employee at a
+// time. Neither Zendesk's Search nor Users API rate limit is confirmed in
+// this codebase (only Talk's 10 req/min is documented), so this is a
+// deliberately conservative concurrency rather than a measured maximum --
+// zendeskGet's existing 429 retry/backoff is the safety net if it's still
+// too aggressive for a given account.
+const EMPLOYEE_FETCH_CONCURRENCY = 5;
 
 export const MAX_WEEKS_BACK = 4;
 
@@ -378,17 +389,26 @@ export class ZendeskConnector implements Connector {
     const allTicketIds: number[] = [];
 
     const ticketSearchStartedAt = Date.now();
-    for (const identity of identities) {
-      const email = identity.externalId;
-      const updatedQuery = `type:ticket assignee:${email} updated>=${periodStart} updated<=${periodEnd}`;
-      const tickets = await searchAllPages(updatedQuery);
+    const ticketResults = await mapWithConcurrency(
+      identities,
+      EMPLOYEE_FETCH_CONCURRENCY,
+      async (identity) => {
+        const email = identity.externalId;
+        const updatedQuery = `type:ticket assignee:${email} updated>=${periodStart} updated<=${periodEnd}`;
+        const tickets = await searchAllPages(updatedQuery);
+
+        let openTickets: ZendeskTicket[] | null = null;
+        if (weekOffset === 0) {
+          const openQuery = `type:ticket assignee:${email} status<solved`;
+          openTickets = await searchAllPages(openQuery);
+        }
+        return { email, tickets, openTickets };
+      }
+    );
+    for (const { email, tickets, openTickets } of ticketResults) {
       perEmployeeTickets.set(email, tickets);
       allTicketIds.push(...tickets.map((t) => t.id));
-
-      if (weekOffset === 0) {
-        const openQuery = `type:ticket assignee:${email} status<solved`;
-        perEmployeeOpen.set(email, await searchAllPages(openQuery));
-      }
+      if (openTickets !== null) perEmployeeOpen.set(email, openTickets);
     }
     const ticketSearchMs = Date.now() - ticketSearchStartedAt;
 
@@ -398,6 +418,16 @@ export class ZendeskConnector implements Connector {
     const now = new Date();
 
     const recordBuildStartedAt = Date.now();
+
+    // Resolved up front, concurrently, so the record-building loop below can
+    // stay synchronous -- resolveNumericId() is the one network call per
+    // identity that made this loop slow (see EMPLOYEE_FETCH_CONCURRENCY).
+    const numericIdByEmail = new Map<string, number | null>();
+    await mapWithConcurrency(identities, EMPLOYEE_FETCH_CONCURRENCY, async (identity) => {
+      const email = identity.externalId;
+      numericIdByEmail.set(email, await this.resolveNumericId(email));
+    });
+
     const records: IngestedRecord[] = [];
     for (const identity of identities) {
       const email = identity.externalId;
@@ -445,7 +475,7 @@ export class ZendeskConnector implements Connector {
         sourceUpdatedAt: now,
       });
 
-      const numericId = await this.resolveNumericId(email);
+      const numericId = numericIdByEmail.get(email) ?? null;
       const ratings = numericId !== null ? (ratingsByAssignee.get(numericId) ?? []) : [];
       const rated = ratings.filter((r) => r.score === "good" || r.score === "bad");
       const good = rated.filter((r) => r.score === "good").length;
