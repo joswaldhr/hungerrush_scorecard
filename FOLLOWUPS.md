@@ -93,6 +93,27 @@ involved:
      answer) — worth doing before picking (a)/(b)/(c), since if the real limit turns out to be
      generous enough, (a) alone might already be sufficient.
 
-Not fixed here — this is a bigger decision than "add a missing env var," and per the Definition
-of Done, guessing at which of (a)/(b)/(c) to ship isn't the right call without confirming (d)
-first.
+## Update (2026-09-10): (a) shipped and verified, (d) now definitively confirmed — (a) alone is NOT enough
+
+**Option (a) is done.** `ingestRecords`, `normalizeIngestedRecords`, and `computeMetricValuesFromFacts`
+are all now batched (chunked bulk upserts, 500 rows/statement, via Drizzle's `excluded.*`
+pattern — see the "Batch the sync pipeline's writes" commit). Verified against real production
+data: the publish (DB-write) phase dropped from **247.8s to 2.2s** on the same data — a ~114x
+improvement, DB writes are now effectively instant. `sync_runs.metadataJson` now records
+`{ fetchMs, publishMs, computeValuesMs }` on every run going forward, closing the
+fetch-vs-publish measurement gap this item originally flagged.
+
+**Option (d) is now answered directly, not inferred.** Triggered the real deployed
+`https://hungerrush-scorecard.vercel.app/api/cron/sync` after the batching fix shipped:
+`HTTP 504`, body `FUNCTION_INVOCATION_TIMEOUT`, at **exactly 300 seconds**. That is the real,
+confirmed function duration limit for this project (Fluid Compute is enabled but evidently caps
+at 5 minutes here, not higher).
+
+**Net result: batching alone does not fix the timeout.** With writes now effectively free, a
+full sync still takes **~14 minutes total, ~13.8 of which is the Zendesk API fetch phase alone**
+(confirmed via `metadataJson.fetchMs` on a real run) — nearly 3x over the real 300s limit, and
+this change never touched the fetch phase. **Options (b) split-the-work and (c)
+background-job-model are no longer "maybe needed later" — one of them is now required** to
+actually close this out. (b) is the more incremental next step (e.g. one cron per week-offset,
+or tickets/calls as separate invocations, so no single invocation does more than ~1-2 minutes of
+fetching) — not started, needs a decision on exactly how to split before implementing.

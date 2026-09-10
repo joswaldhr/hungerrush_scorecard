@@ -160,3 +160,28 @@ meantime.
   invoking `/api/cron/sync`, or being silently auth-rejected — this environment has no Vercel
   dashboard/CLI access to settle it. Trigger a manual sync via `/api/sync/run` in the meantime;
   don't wait on the cron to self-heal until that's confirmed fixed.
+
+## Update (2026-09-10): batching fix shipped, verified, and stress-tested against the real limit
+
+Implemented `FOLLOWUPS.md` item 5 option (a): batched `ingestRecords`, `normalizeIngestedRecords`,
+and `computeMetricValuesFromFacts` into chunked bulk upserts (500 rows/statement) instead of one
+query per row. Full design in the approved plan; see the "Batch the sync pipeline's writes"
+commit for the actual diff.
+
+**Verified with real data, twice** (local script, then the real deployed cron):
+- Local `scripts/run-live-sync.ts` run before vs. after: publish (DB-write) phase dropped from
+  **247.8s to 2.2s** on comparable data — a ~114x improvement. `sync_runs.metadataJson` now
+  records `{ fetchMs, publishMs, computeValuesMs }` on every run.
+- **Decisive check** (triggering the real production `https://hungerrush-scorecard.vercel.app/api/cron/sync`
+  directly, exactly as done for the `CRON_SECRET` fix): `HTTP 504 FUNCTION_INVOCATION_TIMEOUT`
+  at **exactly 300 seconds**. This is the real, confirmed Vercel function duration limit for
+  this project — previously unknown, now settled by direct observation rather than guessed.
+
+**Bottom line: batching was necessary but not sufficient.** With writes now effectively
+instant, a full sync still takes ~14 minutes total — ~13.8 minutes of which is the Zendesk API
+fetch phase alone, untouched by this change — nearly 3x over the real 300s limit. The cron
+still cannot complete a full sync today. See `FOLLOWUPS.md` item 5's update for the concrete
+next options (splitting the work across multiple smaller invocations is the recommended next
+step) — not started, needs a decision on exactly how to split before implementing. Manual syncs
+via `/api/sync/run` remain the only currently-reliable path and now also run ~114x faster on
+the DB-write side.
