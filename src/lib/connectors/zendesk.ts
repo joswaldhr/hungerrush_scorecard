@@ -359,13 +359,25 @@ export class ZendeskConnector implements Connector {
       .from(externalIdentities)
       .where(eq(externalIdentities.dataSourceId, config.dataSourceId));
 
+    // Coarse phase timing (2026-09-10): the Talk calls fetch turned out NOT
+    // to be the bottleneck real data pointed to (11 pages, 42.5s, zero
+    // 429s) -- ~85% of a real run's fetchMs was unaccounted for elsewhere.
+    // 84 employee identities means both the ticket-search loop below and
+    // resolveNumericId() in the record-building loop each make ~84
+    // sequential Zendesk requests one at a time -- timing each phase here
+    // to find out which one (or both) actually accounts for it, rather
+    // than guessing a second time. See FOLLOWUPS.md.
+    const ratingsStartedAt = Date.now();
     const ratingsByAssignee = await fetchRatings(periodStart, periodEnd);
+    const ratingsMs = Date.now() - ratingsStartedAt;
+
     const { calls, diagnostics: callDiagnostics } = await fetchCallsForWeek(periodStart, periodEnd);
 
     const perEmployeeTickets = new Map<string, ZendeskTicket[]>();
     const perEmployeeOpen = new Map<string, ZendeskTicket[]>();
     const allTicketIds: number[] = [];
 
+    const ticketSearchStartedAt = Date.now();
     for (const identity of identities) {
       const email = identity.externalId;
       const updatedQuery = `type:ticket assignee:${email} updated>=${periodStart} updated<=${periodEnd}`;
@@ -378,10 +390,14 @@ export class ZendeskConnector implements Connector {
         perEmployeeOpen.set(email, await searchAllPages(openQuery));
       }
     }
+    const ticketSearchMs = Date.now() - ticketSearchStartedAt;
 
+    const metricSetsStartedAt = Date.now();
     const metricSets = await fetchMetricSets(allTicketIds);
+    const metricSetsMs = Date.now() - metricSetsStartedAt;
     const now = new Date();
 
+    const recordBuildStartedAt = Date.now();
     const records: IngestedRecord[] = [];
     for (const identity of identities) {
       const email = identity.externalId;
@@ -478,11 +494,31 @@ export class ZendeskConnector implements Connector {
       });
     }
 
+    const recordBuildMs = Date.now() - recordBuildStartedAt;
+
+    logger.info("Zendesk fetchRecords phase timing", {
+      periodStart,
+      periodEnd,
+      identityCount: identities.length,
+      ratingsMs,
+      ticketSearchMs,
+      metricSetsMs,
+      recordBuildMs,
+      allTicketIdsCount: allTicketIds.length,
+    });
+
     return {
       records,
       cursor: String(weekOffset + 1),
       hasMore: weekOffset + 1 < MAX_WEEKS_BACK,
-      diagnostics: { callsFetch: callDiagnostics },
+      diagnostics: {
+        callsFetch: callDiagnostics,
+        identityCount: identities.length,
+        ratingsMs,
+        ticketSearchMs,
+        metricSetsMs,
+        recordBuildMs,
+      },
     };
   }
 
