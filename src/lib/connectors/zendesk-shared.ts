@@ -24,10 +24,20 @@ export function baseUrl(): string {
   return `https://${env.ZENDESK_SUBDOMAIN}.zendesk.com/api/v2`;
 }
 
-export async function zendeskGet<T>(pathOrUrl: string): Promise<T> {
+// Optional accumulator a caller can pass to observe rate-limit behavior across
+// a whole paging loop (see fetchCallsForWeek) -- diagnostic only, has no
+// effect on request/retry behavior itself.
+export interface RequestStats {
+  requests: number;
+  retries429: number;
+  backoffWaitMs: number;
+}
+
+export async function zendeskGet<T>(pathOrUrl: string, stats?: RequestStats): Promise<T> {
   const url = pathOrUrl.startsWith("http") ? pathOrUrl : `${baseUrl()}${pathOrUrl}`;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    if (stats) stats.requests++;
     const res = await fetch(url, {
       headers: { Authorization: authHeader() },
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
@@ -40,6 +50,10 @@ export async function zendeskGet<T>(pathOrUrl: string): Promise<T> {
       const retryAfter = parseInt(res.headers.get("Retry-After") ?? "60", 10);
       const waitMs = Math.min(retryAfter, 120) * 1000;
       logger.warn("Zendesk 429 rate limit", { path: pathOrUrl, retryAfter, attempt });
+      if (stats) {
+        stats.retries429++;
+        stats.backoffWaitMs += waitMs;
+      }
       await new Promise((r) => setTimeout(r, waitMs));
       continue;
     }

@@ -78,6 +78,7 @@ export async function runSync(
   const allFetchedRecords: IngestedRecord[] = [];
   const fetchErrors: Array<{ message: string }> = [];
   let finalCursor: string | null = null;
+  let fetchDiagnostics: Record<string, unknown> | undefined;
   const fetchStartedAt = Date.now();
 
   try {
@@ -95,6 +96,7 @@ export async function runSync(
 
       cursor = fetchResult.cursor;
       finalCursor = cursor;
+      if (fetchResult.diagnostics) fetchDiagnostics = fetchResult.diagnostics;
       if (!fetchResult.hasMore) break;
     }
   } catch (err) {
@@ -183,9 +185,13 @@ export async function runSync(
       // the write-batching work) from DB-write time (what batching targets)
       // — see FOLLOWUPS.md item 5. weekOffset records which single-week leg
       // this run covers (undefined for a full multi-week sweep, e.g. the
-      // manual "Sync Now" path before it was scoped to week 0). Nothing
-      // reads this yet besides humans querying it directly.
-      metadataJson: { fetchMs, publishMs, weekOffset: options.weekOffset },
+      // manual "Sync Now" path before it was scoped to week 0). fetch is
+      // connector-supplied diagnostics (opaque here) for isolating exactly
+      // where fetchMs goes on a real run, added while investigating why
+      // every week's fetch phase runs 250-296s against the 300s limit —
+      // see FOLLOWUPS.md's 2026-09-10 entry. Nothing reads this yet besides
+      // humans querying it directly.
+      metadataJson: { fetchMs, publishMs, weekOffset: options.weekOffset, fetch: fetchDiagnostics },
     })
     .where(eq(syncRuns.id, syncRunId));
 

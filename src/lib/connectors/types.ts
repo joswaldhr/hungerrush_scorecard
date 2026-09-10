@@ -78,7 +78,16 @@ export interface Connector {
   fetchRecords(
     config: ConnectorConfig,
     ctx: SyncContext
-  ): Promise<{ records: IngestedRecord[]; cursor: string | null; hasMore: boolean }>;
+  ): Promise<{
+    records: IngestedRecord[];
+    cursor: string | null;
+    hasMore: boolean;
+    // Connector-specific, opaque to the domain: surfaced verbatim into
+    // sync_runs.metadataJson for humans to inspect timing/retry behavior
+    // directly against real data, without depending on Vercel's own log
+    // retention (see sync-engine.ts).
+    diagnostics?: Record<string, unknown>;
+  }>;
 
   normalizeRecords(
     records: Array<{ sourceRecordId: string; payload: Record<string, unknown> }>,

@@ -12,7 +12,8 @@ import type {
 import { db } from "@/lib/db";
 import { externalIdentities } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { zendeskGet } from "./zendesk-shared";
+import { zendeskGet, type RequestStats } from "./zendesk-shared";
+import { logger } from "@/lib/logger";
 
 export const MAX_WEEKS_BACK = 4;
 
@@ -180,14 +181,29 @@ async function fetchRatings(
 // only, no end_time) rather than a bounded search -- so pages are consumed
 // until either Zendesk says end_of_stream or an entire page comes back past
 // the target week, with a hard page cap as a safety valve.
-async function fetchCallsForWeek(periodStart: string, periodEnd: string): Promise<ZendeskCall[]> {
+//
+// Diagnostic instrumentation (2026-09-10): real production timing showed
+// every week's fetch phase (not just the in-progress one) taking 250-296s
+// against Vercel's 300s limit -- suspiciously close to what repeated
+// Zendesk 429 backoff cycles would produce, since Talk endpoints are
+// rate-limited to 10 req/min (confirmed via Zendesk's own docs) and a
+// direct real API call confirmed `end_of_stream` never actually appears in
+// the response (so that half of the break condition below has always been
+// dead). pages/stats are logged and returned so a real run's numbers can
+// confirm or rule this out before deciding on a fix -- see FOLLOWUPS.md.
+async function fetchCallsForWeek(
+  periodStart: string,
+  periodEnd: string
+): Promise<{ calls: ZendeskCall[]; diagnostics: Record<string, unknown> }> {
   const startTime = Math.floor(new Date(`${periodStart}T00:00:00Z`).getTime() / 1000);
   const endTime = new Date(`${periodEnd}T23:59:59Z`).getTime();
   const calls: ZendeskCall[] = [];
   let path: string | null = `/channels/voice/stats/incremental/calls.json?start_time=${startTime}`;
   let pages = 0;
+  const stats: RequestStats = { requests: 0, retries429: 0, backoffWaitMs: 0 };
+  const startedAt = Date.now();
   while (path && pages < 50) {
-    const res: ZendeskCallsResponse = await zendeskGet<ZendeskCallsResponse>(path);
+    const res: ZendeskCallsResponse = await zendeskGet<ZendeskCallsResponse>(path, stats);
     pages++;
     let allPastWindow = res.calls.length > 0;
     for (const call of res.calls) {
@@ -199,7 +215,16 @@ async function fetchCallsForWeek(periodStart: string, periodEnd: string): Promis
     if (res.end_of_stream || allPastWindow) break;
     path = res.next_page;
   }
-  return calls;
+  const diagnostics = {
+    periodStart,
+    periodEnd,
+    pages,
+    callsCollected: calls.length,
+    ...stats,
+    totalMs: Date.now() - startedAt,
+  };
+  logger.info("Zendesk Talk calls fetch complete", diagnostics);
+  return { calls, diagnostics };
 }
 
 // Only the fields confirmed on real call records map cleanly here. "Missed",
@@ -317,7 +342,12 @@ export class ZendeskConnector implements Connector {
   async fetchRecords(
     config: ConnectorConfig,
     ctx: SyncContext
-  ): Promise<{ records: IngestedRecord[]; cursor: string | null; hasMore: boolean }> {
+  ): Promise<{
+    records: IngestedRecord[];
+    cursor: string | null;
+    hasMore: boolean;
+    diagnostics?: Record<string, unknown>;
+  }> {
     const weekOffset = ctx.cursor ? parseInt(ctx.cursor, 10) : 0;
     if (weekOffset >= MAX_WEEKS_BACK) {
       return { records: [], cursor: null, hasMore: false };
@@ -330,7 +360,7 @@ export class ZendeskConnector implements Connector {
       .where(eq(externalIdentities.dataSourceId, config.dataSourceId));
 
     const ratingsByAssignee = await fetchRatings(periodStart, periodEnd);
-    const calls = await fetchCallsForWeek(periodStart, periodEnd);
+    const { calls, diagnostics: callDiagnostics } = await fetchCallsForWeek(periodStart, periodEnd);
 
     const perEmployeeTickets = new Map<string, ZendeskTicket[]>();
     const perEmployeeOpen = new Map<string, ZendeskTicket[]>();
@@ -452,6 +482,7 @@ export class ZendeskConnector implements Connector {
       records,
       cursor: String(weekOffset + 1),
       hasMore: weekOffset + 1 < MAX_WEEKS_BACK,
+      diagnostics: { callsFetch: callDiagnostics },
     };
   }
 
