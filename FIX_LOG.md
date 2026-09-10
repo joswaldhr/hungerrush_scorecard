@@ -123,6 +123,31 @@ their processes are dead and they'll never update. This does **not** affect the 
 real completed run (`11568eaf...`) is more recent than both. Not worth a DB write to tidy up
 purely cosmetic historical rows from this session's own testing.
 
+## Update (2026-09-09, later same day): root cause of the cron gap confirmed, and a second blocker found
+
+With direct Vercel API access (a token the user provided), confirmed definitively:
+`CRON_SECRET` had never been added to Vercel's environment variables at all — every other
+secret the app needs was there (added together 2026-08-26), `CRON_SECRET` simply wasn't. The
+cron registration itself was fine (correctly bound to the current production deployment,
+enabled). This rules out "Vercel never invoked the cron" — it was being invoked and hitting the
+500 "CRON_SECRET not configured" branch, silently, every single day.
+
+Added `CRON_SECRET` to Production + Preview, triggered a redeploy, then called the real
+`https://hungerrush-scorecard.vercel.app/api/cron/sync` directly with the correct header to
+confirm end-to-end. **Auth fix confirmed working** — a new `sync_runs` row appeared
+immediately. But the invocation never completed (34+ minutes, no success, no failure) — see
+`FOLLOWUPS.md` item 5 for the full analysis. Strong circumstantial evidence this is Vercel's
+platform execution-duration limit killing the function mid-flight, since the pipeline's
+unbatched, one-row-at-a-time write pattern (already flagged as a followup) takes ~50 minutes
+total, and this run should have been *faster* than the ~32-minute local test since most of this
+week's data was already ingested (hash-dedup should skip rewriting it).
+
+**Net effect: the missing-secret bug is fixed and proven, but the cron likely still can't
+complete a full sync reliably until the pipeline is made significantly faster (or split into
+smaller invocations) — tracked as the new top item in `FOLLOWUPS.md`.** Manual syncs via
+`/api/sync/run` still work (proven in the original Phase 2) and remain the reliable path in the
+meantime.
+
 ## Summary
 
 - Fixed: missing `dynamic = "force-dynamic"` on the cron route (defense-in-depth); missing

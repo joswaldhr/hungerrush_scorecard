@@ -43,22 +43,56 @@ enabled under Project → Settings → Cron Jobs, and what do the Function Invoc
 that route over the last ~10 days (no invocations at all vs. 401/500 responses)? See
 `INVESTIGATION.md` §12 items 1-3 for the exact questions.
 
-## 5. Sync pipeline is slow — sequential, one-row-at-a-time writes inside long transactions
+## 5. Sync pipeline is too slow to finish inside one serverless invocation — now confirmed URGENT
 
-**Resolved as a real finding, not a mystery** (see `FIX_LOG.md` Phase 2 for the full story):
-what looked like an indefinite hang during verification was actually two things stacking up —
-(a) testing-methodology fallout (abandoned mid-transaction connections from killing the dev
-server mid-sync, holding locks that blocked later attempts — not a production issue, a real
-Vercel deployment doesn't get torn down mid-transaction like a locally-restarted dev server
-does), and (b) genuine, reproducible slowness: `runSync()`'s publish phase and the separate
-`computeMetricValuesFromFacts()` step each write one row at a time, sequentially, inside a
-single long-lived transaction/loop, with no batching. A full run took ~32 minutes for `runSync`
-(2,283 facts) plus ~17.6 minutes for `computeMetricValuesFromFacts` (5,515 values) — both
-completed successfully with 0 errors, just slowly.
+**Updated 2026-09-09, after the `CRON_SECRET` fix was deployed and tested live.** What started
+as "worth batching eventually" is now a confirmed second production blocker, separate from the
+missing-secret bug:
 
-This isn't urgent (the pipeline works correctly, and daily-cron-frequency syncs have headroom),
-but it's worth addressing before data volume grows further: batch the `normalized_facts` and
-`metric_values` upserts (e.g. multi-row `INSERT ... VALUES (...), (...), ...` or `unnest()`-based
-bulk upserts) instead of one query per fact/value. Medium effort, low risk (same
-insert-or-update semantics, just batched) — a good candidate for its own focused task rather
-than bundling into a "fix the sync gap" change.
+- `CRON_SECRET` was added to Vercel (Production + Preview) and a fresh deployment picked it up.
+  Triggering the real `https://hungerrush-scorecard.vercel.app/api/cron/sync` endpoint directly
+  confirmed the auth fix works — a new `sync_runs` row (`41efb235-...`) appeared immediately,
+  proving the request now correctly reaches `runSync()`.
+- That invocation was still `status: "running"` with zero completion **34+ minutes later**, with
+  no `sync_errors` row and no transition to `"failed"` — the same signature seen locally when a
+  process running `runSync()` gets killed out from under it (an abandoned mid-transaction
+  connection, not a code path that ran to any kind of finish, success or caught exception).
+  This run should have been **faster** than the ~32-minute local test, since this week's
+  tickets/calls were already mostly ingested by an earlier manual sync (hash-dedup in
+  `ingestRecords` should skip rewriting unchanged records) — yet it still didn't finish.
+  Strong circumstantial evidence (not proof — Vercel's runtime/lambda invocation logs were not
+  accessible via the API endpoints tried) that Vercel's platform-level execution limit is
+  killing the function mid-flight, even with Fluid Compute enabled on this project
+  (`resourceConfig.fluid: true`, confirmed via the Projects API).
+- Root cause of the slowness itself (unchanged from before): `runSync()`'s publish phase and
+  the separate `computeMetricValuesFromFacts()` step each write one row at a time, sequentially,
+  inside a single long-lived transaction/loop, with no batching. A local, direct (non-HTTP) run
+  took ~32 minutes for `runSync` (2,283 facts) plus ~17.6 minutes for
+  `computeMetricValuesFromFacts` (5,515 values) — ~50 minutes total, all of which needs to fit
+  inside one cron invocation today since the route calls both steps sequentially before
+  responding.
+
+**This needs a real decision, not a guessed patch** — options, roughly cheapest to most
+involved:
+  a) **Batch the writes.** Multi-row `INSERT ... VALUES (...), (...), ...` (or
+     `unnest()`-based bulk upserts) instead of one query per fact/value in both
+     `normalizeIngestedRecords` (`sync-engine.ts`) and `computeMetricValuesFromFacts`
+     (`compute-values.ts`). Could plausibly bring total runtime down from ~50 minutes to well
+     under whatever the actual platform limit is. Doesn't touch the fetch phase (still bound by
+     however long ~260+ sequential Zendesk API calls take).
+  b) **Split the work across multiple invocations.** E.g. a separate cron per week-offset, or
+     tickets and calls as separate cron jobs, so no single invocation has to do all 4 weeks +
+     calls + normalize + compute in one shot.
+  c) **Move off the request/response model.** Vercel's `waitUntil` for background work after
+     responding is still bound by the same underlying function lifetime limits for anything
+     substantial — a real fix here likely means a proper background job/queue rather than a
+     single HTTP-triggered function, which is a bigger architectural change.
+  d) Confirm the actual configured/effective function duration limit for this specific
+     project+plan (Fluid Compute changes the numbers, and this wasn't confirmed precisely — the
+     Vercel dashboard's Deployment → Function detail view, or Vercel support, can give an exact
+     answer) — worth doing before picking (a)/(b)/(c), since if the real limit turns out to be
+     generous enough, (a) alone might already be sufficient.
+
+Not fixed here — this is a bigger decision than "add a missing env var," and per the Definition
+of Done, guessing at which of (a)/(b)/(c) to ship isn't the right call without confirming (d)
+first.
