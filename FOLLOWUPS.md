@@ -183,3 +183,65 @@ No practical fallout for scheduled runs: the next cron legs aren't until tomorro
 6:00/6:15/6:30/6:45 UTC window, well after this deploy lands, and Vercel always sends whichever
 value it currently holds — old or new — so the real cron was never at risk of failing from this.
 Manual `?week=1/2/3` triggering resumes once this deployment is live.
+
+## Update (2026-09-10, later same day): weeks 1-3 verified, and the thin-margin fix targeted the wrong bottleneck
+
+With the rotated secret, all 4 weeks were triggered manually for real, closing out the item
+above. **All 4 were in the danger zone, not just week 0**:
+
+| Week | fetchMs | Total wall time | Margin under 300s |
+|------|---------|------------------|---------------------|
+| 0 | 259,374 | ~282.0s | ~18s |
+| 1 | 294,614 | ~296.0s | **~4s** |
+| 2 | 251,932 | ~253.2s | ~47s |
+| 3 | 254,428 | ~255.6s | ~44s |
+
+Week 1 nearly 504'd outright. Since completed weeks (1-3) were just as slow as the in-progress
+week (0), the previous entry's theory — "the in-progress week never signals `end_of_stream`
+so it always burns its full 50-page cap" — couldn't be the whole story, since that shouldn't
+apply to already-completed weeks.
+
+**The theory was wrong. Verified directly against the real Zendesk API** (not just docs):
+`end_of_stream` never appears in a real response at all (confirmed empirically, not just from
+Zendesk's docs — dead code, always `undefined`), and Talk endpoints are rate-limited to 10
+req/min. That looked like a strong candidate for the real cause, but instrumenting
+`fetchCallsForWeek` (page count, 429 count, backoff wait — see the "Add diagnostics to the Talk
+calls fetch" commit) and re-running week=1 for real disproved it immediately: **11 pages, 42.5s,
+zero 429s, zero backoff.** The calls fetch was never the problem.
+
+Extending the same instrumentation to the rest of `fetchRecords` (see "Add phase timing to
+fetchRecords" commit) found the real breakdown for a 198.7s fetch phase:
+
+| Phase | Time | Share |
+|---|---|---|
+| Ticket search (84 employees, sequential) | 98.8s | 50% |
+| Metric sets (batched by 100 ticket IDs) | 65.8s | 33% |
+| Record build (84 sequential `resolveNumericId` calls) | 26.3s | 13% |
+| Ratings + Talk calls | 7.6s | 4% |
+
+84 external identities for this data source means both the ticket-search loop and the
+`resolveNumericId` calls in record-building are ~84 sequential Zendesk requests each, one
+employee at a time, with zero concurrency — the actual bottleneck.
+
+**Fixed** (see "Parallelize per-employee Zendesk fetches" commit): both loops now run with
+bounded concurrency (5 at a time, via a new `mapWithConcurrency` helper), leaning on
+`zendeskGet`'s existing 429 retry/backoff as the safety net since neither endpoint's real rate
+limit is confirmed in this codebase (only Talk's 10/min is documented). **Verified live,
+before/after, same weeks**:
+
+| | Week 0 (before → after) | Week 1 (before → after) |
+|---|---|---|
+| Ticket search | — | 98.8s → 35.5s |
+| Record build | — | 26.3s → 6.4s |
+| fetchMs | 259.4s → 157.0s | 198.7s → 148.9s |
+| Total wall time | 282.0s → 168.7s | 207.8s → 158.0s |
+| Margin under 300s | ~18s → ~131s | ~4s → ~142s |
+
+Weeks 2-3 weren't re-verified under the fix (already had more margin pre-fix, and the fix isn't
+week-conditional) — worth a quick check if margin ever looks tight again.
+
+**Not done, deliberately out of scope for this change**: `fetchMetricSets` is now the single
+largest remaining phase (65.8-75.6s, ~45% of fetchMs) — the same class of problem (a sequential
+loop, this time over 100-ticket-ID batches instead of employees), not yet parallelized. Current
+margin (~130-140s) is comfortable without it, but it's the obvious next target if that ever
+tightens up again.
