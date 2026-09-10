@@ -117,3 +117,41 @@ background-job-model are no longer "maybe needed later" — one of them is now r
 actually close this out. (b) is the more incremental next step (e.g. one cron per week-offset,
 or tickets/calls as separate invocations, so no single invocation does more than ~1-2 minutes of
 fetching) — not started, needs a decision on exactly how to split before implementing.
+
+## Update (2026-09-10, later same day): (b) shipped for week-offset — works today, but week 0 has thin margin
+
+Implemented option (b): `runSync()` now accepts `weekOffset`, and `vercel.json` fires 4
+staggered cron legs (`?week=0..3`, 15 min apart) instead of one 4-week sweep. The manual
+"Sync Now" button also now defaults to `weekOffset: 0` (current week only), since it shares the
+same `runSync()` and was equally exposed to the 300s limit. See the "Split the sync into
+one-week-per-invocation legs" commit.
+
+**Verified live**: Vercel accepted and registered all 4 cron entries against the current
+deployment (Hobby-plan cron-count-cap risk did **not** materialize — confirmed via the Projects
+API, `crons.definitions` lists all 4). Triggered `?week=0` directly (the expected heaviest leg,
+per the Talk-calls-trickle behavior in §4/`INVESTIGATION.md`):
+
+```
+HTTP 200, ELAPSED: 282.0s
+sync_runs.metadata_json: { fetchMs: 259374, publishMs: 1372, computeValuesMs: 5876, weekOffset: 0 }
+```
+
+**It completed successfully — but with only ~18 seconds of total margin under the 300s limit**
+(week 0's fetch phase alone is 259.4s, 86% of the whole budget, before publish/compute/roster
+overhead). This is exactly the scenario the plan flagged as a possible outcome, now confirmed
+with real data rather than assumed either way.
+
+**Weeks 1-3 have not yet been triggered/verified** — the 5-minute `isSyncRateLimited` cooldown
+(keyed per data source, not per week) meant back-to-back manual triggers of week=1 right after
+week=0 would just get skipped as rate-limited, and there wasn't a natural pause to wait through
+during this session. They are expected to be meaningfully faster than week 0 (completed weeks
+terminate the Talk-calls fetch quickly, per `INVESTIGATION.md` §4) but this is **not yet proven
+with real numbers** — the next session (or tomorrow's actual 6:00/6:15/6:30/6:45 UTC scheduled
+runs) should confirm via the same `metadata_json` query pattern used above.
+
+**Bottom line: the fix works today, but week 0 has essentially no safety margin.** Any added
+load — a bad Zendesk rate-limiting day, growing ticket/agent volume over time, roster discovery
+taking longer than usual — could push week 0 back over 300s. Recommended follow-up, not done
+here: split week 0 further (e.g. its Talk-calls fetch as its own invocation, separate from its
+ticket search), the exact scenario the plan's "Known open risk" section anticipated. Worth
+doing proactively rather than waiting for it to fail again.

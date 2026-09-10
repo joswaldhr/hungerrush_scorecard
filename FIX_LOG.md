@@ -185,3 +185,31 @@ next options (splitting the work across multiple smaller invocations is the reco
 step) — not started, needs a decision on exactly how to split before implementing. Manual syncs
 via `/api/sync/run` remain the only currently-reliable path and now also run ~114x faster on
 the DB-write side.
+
+## Update (2026-09-10, later same day): split into per-week cron legs, shipped and partially verified
+
+Implemented the planned split: `runSync()` accepts an optional `weekOffset` to sync exactly one
+week; `vercel.json` now fires `/api/cron/sync` 4x/day (`?week=0..3`, staggered 15 min apart)
+instead of one 4-week sweep; the manual "Sync Now" button defaults to the current week only
+(same underlying function, same 300s exposure). Full design in the approved plan; see the
+"Split the sync into one-week-per-invocation legs" commit.
+
+**Verified live, with one real gap called out honestly:**
+- Vercel accepted all 4 cron entries against the current deployment (confirmed via the Projects
+  API — the Hobby-plan cron-count-cap risk flagged in the plan did not materialize).
+- Triggered `?week=0` directly (real production endpoint): **`HTTP 200`, completed in 282.0s**
+  — `metadata_json: { fetchMs: 259374, publishMs: 1372, computeValuesMs: 5876 }`. It works, but
+  with only ~18 seconds of margin under the 300s limit — week 0's fetch phase alone is 86% of
+  the whole budget.
+- **Weeks 1-3 were not triggered this session** — the 5-minute rate-limit cooldown (shared
+  across weeks for one data source) meant testing them back-to-back right after week 0 would
+  just skip them as rate-limited. They're expected to be faster (completed weeks terminate the
+  Talk-calls fetch quickly) but that's not yet proven with real numbers. Confirm via the same
+  `sync_runs.metadata_json` query after tomorrow's actual scheduled runs, or by manually
+  triggering `?week=1`/`?week=2`/`?week=3` at least 5 minutes apart.
+
+**Net effect: the cron should complete correctly starting with the next scheduled runs, but
+week 0 has essentially no safety margin left.** See `FOLLOWUPS.md` item 5's latest update for
+the recommended next step (splitting week 0's Talk-calls fetch out from its ticket search,
+since that's the specific reason it's the heaviest leg) — not done here, flagged for whoever
+picks this up next rather than guessed at under time pressure.
