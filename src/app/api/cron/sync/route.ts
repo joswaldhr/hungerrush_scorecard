@@ -1,7 +1,12 @@
 import { db } from "@/lib/db";
 import { dataSources, rosterSourceTeamMappings } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { runSync, recordComputeValuesTiming, ZendeskConnector } from "@/lib/connectors";
+import {
+  runSync,
+  recordComputeValuesTiming,
+  ZendeskConnector,
+  MAX_WEEKS_BACK,
+} from "@/lib/connectors";
 import { computeMetricValuesFromFacts } from "@/lib/domain/metrics/compute-values";
 import { discoverRosterCandidates } from "@/lib/domain/roster/reconcile";
 import { isSyncRateLimited } from "@/lib/rate-limit";
@@ -35,6 +40,20 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // A full 4-week sweep's fetch phase alone measured ~14 minutes against the
+  // real Zendesk account — well over Vercel's confirmed 300s function limit.
+  // vercel.json now fires this route 4x/day, staggered, each with its own
+  // ?week=N, so a single invocation only ever fetches one week.
+  const weekParam = new URL(request.url).searchParams.get("week");
+  let weekOffset: number | undefined;
+  if (weekParam !== null) {
+    const parsed = Number(weekParam);
+    if (!Number.isInteger(parsed) || parsed < 0 || parsed >= MAX_WEEKS_BACK) {
+      return NextResponse.json({ error: "Invalid week parameter" }, { status: 400 });
+    }
+    weekOffset = parsed;
+  }
+
   const sources = await db.select().from(dataSources).where(eq(dataSources.type, "zendesk"));
   const results = [];
 
@@ -46,22 +65,31 @@ export async function GET(request: Request) {
 
     try {
       const connector = new ZendeskConnector();
-      const syncResult = await runSync(connector, {
-        dataSourceId: source.id,
-        organizationId: source.organizationId,
-      });
+      const syncResult = await runSync(
+        connector,
+        {
+          dataSourceId: source.id,
+          organizationId: source.organizationId,
+        },
+        { weekOffset }
+      );
       const computeStartedAt = Date.now();
       const valuesWritten = await computeMetricValuesFromFacts(source.organizationId, source.type);
       await recordComputeValuesTiming(syncResult.syncRunId, Date.now() - computeStartedAt);
 
+      // Roster membership doesn't change week-to-week — only check it once
+      // a day (on the week=0 leg, or on an un-parameterized manual trigger)
+      // rather than redundantly on all 4 staggered legs.
       let rosterResult: { newCandidates: number; departedCandidates: number } | null = null;
-      const [mapping] = await db
-        .select({ id: rosterSourceTeamMappings.id })
-        .from(rosterSourceTeamMappings)
-        .where(eq(rosterSourceTeamMappings.dataSourceId, source.id))
-        .limit(1);
-      if (mapping) {
-        rosterResult = await discoverRosterCandidates(connector, source.id);
+      if (weekOffset === undefined || weekOffset === 0) {
+        const [mapping] = await db
+          .select({ id: rosterSourceTeamMappings.id })
+          .from(rosterSourceTeamMappings)
+          .where(eq(rosterSourceTeamMappings.dataSourceId, source.id))
+          .limit(1);
+        if (mapping) {
+          rosterResult = await discoverRosterCandidates(connector, source.id);
+        }
       }
 
       results.push({

@@ -40,10 +40,19 @@ export async function POST(_request: Request) {
     }
 
     const connector = new ZendeskConnector();
-    const result = await runSync(connector, {
-      dataSourceId: source.id,
-      organizationId: ctx.organizationId,
-    });
+    // Scoped to the current week only: a full 4-week sweep's fetch phase
+    // alone measured ~14 minutes against the real Zendesk account, well
+    // over Vercel's confirmed 300s function limit — this button would time
+    // out the same way the cron did before it was split. Historical weeks
+    // stay covered by the automated per-week cron legs (see vercel.json).
+    const result = await runSync(
+      connector,
+      {
+        dataSourceId: source.id,
+        organizationId: ctx.organizationId,
+      },
+      { weekOffset: 0 }
+    );
 
     const computeStartedAt = Date.now();
     const valuesWritten = await computeMetricValuesFromFacts(ctx.organizationId, "zendesk");

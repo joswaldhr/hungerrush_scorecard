@@ -25,7 +25,7 @@ export function SyncNowButton({ dataSourceType }: { dataSourceType: string }) {
         return;
       }
 
-      toast.success(`Sync started for ${dataSourceType}`);
+      toast.success(`Synced this week for ${dataSourceType}`);
       router.refresh();
     } catch {
       toast.error("Network error — could not reach the server");
@@ -36,7 +36,7 @@ export function SyncNowButton({ dataSourceType }: { dataSourceType: string }) {
 
   return (
     <Button onClick={handleSync} disabled={loading} size="sm" variant="outline">
-      {loading ? "Syncing…" : "Sync now"}
+      {loading ? "Syncing…" : "Sync this week"}
     </Button>
   );
 }

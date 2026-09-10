@@ -24,6 +24,14 @@ const WRITE_CHUNK_SIZE = 500;
 
 export interface SyncOptions {
   maxPages?: number;
+  // When set, sync exactly this one week (0 = current week, per the
+  // connector's weekOf() convention) instead of sweeping MAX_WEEKS_BACK
+  // weeks in one invocation. Added so a caller (the cron route) can split
+  // one sync into several smaller invocations, each safely under Vercel's
+  // function duration limit — a full 4-week sweep's fetch phase alone
+  // measured ~14 minutes against the real Zendesk account, well over the
+  // confirmed 300s limit.
+  weekOffset?: number;
 }
 
 /**
@@ -47,7 +55,8 @@ export async function runSync(
   config: ConnectorConfig,
   options: SyncOptions = {}
 ): Promise<{ syncRunId: string; success: boolean }> {
-  const maxPages = options.maxPages ?? 10;
+  const singleWeek = options.weekOffset !== undefined;
+  const maxPages = singleWeek ? 1 : (options.maxPages ?? 10);
 
   const [source] = await db
     .select()
@@ -72,7 +81,7 @@ export async function runSync(
   const fetchStartedAt = Date.now();
 
   try {
-    let cursor: string | null = null;
+    let cursor: string | null = singleWeek ? String(options.weekOffset) : null;
     for (let page = 0; page < maxPages; page++) {
       const ctx: SyncContext = {
         syncRunId,
@@ -172,9 +181,11 @@ export async function runSync(
       cursor: success ? finalCursor : null,
       // Timing breakdown, added to isolate network-fetch time (untouched by
       // the write-batching work) from DB-write time (what batching targets)
-      // — see FOLLOWUPS.md item 5. Nothing reads this yet besides humans
-      // querying it directly.
-      metadataJson: { fetchMs, publishMs },
+      // — see FOLLOWUPS.md item 5. weekOffset records which single-week leg
+      // this run covers (undefined for a full multi-week sweep, e.g. the
+      // manual "Sync Now" path before it was scoped to week 0). Nothing
+      // reads this yet besides humans querying it directly.
+      metadataJson: { fetchMs, publishMs, weekOffset: options.weekOffset },
     })
     .where(eq(syncRuns.id, syncRunId));
 

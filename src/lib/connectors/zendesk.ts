@@ -14,7 +14,7 @@ import { externalIdentities } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { zendeskGet } from "./zendesk-shared";
 
-const MAX_WEEKS_BACK = 4;
+export const MAX_WEEKS_BACK = 4;
 
 interface ZendeskTicket {
   id: number;
@@ -408,7 +408,8 @@ export class ZendeskConnector implements Connector {
       // null (not aggregated) when the agent's Zendesk id can't be resolved --
       // that's missing data, not a confirmed zero. An empty call list for a
       // resolved agent IS a confirmed zero and aggregates normally.
-      const employeeCalls = numericId !== null ? calls.filter((c) => c.agent_id === numericId) : null;
+      const employeeCalls =
+        numericId !== null ? calls.filter((c) => c.agent_id === numericId) : null;
       const callAgg = employeeCalls !== null ? aggregateCalls(employeeCalls) : null;
 
       records.push({

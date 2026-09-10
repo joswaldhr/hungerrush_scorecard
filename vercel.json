@@ -1,8 +1,8 @@
 {
   "crons": [
-    {
-      "path": "/api/cron/sync",
-      "schedule": "0 6 * * *"
-    }
+    { "path": "/api/cron/sync?week=0", "schedule": "0 6 * * *" },
+    { "path": "/api/cron/sync?week=1", "schedule": "15 6 * * *" },
+    { "path": "/api/cron/sync?week=2", "schedule": "30 6 * * *" },
+    { "path": "/api/cron/sync?week=3", "schedule": "45 6 * * *" }
   ]
 }
