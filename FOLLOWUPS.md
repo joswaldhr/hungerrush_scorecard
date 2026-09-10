@@ -155,3 +155,31 @@ taking longer than usual — could push week 0 back over 300s. Recommended follo
 here: split week 0 further (e.g. its Talk-calls fetch as its own invocation, separate from its
 ticket search), the exact scenario the plan's "Known open risk" section anticipated. Worth
 doing proactively rather than waiting for it to fail again.
+
+## Update (2026-09-10, next session): stale local CRON_SECRET copy found and rotated
+
+While trying to manually trigger `?week=1`/`?week=2`/`?week=3` to get the still-missing weeks
+1-3 verification numbers (see previous entry), the real deployed cron endpoint returned
+`HTTP 401 Unauthorized` using the `CRON_SECRET` value in local `.env`.
+
+Confirmed via the Vercel Projects API this was **not** a new production problem: the deployment
+serving `hungerrush-scorecard.vercel.app` is the correct, current one (matches `HEAD`), and
+`CRON_SECRET` on Vercel had never been rotated (`updatedAt == createdAt`, set 2026-09-09
+20:27:29 UTC, one-time, via the dashboard). Local `.env` was last written 2026-09-09 20:14:56
+UTC — 13 minutes *before* that — so the copy saved to `.env` simply never matched what was
+actually set on Vercel. This didn't affect the real scheduled cron itself: Vercel auto-attaches
+its own `CRON_SECRET` value as the `Authorization` header on cron-triggered requests, which is
+why this morning's real 06:xx UTC cron run authenticated fine — it only blocked *manual*
+triggering from outside using the stale local file.
+
+Since a "sensitive"-type Vercel env var can never be read back (not even from the dashboard,
+by design), recovering the original value wasn't possible either way. With the user's
+explicit go-ahead, rotated it: generated a new 48-char hex secret, set it as `CRON_SECRET`
+(production) via the Vercel API, and updated local `.env` to match. A redeploy is required for
+Vercel to actually apply a changed env var to the running functions — this commit's push
+serves that purpose, same as every other fix this week.
+
+No practical fallout for scheduled runs: the next cron legs aren't until tomorrow's
+6:00/6:15/6:30/6:45 UTC window, well after this deploy lands, and Vercel always sends whichever
+value it currently holds — old or new — so the real cron was never at risk of failing from this.
+Manual `?week=1/2/3` triggering resumes once this deployment is live.
