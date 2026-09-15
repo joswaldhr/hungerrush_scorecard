@@ -480,3 +480,46 @@ internal tool with a handful of daily users, 600ms-1.3s page loads (dominated by
 serverless-to-remote-DB round trip, not application logic) is a reasonable, non-alarming number
 — not something to chase further without a real user complaint or a change in usage pattern
 (e.g., far more employees or concurrent users) that would change the calculus.
+
+## 14. Phase 6 UI/UX audit (2026-09-15)
+
+**Loading/empty/error/stale states — already solid, confirmed by direct code read.** The
+staleness banner (`sync-staleness-banner.tsx`) is genuinely wired to real data
+(`dataSources.lastSuccessfulSyncAt`, 30-hour threshold) via the app-wide layout, not decorative.
+Error boundaries exist at the route level (`team/error.tsx`, `one-on-ones/[id]/error.tsx`) and
+cascade to layout-level (`(app)/error.tsx`) and root (`global-error.tsx`) fallbacks for every
+other route, each reporting to `/api/client-error` with a real retry button. `EmptyState` is
+used consistently everywhere a list could legitimately be empty (no employees, no teams, no
+data sources, no metrics assigned).
+
+**Accessibility — no color-only status indication.** `StatusBadge` always renders a text label
+("On Track" / "Watch" / "Needs Attention" / "No Data") alongside color; color is reinforcement,
+never the only channel. Root layout has a "Skip to content" link.
+
+**Found and fixed: a genuinely broken mobile layout, not just suboptimal.** Tested the Team page
+at 375px (a real phone width) — the stat-card grid was hard-coded to `grid-cols-2` with no
+narrower breakpoint, and combined with the sidebar's persistent width eating roughly a third of
+an already-narrow viewport, the value numbers ("29", "10", etc.) overlapped their own card
+boundaries and got clipped by the screen edge. Not degraded — actually unreadable. Fixed by
+changing the base breakpoint to `grid-cols-1`; verified the 5-column desktop layout at 1280px is
+unaffected. Checked the other two core pages at the same width: the 1:1 listing page and the 1:1
+detail page's metric tables are cramped (the sidebar never auto-collapses on narrow viewports)
+but not broken — the tables already scroll horizontally within their own card rather than
+overflowing the page, the correct existing pattern.
+
+**Also fixed in passing**: `StatCard`'s label/detail text truncates via Tailwind's `truncate`
+with no way to see the full value on overflow (confirmed "100% of team" still truncates even in
+the 5-column desktop layout) — added `title` attributes so hovering reveals the full text. Same
+fix applied to the roster table's employee name/job title. Also fixed a grammar bug in the same
+table: "1 metrics need attention" (always plural) now correctly reads "1 metric needs attention"
+for the singular case.
+
+**Not fixed, flagged as a real but larger-scope item**: the sidebar has a manual
+user-toggled collapse (persisted to localStorage) but no automatic mobile-responsive behavior —
+every page pays its persistent width on a phone, which is cramped everywhere even where it isn't
+literally broken. A proper fix (an off-canvas/hamburger pattern for narrow viewports) is a real
+UI pattern change, not a quick tweak, and this is an internal tool primarily used at a desk — not
+done here, flagging as a candidate if mobile use turns out to matter more than assumed. Also
+noticed: the Team page's header metadata line ("Week of Sep 14 – Sep 20, 2026") wraps
+awkwardly at narrow widths (one word per line) — cosmetic, not data-hiding, lower priority than
+the two fixes above.
