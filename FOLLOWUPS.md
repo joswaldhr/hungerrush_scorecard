@@ -347,3 +347,47 @@ Unlike Menufy's case, **no unambiguous departure signal exists here** — he's s
 Zendesk group member, and there's no equivalent to Barb's confirmed list to check against yet.
 **Not touched** — needs Alex's confirmation on return, same as the Rasheil case needed a human
 call rather than an assumption.
+
+## 10. Phase 2 metric-confidence audit (2026-09-15): pipeline is clean; found and explained a real "settling" characteristic
+
+**2a — pipeline correctness, no bugs found.** Audited every null-coalescing fallback across the
+connector → normalize → compute → query → UI chain. Well-designed already: `businessMinutes()`
+correctly treats Zendesk reporting "0 business minutes" for a ticket resolved outside business
+hours as missing data, not a real zero (so it doesn't drag averages down). `averageOf` and
+`aggregateSourceValues` both exclude nulls from denominators rather than counting them as zero.
+One latent, currently-harmless note: `computeMetricValuesFromFacts` filters facts by
+`organizationId` + `factType` only, not by data source — fine while only Zendesk is live, would
+need revisiting if a second connector ever wrote the same `factType` key.
+
+Independently recomputed 4 metric types (`tickets_resolved`, `tickets_updated`,
+`avg_handle_time`, `avg_response_time`) for one Menufy and one POS employee straight from raw
+Zendesk data — exact match on every value, confirming the concurrency refactor from earlier
+this session didn't regress correctness, only speed.
+
+**Idempotency: perfect.** Snapshotted all 6,556 `metric_values` rows, re-triggered an
+already-synced week live, re-snapshotted — zero rows added, zero removed, **zero values
+changed**.
+
+**2b — bounded reconciliation, 1,008 checks across all 48 active employees × 3 completed
+weeks × 7 metrics.** 994 exact matches (98.6%). The most recent completed week: 336/336 exact.
+The two older weeks: 14 mismatches, all small (ticket counts off by exactly 1, or a real value
+where the independent recheck found null) and all in one direction (stored slightly higher, or
+independent finding less).
+
+**Root cause, confirmed directly, not guessed**: Zendesk tickets keep getting touched after a
+week "ends" — most commonly its own auto-close behavior turning a `solved` ticket into `closed`
+several days later, which bumps `updated_at`. Verified directly for one case (Blake Book,
+2026-08-31 week): 22 of 48 tickets created that week had their `updated_at` pushed past the
+week's end by the time of this check, mostly via exactly this solved-then-auto-closed pattern.
+Since this connector's "completed week" metrics are computed from an `updated_at` window (not
+an immutable "happened in this period" marker — see the "Incremental semantics" note in
+`sync-engine.ts`), and weeks 1-3 get re-synced daily by the rolling cron, **a week's stored
+numbers keep settling for several days after it ends**, converging as tickets stop being
+touched. This is why the freshest completed week (offset 1) matched exactly and the older ones
+(offsets 2-3) showed small drift — more time has passed for more tickets to get auto-closed.
+
+**Not a bug — nothing changed.** This is an inherent characteristic of the data source, not a
+pipeline defect: the daily re-sync is already the mitigation, continuously refreshing recent
+weeks until they settle. Worth being aware of rather than surprised by if a manager ever notices
+"Last Week" or "2 Weeks Ago" shift by a ticket or two day over day — it's real Zendesk activity
+catching up, not the sync miscounting.
