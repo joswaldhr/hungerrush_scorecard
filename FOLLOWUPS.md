@@ -64,6 +64,26 @@ every Menufy employee, not just one.
 trigger, but the architecture is still one bad query away from the same failure mode for a
 different reason.
 
+**Verified live**: triggered `?week=1` (the leg that had failed twice) after deploying the fix —
+`HTTP 200, success: true, 0 sync_errors`. `identityCount` dropped from **84 to 48** — much
+bigger than just removing Rasheil. 48 = 19 (Menufy, matches the 09-11 reconciliation) + 29
+(POS, matches the 09-03 audit count) exactly, meaning **36 already-departed employees across
+both teams** had been silently re-synced on every single run until this fix, not just the one
+that happened to trigger a 422. Bigger latent correctness/efficiency issue than the specific
+incident that surfaced it.
+
+## 7. Cron legs fire up to ~90 minutes later than configured — expected Hobby-plan behavior, not a bug
+
+Noticed while investigating item #6: the 4 staggered cron legs (`vercel.json`: 0/15/30/45 past
+6am UTC) actually start anywhere from ~06:10 to ~07:28 UTC in practice, confirmed identical
+across 3 consecutive days. Checked the actual registered schedule via the Vercel API — it
+matches `vercel.json` exactly, no config drift. Confirmed via Vercel's own docs instead of
+guessing: **Hobby-plan cron jobs only guarantee execution within the scheduled hour, not the
+minute** (Pro/Enterprise get to-the-minute precision) — real, documented platform behavior, not
+a defect. No fix needed: every leg still completes well within the 300s limit regardless of
+when it starts, and a once-daily batch sync doesn't need minute-level precision. Logged here so
+a future session doesn't re-investigate it as a mystery.
+
 ## 3. Single-Zendesk-subdomain assumption — needs a human, not a code fix
 
 `src/lib/connectors/zendesk-shared.ts:14-17`'s `baseUrl()` only supports one
