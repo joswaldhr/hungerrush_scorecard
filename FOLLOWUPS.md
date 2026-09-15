@@ -391,3 +391,61 @@ pipeline defect: the daily re-sync is already the mitigation, continuously refre
 weeks until they settle. Worth being aware of rather than surprised by if a manager ever notices
 "Last Week" or "2 Weeks Ago" shift by a ticket or two day over day — it's real Zendesk activity
 catching up, not the sync miscounting.
+
+## 11. Phase 3 (2026-09-15): weeks 2-3 re-verified live post-fix
+
+Only weeks 0 and 1 had been re-checked live after the departed-employee/search-cap fix (item
+#6). Triggered weeks 2 and 3 directly: both `HTTP 200`, 151.1s and 150.3s respectively — ~150s
+of margin under the 300s limit, consistent with 0 and 1. All four legs now confirmed healthy
+under the current code. `sync_errors` swept clean: only the 3 already-diagnosed Rasheil 422s
+exist, all 5 orphaned "running" rows predate the CRON_SECRET/per-week-split fixes (09-09/09-10)
+-- nothing new or unexplained.
+
+## 12. Phase 4 security audit (2026-09-15)
+
+**Access-control boundary (`assertCanAccessEmployee`/`assertCanAccessTeam` in
+`authorization.ts`) — sound.** Traced every dynamic route and API endpoint that touches
+employee- or team-scoped data. Two valid patterns in use, both correct: explicit
+`assertCanAccessEmployee`/`assertCanAccessTeam` calls (metrics queries, context queries,
+reconciliation), or deriving the data from an already-scoped query like `getAssignedEmployees`
+(the 1:1 page), where an out-of-scope ID simply can't appear in the result. `getEffectiveManagerContext`'s
+"view as" flow re-validates the target user server-side from the cookie's userId on every call
+(re-checking `isPlatformAdmin` and deriving the target's *real* assignments) rather than trusting
+anything about the cookie's contents beyond which user to look up — a cookie can't grant scope
+that user doesn't actually have.
+
+**Found and fixed**: `GET /api/reconciliation/run` scoped only by `organizationId`, not by the
+calling manager's own teams — since this org has multiple managers, one could see every other
+manager's reconciliation run metadata (not employee-level data, that's already correctly scoped
+in `/results` — see the explicit comment there guarding against exactly this). Confirmed zero
+reconciliation runs exist in production yet, so nothing has actually been exposed. Fixed to
+scope by the manager's own assigned teams (or org-wide runs they personally triggered).
+
+**Admin actions (`roster-actions.ts`, `roster-review/actions.ts`, `admin/actions.ts`) — all
+independently gated.** Every action re-checks `isPlatformAdmin`/`requireAdmin()` itself rather
+than trusting the page that renders its form — correct, since Server Actions are independently
+invocable.
+
+**No secrets reach the browser.** Zero `NEXT_PUBLIC_` env vars anywhere in the codebase; no
+client component (`"use client"`) imports `@/lib/env` or `@/lib/db`. One hardening gap, not an
+active leak: `env.ts` has no `import "server-only"` guard, so there's no build-time safety net
+against a *future* accidental client import — would need adding the `server-only` package as a
+new dependency, not done here since it's not fixing a live issue, flagging as a recommendation.
+
+**`pnpm audit` found and fixed two critical, unauthenticated RCE vulnerabilities in Next.js
+itself** (see the "Patch Next.js" commit) — the framework serving this app's actual production
+traffic on Vercel, not a peripheral dependency. Patched by upgrading `next` 16.3.1 → 16.3.5.
+Four lower-severity findings left alone, all dev-only transitive dependencies with no production
+runtime exposure (js-yaml via eslint, esbuild via drizzle-kit, vitest/@vitest/mocker) — vitest's
+fix needs a major version bump already known to conflict with this environment's Node 24 (see
+`known-workarounds` memory), not worth the risk for a dev-only, no-untrusted-input vulnerability
+class.
+
+`.env` confirmed properly gitignored and never committed across the repo's full history (only
+`.env.example`, a template with no real values) — worth explicitly re-confirming given how much
+`CRON_SECRET`/`VERCEL_API` credential handling happened earlier this session.
+
+**Unrelated, noticed in passing, not touched**: an old git worktree
+(`.claude/worktrees/quizzical-curie-4547cd`, branch `claude/quizzical-curie-4547cd`, dated
+2026-08-31) is still registered — harmless (doesn't affect the app or its own lint/build), but
+worth asking James whether it's still needed before someone eventually cleans it up.
