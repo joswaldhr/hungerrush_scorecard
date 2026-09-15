@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { getEffectiveManagerContext, getAssignedEmployees } from "@/lib/auth/authorization";
-import { getEmployeeMetrics, getMetricHistoryBatch } from "@/lib/domain/metrics/queries";
+import { getEmployeeMetrics } from "@/lib/domain/metrics/queries";
 import { formatCategoryLabel } from "@/lib/domain/metrics/category-labels";
 import { StatusBadge } from "@/components/status-badge";
 import { MetricCategoryTable } from "@/components/metric-category-table";
@@ -106,25 +106,6 @@ export default async function OneOnOnePage({
   const rows = await getEmployeeMetrics(ctx, employee.id, teamId, periodStart, previousPeriodStart);
   const overallStatus = deriveOverallStatus(rows);
 
-  const trendByDefinitionId = await getMetricHistoryBatch(
-    ctx,
-    rows.map((r) => ({ employeeId: employee.id, metricDefinitionId: r.definitionId })),
-    4
-  ).then((batch) => {
-    const result = new Map<string, Array<number | null>>();
-    for (const row of rows) {
-      const history = batch.get(`${employee.id}:${row.definitionId}`) ?? [];
-      result.set(
-        row.definitionId,
-        history
-          .slice()
-          .reverse()
-          .map((h) => h.numericValue)
-      );
-    }
-    return result;
-  });
-
   const categories = new Map<string | null, typeof rows>();
   for (const row of rows) {
     const forCategory = categories.get(row.category) ?? [];
@@ -211,7 +192,6 @@ export default async function OneOnOnePage({
               key={category ?? "uncategorized"}
               title={formatCategoryLabel(category)}
               rows={categoryRows}
-              trendByDefinitionId={trendByDefinitionId}
             />
           ))}
         </div>

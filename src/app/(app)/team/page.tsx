@@ -5,14 +5,13 @@ import {
   getAssignedTeams,
   getAssignedEmployees,
 } from "@/lib/auth/authorization";
-import { getEmployeeMetricsBatch, getMetricHistoryBatch } from "@/lib/domain/metrics/queries";
+import { getEmployeeMetricsBatch } from "@/lib/domain/metrics/queries";
 import { db } from "@/lib/db";
 import { syncRuns, dataSources, meetingReferences } from "@/lib/db/schema";
 import { eq, desc, and, inArray, gte, asc } from "drizzle-orm";
 import { EmptyState } from "@/components/empty-state";
 import { TeamRosterTable } from "@/components/team-roster-table";
 import { StatCard } from "@/components/stat-card";
-import { TrendSparkline } from "@/components/trend-sparkline";
 import {
   Users,
   CheckCircle2,
@@ -139,35 +138,13 @@ export default async function TeamPage({
     })
   );
 
-  const primaryByEmployee = new Map<string, EmployeeMetricRow | null>();
-  for (const emp of employees) {
-    const metrics = metricsByEmployee.get(emp.id) ?? [];
-    primaryByEmployee.set(emp.id, metrics.find((m) => m.isPrimary) ?? metrics[0] ?? null);
-  }
-
-  const historyRequests = employees
-    .map((emp) => {
-      const primary = primaryByEmployee.get(emp.id);
-      return primary ? { employeeId: emp.id, metricDefinitionId: primary.definitionId } : null;
-    })
-    .filter((r): r is { employeeId: string; metricDefinitionId: string } => r !== null);
-
-  const historyByRequest = await getMetricHistoryBatch(ctx, historyRequests, 4);
-
   const employeeData = employees.map((emp) => {
     const teamId = emp.primaryTeamId ?? null;
     const metrics = metricsByEmployee.get(emp.id) ?? [];
     const prevMetrics = prevMetricsByEmployee.get(emp.id) ?? [];
-    const primary = primaryByEmployee.get(emp.id) ?? null;
-    const trend = primary
-      ? (historyByRequest.get(`${emp.id}:${primary.definitionId}`) ?? [])
-          .slice()
-          .reverse()
-          .map((v) => v.numericValue)
-      : [];
     const overallStatus = deriveOverallStatus(metrics);
     const prevOverallStatus = deriveOverallStatus(prevMetrics);
-    return { employee: emp, metrics, teamId, primary, trend, overallStatus, prevOverallStatus };
+    return { employee: emp, metrics, teamId, overallStatus, prevOverallStatus };
   });
 
   const totalEmployees = employeeData.length;
@@ -277,25 +254,17 @@ export default async function TeamPage({
           detailClassName="text-rose-600 dark:text-rose-400 font-semibold"
         />
         {/* Card 5: Team Trend (Overall) */}
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-border/80 bg-card p-4 sm:p-5 shadow-xs col-span-2 sm:col-span-1">
-          <div>
-            <p className="text-xs font-semibold text-slate-500">Team Trend (Overall)</p>
-            <p className={cn("mt-1 text-sm font-bold", teamTrendClassName)}>{teamTrendLabel}</p>
-            <p className="text-xs text-muted-foreground">on-track count vs last week</p>
-          </div>
-          <TrendSparkline
-            values={[totalOnTrackPrevWeek, totalOnTrack]}
-            direction="higher_is_better"
-            width={68}
-            height={24}
-          />
+        <div className="rounded-xl border border-border/80 bg-card p-4 sm:p-5 shadow-xs col-span-2 sm:col-span-1">
+          <p className="text-xs font-semibold text-slate-500">Team Trend (Overall)</p>
+          <p className={cn("mt-1 text-sm font-bold", teamTrendClassName)}>{teamTrendLabel}</p>
+          <p className="text-xs text-muted-foreground">on-track count vs last week</p>
         </div>
       </div>
 
       {visibleTeams.map((team) => {
         const teamEmps = employeeData.filter((d) => d.teamId === team.id);
         const rows: RosterRow[] = teamEmps.map(
-          ({ employee, metrics, primary, trend, overallStatus }) => {
+          ({ employee, metrics, overallStatus }) => {
             const keyChangeRaw = findKeyChange(metrics);
             const keyChange = keyChangeRaw
               ? {
@@ -321,8 +290,6 @@ export default async function TeamPage({
               metricsOffTarget: metrics.filter((m) => m.status.status === "off_target").length,
               metricsNoData: metrics.filter((m) => m.status.status === "no_data").length,
               metricsTotal: metrics.length,
-              trend,
-              trendDirection: primary?.direction ?? "neutral",
               upcomingMeetingAt: upcomingByEmployee.get(employee.id) ?? null,
             };
           }

@@ -1,5 +1,4 @@
 import { StatusBadge } from "@/components/status-badge";
-import { TrendSparkline } from "@/components/trend-sparkline";
 import { MetricValue } from "@/components/metric-value";
 import { MetricIcon } from "@/components/metric-icon";
 import { Card } from "@/components/ui/card";
@@ -8,11 +7,9 @@ import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
 export function MetricCategoryTable({
   title,
   rows,
-  trendByDefinitionId,
 }: {
   title: string;
   rows: EmployeeMetricRow[];
-  trendByDefinitionId: Map<string, Array<number | null>>;
 }) {
   return (
     <Card className="overflow-hidden print:break-inside-avoid">
@@ -28,7 +25,6 @@ export function MetricCategoryTable({
               <th className="py-2.5 px-3 text-right">Last Week</th>
               <th className="py-2.5 px-3 text-right">Target</th>
               <th className="py-2.5 px-3 text-right">Status</th>
-              <th className="py-2.5 px-4 text-right">Trend</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60">
@@ -68,16 +64,6 @@ export function MetricCategoryTable({
                 <td className="py-3 px-3 text-right">
                   <div className="flex justify-end">
                     <StatusBadge status={row.status.status} />
-                  </div>
-                </td>
-                <td className="py-3 px-4 text-right">
-                  <div className="flex justify-end">
-                    <TrendSparkline
-                      values={trendByDefinitionId.get(row.definitionId) ?? []}
-                      direction={row.direction}
-                      width={64}
-                      height={18}
-                    />
                   </div>
                 </td>
               </tr>

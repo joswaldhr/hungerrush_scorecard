@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { metricDefinitions, metricAssignments, metricValues, metricTargets } from "@/lib/db/schema";
-import { eq, and, inArray, desc } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import type { ManagerContext } from "@/lib/auth/authorization";
 import { assertCanAccessEmployee } from "@/lib/auth/authorization";
 import { resolveTarget, evaluateStatus } from "./target-resolution";
@@ -168,74 +168,6 @@ export async function getEmployeeMetricsBatch(
 
     rows.sort((a, b) => a.displayOrder - b.displayOrder);
     results.set(employeeId, rows);
-  }
-
-  return results;
-}
-
-export async function getMetricHistory(
-  ctx: ManagerContext,
-  employeeId: string,
-  metricDefinitionId: string,
-  limit = 8
-) {
-  assertCanAccessEmployee(ctx, employeeId);
-
-  return db
-    .select()
-    .from(metricValues)
-    .where(
-      and(
-        eq(metricValues.employeeId, employeeId),
-        eq(metricValues.metricDefinitionId, metricDefinitionId)
-      )
-    )
-    .orderBy(desc(metricValues.periodStart))
-    .limit(limit);
-}
-
-/**
- * Same as getMetricHistory, but for many (employeeId, metricDefinitionId)
- * pairs in one query instead of one round-trip per pair. Callers look up
- * results by `${employeeId}:${metricDefinitionId}`.
- */
-export async function getMetricHistoryBatch(
-  ctx: ManagerContext,
-  requests: Array<{ employeeId: string; metricDefinitionId: string }>,
-  limit = 8
-): Promise<Map<string, (typeof metricValues.$inferSelect)[]>> {
-  const employeeIds = [...new Set(requests.map((r) => r.employeeId))];
-  for (const employeeId of employeeIds) {
-    assertCanAccessEmployee(ctx, employeeId);
-  }
-
-  const results = new Map<string, (typeof metricValues.$inferSelect)[]>();
-  if (requests.length === 0) return results;
-
-  const definitionIds = [...new Set(requests.map((r) => r.metricDefinitionId))];
-
-  const rows = await db
-    .select()
-    .from(metricValues)
-    .where(
-      and(
-        inArray(metricValues.employeeId, employeeIds),
-        inArray(metricValues.metricDefinitionId, definitionIds)
-      )
-    )
-    .orderBy(desc(metricValues.periodStart));
-
-  const grouped = new Map<string, (typeof metricValues.$inferSelect)[]>();
-  for (const row of rows) {
-    const key = `${row.employeeId}:${row.metricDefinitionId}`;
-    const forKey = grouped.get(key) ?? [];
-    forKey.push(row);
-    grouped.set(key, forKey);
-  }
-
-  for (const { employeeId, metricDefinitionId } of requests) {
-    const key = `${employeeId}:${metricDefinitionId}`;
-    results.set(key, (grouped.get(key) ?? []).slice(0, limit));
   }
 
   return results;

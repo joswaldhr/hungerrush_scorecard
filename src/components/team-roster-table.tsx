@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { StatusBadge } from "@/components/status-badge";
-import { TrendSparkline } from "@/components/trend-sparkline";
 import { Card } from "@/components/ui/card";
 import {
   Search,
@@ -30,8 +29,6 @@ export interface RosterRow {
   metricsOffTarget: number;
   metricsNoData: number;
   metricsTotal: number;
-  trend: Array<number | null>;
-  trendDirection: "higher_is_better" | "lower_is_better" | "neutral";
   upcomingMeetingAt: string | null;
 }
 
@@ -294,7 +291,6 @@ export function TeamRosterTable({
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4">Key Change</th>
                   <th className="py-3 px-4">This Week Summary</th>
-                  <th className="py-3 px-4 text-center">Trend (4 Weeks)</th>
                   <th className="py-3 px-4">1:1 Upcoming</th>
                   <th className="py-3 px-5 text-right">Action</th>
                 </tr>
@@ -387,18 +383,6 @@ export function TeamRosterTable({
                             </span>
                           </span>
                         )}
-                      </td>
-
-                      {/* Trend 4 Weeks */}
-                      <td className="py-3.5 px-4 text-center">
-                        <div className="flex justify-center">
-                          <TrendSparkline
-                            values={row.trend}
-                            direction={row.trendDirection}
-                            width={76}
-                            height={20}
-                          />
-                        </div>
                       </td>
 
                       {/* 1:1 Upcoming */}
