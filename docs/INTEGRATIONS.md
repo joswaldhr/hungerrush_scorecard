@@ -35,30 +35,24 @@ Exact fields and calculations must be verified.
 
 ## Assembled
 
-Expected role:
-Workforce/scheduling source.
-
-Potential data categories:
-- schedule/adherence/workforce measures
-- availability/time measures
-- other approved workforce metrics
-
-Exact fields and calculations must be verified.
+**Status: Removed.** The Assembled connector code was deleted. The `schedule_adherence`
+metric definition still exists (unassigned from both pilot teams). If Assembled is
+revisited, start from `docs/ARCHITECTURE.md`'s connector status notes — the Agent State
+Mapping configuration issue that prevented meaningful data was never resolved.
 
 ## Rippling
 
-Expected role:
-Employee/organizational and potentially meeting-context source.
+**Status: No connector.** No Rippling connector code exists in the codebase. A plain
+"Open Rippling" link-out exists on the 1:1 Prep page via `RIPPLING_MANAGER_URL`.
 
-Potential data:
+Expected role if integrated:
 - employee identity
 - manager relationships
 - meeting references
 - approved meeting context/action items
 
-Do not assume 1:1 content or action-item API access exists.
-
-If the needed capability is unavailable, use a link-out to Rippling instead.
+Do not assume 1:1 content or action-item API access exists. Real API integration is
+blocked on HungerRush confirming API access/scopes.
 
 ## Identity
 

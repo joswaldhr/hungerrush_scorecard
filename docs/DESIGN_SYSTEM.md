@@ -61,15 +61,18 @@ Calm / distilled / meeting-focused.
 Reusable components in `src/components/`:
 - MetricValue
 - TrendIndicator
-- TrendSparkline
 - StatusBadge
 - BriefingSection
 - DataFreshness
 - MetricHistoryChart
+- MetricCategoryTable
+- MetricIcon
 - TeamRosterTable
 - StatCard
 - MeetingPrepChecklist
-- Sidebar
+- Sidebar / SidebarClient
+- SyncStalenessBanner
+- OneOnOneActions
 - EmptyState
 - ErrorState
 - ViewAsBanner

@@ -167,7 +167,8 @@ below is hard-coded into the app. Categories match the legacy paper scorecard's 
   case-work metrics; the Talk incremental-calls export for call metrics; Zendesk groups for
   roster/team membership. All fields verified live against the real HungerRush account, not
   assumed from generic documentation.
-- **Assembled, Rippling** --- evaluated and dropped. No connector code remains.
+- **Assembled** --- evaluated and dropped. Connector code removed. `schedule_adherence` metric definition still exists (unassigned). Residual `ASSEMBLED_API_KEY` env var reference in `env.ts`.
+- **Rippling** --- no connector built. A "Open Rippling" link-out exists on the 1:1 page via `RIPPLING_MANAGER_URL`. Residual env var reference in `env.ts`.
 
 ### What Ships
 

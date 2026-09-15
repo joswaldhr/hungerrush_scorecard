@@ -33,6 +33,7 @@ Employee
 - email
 - job_title
 - employment_status
+- photo_url
 
 TeamMembership
 - id
@@ -104,6 +105,7 @@ NormalizedFact
 - period_end
 - data_source_id
 - source_record_id
+- source_observed_at
 - dimensions_json
 
 ## Metrics
@@ -123,6 +125,7 @@ MetricDefinition
 - calculation_config_json
 - default_period
 - source_strategy
+- team_aggregation (default: "simple_average")
 - status
 - version
 - effective_from
@@ -289,3 +292,74 @@ ReconciliationResult
 - metric_key
 - fact_type
 - notes
+
+## Roster Discovery
+
+RosterSourceTeamMapping
+- id
+- data_source_id
+- external_group_id
+- team_id
+
+RosterCandidate
+- id
+- data_source_id
+- external_id
+- external_email
+- external_display_name
+- team_id
+- change_type (new_hire | departure)
+- status (pending | approved | rejected)
+- reviewed_by
+- reviewed_at
+
+## Meeting Notes / Coaching (schema defined, not yet wired to UI)
+
+MeetingNote
+- id
+- employee_id
+- manager_user_id
+- content
+- created_at
+
+ActionItem
+- id
+- employee_id
+- manager_user_id
+- title
+- status (open | completed)
+- created_at
+- completed_at
+
+DiscussionTopic
+- id
+- employee_id
+- manager_user_id
+- title
+- status
+- created_at
+
+TicketReview
+- id
+- employee_id
+- manager_user_id
+- ticket_external_id
+- outcome
+- notes
+- reviewed_at
+
+AttendanceEvent
+- id
+- employee_id
+- event_type
+- occurred_at
+- notes
+- data_source_id
+
+CoachingRecord
+- id
+- employee_id
+- manager_user_id
+- coaching_type
+- notes
+- occurred_at

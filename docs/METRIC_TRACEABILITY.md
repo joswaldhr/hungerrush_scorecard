@@ -2,18 +2,14 @@
 
 For each live metric, the full path from the vendor API field to the number a manager sees, with exact file references. Pair with `docs/METRIC_REGISTRY.md` (what a metric means) and `docs/audits/2026-09-01-metric-integrity-report.md` (verdicts and findings).
 
-UI consumers as of 2026-09-01 were the same for all five live metrics — confirmed via `grep -l "getEmployeeMetrics|getTeamMetricTrend|getMetricHistory" src/app`:
-- `src/app/(app)/page.tsx` (Home)
-- `src/app/(app)/team/page.tsx` (Team)
-- `src/app/(app)/employee/[id]/page.tsx` (Employee)
-- `src/app/(app)/one-on-ones/page.tsx` (1:1 list)
+UI consumers for all five live metrics:
+- `src/app/(app)/team/page.tsx` (Team) — via `getEmployeeMetricsBatch`
+- `src/app/(app)/one-on-ones/[id]/page.tsx` (1:1 detail) — via `getEmployeeMetrics`/`getMetricHistoryBatch`
+- `src/app/(app)/one-on-ones/page.tsx` (1:1 list) — via `getEmployeeMetricsBatch`
 
-**Update 2026-09-03:** `employee/[id]/page.tsx` was deleted and replaced by
-`src/app/(app)/one-on-ones/[id]/page.tsx` — a data-driven metrics table grouped by
-`metricDefinitions.category`, still calling `getEmployeeMetrics`/`getMetricHistoryBatch`. Home
-was also dropped from manager nav (route still exists, unlinked). This section's per-metric
-`normalizeRecords()` line numbers below predate Phase B/C's additions to `zendesk.ts` and
-should be re-verified against the current file before trusting exact line numbers.
+Home (`page.tsx`) redirects to `/team`. The standalone Employee route was removed. Line numbers
+below predate several rounds of changes to `zendesk.ts` and should be re-verified against the
+current file before trusting exact line numbers.
 
 ## Tickets Resolved
 
@@ -78,10 +74,10 @@ Zendesk reply_time_in_minutes.business, tickets created in period
 
 **First Contact Resolution** — the chain never starts. No connector emits a `first_contact_resolution` `normalizedFacts` row (Zendesk has no native FCR field), and no `metric_assignments` row exists for either team, so even if a value existed it would never render.
 
-**Schedule Adherence** — the chain starts but produces almost nothing. `assembled.ts` does call Assembled's `/reports/adherence` endpoint and does emit a `schedule_adherence` fact when it gets a result, but `fetchRecords()`'s `if (!person?.agent_id) continue` (`assembled.ts:253`) skips any identity Assembled's `/people` list doesn't recognize — which is effectively this entire support roster (79 people total in the whole HungerRush Assembled account). No `metric_assignments` row exists for either team regardless, so the (near-empty) fact stream never reaches the UI either way.
+**Schedule Adherence** — the chain never starts. The Assembled connector was removed from the codebase. The metric definition row exists but has no connector to produce data and no assignment to either team.
 
 ## Not part of this chain
 
 **Entra ID (Microsoft Graph)** never writes a `normalizedFacts` row and is not a `sourceStrategy` any metric definition uses. It performs two unrelated things: (1) admin-driven identity verification (`src/app/(app)/admin/entra-identities`) matching an employee to a real Entra account by name search, never by guessing email; (2) a daily `accountEnabled` check (`entra-check.ts`) against verified identities, feeding `roster_candidates` for departure review. Neither touches `metricValues`.
 
-**Rippling** contributes nothing to this chain — `rippling-mock.ts` is the only implementation, has no real HTTP calls, and its `normalizeRecords()` always returns an empty array by design (identity source only, not metrics — see `connectors.test.ts`'s own assertion of this).
+**Rippling** contributes nothing to this chain — no connector code exists. Only a "Open in Rippling" link-out via `RIPPLING_MANAGER_URL`.

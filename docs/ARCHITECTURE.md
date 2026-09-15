@@ -37,40 +37,47 @@ src/
     (app)/                     # Authenticated route group
       layout.tsx               # App shell (sidebar + view-as banner + main content)
       error.tsx / loading.tsx / not-found.tsx
-      page.tsx                 # Home
+      page.tsx                 # Home (redirects to /team)
       team/page.tsx            # Team
-      employee/[id]/page.tsx   # Employee
       one-on-ones/page.tsx, one-on-ones/[id]/page.tsx  # 1:1 list + prep
       data-health/             # Sync status + manual "Sync now" trigger
       reconciliation/          # Cadence-vs-source value comparison
       admin/                   # Platform-admin landing + "view as" picker
+        employees/, employees/[id]/  # Employee detail (admin-scoped)
+        teams/                 # Team management
+        roster-review/         # Roster candidate approval/rejection
     api/
       auth/[...nextauth]/route.ts
+      cron/sync/route.ts       # Vercel Cron: 4 staggered weekly sync legs
       sync/run/route.ts, sync/health/route.ts
+      health/route.ts          # Health check endpoint
       reconciliation/run/route.ts, reconciliation/results/route.ts
       client-error/route.ts    # Server-side log sink for client error boundaries
-  components/                  # Sidebar, StatusBadge, TrendSparkline, MetricHistoryChart,
-                                # TeamRosterTable, StatCard, EmptyState/ErrorState, ui/ primitives
+  components/                  # Sidebar, StatusBadge, MetricHistoryChart, MetricIcon,
+                                # MetricCategoryTable, TeamRosterTable, StatCard,
+                                # MeetingPrepChecklist, SyncStalenessBanner,
+                                # EmptyState/ErrorState, ui/ primitives
   lib/
     auth/                      # Auth.js config, authorization.ts (ManagerContext + view-as)
     db/                        # Lazy-proxy connection, Drizzle schema
-    domain/                    # metrics/, briefings/, context/, reconciliation/
-    connectors/                # Connector interface, sync-engine, zendesk.ts, assembled.ts,
-                                # rippling-mock.ts (stub only — see Connector Architecture),
-                                # *-mock.ts synthetic-data variants
-    fixtures/seed.ts           # Real pilot roster seed (POS Support, Menufy Support)
+    domain/                    # metrics/, briefings/, reconciliation/, roster/
+    connectors/                # Connector interface, sync-engine, zendesk.ts,
+                                # zendesk-shared.ts (HTTP helper w/ retry/timeout),
+                                # zendesk-mock.ts (synthetic-data variant)
+    fixtures/                  # seed.ts (real pilot roster), golden-dataset.ts (test fixtures)
     env.ts, logger.ts, rate-limit.ts, utils.ts
   proxy.ts                     # Next.js 16 proxy convention (formerly middleware.ts)
-  __tests__/                   # Vitest — domain logic, connectors, and the auth boundary
+  __tests__/                   # Vitest — domain logic, connectors, sync orchestration, auth
 drizzle/                       # Migrations + meta/ (tracked — needed to migrate reliably)
 .github/workflows/ci.yml       # typecheck, lint, test, migrate, build on every push/PR
 docs/                          # Project documentation
 docker-compose.yml             # Local PostgreSQL (also used as the CI test database)
 ```
 
-All phases through pilot hardening, live Zendesk/Assembled integration, platform admin,
-and CI are implemented — see `docs/MVP.md` for the current checklist and `docs/PRODUCT.md`'s
-"What Ships" section for scope. Rippling remains a stub (see Connector Architecture below).
+All phases through pilot hardening, live Zendesk integration, platform admin, and CI are
+implemented — see `docs/MVP.md` for the current checklist and `docs/PRODUCT.md`'s "What Ships"
+section for scope. Assembled connector was removed (see Connector Architecture below).
+Rippling has no real integration — only a link-out via `RIPPLING_MANAGER_URL`.
 
 ## Domain Boundaries
 
@@ -100,7 +107,7 @@ Generated deterministically from metric values, observations, targets, and conte
 
 ContextItem, MeetingReference.
 
-Context items represent non-metric information relevant to an employee (coaching notes, schedule changes, etc.). Meeting references link to external calendar/meeting systems. Context is scoped by visibility and expiration. Neither table has a live producer yet (see Known Gaps) — the Employee and 1:1 Prep pages query them and render honest empty states.
+Context items represent non-metric information relevant to an employee (coaching notes, schedule changes, etc.). Meeting references link to external calendar/meeting systems. Context is scoped by visibility and expiration. Neither table has a live producer yet (see Known Gaps). The schema also includes related tables for meeting notes, action items, discussion topics, ticket reviews, attendance events, and coaching records — all defined but not yet wired to a UI or data source.
 
 ### Connectors / Sync
 
@@ -114,8 +121,6 @@ This is the integration boundary. All vendor-specific logic lives inside connect
 External Systems         Connector Layer           Domain Layer              UI Layer
 
 Zendesk API    ------>  zendesk connector  -+
-Assembled API  ------>  assembled connector |
-Rippling API   (stub, not wired in)         |
                                             |
                         SourceRecord -------+-> NormalizedFact
                         (raw payload,           (typed, employee-
@@ -137,7 +142,7 @@ Rippling API   (stub, not wired in)         |
                                             Home / Team / Employee / 1:1
 ```
 
-1. **Ingest**: Connectors call vendor APIs, currently triggered manually via the Data Health page's "Sync now" button (rate-limited server-side) rather than on a schedule. Raw responses are stored as SourceRecords with full payload and provenance.
+1. **Ingest**: Connectors call vendor APIs, triggered on a daily schedule (Vercel Cron, 4 staggered legs at 6:00/6:15/6:30/6:45 UTC, one week-offset per leg) and manually via the Data Health page's "Sync now" button (rate-limited server-side, scoped to week 0). Raw responses are stored as SourceRecords with full payload and provenance.
 2. **Normalize**: Connectors transform SourceRecords into NormalizedFacts, resolving employee identity through ExternalIdentity mappings.
 3. **Calculate**: The metric system reads NormalizedFacts and applies typed calculation strategies to produce MetricValues. Observations (changes, trends, threshold crossings) are detected by deterministic rules.
 4. **Brief**: The briefing engine assembles MetricValues, MetricObservations, and ContextItems into BriefingSnapshots.
@@ -173,22 +178,22 @@ Production authentication uses Microsoft Entra ID SSO configured through Auth.js
 
 ### Interface
 
-Every connector implements a common interface:
+Every connector implements a common interface (`src/lib/connectors/types.ts`):
 
-- **connect**: Validate credentials and connectivity.
-- **sync**: Fetch records from the external system for a given period/cursor.
-- **normalize**: Transform raw SourceRecords into NormalizedFacts.
-- **resolveIdentity**: Map external user identifiers to Cadence Employee records.
+- **healthCheck**: Validate credentials and connectivity.
+- **fetchRecords**: Fetch paginated records from the vendor API for a given config/cursor.
+- **normalizeRecords**: Transform raw SourceRecords into NormalizedFacts.
+- **resolveIdentities**: Map external user identifiers to Cadence Employee records.
+- **discoverRoster**: List current members of mapped external groups, for diffing against known identities to surface new-hire/departure candidates.
 
 ### Sync lifecycle
 
 1. A SyncRun is created with status `running`.
-2. The connector fetches paginated data from the vendor API. There is a server-side cooldown (`src/lib/rate-limit.ts`) preventing repeated syncs for the same source within a few minutes, but no vendor-side rate-limit handling (retry/backoff) yet.
-3. Raw payloads are stored as SourceRecords (deduplicated by payload hash).
-4. SourceRecords are normalized into NormalizedFacts.
-5. NormalizedFacts trigger metric recalculation for affected employees/periods.
-6. SyncRun is updated with record counts, cursor position, and final status.
-7. Errors are recorded as SyncError entries (with retryable flag).
+2. **Fetch phase**: The connector fetches paginated data from the vendor API into memory. The Zendesk connector has built-in retry/backoff for 429 rate-limit responses. A server-side cooldown (`src/lib/rate-limit.ts`) prevents repeated syncs for the same source within 5 minutes. No DB writes happen during this phase (except creating the sync run row).
+3. **Publish phase** (runs inside a single DB transaction): Raw payloads are upserted as SourceRecords (deduplicated by payload hash, batched in chunks of 500). SourceRecords are normalized into NormalizedFacts. If the transaction fails, everything rolls back — no partial data visible.
+4. NormalizedFacts trigger metric recalculation for affected employees/periods.
+5. SyncRun is updated with record counts, cursor position, timing metadata (`fetchMs`, `publishMs`, `computeValuesMs`), and final status.
+6. Errors are recorded as SyncError entries (with retryable flag and error type: `fetch_fatal`, `publish_fatal`, or `ingest`).
 
 ### Identity resolution
 
@@ -212,9 +217,9 @@ Fuzzy name matching alone is not permitted. In practice, the live Zendesk/Assemb
 
 | Connector | Source role | Status |
 |---|---|---|
-| Zendesk | Support/ticket operational metrics (tickets resolved, handle time, CSAT, backlog) | **Live**, real API, verified end-to-end against the real HungerRush account |
-| Assembled | Workforce/scheduling metrics | **Live**, real API. `schedule_adherence` previously always computed `null` — the old code compared `/agents/state` state names directly against `/activity_types` names, two vocabularies that never overlap (confirmed against docs.assembled.com: the state-to-activity-type mapping is a dashboard-only Administrator setting under Settings → Agent states, with no read API). Fixed 2026-08-28 to call Assembled's own async Reports API (`POST /reports/adherence`, metric `schedule_adherence_percentage`) instead of recomputing it locally. A real sync now returns non-null values with 0 errors (80 normalized facts, up from 0), but the values are consistently ~0% for real historical weeks even though this account has productive activity types configured ("Email", "Phone + Email", "In/Out Calls") and real people have real channels. That points to the account's Agent State Mappings (Settings → Agent states) not being configured to recognize non-productive scheduled events (breaks, meetings, 1:1s, etc. — everything `schedule_adherence` counts besides productive time), which can't be read or fixed via the API. Still unassigned from both pilot teams pending someone with Assembled dashboard access verifying that configuration — do not assign it or trust the numbers until that's confirmed |
-| Rippling | Employee identity, org structure, meeting context | **Stub only.** `rippling-mock.ts` reads Cadence's own tables back to itself, calls no external API, and is not wired into the sync map. A plain "Open Rippling" link-out exists on the 1:1 Prep page (via `RIPPLING_MANAGER_URL`). Real API integration is blocked on HungerRush confirming API access/scopes — do not guess at this; see `docs/INTEGRATIONS.md` |
+| Zendesk | Support/ticket operational metrics (tickets resolved, handle time, CSAT, backlog, calls) | **Live**, real API, verified end-to-end against the real HungerRush account. Daily cron (4 legs), parallelized per-employee fetches, retry/backoff on 429s. 24 metrics across tickets + Talk calls. |
+| Assembled | Workforce/scheduling metrics | **Removed.** Connector code was deleted — the `schedule_adherence` metric it powered is still defined but unassigned from both pilot teams. `ASSEMBLED_API_KEY` env var reference remains in `env.ts` as a residual. |
+| Rippling | Employee identity, org structure, meeting context | **No connector.** A plain "Open Rippling" link-out exists on the 1:1 Prep page (via `RIPPLING_MANAGER_URL`). Real API integration is blocked on HungerRush confirming API access/scopes — do not guess at this; see `docs/INTEGRATIONS.md`. |
 
 ## Key Architectural Decisions
 
@@ -270,7 +275,7 @@ All are validated (when present) through `src/lib/env.ts`. There is no `AUTH_PRO
 - **Application**: Vercel (Next.js hosting with serverless functions), auto-deploying from `master`. No Vercel-specific APIs are used in the domain layer.
 - **Database**: Railway-managed PostgreSQL. Local development and CI both use a separate Postgres (Docker Compose locally, a GitHub Actions service container in CI) — never the real Railway instance.
 - **Migrations**: Drizzle-kit generates and applies SQL migrations; `drizzle/meta/` (the journal and per-migration snapshots) is tracked in git, not gitignored, so a fresh checkout can migrate reliably. CI runs `drizzle-kit migrate` against its test database on every push. Production (Railway) migrations are still a manual step — see the runbook below. Wiring this into the Vercel build itself (a `vercel-build` script running `pnpm db:migrate && next build`) was considered and deliberately not done here: it would auto-apply schema changes against production on every push with no human gate, which is a CI/CD pipeline change with real blast radius — worth James's explicit sign-off rather than a silent default.
-- **Background sync**: Not scheduled yet. A manager (or platform admin viewing as one) triggers a sync manually from the Data Health page; the request is rate-limited server-side. Moving to a real schedule (Vercel cron or similar) is still open.
+- **Background sync**: Vercel Cron, 4 staggered legs daily at 6:00/6:15/6:30/6:45 UTC (`api/cron/sync?week=0..3`). Each leg syncs one week-offset to stay under the confirmed 300s function duration limit. Manual "Sync Now" (Data Health page) also available, scoped to week 0, rate-limited to one per 5 minutes per data source.
 
 ### Production Migration Runbook
 
@@ -289,7 +294,8 @@ Until the pre-deploy step above is decided, apply schema changes to Railway by h
 - **CI**: `.github/workflows/ci.yml` runs `pnpm typecheck`, `pnpm lint`, `pnpm test`, a real migration against a fresh Postgres, and `pnpm build` on every push/PR.
 - **Unit tests**: Vitest with jsdom for pure function testing for domain logic (target resolution, observations, briefing templates, reconciliation comparison, mock connectors).
 - **Integration tests**: `src/__tests__/authorization.test.ts` runs the entire multi-tenant authorization boundary (including the view-as cookie flow, mocked via `vi.mock("next/headers")`) against a real Postgres — `vitest.config.mts`'s `test.env` always points `DATABASE_URL` at the local/CI test database, never a developer's real `.env`, so `pnpm test` can never touch the shared pilot database.
-- **Known gap**: the DB-orchestrating domain functions (`generate.ts`, most of `metrics/queries.ts`, `context/queries.ts`, `reconciliation/engine.ts`), the real Zendesk/Assembled connectors, and page-level rendering all still have zero test coverage — only their pure helpers are tested.
+- **Sync orchestration tests**: `run-sync.test.ts` covers the `runSync` fetch→publish→checkpoint flow (happy path, fetch/publish failures, empty data, weekOffset behavior, pagination). `rate-limit.test.ts` covers the cooldown logic. Both use the same mock-tx/mock-db pattern as `compute-values.test.ts`.
+- **Known gap**: the DB-orchestrating domain functions (`generate.ts`, `reconciliation/engine.ts`), the real Zendesk connector, and page-level rendering still have zero test coverage — only their pure helpers are tested. Sync orchestration (`runSync`) and rate limiting now have dedicated test files.
 - **Type safety**: `tsc --noEmit` with strict mode and `noUncheckedIndexedAccess` as a CI gate.
 
 ## Known Gaps (as of the production-readiness pass)

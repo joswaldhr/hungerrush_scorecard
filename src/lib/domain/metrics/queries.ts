@@ -6,6 +6,7 @@ import { assertCanAccessEmployee } from "@/lib/auth/authorization";
 import { resolveTarget, evaluateStatus } from "./target-resolution";
 import type { Direction, ResolvedTarget, ValueType } from "./types";
 
+
 export interface EmployeeMetricRow {
   definitionId: string;
   key: string;
@@ -173,42 +174,3 @@ export async function getEmployeeMetricsBatch(
   return results;
 }
 
-/**
- * Team-average value per week for a single metric, across a set of period
- * starts. Returns null for any week with no recorded values — callers must
- * render that as "no history yet," not as zero.
- */
-export async function getTeamMetricTrend(
-  employeeIds: string[],
-  metricDefinitionId: string,
-  periodStarts: string[]
-): Promise<Array<number | null>> {
-  if (employeeIds.length === 0) return periodStarts.map(() => null);
-
-  const rows = await db
-    .select({
-      periodStart: metricValues.periodStart,
-      numericValue: metricValues.numericValue,
-    })
-    .from(metricValues)
-    .where(
-      and(
-        eq(metricValues.metricDefinitionId, metricDefinitionId),
-        inArray(metricValues.employeeId, employeeIds),
-        inArray(metricValues.periodStart, periodStarts)
-      )
-    );
-
-  const byPeriod = new Map<string, number[]>();
-  for (const row of rows) {
-    if (row.numericValue === null) continue;
-    const values = byPeriod.get(row.periodStart) ?? [];
-    values.push(row.numericValue);
-    byPeriod.set(row.periodStart, values);
-  }
-
-  return periodStarts.map((p) => {
-    const values = byPeriod.get(p);
-    return values && values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null;
-  });
-}

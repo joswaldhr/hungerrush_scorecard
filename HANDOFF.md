@@ -4,8 +4,8 @@
 
 This session closed out the sync-timeout saga from the previous handoff, then ran a full
 7-phase app review (roster integrity → metric confidence → sync reliability → security →
-performance → UI/UX → code quality/docs) at the user's request. **Phases 0-6 are done.**
-**Phase 7 (code quality, test coverage, docs freshness) is next — start there.**
+performance → UI/UX → code quality/docs) at the user's request. **All 7 phases are done.** Phase 7 (code quality, test coverage, docs freshness) was
+completed in this session.
 
 Along the way, the review found and fixed several real, previously-unknown production issues —
 not hypothetical ones — each verified against real data or the real deployed app, not assumed.
@@ -79,10 +79,19 @@ tightened across several rounds of self-critique before executing):**
 
 ## What's still open (see `FOLLOWUPS.md` for full detail on each numbered item)
 
-**Start here: Phase 7** — code quality, test coverage, docs freshness. Not started. Planned
-scope: close the sync-orchestration test-coverage gap `CLAUDE.md` itself flags as untested,
-sweep for more dead code (found `getTeamMetricTrend` as one pre-existing instance already, likely
-not the only one), and check the six source-of-truth docs against current code.
+**Phase 7 — done.** Three sub-tasks completed:
+- **7a (dead code removal)**: removed `getTeamMetricTrend` (metrics/queries.ts), `getCadenceGapDays`
+  (briefings/generate.ts), and the entire `context/queries.ts` module (zero callers). Deleted the
+  test file and fixture export that only served `getTeamMetricTrend`. Briefings generators left in
+  place per James — unwired-but-planned, not dead.
+- **7b (sync orchestration tests)**: 11 new tests across `run-sync.test.ts` (7 tests: happy path,
+  fetch/publish failures, empty data, DataSource-not-found, weekOffset, pagination) and
+  `rate-limit.test.ts` (4 tests: sync and reconciliation cooldown logic). All pass.
+- **7c (docs freshness audit)**: audited all 9 `docs/*.md` files against current code. Updated
+  ARCHITECTURE.md (project structure, connector interface, sync lifecycle, deployment, testing),
+  DATA_MODEL.md (8 new tables, 3 new columns), INTEGRATIONS.md (Assembled/Rippling status),
+  DESIGN_SYSTEM.md (component list), METRIC_REGISTRY.md, METRIC_TRACEABILITY.md, and PRODUCT.md.
+  BUILD_SPEC.md and MVP.md were already accurate.
 
 **Needs Alex (back from vacation), not a code fix:**
 - Confirm whether Christopher Courcy should be removed from POS's active roster (same pattern
@@ -123,5 +132,5 @@ bulk of this work is done (flagged, not decided).
 
 ## Repo state
 
-Everything in this handoff is committed and pushed to `master` (`c05ca30` as of this writing) —
-`git log` shows the full commit sequence. No uncommitted changes.
+Phase 7 changes are staged but not yet committed — `git status` shows the full list. Phases 0-6
+remain committed and pushed to `master` (`c05ca30` and earlier).

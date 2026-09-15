@@ -3,10 +3,10 @@
 // it is imported directly by tests as known-input/known-output pairs.
 //
 // Purpose: catch silent regressions in metric calculation, aggregation, or
-// status logic. If a future change to compute-values.ts, target-resolution.ts,
-// or getTeamMetricTrend breaks one of these expected values, the corresponding
-// test fails — that is the point. Do not "fix" a failing golden test by changing
-// its expected value without first confirming the new behavior is intentional.
+// status logic. If a future change to compute-values.ts or target-resolution.ts
+// breaks one of these expected values, the corresponding test fails — that is
+// the point. Do not "fix" a failing golden test by changing its expected value
+// without first confirming the new behavior is intentional.
 //
 // IDs use a 90000000- prefix, distinct from src/lib/fixtures/seed.ts's real
 // pilot-org ranges (10000000-/20000000-/.../60000000-) so golden data can never
@@ -130,22 +130,6 @@ export const GOLDEN_TWO_PERIOD_EXPECTED = {
   [GOLDEN_WEEK.w1.start]: 20,
   [GOLDEN_WEEK.w2.start]: 40,
 };
-
-// ── Team-trend volume-weighting scenario ────────────────────────────────────
-// Alice handled 5 tickets at 40 minutes AHT; Bob handled 500 tickets at 8
-// minutes AHT. A volume-weighted team average would sit close to Bob's number
-// (8 * 500 + 40 * 5) / 505 ≈ 8.32. getTeamMetricTrend currently computes a flat
-// unweighted mean of the two employees' values instead: (40 + 8) / 2 = 24 — a
-// number neither employee is anywhere near. This fixture documents that gap
-// (see metrics-queries.test.ts); it does not imply 24 is correct.
-export const GOLDEN_TEAM_TREND = {
-  aliceHandleTime: 40,
-  aliceTicketVolume: 5,
-  bobHandleTime: 8,
-  bobTicketVolume: 500,
-  flatUnweightedAverage: 24,
-  approximateVolumeWeightedAverage: 8.32,
-} as const;
 
 // ── Status logic: direction/target-type combinations not covered by the
 // existing target-resolution.test.ts (which only exercises minimum+higher_is_better

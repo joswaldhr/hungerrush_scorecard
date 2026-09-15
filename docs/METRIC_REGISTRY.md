@@ -34,12 +34,10 @@ These stay in the catalog (`metric_definitions` rows exist) but have no `metric_
 Reason unassigned: Zendesk has no native "first contact resolution" field. No connector code computes it. (`seed.ts:531-532`)
 
 **`schedule_adherence`** — category attendance, unit %, higher_is_better, calculationType average, sourceStrategy `assembled`.
-Reason unassigned, two compounding causes:
-1. Assembled's dashboard-only "productive activity type" mapping has no read API, so adherence can't be derived from `/activities` + `/agents/state` directly (`assembled.ts:132-139` docstring). The connector already works around this via Assembled's own `/reports/adherence` endpoint instead.
-2. Even with that workaround in place, Assembled genuinely does not have an account for most of this roster. Verified live 2026-09-01 (`scripts/check-assembled-roster.ts`, cross-referencing Assembled's real `/people` list against the real `external_identities` rows): **11 of 36 pilot employees (31%) have a working Assembled agent profile with a real `agent_id`**; the other 25 do not appear under any email *or* name variant in Assembled's 78-person list. This is not the same email-domain typo bug found and partly fixed for Zendesk — checked by name specifically to rule that out. It means Assembled was simply never provisioned with accounts for most of these support specialists; `fetchRecords`'s `if (!person?.agent_id) continue` (`assembled.ts:253`) is correctly skipping people who genuinely aren't there. Needs HungerRush ops/IT to provision the missing 25 in Assembled — not something Cadence's code can fix.
+Reason unassigned: the Assembled connector was removed from the codebase. The metric definition row remains in the catalog but has no connector to produce data and no assignment to either pilot team.
 
 ## Not a metric source
 
 **Entra ID (Microsoft Graph)** contributes no metric values. It performs identity verification (admin-confirmed employee↔Entra account matching) and a daily account-disabled check for departure detection. See `docs/METRIC_TRACEABILITY.md`.
 
-**Rippling** is a stub connector (`rippling-mock.ts` only, no real API calls) plus a static "Open in Rippling" link-out button. It contributes no metric values and is not wired into the sync cron.
+**Rippling** has no connector code. A static "Open in Rippling" link-out button exists via `RIPPLING_MANAGER_URL`. It contributes no metric values.

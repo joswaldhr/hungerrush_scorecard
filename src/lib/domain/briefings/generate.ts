@@ -201,15 +201,6 @@ export async function getStalenessSignals(employeeIds: string[]): Promise<Stalen
   return { oldestOpenActionItem, openActionItemCount, lastContact };
 }
 
-export function getCadenceGapDays(
-  employeeId: string,
-  signals: StalenessSignals,
-  now: Date
-): number | null {
-  const lastContact = signals.lastContact.get(employeeId);
-  return lastContact ? Math.floor((now.getTime() - lastContact.getTime()) / MS_PER_DAY) : null;
-}
-
 export { STALE_MEETING_CADENCE_DAYS };
 
 function buildStalenessReasons(
