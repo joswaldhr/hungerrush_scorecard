@@ -1,84 +1,127 @@
-# Session Handoff — 2026-09-09/10
+# Session Handoff — 2026-09-15
 
 ## TL;DR
 
-The scorecard's sync pipeline had gone silently dead for 5 days (no code was broken — a required
-Vercel secret was simply never set). Fixing it surfaced two more real problems underneath, each
-found and fixed in turn by **verifying with real production data at every step**, not by reading
-code and assuming. All fixes are **committed and pushed to `master`** and live in production.
-One real, known gap remains (see "What's still open" below) — not silently left, explicitly
-flagged with numbers.
+This session closed out the sync-timeout saga from the previous handoff, then ran a full
+7-phase app review (roster integrity → metric confidence → sync reliability → security →
+performance → UI/UX → code quality/docs) at the user's request. **Phases 0-6 are done.**
+**Phase 7 (code quality, test coverage, docs freshness) is next — start there.**
+
+Along the way, the review found and fixed several real, previously-unknown production issues —
+not hypothetical ones — each verified against real data or the real deployed app, not assumed.
+The two most serious: a 3-day silent sync failure caused by a departed employee's ticket count
+exceeding a Zendesk API limit, and two **critical, unauthenticated RCE vulnerabilities in
+Next.js itself**, patched the same session they were found. Everything below is committed and
+pushed to `master` and live in production.
 
 Read in this order if you're picking this up fresh:
 1. This file (status + what's next)
-2. `FOLLOWUPS.md` — the punch list, most current info per item
-3. `FIX_LOG.md` — what was actually changed and how each change was verified
-4. `INVESTIGATION.md` — the original deep-dive that started all of this (still accurate for the
-   parts it covers; superseded by `FIX_LOG.md`/`FOLLOWUPS.md` for the sync-timeout chapters)
-5. `CLAUDE.md` — has a short incident summary and durable lessons folded into the project's
-   standing instructions (Definition of Done, known facts about the sync system)
+2. `FOLLOWUPS.md` — the full detailed log, 14 numbered items, most current info per item,
+   several superseding what the previous handoff said (e.g. the original "split Talk calls out
+   of week 0" theory turned out to be wrong — see item #6/#10)
+3. `CLAUDE.md` — durable lessons folded into the project's standing instructions
+4. `INVESTIGATION.md`/`FIX_LOG.md` — older, narrower history now folded into `FOLLOWUPS.md`
 
 ## What happened, in order
 
-1. **Silent outage**: no sync (cron or manual) had run in 5 days. Root cause:
-   `CRON_SECRET` was never added to Vercel's environment variables at all — the cron route
-   returned a silent 500 every single day, invisible anywhere. **Fixed**: added it, added
-   logging so this specific failure can never be silent again, added a staleness banner and an
-   optional heartbeat-ping hook.
-2. **Found while fixing #1**: the Zendesk HTTP client had no request timeout — a stalled
-   connection could hang a sync forever. **Fixed**: added a 30s timeout.
-3. **Verifying #1 revealed a second problem**: triggering the real cron endpoint after the fix
-   returned `HTTP 504 FUNCTION_INVOCATION_TIMEOUT` at exactly 300 seconds — the real, previously
-   unknown Vercel function duration limit. A full sync took ~14 minutes, ~50 minutes before that
-   in the pipeline's original unbatched form.
-4. **Root cause of the slowness**: three functions wrote one database row at a time,
-   sequentially (up to ~8,000 individual queries in a full sync). **Fixed**: batched all three
-   into chunked bulk upserts — DB write time dropped from 247.8s to 2.2s (~114x), verified
-   against real production data.
-5. **Batching alone wasn't enough**: with writes now instant, the remaining ~14 minutes is
-   almost entirely the Zendesk API fetch phase (hundreds of sequential requests across 4 weeks
-   of data), which batching never touched — still ~3x over the 300s limit.
-6. **Fixed by splitting**: the sync now runs as 4 separate cron invocations per day (staggered
-   15 min apart), each fetching exactly one week instead of all 4 in one shot. The manual
-   "Sync Now" button was equally exposed to the same limit and now defaults to the current week
-   only. **Verified live**: Vercel accepted all 4 cron entries, and triggering the current-week
-   leg directly completed successfully in 282 seconds.
+**Sync timeout saga, concluded:**
+1. Verified all 4 per-week cron legs live with the correct `CRON_SECRET` (a stale local `.env`
+   copy had silently diverged from Vercel's real value — rotated it; the real scheduled cron was
+   never actually at risk, since Vercel auto-attaches its own copy regardless of the local file).
+2. The original theory (week 0's Talk-calls fetch never terminates) was **wrong** — instrumented
+   it directly and found 11 pages, 42.5s, zero rate-limit hits. The real bottleneck was 84
+   sequential per-employee Zendesk requests (ticket search + identity resolution) with no
+   concurrency. Parallelized both (bounded concurrency of 5) — verified live, ~150-170s per leg
+   now vs. up to 296s before, comfortable margin restored on all 4 weeks.
 
-## What's still open (see `FOLLOWUPS.md` for full detail on each)
+**Roster integrity (Menufy, then POS):**
+3. Reconciled Menufy's roster against Barbara Maenza's real team list: found 3 "lead"-role
+   accounts and 1 real employee (Rasheil Badajos) incorrectly counted as regular staff, and 2
+   stale pending candidates that should've been rejected. Fixed with Barb's explicit
+   confirmation. Menufy: 23 → 19, matches her list exactly.
+4. Same self-serve check on POS (Alex is on vacation, so only the mechanical parts): found the
+   identical "lead counted as employee" pattern (Christopher Courcy) — **flagged, not touched**,
+   needs Alex's confirmation on return. Two legitimately-new candidates (Juan Jimenez, Maicol
+   Ortiz) also await his review.
 
-**Highest priority — thin safety margin on the current-week leg.** That 282-second result
-above means only ~18 seconds of margin under the 300s cap, with the fetch phase alone eating
-86% of the budget. Any added load (Zendesk rate-limiting, growing data volume, roster discovery
-taking longer) could push it back over. Recommended next step: split the current week's Talk
-calls fetch out from its ticket search into its own invocation — that's the specific piece
-known to be heaviest (up to 50 sequential pages, since Zendesk's call-export API never signals
-"done" for an in-progress week).
+**A real, live P0 found via a post-fix smoke test:**
+5. Deactivating Rasheil (step 3) didn't remove her from the Zendesk sync's identity list — the
+   query had no employment-status filter. Her ticket count for one week hit 1,211 (a bulk
+   reassignment from her own offboarding), which exceeded Zendesk Search's 1,000-result cap and
+   crashed the **entire week's sync for all 84 employees**, 3 days running. Fixed two ways:
+   filter by employment status, and handle the cap gracefully instead of crashing. Also revealed
+   36 already-departed people system-wide had been needlessly synced this whole time (84 → 48
+   active identities).
+6. Found and fixed a second, related bug: `discoverRosterCandidates` re-proposed
+   already-resolved candidates forever (only checked for *pending* duplicates, not
+   approved/rejected ones) — cleaned up 34 duplicate rows this bug had already created.
 
-**Not yet verified — weeks 1-3 of the split.** Only the current-week leg was triggered and
-timed this session; the other three legs share a rate-limit cooldown that made back-to-back
-manual testing impractical in one sitting. They're expected to be faster (completed weeks
-terminate their call-data fetch quickly) but that's not proven with real numbers yet. Check
-`sync_runs.metadata_json` after tomorrow's actual scheduled runs (6:00/6:15/6:30/6:45 UTC), or
-trigger `?week=1`/`?week=2`/`?week=3` manually at least 5 minutes apart.
+**Full app review, user-requested, 7 phases planned (see the conversation for how the plan was
+tightened across several rounds of self-critique before executing):**
+7. **Phase 2 (metric confidence)**: null-handling audit clean, concurrency refactor verified
+   correct via exact-match independent recomputation, idempotency perfect (0 drift across 6,556
+   rows). Bounded reconciliation (1,008 checks) found and explained a real "settling" phenomenon
+   — Zendesk auto-closes solved tickets days later, so a "completed" week's numbers keep gently
+   shifting for several days. Not a bug.
+8. **Phase 3**: weeks 2-3 re-verified live post-fix, `sync_errors` swept clean.
+9. **Phase 4 (security)**: `pnpm audit` found **two critical, unauthenticated RCE
+   vulnerabilities in Next.js itself** (one in the Image Optimization API, directly reachable in
+   this app's real production deployment) — patched immediately (16.3.1 → 16.3.5). Also found
+   and fixed a cross-manager visibility gap in the reconciliation-run listing endpoint. Core
+   `assertCanAccessEmployee`/`assertCanAccessTeam` boundary confirmed sound everywhere.
+10. **Phase 5 (performance)**: no real bottleneck. Confirmed via direct `EXPLAIN ANALYZE` against
+    production data that query execution is 0.517ms — all observed latency is network/connection
+    overhead, not a code or index problem.
+11. **Phase 6 (UI/UX)**: found and fixed a **genuinely broken mobile layout** — the Team page's
+    stat cards overlapped and clipped at real phone widths, not just cramped. Fixed the
+    responsive breakpoint, plus two smaller papercuts (truncated text with no hover fallback, a
+    "1 metrics need attention" grammar bug).
 
-**Two Menufy roster candidates still pending** (Claire Boonmanop, Daniel Coy) — real Zendesk
-agents not on Barbara Maenza's original list, worth confirming with her directly rather than
-auto-approving. Unrelated to the sync work, predates this session.
+## What's still open (see `FOLLOWUPS.md` for full detail on each numbered item)
 
-**Needs a human, not a code fix**: whether the real HungerRush Zendesk account is single- or
-multi-brand (the connector assumes single-subdomain) — confirm with Zendesk admin access.
-`csat_score` returning zero results from Zendesk's satisfaction-ratings endpoint — worth a
-fresh check now that syncs run reliably again, separate investigation.
+**Start here: Phase 7** — code quality, test coverage, docs freshness. Not started. Planned
+scope: close the sync-orchestration test-coverage gap `CLAUDE.md` itself flags as untested,
+sweep for more dead code (found `getTeamMetricTrend` as one pre-existing instance already, likely
+not the only one), and check the six source-of-truth docs against current code.
+
+**Needs Alex (back from vacation), not a code fix:**
+- Confirm whether Christopher Courcy should be removed from POS's active roster (same pattern
+  as the Menufy leads, but no confirmed list to check against yet — see item #9 in `FOLLOWUPS.md`).
+- Review the two pending POS candidates (Juan Jimenez, Maicol Ortiz).
+
+**Needs a product/priority decision, not urgent:**
+- Sidebar doesn't auto-collapse on mobile (item #14) — cramped everywhere on a phone, not
+  broken elsewhere the way the stat cards were. This is primarily a desk tool; flagged as a
+  candidate only if mobile use turns out to matter.
+- `fetchMetricSets` parallelization (item #10 in the older sync-timeout thread) — now the
+  largest remaining fetch-phase cost, current margin is comfortable without it.
+- Talk-fetch shared try/catch fragility (item #2) — now has a stronger case given it contributed
+  to the item-#6 incident, still a real architectural change, not a small patch.
+- Whether to build the ongoing/automated metric-reconciliation job discussed during planning
+  (Phase 2e) — a real infrastructure commitment, deliberately not started, needs an explicit
+  decision if continuous (not just point-in-time) confidence matters enough to build it.
+
+**Needs a human with access this session didn't have:**
+- Whether the real Zendesk account is single- or multi-brand (item #3, predates this session).
+- Jayhov Sumagang / "Kevin L" roster mismatches (predates this session).
+
+**Housekeeping, noticed in passing, not touched:**
+- An old git worktree (`.claude/worktrees/quizzical-curie-4547cd`) is still registered — ask
+  James if it's still needed.
+- `env.ts` has no `import "server-only"` guard (item #12) — no active leak, but no build-time
+  safety net either; would need a new dependency, flagged as a hardening recommendation.
+- Three lower-severity dependency vulnerabilities (js-yaml, esbuild, vitest/@vitest/mocker) left
+  as accepted risk — all dev-only, no production exposure, vitest's fix conflicts with this
+  environment's known Node 24 issue (see `known-workarounds` memory).
 
 ## Access notes
 
-A Vercel personal access token was added to `.env` as `VERCEL_API` to enable direct
-investigation/verification against the real Vercel project (cron config, deployment status,
-environment variables) — this is how the 300s limit and the cron registration were confirmed
-with certainty instead of guessed. It's still in `.env` (gitignored, never committed). Revoke
-or rotate it from vercel.com/account/tokens if you'd rather not leave it active.
+Same `VERCEL_API` personal access token from the previous handoff is still in `.env`
+(gitignored, never committed — reconfirmed this session). It was used extensively again this
+session for direct Vercel verification. Consider whether to rotate/scope it down now that the
+bulk of this work is done (flagged, not decided).
 
 ## Repo state
 
-Everything in this handoff is committed and pushed to `master` — `git log` will show the
-commits in the order described above. No uncommitted changes as of this handoff.
+Everything in this handoff is committed and pushed to `master` (`c05ca30` as of this writing) —
+`git log` shows the full commit sequence. No uncommitted changes.
