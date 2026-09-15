@@ -130,7 +130,35 @@ Same `VERCEL_API` personal access token from the previous handoff is still in `.
 session for direct Vercel verification. Consider whether to rotate/scope it down now that the
 bulk of this work is done (flagged, not decided).
 
+## UI Audit (post-Phase 7)
+
+After the 7-phase review, a targeted UI audit addressed layout clutter and missing export
+functionality across the app:
+
+**Phase 1 — Dead component removal:** Deleted 6 orphaned files (BriefingSection,
+MeetingPrepChecklist, MetricHistoryChart, TrendIndicator, Tabs UI primitive, Home loading
+skeleton). Zero imports anywhere.
+
+**Phase 2 — Sidebar cleanup:** Removed duplicate utility nav (Settings/Connections duplicated
+Operations items). Fixed hardcoded "James Smith" and "Support Manager" — now uses real user
+name/email and job title from the employees table. Avatar initials derive from name or email.
+
+**Phase 3 — Team page declutter:** Removed dead Export button, hardcoded "8:30 AM" fallback,
+Employees and Team Trend stat cards (redundant). Reduced stat cards from 5 to 3. Removed
+duplicate filter toolbar from TeamRosterTable (pills + search remain inline). Removed always-empty
+"1:1 Upcoming" and "Action" columns. Added `TeamFilters` component for Team/Period dropdowns in
+the page header. Fixed missing period options (weeks 2 and 3). Removed two unnecessary DB queries
+(previous-week metrics, meeting references).
+
+**Phase 4 — Scorecard export:** New `ScorecardExport` client component on the 1:1 page with
+7 export options: PDF (html2canvas + jspdf), PNG (html2canvas), CSV, formatted text copy,
+copy link, and print. Replaces the old `OneOnOneActions` (Copy Link + Print only). New
+dependencies: `html2canvas@1.4.1`, `jspdf@4.2.1`. Also approved `core-js` build script in
+`pnpm-workspace.yaml` (transitive dependency from jspdf).
+
+**Phase 5 — Documentation:** Updated DESIGN_SYSTEM.md component list and this handoff.
+
 ## Repo state
 
-Phase 7 changes are staged but not yet committed — `git status` shows the full list. Phases 0-6
-remain committed and pushed to `master` (`c05ca30` and earlier).
+UI audit changes are staged but not yet committed. Phase 7 and earlier remain committed and
+pushed to `master`.

@@ -7,10 +7,11 @@ import {
 } from "@/lib/auth/authorization";
 import { getEmployeeMetricsBatch } from "@/lib/domain/metrics/queries";
 import { db } from "@/lib/db";
-import { syncRuns, dataSources, meetingReferences } from "@/lib/db/schema";
-import { eq, desc, and, inArray, gte, asc } from "drizzle-orm";
+import { syncRuns, dataSources } from "@/lib/db/schema";
+import { eq, desc } from "drizzle-orm";
 import { EmptyState } from "@/components/empty-state";
 import { TeamRosterTable } from "@/components/team-roster-table";
+import { TeamFilters } from "@/components/team-filters";
 import { StatCard } from "@/components/stat-card";
 import {
   Users,
@@ -18,10 +19,9 @@ import {
   AlertCircle,
   AlertTriangle,
   ShieldAlert,
-  Download,
   RotateCw,
 } from "lucide-react";
-import { weekDates, cn } from "@/lib/utils";
+import { weekDates } from "@/lib/utils";
 import { deriveOverallStatus } from "@/lib/domain/briefings/generate";
 import type { RosterRow } from "@/components/team-roster-table";
 import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
@@ -84,30 +84,6 @@ export default async function TeamPage({
     .orderBy(desc(syncRuns.completedAt))
     .limit(1);
 
-  const upcomingByEmployee = new Map<string, string>();
-  if (ctx.assignedEmployeeIds.length > 0) {
-    const upcoming = await db
-      .select({
-        employeeId: meetingReferences.employeeId,
-        scheduledStart: meetingReferences.scheduledStart,
-      })
-      .from(meetingReferences)
-      .where(
-        and(
-          eq(meetingReferences.managerUserId, ctx.userId),
-          inArray(meetingReferences.employeeId, ctx.assignedEmployeeIds),
-          gte(meetingReferences.scheduledStart, new Date())
-        )
-      )
-      .orderBy(asc(meetingReferences.scheduledStart));
-
-    for (const m of upcoming) {
-      if (!upcomingByEmployee.has(m.employeeId)) {
-        upcomingByEmployee.set(m.employeeId, m.scheduledStart.toISOString());
-      }
-    }
-  }
-
   const employeesByTeam = new Map<string, typeof employees>();
   for (const emp of employees) {
     if (!emp.primaryTeamId) continue;
@@ -116,24 +92,13 @@ export default async function TeamPage({
     employeesByTeam.set(emp.primaryTeamId, forTeam);
   }
 
-  const twoWeeksAgo = new Date(`${previousPeriodStart}T00:00:00Z`);
-  twoWeeksAgo.setUTCDate(twoWeeksAgo.getUTCDate() - 7);
-  const twoWeeksAgoPeriodStart = twoWeeksAgo.toISOString().split("T")[0]!;
-
   const metricsByEmployee = new Map<string, EmployeeMetricRow[]>();
-  const prevMetricsByEmployee = new Map<string, EmployeeMetricRow[]>();
   await Promise.all(
     Array.from(employeesByTeam.entries()).map(async ([teamId, teamEmps]) => {
       const empIds = teamEmps.map((e) => e.id);
-      const [batch, prevBatch] = await Promise.all([
-        getEmployeeMetricsBatch(ctx, empIds, teamId, periodStart, previousPeriodStart),
-        getEmployeeMetricsBatch(ctx, empIds, teamId, previousPeriodStart, twoWeeksAgoPeriodStart),
-      ]);
+      const batch = await getEmployeeMetricsBatch(ctx, empIds, teamId, periodStart, previousPeriodStart);
       for (const [employeeId, metrics] of batch) {
         metricsByEmployee.set(employeeId, metrics);
-      }
-      for (const [employeeId, metrics] of prevBatch) {
-        prevMetricsByEmployee.set(employeeId, metrics);
       }
     })
   );
@@ -141,38 +106,20 @@ export default async function TeamPage({
   const employeeData = employees.map((emp) => {
     const teamId = emp.primaryTeamId ?? null;
     const metrics = metricsByEmployee.get(emp.id) ?? [];
-    const prevMetrics = prevMetricsByEmployee.get(emp.id) ?? [];
     const overallStatus = deriveOverallStatus(metrics);
-    const prevOverallStatus = deriveOverallStatus(prevMetrics);
-    return { employee: emp, metrics, teamId, overallStatus, prevOverallStatus };
+    return { employee: emp, metrics, teamId, overallStatus };
   });
 
   const totalEmployees = employeeData.length;
   const totalOnTrack = employeeData.filter((d) => d.overallStatus === "on_track").length;
   const totalWatch = employeeData.filter((d) => d.overallStatus === "mixed").length;
   const totalAttention = employeeData.filter((d) => d.overallStatus === "needs_attention").length;
-  const totalOnTrackPrevWeek = employeeData.filter(
-    (d) => d.prevOverallStatus === "on_track"
-  ).length;
-  const teamTrendLabel =
-    totalOnTrack > totalOnTrackPrevWeek
-      ? "Improving"
-      : totalOnTrack < totalOnTrackPrevWeek
-        ? "Declining"
-        : "Steady";
-  const teamTrendClassName =
-    totalOnTrack > totalOnTrackPrevWeek
-      ? "text-emerald-600 dark:text-emerald-400"
-      : totalOnTrack < totalOnTrackPrevWeek
-        ? "text-rose-600 dark:text-rose-400"
-        : "text-muted-foreground";
 
   const currentTeamName = visibleTeams.length === 1 ? visibleTeams[0]!.name : "All Teams";
   const weekLabel = `Week of ${new Date(`${periodStart}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} – ${new Date(`${periodEnd}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}`;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12">
-      {/* Header */}
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-[28px] font-bold text-foreground tracking-tight">
@@ -188,37 +135,27 @@ export default async function TeamPage({
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            className="flex items-center gap-1.5 rounded-lg border border-border/80 bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted transition-colors"
-          >
-            <Download className="h-3.5 w-3.5" />
-            <span>Export</span>
-          </button>
-          <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
-            <RotateCw className="h-3 w-3" />
-            <span>
-              Last updated:{" "}
-              {latestSync?.completedAt
-                ? new Date(latestSync.completedAt).toLocaleTimeString("en-US", {
-                    hour: "numeric",
-                    minute: "2-digit",
-                  })
-                : "8:30 AM"}
-            </span>
-          </div>
+          <TeamFilters
+            allTeams={allTeams}
+            selectedTeamId={selectedTeamId}
+            weeksAgo={weeksAgo}
+          />
+          {latestSync?.completedAt && (
+            <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
+              <RotateCw className="h-3 w-3" />
+              <span>
+                Last updated:{" "}
+                {new Date(latestSync.completedAt).toLocaleTimeString("en-US", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
+          )}
         </div>
       </header>
 
-      {/* 5-Card Stat Summary Row */}
-      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3 lg:grid-cols-5">
-        <StatCard
-          icon={Users}
-          iconClassName="bg-teal-50 text-[#009ca6] dark:bg-teal-950/50 dark:text-teal-400"
-          value={totalEmployees}
-          label="Employees"
-          detail="100% of team"
-        />
+      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
         <StatCard
           icon={CheckCircle2}
           iconClassName="bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400"
@@ -253,12 +190,6 @@ export default async function TeamPage({
           }
           detailClassName="text-rose-600 dark:text-rose-400 font-semibold"
         />
-        {/* Card 5: Team Trend (Overall) */}
-        <div className="rounded-xl border border-border/80 bg-card p-4 sm:p-5 shadow-xs col-span-2 sm:col-span-1">
-          <p className="text-xs font-semibold text-slate-500">Team Trend (Overall)</p>
-          <p className={cn("mt-1 text-sm font-bold", teamTrendClassName)}>{teamTrendLabel}</p>
-          <p className="text-xs text-muted-foreground">on-track count vs last week</p>
-        </div>
       </div>
 
       {visibleTeams.map((team) => {
@@ -290,7 +221,6 @@ export default async function TeamPage({
               metricsOffTarget: metrics.filter((m) => m.status.status === "off_target").length,
               metricsNoData: metrics.filter((m) => m.status.status === "no_data").length,
               metricsTotal: metrics.length,
-              upcomingMeetingAt: upcomingByEmployee.get(employee.id) ?? null,
             };
           }
         );
@@ -308,12 +238,7 @@ export default async function TeamPage({
                 description="No employees on this team."
               />
             ) : (
-              <TeamRosterTable
-                rows={rows}
-                allTeams={allTeams}
-                selectedTeamId={selectedTeamId}
-                weeksAgo={weeksAgo}
-              />
+              <TeamRosterTable rows={rows} />
             )}
           </div>
         );

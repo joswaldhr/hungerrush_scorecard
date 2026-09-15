@@ -1,15 +1,13 @@
 import { auth, signOut } from "@/lib/auth";
 import { isPlatformAdmin } from "@/lib/auth/authorization";
+import { db } from "@/lib/db";
+import { employees } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { SidebarClient } from "./sidebar-client";
 
 const primaryNav = [
   { label: "Team", href: "/team", iconName: "Users" },
   { label: "1:1s", href: "/one-on-ones", iconName: "Calendar" },
-];
-
-const utilityNav = [
-  { label: "Settings", href: "/admin", iconName: "Settings" },
-  { label: "Connections", href: "/data-health", iconName: "Link2" },
 ];
 
 const adminNav = [
@@ -45,6 +43,16 @@ export async function Sidebar() {
   const isAdmin = user?.email ? await isPlatformAdmin(user.email) : false;
   const secondary = isAdmin ? adminNav : [];
 
+  let jobTitle: string | null = null;
+  if (user?.email) {
+    const emp = await db
+      .select({ jobTitle: employees.jobTitle })
+      .from(employees)
+      .where(eq(employees.email, user.email))
+      .then((r) => r[0]);
+    jobTitle = emp?.jobTitle ?? null;
+  }
+
   async function handleSignOut() {
     "use server";
     await signOut({ redirectTo: "/login" });
@@ -52,9 +60,8 @@ export async function Sidebar() {
 
   return (
     <SidebarClient
-      user={user ? { name: user.name, email: user.email } : null}
+      user={user ? { name: user.name, email: user.email, jobTitle } : null}
       primaryNav={primaryNav}
-      utilityNav={utilityNav}
       secondaryNav={secondary}
       signOutAction={handleSignOut}
       brandLogo={<BrandLogo />}

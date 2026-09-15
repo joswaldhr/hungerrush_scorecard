@@ -42,10 +42,9 @@ Information priority:
 
 Do not give every metric equal visual weight.
 
-## Four Screen Personality
+## Screen Personality
 
-Home:
-Briefing / calm / selective.
+Home redirects to Team (no standalone Home page currently).
 
 Team:
 Efficient / scannable / comparative.
@@ -60,19 +59,16 @@ Calm / distilled / meeting-focused.
 
 Reusable components in `src/components/`:
 - MetricValue
-- TrendIndicator
 - StatusBadge
-- BriefingSection
 - DataFreshness
-- MetricHistoryChart
 - MetricCategoryTable
 - MetricIcon
 - TeamRosterTable
+- TeamFilters
 - StatCard
-- MeetingPrepChecklist
 - Sidebar / SidebarClient
 - SyncStalenessBanner
-- OneOnOneActions
+- ScorecardExport
 - EmptyState
 - ErrorState
 - ViewAsBanner
@@ -84,7 +80,6 @@ UI primitives in `src/components/ui/` (shadcn/Radix):
 - Card
 - Separator
 - Skeleton
-- Tabs
 
 Components must be domain-generic.
 

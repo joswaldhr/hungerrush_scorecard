@@ -5,12 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
-  Home,
   Users,
   Calendar,
   BarChart3,
-  Settings,
-  Link2,
   Activity,
   Scale,
   ShieldCheck,
@@ -24,12 +21,9 @@ import {
 import { cn, initials } from "@/lib/utils";
 
 const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
-  Home,
   Users,
   Calendar,
   BarChart3,
-  Settings,
-  Link2,
   Activity,
   Scale,
   ShieldCheck,
@@ -42,9 +36,8 @@ interface NavItem {
 }
 
 interface SidebarClientProps {
-  user: { name?: string | null; email?: string | null } | null;
+  user: { name?: string | null; email?: string | null; jobTitle?: string | null } | null;
   primaryNav: NavItem[];
-  utilityNav?: NavItem[];
   secondaryNav: NavItem[];
   signOutAction: () => Promise<void>;
   brandLogo: React.ReactNode;
@@ -56,7 +49,6 @@ const STORAGE_KEY = "sidebar-collapsed";
 export function SidebarClient({
   user,
   primaryNav,
-  utilityNav = [],
   secondaryNav,
   signOutAction,
   brandLogo,
@@ -209,47 +201,25 @@ export function SidebarClient({
         )}
       </nav>
 
-      {/* Utility Nav: Settings, Connections, Theme */}
-      <div className="px-3 py-2 space-y-1 border-t border-sidebar-border/50">
-        {utilityNav.map((item) => {
-          const active = isActive(item.href);
-          const Icon = ICON_MAP[item.iconName];
-          return (
-            <Link
-              key={item.label}
-              href={item.href}
-              title={collapsed ? item.label : undefined}
-              className={cn(
-                "flex items-center rounded-lg py-2 text-sm font-medium transition-colors text-slate-400 hover:bg-sidebar-accent hover:text-white",
-                collapsed ? "justify-center px-0" : "gap-3 px-3",
-                active && "text-white"
-              )}
-            >
-              {Icon && <Icon className="h-4 w-4 shrink-0" />}
-              {!collapsed && <span>{item.label}</span>}
-            </Link>
-          );
-        })}
-
-        <div className="flex items-center pt-1">
-          <button
-            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-            aria-label={
-              hydrated && resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"
-            }
-            title={collapsed ? "Toggle theme" : undefined}
-            className={cn(
-              "flex items-center rounded-md p-1.5 text-slate-400 hover:bg-sidebar-accent hover:text-white transition-colors",
-              collapsed ? "w-full justify-center" : ""
-            )}
-          >
-            {hydrated && resolvedTheme === "dark" ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )}
-          </button>
-        </div>
+      {/* Theme toggle */}
+      <div className="px-3 py-2 border-t border-sidebar-border/50">
+        <button
+          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+          aria-label={
+            hydrated && resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+          }
+          title={collapsed ? "Toggle theme" : undefined}
+          className={cn(
+            "flex items-center rounded-md p-1.5 text-slate-400 hover:bg-sidebar-accent hover:text-white transition-colors",
+            collapsed ? "w-full justify-center" : ""
+          )}
+        >
+          {hydrated && resolvedTheme === "dark" ? (
+            <Sun className="h-4 w-4" />
+          ) : (
+            <Moon className="h-4 w-4" />
+          )}
+        </button>
       </div>
 
       {/* User profile card */}
@@ -263,15 +233,17 @@ export function SidebarClient({
             )}
           >
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#009ca6] text-xs font-bold text-white shadow-xs">
-              {user.name ? initials(user.name) : "JS"}
+              {user.name ? initials(user.name) : user.email ? user.email[0]!.toUpperCase() : "?"}
             </div>
             {!collapsed && (
               <>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-white truncate">
-                    {user.name ?? "James Smith"}
+                    {user.name ?? user.email ?? "User"}
                   </div>
-                  <div className="text-[11px] text-slate-400 truncate">Support Manager</div>
+                  {user.jobTitle && (
+                    <div className="text-[11px] text-slate-400 truncate">{user.jobTitle}</div>
+                  )}
                 </div>
                 <ChevronDown
                   className={cn(

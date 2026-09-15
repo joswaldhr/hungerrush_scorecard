@@ -5,7 +5,8 @@ import { getEmployeeMetrics } from "@/lib/domain/metrics/queries";
 import { formatCategoryLabel } from "@/lib/domain/metrics/category-labels";
 import { StatusBadge } from "@/components/status-badge";
 import { MetricCategoryTable } from "@/components/metric-category-table";
-import { OneOnOneActions } from "@/components/one-on-one-actions";
+import { ScorecardExport, SCORECARD_CAPTURE_ID } from "@/components/scorecard-export";
+import type { ScorecardMetric } from "@/components/scorecard-export";
 import { EmptyState } from "@/components/empty-state";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { deriveOverallStatus } from "@/lib/domain/briefings/generate";
@@ -115,6 +116,17 @@ export default async function OneOnOnePage({
 
   const weekRangeFormatted = `Week of ${new Date(`${periodStart}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} – ${new Date(`${periodEnd}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}`;
 
+  const scorecardMetrics: ScorecardMetric[] = rows.map((r) => ({
+    category: r.category,
+    name: r.name,
+    currentValue: r.currentValue,
+    previousValue: r.previousValue,
+    targetValue: r.target?.targetValue ?? null,
+    status: r.status.status,
+    unit: r.unit,
+    valueType: r.valueType,
+  }));
+
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-12">
       <div className="print:hidden">
@@ -150,7 +162,11 @@ export default async function OneOnOnePage({
 
         <div className="flex flex-col items-end gap-1.5">
           <div className="flex items-center gap-2">
-            <OneOnOneActions />
+            <ScorecardExport
+              employeeName={employee.displayName}
+              periodLabel={weekRangeFormatted}
+              metrics={scorecardMetrics}
+            />
             <div className="flex items-center rounded-lg border border-border/80 bg-card p-1 shadow-2xs text-xs font-semibold print:hidden">
               {PERIODS.map((p) => {
                 const active = period === p.key;
@@ -186,7 +202,7 @@ export default async function OneOnOnePage({
           description="This team doesn't have any metrics configured yet."
         />
       ) : (
-        <div className="space-y-6">
+        <div id={SCORECARD_CAPTURE_ID} className="space-y-6">
           {Array.from(categories.entries()).map(([category, categoryRows]) => (
             <MetricCategoryTable
               key={category ?? "uncategorized"}
