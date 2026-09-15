@@ -305,3 +305,45 @@ largest remaining phase (65.8-75.6s, ~45% of fetchMs) — the same class of prob
 loop, this time over 100-ticket-ID batches instead of employees), not yet parallelized. Current
 margin (~130-140s) is comfortable without it, but it's the obvious next target if that ever
 tightens up again.
+
+## 8. Fixed: `discoverRosterCandidates` re-proposed already-resolved candidates forever
+
+Found during a Phase 1 roster review (2026-09-15): Daniel Coy and Claire Boonmanop, explicitly
+rejected as new-hire candidates on 2026-09-11, were back as fresh `pending` rows by the next
+day. Traced the mechanism precisely: the code only checked for existing **pending** candidates
+before creating a new one (`existingPending`, filtered to `status = "pending"`) — an
+**approved** or **rejected** candidate wasn't excluded, so anyone whose underlying Zendesk
+condition never changes (still in the group after rejection, still absent from it after an
+approved departure) gets proposed again on the next `discoverRosterCandidates` run, forever.
+
+In practice this only ever created **one** wrongful duplicate per person, not an unbounded
+stream — the duplicate itself was `pending`, so the *next* run's `pendingExternalIds` check
+correctly caught and skipped it. Found 34 such duplicates in production, all timestamped
+2026-09-10 17:10 — traced to a single manual `?week=0` trigger from earlier this session, the
+first time `discoverRosterCandidates` successfully ran after the original CRON_SECRET outage
+and 300s-timeout issues had prevented it from running since the departures were first approved
+on 2026-09-03/04.
+
+**Fixed** in `src/lib/domain/roster/reconcile.ts`: the "new" loop now checks for **any** prior
+candidate row for that identity (any status, not just pending) before proposing again — a
+human's reject decision should be durable. The "departed" loop now checks the linked
+employee's `employmentStatus` directly instead of candidate-row history — re-proposing a
+departure for someone already marked inactive is meaningless regardless of how that inactivity
+was recorded. Added two test cases to `roster-reconcile.test.ts` covering both paths (can't run
+locally — see `environment-quirks.md` on the local Postgres conflict — CI will verify).
+
+**Also cleaned up**: deleted the 34 existing duplicate pending rows from production (verified
+each had a resolved sibling row with the same externalId + changeType before deleting — nothing
+genuinely undecided was touched). Pending queue is down to the 2 real, legitimately-new POS
+candidates (Juan Jimenez, Maicol Ortiz) awaiting Alex's review.
+
+## 9. POS Support has the same "lead counted as employee" pattern as Menufy did
+
+Found via the self-serve half of a POS roster review (Alex is on vacation, so only the
+mechanical checks were done — see `project-status` memory): **Christopher Courcy**
+(`roleType: lead`, `jobTitle: "Manager, Technical Support"`) is counted in POS's active roster
+of 29, same structural pattern as the 3 Menufy leads found and removed earlier this session.
+Unlike Menufy's case, **no unambiguous departure signal exists here** — he's still an active
+Zendesk group member, and there's no equivalent to Barb's confirmed list to check against yet.
+**Not touched** — needs Alex's confirmation on return, same as the Rasheil case needed a human
+call rather than an assumption.

@@ -45,13 +45,19 @@ export async function discoverRosterCandidates(
     .where(eq(externalIdentities.dataSourceId, dataSourceId));
   const knownExternalIds = new Set(known.map((k) => k.externalId));
 
-  const existingPending = await db
+  // Any "new" candidate ever created for this identity -- not just pending ones.
+  // Without this, a rejected candidate whose Zendesk group membership never
+  // changes gets proposed again on every single discovery run forever (found
+  // 2026-09-15: Daniel Coy and Claire Boonmanop, rejected 2026-09-11, were
+  // back as fresh pending candidates by the very next day's run). A human's
+  // reject decision should be durable, not re-litigated automatically.
+  const existingNewCandidates = await db
     .select({ externalId: rosterCandidates.externalId })
     .from(rosterCandidates)
     .where(
-      and(eq(rosterCandidates.dataSourceId, dataSourceId), eq(rosterCandidates.status, "pending"))
+      and(eq(rosterCandidates.dataSourceId, dataSourceId), eq(rosterCandidates.changeType, "new"))
     );
-  const pendingExternalIds = new Set(existingPending.map((c) => c.externalId));
+  const seenNewExternalIds = new Set(existingNewCandidates.map((c) => c.externalId));
 
   const managerUsers = await db.select({ email: users.email }).from(users);
   const managerEmails = new Set(managerUsers.map((u) => u.email.toLowerCase()));
@@ -61,7 +67,7 @@ export async function discoverRosterCandidates(
 
   for (const member of discovered) {
     if (knownExternalIds.has(member.externalId)) continue;
-    if (pendingExternalIds.has(member.externalId)) continue;
+    if (seenNewExternalIds.has(member.externalId)) continue;
     // Managers are sometimes members of the ticket-handling group for oversight --
     // they're tracked as users/manager_assignments, not as employees to onboard.
     if (member.externalEmail && managerEmails.has(member.externalEmail.toLowerCase())) continue;
@@ -82,13 +88,18 @@ export async function discoverRosterCandidates(
   // this run -- otherwise "not discovered" just means we never looked, not that they left.
   for (const identity of known) {
     if (discoveredIds.has(identity.externalId)) continue;
-    if (pendingExternalIds.has(identity.externalId)) continue;
 
     const [employee] = await db
-      .select({ primaryTeamId: employees.primaryTeamId })
+      .select({ primaryTeamId: employees.primaryTeamId, employmentStatus: employees.employmentStatus })
       .from(employees)
       .where(eq(employees.id, identity.employeeId));
     if (!employee?.primaryTeamId || !mappedTeamIds.has(employee.primaryTeamId)) continue;
+    // Already marked departed -- re-approving an already-inactive employee is
+    // meaningless and, without this check, happens every single discovery run
+    // forever for anyone permanently absent from the group (found 2026-09-15:
+    // 32 people approved as departed back on 2026-09-03/04 were still being
+    // re-proposed as fresh pending candidates on every run since).
+    if (employee.employmentStatus !== "active") continue;
 
     await db.insert(rosterCandidates).values({
       dataSourceId,
