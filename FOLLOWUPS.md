@@ -24,6 +24,46 @@ already-fetched data for the other weeks. Confirmed NOT the cause of the 2026-09
 fetch-then-publish contract to fail per-week rather than per-run — a medium-risk change to core
 sync architecture, not a small patch. Scope as its own task.
 
+**Update (2026-09-15): this exact fragility caused a real 3-day incident, not just a
+theoretical one — see item #6 below.** One employee's ticket-search query failing aborted the
+whole week's sync for all 84 employees. The immediate cause is fixed (item #6), but the
+architecture is still one query away from the same failure mode for a different reason. Now a
+stronger case for actually doing this, not just tracking it.
+
+## 6. Fixed: departed-employee ticket volume crashed 3 days of Menufy syncs (2026-09-15)
+
+Found via a smoke-test pass following up on this session's earlier fixes: `week=1`'s sync had
+failed 3 days running (09-13 through 09-15), each time discarding that week's fresh data for
+every Menufy employee, not just one.
+
+**Root cause, confirmed against the real API, not inferred:**
+- `fetchRecords` queried every row in `external_identities` for the data source — with no
+  filter on the linked employee's `employmentStatus`. Departing an employee (per the
+  `approveDeparture` flow, and the manual reconciliation in item below) never removes their
+  `external_identities` row, only marks the employee inactive and closes `team_memberships`.
+- Rasheil Badajos — deactivated in the 2026-09-11 Menufy roster reconciliation — was still
+  being queried on every sync as a result.
+- Her ticket count for the affected week: **1,211**, confirmed via a direct Zendesk API call —
+  roughly 10x a normal agent's weekly volume. Sampling the results showed all of them touched
+  within the same ~17-minute window on 09-14, already `solved` — almost certainly a bulk
+  reassignment/cleanup action tied to her offboarding, not organic activity.
+- Zendesk's Search API hard-caps pagination at 1,000 total results; requesting page 11 (results
+  1001-1100) returns a real `422 Unprocessable Entity`, confirmed directly against the live API.
+  `searchAllPages` had no handling for this — the 422 threw, and because the per-employee fetch
+  loop shares one try/catch (item #2 above), one person's failed query took down the whole
+  week's sync for everyone.
+
+**Fixed, two layers:**
+- `fetchRecords`'s identity query now joins `employees` and filters to `employmentStatus =
+  'active'` — departed employees stop being queried at all, closing the immediate cause.
+- `searchAllPages` now stops before requesting the page that would 422, logging a warning with
+  the real total count instead of crashing — protects against *any* employee (active or not)
+  whose real ticket volume exceeds the cap in a given week, not just this specific case.
+
+**Not done**: the shared try/catch itself (item #2) — these two fixes close the specific
+trigger, but the architecture is still one bad query away from the same failure mode for a
+different reason.
+
 ## 3. Single-Zendesk-subdomain assumption — needs a human, not a code fix
 
 `src/lib/connectors/zendesk-shared.ts:14-17`'s `baseUrl()` only supports one

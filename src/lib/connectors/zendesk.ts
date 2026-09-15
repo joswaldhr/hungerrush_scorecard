@@ -10,8 +10,8 @@ import type {
   DiscoveredRosterMember,
 } from "./types";
 import { db } from "@/lib/db";
-import { externalIdentities } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { externalIdentities, employees } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
 import { zendeskGet, type RequestStats } from "./zendesk-shared";
 import { logger } from "@/lib/logger";
 import { mapWithConcurrency } from "@/lib/utils";
@@ -40,6 +40,7 @@ interface ZendeskTicket {
 interface ZendeskSearchResponse {
   results: ZendeskTicket[];
   next_page: string | null;
+  count: number;
 }
 
 interface ZendeskTimeMetric {
@@ -136,12 +137,32 @@ function weekOf(weeksAgo: number): { periodStart: string; periodEnd: string } {
   };
 }
 
+// Zendesk's Search API hard-caps pagination at 1,000 total results --
+// requesting page 11 (results 1001-1100) returns a real 422 Unprocessable
+// Entity, confirmed against the live API (2026-09-15). A single employee
+// with unusually high ticket volume in one week hit this and, before this
+// fix, crashed the entire sync for every other employee too, since this
+// function's caller shares one try/catch across all employees. Stop before
+// requesting the page that would 422, and log what got truncated instead
+// of letting it throw. See FOLLOWUPS.md.
+const SEARCH_RESULT_CAP = 1000;
+
 async function searchAllPages(query: string): Promise<ZendeskTicket[]> {
   const results: ZendeskTicket[] = [];
   let path: string | null = `/search.json?query=${encodeURIComponent(query)}`;
   while (path) {
     const res: ZendeskSearchResponse = await zendeskGet<ZendeskSearchResponse>(path);
     results.push(...res.results);
+    if (results.length >= SEARCH_RESULT_CAP) {
+      if (res.count > SEARCH_RESULT_CAP) {
+        logger.warn("Zendesk search result cap reached -- truncating instead of crashing", {
+          query,
+          realCount: res.count,
+          truncatedTo: results.length,
+        });
+      }
+      break;
+    }
     path = res.next_page;
   }
   return results;
@@ -365,10 +386,24 @@ export class ZendeskConnector implements Connector {
     }
 
     const { periodStart, periodEnd } = weekOf(weekOffset);
+    // Only active employees -- a departed employee's external_identities row
+    // stays in the DB (roster departure never deletes it, just marks the
+    // employee inactive and closes team_memberships), but there's no reason
+    // to keep re-fetching their Zendesk data every sync. Found the hard way
+    // (2026-09-15): a departed employee's ticket count for one week hit
+    // 1,211 -- past Zendesk Search's ~1,000-result pagination ceiling -- and
+    // crashed the entire week's sync for every other employee too. See
+    // FOLLOWUPS.md.
     const identities = await db
-      .select()
+      .select({ externalId: externalIdentities.externalId })
       .from(externalIdentities)
-      .where(eq(externalIdentities.dataSourceId, config.dataSourceId));
+      .innerJoin(employees, eq(externalIdentities.employeeId, employees.id))
+      .where(
+        and(
+          eq(externalIdentities.dataSourceId, config.dataSourceId),
+          eq(employees.employmentStatus, "active")
+        )
+      );
 
     // Coarse phase timing (2026-09-10): the Talk calls fetch turned out NOT
     // to be the bottleneck real data pointed to (11 pages, 42.5s, zero
