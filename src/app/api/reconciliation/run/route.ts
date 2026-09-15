@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { getEffectiveManagerContext, assertCanAccessTeam } from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
 import { reconciliationRuns } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, or, inArray, isNull } from "drizzle-orm";
 import { runReconciliation } from "@/lib/domain/reconciliation";
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
@@ -93,10 +93,24 @@ export async function GET() {
   }
 
   try {
+    // organizationId alone isn't enough scoping -- this org has multiple
+    // managers, each with their own teams, and a run's aggregate counts
+    // (even without employee-level detail, which /results already scopes
+    // separately) shouldn't be visible across that boundary. A run counts
+    // as this manager's if it's scoped to one of their teams, or if it's an
+    // org-wide run (no teamId) they personally triggered.
+    const scopeCondition =
+      ctx.assignedTeamIds.length > 0
+        ? or(
+            inArray(reconciliationRuns.teamId, ctx.assignedTeamIds),
+            and(isNull(reconciliationRuns.teamId), eq(reconciliationRuns.triggeredBy, ctx.userId))
+          )
+        : and(isNull(reconciliationRuns.teamId), eq(reconciliationRuns.triggeredBy, ctx.userId));
+
     const runs = await db
       .select()
       .from(reconciliationRuns)
-      .where(eq(reconciliationRuns.organizationId, ctx.organizationId))
+      .where(and(eq(reconciliationRuns.organizationId, ctx.organizationId), scopeCondition))
       .orderBy(desc(reconciliationRuns.startedAt))
       .limit(20);
 
