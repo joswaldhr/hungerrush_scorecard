@@ -449,3 +449,34 @@ class.
 (`.claude/worktrees/quizzical-curie-4547cd`, branch `claude/quizzical-curie-4547cd`, dated
 2026-08-31) is still registered — harmless (doesn't affect the app or its own lint/build), but
 worth asking James whether it's still needed before someone eventually cleans it up.
+
+## 13. Phase 5 performance audit (2026-09-15): no real bottleneck found
+
+**Unnecessary client-side JS: none found.** Reviewed all 17 `"use client"` files — every one is
+either required by Next.js itself (`error.tsx` boundaries), genuinely interactive (forms,
+checklists, tabs, the roster table's search/filter/pagination, sidebar active-state), or wraps a
+Radix UI primitive with real internal state (`Avatar`, `Separator`). Nothing found that could be
+server-rendered instead.
+
+**N+1 queries: none found.** Traced every page that renders a list (`one-on-ones`,
+`admin/employees`, `admin/roster-review`, `team`) — all use batched `Promise.all` queries with
+in-memory `Map` lookups for per-row display data, never a query inside a render loop. The one
+per-item loop found (`data-health`, one query pair per data source) is bounded by connector
+count (1-3), not employee count — not a real N+1 risk.
+
+**Query performance: not a bottleneck, confirmed with `EXPLAIN ANALYZE` against real production
+data, not assumed.** Timed the actual Team-page query (`getEmployeeMetricsBatch`) for both
+teams: 600-1300ms observed, with the *first* query in a fresh process consistently ~2x slower
+than the second regardless of which team ran first — confirmed as connection-warmup overhead,
+not data-volume-driven, by swapping the order and reproducing the same pattern. Ran the real
+query plan directly: **actual Postgres execution time was 0.517ms.** The entire observed
+latency is network round-trip to the remote Railway host, not query execution — the existing
+single-column indexes are already sufficient at this data volume, and a composite index would
+save a fraction of a millisecond at best. Not worth adding; would be optimizing something that
+isn't the bottleneck.
+
+**Bottom line: no performance problem exists that a code change would fix.** For a small
+internal tool with a handful of daily users, 600ms-1.3s page loads (dominated by an inherent
+serverless-to-remote-DB round trip, not application logic) is a reasonable, non-alarming number
+— not something to chase further without a real user complaint or a change in usage pattern
+(e.g., far more employees or concurrent users) that would change the calculus.
