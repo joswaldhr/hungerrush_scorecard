@@ -211,7 +211,7 @@ export default async function TeamPage({
       </header>
 
       {/* 5-Card Stat Summary Row */}
-      <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard
           icon={Users}
           iconClassName="bg-teal-50 text-[#009ca6] dark:bg-teal-950/50 dark:text-teal-400"

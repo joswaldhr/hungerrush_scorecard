@@ -58,13 +58,16 @@ export function StatCard({
             </span>
           )}
         </div>
-        <p className="mt-1 text-sm font-semibold text-foreground/90 truncate">{label}</p>
+        <p className="mt-1 text-sm font-semibold text-foreground/90 truncate" title={label}>
+          {label}
+        </p>
         {detail && (
           <p
             className={cn(
               "mt-0.5 text-xs font-medium text-muted-foreground truncate",
               detailClassName
             )}
+            title={detail}
           >
             {detail}
           </p>

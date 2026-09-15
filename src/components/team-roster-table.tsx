@@ -313,10 +313,16 @@ export function TeamRosterTable({
                             </AvatarFallback>
                           </Avatar>
                           <div className="min-w-0">
-                            <p className="font-semibold text-foreground group-hover:text-[#009ca6] transition-colors truncate">
+                            <p
+                              className="font-semibold text-foreground group-hover:text-[#009ca6] transition-colors truncate"
+                              title={row.displayName}
+                            >
                               {row.displayName}
                             </p>
-                            <p className="text-xs text-muted-foreground truncate">
+                            <p
+                              className="text-xs text-muted-foreground truncate"
+                              title={row.jobTitle ?? "Support Specialist"}
+                            >
                               {row.jobTitle ?? "Support Specialist"}
                             </p>
                           </div>
@@ -367,7 +373,10 @@ export function TeamRosterTable({
                         ) : row.metricsOffTarget > 0 ? (
                           <span className="flex items-center gap-1.5 text-xs font-medium text-rose-600 dark:text-rose-400">
                             <AlertTriangle className="h-4 w-4 shrink-0" />
-                            <span>{row.metricsOffTarget} metrics need attention</span>
+                            <span>
+                              {row.metricsOffTarget} {row.metricsOffTarget === 1 ? "metric needs" : "metrics need"}{" "}
+                              attention
+                            </span>
                           </span>
                         ) : row.metricsNoData === row.metricsTotal ? (
                           <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
