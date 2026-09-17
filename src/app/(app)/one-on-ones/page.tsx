@@ -1,6 +1,10 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getEffectiveManagerContext, getAssignedTeams, getAssignedEmployees } from "@/lib/auth/authorization";
+import {
+  getEffectiveManagerContext,
+  getVisibleTeamsForManager,
+  getAssignedEmployees,
+} from "@/lib/auth/authorization";
 import { EmptyState } from "@/components/empty-state";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
@@ -24,10 +28,10 @@ export default async function OneOnOnesPage() {
     );
   }
 
-  const teams = await getAssignedTeams(ctx);
   const employees = await getAssignedEmployees(ctx);
-  if (teams.length === 0) {
-    return <EmptyState icon={Users} title="No teams" description="No teams assigned." />;
+  const teams = await getVisibleTeamsForManager(ctx, employees);
+  if (employees.length === 0) {
+    return <EmptyState icon={Users} title="No employees" description="No employees assigned." />;
   }
 
   const employeesByTeam = new Map<string, typeof employees>();

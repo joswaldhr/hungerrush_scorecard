@@ -164,6 +164,25 @@ export const getAssignedTeams = cache(async function getAssignedTeams(ctx: Manag
   return db.select().from(teams).where(inArray(teams.id, ctx.assignedTeamIds));
 });
 
+/**
+ * Teams to actually render for a manager, including ones they only have
+ * access to via individual employee assignments (a sub-manager who owns a
+ * slice of one team, not the whole team) -- ctx.assignedTeamIds alone misses
+ * these, since a manager can have employees on a team without being assigned
+ * that team wholesale.
+ */
+export async function getVisibleTeamsForManager(
+  ctx: ManagerContext,
+  assignedEmployees: { primaryTeamId: string | null }[]
+) {
+  const employeeTeamIds = assignedEmployees
+    .map((e) => e.primaryTeamId)
+    .filter((id): id is string => id !== null);
+  const allIds = [...new Set([...ctx.assignedTeamIds, ...employeeTeamIds])];
+  if (allIds.length === 0) return [];
+  return db.select().from(teams).where(inArray(teams.id, allIds));
+}
+
 export const getAssignedEmployees = cache(async function getAssignedEmployees(ctx: ManagerContext) {
   if (ctx.assignedEmployeeIds.length === 0) return [];
   return db

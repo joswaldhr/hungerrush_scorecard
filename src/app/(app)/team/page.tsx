@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import {
   getEffectiveManagerContext,
-  getAssignedTeams,
+  getVisibleTeamsForManager,
   getAssignedEmployees,
 } from "@/lib/auth/authorization";
 import { getEmployeeMetricsBatch } from "@/lib/domain/metrics/queries";
@@ -65,10 +65,10 @@ export default async function TeamPage({
     );
   }
 
-  const allTeams = await getAssignedTeams(ctx);
   const employees = await getAssignedEmployees(ctx);
-  if (allTeams.length === 0) {
-    return <EmptyState icon={Users} title="No teams" description="No teams assigned." />;
+  const allTeams = await getVisibleTeamsForManager(ctx, employees);
+  if (employees.length === 0) {
+    return <EmptyState icon={Users} title="No employees" description="No employees assigned." />;
   }
 
   const selectedTeamId = teamParam && allTeams.some((t) => t.id === teamParam) ? teamParam : null;
