@@ -27,7 +27,6 @@ jobs:
     env:
       DATABASE_URL: postgresql://cadence:cadence_dev@localhost:5432/cadence
       AUTH_SECRET: ci-test-secret-not-for-production-use
-      NODE_ENV: production
       # Dummy values so the production-mode "fail loudly if SSO unconfigured"
       # check in src/lib/auth/index.ts doesn't block the build — CI never
       # actually signs anyone in.
@@ -57,4 +56,13 @@ jobs:
       - run: pnpm test
 
       - name: Verify production build
+        # NODE_ENV=production is scoped to just this step, not the whole job —
+        # setting it job-wide broke `pnpm test` (Vite/Vitest's jsdom test
+        # environment externalizes Node builtins like `crypto` as browser
+        # stubs under NODE_ENV=production, so anything importing `crypto`,
+        # e.g. sync-engine.ts's payloadHash, throws "createHash is not a
+        # function"). This step still needs it for the real check: the
+        # production-mode SSO fail-loudly guard in src/lib/auth/index.ts.
         run: pnpm build
+        env:
+          NODE_ENV: production

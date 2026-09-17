@@ -249,10 +249,14 @@ describe("discoverRosterCandidates", () => {
       reviewedAt: new Date(),
     });
 
+    // Empty, not because nothing else is active on this team -- earlier tests
+    // in this file (e.g. the auto-approved new hire) leave their own real,
+    // active employees behind for the rest of the suite, and those correctly
+    // DO show up as fresh departures when "discovered" comes back empty. This
+    // test only cares whether the already-inactive DEPARTED_EMAIL specifically
+    // gets re-proposed, so it asserts on that one row, not the aggregate count.
     const connector = fakeConnector([]);
-
-    const result = await discoverRosterCandidates(connector, DATA_SOURCE_ID);
-    expect(result.departedCandidates).toBe(0);
+    await discoverRosterCandidates(connector, DATA_SOURCE_ID);
 
     const candidates = await db
       .select()
