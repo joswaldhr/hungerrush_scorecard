@@ -10,6 +10,11 @@ import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 
 const mockAuth = vi.fn();
 vi.mock("@/lib/auth", () => ({ auth: () => mockAuth() }));
+// revalidatePath needs a real Next.js request-scoped store that doesn't
+// exist in a plain test run ("Invariant: static generation store missing") --
+// it's a framework cache-invalidation hint, not app logic worth exercising
+// here, so it's stubbed out rather than routed through a real request.
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 import { db } from "@/lib/db";
 import {
