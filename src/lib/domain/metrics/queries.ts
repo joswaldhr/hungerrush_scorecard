@@ -14,7 +14,6 @@ import { resolveTarget, evaluateStatus } from "./target-resolution";
 import { resolveVisibility } from "./visibility-resolution";
 import type { Direction, ResolvedTarget, ValueType } from "./types";
 
-
 export interface EmployeeMetricRow {
   definitionId: string;
   key: string;
@@ -184,7 +183,13 @@ export async function getEmployeeMetricsBatch(
           line: t.line,
         }));
 
-      const resolvedTarget = resolveTarget(candidateTargets, employeeId, null, teamId, employeeLine);
+      const resolvedTarget = resolveTarget(
+        candidateTargets,
+        employeeId,
+        null,
+        teamId,
+        employeeLine
+      );
       const direction = def.direction as Direction;
       const valueType = def.valueType as ValueType;
 
@@ -214,4 +219,3 @@ export async function getEmployeeMetricsBatch(
 
   return results;
 }
-

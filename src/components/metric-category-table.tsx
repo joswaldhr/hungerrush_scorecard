@@ -4,13 +4,7 @@ import { MetricIcon } from "@/components/metric-icon";
 import { Card } from "@/components/ui/card";
 import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
 
-export function MetricCategoryTable({
-  title,
-  rows,
-}: {
-  title: string;
-  rows: EmployeeMetricRow[];
-}) {
+export function MetricCategoryTable({ title, rows }: { title: string; rows: EmployeeMetricRow[] }) {
   return (
     <Card className="overflow-hidden print:break-inside-avoid">
       <div className="border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">

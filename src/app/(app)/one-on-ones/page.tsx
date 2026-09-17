@@ -55,10 +55,16 @@ export default async function OneOnOnesPage() {
         const teamEmps = employeesByTeam.get(team.id) ?? [];
         return (
           <div key={team.id} className="space-y-3">
-            {teams.length > 1 && <h2 className="text-sm font-bold text-foreground px-1">{team.name}</h2>}
+            {teams.length > 1 && (
+              <h2 className="text-sm font-bold text-foreground px-1">{team.name}</h2>
+            )}
 
             {teamEmps.length === 0 ? (
-              <EmptyState icon={Users} title="No employees" description="No employees on this team." />
+              <EmptyState
+                icon={Users}
+                title="No employees"
+                description="No employees on this team."
+              />
             ) : (
               <Card className="overflow-hidden divide-y divide-border/60">
                 {teamEmps.map((emp) => (

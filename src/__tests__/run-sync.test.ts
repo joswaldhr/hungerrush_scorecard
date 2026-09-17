@@ -5,7 +5,12 @@
 // Mocking strategy: same as compute-values.test.ts — vi.mock the db module,
 // provide a mock connector, and assert the right DB calls happen in order.
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { Connector, ConnectorConfig, SyncContext, IngestedRecord } from "@/lib/connectors/types";
+import type {
+  Connector,
+  ConnectorConfig,
+  SyncContext,
+  IngestedRecord,
+} from "@/lib/connectors/types";
 
 const SYNC_RUN_ID = "70000000-0000-4000-8000-000000000001";
 const DATA_SOURCE_ID = "50000000-0000-4000-8000-000000000001";
@@ -201,12 +206,8 @@ describe("runSync orchestration", () => {
   });
 
   it("marks run as failed when fetch phase throws", async () => {
-    selectResults = [
-      [{ id: DATA_SOURCE_ID }],
-    ];
-    insertReturning = [
-      [{ id: SYNC_RUN_ID }],
-    ];
+    selectResults = [[{ id: DATA_SOURCE_ID }]];
+    insertReturning = [[{ id: SYNC_RUN_ID }]];
 
     const connector = makeConnector({
       fetchRecords: vi.fn(async () => {
@@ -232,12 +233,8 @@ describe("runSync orchestration", () => {
   });
 
   it("marks run as failed when publish phase (transaction) throws", async () => {
-    selectResults = [
-      [{ id: DATA_SOURCE_ID }],
-    ];
-    insertReturning = [
-      [{ id: SYNC_RUN_ID }],
-    ];
+    selectResults = [[{ id: DATA_SOURCE_ID }]];
+    insertReturning = [[{ id: SYNC_RUN_ID }]];
 
     const connector = makeConnector({
       fetchRecords: vi.fn(async () => ({
@@ -266,12 +263,8 @@ describe("runSync orchestration", () => {
   });
 
   it("completes with zero counts when connector returns no records", async () => {
-    selectResults = [
-      [{ id: DATA_SOURCE_ID }],
-    ];
-    insertReturning = [
-      [{ id: SYNC_RUN_ID }],
-    ];
+    selectResults = [[{ id: DATA_SOURCE_ID }]];
+    insertReturning = [[{ id: SYNC_RUN_ID }]];
 
     const connector = makeConnector(); // default: returns 0 records
 
@@ -298,12 +291,8 @@ describe("runSync orchestration", () => {
   });
 
   it("passes weekOffset as the cursor and fetches only 1 page", async () => {
-    selectResults = [
-      [{ id: DATA_SOURCE_ID }],
-    ];
-    insertReturning = [
-      [{ id: SYNC_RUN_ID }],
-    ];
+    selectResults = [[{ id: DATA_SOURCE_ID }]];
+    insertReturning = [[{ id: SYNC_RUN_ID }]];
 
     const fetchRecords = vi.fn(async (_cfg: ConnectorConfig, ctx: SyncContext) => ({
       records: [makeRecord("alice")],
@@ -327,12 +316,8 @@ describe("runSync orchestration", () => {
   });
 
   it("paginates through multiple pages when hasMore is true", async () => {
-    selectResults = [
-      [{ id: DATA_SOURCE_ID }],
-    ];
-    insertReturning = [
-      [{ id: SYNC_RUN_ID }],
-    ];
+    selectResults = [[{ id: DATA_SOURCE_ID }]];
+    insertReturning = [[{ id: SYNC_RUN_ID }]];
 
     let callCount = 0;
     const fetchRecords = vi.fn(async () => {

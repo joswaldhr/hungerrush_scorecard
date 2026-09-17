@@ -22,11 +22,7 @@ export default function LoginPage() {
           <div className="space-y-3 text-center">
             <div className="flex justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/hungerrush-logo.png"
-                alt="HungerRush"
-                className="h-8 w-auto dark:hidden"
-              />
+              <img src="/hungerrush-logo.png" alt="HungerRush" className="h-8 w-auto dark:hidden" />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/hungerrush-logo-reversed.png"

@@ -18,18 +18,17 @@ export default async function MetricVisibilityPage() {
   if (!session?.user?.email) redirect("/login");
   if (!(await isPlatformAdmin(session.user.email))) redirect("/");
 
-  const [allMetrics, allOverrides, allEmployees, allTeams, allUsers, managers] =
-    await Promise.all([
-      db.select().from(metricDefinitions).where(eq(metricDefinitions.status, "active")),
-      db.select().from(metricVisibilityOverrides),
-      db
-        .select({ id: employees.id, displayName: employees.displayName })
-        .from(employees)
-        .where(eq(employees.employmentStatus, "active")),
-      db.select().from(teams),
-      db.select({ id: users.id, displayName: users.displayName }).from(users),
-      listManagersForViewAs(),
-    ]);
+  const [allMetrics, allOverrides, allEmployees, allTeams, allUsers, managers] = await Promise.all([
+    db.select().from(metricDefinitions).where(eq(metricDefinitions.status, "active")),
+    db.select().from(metricVisibilityOverrides),
+    db
+      .select({ id: employees.id, displayName: employees.displayName })
+      .from(employees)
+      .where(eq(employees.employmentStatus, "active")),
+    db.select().from(teams),
+    db.select({ id: users.id, displayName: users.displayName }).from(users),
+    listManagersForViewAs(),
+  ]);
 
   const menufyTeam = allTeams.find((t) => t.slug === "menufy-support");
   const posTeam = allTeams.find((t) => t.slug === "pos-support");
@@ -40,8 +39,8 @@ export default async function MetricVisibilityPage() {
         <h1 className="text-xl font-semibold text-foreground">Metric Visibility</h1>
         <p className="text-sm text-status-attention">
           Could not find both the Menufy Support and POS Support teams (expected slugs
-          &quot;menufy-support&quot; and &quot;pos-support&quot;). Brand scoping needs both to
-          exist before this page can be used.
+          &quot;menufy-support&quot; and &quot;pos-support&quot;). Brand scoping needs both to exist
+          before this page can be used.
         </p>
       </div>
     );
@@ -73,8 +72,8 @@ export default async function MetricVisibilityPage() {
       <header>
         <h1 className="text-xl font-semibold text-foreground">Metric Visibility</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Hide a metric row from a single scorecard, every scorecard under a manager, or
-          everyone by default. Most specific scope wins.
+          Hide a metric row from a single scorecard, every scorecard under a manager, or everyone by
+          default. Most specific scope wins.
         </p>
       </header>
 

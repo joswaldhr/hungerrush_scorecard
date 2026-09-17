@@ -113,8 +113,7 @@ export async function discoverRosterCandidates(
           .insert(employees)
           .values({
             organizationId: source.organizationId,
-            displayName:
-              member.externalDisplayName ?? member.externalEmail ?? member.externalId,
+            displayName: member.externalDisplayName ?? member.externalEmail ?? member.externalId,
             email: member.externalEmail,
             primaryTeamId: member.teamId,
           })

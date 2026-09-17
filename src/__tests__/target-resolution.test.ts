@@ -330,7 +330,13 @@ describe("evaluateStatus", () => {
   it("handles minimum + lower_is_better (golden dataset scenario)", () => {
     const { target, direction, onTargetValue, warningValue, offTargetValue } =
       GOLDEN_STATUS_SCENARIOS.minimumLowerIsBetter;
-    const resolved = { ...target, targetMin: null, targetMax: null, source: "team" as const, priority: 0 };
+    const resolved = {
+      ...target,
+      targetMin: null,
+      targetMax: null,
+      source: "team" as const,
+      priority: 0,
+    };
     expect(evaluateStatus(onTargetValue, resolved, direction).status).toBe("on_target");
     expect(evaluateStatus(warningValue, resolved, direction).status).toBe("warning");
     expect(evaluateStatus(offTargetValue, resolved, direction).status).toBe("off_target");
@@ -344,7 +350,13 @@ describe("evaluateStatus", () => {
     () => {
       const { target, direction, onTargetValue, warningValue, offTargetValue } =
         GOLDEN_STATUS_SCENARIOS.maximumHigherIsBetter;
-      const resolved = { ...target, targetMin: null, targetMax: null, source: "team" as const, priority: 0 };
+      const resolved = {
+        ...target,
+        targetMin: null,
+        targetMax: null,
+        source: "team" as const,
+        priority: 0,
+      };
       expect(evaluateStatus(onTargetValue, resolved, direction).status).toBe("on_target");
       expect(evaluateStatus(warningValue, resolved, direction).status).toBe("warning");
       expect(evaluateStatus(offTargetValue, resolved, direction).status).toBe("off_target");

@@ -24,7 +24,6 @@ const ORG_ID = "99999999-0000-4000-8000-000000000101";
 const TEAM_ID = "99999999-0000-4000-8000-000000000102";
 const DATA_SOURCE_ID = "99999999-0000-4000-8000-000000000103";
 const MANAGER_USER_ID = "99999999-0000-4000-8000-000000000104";
-const REJECTED_HIRE_EMPLOYEE_ID = "99999999-0000-4000-8000-000000000105";
 const DEPARTED_EMPLOYEE_ID = "99999999-0000-4000-8000-000000000106";
 
 const MANAGER_EMAIL = "test-manager@test.cadence.internal";
@@ -39,12 +38,8 @@ function fakeConnector(members: DiscoveredRosterMember[]): Connector {
 async function cleanup() {
   await db.delete(rosterCandidates).where(eq(rosterCandidates.dataSourceId, DATA_SOURCE_ID));
   await db.delete(teamMemberships).where(eq(teamMemberships.teamId, TEAM_ID));
-  await db
-    .delete(externalIdentities)
-    .where(eq(externalIdentities.dataSourceId, DATA_SOURCE_ID));
-  await db
-    .delete(employees)
-    .where(eq(employees.organizationId, ORG_ID));
+  await db.delete(externalIdentities).where(eq(externalIdentities.dataSourceId, DATA_SOURCE_ID));
+  await db.delete(employees).where(eq(employees.organizationId, ORG_ID));
   await db
     .delete(rosterSourceTeamMappings)
     .where(eq(rosterSourceTeamMappings.dataSourceId, DATA_SOURCE_ID));
@@ -179,9 +174,7 @@ describe("discoverRosterCandidates", () => {
           eq(rosterCandidates.changeType, "new")
         )
       );
-    const bulkCandidates = candidates.filter((c) =>
-      c.externalEmail?.startsWith("bulk-hire-")
-    );
+    const bulkCandidates = candidates.filter((c) => c.externalEmail?.startsWith("bulk-hire-"));
     expect(bulkCandidates).toHaveLength(6);
     for (const c of bulkCandidates) {
       expect(c.status).toBe("pending");
@@ -191,9 +184,7 @@ describe("discoverRosterCandidates", () => {
       .select()
       .from(employees)
       .where(eq(employees.organizationId, ORG_ID));
-    const bulkEmployees = createdEmployees.filter((e) =>
-      e.email?.startsWith("bulk-hire-")
-    );
+    const bulkEmployees = createdEmployees.filter((e) => e.email?.startsWith("bulk-hire-"));
     expect(bulkEmployees).toHaveLength(0);
   });
 

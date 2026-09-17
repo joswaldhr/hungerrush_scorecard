@@ -43,12 +43,18 @@ function formatVal(value: number | null, unit: string | null, valueType: ValueTy
 
 function statusLabel(status: string): string {
   switch (status) {
-    case "on_target": return "On Target";
-    case "warning": return "Warning";
-    case "off_target": return "Off Target";
-    case "no_target": return "No Target";
-    case "no_data": return "No Data";
-    default: return status;
+    case "on_target":
+      return "On Target";
+    case "warning":
+      return "Warning";
+    case "off_target":
+      return "Off Target";
+    case "no_target":
+      return "No Target";
+    case "no_data":
+      return "No Data";
+    default:
+      return status;
   }
 }
 
@@ -57,7 +63,10 @@ function fileDate(): string {
 }
 
 function safeName(name: string): string {
-  return name.replace(/[^a-zA-Z0-9]/g, "-").replace(/-+/g, "-").toLowerCase();
+  return name
+    .replace(/[^a-zA-Z0-9]/g, "-")
+    .replace(/-+/g, "-")
+    .toLowerCase();
 }
 
 function triggerDownload(blob: Blob, filename: string) {
@@ -92,7 +101,11 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
       const imgHeight = canvas.height;
       const pdfWidth = 210;
       const pdfHeight = (imgHeight * pdfWidth) / imgWidth;
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: [pdfWidth, Math.max(pdfHeight + 20, 297)] });
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: [pdfWidth, Math.max(pdfHeight + 20, 297)],
+      });
       pdf.addImage(imgData, "PNG", 0, 10, pdfWidth, pdfHeight);
       pdf.save(`${safeName(employeeName)}-scorecard-${fileDate()}.pdf`);
       toast.success("PDF downloaded");
@@ -112,7 +125,10 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
       const html2canvas = (await import("html2canvas")).default;
       const canvas = await html2canvas(el, { scale: 2, useCORS: true });
       canvas.toBlob((blob) => {
-        if (!blob) { toast.error("Failed to generate image"); return; }
+        if (!blob) {
+          toast.error("Failed to generate image");
+          return;
+        }
         triggerDownload(blob, `${safeName(employeeName)}-scorecard-${fileDate()}.png`);
         toast.success("PNG downloaded");
       }, "image/png");
@@ -132,7 +148,9 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
       const prev = formatVal(m.previousValue, m.unit, m.valueType);
       const target = formatVal(m.targetValue, m.unit, m.valueType);
       const status = statusLabel(m.status);
-      return [cat, m.name, curr, prev, target, status].map((v) => `"${v.replace(/"/g, '""')}"`).join(",");
+      return [cat, m.name, curr, prev, target, status]
+        .map((v) => `"${v.replace(/"/g, '""')}"`)
+        .join(",");
     });
     const csv = [header, ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
@@ -156,7 +174,10 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
       for (const m of catMetrics) {
         const curr = formatVal(m.currentValue, m.unit, m.valueType);
         const prev = formatVal(m.previousValue, m.unit, m.valueType);
-        const target = m.targetValue !== null ? ` (target: ${formatVal(m.targetValue, m.unit, m.valueType)})` : "";
+        const target =
+          m.targetValue !== null
+            ? ` (target: ${formatVal(m.targetValue, m.unit, m.valueType)})`
+            : "";
         const status = statusLabel(m.status);
         text += `  ${m.name}: ${curr} (prev: ${prev})${target} — ${status}\n`;
       }
@@ -193,7 +214,11 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
     { label: "Export to CSV", icon: Table2, action: handleCsv },
     { label: "Copy as text", icon: ClipboardList, action: handleTextCopy },
     { label: "divider", icon: null, action: null },
-    { label: linkCopied ? "Link copied!" : "Copy link", icon: linkCopied ? Check : Copy, action: handleCopyLink },
+    {
+      label: linkCopied ? "Link copied!" : "Copy link",
+      icon: linkCopied ? Check : Copy,
+      action: handleCopyLink,
+    },
     { label: "Print", icon: Printer, action: handlePrint },
   ];
 

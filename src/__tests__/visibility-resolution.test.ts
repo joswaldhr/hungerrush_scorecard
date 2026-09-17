@@ -124,9 +124,9 @@ describe("resolveVisibility", () => {
         hidden: true,
       },
     ];
-    expect(
-      resolveVisibility(candidates, EMP_ID, [MANAGER_ID], MENUFY_TEAM_ID, "restaurant")
-    ).toBe(true);
+    expect(resolveVisibility(candidates, EMP_ID, [MANAGER_ID], MENUFY_TEAM_ID, "restaurant")).toBe(
+      true
+    );
     expect(resolveVisibility(candidates, EMP_ID, [MANAGER_ID], MENUFY_TEAM_ID, "consumer")).toBe(
       false
     );
@@ -143,9 +143,9 @@ describe("resolveVisibility", () => {
         hidden: true,
       },
     ];
-    expect(
-      resolveVisibility(candidates, EMP_ID, [MANAGER_ID], MENUFY_TEAM_ID, "restaurant")
-    ).toBe(true);
+    expect(resolveVisibility(candidates, EMP_ID, [MANAGER_ID], MENUFY_TEAM_ID, "restaurant")).toBe(
+      true
+    );
   });
 
   it("a team-scoped override does not leak to a different team (POS vs Menufy)", () => {

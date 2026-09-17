@@ -96,7 +96,13 @@ export default async function TeamPage({
   await Promise.all(
     Array.from(employeesByTeam.entries()).map(async ([teamId, teamEmps]) => {
       const empIds = teamEmps.map((e) => e.id);
-      const batch = await getEmployeeMetricsBatch(ctx, empIds, teamId, periodStart, previousPeriodStart);
+      const batch = await getEmployeeMetricsBatch(
+        ctx,
+        empIds,
+        teamId,
+        periodStart,
+        previousPeriodStart
+      );
       for (const [employeeId, metrics] of batch) {
         metricsByEmployee.set(employeeId, metrics);
       }
@@ -135,11 +141,7 @@ export default async function TeamPage({
         </div>
 
         <div className="flex items-center gap-3">
-          <TeamFilters
-            allTeams={allTeams}
-            selectedTeamId={selectedTeamId}
-            weeksAgo={weeksAgo}
-          />
+          <TeamFilters allTeams={allTeams} selectedTeamId={selectedTeamId} weeksAgo={weeksAgo} />
           {latestSync?.completedAt && (
             <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
               <RotateCw className="h-3 w-3" />
@@ -194,36 +196,34 @@ export default async function TeamPage({
 
       {visibleTeams.map((team) => {
         const teamEmps = employeeData.filter((d) => d.teamId === team.id);
-        const rows: RosterRow[] = teamEmps.map(
-          ({ employee, metrics, overallStatus }) => {
-            const keyChangeRaw = findKeyChange(metrics);
-            const keyChange = keyChangeRaw
-              ? {
-                  name: keyChangeRaw.name,
-                  pct: keyChangeRaw.pct,
-                  subtitle: keyChangeRaw.subtitle,
-                  improved: metrics.some(
-                    (m) =>
-                      m.name === keyChangeRaw.name &&
-                      ((m.direction === "higher_is_better" && keyChangeRaw.pct > 0) ||
-                        (m.direction === "lower_is_better" && keyChangeRaw.pct < 0))
-                  ),
-                }
-              : null;
+        const rows: RosterRow[] = teamEmps.map(({ employee, metrics, overallStatus }) => {
+          const keyChangeRaw = findKeyChange(metrics);
+          const keyChange = keyChangeRaw
+            ? {
+                name: keyChangeRaw.name,
+                pct: keyChangeRaw.pct,
+                subtitle: keyChangeRaw.subtitle,
+                improved: metrics.some(
+                  (m) =>
+                    m.name === keyChangeRaw.name &&
+                    ((m.direction === "higher_is_better" && keyChangeRaw.pct > 0) ||
+                      (m.direction === "lower_is_better" && keyChangeRaw.pct < 0))
+                ),
+              }
+            : null;
 
-            return {
-              employeeId: employee.id,
-              displayName: employee.displayName,
-              jobTitle: employee.jobTitle,
-              overallStatus,
-              keyChange,
-              metricsOnTarget: metrics.filter((m) => m.status.status === "on_target").length,
-              metricsOffTarget: metrics.filter((m) => m.status.status === "off_target").length,
-              metricsNoData: metrics.filter((m) => m.status.status === "no_data").length,
-              metricsTotal: metrics.length,
-            };
-          }
-        );
+          return {
+            employeeId: employee.id,
+            displayName: employee.displayName,
+            jobTitle: employee.jobTitle,
+            overallStatus,
+            keyChange,
+            metricsOnTarget: metrics.filter((m) => m.status.status === "on_target").length,
+            metricsOffTarget: metrics.filter((m) => m.status.status === "off_target").length,
+            metricsNoData: metrics.filter((m) => m.status.status === "no_data").length,
+            metricsTotal: metrics.length,
+          };
+        });
 
         return (
           <div key={team.id} className="space-y-4">

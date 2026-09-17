@@ -101,11 +101,16 @@ export async function getManagerScorecardCount(managerUserId: string): Promise<n
     .select()
     .from(managerAssignments)
     .where(
-      and(eq(managerAssignments.managerUserId, managerUserId), isNull(managerAssignments.effectiveTo))
+      and(
+        eq(managerAssignments.managerUserId, managerUserId),
+        isNull(managerAssignments.effectiveTo)
+      )
     );
 
   const teamIds = assignments.filter((a) => a.teamId !== null).map((a) => a.teamId!);
-  const directEmployeeIds = assignments.filter((a) => a.employeeId !== null).map((a) => a.employeeId!);
+  const directEmployeeIds = assignments
+    .filter((a) => a.employeeId !== null)
+    .map((a) => a.employeeId!);
 
   let teamEmployeeIds: string[] = [];
   if (teamIds.length > 0) {

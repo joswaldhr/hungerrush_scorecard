@@ -183,9 +183,7 @@ export function TeamRosterTable({ rows }: { rows: RosterRow[] }) {
       {filtered.length === 0 ? (
         <div className="py-12 text-center">
           <p className="text-sm font-semibold text-foreground">No employees found</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Try clearing your search or filter.
-          </p>
+          <p className="text-xs text-muted-foreground mt-1">Try clearing your search or filter.</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
@@ -274,8 +272,8 @@ export function TeamRosterTable({ rows }: { rows: RosterRow[] }) {
                         <span className="flex items-center gap-1.5 text-xs font-medium text-rose-600 dark:text-rose-400">
                           <AlertTriangle className="h-4 w-4 shrink-0" />
                           <span>
-                            {row.metricsOffTarget} {row.metricsOffTarget === 1 ? "metric needs" : "metrics need"}{" "}
-                            attention
+                            {row.metricsOffTarget}{" "}
+                            {row.metricsOffTarget === 1 ? "metric needs" : "metrics need"} attention
                           </span>
                         </span>
                       ) : row.metricsNoData === row.metricsTotal ? (
@@ -287,8 +285,7 @@ export function TeamRosterTable({ rows }: { rows: RosterRow[] }) {
                         <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
                           <CheckCircle2 className="h-4 w-4 shrink-0" />
                           <span>
-                            {row.metricsOnTarget} / {row.metricsTotal - row.metricsNoData} on
-                            target
+                            {row.metricsOnTarget} / {row.metricsTotal - row.metricsNoData} on target
                           </span>
                         </span>
                       )}

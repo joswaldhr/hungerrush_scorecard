@@ -8,9 +8,7 @@ function RadioGroup({
   className,
   ...props
 }: React.ComponentProps<typeof RadioGroupPrimitive.Root>) {
-  return (
-    <RadioGroupPrimitive.Root className={cn("flex flex-col gap-2", className)} {...props} />
-  );
+  return <RadioGroupPrimitive.Root className={cn("flex flex-col gap-2", className)} {...props} />;
 }
 
 function RadioGroupItem({
