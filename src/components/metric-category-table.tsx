@@ -2,7 +2,26 @@ import { StatusBadge } from "@/components/status-badge";
 import { MetricValue } from "@/components/metric-value";
 import { MetricIcon } from "@/components/metric-icon";
 import { Card } from "@/components/ui/card";
+import { formatMetricValue } from "@/lib/domain/metrics/types";
 import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
+
+function TargetCell({ row }: { row: EmployeeMetricRow }) {
+  const { target } = row;
+  if (!target) return <>—</>;
+
+  if (target.targetType === "range") {
+    if (target.targetMin === null || target.targetMax === null) return <>—</>;
+    return (
+      <span className="tabular-nums">
+        {formatMetricValue(target.targetMin, row.unit, row.valueType)}
+        {"–"}
+        {formatMetricValue(target.targetMax, row.unit, row.valueType)}
+      </span>
+    );
+  }
+
+  return <MetricValue value={target.targetValue} unit={row.unit} valueType={row.valueType} />;
+}
 
 export function MetricCategoryTable({ title, rows }: { title: string; rows: EmployeeMetricRow[] }) {
   return (
@@ -45,15 +64,7 @@ export function MetricCategoryTable({ title, rows }: { title: string; rows: Empl
                   />
                 </td>
                 <td className="py-3 px-3 text-right text-muted-foreground">
-                  {row.target ? (
-                    <MetricValue
-                      value={row.target.targetValue}
-                      unit={row.unit}
-                      valueType={row.valueType}
-                    />
-                  ) : (
-                    "—"
-                  )}
+                  <TargetCell row={row} />
                 </td>
                 <td className="py-3 px-3 text-right">
                   <div className="flex justify-end">

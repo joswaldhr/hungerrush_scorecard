@@ -25,6 +25,9 @@ export interface ScorecardMetric {
   currentValue: number | null;
   previousValue: number | null;
   targetValue: number | null;
+  targetType: string | null;
+  targetMin: number | null;
+  targetMax: number | null;
   status: string;
   unit: string | null;
   valueType: ValueType;
@@ -39,6 +42,14 @@ interface ScorecardExportProps {
 function formatVal(value: number | null, unit: string | null, valueType: ValueType): string {
   if (value === null) return "—";
   return formatMetricValue(value, unit, valueType);
+}
+
+function formatTarget(m: ScorecardMetric): string {
+  if (m.targetType === "range") {
+    if (m.targetMin === null || m.targetMax === null) return "—";
+    return `${formatVal(m.targetMin, m.unit, m.valueType)}–${formatVal(m.targetMax, m.unit, m.valueType)}`;
+  }
+  return formatVal(m.targetValue, m.unit, m.valueType);
 }
 
 function statusLabel(status: string): string {
@@ -146,7 +157,7 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
       const cat = m.category ?? "Other";
       const curr = formatVal(m.currentValue, m.unit, m.valueType);
       const prev = formatVal(m.previousValue, m.unit, m.valueType);
-      const target = formatVal(m.targetValue, m.unit, m.valueType);
+      const target = formatTarget(m);
       const status = statusLabel(m.status);
       return [cat, m.name, curr, prev, target, status]
         .map((v) => `"${v.replace(/"/g, '""')}"`)
@@ -174,10 +185,8 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
       for (const m of catMetrics) {
         const curr = formatVal(m.currentValue, m.unit, m.valueType);
         const prev = formatVal(m.previousValue, m.unit, m.valueType);
-        const target =
-          m.targetValue !== null
-            ? ` (target: ${formatVal(m.targetValue, m.unit, m.valueType)})`
-            : "";
+        const hasTarget = m.targetType === "range" ? m.targetMin !== null : m.targetValue !== null;
+        const target = hasTarget ? ` (target: ${formatTarget(m)})` : "";
         const status = statusLabel(m.status);
         text += `  ${m.name}: ${curr} (prev: ${prev})${target} — ${status}\n`;
       }
