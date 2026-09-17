@@ -73,6 +73,10 @@ export const employees = pgTable(
     jobTitle: text("job_title"),
     photoUrl: text("photo_url"),
     employmentStatus: text("employment_status").notNull().default("active"),
+    // Menufy sub-line ('restaurant' | 'consumer'); always null for POS and any
+    // employee who doesn't work a single dedicated Menufy queue -- see
+    // [[menufy-line-scoping]] memory for how this was determined.
+    line: text("line"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -241,8 +245,12 @@ export const metricTargets = pgTable(
     employeeId: uuid("employee_id").references(() => employees.id),
     roleKey: text("role_key"),
     targetType: text("target_type").notNull().default("minimum"),
-    targetValue: real("target_value").notNull(),
+    // Nullable: "range" targets use targetMin/targetMax instead and leave this null.
+    targetValue: real("target_value"),
     warningValue: real("warning_value"),
+    targetMin: real("target_min"),
+    targetMax: real("target_max"),
+    line: text("line"), // Menufy sub-line ('restaurant' | 'consumer'); null = all lines / POS
     effectiveFrom: date("effective_from"),
     effectiveTo: date("effective_to"),
     priority: integer("priority").notNull().default(0),
@@ -251,6 +259,46 @@ export const metricTargets = pgTable(
   (table) => [
     index("metric_targets_definition_id_idx").on(table.metricDefinitionId),
     index("metric_targets_team_id_idx").on(table.teamId),
+  ]
+);
+
+export const metricVisibilityOverrides = pgTable(
+  "metric_visibility_overrides",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    // "global_default" | "manager_override" | "scorecard_override" -- most specific wins.
+    scope: text("scope").notNull(),
+    // Set only when scope = "manager_override".
+    managerUserId: uuid("manager_user_id").references(() => users.id),
+    // Set only when scope = "scorecard_override".
+    targetEmployeeId: uuid("target_employee_id").references(() => employees.id),
+    metricDefinitionId: uuid("metric_definition_id")
+      .notNull()
+      .references(() => metricDefinitions.id),
+    // Brand scope. Null = applies regardless of team. Required to distinguish
+    // "POS only" from "everywhere" -- POS employees always have line = null,
+    // same as an unscoped row, so line alone can't express "POS only".
+    teamId: uuid("team_id").references(() => teams.id),
+    line: text("line"), // Menufy sub-line ('restaurant' | 'consumer'); null = all lines / POS
+    hidden: boolean("hidden").notNull(),
+    hiddenBy: uuid("hidden_by")
+      .notNull()
+      .references(() => users.id),
+    hiddenAt: timestamp("hidden_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("metric_visibility_overrides_manager_idx").on(table.managerUserId),
+    index("metric_visibility_overrides_employee_idx").on(table.targetEmployeeId),
+    index("metric_visibility_overrides_metric_def_idx").on(table.metricDefinitionId),
+    uniqueIndex("metric_visibility_overrides_unique_idx").on(
+      table.scope,
+      table.managerUserId,
+      table.targetEmployeeId,
+      table.metricDefinitionId,
+      table.teamId,
+      table.line
+    ),
   ]
 );
 
@@ -526,6 +574,7 @@ export const rosterSourceTeamMappings = pgTable(
     teamId: uuid("team_id")
       .notNull()
       .references(() => teams.id),
+    line: text("line"), // Menufy sub-line this group feeds ('restaurant' | 'consumer'); null for POS
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("roster_mappings_data_source_id_idx").on(table.dataSourceId)]

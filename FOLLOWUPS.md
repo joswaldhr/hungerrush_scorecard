@@ -523,3 +523,51 @@ done here, flagging as a candidate if mobile use turns out to matter more than a
 noticed: the Team page's header metadata line ("Week of Sep 14 – Sep 20, 2026") wraps
 awkwardly at narrow widths (one word per line) — cosmetic, not data-hiding, lower priority than
 the two fixes above.
+
+## 15. Scorecard targets/visibility work (2026-09-17): three pre-existing `evaluateStatus` bugs, dead visibility columns, and a `drizzle-kit migrate` CLI anomaly
+
+Found while implementing Menufy Restaurant/Consumer target loading, range-target support, and
+bulk metric visibility (`metric_visibility_overrides`). None of these were introduced by that
+work and none block it — logged rather than fixed, since nothing loaded by the new feature
+exercises the affected code paths.
+
+**`evaluateStatus`'s `maximum` branch ignores `direction` entirely**
+(`src/lib/domain/metrics/target-resolution.ts`, the `targetType === "maximum"` block) — both the
+`lower_is_better` branch and its fallback run identical `value <= targetValue` logic. Not fixed:
+nothing in the new Menufy target config uses `targetType: "maximum"` (ceiling semantics are
+achieved via `targetType: "minimum"` + `direction: "lower_is_better"`, which already works
+correctly).
+
+**`evaluateStatus` aliases `exact` to `minimum` behavior** (same file, the
+`targetType === "minimum" || targetType === "exact"` line) — no real equality-tolerance logic
+exists for "exact" targets. Not fixed: nothing loaded uses `targetType: "exact"`.
+
+**New finding: the same `minimum`/`exact` branch mishandles `direction: "neutral"`** — it only
+branches on `direction === "higher_is_better"`, so `"neutral"` (a legitimate value in
+`types.ts`'s `Direction` union) silently falls through to `lower_is_better` semantics. Surfaced
+while reasoning about the spec's "informational" metrics, which map most naturally to `neutral`.
+Worth fixing alongside the two bugs above, since it's the same underlying pattern (an explicit
+direction check with a wrong implicit fallback).
+
+**`metric_assignments.visibleOnHome`/`visibleOnTeam`/`visibleOnEmployee` are now permanently
+dead.** Already unread anywhere in the query path before this work; the new bulk-visibility
+feature deliberately adds a parallel mechanism (`metric_visibility_overrides`) instead of wiring
+these up (see the conversation this was decided in). Worth a follow-up to delete these three
+columns or mark them deprecated in a schema comment, so a future engineer doesn't assume
+toggling them does anything.
+
+**`drizzle-kit migrate` (the CLI, via `pnpm db:migrate`) failed twice with no usable error
+message**, rolling back its own transaction both times, while the *identical* SQL ran cleanly
+when executed directly through the app's own `db` connection immediately after. Root cause not
+found — worth investigating before relying on `pnpm db:migrate` again. Worked around for this
+session's two migrations (0010, 0011) by applying the SQL directly and hand-inserting the
+matching `(hash, created_at)` row into `drizzle.__drizzle_migrations` (hash = sha256 of the exact
+migration file content, per `readMigrationFiles` in `drizzle-orm`'s `migrator.js`) so the
+bookkeeping table stays consistent with what a normal `migrate` run would have recorded. Separately,
+but discovered via the same investigation: migration 0009 (`0009_fact_identity.sql`) is applied
+and recorded in the real database, but a plain `drizzle-kit generate` still re-emitted its
+columns/index as if new — i.e. the local drizzle snapshot state had already drifted from the real
+database before this session touched anything (matches the `known-workarounds`/environment-quirks
+history of this project). The generated SQL for both new migrations here was hand-reviewed and
+trimmed to remove the re-emitted, already-applied statements before running; nothing from that
+drift was applied a second time.

@@ -16,6 +16,7 @@ const adminNav = [
   { label: "Employees", href: "/admin/employees", iconName: "Users" },
   { label: "Teams", href: "/admin/teams", iconName: "Users" },
   { label: "Roster Review", href: "/admin/roster-review", iconName: "Users" },
+  { label: "Metric Visibility", href: "/admin/metric-visibility", iconName: "BarChart3" },
   { label: "Admin", href: "/admin", iconName: "ShieldCheck" },
 ];
 

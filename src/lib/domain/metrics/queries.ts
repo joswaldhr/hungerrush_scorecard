@@ -1,9 +1,17 @@
 import { db } from "@/lib/db";
-import { metricDefinitions, metricAssignments, metricValues, metricTargets } from "@/lib/db/schema";
+import {
+  metricDefinitions,
+  metricAssignments,
+  metricValues,
+  metricTargets,
+  metricVisibilityOverrides,
+  employees,
+} from "@/lib/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import type { ManagerContext } from "@/lib/auth/authorization";
 import { assertCanAccessEmployee } from "@/lib/auth/authorization";
 import { resolveTarget, evaluateStatus } from "./target-resolution";
+import { resolveVisibility } from "./visibility-resolution";
 import type { Direction, ResolvedTarget, ValueType } from "./types";
 
 
@@ -75,33 +83,43 @@ export async function getEmployeeMetricsBatch(
 
   const defIds = assignments.map((a) => a.metricDefinitionId);
 
-  const [definitions, currentValues, previousValues, targets] = await Promise.all([
-    db.select().from(metricDefinitions).where(inArray(metricDefinitions.id, defIds)),
-    db
-      .select()
-      .from(metricValues)
-      .where(
-        and(
-          inArray(metricValues.employeeId, employeeIds),
-          inArray(metricValues.metricDefinitionId, defIds),
-          eq(metricValues.periodStart, periodStart)
-        )
-      ),
-    db
-      .select()
-      .from(metricValues)
-      .where(
-        and(
-          inArray(metricValues.employeeId, employeeIds),
-          inArray(metricValues.metricDefinitionId, defIds),
-          eq(metricValues.periodStart, previousPeriodStart)
-        )
-      ),
-    db.select().from(metricTargets).where(inArray(metricTargets.metricDefinitionId, defIds)),
-  ]);
+  const [definitions, currentValues, previousValues, targets, visibilityOverrides, employeeRows] =
+    await Promise.all([
+      db.select().from(metricDefinitions).where(inArray(metricDefinitions.id, defIds)),
+      db
+        .select()
+        .from(metricValues)
+        .where(
+          and(
+            inArray(metricValues.employeeId, employeeIds),
+            inArray(metricValues.metricDefinitionId, defIds),
+            eq(metricValues.periodStart, periodStart)
+          )
+        ),
+      db
+        .select()
+        .from(metricValues)
+        .where(
+          and(
+            inArray(metricValues.employeeId, employeeIds),
+            inArray(metricValues.metricDefinitionId, defIds),
+            eq(metricValues.periodStart, previousPeriodStart)
+          )
+        ),
+      db.select().from(metricTargets).where(inArray(metricTargets.metricDefinitionId, defIds)),
+      db
+        .select()
+        .from(metricVisibilityOverrides)
+        .where(inArray(metricVisibilityOverrides.metricDefinitionId, defIds)),
+      db
+        .select({ id: employees.id, line: employees.line })
+        .from(employees)
+        .where(inArray(employees.id, employeeIds)),
+    ]);
 
   const defMap = new Map(definitions.map((d) => [d.id, d]));
   const assignMap = new Map(assignments.map((a) => [a.metricDefinitionId, a]));
+  const employeeLineMap = new Map(employeeRows.map((e) => [e.id, e.line]));
 
   const currentByEmployee = new Map<string, Map<string, (typeof currentValues)[number]>>();
   for (const v of currentValues) {
@@ -120,6 +138,7 @@ export async function getEmployeeMetricsBatch(
   for (const employeeId of employeeIds) {
     const currentMap = currentByEmployee.get(employeeId) ?? new Map();
     const previousMap = previousByEmployee.get(employeeId) ?? new Map();
+    const employeeLine = employeeLineMap.get(employeeId) ?? null;
 
     const rows: EmployeeMetricRow[] = [];
 
@@ -127,6 +146,25 @@ export async function getEmployeeMetricsBatch(
       const def = defMap.get(defId);
       const assign = assignMap.get(defId);
       if (!def || !assign) continue;
+
+      const visCandidates = visibilityOverrides
+        .filter((v) => v.metricDefinitionId === defId)
+        .map((v) => ({
+          scope: v.scope as "global_default" | "manager_override" | "scorecard_override",
+          managerUserId: v.managerUserId,
+          targetEmployeeId: v.targetEmployeeId,
+          teamId: v.teamId,
+          line: v.line,
+          hidden: v.hidden,
+        }));
+      const isHidden = resolveVisibility(
+        visCandidates,
+        employeeId,
+        [ctx.userId],
+        teamId,
+        employeeLine
+      );
+      if (isHidden) continue;
 
       const current = currentMap.get(defId);
       const previous = previousMap.get(defId);
@@ -136,14 +174,17 @@ export async function getEmployeeMetricsBatch(
         .map((t) => ({
           targetValue: t.targetValue,
           warningValue: t.warningValue,
+          targetMin: t.targetMin,
+          targetMax: t.targetMax,
           targetType: t.targetType,
           priority: t.priority,
           employeeId: t.employeeId,
           roleKey: t.roleKey,
           teamId: t.teamId,
+          line: t.line,
         }));
 
-      const resolvedTarget = resolveTarget(candidateTargets, employeeId, null, teamId);
+      const resolvedTarget = resolveTarget(candidateTargets, employeeId, null, teamId, employeeLine);
       const direction = def.direction as Direction;
       const valueType = def.valueType as ValueType;
 

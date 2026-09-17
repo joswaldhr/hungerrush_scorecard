@@ -71,6 +71,20 @@
       "when": 1788508800000,
       "tag": "0009_fact_identity",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789641055252,
+      "tag": "0010_polite_dark_beast",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1789641854280,
+      "tag": "0011_illegal_golden_guardian",
+      "breakpoints": true
     }
   ]
 }

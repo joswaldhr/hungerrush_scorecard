@@ -34,6 +34,8 @@ Employee
 - job_title
 - employment_status
 - photo_url
+- line — Menufy sub-line (`restaurant` | `consumer`); always null for POS and for any
+  employee who doesn't work a single dedicated Menufy queue
 
 TeamMembership
 - id
@@ -139,9 +141,10 @@ MetricAssignment
 - role_key
 - display_order
 - is_primary
-- visible_on_home
-- visible_on_team
-- visible_on_employee
+- visible_on_home / visible_on_team / visible_on_employee — **dead**: defined but
+  never read by the query path, before or after `MetricVisibilityOverride` was added.
+  Row-level hide/show now goes through `MetricVisibilityOverride` instead of these
+  columns (see [[followups #15]]).
 - effective_from
 - effective_to
 
@@ -151,12 +154,27 @@ MetricTarget
 - team_id
 - employee_id
 - role_key
-- target_type
-- target_value
+- target_type — `minimum` | `maximum` | `exact` | `range`
+- target_value — nullable; null for `range` targets, which use target_min/target_max instead
 - warning_value
+- target_min / target_max — populated only for `range` targets
+- line — Menufy sub-line (`restaurant` | `consumer`); null = all lines / POS
 - effective_from
 - effective_to
 - priority
+
+MetricVisibilityOverride
+- id
+- scope — `global_default` | `manager_override` | `scorecard_override`; most specific wins
+- manager_user_id — set only when scope = `manager_override`
+- target_employee_id — set only when scope = `scorecard_override`
+- metric_definition_id
+- team_id — brand scope; null = applies regardless of team (needed because POS
+  employees always have `line = null`, same as an unscoped row — team_id is what
+  distinguishes "POS only" from "everywhere")
+- line — Menufy sub-line (`restaurant` | `consumer`); null = all lines / POS
+- hidden
+- hidden_by, hidden_at — always set by the admin action that wrote the row
 
 MetricValue
 - id
@@ -300,6 +318,7 @@ RosterSourceTeamMapping
 - data_source_id
 - external_group_id
 - team_id
+- line — Menufy sub-line this group feeds (`restaurant` | `consumer`); null for POS
 
 RosterCandidate
 - id

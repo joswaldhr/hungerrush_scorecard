@@ -17,8 +17,11 @@ export type Severity = "info" | "watch" | "attention" | "critical";
 export type TargetType = "minimum" | "maximum" | "exact" | "range";
 
 export interface ResolvedTarget {
-  targetValue: number;
+  // Null for "range" targets, which use targetMin/targetMax instead.
+  targetValue: number | null;
   warningValue: number | null;
+  targetMin: number | null;
+  targetMax: number | null;
   targetType: TargetType;
   source: "employee" | "role" | "team" | "org";
   priority: number;

@@ -36,6 +36,28 @@ Reason unassigned: Zendesk has no native "first contact resolution" field. No co
 **`schedule_adherence`** — category attendance, unit %, higher_is_better, calculationType average, sourceStrategy `assembled`.
 Reason unassigned: the Assembled connector was removed from the codebase. The metric definition row remains in the catalog but has no connector to produce data and no assignment to either pilot team.
 
+## Assigned but no producing connector (3) — always shows "No Data"
+
+Added 2026-09-17 while loading Menufy Restaurant/Consumer target config. Unlike the "defined but
+unassigned" pair above, these three **do** have real `metric_assignments` rows (Menufy team) and
+real `metric_targets` rows (per-line), so they render as normal rows with a configured target —
+but no connector code produces a value for them, so they will show `no_data` status permanently
+until that changes. This is expected, not a bug; confirmed and decided explicitly, not discovered
+as a surprise later.
+
+**`declined_calls`**, **`missed_calls`** — category inbound_call, unit calls, lower_is_better.
+Zendesk Talk's per-call records (`ZendeskCall` in `zendesk.ts`) don't carry a "declined"/"missed"
+completion status or a caller-identity field for either of these — the connector's own code
+comment (`zendesk.ts` near `aggregateCalls`) already documents that this data only exists on
+Zendesk's live-only `agents_overview`/`agents_activity` endpoints, which can't be queried
+historically. See the `phone-system` project memory for the fuller picture (24 metrics live, 12
+more including these blocked by the same gap).
+
+**`csat_response_rate`** — category quality, unit %, higher_is_better. Likely hits the same wall
+that already breaks `csat_score`'s sibling data (Zendesk's `/satisfaction_ratings.json` gap noted
+elsewhere in this project's history) — not separately re-diagnosed, flagged as the probable same
+root cause rather than assumed without checking.
+
 ## Not a metric source
 
 **Entra ID (Microsoft Graph)** contributes no metric values. It performs identity verification (admin-confirmed employee↔Entra account matching) and a daily account-disabled check for departure detection. See `docs/METRIC_TRACEABILITY.md`.

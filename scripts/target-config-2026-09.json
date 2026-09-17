@@ -1,0 +1,162 @@
+[
+  {
+    "metric_key": "tickets_solved",
+    "label": "Tickets Solved",
+    "section": "volume",
+    "direction": "range",
+    "restaurant": { "visible": true, "target": { "type": "range", "min": 75, "max": 128 } },
+    "consumer":   { "visible": true, "target": { "type": "range", "min": 282, "max": 443 } }
+  },
+  {
+    "metric_key": "tickets_updated",
+    "label": "Tickets Updated",
+    "section": "volume",
+    "direction": "informational",
+    "restaurant": { "visible": true, "target": null },
+    "consumer":   { "visible": true, "target": null }
+  },
+  {
+    "metric_key": "worked_elevated_tickets",
+    "label": "Worked Elevated Tickets",
+    "section": "volume",
+    "direction": "informational",
+    "restaurant": { "visible": false, "target": null },
+    "consumer":   { "visible": false, "target": null }
+  },
+  {
+    "metric_key": "avoidable_worked_elevated_tickets",
+    "label": "Avoidable Worked Elevated Tickets",
+    "section": "volume",
+    "direction": "informational",
+    "restaurant": { "visible": false, "target": null },
+    "consumer":   { "visible": false, "target": null }
+  },
+  {
+    "metric_key": "avg_response_time_ticket",
+    "label": "Avg Response Time (ticket)",
+    "section": "efficiency",
+    "direction": "lower_is_better",
+    "restaurant": { "visible": true, "target": { "type": "threshold", "unit": "minutes", "value": 60 } },
+    "consumer":   { "visible": true, "target": { "type": "threshold", "unit": "minutes", "value": 60 } }
+  },
+  {
+    "metric_key": "csat_score",
+    "label": "CSAT Score",
+    "section": "quality",
+    "direction": "higher_is_better",
+    "restaurant": { "visible": true, "target": { "type": "threshold", "unit": "percent", "value": 70 } },
+    "consumer":   { "visible": true, "target": { "type": "threshold", "unit": "percent", "value": 50 } }
+  },
+  {
+    "metric_key": "csat_response_rate",
+    "label": "CSAT Response Rate",
+    "section": "quality",
+    "direction": "higher_is_better",
+    "restaurant": { "visible": true, "target": { "type": "threshold", "unit": "percent", "value": 15 } },
+    "consumer":   { "visible": true, "target": { "type": "threshold", "unit": "percent", "value": 15 } }
+  },
+  {
+    "metric_key": "ib_calls",
+    "label": "IB Calls",
+    "section": "inbound",
+    "direction": "range",
+    "restaurant": { "visible": true, "target": { "type": "range", "min": 52, "max": 72 } },
+    "consumer":   { "visible": true, "target": { "type": "range", "min": 30, "max": 52 } }
+  },
+  {
+    "metric_key": "missed_calls",
+    "label": "Missed Calls",
+    "section": "inbound",
+    "direction": "lower_is_better",
+    "restaurant": { "visible": true, "target": { "type": "threshold", "unit": "count", "value": 0 } },
+    "consumer":   { "visible": true, "target": { "type": "threshold", "unit": "count", "value": 0 } }
+  },
+  {
+    "metric_key": "declined_calls",
+    "label": "Declined Calls",
+    "section": "inbound",
+    "direction": "lower_is_better",
+    "restaurant": { "visible": true, "target": { "type": "threshold", "unit": "count", "value": 0 } },
+    "consumer":   { "visible": true, "target": { "type": "threshold", "unit": "count", "value": 0 } }
+  },
+  {
+    "metric_key": "abandoned_on_hold",
+    "label": "Abandoned on Hold",
+    "section": "inbound",
+    "direction": "lower_is_better",
+    "restaurant": { "visible": true, "target": { "type": "threshold", "unit": "count", "value": 0 } },
+    "consumer":   { "visible": true, "target": { "type": "threshold", "unit": "count", "value": 0 } }
+  },
+  {
+    "metric_key": "avg_talk_inbound",
+    "label": "Avg Talk",
+    "section": "inbound",
+    "direction": "informational",
+    "restaurant": { "visible": true, "target": { "type": "threshold", "unit": "seconds", "value": 300 } },
+    "consumer":   { "visible": true, "target": null }
+  },
+  {
+    "metric_key": "avg_hold_inbound",
+    "label": "Avg Hold",
+    "section": "inbound",
+    "direction": "lower_is_better",
+    "restaurant": { "visible": true, "target": { "type": "threshold", "unit": "seconds", "value": 120 } },
+    "consumer":   { "visible": true, "target": { "type": "threshold", "unit": "seconds", "value": 120 } }
+  },
+  {
+    "metric_key": "avg_duration_inbound",
+    "label": "Avg Duration",
+    "section": "inbound",
+    "direction": "informational",
+    "restaurant": { "visible": false, "target": null },
+    "consumer":   { "visible": false, "target": null }
+  },
+  {
+    "metric_key": "avg_consultation_inbound",
+    "label": "Avg Consultation",
+    "section": "inbound",
+    "direction": "informational",
+    "restaurant": { "visible": false, "target": null },
+    "consumer":   { "visible": false, "target": null }
+  },
+  {
+    "metric_key": "ob_calls",
+    "label": "OB Calls",
+    "section": "outbound",
+    "direction": "range",
+    "restaurant": { "visible": true, "target": { "type": "range", "min": 35, "max": 75 } },
+    "consumer":   { "visible": true, "target": { "type": "range", "min": 75, "max": 112 } }
+  },
+  {
+    "metric_key": "completed_ob",
+    "label": "Completed OB",
+    "section": "outbound",
+    "direction": "informational",
+    "restaurant": { "visible": false, "target": null },
+    "consumer":   { "visible": false, "target": null }
+  },
+  {
+    "metric_key": "non_answered_ob",
+    "label": "Non-answered OB",
+    "section": "outbound",
+    "direction": "informational",
+    "restaurant": { "visible": false, "target": null },
+    "consumer":   { "visible": false, "target": null }
+  },
+  {
+    "metric_key": "avg_talk_outbound",
+    "label": "Avg Talk",
+    "section": "outbound",
+    "direction": "informational",
+    "restaurant": { "visible": true, "target": null },
+    "consumer":   { "visible": true, "target": null }
+  },
+  {
+    "metric_key": "avg_hold_outbound",
+    "label": "Avg Hold",
+    "section": "outbound",
+    "direction": "lower_is_better",
+    "restaurant": { "visible": true, "target": { "type": "threshold", "unit": "seconds", "value": 120 } },
+    "consumer":   { "visible": true, "target": { "type": "threshold", "unit": "seconds", "value": 120 } }
+  }
+]

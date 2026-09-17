@@ -48,6 +48,8 @@ function detectThresholdCrossing(input: ObservationInput): DetectedObservation |
   if (!target || previousValue === null) return null;
 
   const { targetValue } = target;
+  // Range targets have no single crossing point -- not handled here.
+  if (targetValue === null) return null;
   const isHigherBetter = direction === "higher_is_better";
 
   const wasOnTarget = isHigherBetter ? previousValue >= targetValue : previousValue <= targetValue;

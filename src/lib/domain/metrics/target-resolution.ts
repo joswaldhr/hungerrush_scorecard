@@ -1,26 +1,30 @@
 import type { ResolvedTarget, TargetType, MetricStatus, Direction } from "./types";
 
 interface TargetCandidate {
-  targetValue: number;
+  targetValue: number | null;
   warningValue: number | null;
+  targetMin: number | null;
+  targetMax: number | null;
   targetType: string;
   priority: number;
   employeeId: string | null;
   roleKey: string | null;
   teamId: string | null;
+  line: string | null;
 }
 
 export function resolveTarget(
   candidates: TargetCandidate[],
   employeeId: string,
   roleKey: string | null,
-  teamId: string | null
+  teamId: string | null,
+  line: string | null
 ): ResolvedTarget | null {
   if (candidates.length === 0) return null;
 
   const scored = candidates.map((c) => ({
     ...c,
-    score: scoreCandidate(c, employeeId, roleKey, teamId),
+    score: scoreCandidate(c, employeeId, roleKey, teamId, line),
   }));
 
   scored.sort((a, b) => {
@@ -34,6 +38,8 @@ export function resolveTarget(
   return {
     targetValue: best.targetValue,
     warningValue: best.warningValue,
+    targetMin: best.targetMin,
+    targetMax: best.targetMax,
     targetType: best.targetType as TargetType,
     source: categorizeSource(best, employeeId, roleKey, teamId),
     priority: best.priority,
@@ -44,16 +50,26 @@ function scoreCandidate(
   c: TargetCandidate,
   employeeId: string,
   roleKey: string | null,
-  teamId: string | null
+  teamId: string | null,
+  line: string | null
 ): number {
+  // A target scoped to a specific line never applies to a lookup for a
+  // different (or no) line -- disqualify outright rather than let it win on
+  // employee/team/org specificity alone.
+  if (c.line !== null && c.line !== line) return -1;
+  // Among otherwise-equal candidates, a line-specific match beats a
+  // line-blanket one (e.g. a Menufy Restaurant-specific team target beats a
+  // Menufy-wide team target for a Restaurant-line employee).
+  const lineBonus = c.line !== null && c.line === line ? 1 : 0;
+
   // Employee-specific: highest priority
-  if (c.employeeId === employeeId) return 40;
+  if (c.employeeId === employeeId) return 40 + lineBonus;
   // Role-specific within the team
-  if (c.roleKey && c.roleKey === roleKey && c.teamId === teamId) return 30;
+  if (c.roleKey && c.roleKey === roleKey && c.teamId === teamId) return 30 + lineBonus;
   // Team-level default
-  if (c.teamId === teamId && !c.employeeId && !c.roleKey) return 20;
+  if (c.teamId === teamId && !c.employeeId && !c.roleKey) return 20 + lineBonus;
   // Org-level default (no team, no employee, no role)
-  if (!c.teamId && !c.employeeId && !c.roleKey) return 10;
+  if (!c.teamId && !c.employeeId && !c.roleKey) return 10 + lineBonus;
   return -1;
 }
 
@@ -77,7 +93,19 @@ export function evaluateStatus(
   if (value === null) return { status: "no_data", direction };
   if (!target) return { status: "no_target", direction };
 
-  const { targetValue, warningValue, targetType } = target;
+  const { targetValue, warningValue, targetType, targetMin, targetMax } = target;
+
+  // Range targets (e.g. Tickets Solved, IB/OB Calls): on target only strictly
+  // within [min, max] -- below min is under-volume, above max is flagged too
+  // (possible overload/anomaly), not treated as "exceeding expectations".
+  // No warning tier: the source data has no separate warning bounds for ranges.
+  if (targetType === "range") {
+    if (targetMin === null || targetMax === null) return { status: "no_target", direction };
+    if (value < targetMin || value > targetMax) return { status: "off_target", direction };
+    return { status: "on_target", direction };
+  }
+
+  if (targetValue === null) return { status: "no_target", direction };
 
   if (targetType === "minimum" || targetType === "exact") {
     if (direction === "higher_is_better") {

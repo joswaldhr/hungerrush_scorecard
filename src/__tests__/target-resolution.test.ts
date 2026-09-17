@@ -11,7 +11,7 @@ const TEAM_ID = "team-1";
 
 describe("resolveTarget", () => {
   it("returns null when no candidates", () => {
-    expect(resolveTarget([], EMP_ID, null, TEAM_ID)).toBeNull();
+    expect(resolveTarget([], EMP_ID, null, TEAM_ID, null)).toBeNull();
   });
 
   it("selects employee-specific target over team target", () => {
@@ -20,25 +20,32 @@ describe("resolveTarget", () => {
         {
           targetValue: 80,
           warningValue: 70,
+          targetMin: null,
+          targetMax: null,
           targetType: "minimum",
           priority: 0,
           employeeId: null,
           roleKey: null,
           teamId: TEAM_ID,
+          line: null,
         },
         {
           targetValue: 90,
           warningValue: 85,
+          targetMin: null,
+          targetMax: null,
           targetType: "minimum",
           priority: 0,
           employeeId: EMP_ID,
           roleKey: null,
           teamId: null,
+          line: null,
         },
       ],
       EMP_ID,
       null,
-      TEAM_ID
+      TEAM_ID,
+      null
     );
     expect(result).not.toBeNull();
     expect(result!.targetValue).toBe(90);
@@ -51,25 +58,32 @@ describe("resolveTarget", () => {
         {
           targetValue: 80,
           warningValue: null,
+          targetMin: null,
+          targetMax: null,
           targetType: "minimum",
           priority: 0,
           employeeId: null,
           roleKey: null,
           teamId: TEAM_ID,
+          line: null,
         },
         {
           targetValue: 85,
           warningValue: null,
+          targetMin: null,
+          targetMax: null,
           targetType: "minimum",
           priority: 0,
           employeeId: null,
           roleKey: "senior",
           teamId: TEAM_ID,
+          line: null,
         },
       ],
       EMP_ID,
       "senior",
-      TEAM_ID
+      TEAM_ID,
+      null
     );
     expect(result!.targetValue).toBe(85);
     expect(result!.source).toBe("role");
@@ -81,25 +95,32 @@ describe("resolveTarget", () => {
         {
           targetValue: 70,
           warningValue: null,
+          targetMin: null,
+          targetMax: null,
           targetType: "minimum",
           priority: 0,
           employeeId: null,
           roleKey: null,
           teamId: null,
+          line: null,
         },
         {
           targetValue: 80,
           warningValue: null,
+          targetMin: null,
+          targetMax: null,
           targetType: "minimum",
           priority: 0,
           employeeId: null,
           roleKey: null,
           teamId: TEAM_ID,
+          line: null,
         },
       ],
       EMP_ID,
       null,
-      TEAM_ID
+      TEAM_ID,
+      null
     );
     expect(result!.targetValue).toBe(80);
     expect(result!.source).toBe("team");
@@ -111,16 +132,20 @@ describe("resolveTarget", () => {
         {
           targetValue: 70,
           warningValue: null,
+          targetMin: null,
+          targetMax: null,
           targetType: "minimum",
           priority: 0,
           employeeId: null,
           roleKey: null,
           teamId: null,
+          line: null,
         },
       ],
       EMP_ID,
       null,
-      TEAM_ID
+      TEAM_ID,
+      null
     );
     expect(result!.targetValue).toBe(70);
     expect(result!.source).toBe("org");
@@ -132,27 +157,94 @@ describe("resolveTarget", () => {
         {
           targetValue: 80,
           warningValue: null,
+          targetMin: null,
+          targetMax: null,
           targetType: "minimum",
           priority: 1,
           employeeId: null,
           roleKey: null,
           teamId: TEAM_ID,
+          line: null,
         },
         {
           targetValue: 85,
           warningValue: null,
+          targetMin: null,
+          targetMax: null,
           targetType: "minimum",
           priority: 5,
           employeeId: null,
           roleKey: null,
           teamId: TEAM_ID,
+          line: null,
         },
       ],
       EMP_ID,
       null,
-      TEAM_ID
+      TEAM_ID,
+      null
     );
     expect(result!.targetValue).toBe(85);
+  });
+
+  describe("line scoping", () => {
+    const baseCandidate = {
+      targetValue: null,
+      warningValue: null,
+      targetMin: null,
+      targetMax: null,
+      targetType: "minimum",
+      priority: 0,
+      employeeId: null,
+      roleKey: null,
+    };
+
+    it("disqualifies a line-scoped target for a mismatched line lookup", () => {
+      const result = resolveTarget(
+        [{ ...baseCandidate, targetValue: 100, teamId: TEAM_ID, line: "restaurant" }],
+        EMP_ID,
+        null,
+        TEAM_ID,
+        "consumer"
+      );
+      expect(result).toBeNull();
+    });
+
+    it("matches a line-scoped target for the same line", () => {
+      const result = resolveTarget(
+        [{ ...baseCandidate, targetValue: 100, teamId: TEAM_ID, line: "restaurant" }],
+        EMP_ID,
+        null,
+        TEAM_ID,
+        "restaurant"
+      );
+      expect(result?.targetValue).toBe(100);
+    });
+
+    it("a line-blanket target still applies when no line is being looked up (e.g. POS)", () => {
+      const result = resolveTarget(
+        [{ ...baseCandidate, targetValue: 100, teamId: TEAM_ID, line: null }],
+        EMP_ID,
+        null,
+        TEAM_ID,
+        null
+      );
+      expect(result?.targetValue).toBe(100);
+    });
+
+    it("prefers a line-specific target over a line-blanket target at the same scope", () => {
+      const result = resolveTarget(
+        [
+          { ...baseCandidate, targetValue: 50, teamId: TEAM_ID, line: null },
+          { ...baseCandidate, targetValue: 100, teamId: TEAM_ID, line: "restaurant" },
+        ],
+        EMP_ID,
+        null,
+        TEAM_ID,
+        "restaurant"
+      );
+      expect(result?.targetValue).toBe(100);
+    });
   });
 });
 
@@ -161,6 +253,8 @@ describe("evaluateStatus", () => {
     const target = {
       targetValue: 80,
       warningValue: 70,
+      targetMin: null,
+      targetMax: null,
       targetType: "minimum" as const,
       source: "team" as const,
       priority: 0,
@@ -183,6 +277,8 @@ describe("evaluateStatus", () => {
     const target = {
       targetValue: 80,
       warningValue: 70,
+      targetMin: null,
+      targetMax: null,
       targetType: "minimum" as const,
       source: "team" as const,
       priority: 0,
@@ -194,6 +290,8 @@ describe("evaluateStatus", () => {
     const target = {
       targetValue: 80,
       warningValue: 70,
+      targetMin: null,
+      targetMax: null,
       targetType: "minimum" as const,
       source: "team" as const,
       priority: 0,
@@ -205,6 +303,8 @@ describe("evaluateStatus", () => {
     const target = {
       targetValue: 80,
       warningValue: 70,
+      targetMin: null,
+      targetMax: null,
       targetType: "minimum" as const,
       source: "team" as const,
       priority: 0,
@@ -216,6 +316,8 @@ describe("evaluateStatus", () => {
     const target = {
       targetValue: 10,
       warningValue: 15,
+      targetMin: null,
+      targetMax: null,
       targetType: "maximum" as const,
       source: "team" as const,
       priority: 0,
@@ -228,7 +330,7 @@ describe("evaluateStatus", () => {
   it("handles minimum + lower_is_better (golden dataset scenario)", () => {
     const { target, direction, onTargetValue, warningValue, offTargetValue } =
       GOLDEN_STATUS_SCENARIOS.minimumLowerIsBetter;
-    const resolved = { ...target, source: "team" as const, priority: 0 };
+    const resolved = { ...target, targetMin: null, targetMax: null, source: "team" as const, priority: 0 };
     expect(evaluateStatus(onTargetValue, resolved, direction).status).toBe("on_target");
     expect(evaluateStatus(warningValue, resolved, direction).status).toBe("warning");
     expect(evaluateStatus(offTargetValue, resolved, direction).status).toBe("off_target");
@@ -242,7 +344,7 @@ describe("evaluateStatus", () => {
     () => {
       const { target, direction, onTargetValue, warningValue, offTargetValue } =
         GOLDEN_STATUS_SCENARIOS.maximumHigherIsBetter;
-      const resolved = { ...target, source: "team" as const, priority: 0 };
+      const resolved = { ...target, targetMin: null, targetMax: null, source: "team" as const, priority: 0 };
       expect(evaluateStatus(onTargetValue, resolved, direction).status).toBe("on_target");
       expect(evaluateStatus(warningValue, resolved, direction).status).toBe("warning");
       expect(evaluateStatus(offTargetValue, resolved, direction).status).toBe("off_target");
@@ -258,6 +360,8 @@ describe("evaluateStatus", () => {
       const target = {
         targetValue: 80,
         warningValue: 70,
+        targetMin: null,
+        targetMax: null,
         targetType: "exact" as const,
         source: "team" as const,
         priority: 0,
@@ -268,22 +372,42 @@ describe("evaluateStatus", () => {
     }
   );
 
-  it(
-    "KNOWN GAP: targetType 'range' silently falls through to no_target even " +
-      "though a target row exists (target-resolution.ts:105). Unreachable today " +
-      "(no seed data uses 'range'), but the schema's target_type column accepts " +
-      "any text value, so this is a live landmine if 'range' targets are ever added.",
-    () => {
-      const target = {
-        targetValue: 80,
-        warningValue: 70,
-        targetType: "range" as const,
-        source: "team" as const,
-        priority: 0,
-      };
-      expect(evaluateStatus(75, target, "higher_is_better").status).toBe("no_target");
-    }
-  );
+  describe("range targets", () => {
+    const rangeTarget = {
+      targetValue: null,
+      warningValue: null,
+      targetMin: 75,
+      targetMax: 128,
+      targetType: "range" as const,
+      source: "team" as const,
+      priority: 0,
+    };
+
+    it("is on_target strictly within [min, max]", () => {
+      expect(evaluateStatus(75, rangeTarget, "neutral").status).toBe("on_target");
+      expect(evaluateStatus(100, rangeTarget, "neutral").status).toBe("on_target");
+      expect(evaluateStatus(128, rangeTarget, "neutral").status).toBe("on_target");
+    });
+
+    it("is off_target below min", () => {
+      expect(evaluateStatus(74, rangeTarget, "neutral").status).toBe("off_target");
+    });
+
+    it("is off_target above max", () => {
+      expect(evaluateStatus(129, rangeTarget, "neutral").status).toBe("off_target");
+    });
+
+    it("has no warning tier -- there is no state between on_target and off_target", () => {
+      // Values just outside the band go straight to off_target, never "warning".
+      expect(evaluateStatus(74, rangeTarget, "neutral").status).not.toBe("warning");
+      expect(evaluateStatus(129, rangeTarget, "neutral").status).not.toBe("warning");
+    });
+
+    it("returns no_target when min or max is missing despite targetType being range", () => {
+      const incomplete = { ...rangeTarget, targetMax: null };
+      expect(evaluateStatus(100, incomplete, "neutral").status).toBe("no_target");
+    });
+  });
 });
 
 describe("evaluateChangeStatus", () => {

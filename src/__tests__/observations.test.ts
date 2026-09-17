@@ -12,6 +12,8 @@ describe("detectObservations", () => {
         target: {
           targetValue: 80,
           warningValue: 70,
+          targetMin: null,
+          targetMax: null,
           targetType: "minimum",
           source: "team",
           priority: 0,
@@ -32,6 +34,8 @@ describe("detectObservations", () => {
         target: {
           targetValue: 80,
           warningValue: 70,
+          targetMin: null,
+          targetMax: null,
           targetType: "minimum",
           source: "team",
           priority: 0,
@@ -52,6 +56,8 @@ describe("detectObservations", () => {
         target: {
           targetValue: 80,
           warningValue: 70,
+          targetMin: null,
+          targetMax: null,
           targetType: "minimum",
           source: "team",
           priority: 0,
@@ -72,6 +78,8 @@ describe("detectObservations", () => {
         target: {
           targetValue: 80,
           warningValue: 70,
+          targetMin: null,
+          targetMax: null,
           targetType: "minimum",
           source: "team",
           priority: 0,
@@ -216,6 +224,8 @@ describe("detectObservations", () => {
         target: {
           targetValue: 80,
           warningValue: 70,
+          targetMin: null,
+          targetMax: null,
           targetType: "minimum",
           source: "team",
           priority: 0,

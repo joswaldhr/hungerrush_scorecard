@@ -174,6 +174,11 @@ export const getAssignedEmployees = cache(async function getAssignedEmployees(ct
     );
 });
 
+export async function getUserIdByEmail(email: string): Promise<string | null> {
+  const user = await getActiveUserByEmail(email);
+  return user?.id ?? null;
+}
+
 export function assertCanAccessEmployee(ctx: ManagerContext, employeeId: string): void {
   if (!ctx.assignedEmployeeIds.includes(employeeId)) {
     throw new Error("Unauthorized: employee not in manager's scope");
