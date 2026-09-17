@@ -571,3 +571,66 @@ database before this session touched anything (matches the `known-workarounds`/e
 history of this project). The generated SQL for both new migrations here was hand-reviewed and
 trimmed to remove the re-emitted, already-applied statements before running; nothing from that
 drift was applied a second time.
+
+## 16. Sub-manager hierarchy: Jacob Murray, James Maynard, Norvel Crawford (2026-09-17)
+
+Discovered via a conversation with Barb (relayed by James) that these three — previously
+deactivated on 2026-09-11 as "leads miscounted as employees" (see items above and the
+`roster-manager-exclusion-fix` memory) — are actually real sub-managers, each managing their own
+slice of Barb's team, not just oversight-only accounts. Set up as real Cadence users with
+per-employee `managerAssignments` rows (not team-level — a team-level assignment grants access
+to *every* member of that team, which would have defeated the point of scoping each of them to
+only their own people) matching Barb's roster sheet exactly (7/8/6 people respectively; the
+sheet's other 2 pending new hires, Juan Jimenez and Maicol Ortiz, aren't real employees yet so
+have no assignment — needs one once they're approved around their 9/21 start date).
+
+This required a real code fix, not just data: `team/page.tsx` and `one-on-ones/page.tsx`
+previously hard-required `ctx.assignedTeamIds.length > 0` to render anything, which a
+per-employee-only manager can never satisfy. Added `getVisibleTeamsForManager` to
+`authorization.ts` — derives the teams to actually display from the manager's assigned
+employees' own `primaryTeamId`, not just their direct team assignments. Verified live: each of
+the three sees exactly their own people; Barb's own view (whole-team assignment, unchanged) is
+unaffected.
+
+Also reactivated Rasheil Badajos (deactivated in the same 9/11 batch) — Barb's current sheet
+lists her as a real associate (title "PH Team Lead," reporting to James Maynard like everyone
+else on his slice), not a people-manager, reversing the earlier "lead, not a real employee"
+call. If that turns out to be wrong, the reversal is easy to spot: she's the only person in this
+batch whose `roster_candidates` history shows a `departed`→`new` round-trip.
+
+## 17. CI had been broken for two weeks; found and fixed during a ship-readiness audit (2026-09-17)
+
+The last successful GitHub Actions run before this was found was 2026-09-02. Every push since —
+the entire 7-phase review, the UI audit, and the roster-auto-approval/Menufy-targets/sub-manager
+work documented above — ran against a red pipeline, failing at the `prettier --check` step, which
+meant `db:migrate`, `test`, and `build` never even executed. Every "verified" claim in this
+project's history since 2026-09-02 was self-verified locally by whoever did the work, not
+confirmed by CI.
+
+Two root causes, both fixed:
+1. **Prettier formatting drift in 16 files** (fixed with `prettier --write`, no behavior change).
+2. **The real one**: job-level `NODE_ENV: production` in `.github/workflows/ci.yml` was meant
+   only for the build step's "fail loudly if SSO unconfigured" check (`src/lib/auth/index.ts`),
+   but applied to the whole job, including `pnpm test`. Under `NODE_ENV=production`, Vite's jsdom
+   test environment externalizes Node builtins like `crypto` as browser stubs
+   ("Module 'crypto' has been externalized for browser compatibility"), so anything importing it
+   — `sync-engine.ts`'s `payloadHash`, used by every ingest path — threw `createHash is not a
+   function`. Broke every test touching `sync-engine.ts` (`sync-engine.test.ts`,
+   `run-sync.test.ts`) the moment CI actually got far enough to run them. Fixed by scoping
+   `NODE_ENV: production` to just the "Verify production build" step.
+
+Fixing this surfaced a load-bearing fact worth remembering: several test files
+(`sync-engine.test.ts`, `run-sync.test.ts`, and — separately — every real assertion in
+`roster-reconcile.test.ts`) had **never once actually run to completion** in any environment
+before this — blocked locally by no Docker Postgres, and in CI by the bug above. One genuine bug
+was found the moment they finally ran for real: `roster-reconcile.test.ts`'s "does not re-propose
+a departure for an already-inactive employee" test asserted an aggregate `departedCandidates`
+count of exactly 0, which only ever happened to be true because the test never ran — an earlier
+test in the same file leaves behind a real, active employee (via auto-approval) that legitimately
+*should* show up as a fresh departure when a later test's connector returns nothing. Fixed by
+narrowing the assertion to the one row the test actually cares about, rather than the aggregate
+count. Lesson: a test suite that reports green because it never actually executed is
+indistinguishable from a green test suite that's genuinely passing — the "133 passed" reported
+locally throughout this project's history looks identical either way. If a suite hasn't
+confirmed a genuine local or CI environment recently, treat its "passing" status as unverified,
+not as evidence.

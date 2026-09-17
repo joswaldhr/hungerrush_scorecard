@@ -158,7 +158,84 @@ dependencies: `html2canvas@1.4.1`, `jspdf@4.2.1`. Also approved `core-js` build 
 
 **Phase 5 — Documentation:** Updated DESIGN_SYSTEM.md component list and this handoff.
 
+## Update (2026-09-16 to 2026-09-17): roster auto-approval, Menufy targets/visibility, sub-manager hierarchy, and a ship-readiness audit that found CI had been broken for two weeks
+
+**Roster auto-approval with a circuit breaker.** `discoverRosterCandidates` (`reconcile.ts`) now
+auto-approves new-hire candidates (creates the employee/identity/team-membership rows
+immediately) instead of always requiring manual review, with a circuit breaker (>5 absolute or
+>30% of the active roster) that falls back to `pending` if a batch looks structurally wrong.
+Departures remain manual — never auto-deactivated. Verified live: an auto-approval fired for
+real the very next morning after shipping.
+
+**Menufy Restaurant/Consumer targets, range support, and bulk metric visibility.** Loaded real
+per-line target config for Menufy (`scorecard-spec-for-claude-code.md` at the repo root has the
+full spec). Added range-target support to `metric_targets` (`targetMin`/`targetMax`, strict
+both-sides evaluation — below min *or* above max is off-track) and a `line` column threaded
+through target/visibility resolution. New `metric_visibility_overrides` table with three-tier
+precedence (scorecard → manager → global default), properly scoped by `teamId` so a Menufy-only
+hide can never leak into POS — this needed a real fix mid-implementation when the first design
+(scoping by `line` alone) turned out unable to distinguish "POS only" from "everywhere," since
+POS employees always have `line = null`, same as an unscoped row. New admin page at
+`/admin/metric-visibility`. `declined_calls`, `missed_calls`, and `csat_response_rate` were
+loaded with real targets but will show "No Data" permanently — a known, separately-tracked
+Zendesk API gap (see `phone-system` project memory), not a bug in this work.
+
+Menufy employees were tagged with their real line (`restaurant`/`consumer`) from live Zendesk
+group membership — 19 of 20 split cleanly; Scott Easterday was the one person in both groups,
+resolved as `restaurant` per Barb's direct confirmation.
+
+**Sub-manager hierarchy.** Discovered (via a conversation with Barb, relayed by James) that
+Jacob Murray, James Maynard, and Norvel Crawford — previously deactivated as "leads miscounted
+as employees" — are actually real sub-managers, each owning a slice of Barb's team. All three
+now have real Cadence logins and per-employee `managerAssignments` rows matching Barb's roster
+sheet. This needed a real code fix, not just data setup: `team/page.tsx` and
+`one-on-ones/page.tsx` previously required a manager to have at least one *whole* team assigned
+(and a whole-team assignment always grants access to every member of that team, so it couldn't
+be used to scope someone to a slice) — added `getVisibleTeamsForManager` in `authorization.ts`
+so a manager whose access comes entirely from individual employee assignments still renders
+correctly. Rasheil Badajos was also reactivated — Barb's current roster sheet lists her as a
+real associate (title "PH Team Lead," not literal people-management), reversing the earlier
+9/11 deactivation.
+
+**Ship-readiness audit — the most important finding: CI had been broken for two weeks.** The
+last successful GitHub Actions run before this audit was 2026-09-02 — every push since,
+including the entire 7-phase review and the UI audit above, ran against a red pipeline where
+`db:migrate`/`test`/`build` never even executed (it failed at `prettier --check`). Two root
+causes, both fixed: (1) Prettier formatting drift in 16 files, and (2) job-level
+`NODE_ENV: production` (meant only for the build step's SSO fail-loudly check) was also applied
+to `pnpm test`, and under `NODE_ENV=production` Vite's jsdom test environment externalizes Node
+builtins like `crypto` as browser stubs — breaking every test that touched `sync-engine.ts`'s
+hashing. Fixing this surfaced a real, load-bearing fact: several tests (`sync-engine.test.ts`,
+`run-sync.test.ts`, all of `roster-reconcile.test.ts`'s actual assertions) had **never once run
+successfully** in this environment before — locally blocked by no Docker, and in CI blocked by
+the above. One genuine test-isolation bug was found and fixed in the process (an aggregate-count
+assertion in `roster-reconcile.test.ts` that only ever passed by accident of never actually
+running). CI is green again as of this handoff.
+
+Also fixed: a real display bug where the three range-target metrics (Tickets Solved, IB Calls,
+OB Calls) silently rendered "—" instead of the actual range on every Menufy scorecard and export,
+since the Target column/export code read `targetValue` directly (`null` for range targets)
+without checking `targetType`. Added integration test coverage for `queries.ts`
+(`getEmployeeMetricsBatch` — the single function every scorecard renders through, previously
+untested) and the new metric-visibility admin actions.
+
+**Found, not yet acted on — needs a decision:**
+- **A real product signal, not a bug**: live-clicking through Barb's Team page as part of this
+  audit showed 67–86% of her team as "Needs Attention" (varies by week), and several "Key
+  Change" percentages over 100% (e.g. "Avg Hold declined 434%"). The underlying numbers are
+  accurate (verified against Rosa E's actual scorecard — her real ticket/call volume is
+  genuinely down against target), and the >100% swings are a known instability of
+  percent-change math against a small/near-zero baseline. This is pre-existing behavior (the
+  `findKeyChange`/target-threshold logic predates this session), not introduced by anything
+  above — but if managers start seeing almost everyone red almost every week, that's worth a
+  real look at whether targets are calibrated to reality, independent of whether the pipeline is
+  technically correct.
+- No error monitoring exists anywhere — a real client-side error today becomes a `console.error`
+  line in server logs with no persistence, dashboard, or alert (`/api/client-error` just logs).
+- `metric_visibility_overrides` has no `organizationId` column (matches an existing pattern
+  elsewhere in the admin actions, e.g. `roster-actions.ts`) — a non-issue in today's single-org
+  reality, flagged as a documented, accepted risk rather than an unnoticed one.
+
 ## Repo state
 
-UI audit changes are staged but not yet committed. Phase 7 and earlier remain committed and
-pushed to `master`.
+Everything through this update is committed and pushed to `master`. CI is green.
