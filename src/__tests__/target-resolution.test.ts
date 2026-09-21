@@ -343,10 +343,11 @@ describe("evaluateStatus", () => {
   });
 
   it(
-    "handles maximum + higher_is_better identically to maximum + lower_is_better " +
-      "(golden dataset scenario — evaluateStatus's maximum branch does not actually " +
-      "branch on direction; see target-resolution.ts:94-103, documented as an " +
-      "architecture note in the 2026-09-01 Metric Integrity Report)",
+    "handles maximum + higher_is_better as an inverted floor (golden dataset " +
+      "scenario — fixed 2026-09-21, see FOLLOWUPS.md item 15: the 'maximum' " +
+      "branch used to ignore direction entirely and always apply ceiling " +
+      "semantics; it now inverts to a floor under higher_is_better, symmetric " +
+      "with how 'minimum' already inverted to a ceiling under lower_is_better)",
     () => {
       const { target, direction, onTargetValue, warningValue, offTargetValue } =
         GOLDEN_STATUS_SCENARIOS.maximumHigherIsBetter;
@@ -363,26 +364,37 @@ describe("evaluateStatus", () => {
     }
   );
 
-  it(
-    "KNOWN GAP: targetType 'exact' is evaluated identically to 'minimum' — no " +
-      "equality check exists (target-resolution.ts:82). Unreachable today (no " +
-      "seed data uses 'exact'), but documents the latent bug rather than leaving " +
-      "it undiscovered.",
-    () => {
-      const target = {
-        targetValue: 80,
-        warningValue: 70,
-        targetMin: null,
-        targetMax: null,
-        targetType: "exact" as const,
-        source: "team" as const,
-        priority: 0,
-      };
-      // A true "exact" semantics would treat 95 as off_target (not equal to 80).
-      // Current behavior treats it as on_target, same as "minimum".
-      expect(evaluateStatus(95, target, "higher_is_better").status).toBe("on_target");
-    }
-  );
+  it("returns no_target for a minimum/maximum target on a neutral-direction metric (fixed 2026-09-21, see FOLLOWUPS.md item 15: there's no well-defined 'good side' without a direction, so it no longer silently falls through to lower_is_better semantics)", () => {
+    const minimumTarget = {
+      targetValue: 80,
+      warningValue: 70,
+      targetMin: null,
+      targetMax: null,
+      targetType: "minimum" as const,
+      source: "team" as const,
+      priority: 0,
+    };
+    const maximumTarget = { ...minimumTarget, targetType: "maximum" as const };
+    expect(evaluateStatus(80, minimumTarget, "neutral").status).toBe("no_target");
+    expect(evaluateStatus(80, maximumTarget, "neutral").status).toBe("no_target");
+  });
+
+  it("evaluates 'exact' by equality with warningValue as a tolerance band (fixed 2026-09-21, see FOLLOWUPS.md item 15: 'exact' used to be aliased to 'minimum' with no real equality check)", () => {
+    const target = {
+      targetValue: 80,
+      warningValue: 5,
+      targetMin: null,
+      targetMax: null,
+      targetType: "exact" as const,
+      source: "team" as const,
+      priority: 0,
+    };
+    expect(evaluateStatus(80, target, "higher_is_better").status).toBe("on_target");
+    expect(evaluateStatus(83, target, "higher_is_better").status).toBe("warning"); // within tolerance
+    expect(evaluateStatus(95, target, "higher_is_better").status).toBe("off_target"); // outside tolerance
+    // Direction-agnostic: equality doesn't depend on which side is "better".
+    expect(evaluateStatus(80, target, "neutral").status).toBe("on_target");
+  });
 
   describe("range targets", () => {
     const rangeTarget = {
@@ -417,6 +429,11 @@ describe("evaluateStatus", () => {
 
     it("returns no_target when min or max is missing despite targetType being range", () => {
       const incomplete = { ...rangeTarget, targetMax: null };
+      expect(evaluateStatus(100, incomplete, "neutral").status).toBe("no_target");
+    });
+
+    it("returns no_target for the symmetric case: targetMin missing instead of targetMax", () => {
+      const incomplete = { ...rangeTarget, targetMin: null };
       expect(evaluateStatus(100, incomplete, "neutral").status).toBe("no_target");
     });
   });

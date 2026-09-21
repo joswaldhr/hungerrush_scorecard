@@ -22,7 +22,13 @@ export interface RosterRow {
   displayName: string;
   jobTitle: string | null;
   overallStatus: "on_track" | "mixed" | "needs_attention" | "no_data";
-  keyChange: { name: string; pct: number; improved: boolean; subtitle?: string } | null;
+  keyChange: {
+    name: string;
+    pct: number;
+    changeLabel: string;
+    improved: boolean;
+    subtitle?: string;
+  } | null;
   metricsOnTarget: number;
   metricsOffTarget: number;
   metricsNoData: number;
@@ -252,7 +258,7 @@ export function TeamRosterTable({ rows }: { rows: RosterRow[] }) {
                               )}
                             >
                               {row.keyChange.name} {isKeyImproved ? "improved" : "declined"}{" "}
-                              {Math.abs(row.keyChange.pct).toFixed(0)}%
+                              {row.keyChange.changeLabel}
                             </p>
                             <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
                               {row.keyChange.subtitle ??

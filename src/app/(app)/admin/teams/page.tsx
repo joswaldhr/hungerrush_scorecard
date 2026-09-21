@@ -1,19 +1,16 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { isPlatformAdmin } from "@/lib/auth/authorization";
+import { requireAdmin } from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
 import { teams, organizations, employees } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { createTeam } from "../roster-actions";
 
 export default async function AdminTeamsPage() {
-  const session = await auth();
-  if (!session?.user?.email) redirect("/login");
-  if (!(await isPlatformAdmin(session.user.email))) redirect("/");
+  const admin = await requireAdmin();
 
   const [allTeams, allOrgs, allEmployees] = await Promise.all([
-    db.select().from(teams),
-    db.select().from(organizations),
-    db.select().from(employees),
+    db.select().from(teams).where(eq(teams.organizationId, admin.organizationId)),
+    db.select().from(organizations).where(eq(organizations.id, admin.organizationId)),
+    db.select().from(employees).where(eq(employees.organizationId, admin.organizationId)),
   ]);
 
   return (

@@ -107,26 +107,44 @@ export function evaluateStatus(
 
   if (targetValue === null) return { status: "no_target", direction };
 
-  if (targetType === "minimum" || targetType === "exact") {
-    if (direction === "higher_is_better") {
-      if (value >= targetValue) return { status: "on_target", direction };
-      if (warningValue !== null && value >= warningValue) return { status: "warning", direction };
-      return { status: "off_target", direction };
-    }
-    // lower_is_better with minimum target: value at or below target is good
-    if (value <= targetValue) return { status: "on_target", direction };
-    if (warningValue !== null && value <= warningValue) return { status: "warning", direction };
+  if (targetType === "exact") {
+    // Equality-based: how close value is to the target, not which side it's
+    // on -- direction-agnostic, unlike minimum/maximum below. warningValue
+    // (if set) is an allowed tolerance band around the exact target.
+    const diff = Math.abs(value - targetValue);
+    if (diff === 0) return { status: "on_target", direction };
+    if (warningValue !== null && diff <= warningValue) return { status: "warning", direction };
+    return { status: "off_target", direction };
+  }
+
+  if (targetType === "minimum") {
+    // "minimum" is a literal floor under higher_is_better (value >= target
+    // is good). Under lower_is_better it's used to express a ceiling via
+    // inversion instead (e.g. hold-time targets: "at most 120s") -- this
+    // inverted usage is already live and must keep working. There's no
+    // well-defined "good side" for a neutral (informational) metric, so
+    // don't guess one.
+    if (direction === "neutral") return { status: "no_target", direction };
+    const passes = direction === "higher_is_better" ? value >= targetValue : value <= targetValue;
+    if (passes) return { status: "on_target", direction };
+    const warningPasses =
+      warningValue !== null &&
+      (direction === "higher_is_better" ? value >= warningValue : value <= warningValue);
+    if (warningPasses) return { status: "warning", direction };
     return { status: "off_target", direction };
   }
 
   if (targetType === "maximum") {
-    if (direction === "lower_is_better") {
-      if (value <= targetValue) return { status: "on_target", direction };
-      if (warningValue !== null && value <= warningValue) return { status: "warning", direction };
-      return { status: "off_target", direction };
-    }
-    if (value <= targetValue) return { status: "on_target", direction };
-    if (warningValue !== null && value <= warningValue) return { status: "warning", direction };
+    // Symmetric with "minimum" above: a literal ceiling under
+    // lower_is_better, inverted to a floor under higher_is_better. Same
+    // no-good-side reasoning applies to neutral.
+    if (direction === "neutral") return { status: "no_target", direction };
+    const passes = direction === "lower_is_better" ? value <= targetValue : value >= targetValue;
+    if (passes) return { status: "on_target", direction };
+    const warningPasses =
+      warningValue !== null &&
+      (direction === "lower_is_better" ? value <= warningValue : value >= warningValue);
+    if (warningPasses) return { status: "warning", direction };
     return { status: "off_target", direction };
   }
 

@@ -144,15 +144,14 @@ export const GOLDEN_STATUS_SCENARIOS = {
     warningValue: 12, // 12 > 10, 12 <= 15
     offTargetValue: 20, // 20 > 15
   },
-  // maximum + higher_is_better: evaluateStatus's "maximum" branch does not
-  // actually branch on direction (see target-resolution.ts:94-103 — both arms
-  // of the inner `if (direction === "lower_is_better")` are identical) — so
-  // this combination behaves the same as maximum+lower_is_better today.
+  // maximum + higher_is_better: "maximum" is inverted to a floor under
+  // higher_is_better (symmetric with "minimum" inverting to a ceiling under
+  // lower_is_better, above) — value at or above target is good.
   maximumHigherIsBetter: {
-    target: { targetValue: 10, warningValue: 15, targetType: "maximum" as const },
+    target: { targetValue: 10, warningValue: 5, targetType: "maximum" as const },
     direction: "higher_is_better" as const,
-    onTargetValue: 8,
-    warningValue: 12,
-    offTargetValue: 20,
+    onTargetValue: 12, // 12 >= 10
+    warningValue: 7, // 7 < 10, 7 >= 5
+    offTargetValue: 3, // 3 < 5
   },
 } as const;

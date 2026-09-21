@@ -9,6 +9,11 @@ discovery` item is now moot, not just blocked). Manager UI is now **Team + 1:1s 
 `docs/PRODUCT.md`'s revision note for the full reasoning and current spec. Do not treat the
 "Manager UI" checklist below as current — it documents what was true as of Phase 7, not today.
 
+**Update (2026-09-17):** roster auto-approval with a circuit breaker, per-employee sub-manager
+assignments (`getVisibleTeamsForManager`), and Menufy line-scoped/range targets plus
+three-tier metric visibility overrides all shipped after this checklist was written — see
+docs/ARCHITECTURE.md and docs/DATA_MODEL.md for current behavior.
+
 ## Must Have
 
 ### Platform

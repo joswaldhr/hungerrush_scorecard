@@ -1,5 +1,9 @@
 import { auth } from "@/lib/auth";
-import { getEffectiveManagerContext, assertCanAccessTeam } from "@/lib/auth/authorization";
+import {
+  getEffectiveManagerContext,
+  getAssignedEmployees,
+  getVisibleTeamsForManager,
+} from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
 import { reconciliationRuns } from "@/lib/db/schema";
 import { eq, desc, and, or, inArray, isNull } from "drizzle-orm";
@@ -49,9 +53,13 @@ export async function POST(request: Request) {
   const body = parsed.data;
 
   if (body.teamId) {
-    try {
-      assertCanAccessTeam(ctx, body.teamId);
-    } catch {
+    // Not just ctx.assignedTeamIds -- a sub-manager's access can come
+    // entirely from individual employee assignments (see
+    // getVisibleTeamsForManager), and their own team is already shown to
+    // them as an option on the Team/Reconciliation pages.
+    const assignedEmployees = await getAssignedEmployees(ctx);
+    const visibleTeams = await getVisibleTeamsForManager(ctx, assignedEmployees);
+    if (!visibleTeams.some((t) => t.id === body.teamId)) {
       return NextResponse.json({ error: "Forbidden: team not in scope" }, { status: 403 });
     }
   }
@@ -97,12 +105,17 @@ export async function GET() {
     // managers, each with their own teams, and a run's aggregate counts
     // (even without employee-level detail, which /results already scopes
     // separately) shouldn't be visible across that boundary. A run counts
-    // as this manager's if it's scoped to one of their teams, or if it's an
+    // as this manager's if it's scoped to one of their visible teams (not
+    // just ctx.assignedTeamIds -- a sub-manager's team access can come
+    // entirely from individual employee assignments), or if it's an
     // org-wide run (no teamId) they personally triggered.
+    const assignedEmployees = await getAssignedEmployees(ctx);
+    const visibleTeams = await getVisibleTeamsForManager(ctx, assignedEmployees);
+    const visibleTeamIds = visibleTeams.map((t) => t.id);
     const scopeCondition =
-      ctx.assignedTeamIds.length > 0
+      visibleTeamIds.length > 0
         ? or(
-            inArray(reconciliationRuns.teamId, ctx.assignedTeamIds),
+            inArray(reconciliationRuns.teamId, visibleTeamIds),
             and(isNull(reconciliationRuns.teamId), eq(reconciliationRuns.triggeredBy, ctx.userId))
           )
         : and(isNull(reconciliationRuns.teamId), eq(reconciliationRuns.triggeredBy, ctx.userId));

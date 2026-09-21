@@ -5,6 +5,46 @@ Issues found while fixing the 2026-09-09 silent sync outage (see `INVESTIGATION.
 CLAUDE.md's Definition of Done ("a fix that surfaces unrelated problems logs them here rather
 than bundling unrelated fixes into the same change").
 
+## Current state (as of 2026-09-21 — read this table first, then the detailed items below)
+
+This file mixes "found and fixed inline" narratives with genuinely-still-open items, in
+roughly chronological (not numeric) order — this table exists so you don't have to read all
+17 items to find the live ones.
+
+| # | Item | Status | Needs |
+|---|---|---|---|
+| 1 | `csat_score` broken | Open (Zendesk data limitation) | Fresh live re-check (last checked 2026-09-01) |
+| 2 | Talk-fetch shared try/catch fragility | Open | Real code fix (medium risk) — already caused incident #6 |
+| 3 | Single-Zendesk-subdomain assumption | Open | Human w/ Zendesk admin access |
+| 4 | Is Vercel invoking the cron? | **Resolved** — see #5/#7 | Nothing; fold into #7 |
+| 5 | Sync pipeline too slow for one invocation | **Fixed** (batching + per-week split) | Nothing |
+| 6 | Departed-employee ticket volume crashed syncs | **Fixed** 2026-09-15 | Nothing |
+| 7 | Cron legs fire late (Hobby-plan behavior) | Not a bug | Nothing |
+| 8 | Roster candidates re-proposed forever | **Fixed** 2026-09-15 | Nothing |
+| 9 | Christopher Courcy (POS) counted as employee | **Resolved 2026-09-16** — a `departed` roster candidate for him was approved and `employees.employment_status` is `inactive` (confirmed live 2026-09-21). This item's "still open, needs Alex" framing below is stale. | Nothing |
+| 10 | `fetchMetricSets` not parallelized | Open, low urgency | Proactive perf work; margin still comfortable |
+| 11 | Weeks 2-3 re-verified post-fix | **Done** | Nothing |
+| 12 | Phase 4 security audit | **Done** — 2 critical Next.js CVEs patched | Nothing |
+| 13 | Phase 5 performance audit | **Done** — no bottleneck found | Nothing |
+| 14 | Phase 6 UI/UX audit | **Done** — mobile stat-card fix shipped | Sidebar mobile auto-collapse still open, low priority |
+| 15 | `evaluateStatus` 3 dormant bugs + dead visibility columns + `drizzle-kit migrate` anomaly | **evaluateStatus bugs fixed 2026-09-21** (see `target-resolution.ts`) — one (the `maximum` branch ignoring `direction`) was found to have live, if previously-harmless, exposure via 3 real `targetType=maximum` rows before the fix. Dead visibility columns and the migrate anomaly are still open. | Dropping/deprecating `metric_assignments.visibleOnHome/visibleOnTeam/visibleOnEmployee`; investigating the `drizzle-kit migrate` CLI anomaly |
+| 16 | Sub-manager hierarchy (Jacob Murray, James Maynard, Norvel Crawford) | **Shipped 2026-09-17**; reconciliation route/page sub-manager access gap **fixed 2026-09-21** | Juan Jimenez/Maicol Ortiz still `pending` as of 2026-09-21 (their stated 9/21 start date) — Alex needs to review now, see item 18 |
+| 17 | CI broken for two weeks | **Fixed 2026-09-17** | Nothing |
+| 18 | *(new, 2026-09-21)* Juan Jimenez / Maicol Ortiz still pending on their stated start date | **Open, time-sensitive** — confirmed live via direct DB query: both still `status='pending'`, no `employee_id` | Alex approves via `/admin/roster-review` |
+| 19 | *(new, 2026-09-21)* Cross-org isolation gap in admin pages/view-as | **Fixed 2026-09-21** | Nothing |
+| 20 | *(new, 2026-09-21)* `resolveVisibility` specificity scoring treated teamId/line as a hierarchy | **Fixed 2026-09-21** | Nothing |
+| 21 | *(new, 2026-09-21)* Menufy visibility overrides couldn't express "all lines" | **Fixed 2026-09-21** — added an "all lines" option | Nothing |
+| 22 | *(new, 2026-09-21)* `findKeyChange`'s near-zero-baseline % swings (e.g. "Avg Hold declined 434%") | **Fixed 2026-09-21** | Nothing |
+| 23 | *(new, 2026-09-21)* Barbara's team's 67-86% "Needs Attention" rate | **Root cause found**: concentrated in 3 metrics (OB/IB calls, Tickets Resolved) whose range targets are narrower than real variance — see the exact numbers in `HANDOFF.md` | Recalibration conversation with Barbara |
+| 24 | *(new, 2026-09-21)* Dead `"entra"` data-source UI branch in `data-health/page.tsx`; stale `assembled` row still in `data_sources` table | Open, low priority | Decide whether to delete the dead UI branch and/or the stale DB row |
+| 25 | *(new, 2026-09-21)* `docs/planning-report.html` (2026-09-02) never reconciled with this file | **Partially done** — its 2 most-cited findings (TGT-01, IDEM-01) cross-referenced; ~20 others still unverified | A dedicated pass through SYNC-01 through DB-05 |
+
+Everything else not listed above (error monitoring, ongoing metric-reconciliation job,
+`metric_visibility_overrides` missing `organizationId`, old git worktree, `VERCEL_API` token
+rotation, `env.ts`'s missing `server-only` guard, week-boundary math duplicated in 5 places,
+the unexplained "Jayhov Sumagang / Kevin L" reference in `HANDOFF.md`) is still open exactly
+as described in its own item below or in `HANDOFF.md` — nothing new to report.
+
 ## 1. `csat_score` is broken (Zendesk data limitation, not a pipeline bug)
 
 `src/lib/connectors/zendesk.ts:404-406`. Per the 2026-09-01 metric-integrity audit,
@@ -93,7 +133,14 @@ multi-brand/subdomain is unconfirmed by any code or doc in this repo (`INVESTIGA
 tickets/calls could be silently invisible to this connector regardless of any sync-scheduling
 fix.
 
-## 4. Whether Vercel is actually invoking `/api/cron/sync` on schedule — still open
+## 4. Whether Vercel is actually invoking `/api/cron/sync` on schedule — RESOLVED, see item 7
+
+**Resolved (2026-09-10/09-15), this heading is stale.** Item #5's 2026-09-10 update confirmed
+a real `sync_runs` row appeared immediately after the `CRON_SECRET` fix, proving requests
+reach `runSync()`, and item #7 (2026-09-15) confirmed via the Vercel API that the registered
+cron schedule matches `vercel.json` exactly. The cron does fire; Hobby-plan just delivers it
+within-the-hour rather than to-the-minute (a separate, non-bug explanation, see item #7). Kept
+below only for history — do not re-investigate this question.
 
 Phase 0 of the fix work (see `FIX_LOG.md`) could not be fully resolved: this sandboxed
 environment has no cached Vercel CLI authentication and network access to Vercel's own API
@@ -337,7 +384,13 @@ each had a resolved sibling row with the same externalId + changeType before del
 genuinely undecided was touched). Pending queue is down to the 2 real, legitimately-new POS
 candidates (Juan Jimenez, Maicol Ortiz) awaiting Alex's review.
 
-## 9. POS Support has the same "lead counted as employee" pattern as Menufy did
+## 9. POS Support has the same "lead counted as employee" pattern as Menufy did — RESOLVED 2026-09-16
+
+**Resolved, this heading is stale.** Confirmed live via direct DB query on 2026-09-21: a
+`departed` roster candidate for Christopher Courcy (`change_type='departed'`) was approved on
+2026-09-16, and his `employees` row now has `employment_status='inactive'`. Whoever
+approved it apparently already had Alex's (or equivalent) confirmation — no further action
+needed. Kept below only for history.
 
 Found via the self-serve half of a POS roster review (Alex is on vacation, so only the
 mechanical checks were done — see `project-status` memory): **Christopher Courcy**
@@ -634,3 +687,114 @@ indistinguishable from a green test suite that's genuinely passing — the "133 
 locally throughout this project's history looks identical either way. If a suite hasn't
 confirmed a genuine local or CI environment recently, treat its "passing" status as unverified,
 not as evidence.
+
+## 18. Juan Jimenez / Maicol Ortiz still `pending` on their stated 9/21 start date
+
+Found while planning a 2026-09-21 foundation-strengthening pass. Item #16 noted these two POS
+candidates await Alex's review with an expected start date "around 9/21" — that date arrived
+with no action taken. Confirmed live via direct DB query: both `roster_candidates` rows are
+still `status='pending'`, `employee_id` still null, unchanged since they were created
+2026-09-15. **Time-sensitive, needs Alex now** — approve via `/admin/roster-review`, or these
+two have zero scorecard/1:1 prep on their first day.
+
+## 19. Cross-org isolation gap in admin pages and the view-as flow — FIXED 2026-09-21
+
+Found during a 2026-09-21 foundation-strengthening audit, not previously logged anywhere.
+Every admin list page (`admin/employees`, `admin/teams`, `admin/metric-visibility`,
+`admin/roster-review`) queried `employees`/`teams`/`users` with no `organizationId` filter at
+all, and `isPlatformAdmin` carried no org scope — a platform admin was implicitly a *global*
+super-admin across every organization, not an admin of their own org. The `view-as` flow
+(`getEffectiveManagerContext`) could resolve a target user in a different org entirely.
+Harmless today (exactly 1 real organization exists) but a real violation of CLAUDE.md's
+non-negotiable rules against hard-coding single-org assumptions into core domain code.
+
+**Fixed**: added a shared `requireAdmin()` helper (`src/lib/auth/authorization.ts`) returning
+the admin's own `{userId, email, organizationId}`; threaded it through all 4 admin pages'
+queries and the 4 duplicated local `requireAdmin()` action-file implementations (which were
+also consolidated into the same shared helper); added an org-match check to the view-as
+lookup; and scoped `listManagersForViewAs()` by `organizationId`. Covered by new tests in
+`authorization.test.ts` (a real second-org fixture proves both the view-as block and the
+listing scope).
+
+## 20. `resolveVisibility`'s specificity scoring treated teamId/line as a hierarchy — FIXED 2026-09-21
+
+Found during the same audit. The specificity formula weighted `teamId !== null` at 2 and
+`line !== null` at 1, so a team-only override always outranked a line-only override at the
+same scope — even though the two are independent scoping axes, not a hierarchy (unlike
+`target-resolution.ts`'s deliberately different design, which never lets "has a line"
+outrank "has a team"). Not reachable through the one shipped admin UI, so no live incident —
+fixed proactively before any other writer (a script, a future UI variant, a direct DB insert)
+could hit it. **Fixed**: reworked to an explicit match-count (`visibility-resolution.ts`), so
+a team-only and a line-only row at the same scope now tie (broken by array order) rather than
+one silently always winning. Covered by a new test in `visibility-resolution.test.ts`.
+
+## 21. Menufy metric-visibility overrides couldn't express "all lines" — FIXED 2026-09-21
+
+Found while tracing the visibility-override feature end-to-end. `visibility-editor.tsx`'s
+`buildTeamLinePairs` could never create a Menufy override with `line=null` — there was no way
+through the admin UI to hide a metric for "all of Menufy regardless of line." Any employee at
+`primaryTeamId=Menufy` with `line` still null (a fresh transfer via `setEmployeeTeam`, which
+never sets/clears `line`, or anyone not yet manually tagged) fell outside every Menufy-scoped
+visibility override, so a metric an admin thought was hidden team-wide stayed visible to that
+one person. **Fixed**: added an "all lines" option that writes `teamId=menufyId, line=null`.
+The pure logic (`buildTeamLinePairs`/`isValidVisibilitySelection`) was pulled out into
+`visibility-logic.ts` and unit-tested directly — this repo has no component-testing
+infrastructure, so a dependency-free module was the only way to make this testable at all
+(importing the original component file transitively pulled in `next-auth`/`next/server`,
+which don't resolve under Vitest).
+
+## 22. `findKeyChange`'s near-zero-baseline % swings — FIXED 2026-09-21
+
+Found via a data-backed audit of Barbara Maenza's Team page (see item 23). `findKeyChange`
+(`team/page.tsx`) only guarded an exact-zero prior value, not a near-zero one, so a real but
+practically tiny absolute change computed a mathematically extreme percentage — e.g. hold
+time going from 0.2s to 1.1s rendered as "+450%". Confirmed live against several real
+hold-time changes on Barbara's team, all well under 10 seconds absolute. **Fixed**: the
+percentage is now only trusted when the prior value is at least 10% of the metric's own
+resolved target scale; below that, an absolute-delta label is shown instead (e.g. "1s"), kept
+data-driven rather than a hardcoded per-metric floor.
+
+## 23. Barbara's team's 67-86% "Needs Attention" rate — root cause found, needs a human decision
+
+The live-verification finding from the 2026-09-17 ship-readiness audit (see `HANDOFF.md`) was
+followed up with a data-backed query on 2026-09-21. **Not a pipeline bug, and not evidence of
+broad poor performance.** The high rate is concentrated in exactly 3 of ~21 assigned metrics —
+Outbound Calls, Inbound Calls, and Tickets Resolved — all `range` targets whose windows are
+narrower than the team's real week-to-week variance (range-width-to-stddev ratios of
+0.40-1.42 across the 6 line/metric combinations; 54-96% of employee-weeks land outside the
+window). Every other real target on the same team (Avg Response Time, CSAT,
+Abandoned-on-Hold, both Avg Hold metrics) is 0-35% off-target. Independently replicating
+`deriveOverallStatus`'s exact threshold logic against the real data reproduces the reported
+67-86% rate. **Needs Barbara**, not code: a recalibration conversation using the exact
+per-metric numbers (see `HANDOFF.md`'s "Needs your decision" section for the full table).
+
+## 24. Dead `"entra"` data-source UI branch; stale `assembled` row in `data_sources`
+
+Found while writing `docs/INTEGRATIONS.md`'s Entra ID section for the 2026-09-21 doc pass —
+existing docs (`METRIC_REGISTRY.md`, `METRIC_TRACEABILITY.md`) both claimed Entra performs a
+daily `accountEnabled` departure check via files/routes (`entra-check.ts`,
+`admin/entra-identities`) that turned out **not to exist anywhere in the codebase** when
+checked directly. What's real: `data-health/page.tsx` has a conditional render for a data
+source of `type === "entra"` (showing "N employees checked" / "N flagged as disabled"), but no
+connector/sync code for an `"entra"` type exists in `src/lib`, and no such row exists in the
+real database — confirmed live: only `zendesk` and `assembled` rows exist. This is dead UI for
+a feature that was seemingly planned but never built, not a description of live behavior;
+corrected in `INTEGRATIONS.md`/`METRIC_REGISTRY.md`/`METRIC_TRACEABILITY.md`.
+
+Separately noticed: the `assembled` row itself is also stale — the connector *code* was
+removed 2026-09-03, but its `data_sources` row (id `50000000-...-0002`,
+`last_successful_sync_at` null) is still sitting in the real database. Not deleted here (a
+production data change outside this task's scope) — flagging so it's a documented, deliberate
+non-action rather than an oversight.
+
+## 25. `docs/planning-report.html` (2026-09-02) never reconciled with this file
+
+A separate, pre-existing 12-critical-finding audit document that predates this file's entire
+history and was never cross-linked to it. Found during the 2026-09-21 doc pass: its TGT-01
+finding is the same bug independently rediscovered 15 days later as item #15 above; its
+IDEM-01 finding is stale (fixed by the 2026-09-10 batching work, item #5) but the document
+still shows it as an open critical issue. Added a status note at the top of the HTML file
+cross-linking both. The other ~20 findings (SYNC-01 through DB-05, and its proposed
+schema/sync/engine changes) were **not** re-verified — several may already be fixed by later
+work with nobody having checked. Worth a dedicated reconciliation pass before trusting any of
+them either way.

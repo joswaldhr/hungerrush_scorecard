@@ -39,9 +39,13 @@ export function resolveVisibility(
     // Most specific wins: a team- and/or line-specific row outranks a
     // blanket one at the same scope. (Every row reaching this point already
     // has teamId/line either null or matching -- the filter above excludes
-    // any mismatch outright.)
+    // any mismatch outright.) teamId and line are independent scoping axes,
+    // not a hierarchy -- count how many are actually set rather than
+    // weighting one over the other, so a team-only row and a line-only row
+    // are equally specific (a real tie, broken by array order, rather than
+    // team-only silently always winning).
     const specificity = (c: VisibilityOverrideCandidate) =>
-      (c.teamId !== null ? 2 : 0) + (c.line !== null ? 1 : 0);
+      (c.teamId !== null ? 1 : 0) + (c.line !== null ? 1 : 0);
     return atScope.reduce((best, c) => (specificity(c) > specificity(best) ? c : best));
   };
 

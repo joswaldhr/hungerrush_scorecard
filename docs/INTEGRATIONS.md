@@ -33,6 +33,28 @@ Potential data categories:
 
 Exact fields and calculations must be verified.
 
+New-hire candidates discovered via Zendesk group diffing are auto-approved unless a circuit
+breaker (more than 5 absolute, or more than 30% of the active mapped-team roster, in one run)
+trips, in which case the batch falls back to manual review via `/admin/roster-review`.
+Departures are never auto-processed. See docs/ARCHITECTURE.md's Roster discovery section.
+
+## Entra ID (Microsoft)
+
+Expected role:
+Identity/authentication, not a metric source. Contributes zero metric values.
+
+Live today: the sole SSO provider for production sign-in, via Auth.js (`src/lib/auth/index.ts`,
+`next-auth/providers/microsoft-entra-id`). If its env vars are absent in production, the app
+refuses to start rather than booting with no working sign-in method.
+
+**Not actually live, despite a UI branch suggesting otherwise:** `data-health/page.tsx` has a
+conditional render for a data source of `type === "entra"` (showing "N employees checked" /
+"N flagged as disabled" counts, implying a daily account-status check feeding roster
+departure review). No such data source exists in the real database (verified: only `zendesk`
+and `assembled` rows exist), and no connector or sync logic for an `"entra"` type exists
+anywhere in `src/lib`. Treat this as dead/unfinished UI for a feature that was never actually
+built, not as a description of current behavior -- see `FOLLOWUPS.md`.
+
 ## Assembled
 
 **Status: Removed.** The Assembled connector code was deleted. The `schedule_adherence`
@@ -43,7 +65,7 @@ Mapping configuration issue that prevented meaningful data was never resolved.
 ## Rippling
 
 **Status: No connector.** No Rippling connector code exists in the codebase. A plain
-"Open Rippling" link-out exists on the 1:1 Prep page via `RIPPLING_MANAGER_URL`.
+"Open Rippling" link-out exists on the 1:1s page via `RIPPLING_MANAGER_URL`.
 
 Expected role if integrated:
 - employee identity

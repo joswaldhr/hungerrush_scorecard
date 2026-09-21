@@ -1,6 +1,6 @@
 # HungerRush Cadence — Metric Registry
 
-Source of truth: `metric_definitions` / `metric_targets` / `metric_assignments` rows, currently populated only by `src/lib/fixtures/seed.ts` — there is no admin UI that creates or edits metric configuration (confirmed by grep; only `seed.ts` writes these tables). Last verified against `seed.ts` at commit `85969b6` on 2026-09-01. If `seed.ts` has changed since that commit, re-verify this table against it before trusting it.
+Source of truth: `metric_definitions` / `metric_targets` / `metric_assignments` rows. Originally populated only by `src/lib/fixtures/seed.ts` (last verified against `seed.ts` at commit `85969b6` on 2026-09-01) — there is still no admin UI that creates or edits metric configuration. Since 2026-09-17, `metric_targets`/`metric_visibility_overrides` rows can also come from the one-off `scripts/load-target-config.ts` loader (see `scripts/target-config-2026-09.json`), which is how the Menufy line-scoped range targets below were loaded — checking `seed.ts` alone will miss them. If either file has changed since it was last verified against, re-verify this table before trusting it.
 
 This is a reference document, not application code. It exists so that "what does this metric actually mean" has one answer instead of needing to be re-derived from `compute-values.ts` every time. See `docs/METRIC_TRACEABILITY.md` for the full source→UI chain per metric.
 
@@ -25,6 +25,32 @@ This is a reference document, not application code. It exists so that "what does
 | Missing-data behavior | no `metricValues` row is written for a (employee, period) with zero non-null facts (`compute-values.ts:63`); UI shows `no_data` status, not 0 (`target-resolution.ts:77`) | same | same | same | same |
 | Freshness requirement | no explicit SLA is defined anywhere; the de facto rule is the Data Health page's >24h staleness flag (`data-freshness.tsx:26-28`) | same | same | same | same |
 | Assignment | POS (primary), Menufy (primary) | POS (primary) | POS (primary), Menufy (primary) | POS (secondary) | Menufy (primary) |
+
+## Range-target metrics (Menufy line-scoped, added 2026-09-17)
+
+Verified against the real database and `zendesk.ts` at commit `11adccc` on 2026-09-21 --
+these were not previously documented here.
+
+| Field | Tickets Resolved (Menufy line targets) | IB (Inbound) | OB (Outbound) |
+|---|---|---|---|
+| Key | `tickets_resolved` | `inbound_calls_offered` | `outbound_calls` |
+| Category | ticket_case_work | inbound_call | outbound_call |
+| Source system | Zendesk (ticket API) | Zendesk Talk | Zendesk Talk |
+| Source field(s) | same as the Live metrics table entry above | count of Talk call records with `direction === "inbound"` in the period | count of Talk call records with `direction === "outbound"` in the period |
+| Raw -> normalized transform | same as above | `aggregateCalls()`'s `inbound.length` (`zendesk.ts:269,274`) | `aggregateCalls()`'s `outbound.length` (`zendesk.ts:270,283`) |
+| `calculationType` | sum | sum | sum |
+| Unit | tickets | calls | calls |
+| Direction | higher_is_better | higher_is_better | neutral |
+| Menufy target (per line) | range: restaurant [75, 128], consumer [282, 443] | range: restaurant [52, 72], consumer [30, 52] | range: restaurant [35, 75], consumer [75, 112] |
+| Menufy target (no line set / not yet tagged) | falls back to the team-wide `minimum` target below -- see the caveat under the Live metrics table's `tickets_resolved` row | no team-wide fallback target exists | no team-wide fallback target exists |
+| POS target | unaffected -- `tickets_resolved`'s POS row above is untouched; IB/OB have no POS assignment at all | not assigned to POS | not assigned to POS |
+| Range semantics | on-target only strictly within [min, max]; below min is under-volume, above max is flagged too (see `target-resolution.ts`'s range branch) | same | same |
+
+`tickets_resolved`'s Menufy target in the Live metrics table above (`min 35 / warn 25`) is a
+real, still-present team-wide fallback row (`team_id` set, `line` null) -- but for the 19 of
+20 Menufy employees who have a `line` tagged, the range target above takes precedence per
+`target-resolution.ts`'s line-disqualification rule. The fallback only actually applies to an
+untagged employee.
 
 ## Defined but unassigned (2)
 
@@ -60,6 +86,12 @@ root cause rather than assumed without checking.
 
 ## Not a metric source
 
-**Entra ID (Microsoft Graph)** contributes no metric values. It performs identity verification (admin-confirmed employee↔Entra account matching) and a daily account-disabled check for departure detection. See `docs/METRIC_TRACEABILITY.md`.
+**Entra ID (Microsoft)** contributes no metric values. Live today only as the SSO
+authentication provider (`src/lib/auth/index.ts`). The identity-verification / daily
+account-disabled check described in earlier versions of this doc is not actually
+implemented -- verified 2026-09-21: no connector or sync code for an `"entra"` data source
+type exists anywhere in `src/lib`, and no such row exists in the real database (only
+`zendesk` and `assembled`). `data-health/page.tsx` has a dead UI branch for it. See
+`docs/INTEGRATIONS.md`.
 
 **Rippling** has no connector code. A static "Open in Rippling" link-out button exists via `RIPPLING_MANAGER_URL`. It contributes no metric values.

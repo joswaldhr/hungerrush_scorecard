@@ -11,6 +11,12 @@ Home (`page.tsx`) redirects to `/team`. The standalone Employee route was remove
 below predate several rounds of changes to `zendesk.ts` and should be re-verified against the
 current file before trusting exact line numbers.
 
+Since 2026-09-17, two more steps sit in every chain below, between `metricValues` and the UI
+layer, regardless of which metric: `target-resolution.ts`'s `scoreCandidate` disqualifies a
+target whose `line` doesn't match the employee's line before any other scoring, and a
+`MetricVisibilityOverride` check (`visibility-resolution.ts`) can hide a row entirely,
+independent of whether a value exists.
+
 ## Tickets Resolved
 
 ```
@@ -20,7 +26,7 @@ Zendesk ticket status (solved/closed count, updated in period)
   → compute-values.ts groups by (employeeId, periodStart, periodEnd), calculationType "sum"
   → aggregateSourceValues() sums the group → metricValues row
   → target-resolution.ts resolveTarget() + evaluateStatus() (minimum, higher_is_better)
-  → Home / Team / Employee / 1:1 list, via getEmployeeMetrics(Batch)
+  → Team / 1:1 detail / 1:1 list, via getEmployeeMetrics(Batch)
 ```
 
 ## Avg Handle Time
@@ -32,7 +38,7 @@ Zendesk full_resolution_time_in_minutes.business, tickets created in period
   → zendesk.ts:358-371 normalizeRecords() → normalizedFacts.factType = "avg_handle_time"
   → compute-values.ts, calculationType "average"
   → metricValues → target-resolution.ts (maximum, lower_is_better)
-  → Home / Team / Employee / 1:1 list
+  → Team / 1:1 detail / 1:1 list
 ```
 
 ## CSAT Score
@@ -44,7 +50,7 @@ Zendesk satisfaction_ratings.score (good/bad) for the assignee
   → zendesk.ts:402-415 normalizeRecords() → normalizedFacts.factType = "csat_score"
   → compute-values.ts, calculationType "average"
   → metricValues → target-resolution.ts (minimum, higher_is_better)
-  → Home / Team / Employee / 1:1 list
+  → Team / 1:1 detail / 1:1 list
 ```
 
 ## Backlog
@@ -55,7 +61,7 @@ Zendesk open ticket count (status<solved), current week only
   → zendesk.ts:386-399 normalizeRecords() → normalizedFacts.factType = "backlog_count"
   → compute-values.ts, calculationType "latest"
   → metricValues → target-resolution.ts (maximum, lower_is_better)
-  → Home / Team / Employee / 1:1 list (POS only — not assigned to Menufy)
+  → Team / 1:1 detail / 1:1 list (POS only — not assigned to Menufy)
 ```
 
 ## Avg Response Time
@@ -67,8 +73,29 @@ Zendesk reply_time_in_minutes.business, tickets created in period
   → zendesk.ts:372-385 normalizeRecords() → normalizedFacts.factType = "avg_response_time"
   → compute-values.ts, calculationType "average"
   → metricValues → target-resolution.ts (maximum, lower_is_better)
-  → Home / Team / Employee / 1:1 list (Menufy only — not assigned to POS)
+  → Team / 1:1 detail / 1:1 list (Menufy only — not assigned to POS)
 ```
+
+## IB (Inbound) / OB (Outbound) calls (Menufy-only, range targets)
+
+Not previously documented here. See `docs/METRIC_REGISTRY.md`'s "Range-target metrics" table
+for the target values themselves.
+
+```
+Zendesk Talk call records for the period
+  → zendesk.ts:268-289 aggregateCalls() -- inbound.length / outbound.length
+    (filtered by call.direction === "inbound" / "outbound")
+  → zendesk.ts:699-727 normalizeRecords() -> normalizedFacts.factType =
+    "inbound_calls_offered" / "outbound_calls"
+  → compute-values.ts groups by (employeeId, periodStart, periodEnd), calculationType "sum"
+  → metricValues → target-resolution.ts resolveTarget() (range, line-scoped: restaurant vs.
+    consumer resolve to different [min, max] bounds) + evaluateStatus()
+  → Team / 1:1 detail / 1:1 list
+```
+
+`tickets_resolved`'s chain above is unchanged in shape, but its `target-resolution.ts` step
+now also resolves a line-scoped range target for Menufy employees, not just the POS/Menufy
+team-wide minimum targets shown in the original diagram.
 
 ## Where the chain breaks for the 2 unassigned metrics
 
@@ -78,6 +105,11 @@ Zendesk reply_time_in_minutes.business, tickets created in period
 
 ## Not part of this chain
 
-**Entra ID (Microsoft Graph)** never writes a `normalizedFacts` row and is not a `sourceStrategy` any metric definition uses. It performs two unrelated things: (1) admin-driven identity verification (`src/app/(app)/admin/entra-identities`) matching an employee to a real Entra account by name search, never by guessing email; (2) a daily `accountEnabled` check (`entra-check.ts`) against verified identities, feeding `roster_candidates` for departure review. Neither touches `metricValues`.
+**Entra ID (Microsoft)** never writes a `normalizedFacts` row and is not a `sourceStrategy`
+any metric definition uses. Live today only as the SSO authentication provider
+(`src/lib/auth/index.ts`) -- an identity-verification/departure-check role was described in
+earlier versions of this doc but is not actually implemented (verified 2026-09-21: no
+connector/sync code or database row for an `"entra"` data source exists; `data-health/page.tsx`
+has a dead UI branch for it). See `docs/INTEGRATIONS.md`.
 
 **Rippling** contributes nothing to this chain — no connector code exists. Only a "Open in Rippling" link-out via `RIPPLING_MANAGER_URL`.

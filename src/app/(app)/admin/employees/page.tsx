@@ -1,20 +1,17 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { isPlatformAdmin } from "@/lib/auth/authorization";
+import { requireAdmin } from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
 import { employees, teams, organizations } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { createEmployee } from "../roster-actions";
 
 export default async function AdminEmployeesPage() {
-  const session = await auth();
-  if (!session?.user?.email) redirect("/login");
-  if (!(await isPlatformAdmin(session.user.email))) redirect("/");
+  const admin = await requireAdmin();
 
   const [allEmployees, allTeams, allOrgs] = await Promise.all([
-    db.select().from(employees),
-    db.select().from(teams),
-    db.select().from(organizations),
+    db.select().from(employees).where(eq(employees.organizationId, admin.organizationId)),
+    db.select().from(teams).where(eq(teams.organizationId, admin.organizationId)),
+    db.select().from(organizations).where(eq(organizations.id, admin.organizationId)),
   ]);
 
   const teamNameById = new Map(allTeams.map((t) => [t.id, t.name]));

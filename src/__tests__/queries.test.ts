@@ -8,7 +8,7 @@
 // visibility-resolution.ts) already have unit coverage; this file covers the
 // integration/query-composition layer those units get wired into.
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { db } from "@/lib/db";
 import {
   organizations,
@@ -24,6 +24,12 @@ import {
 import { eq, inArray } from "drizzle-orm";
 import { getEmployeeMetricsBatch } from "@/lib/domain/metrics/queries";
 import type { ManagerContext } from "@/lib/auth/authorization";
+
+// queries.ts imports assertCanAccessEmployee from authorization.ts, which
+// (as of 2026-09-21's requireAdmin()) imports next-auth's auth() directly --
+// the real module fails to resolve under Vitest. Mocked purely so this
+// file's module graph loads; nothing here calls auth() itself.
+vi.mock("@/lib/auth", () => ({ auth: async () => null }));
 
 const ORG_ID = "99999999-0000-4000-8000-000000000201";
 const MENUFY_TEAM_ID = "99999999-0000-4000-8000-000000000202";

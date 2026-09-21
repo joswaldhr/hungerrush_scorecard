@@ -49,7 +49,9 @@ ManagerAssignment
 - id
 - manager_user_id
 - team_id
-- employee_id
+- employee_id (an assignment with `employee_id` set and `team_id` null scopes a manager --
+  typically a sub-manager -- to just that employee, without granting access to that employee's
+  whole team; see `getVisibleTeamsForManager` in docs/ARCHITECTURE.md's Authorization Model)
 - assignment_type
 - effective_from
 - effective_to
@@ -327,8 +329,9 @@ RosterCandidate
 - external_email
 - external_display_name
 - team_id
-- change_type (new_hire | departure)
-- status (pending | approved | rejected)
+- change_type (new | departed)
+- status (pending | approved | rejected | auto_approved -- written directly by roster
+  auto-approval's circuit breaker, see `reconcile.ts`, never by a human review action)
 - reviewed_by
 - reviewed_at
 

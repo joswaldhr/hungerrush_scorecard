@@ -46,6 +46,7 @@ src/
         employees/, employees/[id]/  # Employee detail (admin-scoped)
         teams/                 # Team management
         roster-review/         # Roster candidate approval/rejection
+        metric-visibility/     # Three-tier metric visibility overrides (global default / manager / scorecard)
     api/
       auth/[...nextauth]/route.ts
       cron/sync/route.ts       # Vercel Cron: 4 staggered weekly sync legs
@@ -91,11 +92,20 @@ Cadence owns the canonical employee identity. External systems map to it through
 
 ### Metrics
 
-MetricDefinition, MetricAssignment, MetricTarget, MetricValue, MetricObservation.
+MetricDefinition, MetricAssignment, MetricTarget, MetricValue, MetricObservation, MetricVisibilityOverride.
 
 Metric definitions are data-driven and versioned. Different teams can have different metric sets. Targets resolve through a deterministic priority chain (employee-specific > role > team > org default). Calculations use typed strategies, not arbitrary executable formulas. Historical values are persisted, never recomputed in place.
 
 The `MetricStatus` TypeScript type (computed at query time, not a DB column) includes a `no_data` value distinct from `off_target` — a metric with no recorded value for a period is never silently evaluated as if it were zero.
+
+Targets can additionally be scoped to a **line** (a sub-division within a team, e.g. Menufy
+Support's Restaurant/Consumer split; null for POS) and can be a **range** target
+(`targetMin`/`targetMax`, on-target only strictly between the two) instead of a single
+minimum/maximum/exact value. A separate `MetricVisibilityOverride` table controls whether a
+metric is shown at all, independent of whether it has a value, with three-tier precedence
+(`global_default` -> `manager_override` -> `scorecard_override`, most specific wins), scoped
+by team+line so a Menufy-only hide can never leak into POS. Managed via
+`/admin/metric-visibility`.
 
 ### Briefings
 
@@ -139,7 +149,7 @@ Zendesk API    ------>  zendesk connector  -+
                                             Server Components
                                             (auth-gated queries)
                                                     |
-                                            Home / Team / Employee / 1:1
+                                            Team / 1:1s (Home redirects to Team)
 ```
 
 1. **Ingest**: Connectors call vendor APIs, triggered on a daily schedule (Vercel Cron, 4 staggered legs at 6:00/6:15/6:30/6:45 UTC, one week-offset per leg) and manually via the Data Health page's "Sync now" button (rate-limited server-side, scoped to week 0). Raw responses are stored as SourceRecords with full payload and provenance.
@@ -170,7 +180,9 @@ Organization
 - Every data query filters by the authenticated user's assignments.
 - Employees outside the manager's assignment scope are invisible (out-of-scope ids 404 rather than leaking existence).
 - `src/proxy.ts` (the Next.js 16 successor to `middleware.ts`) protects all routes under `(app)/`; the login page and auth API routes are public.
-- A platform admin with no assignment of their own can additionally resolve another manager's real `ManagerContext` via the `cadence_view_as` cookie — see People above.
+- A platform admin with no assignment of their own can additionally resolve another manager's real `ManagerContext` via the `cadence_view_as` cookie — see People above. The view-as lookup only resolves a target user within the admin's own `organizationId` -- a platform admin cannot view as a manager in a different organization.
+- A manager's access can come entirely from individual `ManagerAssignment.employee_id` rows with no team-level assignment at all (a sub-manager who owns a slice of a larger team, not the whole team) -- in that case `ctx.assignedTeamIds` is empty even though the manager has real employees to see. `getVisibleTeamsForManager()` (`src/lib/auth/authorization.ts`) derives the teams to actually render from the manager's assigned employees' own `primaryTeamId`, so `team/page.tsx`, `one-on-ones/page.tsx`, and `reconciliation/page.tsx` render correctly for a sub-manager instead of requiring at least one whole-team assignment.
+- `requireAdmin()` (`src/lib/auth/authorization.ts`) is the single shared helper every admin page/action uses to gate access and to scope its own queries to the admin's `organizationId` -- admin pages are not implicitly global across every organization.
 
 Production authentication uses Microsoft Entra ID SSO configured through Auth.js; if its env vars are absent in production, the app now refuses to start rather than booting with no working sign-in method. The Credentials provider (synthetic dev users) is hard-disabled in production regardless.
 
@@ -212,6 +224,16 @@ Fuzzy name matching alone is not permitted. In practice, the live Zendesk/Assemb
 - Retryable: partial failures are recoverable.
 - Observable: SyncRun status, record counts, errors, and freshness are queryable via Data Health.
 - Non-blocking: sync failures do not take down the manager UI.
+
+### Roster discovery
+
+`discoverRosterCandidates()` (`src/lib/domain/roster/reconcile.ts`) diffs a connector's live
+group membership against known `ExternalIdentity` rows. New-hire candidates are
+**auto-approved** (employee/identity/team-membership rows created immediately) unless a
+circuit breaker trips -- more than 5 absolute new candidates, or more than 30% of the active
+mapped-team roster in one run -- in which case the whole batch falls back to `pending` for
+manual review via `/admin/roster-review`. Departures are never auto-processed; a departed
+identity is always written as a `pending` roster candidate for a human to approve.
 
 ### Connector status
 

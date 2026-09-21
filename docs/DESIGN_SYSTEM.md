@@ -49,10 +49,7 @@ Home redirects to Team (no standalone Home page currently).
 Team:
 Efficient / scannable / comparative.
 
-Employee:
-Analytical / contextual / detailed.
-
-1:1 Preparation:
+1:1s:
 Calm / distilled / meeting-focused.
 
 ## Components
@@ -73,11 +70,16 @@ Reusable components in `src/components/`:
 - ErrorState
 - ViewAsBanner
 
+Route-local admin components (not shared, live beside the page that uses them):
+- VisibilityEditor (`src/app/(app)/admin/metric-visibility/`) — the bulk metric-visibility form
+
 UI primitives in `src/components/ui/` (shadcn/Radix):
 - Avatar
 - Badge
 - Button
 - Card
+- Dialog
+- RadioGroup
 - Separator
 - Skeleton
 

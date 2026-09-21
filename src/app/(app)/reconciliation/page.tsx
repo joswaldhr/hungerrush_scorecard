@@ -1,6 +1,10 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getEffectiveManagerContext } from "@/lib/auth/authorization";
+import {
+  getEffectiveManagerContext,
+  getAssignedEmployees,
+  getVisibleTeamsForManager,
+} from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
 import {
   reconciliationRuns,
@@ -91,7 +95,12 @@ export default async function ReconciliationPage() {
     latestResults = allResults.filter((r) => assignedIds.has(r.employeeId));
   }
 
-  const managedTeamIds = ctx.assignedTeamIds;
+  // Not just ctx.assignedTeamIds -- a sub-manager's access can come entirely
+  // from individual employee assignments (see getVisibleTeamsForManager),
+  // and they still need their own team to appear as a reconciliation option.
+  const assignedEmployees = await getAssignedEmployees(ctx);
+  const visibleTeams = await getVisibleTeamsForManager(ctx, assignedEmployees);
+  const managedTeamIds = visibleTeams.map((t) => t.id);
 
   return (
     <div className="max-w-4xl space-y-6">

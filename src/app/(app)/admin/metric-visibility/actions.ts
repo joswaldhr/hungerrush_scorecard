@@ -1,20 +1,15 @@
 "use server";
 
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { isPlatformAdmin, getUserIdByEmail } from "@/lib/auth/authorization";
+import { requireAdmin } from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
-import { metricVisibilityOverrides, teamMemberships, managerAssignments } from "@/lib/db/schema";
+import {
+  metricVisibilityOverrides,
+  teamMemberships,
+  managerAssignments,
+  employees,
+} from "@/lib/db/schema";
 import { eq, and, isNull, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-
-async function requireAdmin(): Promise<string> {
-  const session = await auth();
-  if (!session?.user?.email || !(await isPlatformAdmin(session.user.email))) {
-    redirect("/");
-  }
-  return session!.user!.email!;
-}
 
 export interface SetVisibilityInput {
   scope: "global_default" | "manager_override" | "scorecard_override";
@@ -27,9 +22,7 @@ export interface SetVisibilityInput {
 }
 
 export async function setVisibilityOverride(input: SetVisibilityInput): Promise<void> {
-  const email = await requireAdmin();
-  const hiddenBy = await getUserIdByEmail(email);
-  if (!hiddenBy) redirect("/");
+  const { userId: hiddenBy } = await requireAdmin();
 
   const existing = await db
     .select({ id: metricVisibilityOverrides.id })
@@ -121,5 +114,16 @@ export async function getManagerScorecardCount(managerUserId: string): Promise<n
     teamEmployeeIds = memberships.map((m) => m.employeeId);
   }
 
-  return new Set([...teamEmployeeIds, ...directEmployeeIds]).size;
+  const allEmployeeIds = [...new Set([...teamEmployeeIds, ...directEmployeeIds])];
+  if (allEmployeeIds.length === 0) return 0;
+
+  // Match getAssignedEmployees' convention -- don't count a since-deactivated
+  // employee toward "scorecards affected", or the confirmation dialog
+  // overstates the real impact of a bulk hide.
+  const activeEmployees = await db
+    .select({ id: employees.id })
+    .from(employees)
+    .where(and(inArray(employees.id, allEmployeeIds), eq(employees.employmentStatus, "active")));
+
+  return activeEmployees.length;
 }

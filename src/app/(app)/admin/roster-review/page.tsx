@@ -1,9 +1,7 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { isPlatformAdmin } from "@/lib/auth/authorization";
+import { requireAdmin } from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
 import { dataSources, rosterSourceTeamMappings, rosterCandidates, teams } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import {
   addGroupMapping,
   removeGroupMapping,
@@ -14,16 +12,32 @@ import {
 } from "./actions";
 
 export default async function RosterReviewPage() {
-  const session = await auth();
-  if (!session?.user?.email) redirect("/login");
-  if (!(await isPlatformAdmin(session.user.email))) redirect("/");
+  const admin = await requireAdmin();
 
-  const [allSources, allMappings, pendingCandidates, allTeams] = await Promise.all([
-    db.select().from(dataSources),
-    db.select().from(rosterSourceTeamMappings),
-    db.select().from(rosterCandidates).where(eq(rosterCandidates.status, "pending")),
-    db.select().from(teams),
+  const [allSources, allTeams] = await Promise.all([
+    db.select().from(dataSources).where(eq(dataSources.organizationId, admin.organizationId)),
+    db.select().from(teams).where(eq(teams.organizationId, admin.organizationId)),
   ]);
+  const sourceIds = allSources.map((s) => s.id);
+
+  const [allMappings, pendingCandidates] =
+    sourceIds.length > 0
+      ? await Promise.all([
+          db
+            .select()
+            .from(rosterSourceTeamMappings)
+            .where(inArray(rosterSourceTeamMappings.dataSourceId, sourceIds)),
+          db
+            .select()
+            .from(rosterCandidates)
+            .where(
+              and(
+                eq(rosterCandidates.status, "pending"),
+                inArray(rosterCandidates.dataSourceId, sourceIds)
+              )
+            ),
+        ])
+      : [[], []];
 
   const teamNameById = new Map(allTeams.map((t) => [t.id, t.name]));
   const newCandidates = pendingCandidates.filter((c) => c.changeType === "new");

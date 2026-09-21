@@ -1,8 +1,6 @@
 "use server";
 
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { isPlatformAdmin } from "@/lib/auth/authorization";
+import { requireAdmin } from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
 import {
   rosterSourceTeamMappings,
@@ -21,14 +19,6 @@ import { discoverRosterCandidates } from "@/lib/domain/roster/reconcile";
 const CONNECTORS: Record<string, () => Connector> = {
   zendesk: () => new ZendeskConnector(),
 };
-
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user?.email || !(await isPlatformAdmin(session.user.email))) {
-    redirect("/");
-  }
-  return session!.user!.email!;
-}
 
 export async function addGroupMapping(formData: FormData) {
   await requireAdmin();

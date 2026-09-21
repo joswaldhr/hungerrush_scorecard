@@ -4,6 +4,13 @@ import { useState } from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { setVisibilityOverride, getManagerScorecardCount } from "./actions";
+import {
+  buildTeamLinePairs,
+  isValidVisibilitySelection,
+  type Scope,
+  type BrandTop,
+  type BrandSecond,
+} from "./visibility-logic";
 
 interface MetricOption {
   id: string;
@@ -28,10 +35,6 @@ interface VisibilityEditorProps {
   menufyTeamId: string;
   posTeamId: string;
 }
-
-type Scope = "scorecard_override" | "manager_override" | "global_default";
-type BrandTop = "menufy" | "pos" | "both";
-type BrandSecond = "restaurant" | "consumer" | "both";
 
 export function VisibilityEditor({
   metrics,
@@ -59,33 +62,19 @@ export function VisibilityEditor({
   }
 
   const needsSecondTier = brandTop === "menufy" || brandTop === "both";
-  const isValid =
-    metricDefinitionId !== "" &&
-    brandTop !== "" &&
-    (!needsSecondTier || brandSecond !== "") &&
-    (scope !== "scorecard_override" || targetEmployeeId !== "") &&
-    (scope !== "manager_override" || managerUserId !== "");
-
-  function buildTeamLinePairs(): { teamId: string; line: string | null }[] {
-    const pairs: { teamId: string; line: string | null }[] = [];
-    if (brandTop === "menufy" || brandTop === "both") {
-      if (brandSecond === "both") {
-        pairs.push({ teamId: menufyTeamId, line: "restaurant" });
-        pairs.push({ teamId: menufyTeamId, line: "consumer" });
-      } else if (brandSecond) {
-        pairs.push({ teamId: menufyTeamId, line: brandSecond });
-      }
-    }
-    if (brandTop === "pos" || brandTop === "both") {
-      pairs.push({ teamId: posTeamId, line: null });
-    }
-    return pairs;
-  }
+  const isValid = isValidVisibilitySelection({
+    metricDefinitionId,
+    brandTop,
+    brandSecond,
+    scope,
+    targetEmployeeId,
+    managerUserId,
+  });
 
   async function commit() {
     setSubmitting(true);
     try {
-      const pairs = buildTeamLinePairs();
+      const pairs = buildTeamLinePairs(brandTop, brandSecond, menufyTeamId, posTeamId);
       for (const pair of pairs) {
         await setVisibilityOverride({
           scope,
@@ -205,7 +194,10 @@ export function VisibilityEditor({
           <RadioGroup value={brandSecond} onValueChange={(v) => setBrandSecond(v as BrandSecond)}>
             <RadioGroupItem value="restaurant">Restaurant</RadioGroupItem>
             <RadioGroupItem value="consumer">Consumer</RadioGroupItem>
-            <RadioGroupItem value="both">Both</RadioGroupItem>
+            <RadioGroupItem value="both">Restaurant + Consumer</RadioGroupItem>
+            <RadioGroupItem value="all">
+              All lines (also covers employees not yet tagged with a line)
+            </RadioGroupItem>
           </RadioGroup>
         </div>
       )}

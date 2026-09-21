@@ -1,5 +1,7 @@
 import { cache } from "react";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { users, teams, employees, managerAssignments, teamMemberships } from "@/lib/db/schema";
 import { eq, and, isNull, inArray } from "drizzle-orm";
@@ -110,7 +112,12 @@ export const getEffectiveManagerContext = cache(async function getEffectiveManag
     .from(users)
     .where(and(eq(users.id, viewAsUserId), eq(users.status, "active")))
     .limit(1);
-  if (!targetUser) return { ctx: null, isPlatformAdmin: true, viewingAs: null };
+  // A platform admin can only view as a manager within their own
+  // organization -- being an admin doesn't mean being a super-admin across
+  // every organization once more than one exists.
+  if (!targetUser || targetUser.organizationId !== user.organizationId) {
+    return { ctx: null, isPlatformAdmin: true, viewingAs: null };
+  }
 
   const targetCtx = await buildManagerContext(targetUser);
   if (!targetCtx) return { ctx: null, isPlatformAdmin: true, viewingAs: null };
@@ -129,7 +136,7 @@ export interface ManagerOption {
   teamNames: string[];
 }
 
-export async function listManagersForViewAs(): Promise<ManagerOption[]> {
+export async function listManagersForViewAs(organizationId: string): Promise<ManagerOption[]> {
   const rows = await db
     .select({
       userId: users.id,
@@ -140,7 +147,13 @@ export async function listManagersForViewAs(): Promise<ManagerOption[]> {
     .from(managerAssignments)
     .innerJoin(users, eq(managerAssignments.managerUserId, users.id))
     .leftJoin(teams, eq(managerAssignments.teamId, teams.id))
-    .where(and(isNull(managerAssignments.effectiveTo), eq(users.status, "active")));
+    .where(
+      and(
+        isNull(managerAssignments.effectiveTo),
+        eq(users.status, "active"),
+        eq(users.organizationId, organizationId)
+      )
+    );
 
   const byUser = new Map<string, ManagerOption>();
   for (const row of rows) {
@@ -196,6 +209,26 @@ export const getAssignedEmployees = cache(async function getAssignedEmployees(ct
 export async function getUserIdByEmail(email: string): Promise<string | null> {
   const user = await getActiveUserByEmail(email);
   return user?.id ?? null;
+}
+
+export interface AdminIdentity {
+  userId: string;
+  email: string;
+  organizationId: string;
+}
+
+/**
+ * Redirects to "/" unless the session belongs to an active platform admin.
+ * Returns the admin's own identity (including organizationId) so callers can
+ * scope their own queries/writes to it rather than reading/writing across
+ * every organization.
+ */
+export async function requireAdmin(): Promise<AdminIdentity> {
+  const session = await auth();
+  const email = session?.user?.email;
+  const user = email ? await getActiveUserByEmail(email) : null;
+  if (!user?.isPlatformAdmin) redirect("/");
+  return { userId: user.id, email: user.email, organizationId: user.organizationId };
 }
 
 export function assertCanAccessEmployee(ctx: ManagerContext, employeeId: string): void {

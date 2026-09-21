@@ -1,7 +1,5 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import {
-  isPlatformAdmin,
+  requireAdmin,
   listManagersForViewAs,
   getEffectiveManagerContext,
 } from "@/lib/auth/authorization";
@@ -13,15 +11,11 @@ import { setViewAs, clearViewAs } from "./actions";
 import { initials } from "@/lib/utils";
 
 export default async function AdminPage() {
-  const session = await auth();
-  if (!session?.user?.email) redirect("/login");
-
-  const isAdmin = await isPlatformAdmin(session.user.email);
-  if (!isAdmin) redirect("/");
+  const admin = await requireAdmin();
 
   const [{ viewingAs }, managers] = await Promise.all([
-    getEffectiveManagerContext(session.user.email),
-    listManagersForViewAs(),
+    getEffectiveManagerContext(admin.email),
+    listManagersForViewAs(admin.organizationId),
   ]);
 
   return (

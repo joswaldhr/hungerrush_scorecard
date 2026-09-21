@@ -164,6 +164,34 @@ describe("resolveVisibility", () => {
     expect(resolveVisibility(candidates, EMP_ID, [MANAGER_ID], MENUFY_TEAM_ID, null)).toBe(false);
   });
 
+  it("a team-only override and a line-only override at the same scope are equally specific (a genuine tie, not a team-always-wins hierarchy) -- fixed 2026-09-21, see FOLLOWUPS.md item 15/audit findings: teamId and line are independent scoping axes, not a hierarchy", () => {
+    const teamOnly = {
+      scope: "global_default" as const,
+      managerUserId: null,
+      targetEmployeeId: null,
+      teamId: MENUFY_TEAM_ID,
+      line: null,
+      hidden: true,
+    };
+    const lineOnly = {
+      scope: "global_default" as const,
+      managerUserId: null,
+      targetEmployeeId: null,
+      teamId: null,
+      line: "restaurant",
+      hidden: false,
+    };
+    // Under the old (2 for teamId, 1 for line) weighting, teamOnly would
+    // always win regardless of array order. Now they tie, so array order
+    // (whichever appears first) decides -- neither axis is privileged.
+    expect(
+      resolveVisibility([teamOnly, lineOnly], EMP_ID, [MANAGER_ID], MENUFY_TEAM_ID, "restaurant")
+    ).toBe(true);
+    expect(
+      resolveVisibility([lineOnly, teamOnly], EMP_ID, [MANAGER_ID], MENUFY_TEAM_ID, "restaurant")
+    ).toBe(false);
+  });
+
   it("a team-scoped override beats a team-blanket override at the same scope", () => {
     const candidates = [
       {

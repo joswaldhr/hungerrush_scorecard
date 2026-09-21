@@ -12,7 +12,7 @@ import {
   teamMemberships,
   managerAssignments,
 } from "@/lib/db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 
 let mockViewAsCookie: string | undefined;
 vi.mock("next/headers", () => ({
@@ -24,6 +24,14 @@ vi.mock("next/headers", () => ({
   }),
 }));
 
+// requireAdmin() (added 2026-09-21) calls next-auth's auth() directly from
+// authorization.ts -- importing the real module fails to resolve under
+// Vitest ("Cannot find module '.../next-auth/.../next/server'"), the same
+// issue metric-visibility-actions.test.ts already works around. Mocked here
+// purely so this file's module graph loads; no test below exercises
+// requireAdmin's actual session, so the return value is never asserted on.
+vi.mock("@/lib/auth", () => ({ auth: async () => null }));
+
 const {
   getManagerContext,
   getEffectiveManagerContext,
@@ -31,6 +39,8 @@ const {
   assertCanAccessEmployee,
   assertCanAccessTeam,
   listManagersForViewAs,
+  getAssignedEmployees,
+  getVisibleTeamsForManager,
 } = await import("@/lib/auth/authorization");
 
 const ORG_ID = "99999999-0000-4000-8000-000000000001";
@@ -38,18 +48,30 @@ const TEAM_ID = "99999999-0000-4000-8000-000000000002";
 const OTHER_TEAM_ID = "99999999-0000-4000-8000-000000000003";
 const EMPLOYEE_ID = "99999999-0000-4000-8000-000000000004";
 const OTHER_EMPLOYEE_ID = "99999999-0000-4000-8000-000000000005";
+// A second organization, entirely separate from ORG_ID, to prove admin
+// operations (view-as, listManagersForViewAs) can't cross the org boundary.
+const OTHER_ORG_ID = "99999999-0000-4000-8000-000000000006";
+const OTHER_ORG_TEAM_ID = "99999999-0000-4000-8000-000000000007";
 
 const MANAGER_ID = "99999999-0000-4000-8000-0000000000a1";
 const ADMIN_ID = "99999999-0000-4000-8000-0000000000a2";
 const OUTSIDER_ID = "99999999-0000-4000-8000-0000000000a3";
 const INACTIVE_MANAGER_ID = "99999999-0000-4000-8000-0000000000a4";
 const ADMIN_WITH_OWN_TEAM_ID = "99999999-0000-4000-8000-0000000000a5";
+const OTHER_ORG_MANAGER_ID = "99999999-0000-4000-8000-0000000000a6";
+// A sub-manager whose access comes entirely from an employee-level
+// assignment, no team-level grant at all -- the real shape Jacob Murray,
+// James Maynard, and Norvel Crawford have in production (see FOLLOWUPS.md
+// item 16).
+const SUB_MANAGER_ID = "99999999-0000-4000-8000-0000000000a7";
 
 const MANAGER_EMAIL = "test-manager@test.cadence.internal";
 const ADMIN_EMAIL = "test-admin@test.cadence.internal";
 const OUTSIDER_EMAIL = "test-outsider@test.cadence.internal";
 const INACTIVE_MANAGER_EMAIL = "test-inactive@test.cadence.internal";
 const ADMIN_WITH_OWN_TEAM_EMAIL = "test-admin-own-team@test.cadence.internal";
+const OTHER_ORG_MANAGER_EMAIL = "test-other-org-manager@test.cadence.internal";
+const SUB_MANAGER_EMAIL = "test-sub-manager@test.cadence.internal";
 
 const ALL_TEST_USER_IDS = [
   MANAGER_ID,
@@ -57,6 +79,8 @@ const ALL_TEST_USER_IDS = [
   OUTSIDER_ID,
   INACTIVE_MANAGER_ID,
   ADMIN_WITH_OWN_TEAM_ID,
+  OTHER_ORG_MANAGER_ID,
+  SUB_MANAGER_ID,
 ];
 
 async function cleanup() {
@@ -68,17 +92,26 @@ async function cleanup() {
     .delete(teamMemberships)
     .where(inArray(teamMemberships.employeeId, [EMPLOYEE_ID, OTHER_EMPLOYEE_ID]));
   await db.delete(employees).where(inArray(employees.id, [EMPLOYEE_ID, OTHER_EMPLOYEE_ID]));
-  await db.delete(teams).where(inArray(teams.id, [TEAM_ID, OTHER_TEAM_ID]));
-  await db.delete(organizations).where(eq(organizations.id, ORG_ID));
+  await db.delete(teams).where(inArray(teams.id, [TEAM_ID, OTHER_TEAM_ID, OTHER_ORG_TEAM_ID]));
+  await db.delete(organizations).where(inArray(organizations.id, [ORG_ID, OTHER_ORG_ID]));
 }
 
 beforeAll(async () => {
   await cleanup();
 
-  await db.insert(organizations).values({ id: ORG_ID, name: "Test Org" });
+  await db.insert(organizations).values([
+    { id: ORG_ID, name: "Test Org" },
+    { id: OTHER_ORG_ID, name: "Other Test Org" },
+  ]);
   await db.insert(teams).values([
     { id: TEAM_ID, organizationId: ORG_ID, name: "Test Team", slug: "test-team" },
     { id: OTHER_TEAM_ID, organizationId: ORG_ID, name: "Other Team", slug: "other-team" },
+    {
+      id: OTHER_ORG_TEAM_ID,
+      organizationId: OTHER_ORG_ID,
+      name: "Other Org Team",
+      slug: "other-org-team",
+    },
   ]);
   await db.insert(employees).values([
     {
@@ -130,6 +163,18 @@ beforeAll(async () => {
       displayName: "Test Admin With Own Team",
       isPlatformAdmin: true,
     },
+    {
+      id: OTHER_ORG_MANAGER_ID,
+      organizationId: OTHER_ORG_ID,
+      email: OTHER_ORG_MANAGER_EMAIL,
+      displayName: "Test Other Org Manager",
+    },
+    {
+      id: SUB_MANAGER_ID,
+      organizationId: ORG_ID,
+      email: SUB_MANAGER_EMAIL,
+      displayName: "Test Sub Manager",
+    },
   ]);
   await db.insert(managerAssignments).values([
     {
@@ -148,6 +193,20 @@ beforeAll(async () => {
       managerUserId: ADMIN_WITH_OWN_TEAM_ID,
       teamId: OTHER_TEAM_ID,
       assignmentType: "team",
+      effectiveFrom: "2020-01-01",
+    },
+    {
+      managerUserId: OTHER_ORG_MANAGER_ID,
+      teamId: OTHER_ORG_TEAM_ID,
+      assignmentType: "team",
+      effectiveFrom: "2020-01-01",
+    },
+    {
+      // Employee-only -- no teamId at all, the exact shape a real
+      // sub-manager has (see FOLLOWUPS.md item 16).
+      managerUserId: SUB_MANAGER_ID,
+      employeeId: EMPLOYEE_ID,
+      assignmentType: "employee",
       effectiveFrom: "2020-01-01",
     },
   ]);
@@ -251,6 +310,14 @@ describe("getEffectiveManagerContext", () => {
     expect(result.ctx).toBeNull();
     expect(result.viewingAs).toBeNull();
   });
+
+  it("a platform admin cannot view-as a manager in a different organization", async () => {
+    mockViewAsCookie = OTHER_ORG_MANAGER_ID;
+    const result = await getEffectiveManagerContext(ADMIN_EMAIL);
+    expect(result.ctx).toBeNull();
+    expect(result.isPlatformAdmin).toBe(true);
+    expect(result.viewingAs).toBeNull();
+  });
 });
 
 describe("assertCanAccessEmployee / assertCanAccessTeam", () => {
@@ -268,16 +335,55 @@ describe("assertCanAccessEmployee / assertCanAccessTeam", () => {
 });
 
 describe("listManagersForViewAs", () => {
-  it("includes active managers with a real assignment, not admins/outsiders", async () => {
-    const managers = await listManagersForViewAs();
+  it("includes active managers with a real assignment, not admins/outsiders/other orgs", async () => {
+    const managers = await listManagersForViewAs(ORG_ID);
     const ids = managers.map((m) => m.userId);
     expect(ids).toContain(MANAGER_ID);
     expect(ids).toContain(ADMIN_WITH_OWN_TEAM_ID);
     expect(ids).not.toContain(ADMIN_ID);
     expect(ids).not.toContain(OUTSIDER_ID);
     expect(ids).not.toContain(INACTIVE_MANAGER_ID);
+    expect(ids).not.toContain(OTHER_ORG_MANAGER_ID);
 
     const manager = managers.find((m) => m.userId === MANAGER_ID)!;
     expect(manager.teamNames).toContain("Test Team");
+  });
+
+  it("scopes strictly to the given organization", async () => {
+    const otherOrgManagers = await listManagersForViewAs(OTHER_ORG_ID);
+    const ids = otherOrgManagers.map((m) => m.userId);
+    expect(ids).toEqual([OTHER_ORG_MANAGER_ID]);
+  });
+});
+
+describe("getVisibleTeamsForManager", () => {
+  it("derives a team from an employee-only assignment when assignedTeamIds is empty", async () => {
+    const ctx = await getManagerContext(SUB_MANAGER_EMAIL);
+    expect(ctx).not.toBeNull();
+    // Employee-only assignment -- no whole-team grant at all, the exact gap
+    // getVisibleTeamsForManager exists to cover (see FOLLOWUPS.md item 16).
+    expect(ctx!.assignedTeamIds).toEqual([]);
+
+    const employees = await getAssignedEmployees(ctx!);
+    const visible = await getVisibleTeamsForManager(ctx!, employees);
+    expect(visible.map((t) => t.id)).toEqual([TEAM_ID]);
+  });
+
+  it("dedupes a team that's both directly assigned and reachable via an employee", async () => {
+    const ctx = await getManagerContext(MANAGER_EMAIL);
+    const employees = await getAssignedEmployees(ctx!); // EMPLOYEE_ID, primaryTeamId = TEAM_ID
+    const visible = await getVisibleTeamsForManager(ctx!, employees);
+    expect(visible).toHaveLength(1);
+    expect(visible[0]!.id).toBe(TEAM_ID);
+  });
+
+  it("returns an empty array, with no query, when there's nothing to derive", async () => {
+    const emptyCtx = {
+      userId: "unused",
+      organizationId: ORG_ID,
+      assignedTeamIds: [],
+      assignedEmployeeIds: [],
+    };
+    expect(await getVisibleTeamsForManager(emptyCtx, [])).toEqual([]);
   });
 });

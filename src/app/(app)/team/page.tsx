@@ -23,22 +23,53 @@ import {
 } from "lucide-react";
 import { weekDates } from "@/lib/utils";
 import { deriveOverallStatus } from "@/lib/domain/briefings/generate";
+import { formatMetricValue } from "@/lib/domain/metrics/types";
 import type { RosterRow } from "@/components/team-roster-table";
 import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
 
+// A metric's own resolved target is the natural scale to judge its baseline
+// against (rather than a hardcoded per-metric floor, which would violate this
+// project's "targets are data-driven" rule). Range targets use their
+// midpoint; other target types use whatever bound is set.
+function targetScale(target: EmployeeMetricRow["target"]): number | null {
+  if (!target) return null;
+  if (target.targetType === "range") {
+    if (target.targetMin !== null && target.targetMax !== null) {
+      return (target.targetMin + target.targetMax) / 2;
+    }
+    return target.targetMin ?? target.targetMax ?? null;
+  }
+  return target.targetValue ?? target.targetMin ?? target.targetMax ?? null;
+}
+
+// A percent change against a prior value that's small relative to the
+// metric's own target scale is mathematically real but practically
+// misleading (e.g. hold time going from 0.2s to 1.1s computes as "+450%").
+// Below this fraction of the target scale, show the absolute delta instead
+// of trusting the percentage.
+const MIN_BASELINE_FRACTION_OF_TARGET = 0.1;
+
 function findKeyChange(
   metrics: EmployeeMetricRow[]
-): { name: string; pct: number; subtitle: string } | null {
-  let best: { name: string; pct: number; subtitle: string } | null = null;
+): { name: string; pct: number; changeLabel: string; subtitle: string } | null {
+  let best: { name: string; pct: number; changeLabel: string; subtitle: string } | null = null;
   for (const m of metrics) {
     if (m.currentValue === null || m.previousValue === null || m.previousValue === 0) continue;
     const pct = ((m.currentValue - m.previousValue) / Math.abs(m.previousValue)) * 100;
-    if (best === null || Math.abs(pct) > Math.abs(best.pct)) {
-      const isHigher = m.direction === "higher_is_better";
-      const improved = (isHigher && pct > 0) || (!isHigher && pct < 0);
-      const subtitle = improved ? "Improving metric" : "Needs attention";
-      best = { name: m.name, pct, subtitle };
-    }
+    if (best !== null && Math.abs(pct) <= Math.abs(best.pct)) continue;
+
+    const isHigher = m.direction === "higher_is_better";
+    const improved = (isHigher && pct > 0) || (!isHigher && pct < 0);
+    const subtitle = improved ? "Improving metric" : "Needs attention";
+
+    const scale = targetScale(m.target);
+    const pctIsTrustworthy =
+      scale === null || Math.abs(m.previousValue) >= scale * MIN_BASELINE_FRACTION_OF_TARGET;
+    const changeLabel = pctIsTrustworthy
+      ? `${Math.abs(pct).toFixed(0)}%`
+      : `${formatMetricValue(Math.abs(m.currentValue - m.previousValue), m.unit, m.valueType)}`;
+
+    best = { name: m.name, pct, changeLabel, subtitle };
   }
   return best;
 }
@@ -202,6 +233,7 @@ export default async function TeamPage({
             ? {
                 name: keyChangeRaw.name,
                 pct: keyChangeRaw.pct,
+                changeLabel: keyChangeRaw.changeLabel,
                 subtitle: keyChangeRaw.subtitle,
                 improved: metrics.some(
                   (m) =>

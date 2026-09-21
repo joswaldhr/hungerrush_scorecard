@@ -21,6 +21,9 @@ Read these documents before implementing:
 - docs/DESIGN_SYSTEM.md
 - docs/INTEGRATIONS.md
 - docs/MVP.md
+- docs/METRIC_REGISTRY.md
+- docs/METRIC_TRACEABILITY.md
+- docs/BUILD_SPEC.md
 
 The product specification defines what Cadence should be.
 The architecture specification defines how the system should be structured.
@@ -51,26 +54,23 @@ If implementation details are ambiguous, preserve the product principles rather 
 
 ## Product UX
 
-The four core experiences are:
-
-Home:
-"What happened this week that I need to know?"
-Principle: Home summarizes.
+The two core experiences are (cut down from the original four in a 2026-09-03 stakeholder
+review — see docs/PRODUCT.md's revision note; Home and the standalone Employee screen were
+both removed, not merged):
 
 Team:
 "How is everyone doing?"
 Principle: Team compares.
 
-Employee:
-"What's actually going on with this person?"
-Principle: Employee explains.
-
-1:1 Preparation:
+1:1s:
 "What do I need to know before I meet this person?"
-Principle: 1:1 Preparation prepares.
+Principle: 1:1s prepares — with numbers, not narrative.
 
 The manager journey is:
-Home -> Team -> Employee -> 1:1 Preparation -> existing meeting workflow/Rippling.
+Team -> 1:1s -> existing meeting workflow/Rippling.
+
+Home exists only as a redirect to /team. There is no standalone Employee screen. Do not
+resurrect either without an explicit product decision.
 
 ## Visual Direction
 
@@ -177,8 +177,15 @@ It must:
   mocks/scripts use local server time, not UTC, which is a known divergence confined to
   dev/test fixtures. Reuse an existing UTC implementation (e.g. `zendesk.ts`'s `weekOf()`) —
   don't write a new one.
-- No error-monitoring/APM tool and no test coverage on the sync orchestration path
-  (`sync-engine.ts`, the cron/sync API routes). Treat this area as untested until that changes.
+- No error-monitoring/APM tool exists anywhere in the app (confirmed: no Sentry/Datadog/APM
+  dependency in `package.json`; `/api/client-error` only logs to server logs, no persistence
+  or alerting).
+- `sync-engine.ts`'s `runSync()` orchestration (fetch/publish/checkpoint, error handling,
+  weekOffset/pagination) has dedicated test coverage (`run-sync.test.ts`, `rate-limit.test.ts`,
+  added 2026-09-15). The HTTP route layer itself (`src/app/api/cron/sync/route.ts` — its
+  `CRON_SECRET` check, per-data-source error handling, roster-discovery gating) still has no
+  test file of its own — treat that specific layer as untested, not the orchestration logic
+  underneath it.
 - `csat_score` is a known, separately-broken metric (Zendesk data limitation, not a pipeline
   bug) — don't conflate it with sync pipeline work.
 - Any external HTTP call to Zendesk must have a timeout (`AbortSignal.timeout(...)`). One was
@@ -208,7 +215,10 @@ version:
 
 ## Current Build Constraint
 
-Zendesk, Assembled, and Entra ID integrations are live in production. Only Rippling remains a stub — use synthetic fixtures and adapters for Rippling until live access is confirmed.
+Zendesk and Entra ID integrations are live in production. Assembled was evaluated, then fully
+removed (connector code deleted 2026-09-03 — see docs/ARCHITECTURE.md's connector status
+table); do not assume it exists or try to wire anything into it. Rippling remains a stub — use
+synthetic fixtures and adapters for Rippling until live access is confirmed.
 
 Never invent API endpoints, credentials, scopes, or response fields for any vendor.
 

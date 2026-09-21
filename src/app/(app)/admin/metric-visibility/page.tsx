@@ -1,6 +1,4 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { isPlatformAdmin, listManagersForViewAs } from "@/lib/auth/authorization";
+import { requireAdmin, listManagersForViewAs } from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
 import {
   metricDefinitions,
@@ -9,25 +7,52 @@ import {
   teams,
   users,
 } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { VisibilityEditor } from "./visibility-editor";
 import { removeVisibilityOverride } from "./actions";
 
 export default async function MetricVisibilityPage() {
-  const session = await auth();
-  if (!session?.user?.email) redirect("/login");
-  if (!(await isPlatformAdmin(session.user.email))) redirect("/");
+  const admin = await requireAdmin();
 
-  const [allMetrics, allOverrides, allEmployees, allTeams, allUsers, managers] = await Promise.all([
-    db.select().from(metricDefinitions).where(eq(metricDefinitions.status, "active")),
-    db.select().from(metricVisibilityOverrides),
+  const [allMetrics, allTeams, allUsers, managers] = await Promise.all([
+    db
+      .select()
+      .from(metricDefinitions)
+      .where(
+        and(
+          eq(metricDefinitions.status, "active"),
+          eq(metricDefinitions.organizationId, admin.organizationId)
+        )
+      ),
+    db.select().from(teams).where(eq(teams.organizationId, admin.organizationId)),
+    db
+      .select({ id: users.id, displayName: users.displayName })
+      .from(users)
+      .where(eq(users.organizationId, admin.organizationId)),
+    listManagersForViewAs(admin.organizationId),
+  ]);
+
+  // metric_visibility_overrides has no organizationId column of its own (a
+  // documented, accepted gap -- see FOLLOWUPS.md) -- scope it transitively
+  // via the org-filtered metric definitions above, same pattern used
+  // elsewhere in this codebase for tables without a direct org column.
+  const metricIds = allMetrics.map((m) => m.id);
+  const [allOverrides, allEmployees] = await Promise.all([
+    metricIds.length > 0
+      ? db
+          .select()
+          .from(metricVisibilityOverrides)
+          .where(inArray(metricVisibilityOverrides.metricDefinitionId, metricIds))
+      : Promise.resolve([]),
     db
       .select({ id: employees.id, displayName: employees.displayName })
       .from(employees)
-      .where(eq(employees.employmentStatus, "active")),
-    db.select().from(teams),
-    db.select({ id: users.id, displayName: users.displayName }).from(users),
-    listManagersForViewAs(),
+      .where(
+        and(
+          eq(employees.employmentStatus, "active"),
+          eq(employees.organizationId, admin.organizationId)
+        )
+      ),
   ]);
 
   const menufyTeam = allTeams.find((t) => t.slug === "menufy-support");

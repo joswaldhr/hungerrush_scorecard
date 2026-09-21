@@ -116,6 +116,15 @@ li { margin: 0.2rem 0; }
 <h1>Cadence Rebuild Planning Report</h1>
 <p class="subtitle">Global 1:1 Scorecard + Production Metric Integrity — Audit & Implementation Plan<br>September 2, 2026</p>
 
+<div class="summary-box" style="border-left-color: var(--amber); background: var(--amber-bg);">
+<p><strong>Status note, added 2026-09-21 — read before trusting anything below.</strong> This report predates <code>FOLLOWUPS.md</code>'s entire history (which starts 2026-09-09) and was never cross-linked to it, so some findings here were independently rediscovered later without anyone realizing they were the same issue, and at least one is now stale. Only two findings were re-verified as part of a 2026-09-21 foundation audit:</p>
+<ul>
+<li><strong>TGT-01</strong> (<a href="#target">Target Risks</a>) — confirmed still real and current. Tracked as <code>FOLLOWUPS.md</code> item 15. One of its three sub-bugs (the <code>maximum</code> branch ignoring <code>direction</code>) was found to now have live, if currently harmless, exposure; all three were fixed 2026-09-21 (see <code>target-resolution.ts</code>'s <code>evaluateStatus</code>).</li>
+<li><strong>IDEM-01</strong> (<a href="#idempotency">Idempotency Risks</a>) — <strong>stale/fixed, contrary to what this report still shows.</strong> <code>sync-engine.ts</code> now upserts via <code>onConflictDoUpdate</code> with a real unique target, per the 2026-09-10 "batch the sync pipeline's writes" work (<code>FOLLOWUPS.md</code> item 5). Do not re-implement this fix.</li>
+</ul>
+<p>The remaining ~20 findings (SYNC-01 through DB-05, and the proposed-changes sections) were <strong>not</strong> re-verified in this pass — several may already be fixed by later work, and this report was never updated to say which. Before acting on anything below, check whether <code>FOLLOWUPS.md</code>/<code>HANDOFF.md</code> already cover it, and re-verify against current code rather than trusting this document's original 2026-09-02 claims.</p>
+</div>
+
 <div class="stat-grid">
   <div class="stat"><div class="stat-value">5</div><div class="stat-label">Working Metrics</div></div>
   <div class="stat"><div class="stat-value" style="color:var(--red)">1</div><div class="stat-label">Broken (CSAT)</div></div>

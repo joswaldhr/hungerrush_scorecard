@@ -32,6 +32,11 @@ The pilot targets two specific teams at HungerRush:
 
 These teams have different metrics, different targets, and different team sizes. One configurable platform must serve both without hard-coding either team's specific needs.
 
+A pilot team's manager may delegate to sub-managers who each own a slice of that team's
+people (e.g., three of Barbara Maenza's team leads each manage their own reports within
+Menufy Support). A sub-manager's Team/1:1s views show only their assigned people, scoped the
+same way a primary manager's are — see docs/ARCHITECTURE.md's Authorization Model.
+
 ### Success Criteria
 
 A pilot manager can open Cadence, compare everyone on their team, and pull up an accurate,
@@ -161,6 +166,14 @@ below is hard-coded into the app. Categories match the legacy paper scorecard's 
   going forward --- no backfill possible). Same root cause also blocks the Missed, Declined,
   and both Transfer call metrics within Inbound/Outbound Call.
 
+Some Menufy metrics (Tickets Solved, IB Calls, OB Calls) use a **range target** — on-track
+only within a [min, max] band, since both too-low and too-high volume are meaningful signals
+for those metrics — rather than a single minimum/maximum threshold. Menufy Support is
+additionally split into two internal lines, **Restaurant** and **Consumer**, each of which can
+carry its own targets and metric visibility; POS Support has no line concept. This is a
+data-driven target/visibility scoping mechanism, not a hard-coded Menufy exception — see
+docs/DATA_MODEL.md's MetricTarget/MetricVisibilityOverride entries.
+
 ### Integration Scope
 
 - **Zendesk** --- the only live data source. Ticket activity, CSAT, and elevation tags for
@@ -175,8 +188,11 @@ below is hard-coded into the app. Categories match the legacy paper scorecard's 
 - Two core screens (Team, 1:1s) working from normalized Cadence-owned data
 - Configurable metric definitions, assignments, and targets per team
 - Historical metric values (one row per calendar week) with trend and change detection
-- Server-side authorization (managers see only their assigned teams and employees)
+- Server-side authorization (managers see only their assigned teams and employees, including
+  sub-managers scoped to just a slice of a larger team)
 - Loading, empty, stale, and error states throughout
+- Roster sync auto-approves clearly-safe new-hire batches (with a circuit-breaker fallback to
+  manual review for anomalous batches); departures always require manual review
 
 ### What Does Not Ship (current scope)
 

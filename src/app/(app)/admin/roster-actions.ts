@@ -1,19 +1,10 @@
 "use server";
 
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { isPlatformAdmin } from "@/lib/auth/authorization";
+import { requireAdmin } from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
 import { employees, teams, teamMemberships } from "@/lib/db/schema";
 import { eq, and, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user?.email || !(await isPlatformAdmin(session.user.email))) {
-    redirect("/");
-  }
-}
 
 export async function createEmployee(formData: FormData) {
   await requireAdmin();

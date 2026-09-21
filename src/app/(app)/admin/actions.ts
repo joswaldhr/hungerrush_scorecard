@@ -2,14 +2,10 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
-import { isPlatformAdmin, VIEW_AS_COOKIE } from "@/lib/auth/authorization";
+import { requireAdmin, VIEW_AS_COOKIE } from "@/lib/auth/authorization";
 
 export async function setViewAs(formData: FormData) {
-  const session = await auth();
-  if (!session?.user?.email || !(await isPlatformAdmin(session.user.email))) {
-    redirect("/");
-  }
+  await requireAdmin();
 
   const userId = formData.get("userId");
   if (typeof userId !== "string" || userId.length === 0) {

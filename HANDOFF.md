@@ -16,9 +16,11 @@ pushed to `master` and live in production.
 
 Read in this order if you're picking this up fresh:
 1. This file (status + what's next)
-2. `FOLLOWUPS.md` — the full detailed log, 14 numbered items, most current info per item,
-   several superseding what the previous handoff said (e.g. the original "split Talk calls out
-   of week 0" theory turned out to be wrong — see item #6/#10)
+2. `FOLLOWUPS.md` — the full detailed log (25 numbered items as of 2026-09-21; the count here
+   will keep going stale, so don't trust a specific number — read its own "Current state" table
+   at the top instead of counting), most current info per item, several superseding what the
+   previous handoff said (e.g. the original "split Talk calls out of week 0" theory turned out
+   to be wrong — see item #6/#10)
 3. `CLAUDE.md` — durable lessons folded into the project's standing instructions
 4. `INVESTIGATION.md`/`FIX_LOG.md` — older, narrower history now folded into `FOLLOWUPS.md`
 
@@ -77,7 +79,7 @@ tightened across several rounds of self-critique before executing):**
     responsive breakpoint, plus two smaller papercuts (truncated text with no hover fallback, a
     "1 metrics need attention" grammar bug).
 
-## What's still open (see `FOLLOWUPS.md` for full detail on each numbered item)
+## What's still open (see `FOLLOWUPS.md`'s "Current state" table for the single source of truth — this section and the one two updates below it used to be two disconnected lists; merged here 2026-09-21)
 
 **Phase 7 — done.** Three sub-tasks completed:
 - **7a (dead code removal)**: removed `getTeamMetricTrend` (metrics/queries.ts), `getCadenceGapDays`
@@ -93,12 +95,30 @@ tightened across several rounds of self-critique before executing):**
   DESIGN_SYSTEM.md (component list), METRIC_REGISTRY.md, METRIC_TRACEABILITY.md, and PRODUCT.md.
   BUILD_SPEC.md and MVP.md were already accurate.
 
-**Needs Alex (back from vacation), not a code fix:**
-- Confirm whether Christopher Courcy should be removed from POS's active roster (same pattern
-  as the Menufy leads, but no confirmed list to check against yet — see item #9 in `FOLLOWUPS.md`).
-- Review the two pending POS candidates (Juan Jimenez, Maicol Ortiz).
+**Needs Alex, not a code fix — one is time-sensitive:**
+- **Review the two pending POS candidates (Juan Jimenez, Maicol Ortiz) — now urgent.** Their
+  stated start date (2026-09-21) is today; confirmed live that both are still `pending` with no
+  employee record yet (item #18). Zero scorecard/1:1 prep exists for either until Alex approves
+  them via `/admin/roster-review`.
+- ~~Confirm whether Christopher Courcy should be removed from POS's active roster~~ — resolved
+  2026-09-16 (confirmed live 2026-09-21): a departure was already approved for him and his
+  employee record is `inactive`. No action needed (item #9).
 
 **Needs a product/priority decision, not urgent:**
+- **Target recalibration conversation with Barbara.** Her team's 67–86% "Needs Attention" rate
+  (see below) is concentrated in exactly 3 of ~21 assigned metrics — Outbound Calls, Inbound
+  Calls, Tickets Resolved — all `range` targets narrower than the team's real week-to-week
+  variance:
+  - OB Calls: restaurant [35,75] vs. stddev ≈28.2 (30.8% in-range); consumer [75,112] vs.
+    stddev ≈92.2 (4.2% in-range)
+  - IB Calls: restaurant [52,72] vs. stddev ≈35.0 (15.4% in-range); consumer [30,52] vs.
+    stddev ≈17.0 (45.8% in-range)
+  - Tickets Resolved: restaurant [75,128] vs. stddev ≈91.4 (35.9% in-range); consumer
+    [282,443] vs. stddev ≈245.4 (20.8% in-range)
+
+  Every other real target on her team (Avg Response Time, CSAT, Abandoned-on-Hold, both Avg
+  Hold metrics) is 0–35% off-target — those employees are fine. This is a "3 specific ranges
+  are too tight" story, not a "the team is struggling" story (item #23).
 - Sidebar doesn't auto-collapse on mobile (item #14) — cramped everywhere on a phone, not
   broken elsewhere the way the stat cards were. This is primarily a desk tool; flagged as a
   candidate only if mobile use turns out to matter.
@@ -109,19 +129,39 @@ tightened across several rounds of self-critique before executing):**
 - Whether to build the ongoing/automated metric-reconciliation job discussed during planning
   (Phase 2e) — a real infrastructure commitment, deliberately not started, needs an explicit
   decision if continuous (not just point-in-time) confidence matters enough to build it.
+- No error monitoring exists anywhere — a real client-side error today becomes a
+  `console.error` line in server logs with no persistence, dashboard, or alert
+  (`/api/client-error` just logs). This is the second time this gap has been flagged since the
+  2026-09-09 outage.
+- Whether to delete the dead `"entra"` data-source UI branch (`data-health/page.tsx`) and/or
+  the stale `assembled` row still sitting in the real `data_sources` table (item #24, found
+  2026-09-21 while writing docs — the connector code was removed 2026-09-03 but its DB row
+  wasn't).
 
 **Needs a human with access this session didn't have:**
 - Whether the real Zendesk account is single- or multi-brand (item #3, predates this session).
-- Jayhov Sumagang / "Kevin L" roster mismatches (predates this session).
+- **What does "Jayhov Sumagang / 'Kevin L' roster mismatches" actually refer to?** Confirmed
+  2026-09-21: this exact phrase is the *only* place in the entire repo (code, docs, git
+  history via `git log -S`) that mentions either name — authored directly by James on
+  2026-09-15 with no prior artifact establishing context. Nothing here can scope or resolve
+  this; it needs to go back to James with that literal question.
 
 **Housekeeping, noticed in passing, not touched:**
-- An old git worktree (`.claude/worktrees/quizzical-curie-4547cd`) is still registered — ask
-  James if it's still needed.
+- An old git worktree (`.claude/worktrees/quizzical-curie-4547cd`) is still registered as of
+  2026-09-21 — ask James if it's still needed.
 - `env.ts` has no `import "server-only"` guard (item #12) — no active leak, but no build-time
   safety net either; would need a new dependency, flagged as a hardening recommendation.
 - Three lower-severity dependency vulnerabilities (js-yaml, esbuild, vitest/@vitest/mocker) left
   as accepted risk — all dev-only, no production exposure, vitest's fix conflicts with this
-  environment's known Node 24 issue (see `known-workarounds` memory).
+  environment's known Node 24 issue (see `known-workarounds` memory). Re-confirmed unchanged as
+  of 2026-09-21.
+- `metric_visibility_overrides` still has no `organizationId` column — matches an existing
+  pattern elsewhere in the admin actions (e.g. `roster-actions.ts`'s tables), a non-issue in
+  today's single-org reality. Re-confirmed as of 2026-09-21 that no other table added since has
+  the same gap left unflagged.
+- `VERCEL_API` personal access token (still in local `.env`, gitignored, never committed) —
+  consider rotating/scoping down now that the heavy Vercel-debugging work from the sync-timeout
+  saga is done.
 
 ## Access notes
 
@@ -219,22 +259,41 @@ without checking `targetType`. Added integration test coverage for `queries.ts`
 (`getEmployeeMetricsBatch` — the single function every scorecard renders through, previously
 untested) and the new metric-visibility admin actions.
 
-**Found, not yet acted on — needs a decision:**
-- **A real product signal, not a bug**: live-clicking through Barb's Team page as part of this
-  audit showed 67–86% of her team as "Needs Attention" (varies by week), and several "Key
-  Change" percentages over 100% (e.g. "Avg Hold declined 434%"). The underlying numbers are
-  accurate (verified against Rosa E's actual scorecard — her real ticket/call volume is
-  genuinely down against target), and the >100% swings are a known instability of
-  percent-change math against a small/near-zero baseline. This is pre-existing behavior (the
-  `findKeyChange`/target-threshold logic predates this session), not introduced by anything
-  above — but if managers start seeing almost everyone red almost every week, that's worth a
-  real look at whether targets are calibrated to reality, independent of whether the pipeline is
-  technically correct.
-- No error monitoring exists anywhere — a real client-side error today becomes a `console.error`
-  line in server logs with no persistence, dashboard, or alert (`/api/client-error` just logs).
-- `metric_visibility_overrides` has no `organizationId` column (matches an existing pattern
-  elsewhere in the admin actions, e.g. `roster-actions.ts`) — a non-issue in today's single-org
-  reality, flagged as a documented, accepted risk rather than an unnoticed one.
+**Found during this update, not yet acted on at the time — now folded into the single merged
+"What's still open" section near the top of this file** (2026-09-21): the target-calibration
+signal below was followed up with a data-backed root-cause analysis and its display-math half
+(`findKeyChange`'s near-zero-baseline bug) was fixed; see items #22/#23 there and in
+`FOLLOWUPS.md`. The original finding, kept verbatim for history: live-clicking through Barb's
+Team page as part of this audit showed 67–86% of her team as "Needs Attention" (varies by
+week), and several "Key Change" percentages over 100% (e.g. "Avg Hold declined 434%"). The
+underlying numbers were accurate (verified against Rosa E's actual scorecard), and the >100%
+swings were a known instability of percent-change math against a small/near-zero baseline.
+
+## Update (2026-09-21): foundation-strengthening audit and fixes
+
+An extensive read-only audit (8 parallel investigations against current code and the real
+Railway pilot database) plus a full implementation pass followed the ship-readiness audit
+above. Full detail lives in `FOLLOWUPS.md` items #18–25 and its "Current state" table; the
+short version: two live-and-wrong-today bugs were fixed (`findKeyChange`'s near-zero-baseline
+% swings, and three `evaluateStatus` target-resolution bugs — one of which was found to have
+real, if previously-harmless, live exposure); a real cross-org isolation gap in every admin
+page and the view-as flow was closed before a 2nd organization ever becomes real; a latent
+bug in metric-visibility precedence scoring and a genuine gap (no way to hide a metric for
+"all of Menufy regardless of line") were both fixed; test coverage was added for the roster
+auto-approval circuit breaker's untested percent-based path and for `getVisibleTeamsForManager`
+(zero coverage despite fixing a real 2026-09-17 incident); CLAUDE.md and all `docs/*.md` files
+were reconciled against current code (CLAUDE.md's Product UX section had described a 4-screen
+product 11 days after it was cut to 2; "Assembled live in production" was false; a
+previously-undocumented dead `"entra"` data-source UI branch was found and corrected in three
+docs). Two time-sensitive/stale backlog items were resolved by direct live DB query while
+planning this work: Christopher Courcy's departure turned out to already be approved
+(2026-09-16, never marked resolved until now), and Juan Jimenez/Maicol Ortiz are still
+pending on their literal 2026-09-21 start date (now flagged urgently above, not previously
+called out as time-sensitive anywhere).
+
+Root cause for Barbara's team's high "Needs Attention" rate was also found (not just
+flagged): concentrated in exactly 3 of ~21 metrics whose range targets are narrower than real
+variance — see the "What's still open" section above for the exact numbers.
 
 ## Repo state
 
