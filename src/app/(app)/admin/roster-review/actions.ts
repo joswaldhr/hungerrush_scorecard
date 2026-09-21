@@ -172,3 +172,23 @@ export async function rejectCandidate(formData: FormData) {
 
   revalidatePath("/admin/roster-review");
 }
+
+// The only way back for a candidate rejected by mistake -- discoverRosterCandidates treats
+// any prior row for an identity (any status) as "already seen" and will never re-propose it,
+// by design (a human's decision should stick). Deliberately does not touch approved/
+// auto_approved rows: those already created a real employee/identity/membership, and
+// resetting just this row's status would be misleading -- undoing an approval means
+// deactivating the employee via /admin/employees, a different operation.
+export async function restoreRejectedCandidate(formData: FormData) {
+  await requireAdmin();
+
+  const candidateId = formData.get("candidateId") as string;
+  if (!candidateId) return;
+
+  await db
+    .update(rosterCandidates)
+    .set({ status: "pending", reviewedAt: null, reviewedBy: null })
+    .where(and(eq(rosterCandidates.id, candidateId), eq(rosterCandidates.status, "rejected")));
+
+  revalidatePath("/admin/roster-review");
+}

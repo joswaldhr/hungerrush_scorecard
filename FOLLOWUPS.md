@@ -30,7 +30,7 @@ roughly chronological (not numeric) order — this table exists so you don't hav
 | 15 | `evaluateStatus` 3 dormant bugs + dead visibility columns + `drizzle-kit migrate` anomaly | **evaluateStatus bugs fixed 2026-09-21** (see `target-resolution.ts`) — one (the `maximum` branch ignoring `direction`) was found to have live, if previously-harmless, exposure via 3 real `targetType=maximum` rows before the fix. Dead visibility columns and the migrate anomaly are still open. | Dropping/deprecating `metric_assignments.visibleOnHome/visibleOnTeam/visibleOnEmployee`; investigating the `drizzle-kit migrate` CLI anomaly |
 | 16 | Sub-manager hierarchy (Jacob Murray, James Maynard, Norvel Crawford) | **Shipped 2026-09-17**; reconciliation route/page sub-manager access gap **fixed 2026-09-21** | Juan Jimenez/Maicol Ortiz still `pending` as of 2026-09-21 (their stated 9/21 start date) — Alex needs to review now, see item 18 |
 | 17 | CI broken for two weeks | **Fixed 2026-09-17** | Nothing |
-| 18 | *(new, 2026-09-21)* Juan Jimenez / Maicol Ortiz still pending on their stated start date | **Open, time-sensitive** — confirmed live via direct DB query: both still `status='pending'`, no `employee_id` | Alex approves via `/admin/roster-review` |
+| 18 | *(new, 2026-09-21)* Juan Jimenez / Maicol Ortiz still pending on their stated start date | **Resolved 2026-09-21** — were mislabeled as POS/Alex's candidates; actually Menufy/Barbara's. Approved live via the real admin UI after fixing a separate "reject has no undo" gap this surfaced (new `restoreRejectedCandidate` action) | Nothing |
 | 19 | *(new, 2026-09-21)* Cross-org isolation gap in admin pages/view-as | **Fixed 2026-09-21** | Nothing |
 | 20 | *(new, 2026-09-21)* `resolveVisibility` specificity scoring treated teamId/line as a hierarchy | **Fixed 2026-09-21** | Nothing |
 | 21 | *(new, 2026-09-21)* Menufy visibility overrides couldn't express "all lines" | **Fixed 2026-09-21** — added an "all lines" option | Nothing |
@@ -688,14 +688,30 @@ locally throughout this project's history looks identical either way. If a suite
 confirmed a genuine local or CI environment recently, treat its "passing" status as unverified,
 not as evidence.
 
-## 18. Juan Jimenez / Maicol Ortiz still `pending` on their stated 9/21 start date
+## 18. Juan Jimenez / Maicol Ortiz still `pending` on their stated 9/21 start date — RESOLVED 2026-09-21
 
-Found while planning a 2026-09-21 foundation-strengthening pass. Item #16 noted these two POS
-candidates await Alex's review with an expected start date "around 9/21" — that date arrived
-with no action taken. Confirmed live via direct DB query: both `roster_candidates` rows are
-still `status='pending'`, `employee_id` still null, unchanged since they were created
-2026-09-15. **Time-sensitive, needs Alex now** — approve via `/admin/roster-review`, or these
-two have zero scorecard/1:1 prep on their first day.
+Found while planning a 2026-09-21 foundation-strengthening pass. Item #16 (and this item's
+own original text) misidentified these two as POS candidates needing Alex — their real
+`suggested_team_id` is Menufy Support, matching Barbara's own earlier mention of Juan as one
+of her 9/21 hires. That mislabel, inherited from an earlier session, is the actual root cause
+of the delay: nobody wrong-manager-checked would have approved them.
+
+Also surfaced a real, separate gap while fixing this: rejecting a candidate through
+`/admin/roster-review` is permanent by design (`discoverRosterCandidates` treats any prior
+row for an identity, regardless of status, as "already seen" and never re-proposes it — see
+item #8). There was no way to undo an accidental reject without a raw database write. Added
+`restoreRejectedCandidate` (`admin/roster-review/actions.ts`) plus a "Recently rejected"
+section on the page, scoped to only ever touch `rejected` rows (never `approved`/
+`auto_approved`, which already created a real employee and need a different operation to
+undo). Used it live to restore and properly approve both Juan Jimenez and Maicol Ortiz via
+the real UI — both now have active `employees` rows on Menufy Support with a linked
+`external_identities` row, verified live.
+
+Minor, harmless asymmetry noticed while verifying: `approveNewCandidate` never backfills
+`roster_candidates.employee_id` onto the candidate row it just approved (unlike
+`approveDeparture`, which relies on that column already being set). Nothing currently reads
+this column for `changeType='new'` rows, so it's cosmetic today, not a bug -- worth a
+one-line fix if anyone ever adds a feature that expects it.
 
 ## 19. Cross-org isolation gap in admin pages and the view-as flow — FIXED 2026-09-21
 

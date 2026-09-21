@@ -9,6 +9,7 @@ import {
   approveNewCandidate,
   approveDeparture,
   rejectCandidate,
+  restoreRejectedCandidate,
 } from "./actions";
 
 export default async function RosterReviewPage() {
@@ -20,7 +21,7 @@ export default async function RosterReviewPage() {
   ]);
   const sourceIds = allSources.map((s) => s.id);
 
-  const [allMappings, pendingCandidates] =
+  const [allMappings, pendingCandidates, rejectedCandidates] =
     sourceIds.length > 0
       ? await Promise.all([
           db
@@ -36,8 +37,17 @@ export default async function RosterReviewPage() {
                 inArray(rosterCandidates.dataSourceId, sourceIds)
               )
             ),
+          db
+            .select()
+            .from(rosterCandidates)
+            .where(
+              and(
+                eq(rosterCandidates.status, "rejected"),
+                inArray(rosterCandidates.dataSourceId, sourceIds)
+              )
+            ),
         ])
-      : [[], []];
+      : [[], [], []];
 
   const teamNameById = new Map(allTeams.map((t) => [t.id, t.name]));
   const newCandidates = pendingCandidates.filter((c) => c.changeType === "new");
@@ -234,6 +244,39 @@ export default async function RosterReviewPage() {
                     </button>
                   </form>
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold text-foreground">
+          Recently rejected ({rejectedCandidates.length})
+        </h2>
+        {rejectedCandidates.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No rejected candidates.</p>
+        ) : (
+          <div className="divide-y divide-border rounded-lg border">
+            {rejectedCandidates.map((c) => (
+              <div key={c.id} className="flex items-center justify-between px-4 py-3">
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    {c.externalDisplayName ?? c.externalEmail ?? c.externalId}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {c.changeType === "new" ? "New hire" : "Departure"} · {c.externalEmail}
+                  </p>
+                </div>
+                <form action={restoreRejectedCandidate}>
+                  <input type="hidden" name="candidateId" value={c.id} />
+                  <button
+                    type="submit"
+                    className="rounded-md border border-border px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Restore to pending
+                  </button>
+                </form>
               </div>
             ))}
           </div>
