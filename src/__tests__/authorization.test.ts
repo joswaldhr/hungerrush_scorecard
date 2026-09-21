@@ -65,7 +65,13 @@ const OTHER_ORG_MANAGER_ID = "99999999-0000-4000-8000-0000000000a6";
 // item 16).
 const SUB_MANAGER_ID = "99999999-0000-4000-8000-0000000000a7";
 
-const MANAGER_EMAIL = "test-manager@test.cadence.internal";
+// Deliberately suffixed (unlike the other constants below) -- roster-reconcile.test.ts
+// independently defines its own MANAGER_EMAIL = "test-manager@test.cadence.internal".
+// Both files' fixtures hit the same shared CI Postgres database with no isolation between
+// test files, and a bare "test-manager@..." collided across the two on 2026-09-21 (a
+// pre-existing latent bug this session's larger insert batch happened to newly expose as
+// a `users_email_unique` violation, not something introduced by these changes).
+const MANAGER_EMAIL = "test-manager-auth@test.cadence.internal";
 const ADMIN_EMAIL = "test-admin@test.cadence.internal";
 const OUTSIDER_EMAIL = "test-outsider@test.cadence.internal";
 const INACTIVE_MANAGER_EMAIL = "test-inactive@test.cadence.internal";
