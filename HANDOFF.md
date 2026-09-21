@@ -95,30 +95,40 @@ tightened across several rounds of self-critique before executing):**
   DESIGN_SYSTEM.md (component list), METRIC_REGISTRY.md, METRIC_TRACEABILITY.md, and PRODUCT.md.
   BUILD_SPEC.md and MVP.md were already accurate.
 
-**Needs Alex, not a code fix — one is time-sensitive:**
-- **Review the two pending POS candidates (Juan Jimenez, Maicol Ortiz) — now urgent.** Their
-  stated start date (2026-09-21) is today; confirmed live that both are still `pending` with no
-  employee record yet (item #18). Zero scorecard/1:1 prep exists for either until Alex approves
-  them via `/admin/roster-review`.
+**Needs Alex, not a code fix:**
 - ~~Confirm whether Christopher Courcy should be removed from POS's active roster~~ — resolved
   2026-09-16 (confirmed live 2026-09-21): a departure was already approved for him and his
   employee record is `inactive`. No action needed (item #9).
+- ~~Review the two pending POS candidates (Juan Jimenez, Maicol Ortiz)~~ — this was never
+  actually Alex's call. Both are **resolved** as of 2026-09-21: they're real Menufy hires
+  (Barbara's, not POS), matching her own earlier mention of Juan as one of her 9/21 hires — the
+  "POS/Alex" label on this item was a mislabel inherited from an earlier session. Both now have
+  active employee records on Menufy Support with linked Zendesk identities. See the new
+  "Update (2026-09-21, later)" section below for the full story, including a real bug this
+  surfaced in the reject flow.
 
 **Needs a product/priority decision, not urgent:**
-- **Target recalibration conversation with Barbara.** Her team's 67–86% "Needs Attention" rate
-  (see below) is concentrated in exactly 3 of ~21 assigned metrics — Outbound Calls, Inbound
-  Calls, Tickets Resolved — all `range` targets narrower than the team's real week-to-week
-  variance:
-  - OB Calls: restaurant [35,75] vs. stddev ≈28.2 (30.8% in-range); consumer [75,112] vs.
-    stddev ≈92.2 (4.2% in-range)
-  - IB Calls: restaurant [52,72] vs. stddev ≈35.0 (15.4% in-range); consumer [30,52] vs.
-    stddev ≈17.0 (45.8% in-range)
-  - Tickets Resolved: restaurant [75,128] vs. stddev ≈91.4 (35.9% in-range); consumer
-    [282,443] vs. stddev ≈245.4 (20.8% in-range)
+- **Target recalibration conversation with Barbara — ready to go, confirmed twice.** Her team's
+  76.8% "Needs Attention" rate over the last 3 completed weeks (69 employee-weeks; matches the
+  67–86% range originally observed) is concentrated in exactly 3 of ~21 assigned metrics —
+  Outbound Calls, Inbound Calls, Tickets Resolved — all `range` targets narrower than the
+  team's real week-to-week variance:
+  - OB Calls: restaurant 69.2% off-target; consumer 95.8% off-target (restaurant range [35,75]
+    vs. stddev ≈28.2; consumer [75,112] vs. stddev ≈92.2)
+  - IB Calls: restaurant 84.6% off-target; consumer 54.2% off-target (restaurant [52,72] vs.
+    stddev ≈35.0; consumer [30,52] vs. stddev ≈17.0)
+  - Tickets Resolved: restaurant 64.1% off-target; consumer 79.2% off-target (restaurant
+    [75,128] vs. stddev ≈91.4; consumer [282,443] vs. stddev ≈245.4)
 
-  Every other real target on her team (Avg Response Time, CSAT, Abandoned-on-Hold, both Avg
-  Hold metrics) is 0–35% off-target — those employees are fine. This is a "3 specific ranges
-  are too tight" story, not a "the team is struggling" story (item #23).
+  Every other real target on her team (Avg Hold 0–2%, CSAT 15–17%, Abandoned-on-Hold 13–15%)
+  is healthy — those employees are fine. Avg Response Time is a little elevated on Consumer
+  specifically (50% off vs. 23% on Restaurant) — worth a passing mention, not the main story.
+  Re-verified 2026-09-21 by re-running the app's own real target/status logic (not an
+  approximation) against current live data, after Juan Jimenez/Maicol Ortiz were added — they
+  correctly show as pure "No Data" and don't skew anything. This is a "3 specific ranges are
+  too tight" story, not a "the team is struggling" story (item #23) — data is ready whenever
+  James wants to bring it to Barbara; no further prep needed on this end unless he asks for a
+  shareable write-up.
 - Sidebar doesn't auto-collapse on mobile (item #14) — cramped everywhere on a phone, not
   broken elsewhere the way the stat cards were. This is primarily a desk tool; flagged as a
   candidate only if mobile use turns out to matter.
@@ -295,6 +305,48 @@ Root cause for Barbara's team's high "Needs Attention" rate was also found (not 
 flagged): concentrated in exactly 3 of ~21 metrics whose range targets are narrower than real
 variance — see the "What's still open" section above for the exact numbers.
 
+## Update (2026-09-21, later): fixed a mislabeled roster item, closed a real "no undo" gap, re-confirmed Barbara's calibration finding
+
+Continuing directly from the foundation-strengthening pass above, in the same session.
+
+**Juan Jimenez / Maicol Ortiz, resolved — and a real gap found while fixing it.** Acting on
+item #18 (framed above as "needs Alex"), a first attempt to reject-then-rediscover them
+exposed that rejection is permanent by design: `discoverRosterCandidates` treats *any* prior
+`roster_candidates` row for an identity, regardless of status, as "already seen" and never
+re-proposes it (see item #8's original reasoning — a human's decision should stick). There
+was no way back except a raw database write, which James asked not to use. Added
+`restoreRejectedCandidate` (`admin/roster-review/actions.ts`) — scoped to only ever reset a
+`rejected` row back to `pending`, never an `approved`/`auto_approved` one (those already
+created a real employee; undoing that is a different operation, deactivation via
+`/admin/employees`) — plus a "Recently rejected" section on `/admin/roster-review` with a
+"Restore to pending" button. Used it live through the real UI (no DB bypass, nothing for
+James to click) to restore and properly approve both. **Also caught mid-fix**: the original
+"needs Alex" framing was simply wrong — both candidates' real `suggested_team_id` is Menufy
+Support, matching Barbara's own earlier mention of Juan as one of her 9/21 hires. Both now
+have active `employees` rows on Menufy Support with a linked `external_identities` row
+(`match_method: roster_discovery`), verified live — metrics will attribute correctly on the
+next sync.
+
+Also confirmed live: new-hire discovery and auto-approval already run fully automatically
+once a day (piggybacked on the `?week=0` cron leg, `src/app/api/cron/sync/route.ts:84-93`) —
+James asked whether this needed building and it turns out most of it already existed. He
+explicitly confirmed keeping departure processing manual (deactivating a real person by
+mistake is worse than creating an extra employee row) — no change made there.
+
+Committed as `2050907` (a CI-only test-isolation bug this same push exposed — two unrelated
+test files independently used the identical fixture email `test-manager@test.cadence.internal`,
+latent since before this session, only surfaced once a larger insert batch shifted timing;
+fixed by suffixing `authorization.test.ts`'s copy) and `87af741` (the restore feature itself).
+Both verified green in real CI, not just locally.
+
+**Barbara's target-calibration finding, re-confirmed with fresh live data.** James asked for a
+check-in on this. Re-ran the app's actual `getEmployeeMetricsBatch`/`deriveOverallStatus`
+logic (not an approximation) against the current database, including the two new hires above.
+Numbers are unchanged from the original finding — see the "What's still open" section above
+for the current exact figures. This is ready to bring to Barbara as-is; no further
+investigation is queued unless James wants a shareable write-up prepared.
+
 ## Repo state
 
-Everything through this update is committed and pushed to `master`. CI is green.
+Everything through this update is committed and pushed to `master` (`87af741`). CI is green,
+confirmed on the latest push, not just locally.

@@ -784,6 +784,15 @@ Abandoned-on-Hold, both Avg Hold metrics) is 0-35% off-target. Independently rep
 67-86% rate. **Needs Barbara**, not code: a recalibration conversation using the exact
 per-metric numbers (see `HANDOFF.md`'s "Needs your decision" section for the full table).
 
+**Re-confirmed 2026-09-21, later the same day, with fresh data.** Re-ran the app's real
+`getEmployeeMetricsBatch`/`deriveOverallStatus` logic (not an approximation) against current
+live data, after Juan Jimenez/Maicol Ortiz (item #18) were added as real employees. Numbers
+unchanged: 76.8% Needs Attention over the last 3 completed weeks (69 employee-weeks), same
+three metrics driving it, same off-target percentages per line to within rounding. The two
+new hires correctly show as pure `no_data` for all three weeks (they weren't employed yet)
+and don't skew the analysis. Nothing has drifted; the finding and recommendation stand
+exactly as written above.
+
 ## 24. Dead `"entra"` data-source UI branch; stale `assembled` row in `data_sources`
 
 Found while writing `docs/INTEGRATIONS.md`'s Entra ID section for the 2026-09-21 doc pass —
