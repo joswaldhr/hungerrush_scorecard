@@ -54,23 +54,23 @@ If implementation details are ambiguous, preserve the product principles rather 
 
 ## Product UX
 
-The two core experiences are (cut down from the original four in a 2026-09-03 stakeholder
-review — see docs/PRODUCT.md's revision note; Home and the standalone Employee screen were
-both removed, not merged):
-
-Team:
-"How is everyone doing?"
-Principle: Team compares.
+The one core experience, as of 2026-09-22 (James's decision — see docs/PRODUCT.md's revision
+note), cut down further from the two-experience shape below, which was itself cut down from
+the original four in a 2026-09-03 stakeholder review (Home and the standalone Employee screen
+were both removed then, not merged):
 
 1:1s:
 "What do I need to know before I meet this person?"
 Principle: 1:1s prepares — with numbers, not narrative.
 
 The manager journey is:
-Team -> 1:1s -> existing meeting workflow/Rippling.
+1:1s -> existing meeting workflow/Rippling.
 
-Home exists only as a redirect to /team. There is no standalone Employee screen. Do not
-resurrect either without an explicit product decision.
+Team ("How is everyone doing?" / "Team compares") was removed 2026-09-22, not hidden — its
+page, route, and dedicated components were deleted outright, recoverable from git history if
+this is revisited. Home exists only as a redirect to /one-on-ones. There is no standalone
+Employee screen. Do not resurrect Team, Home, or a standalone Employee screen without an
+explicit product decision.
 
 ## Visual Direction
 
@@ -173,10 +173,13 @@ It must:
   failure modes.
 - The connector assumes a single Zendesk subdomain — unverified whether the real account is
   multi-brand (see `FOLLOWUPS.md`).
-- Week-boundary math (Monday–Sunday, UTC) is independently reimplemented in 5+ places; the
-  mocks/scripts use local server time, not UTC, which is a known divergence confined to
-  dev/test fixtures. Reuse an existing UTC implementation (e.g. `zendesk.ts`'s `weekOf()`) —
-  don't write a new one.
+- Work week is Sunday-Saturday, UTC (changed from Monday-Sunday 2026-09-22 — Barbara confirmed
+  Menufy's real work week; applied company-wide since the setting is global and POS's is
+  unconfirmed, see FOLLOWUPS.md #27). The canonical implementation is `weekDates()` in
+  `src/lib/utils.ts` — `zendesk.ts`'s `weekOf()` and the one-on-ones page's `periodDates()` both
+  delegate to it now. `zendesk-mock.ts` and `scripts/run-reconciliation.ts` still have their own
+  local-server-time versions (a known, accepted UTC-vs-local divergence confined to dev/test
+  fixtures) — reuse `weekDates()` for anything new; don't add a 3rd reimplementation.
 - No error-monitoring/APM tool exists anywhere in the app (confirmed: no Sentry/Datadog/APM
   dependency in `package.json`; `/api/client-error` only logs to server logs, no persistence
   or alerting).

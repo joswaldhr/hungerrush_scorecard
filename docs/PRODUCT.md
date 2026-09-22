@@ -1,4 +1,11 @@
-# HungerRush Cadence --- Product Specification v0.2
+# HungerRush Cadence --- Product Specification v0.3
+
+**Revision note (2026-09-22):** James decided to cut Team, leaving 1:1s as the sole core
+experience. Team's page, route, and dedicated components (`TeamRosterTable`, `TeamFilters`)
+were deleted outright, not hidden — recoverable from git history if this is revisited. Home's
+redirect now points at `/one-on-ones`. No replacement for Team's "compare everyone" view was
+built; `/one-on-ones`'s existing employee picker (grouped by team, no status/filtering) is the
+only remaining entry point into a specific employee's scorecard.
 
 **Revision note (2026-09-03):** After a stakeholder review, this spec was narrowed from the
 original four-screen, multi-vendor design (v0.1, below history preserved in git) down to two
@@ -34,8 +41,8 @@ These teams have different metrics, different targets, and different team sizes.
 
 A pilot team's manager may delegate to sub-managers who each own a slice of that team's
 people (e.g., three of Barbara Maenza's team leads each manage their own reports within
-Menufy Support). A sub-manager's Team/1:1s views show only their assigned people, scoped the
-same way a primary manager's are — see docs/ARCHITECTURE.md's Authorization Model.
+Menufy Support). A sub-manager's 1:1s view shows only their assigned people, scoped the
+same way a primary manager's is — see docs/ARCHITECTURE.md's Authorization Model.
 
 ### Success Criteria
 
@@ -46,27 +53,12 @@ reduction in manager preparation time.
 
 ---
 
-## The Two Core Experiences
+## The One Core Experience
 
-Cadence has two screens. Home and the workflow-heavy "1:1 Preparation" page described in v0.1
-were cut; the manager's journey is now direct: compare the team, then check one person's
+Cadence has one screen. Home and the workflow-heavy "1:1 Preparation" page described in v0.1
+were cut in 2026-09-03; Team ("How is everyone doing?" / Team compares) was cut in turn on
+2026-09-22. The manager's journey is now: pick a person from the 1:1s list, then check their
 numbers.
-
-### Team
-
-**Question:** "How is everyone doing?"
-
-**Principle:** Team compares.
-
-Team is a scannable, filterable view of all direct reports. It lets the manager quickly compare employees, spot patterns, and drill into individuals.
-
-**Information hierarchy:**
-1. Team summary --- status distribution (on track / watch / needs attention), team trend
-2. Filters --- team, period, view mode, status filter, search
-3. Employee table --- each row shows identity, status, key change this week, weekly summary, trend sparkline
-4. Metrics view --- an alternate tab showing the full configured metric set in a comparative table
-
-The table is paginated. Employees link through to their 1:1 scorecard.
 
 ### 1:1s
 
@@ -79,6 +71,10 @@ legacy paper scorecards were. No coaching records, no action items, no notes, no
 summary --- just the numbers a manager needs before a 1:1, organized to be scanned in under a
 minute.
 
+**Entry point:** `/one-on-ones` (no employee selected) is a flat picker --- direct reports
+grouped by team, no status or filtering --- since Team's picker was removed. Picking a name
+goes to that employee's scorecard below.
+
 **Information hierarchy:**
 1. Identity header --- name, role, team, manager, overall status
 2. Period selector --- this week through 3 weeks ago (single calendar weeks only --- see
@@ -90,7 +86,7 @@ minute.
    placeholder row for an unbuilt metric
 
 **Architecture note on periods:** metric values are stored one row per calendar week
-(Monday--Sunday). A "Last N Weeks" selector that requested a multi-week span here would ask for
+(Sunday--Saturday). A "Last N Weeks" selector that requested a multi-week span here would ask for
 a row that's never written and would silently show "No Data" for everything --- this was
 found and fixed 2026-09-03. A true multi-week rollup would need weighted re-aggregation from
 the underlying facts, not a wider exact-match query on `metricValues`.
@@ -129,7 +125,7 @@ the underlying facts, not a wider exact-match query on `metricValues`.
 
 **Evidence over opinion.** Every observation, trend, or status must trace back to specific metric values and calculation rules. No unattributed claims.
 
-**Progressive disclosure.** Team shows the comparison. 1:1s shows one person's numbers. Each layer adds depth without repeating the previous layer's job.
+**Progressive disclosure.** 1:1s shows one person's numbers, scanned in under a minute. It does not try to also be a comparison view (Team, cut 2026-09-22) — the picker just picks; the scorecard just shows.
 
 **Premium, not enterprise.** The visual standard is modern restrained SaaS (Linear, Stripe, Ramp, Vercel quality). Not a dense enterprise reporting portal. Whitespace, hierarchy, and restraint over decoration, density, and feature count.
 
@@ -185,7 +181,7 @@ docs/DATA_MODEL.md's MetricTarget/MetricVisibilityOverride entries.
 
 ### What Ships
 
-- Two core screens (Team, 1:1s) working from normalized Cadence-owned data
+- One core screen (1:1s, including its employee picker) working from normalized Cadence-owned data
 - Configurable metric definitions, assignments, and targets per team
 - Historical metric values (one row per calendar week) with trend and change detection
 - Server-side authorization (managers see only their assigned teams and employees, including

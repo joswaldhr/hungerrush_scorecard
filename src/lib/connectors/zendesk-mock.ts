@@ -37,7 +37,7 @@ export class ZendeskMockConnector implements Connector {
     const records: IngestedRecord[] = [];
     const now = new Date();
     const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+    weekStart.setDate(now.getDate() - now.getDay());
     const periodStart = weekStart.toISOString().split("T")[0]!;
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 6);

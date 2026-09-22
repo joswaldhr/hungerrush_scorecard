@@ -17,9 +17,10 @@ export const GOLDEN_EMPLOYEE = {
   bob: "90000000-0000-4000-8000-000000000002",
 } as const;
 
+// Sunday-Saturday, matching weekDates()'s work-week convention.
 export const GOLDEN_WEEK = {
-  w1: { start: "2026-08-17", end: "2026-08-23" },
-  w2: { start: "2026-08-24", end: "2026-08-30" },
+  w1: { start: "2026-08-16", end: "2026-08-22" },
+  w2: { start: "2026-08-23", end: "2026-08-29" },
 } as const;
 
 interface GoldenFact {

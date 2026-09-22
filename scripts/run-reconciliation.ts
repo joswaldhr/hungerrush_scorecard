@@ -7,14 +7,13 @@ const ORG_ID = "10000000-0000-4000-8000-000000000001";
 
 function weekDates() {
   const now = new Date();
-  const day = now.getDay();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((day + 6) % 7));
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay());
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
   return {
-    periodStart: monday.toISOString().split("T")[0]!,
-    periodEnd: sunday.toISOString().split("T")[0]!,
+    periodStart: weekStart.toISOString().split("T")[0]!,
+    periodEnd: weekEnd.toISOString().split("T")[0]!,
   };
 }
 

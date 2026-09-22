@@ -85,7 +85,7 @@ export async function setEmployeeTeam(formData: FormData) {
 
   revalidatePath(`/admin/employees/${employeeId}`);
   revalidatePath("/admin/employees");
-  revalidatePath("/team");
+  revalidatePath("/one-on-ones");
 }
 
 export async function createTeam(formData: FormData) {

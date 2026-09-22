@@ -66,7 +66,6 @@ export async function setVisibilityOverride(input: SetVisibilityInput): Promise<
   }
 
   revalidatePath("/admin/metric-visibility");
-  revalidatePath("/team");
   revalidatePath("/one-on-ones");
 }
 
@@ -78,7 +77,6 @@ export async function removeVisibilityOverride(formData: FormData): Promise<void
   await db.delete(metricVisibilityOverrides).where(eq(metricVisibilityOverrides.id, id));
 
   revalidatePath("/admin/metric-visibility");
-  revalidatePath("/team");
   revalidatePath("/one-on-ones");
 }
 

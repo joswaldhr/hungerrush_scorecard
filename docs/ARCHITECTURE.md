@@ -37,9 +37,8 @@ src/
     (app)/                     # Authenticated route group
       layout.tsx               # App shell (sidebar + view-as banner + main content)
       error.tsx / loading.tsx / not-found.tsx
-      page.tsx                 # Home (redirects to /team)
-      team/page.tsx            # Team
-      one-on-ones/page.tsx, one-on-ones/[id]/page.tsx  # 1:1 list + prep
+      page.tsx                 # Home (redirects to /one-on-ones)
+      one-on-ones/page.tsx, one-on-ones/[id]/page.tsx  # 1:1 picker + prep (Team removed 2026-09-22)
       data-health/             # Sync status + manual "Sync now" trigger
       reconciliation/          # Cadence-vs-source value comparison
       admin/                   # Platform-admin landing + "view as" picker
@@ -55,7 +54,7 @@ src/
       reconciliation/run/route.ts, reconciliation/results/route.ts
       client-error/route.ts    # Server-side log sink for client error boundaries
   components/                  # Sidebar, StatusBadge, MetricHistoryChart, MetricIcon,
-                                # MetricCategoryTable, TeamRosterTable, StatCard,
+                                # MetricCategoryTable, StatCard,
                                 # MeetingPrepChecklist, SyncStalenessBanner,
                                 # EmptyState/ErrorState, ui/ primitives
   lib/
@@ -181,7 +180,7 @@ Organization
 - Employees outside the manager's assignment scope are invisible (out-of-scope ids 404 rather than leaking existence).
 - `src/proxy.ts` (the Next.js 16 successor to `middleware.ts`) protects all routes under `(app)/`; the login page and auth API routes are public.
 - A platform admin with no assignment of their own can additionally resolve another manager's real `ManagerContext` via the `cadence_view_as` cookie — see People above. The view-as lookup only resolves a target user within the admin's own `organizationId` -- a platform admin cannot view as a manager in a different organization.
-- A manager's access can come entirely from individual `ManagerAssignment.employee_id` rows with no team-level assignment at all (a sub-manager who owns a slice of a larger team, not the whole team) -- in that case `ctx.assignedTeamIds` is empty even though the manager has real employees to see. `getVisibleTeamsForManager()` (`src/lib/auth/authorization.ts`) derives the teams to actually render from the manager's assigned employees' own `primaryTeamId`, so `team/page.tsx`, `one-on-ones/page.tsx`, and `reconciliation/page.tsx` render correctly for a sub-manager instead of requiring at least one whole-team assignment.
+- A manager's access can come entirely from individual `ManagerAssignment.employee_id` rows with no team-level assignment at all (a sub-manager who owns a slice of a larger team, not the whole team) -- in that case `ctx.assignedTeamIds` is empty even though the manager has real employees to see. `getVisibleTeamsForManager()` (`src/lib/auth/authorization.ts`) derives the teams to actually render from the manager's assigned employees' own `primaryTeamId`, so `one-on-ones/page.tsx` and `reconciliation/page.tsx` render correctly for a sub-manager instead of requiring at least one whole-team assignment (`team/page.tsx` used this too before Team was removed 2026-09-22).
 - `requireAdmin()` (`src/lib/auth/authorization.ts`) is the single shared helper every admin page/action uses to gate access and to scope its own queries to the admin's `organizationId` -- admin pages are not implicitly global across every organization.
 
 Production authentication uses Microsoft Entra ID SSO configured through Auth.js; if its env vars are absent in production, the app now refuses to start rather than booting with no working sign-in method. The Credentials provider (synthetic dev users) is hard-disabled in production regardless.

@@ -5,23 +5,24 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// Work week is Sunday-Saturday (confirmed with Barb for Menufy 2026-09-22; applied
+// company-wide for now since POS's actual work week is unconfirmed -- see FOLLOWUPS.md).
 export function weekDates(weeksAgo = 0) {
   const now = new Date();
-  const dayOfWeek = now.getUTCDay();
-  const currentMonday = new Date(now);
-  currentMonday.setUTCDate(now.getUTCDate() - ((dayOfWeek + 6) % 7));
+  const currentWeekStart = new Date(now);
+  currentWeekStart.setUTCDate(now.getUTCDate() - now.getUTCDay());
 
-  const monday = new Date(currentMonday);
-  monday.setUTCDate(currentMonday.getUTCDate() - weeksAgo * 7);
-  const sunday = new Date(monday);
-  sunday.setUTCDate(monday.getUTCDate() + 6);
-  const prevMonday = new Date(monday);
-  prevMonday.setUTCDate(monday.getUTCDate() - 7);
+  const weekStart = new Date(currentWeekStart);
+  weekStart.setUTCDate(currentWeekStart.getUTCDate() - weeksAgo * 7);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setUTCDate(weekStart.getUTCDate() + 6);
+  const prevWeekStart = new Date(weekStart);
+  prevWeekStart.setUTCDate(weekStart.getUTCDate() - 7);
 
   return {
-    periodStart: monday.toISOString().split("T")[0]!,
-    periodEnd: sunday.toISOString().split("T")[0]!,
-    previousPeriodStart: prevMonday.toISOString().split("T")[0]!,
+    periodStart: weekStart.toISOString().split("T")[0]!,
+    periodEnd: weekEnd.toISOString().split("T")[0]!,
+    previousPeriodStart: prevWeekStart.toISOString().split("T")[0]!,
     now: now.getTime(),
     hour: now.getHours(),
     isCurrentWeek: weeksAgo === 0,

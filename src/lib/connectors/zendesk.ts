@@ -14,7 +14,7 @@ import { externalIdentities, employees } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { zendeskGet, type RequestStats } from "./zendesk-shared";
 import { logger } from "@/lib/logger";
-import { mapWithConcurrency } from "@/lib/utils";
+import { mapWithConcurrency, weekDates } from "@/lib/utils";
 
 // Real timing data (2026-09-10, see FOLLOWUPS.md) showed the per-employee
 // ticket-search and identity-resolution loops -- not the Talk calls fetch --
@@ -126,15 +126,8 @@ interface CallAggregate {
 }
 
 function weekOf(weeksAgo: number): { periodStart: string; periodEnd: string } {
-  const now = new Date();
-  const monday = new Date(now);
-  monday.setUTCDate(now.getUTCDate() - ((now.getUTCDay() + 6) % 7) - weeksAgo * 7);
-  const sunday = new Date(monday);
-  sunday.setUTCDate(monday.getUTCDate() + 6);
-  return {
-    periodStart: monday.toISOString().split("T")[0]!,
-    periodEnd: sunday.toISOString().split("T")[0]!,
-  };
+  const { periodStart, periodEnd } = weekDates(weeksAgo);
+  return { periodStart, periodEnd };
 }
 
 // Zendesk's Search API hard-caps pagination at 1,000 total results --

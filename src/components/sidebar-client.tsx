@@ -136,8 +136,11 @@ export function SidebarClient({
         </button>
       </div>
 
-      {/* Primary nav */}
-      <nav className="flex-1 px-3 space-y-1 overflow-y-auto" aria-label="Main navigation">
+      {/* Primary nav -- sized to content, not flex-1: with only "1:1s" plus a
+          handful of admin items, stretching this to fill the viewport left a
+          large dead gap above the footer. overflow-y-auto is kept as a safety
+          net in case a future nav list grows past the viewport height. */}
+      <nav className="px-3 space-y-1 overflow-y-auto" aria-label="Main navigation">
         <div className="space-y-1.5">
           {primaryNav.map((item) => {
             const active = isActive(item.href);

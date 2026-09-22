@@ -1,5 +1,5 @@
 // Tests the canonical, exported weekDates() only (src/lib/utils.ts). Three other
-// reimplementations of this same Monday-start-of-week arithmetic exist in the
+// reimplementations of this same Sunday-start-of-week arithmetic exist in the
 // codebase — scripts/run-reconciliation.ts's private weekDates() and the inline
 // arithmetic in zendesk-mock.ts/assembled-mock.ts — using LOCAL server time
 // instead of UTC. They are not exported, so they cannot be unit-tested without
@@ -14,25 +14,25 @@ describe("weekDates", () => {
     vi.useRealTimers();
   });
 
-  it("resolves a UTC Monday 00:00:01 to itself as periodStart", () => {
+  it("resolves a UTC Sunday 00:00:01 to itself as periodStart", () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-08-17T00:00:01Z")); // Monday
+    vi.setSystemTime(new Date("2026-08-16T00:00:01Z")); // Sunday
     const { periodStart, periodEnd, isCurrentWeek } = weekDates(0);
-    expect(periodStart).toBe("2026-08-17");
-    expect(periodEnd).toBe("2026-08-23");
+    expect(periodStart).toBe("2026-08-16");
+    expect(periodEnd).toBe("2026-08-22");
     expect(isCurrentWeek).toBe(true);
   });
 
-  it("resolves a UTC Sunday 23:59:59 to the same week that started the prior Monday", () => {
+  it("resolves a UTC Saturday 23:59:59 to the same week that started the prior Sunday", () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-08-23T23:59:59Z")); // Sunday
+    vi.setSystemTime(new Date("2026-08-22T23:59:59Z")); // Saturday
     const { periodStart, periodEnd } = weekDates(0);
-    expect(periodStart).toBe("2026-08-17");
-    expect(periodEnd).toBe("2026-08-23");
+    expect(periodStart).toBe("2026-08-16");
+    expect(periodEnd).toBe("2026-08-22");
   });
 
   it("resolves periodStart/periodEnd from getUTCDay/setUTCDate, per source at src/lib/utils.ts:8-29", () => {
-    // 2026-08-17T02:00:00Z is Monday in UTC but still Sunday 2026-08-16 in any
+    // 2026-08-16T02:00:00Z is Sunday in UTC but still Saturday 2026-08-15 in any
     // timezone behind UTC-3. weekDates() uses only getUTCDay()/setUTCDate(), so
     // its result must depend solely on the UTC calendar date, never on the
     // process's local timezone. (Node's process.env.TZ is not reliably
@@ -40,39 +40,39 @@ describe("weekDates", () => {
     // instant rather than by mutating TZ at runtime — see the source
     // citation above for the actual UTC-only guarantee.)
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-08-17T02:00:00Z"));
+    vi.setSystemTime(new Date("2026-08-16T02:00:00Z"));
     const { periodStart } = weekDates(0);
-    expect(periodStart).toBe("2026-08-17");
+    expect(periodStart).toBe("2026-08-16");
   });
 
   it("computes previousPeriodStart as exactly 7 days before periodStart", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-08-19T12:00:00Z")); // Wednesday
     const { periodStart, previousPeriodStart } = weekDates(0);
-    expect(periodStart).toBe("2026-08-17");
-    expect(previousPeriodStart).toBe("2026-08-10");
+    expect(periodStart).toBe("2026-08-16");
+    expect(previousPeriodStart).toBe("2026-08-09");
   });
 
   it("walks back N weeks when weeksAgo is provided", () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-08-19T12:00:00Z")); // Wednesday, week of Aug 17
+    vi.setSystemTime(new Date("2026-08-19T12:00:00Z")); // Wednesday, week of Aug 16
     const oneWeekAgo = weekDates(1);
-    expect(oneWeekAgo.periodStart).toBe("2026-08-10");
-    expect(oneWeekAgo.periodEnd).toBe("2026-08-16");
+    expect(oneWeekAgo.periodStart).toBe("2026-08-09");
+    expect(oneWeekAgo.periodEnd).toBe("2026-08-15");
     expect(oneWeekAgo.isCurrentWeek).toBe(false);
 
     const fourWeeksAgo = weekDates(4);
-    expect(fourWeeksAgo.periodStart).toBe("2026-07-20");
+    expect(fourWeeksAgo.periodStart).toBe("2026-07-19");
   });
 
   it("handles a US DST transition instant without shifting the UTC week boundary", () => {
     // US DST ended 2026-11-01 — a purely UTC-based function should be
     // unaffected either way. Confirm the boundary lands on the correct
-    // UTC Monday regardless.
+    // UTC Sunday regardless.
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-11-01T12:00:00Z")); // Sunday
     const { periodStart, periodEnd } = weekDates(0);
-    expect(periodStart).toBe("2026-10-26");
-    expect(periodEnd).toBe("2026-11-01");
+    expect(periodStart).toBe("2026-11-01");
+    expect(periodEnd).toBe("2026-11-07");
   });
 });

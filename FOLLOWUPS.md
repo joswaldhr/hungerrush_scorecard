@@ -35,9 +35,12 @@ roughly chronological (not numeric) order — this table exists so you don't hav
 | 20 | *(new, 2026-09-21)* `resolveVisibility` specificity scoring treated teamId/line as a hierarchy | **Fixed 2026-09-21** | Nothing |
 | 21 | *(new, 2026-09-21)* Menufy visibility overrides couldn't express "all lines" | **Fixed 2026-09-21** — added an "all lines" option | Nothing |
 | 22 | *(new, 2026-09-21)* `findKeyChange`'s near-zero-baseline % swings (e.g. "Avg Hold declined 434%") | **Fixed 2026-09-21** | Nothing |
-| 23 | *(new, 2026-09-21)* Barbara's team's 67-86% "Needs Attention" rate | **Root cause found**: concentrated in 3 metrics (OB/IB calls, Tickets Resolved) whose range targets are narrower than real variance — see the exact numbers in `HANDOFF.md` | Recalibration conversation with Barbara |
+| 23 | *(new, 2026-09-21)* Barbara's team's 67-86% "Needs Attention" rate | **Root cause found**: concentrated in 3 metrics (OB/IB calls, Tickets Resolved) whose range targets are narrower than real variance — see the exact numbers in `HANDOFF.md`, and a percentile-based candidate-range recommendation (item #26 note, `scripts/analyze-menufy-range-target-percentiles.ts`). **Decided 2026-09-22 (James): leave Barbara's original targets as-is.** Not a bug — deliberately keeping her stated numbers through launch, revisit only if she raises it herself. | Nothing — deliberately deferred, not forgotten. Revisit if Barbara raises it post-launch. |
 | 24 | *(new, 2026-09-21)* Dead `"entra"` data-source UI branch in `data-health/page.tsx`; stale `assembled` row still in `data_sources` table | Open, low priority | Decide whether to delete the dead UI branch and/or the stale DB row |
 | 25 | *(new, 2026-09-21)* `docs/planning-report.html` (2026-09-02) never reconciled with this file | **Partially done** — its 2 most-cited findings (TGT-01, IDEM-01) cross-referenced; ~20 others still unverified | A dedicated pass through SYNC-01 through DB-05 |
+| 26 | *(new, 2026-09-21)* Marian Liu (Menufy, restaurant line) is 0 on every metric — tickets, calls, and backlog — for all 3 completed weeks | Open | Human check of her actual Zendesk agent identity/email vs. `employees.email` (see `entra-identity-drift` memory — don't guess one system's email from another's) |
+| 27 | *(new, 2026-09-22)* Work week was Monday-Sunday everywhere; Barbara confirmed Menufy's real work week is Sunday-Saturday | **Fixed 2026-09-22** — `weekDates()` (`src/lib/utils.ts`) and its 4 duplicates switched to Sunday-Saturday; applied company-wide since the setting is global and POS's actual work week is unconfirmed | Confirm POS's actual work week with Alex — if it differs from Sun-Sat, this needs a real per-team week-start setting, which doesn't exist today |
+| 28 | *(new, 2026-09-22)* Team page/nav removed (James's decision) | **Done 2026-09-22** — page, route, `TeamRosterTable`/`TeamFilters` deleted; sidebar, root redirect, stray `revalidatePath("/team")` calls, and docs (`CLAUDE.md`, `PRODUCT.md`, `ARCHITECTURE.md`, `METRIC_TRACEABILITY.md`) updated; sidebar's dead flex-1 gap fixed alongside | Nothing — fully recoverable from git history if revisited |
 
 Everything else not listed above (error monitoring, ongoing metric-reconciliation job,
 `metric_visibility_overrides` missing `organizationId`, old git worktree, `VERCEL_API` token
@@ -770,7 +773,7 @@ percentage is now only trusted when the prior value is at least 10% of the metri
 resolved target scale; below that, an absolute-delta label is shown instead (e.g. "1s"), kept
 data-driven rather than a hardcoded per-metric floor.
 
-## 23. Barbara's team's 67-86% "Needs Attention" rate — root cause found, needs a human decision
+## 23. Barbara's team's 67-86% "Needs Attention" rate — root cause found; James decided to defer
 
 The live-verification finding from the 2026-09-17 ship-readiness audit (see `HANDOFF.md`) was
 followed up with a data-backed query on 2026-09-21. **Not a pipeline bug, and not evidence of
@@ -792,6 +795,15 @@ three metrics driving it, same off-target percentages per line to within roundin
 new hires correctly show as pure `no_data` for all three weeks (they weren't employed yet)
 and don't skew the analysis. Nothing has drifted; the finding and recommendation stand
 exactly as written above.
+
+**Decided 2026-09-22 (James): leave Barbara's original targets unchanged.** A
+percentile-based candidate-range recommendation was built (`scripts/analyze-menufy-range-target-percentiles.ts`)
+showing what the ranges would look like if widened to match real variance (e.g. Tickets
+Resolved restaurant 75-128 -> ~39-241), but James chose not to bring this to Barbara before
+launch — leave her stated targets as-is, give it time post-launch, and only revisit if she
+raises the "Needs Attention" rate herself. This is a deliberate deferral, not an open item
+waiting on someone else; don't re-surface it as "needs a decision" in a future session unless
+Barbara actually raises it.
 
 ## 24. Dead `"entra"` data-source UI branch; stale `assembled` row in `data_sources`
 
@@ -823,3 +835,95 @@ cross-linking both. The other ~20 findings (SYNC-01 through DB-05, and its propo
 schema/sync/engine changes) were **not** re-verified — several may already be fixed by later
 work with nobody having checked. Worth a dedicated reconciliation pass before trusting any of
 them either way.
+
+## 26. Marian Liu (Menufy, restaurant line) is 0 on every metric for all 3 completed weeks
+
+Found while building a percentile-based candidate-range recommendation for item #23's
+recalibration conversation (`scripts/analyze-menufy-range-target-percentiles.ts`). Marian
+Liu's `metric_values` rows for 2026-08-31, 2026-09-07, and 2026-09-14 are all `quality_status
+= 'complete'` but every single metric — `tickets_resolved`, `tickets_updated`,
+`worked_elevated_tickets`, `inbound_calls_offered`, `inbound_calls_accepted`,
+`inbound_calls_abandoned_on_hold`, `outbound_calls`, `outbound_calls_completed`,
+`outbound_calls_non_answered`, and `backlog_count` (the one week it was captured) — is
+literally `0`. `employees.employment_status` is `active`.
+
+This is not the same shape as ordinary low performance: a real underperforming employee still
+has *some* nonzero calls or a nonzero backlog carrying over (compare Morgan S, same line,
+same weeks — 0 completions but a real 4-5 backlog and one real ticket resolved week 1). Zero
+on absolutely everything for 3 straight weeks reads as the sync never finding this person's
+Zendesk activity at all — most likely `employees.email` (`marian.liu@hungerrush.com`) not
+matching her real Zendesk agent identity, the same failure mode documented in the
+`entra-identity-drift` memory (a person's email can differ across Zendesk/Assembled/Entra).
+
+**Not fixed here** — guessing a corrected email would violate that same memory's rule. Also
+**not excluded from the live scorecard** (out of scope for a read-only analysis script) — she
+was only excluded from the sensitivity pass in the percentile script above, clearly labeled as
+such. Needs a human to confirm her real Zendesk agent email/id before anything is changed.
+
+## 27. Work week switched from Monday-Sunday to Sunday-Saturday
+
+James confirmed with Barbara that Menufy's actual work week is Sunday-Saturday, not the
+Monday-Sunday every week-boundary calculation in this codebase assumed. Fixed 2026-09-22:
+`weekDates()` (`src/lib/utils.ts`) now computes Sunday-Saturday, and while fixing it, the
+duplication CLAUDE.md already flagged ("reimplemented in 5+ places") was reduced at the same
+time — `zendesk.ts`'s `weekOf()` and the `one-on-ones/[id]/page.tsx`'s `periodDates()` now
+delegate to `weekDates()` instead of reimplementing the arithmetic; `zendesk-mock.ts` and
+`scripts/run-reconciliation.ts` still have their own local-time versions (a separate, already-
+documented UTC-vs-local divergence, out of scope here) but their day-of-week offset was
+updated to match. `golden-dataset.ts`'s `GOLDEN_WEEK` fixture and `week-dates.test.ts` were
+shifted/rewritten to match; 8 other test files with hardcoded Monday-anchored date literals
+were left untouched since they use those strings as opaque period identifiers and never call
+any week-boundary function.
+
+This is applied **company-wide**, not Menufy-only — the setting has always been global (no
+per-team concept exists), and James chose the lower-risk default (company-wide) over building
+a new per-team week-start setting on an unconfirmed guess about POS. **POS's actual work week
+is unconfirmed** — if Alex says it's not Sun-Sat, this needs real per-team scoping added to the
+schema, not a quick patch.
+
+**Historical data was deliberately not rewritten.** Already-synced `metric_values` (and the 6
+other tables with `period_start`/`period_end`) keep their old Monday-anchored rows exactly as
+synced — there was no backfill/migration. The practical effect: the last old-convention week
+synced was `2026-09-14..2026-09-20` (Mon-Sun), and the first new-convention week is
+`2026-09-20..2026-09-26` (Sun-Sat) — Sunday 2026-09-20 is counted in both, a one-day overlap at
+the seam. This is a one-time, one-day artifact from the cutover, not an ongoing bug, and not
+worth a migration to avoid. Any week-over-week comparison whose two periods straddle this
+specific seam should be read with that in mind; nothing before or after it is affected.
+
+## 28. Team page and nav item removed
+
+James decided to cut Team, leaving 1:1s as the sole primary nav item and core experience —
+this reverses the "two core experiences" shape `CLAUDE.md`/`docs/PRODUCT.md` had documented as
+a deliberate, stakeholder-reviewed decision (2026-09-03). Confirmed before deleting anything
+that `/one-on-ones` already has its own complete, independent employee picker (grouped by
+team, no dependency on Team's components or queries) — so this was a straightforward removal,
+not a two-step project needing a new picker built first.
+
+**Deleted outright** (not hidden — matches how Home and the old Employee screen were handled
+before): `src/app/(app)/team/` (`page.tsx`, `loading.tsx`, `error.tsx`), and the two
+components used only by that page, `team-roster-table.tsx` and `team-filters.tsx`. Fully
+recoverable from git history if this is revisited.
+
+**Also fixed, found while doing this:**
+- Root redirect (`src/app/(app)/page.tsx`) pointed at the now-deleted `/team` — repointed to
+  `/one-on-ones`.
+- Two stray `revalidatePath("/team")` calls (`admin/metric-visibility/actions.ts`,
+  `admin/roster-actions.ts`) — removed; they'd have been harmless no-ops, not errors, but were
+  dead cache-invalidation calls.
+- The sidebar's dead-space bug (`sidebar-client.tsx`'s `<nav>` had `flex-1`, stretching to fill
+  the viewport even though its content — one nav item plus the admin section — was far
+  shorter, leaving ~328px of empty space above the footer on a 900px-tall viewport, confirmed
+  via `getBoundingClientRect()` in the live browser preview, not guessed from a screenshot).
+  Removing "Team" would have made this worse (even less content to fill the same stretch), so
+  it was fixed in the same pass rather than deferred: `<nav>` now sizes to its content and the
+  footer (theme toggle + user profile) follows immediately after, with any true leftover space
+  falling below everything rather than sandwiched above the footer.
+- `docs/METRIC_TRACEABILITY.md` also had a claim that predates this change and was already
+  wrong: it said `one-on-ones/page.tsx` (the picker) called `getEmployeeMetricsBatch`. Checked
+  directly — the picker only calls `getAssignedEmployees`/`getVisibleTeamsForManager`, no
+  metrics fetch at all. Not a regression from removing Team; corrected while in the file.
+
+**Docs updated**: `CLAUDE.md` (Product UX section + its stale Monday-Sunday week note from
+item #27, missed in that session's docs pass), `docs/PRODUCT.md` (new revision note, "Two Core
+Experiences" -> "One Core Experience", progressive-disclosure principle, What Ships list),
+`docs/ARCHITECTURE.md` (file tree, sub-manager authorization note).

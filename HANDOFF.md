@@ -108,8 +108,10 @@ tightened across several rounds of self-critique before executing):**
   surfaced in the reject flow.
 
 **Needs a product/priority decision, not urgent:**
-- **Target recalibration conversation with Barbara — ready to go, confirmed twice.** Her team's
-  76.8% "Needs Attention" rate over the last 3 completed weeks (69 employee-weeks; matches the
+- ~~Target recalibration conversation with Barbara~~ — **decided 2026-09-22: James is
+  deliberately leaving Barbara's original targets unchanged through launch**, revisiting only
+  if she raises it herself. Kept here for context, not as an open item. Her team's 76.8%
+  "Needs Attention" rate over the last 3 completed weeks (69 employee-weeks; matches the
   67–86% range originally observed) is concentrated in exactly 3 of ~21 assigned metrics —
   Outbound Calls, Inbound Calls, Tickets Resolved — all `range` targets narrower than the
   team's real week-to-week variance:
@@ -126,9 +128,9 @@ tightened across several rounds of self-critique before executing):**
   Re-verified 2026-09-21 by re-running the app's own real target/status logic (not an
   approximation) against current live data, after Juan Jimenez/Maicol Ortiz were added — they
   correctly show as pure "No Data" and don't skew anything. This is a "3 specific ranges are
-  too tight" story, not a "the team is struggling" story (item #23) — data is ready whenever
-  James wants to bring it to Barbara; no further prep needed on this end unless he asks for a
-  shareable write-up.
+  too tight" story, not a "the team is struggling" story (item #23). A percentile-based
+  candidate-range recommendation exists (`scripts/analyze-menufy-range-target-percentiles.ts`,
+  2026-09-22) if this comes back up post-launch — no need to redo that analysis from scratch.
 - Sidebar doesn't auto-collapse on mobile (item #14) — cramped everywhere on a phone, not
   broken elsewhere the way the stat cards were. This is primarily a desk tool; flagged as a
   candidate only if mobile use turns out to matter.
@@ -149,6 +151,9 @@ tightened across several rounds of self-critique before executing):**
   wasn't).
 
 **Needs a human with access this session didn't have:**
+- Whether POS's actual work week is Sun-Sat too, or something else — see item #27. Confirmed
+  for Menufy (Barbara said Sun-Sat, applied company-wide 2026-09-22); POS is unconfirmed and
+  the setting is currently global, so this matters if POS turns out to differ.
 - Whether the real Zendesk account is single- or multi-brand (item #3, predates this session).
 - **What does "Jayhov Sumagang / 'Kevin L' roster mismatches" actually refer to?** Confirmed
   2026-09-21: this exact phrase is the *only* place in the entire repo (code, docs, git

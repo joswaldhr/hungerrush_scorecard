@@ -3,13 +3,18 @@
 For each live metric, the full path from the vendor API field to the number a manager sees, with exact file references. Pair with `docs/METRIC_REGISTRY.md` (what a metric means) and `docs/audits/2026-09-01-metric-integrity-report.md` (verdicts and findings).
 
 UI consumers for all five live metrics:
-- `src/app/(app)/team/page.tsx` (Team) — via `getEmployeeMetricsBatch`
 - `src/app/(app)/one-on-ones/[id]/page.tsx` (1:1 detail) — via `getEmployeeMetrics`/`getMetricHistoryBatch`
-- `src/app/(app)/one-on-ones/page.tsx` (1:1 list) — via `getEmployeeMetricsBatch`
 
-Home (`page.tsx`) redirects to `/team`. The standalone Employee route was removed. Line numbers
-below predate several rounds of changes to `zendesk.ts` and should be re-verified against the
-current file before trusting exact line numbers.
+(Team used `getEmployeeMetricsBatch` and was removed 2026-09-22 — see CLAUDE.md's Product UX
+revision note. This doc's claim that `one-on-ones/page.tsx` [the picker] also called
+`getEmployeeMetricsBatch` was already stale before that removal -- checked directly 2026-09-22:
+the picker only calls `getAssignedEmployees`/`getVisibleTeamsForManager`, no metrics. Not a
+regression from removing Team; `getEmployeeMetricsBatch` remains live via
+`briefings/generate.ts`, so it's not dead code.)
+
+Home (`page.tsx`) redirects to `/one-on-ones`. The standalone Employee route was removed. Line
+numbers below predate several rounds of changes to `zendesk.ts` and should be re-verified
+against the current file before trusting exact line numbers.
 
 Since 2026-09-17, two more steps sit in every chain below, between `metricValues` and the UI
 layer, regardless of which metric: `target-resolution.ts`'s `scoreCandidate` disqualifies a

@@ -5,10 +5,7 @@ import { employees } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { SidebarClient } from "./sidebar-client";
 
-const primaryNav = [
-  { label: "Team", href: "/team", iconName: "Users" },
-  { label: "1:1s", href: "/one-on-ones", iconName: "Calendar" },
-];
+const primaryNav = [{ label: "1:1s", href: "/one-on-ones", iconName: "Calendar" }];
 
 const adminNav = [
   { label: "Data Health", href: "/data-health", iconName: "Activity" },

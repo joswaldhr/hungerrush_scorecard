@@ -15,7 +15,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { teams, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { cn, initials } from "@/lib/utils";
+import { cn, initials, weekDates } from "@/lib/utils";
 
 // Only single-week options -- the connector writes one metricValues row per
 // calendar week, so a "Last 4/12 Weeks" option that requested a multi-week
@@ -32,27 +32,8 @@ const PERIODS = [
 type PeriodKey = (typeof PERIODS)[number]["key"];
 
 function periodDates(key: PeriodKey) {
-  const now = new Date();
-  const dayOfWeek = now.getUTCDay();
-  const currentMonday = new Date(now);
-  currentMonday.setUTCDate(now.getUTCDate() - ((dayOfWeek + 6) % 7));
-
   const config = PERIODS.find((p) => p.key === key)!;
-
-  const monday = new Date(currentMonday);
-  monday.setUTCDate(currentMonday.getUTCDate() - config.weeksAgo * 7);
-
-  const sunday = new Date(monday);
-  sunday.setUTCDate(monday.getUTCDate() + 6);
-
-  const prevMonday = new Date(monday);
-  prevMonday.setUTCDate(monday.getUTCDate() - 7);
-
-  return {
-    periodStart: monday.toISOString().split("T")[0]!,
-    periodEnd: sunday.toISOString().split("T")[0]!,
-    previousPeriodStart: prevMonday.toISOString().split("T")[0]!,
-  };
+  return weekDates(config.weeksAgo);
 }
 
 export default async function OneOnOnePage({
