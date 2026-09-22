@@ -5,8 +5,8 @@ import Link from "next/link";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/empty-state";
-import { ChevronRight, Search, Users } from "lucide-react";
-import { initials } from "@/lib/utils";
+import { Search, Users } from "lucide-react";
+import { cn, initials } from "@/lib/utils";
 
 export interface PickerEmployee {
   id: string;
@@ -45,13 +45,18 @@ function groupByLine(
   return groups;
 }
 
+type SortDir = "asc" | "desc";
+
 export function OneOnOnesPicker({ teams, employees }: OneOnOnesPickerProps) {
   const [query, setQuery] = useState("");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return q ? employees.filter((e) => e.displayName.toLowerCase().includes(q)) : employees;
-  }, [query, employees]);
+    const base = q ? employees.filter((e) => e.displayName.toLowerCase().includes(q)) : employees;
+    const sorted = [...base].sort((a, b) => a.displayName.localeCompare(b.displayName));
+    return sortDir === "asc" ? sorted : sorted.reverse();
+  }, [query, employees, sortDir]);
 
   const byTeam = useMemo(() => {
     const map = new Map<string, PickerEmployee[]>();
@@ -68,19 +73,40 @@ export function OneOnOnesPicker({ teams, employees }: OneOnOnesPickerProps) {
 
   return (
     <div className="space-y-6">
-      <div className="relative max-w-sm">
-        <Search
-          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-          aria-hidden="true"
-        />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by name..."
-          aria-label="Search employees"
-          className="w-full rounded-lg border border-border/80 bg-card py-2 pl-9 pr-3 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[#009ca6] shadow-2xs"
-        />
+      <div className="flex items-center gap-2">
+        <div className="relative max-w-sm flex-1">
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            aria-hidden="true"
+          />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by name..."
+            aria-label="Search employees"
+            className="w-full rounded-lg border border-border/80 bg-card py-2 pl-9 pr-3 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[#009ca6] shadow-2xs"
+          />
+        </div>
+
+        <div className="flex items-center rounded-lg border border-border/80 bg-card p-1 shrink-0">
+          {(["asc", "desc"] as const).map((dir) => (
+            <button
+              key={dir}
+              type="button"
+              onClick={() => setSortDir(dir)}
+              aria-pressed={sortDir === dir}
+              className={cn(
+                "rounded-md px-2.5 py-1 text-xs font-semibold transition-colors",
+                sortDir === dir
+                  ? "bg-[#009ca6] text-white"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {dir === "asc" ? "A–Z" : "Z–A"}
+            </button>
+          ))}
+        </div>
       </div>
 
       {!hasAnyResults ? (
@@ -106,31 +132,28 @@ export function OneOnOnesPicker({ teams, employees }: OneOnOnesPickerProps) {
                         </p>
                       </div>
                     )}
-                    <div className="divide-y divide-border/60">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 p-3">
                       {group.emps.map((emp) => (
                         <Link
                           key={emp.id}
                           href={`/one-on-ones/${emp.id}`}
-                          className="flex items-center justify-between gap-3 px-5 py-3.5 hover:bg-muted/30 transition-colors group"
+                          className="flex w-full min-w-0 flex-col items-center gap-2 rounded-lg border border-transparent px-3 py-4 text-center hover:border-border/60 hover:bg-muted/30 transition-colors group"
                         >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <Avatar className="h-9 w-9 ring-1 ring-border shrink-0">
-                              <AvatarFallback className="text-xs font-bold bg-slate-100 dark:bg-slate-800 text-foreground">
-                                {initials(emp.displayName)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="min-w-0">
-                              <p className="text-sm font-semibold text-foreground group-hover:text-[#009ca6] transition-colors truncate">
-                                {emp.displayName}
+                          <Avatar className="h-10 w-10 ring-1 ring-border shrink-0">
+                            <AvatarFallback className="text-xs font-bold bg-slate-100 dark:bg-slate-800 text-foreground">
+                              {initials(emp.displayName)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="w-full min-w-0">
+                            <p className="text-sm font-semibold text-foreground group-hover:text-[#009ca6] transition-colors truncate">
+                              {emp.displayName}
+                            </p>
+                            {emp.jobTitle && (
+                              <p className="text-xs text-muted-foreground truncate">
+                                {emp.jobTitle}
                               </p>
-                              {emp.jobTitle && (
-                                <p className="text-xs text-muted-foreground truncate">
-                                  {emp.jobTitle}
-                                </p>
-                              )}
-                            </div>
+                            )}
                           </div>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                         </Link>
                       ))}
                     </div>
