@@ -304,3 +304,27 @@ Provider references checked September 23:
 [Vercel environment scoping](https://vercel.com/docs/environment-variables/manage-across-environments)
 documents branch-specific preview variables. No hosted resource or Vercel setting has
 been changed at this access checkpoint.
+
+
+### Hosted staging environment created; database budget pending
+
+The user signed into Railway. Verified project `overflowing-radiance` contains
+`hungerrush_scorecard` and its production PostgreSQL service, using
+`ghcr.io/railwayapp-templates/postgres-ssl:18`. Created **Empty Environment**
+`cadence-staging` (no copied services or variables), environment ID
+`4e86528b-7329-4d73-a651-9f0fb3d07755`, in project
+`16252abf-3f91-44f8-a7b4-0d430bbc8834`. Creation was confirmed in the dashboard.
+This supersedes the sign-in blocker above. Production resources were not modified.
+
+The database has NOT been created or deployed. Provisioning introduces metered Railway
+usage, so a $10/month staging budget was requested before committing that cost. This is
+an operational budget, not a verified per-service billing cap. Do not apply a workspace
+hard limit that could stop production. No approval has been received at this checkpoint.
+
+A fresh Vercel variable inventory also confirmed Preview inherits Zendesk credentials,
+Graph application credentials, Microsoft sign-in credentials, and AUTH_SECRET in addition
+to DATABASE_URL. CRON_SECRET is production-only. Preview isolation must cover these
+inherited credentials before deployment, not just the database. No Vercel changes or
+code pushes have been made.
+
+Cost reference: [Railway usage pricing](https://docs.railway.com/pricing/understanding-your-bill).
