@@ -563,3 +563,23 @@ Validation: all 273 tests across 26 files passed against the isolated local data
 including 11 new status fixtures. Project typecheck, full lint/format checks, and production
 build passed. No production deployment was performed. HANDOFF's stale shared-Preview warning
 was corrected to point to the established isolated staging configuration.
+
+
+## Effective configuration dates and target ambiguity — September 23
+
+Scorecard queries now select definitions, assignments, and targets effective at the reporting
+period start, using inclusive effectiveFrom and exclusive effectiveTo (the membership
+convention already used by the app). Conflicting equal-precedence target rules produce
+No Target rather than choosing whichever row the database returned first. Identical
+rules still resolve normally. Existing target values, including Menufy ranges, are unchanged.
+
+Validation: 42 focused query/target tests passed, including PostgreSQL cases for future and
+expired targets and out-of-interval definitions/assignments; typecheck and focused lint passed.
+Historical employee line/team snapshots, role mapping, period identity/legacy interval access,
+and versioned configuration edits remain open. This increment does not claim to reconstruct
+historical context that the database never retained.
+
+Hosted Preview eceade63e8b0c4cb028da6efa6053b06a13b9ec7 is READY
+(deployment dpl_6xM84u7neHJcZeQw2Y9y9of49bgK). Authenticated browser verification showed
+neutral Partial Data overall, confirmed zero 0.0, No Target for the zero metric, and No Data
+for the missing metric. Production remains on ab062c33f70e2152b8786f6a8ade5a7e0ab96697.

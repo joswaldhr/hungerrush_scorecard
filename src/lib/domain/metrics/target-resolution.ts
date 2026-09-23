@@ -34,6 +34,22 @@ export function resolveTarget(
 
   const best = scored[0];
   if (!best || best.score < 0) return null;
+  // Equal-precedence conflicting rules have no justified winner. Returning no
+  // target is safer than a database-order-dependent performance judgment.
+  const tied = scored.filter(
+    (candidate) => candidate.score === best.score && candidate.priority === best.priority
+  );
+  if (
+    tied.some(
+      (candidate) =>
+        candidate.targetType !== best.targetType ||
+        candidate.targetValue !== best.targetValue ||
+        candidate.warningValue !== best.warningValue ||
+        candidate.targetMin !== best.targetMin ||
+        candidate.targetMax !== best.targetMax
+    )
+  )
+    return null;
 
   return {
     targetValue: best.targetValue,

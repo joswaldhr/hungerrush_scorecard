@@ -281,4 +281,87 @@ describe("getEmployeeMetricsBatch", () => {
     expect(row).toBeDefined();
     expect(row!.currentValue).toBe(7);
   });
+  it("ignores future and expired targets when reading an earlier period", async () => {
+    const inserted = await db
+      .insert(metricTargets)
+      .values([
+        {
+          metricDefinitionId: RANGE_DEF_ID,
+          teamId: MENUFY_TEAM_ID,
+          line: "restaurant",
+          targetType: "range",
+          targetMin: 100,
+          targetMax: 200,
+          priority: 99,
+          effectiveFrom: "2026-09-21",
+        },
+        {
+          metricDefinitionId: RANGE_DEF_ID,
+          teamId: MENUFY_TEAM_ID,
+          line: "restaurant",
+          targetType: "range",
+          targetMin: 300,
+          targetMax: 400,
+          priority: 100,
+          effectiveTo: PERIOD_START,
+        },
+      ])
+      .returning();
+    try {
+      const result = await getEmployeeMetricsBatch(
+        ctxFor([RESTAURANT_EMP_ID]),
+        [RESTAURANT_EMP_ID],
+        MENUFY_TEAM_ID,
+        PERIOD_START,
+        PREVIOUS_PERIOD_START
+      );
+      expect(
+        result.get(RESTAURANT_EMP_ID)?.find((r) => r.definitionId === RANGE_DEF_ID)?.target
+          ?.targetMax
+      ).toBe(20);
+    } finally {
+      await db.delete(metricTargets).where(
+        inArray(
+          metricTargets.id,
+          inserted.map((t) => t.id)
+        )
+      );
+    }
+  });
+
+  it("does not display a definition or assignment outside its effective interval", async () => {
+    const read = () =>
+      getEmployeeMetricsBatch(
+        ctxFor([POS_EMP_ID]),
+        [POS_EMP_ID],
+        POS_TEAM_ID,
+        PERIOD_START,
+        PREVIOUS_PERIOD_START
+      );
+    try {
+      await db
+        .update(metricDefinitions)
+        .set({ effectiveFrom: "2026-09-21" })
+        .where(eq(metricDefinitions.id, HIDDEN_DEF_ID));
+      expect((await read()).get(POS_EMP_ID)).toEqual([]);
+      await db
+        .update(metricDefinitions)
+        .set({ effectiveFrom: null })
+        .where(eq(metricDefinitions.id, HIDDEN_DEF_ID));
+      await db
+        .update(metricAssignments)
+        .set({ effectiveTo: PERIOD_START })
+        .where(eq(metricAssignments.metricDefinitionId, HIDDEN_DEF_ID));
+      expect((await read()).get(POS_EMP_ID)).toEqual([]);
+    } finally {
+      await db
+        .update(metricDefinitions)
+        .set({ effectiveFrom: null })
+        .where(eq(metricDefinitions.id, HIDDEN_DEF_ID));
+      await db
+        .update(metricAssignments)
+        .set({ effectiveTo: null })
+        .where(eq(metricAssignments.metricDefinitionId, HIDDEN_DEF_ID));
+    }
+  });
 });

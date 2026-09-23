@@ -13,6 +13,7 @@ import { assertCanAccessEmployee } from "@/lib/auth/authorization";
 import { resolveTarget, evaluateStatus } from "./target-resolution";
 import { resolveVisibility } from "./visibility-resolution";
 import type { Direction, ResolvedTarget, ValueType } from "./types";
+import { isEffectiveOn } from "./effective-dates";
 
 export interface EmployeeMetricRow {
   definitionId: string;
@@ -70,10 +71,11 @@ export async function getEmployeeMetricsBatch(
   const results = new Map<string, EmployeeMetricRow[]>();
   if (employeeIds.length === 0) return results;
 
-  const assignments = await db
+  const allAssignments = await db
     .select()
     .from(metricAssignments)
     .where(eq(metricAssignments.teamId, teamId));
+  const assignments = allAssignments.filter((assignment) => isEffectiveOn(assignment, periodStart));
 
   if (assignments.length === 0) {
     for (const employeeId of employeeIds) results.set(employeeId, []);
@@ -144,7 +146,7 @@ export async function getEmployeeMetricsBatch(
     for (const defId of defIds) {
       const def = defMap.get(defId);
       const assign = assignMap.get(defId);
-      if (!def || !assign) continue;
+      if (!def || !assign || !isEffectiveOn(def, periodStart)) continue;
 
       const visCandidates = visibilityOverrides
         .filter((v) => v.metricDefinitionId === defId)
@@ -169,7 +171,7 @@ export async function getEmployeeMetricsBatch(
       const previous = previousMap.get(defId);
 
       const candidateTargets = targets
-        .filter((t) => t.metricDefinitionId === defId)
+        .filter((t) => t.metricDefinitionId === defId && isEffectiveOn(t, periodStart))
         .map((t) => ({
           targetValue: t.targetValue,
           warningValue: t.warningValue,
