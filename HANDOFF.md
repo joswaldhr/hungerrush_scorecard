@@ -351,7 +351,86 @@ Numbers are unchanged from the original finding — see the "What's still open" 
 for the current exact figures. This is ready to bring to Barbara as-is; no further
 investigation is queued unless James wants a shareable write-up prepared.
 
+## Update (2026-09-22 to 2026-09-23): scorecard export fixes, scorecard redesign, 1:1s picker redesign (twice)
+
+Four separate pieces of work, each a direct response to James testing the app himself and
+reporting a specific problem, not self-initiated. All verified live in the browser, not just
+read from the code — every fix below has a concrete before/after check, not "should work now."
+
+**1. Scorecard export was broken in three of five ways** (`0f41f76`). James ran a real export
+test: PDF and PNG both failed, CSV downloaded but dashes rendered as mojibake in Excel, print
+spilled onto a second, mostly-blank page. All three had real, distinct root causes:
+- PDF/PNG: `html2canvas` can't parse the `lab()`/`oklch()` color functions this app's Tailwind
+  v4 theme uses for every color — confirmed via the actual thrown error, which the code had
+  been silently swallowing (no `console.error` in the catch blocks at all). Fixed by swapping
+  to `html2canvas-pro`, a fork built specifically for this exact Tailwind v4 incompatibility,
+  same API.
+- CSV: no UTF-8 BOM, so Excel assumed the system codepage and mangled the en-dashes in target
+  ranges (`75–128` → `75â€"128`). Fixed by prepending `﻿`; confirmed by intercepting the
+  actual `Blob` the app constructs and checking for the real BOM byte (65279).
+- Print: the stylesheet linearized all 5 category cards into one tall column, and
+  `break-inside: avoid` pushed whichever card didn't quite fit onto page 2, wasting whatever
+  room was left on page 1. Switched to a 2-column print layout with tighter row padding.
+  Verified by extracting the *actual* shipped `@media print` CSS from the live stylesheet (not
+  retyped by hand) and measuring real layout against a conservative page-height budget.
+
+**2. Scorecard redesign** (`7b73c9e`) — a large, explicitly-planned refinement (James's own
+spec required a plan summary before editing, per its own instructions). Replaced the old fixed
+"This Week/Last Week/2/3 Weeks Ago" tabs with a real prev/next/calendar week navigator, real
+date-range table headers instead of relative labels, a derived "Overall status: X | N metrics
+outside target: ..." line, section-level category icons, and a visibly distinct "No Data" vs
+"No Target" badge. The real work was underneath: this page had **zero client-side caching** —
+every week click was a full server round-trip re-running auth, manager-context resolution,
+roster lookup, and team/manager lookup from scratch on top of the metrics query. Moved the
+data-dependent half into a client component backed by a Server Action that re-runs just the
+metrics fetch, cached by week in memory, prefetching the 4 most recent weeks on mount plus the
+neighbors of wherever you navigate; URL syncs via `history.pushState` so the page shell never
+remounts. Verified live: an already-cached week fires zero new requests, an uncached week
+fires exactly one, browser Back correctly restores an earlier week.
+
+Found and fixed along the way, not the point of the work: `metric-icon.tsx`'s category→icon
+map used a taxonomy (`productivity`/`workload`/`attendance`) that never matched this app's
+real categories (`ticket_case_work`/`inbound_call`/`outbound_call`), so 3 of 5 sections
+silently fell back to the same generic icon on every row — this **was** the "same teal icon
+everywhere" complaint from an earlier picker redesign, just not yet traced to its cause.
+
+**3. Focus ring stuck on the week navigator** (`08bac05`) — James caught this via screenshots:
+the prev/next buttons kept a visible teal focus ring through repeated clicks while stepping
+back through weeks. Real, standard browser behavior (Chromium shows a focus ring on `<button>`
+after any activation including a mouse click, unlike links or text inputs), not a bug in the
+global focus-visible style. Fixed by blurring the button after its click handler runs.
+Verified keyboard accessibility wasn't collateral damage: a real 17-keystroke Tab sequence
+(not a scripted `.focus()`, which browsers treat differently) confirmed the ring still shows
+correctly while tabbing to the button — it only clears after activation, identically for mouse
+and keyboard.
+
+**4. 1:1s picker redesigned twice**, both direct responses to James using the shipped result
+and asking for more: first pass (`01446e5`, `ee9e708`) added sorting, line-based grouping, and
+search to what had been an unsorted flat list; second pass (`ac47281`) widened the whole page
+(`max-w-4xl` → `max-w-6xl`), removed the single `Card` wrapping each team's entire roster in
+favor of open sections with a "Name · N employees · divider" header, replaced the vertical
+avatar-above-name tiles with horizontal bordered cards (avatar/name/chevron), and replaced two
+separate A-Z/Z-A buttons with one `Sort: A–Z` dropdown. Deliberately skipped the per-employee
+status dot the mockup showed — real status needs a metrics batch-query across the whole
+roster that doesn't exist on this page, the same query the old Team page ran before it was
+deliberately deleted specifically to stop this page from being a "compare everyone" view;
+adding it back here would quietly reverse that decision, so it was left out rather than made
+unilaterally. Verified all 4 responsive breakpoints (1/2/3/4 columns at <640/640/768/1024px)
+via `getComputedStyle`, not eyeballed from a screenshot.
+
+Also this session, before the above: switched the work week from Monday-Sunday to
+Sunday-Saturday company-wide (`6241d65`, Barbara confirmed Menufy's real work week; POS's is
+still unconfirmed, see "Needs a human" below), removed the Team page/nav entirely (James's
+decision, reverses a prior stakeholder-reviewed "two core experiences" shape — see
+`CLAUDE.md`'s Product UX section), and fixed a real sidebar layout bug found while doing that
+removal (`<nav>` had `flex-1`, leaving ~328px of dead space above the footer on a typical
+screen). A separate, read-only percentile analysis of Menufy's range targets was also built at
+James's request (`scripts/analyze-menufy-range-target-percentiles.ts`) but he decided to leave
+Barbara's original targets unchanged through launch — see item #23 and the "What's still open"
+section above.
+
 ## Repo state
 
-Everything through this update is committed and pushed to `master` (`87af741`). CI is green,
-confirmed on the latest push, not just locally.
+Everything through this update is committed and pushed to `master` (`ac47281`). CI is green
+and the latest Vercel production deployment is `READY`, both confirmed against the real
+GitHub Actions run and Vercel API for this exact commit, not assumed from a local pass.
