@@ -46,7 +46,14 @@ export function WeekNavigator({
         <button
           type="button"
           aria-label="Previous week"
-          onClick={() => onNavigate(shiftWeekStart(periodStart, -1))}
+          onClick={(e) => {
+            onNavigate(shiftWeekStart(periodStart, -1));
+            // The data underneath changes on every click, which is already
+            // clear feedback -- a focus ring that lingers through repeated
+            // clicks (as a manager steps back through weeks) reads as stuck
+            // rather than helpful, so release it once the click is handled.
+            e.currentTarget.blur();
+          }}
           className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -65,7 +72,10 @@ export function WeekNavigator({
           type="button"
           aria-label="Next week"
           disabled={isCurrent}
-          onClick={() => onNavigate(shiftWeekStart(periodStart, 1))}
+          onClick={(e) => {
+            onNavigate(shiftWeekStart(periodStart, 1));
+            e.currentTarget.blur();
+          }}
           className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
         >
           <ChevronRight className="h-4 w-4" />
