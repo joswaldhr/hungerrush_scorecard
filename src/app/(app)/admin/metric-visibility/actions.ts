@@ -1,6 +1,8 @@
 "use server";
 
 import { requireAdmin } from "@/lib/auth/authorization";
+import { assertOrganizationResource, organizationMetricIds } from "@/lib/auth/organization-scope";
+import { z } from "zod";
 import { db } from "@/lib/db";
 import {
   metricVisibilityOverrides,
@@ -22,7 +24,30 @@ export interface SetVisibilityInput {
 }
 
 export async function setVisibilityOverride(input: SetVisibilityInput): Promise<void> {
-  const { userId: hiddenBy } = await requireAdmin();
+  const { userId: hiddenBy, organizationId } = await requireAdmin();
+  input = z
+    .object({
+      scope: z.enum(["global_default", "manager_override", "scorecard_override"]),
+      managerUserId: z.uuid().nullable(),
+      targetEmployeeId: z.uuid().nullable(),
+      metricDefinitionId: z.uuid(),
+      teamId: z.uuid().nullable(),
+      line: z.string().max(100).nullable(),
+      hidden: z.boolean(),
+    })
+    .parse(input);
+  if (
+    (input.scope === "global_default" && (input.managerUserId || input.targetEmployeeId)) ||
+    (input.scope === "manager_override" && (!input.managerUserId || input.targetEmployeeId)) ||
+    (input.scope === "scorecard_override" && (!input.targetEmployeeId || input.managerUserId))
+  )
+    throw new Error("Invalid visibility scope");
+  await assertOrganizationResource(organizationId, "metric", input.metricDefinitionId);
+  if (input.managerUserId)
+    await assertOrganizationResource(organizationId, "user", input.managerUserId);
+  if (input.targetEmployeeId)
+    await assertOrganizationResource(organizationId, "employee", input.targetEmployeeId);
+  if (input.teamId) await assertOrganizationResource(organizationId, "team", input.teamId);
 
   const existing = await db
     .select({ id: metricVisibilityOverrides.id })
@@ -50,7 +75,15 @@ export async function setVisibilityOverride(input: SetVisibilityInput): Promise<
     await db
       .update(metricVisibilityOverrides)
       .set({ hidden: input.hidden, hiddenBy, hiddenAt: new Date() })
-      .where(eq(metricVisibilityOverrides.id, existing[0].id));
+      .where(
+        and(
+          eq(metricVisibilityOverrides.id, existing[0].id),
+          inArray(
+            metricVisibilityOverrides.metricDefinitionId,
+            organizationMetricIds(organizationId)
+          )
+        )
+      );
   } else {
     await db.insert(metricVisibilityOverrides).values({
       scope: input.scope,
@@ -70,11 +103,18 @@ export async function setVisibilityOverride(input: SetVisibilityInput): Promise<
 }
 
 export async function removeVisibilityOverride(formData: FormData): Promise<void> {
-  await requireAdmin();
+  const { organizationId } = await requireAdmin();
   const id = formData.get("id") as string;
   if (!id) return;
 
-  await db.delete(metricVisibilityOverrides).where(eq(metricVisibilityOverrides.id, id));
+  await db
+    .delete(metricVisibilityOverrides)
+    .where(
+      and(
+        eq(metricVisibilityOverrides.id, id),
+        inArray(metricVisibilityOverrides.metricDefinitionId, organizationMetricIds(organizationId))
+      )
+    );
 
   revalidatePath("/admin/metric-visibility");
   revalidatePath("/one-on-ones");
@@ -86,7 +126,8 @@ export async function removeVisibilityOverride(formData: FormData): Promise<void
  * confirmation dialog before a manager-wide bulk hide commits.
  */
 export async function getManagerScorecardCount(managerUserId: string): Promise<number> {
-  await requireAdmin();
+  const { organizationId } = await requireAdmin();
+  await assertOrganizationResource(organizationId, "user", managerUserId);
 
   const assignments = await db
     .select()
@@ -121,7 +162,13 @@ export async function getManagerScorecardCount(managerUserId: string): Promise<n
   const activeEmployees = await db
     .select({ id: employees.id })
     .from(employees)
-    .where(and(inArray(employees.id, allEmployeeIds), eq(employees.employmentStatus, "active")));
+    .where(
+      and(
+        inArray(employees.id, allEmployeeIds),
+        eq(employees.employmentStatus, "active"),
+        eq(employees.organizationId, organizationId)
+      )
+    );
 
   return activeEmployees.length;
 }

@@ -6,13 +6,12 @@ import {
   getVisibleTeamsForManager,
 } from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
+import { teams, metricDefinitions } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import {
-  reconciliationRuns,
-  reconciliationResults,
-  teams,
-  metricDefinitions,
-} from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+  getScopedReconciliationRun,
+  getScopedReconciliationRuns,
+} from "@/lib/domain/reconciliation/queries";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/empty-state";
@@ -51,12 +50,7 @@ export default async function ReconciliationPage() {
   const { ctx, isPlatformAdmin } = await getEffectiveManagerContext(session.user.email);
   if (!ctx) redirect(isPlatformAdmin ? "/admin" : "/");
 
-  const runs = await db
-    .select()
-    .from(reconciliationRuns)
-    .where(eq(reconciliationRuns.organizationId, ctx.organizationId))
-    .orderBy(desc(reconciliationRuns.startedAt))
-    .limit(10);
+  const runs = await getScopedReconciliationRuns(ctx, 10);
 
   const teamList = await db
     .select({ id: teams.id, name: teams.name })
@@ -84,15 +78,7 @@ export default async function ReconciliationPage() {
   }> = [];
 
   if (runs.length > 0) {
-    const assignedIds = new Set(ctx.assignedEmployeeIds);
-    const allResults = await db
-      .select()
-      .from(reconciliationResults)
-      .where(eq(reconciliationResults.reconciliationRunId, runs[0]!.id));
-    // A run may span employees outside this manager's own assignment (e.g. an
-    // org-wide run triggered by someone else) — never show another team's
-    // employee-level metric values just because the run itself is org-scoped.
-    latestResults = allResults.filter((r) => assignedIds.has(r.employeeId));
+    latestResults = (await getScopedReconciliationRun(ctx, runs[0]!.id))?.results ?? [];
   }
 
   // Not just ctx.assignedTeamIds -- a sub-manager's access can come entirely
@@ -107,7 +93,7 @@ export default async function ReconciliationPage() {
       <header>
         <h1 className="text-xl font-semibold text-foreground">Data Reconciliation</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Compare Cadence metric values against source system data
+          Compare Cadence metric values against stored source facts for your assigned employees
         </p>
       </header>
 

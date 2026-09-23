@@ -4,9 +4,7 @@ import {
   getAssignedEmployees,
   getVisibleTeamsForManager,
 } from "@/lib/auth/authorization";
-import { db } from "@/lib/db";
-import { reconciliationRuns } from "@/lib/db/schema";
-import { eq, desc, and, or, inArray, isNull } from "drizzle-orm";
+import { getScopedReconciliationRuns } from "@/lib/domain/reconciliation/queries";
 import { runReconciliation } from "@/lib/domain/reconciliation";
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
@@ -101,31 +99,7 @@ export async function GET() {
   }
 
   try {
-    // organizationId alone isn't enough scoping -- this org has multiple
-    // managers, each with their own teams, and a run's aggregate counts
-    // (even without employee-level detail, which /results already scopes
-    // separately) shouldn't be visible across that boundary. A run counts
-    // as this manager's if it's scoped to one of their visible teams (not
-    // just ctx.assignedTeamIds -- a sub-manager's team access can come
-    // entirely from individual employee assignments), or if it's an
-    // org-wide run (no teamId) they personally triggered.
-    const assignedEmployees = await getAssignedEmployees(ctx);
-    const visibleTeams = await getVisibleTeamsForManager(ctx, assignedEmployees);
-    const visibleTeamIds = visibleTeams.map((t) => t.id);
-    const scopeCondition =
-      visibleTeamIds.length > 0
-        ? or(
-            inArray(reconciliationRuns.teamId, visibleTeamIds),
-            and(isNull(reconciliationRuns.teamId), eq(reconciliationRuns.triggeredBy, ctx.userId))
-          )
-        : and(isNull(reconciliationRuns.teamId), eq(reconciliationRuns.triggeredBy, ctx.userId));
-
-    const runs = await db
-      .select()
-      .from(reconciliationRuns)
-      .where(and(eq(reconciliationRuns.organizationId, ctx.organizationId), scopeCondition))
-      .orderBy(desc(reconciliationRuns.startedAt))
-      .limit(20);
+    const runs = await getScopedReconciliationRuns(ctx);
 
     return NextResponse.json({
       runs: runs.map((r) => ({

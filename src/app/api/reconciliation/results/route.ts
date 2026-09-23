@@ -1,8 +1,6 @@
 import { auth } from "@/lib/auth";
 import { getEffectiveManagerContext } from "@/lib/auth/authorization";
-import { db } from "@/lib/db";
-import { reconciliationResults, reconciliationRuns } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { getScopedReconciliationRun } from "@/lib/domain/reconciliation/queries";
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 
@@ -24,29 +22,12 @@ export async function GET(request: Request) {
   }
 
   try {
-    const [run] = await db
-      .select()
-      .from(reconciliationRuns)
-      .where(eq(reconciliationRuns.id, runId));
-
-    if (!run) {
+    const scoped = await getScopedReconciliationRun(ctx, runId);
+    if (!scoped) {
       return NextResponse.json({ error: "Run not found" }, { status: 404 });
     }
 
-    if (run.organizationId !== ctx.organizationId) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const allResults = await db
-      .select()
-      .from(reconciliationResults)
-      .where(eq(reconciliationResults.reconciliationRunId, runId));
-
-    // A run may span employees outside this manager's own assignment (e.g. an
-    // org-wide run triggered by someone else) — never return another team's
-    // employee-level metric values just because the run itself is org-scoped.
-    const assignedIds = new Set(ctx.assignedEmployeeIds);
-    const results = allResults.filter((r) => assignedIds.has(r.employeeId));
+    const { run, results } = scoped;
 
     return NextResponse.json({
       run: {

@@ -6,8 +6,10 @@ import {
   metricValues,
   normalizedFacts,
   teamMemberships,
+  employees,
 } from "@/lib/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, isNull, or, lte, gt } from "drizzle-orm";
+import { assertOrganizationResource } from "@/lib/auth/organization-scope";
 import type { CalculationType } from "@/lib/domain/metrics/types";
 import { compareValues, aggregateSourceValues } from "./compare";
 
@@ -15,9 +17,7 @@ export interface ReconciliationParams {
   organizationId: string;
   triggeredBy: string;
   teamId?: string;
-  /** Employees to compare when teamId isn't set — the triggering manager's
-   * own assigned employees, never "every employee in the org" (a manager
-   * who omits teamId should still only see their own scope). */
+  /** Authorized upper bound, including when a team filter is supplied. */
   employeeIds: string[];
   periodStart: string;
   periodEnd: string;
@@ -26,6 +26,7 @@ export interface ReconciliationParams {
 
 export async function runReconciliation(params: ReconciliationParams) {
   const thresholdPct = params.thresholdPct ?? 5;
+  if (params.teamId) await assertOrganizationResource(params.organizationId, "team", params.teamId);
 
   const [run] = await db
     .insert(reconciliationRuns)
@@ -55,15 +56,32 @@ export async function runReconciliation(params: ReconciliationParams) {
 
     const activeMetrics = definitions.filter((d) => d.sourceStrategy);
 
-    let employeeIds: string[];
+    const permittedEmployees = await db
+      .select({ id: employees.id })
+      .from(employees)
+      .where(
+        and(
+          eq(employees.organizationId, params.organizationId),
+          inArray(employees.id, params.employeeIds)
+        )
+      );
+    let employeeIds = permittedEmployees.map((e) => e.id);
     if (params.teamId) {
       const memberships = await db
         .select({ employeeId: teamMemberships.employeeId })
         .from(teamMemberships)
-        .where(eq(teamMemberships.teamId, params.teamId));
-      employeeIds = memberships.map((m) => m.employeeId);
-    } else {
-      employeeIds = params.employeeIds;
+        .where(
+          and(
+            eq(teamMemberships.teamId, params.teamId),
+            inArray(teamMemberships.employeeId, employeeIds),
+            lte(teamMemberships.effectiveFrom, params.periodEnd),
+            or(
+              isNull(teamMemberships.effectiveTo),
+              gt(teamMemberships.effectiveTo, params.periodStart)
+            )
+          )
+        );
+      employeeIds = [...new Set(memberships.map((m) => m.employeeId))];
     }
 
     if (employeeIds.length === 0 || activeMetrics.length === 0) {
@@ -101,6 +119,7 @@ export async function runReconciliation(params: ReconciliationParams) {
         .where(
           and(
             inArray(normalizedFacts.employeeId, employeeIds),
+            eq(normalizedFacts.organizationId, params.organizationId),
             eq(normalizedFacts.periodStart, params.periodStart),
             eq(normalizedFacts.periodEnd, params.periodEnd)
           )

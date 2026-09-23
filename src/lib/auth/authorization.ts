@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { users, teams, employees, managerAssignments, teamMemberships } from "@/lib/db/schema";
-import { eq, and, isNull, inArray } from "drizzle-orm";
+import { eq, and, isNull, inArray, or, lte, gt } from "drizzle-orm";
 
 export const VIEW_AS_COOKIE = "cadence_view_as";
 
@@ -31,23 +31,39 @@ const getActiveUserByEmail = cache(async function getActiveUserByEmail(
 });
 
 async function buildManagerContext(user: UserRow): Promise<ManagerContext | null> {
+  const today = new Date().toISOString().slice(0, 10);
   const assignments = await db
     .select()
     .from(managerAssignments)
     .where(
-      and(eq(managerAssignments.managerUserId, user.id), isNull(managerAssignments.effectiveTo))
+      and(
+        eq(managerAssignments.managerUserId, user.id),
+        lte(managerAssignments.effectiveFrom, today),
+        or(isNull(managerAssignments.effectiveTo), gt(managerAssignments.effectiveTo, today))
+      )
     );
 
   if (assignments.length === 0) return null;
 
-  const teamIds = assignments.filter((a) => a.teamId !== null).map((a) => a.teamId!);
+  const assignedTeamIds = assignments.filter((a) => a.teamId !== null).map((a) => a.teamId!);
+  const scopedTeams = await db
+    .select({ id: teams.id })
+    .from(teams)
+    .where(and(eq(teams.organizationId, user.organizationId), inArray(teams.id, assignedTeamIds)));
+  const teamIds = scopedTeams.map((t) => t.id);
 
   let teamEmployeeIds: string[] = [];
   if (teamIds.length > 0) {
     const memberships = await db
       .select({ employeeId: teamMemberships.employeeId })
       .from(teamMemberships)
-      .where(and(inArray(teamMemberships.teamId, teamIds), isNull(teamMemberships.effectiveTo)));
+      .where(
+        and(
+          inArray(teamMemberships.teamId, teamIds),
+          lte(teamMemberships.effectiveFrom, today),
+          or(isNull(teamMemberships.effectiveTo), gt(teamMemberships.effectiveTo, today))
+        )
+      );
     teamEmployeeIds = memberships.map((m) => m.employeeId);
   }
 
@@ -55,7 +71,16 @@ async function buildManagerContext(user: UserRow): Promise<ManagerContext | null
     .filter((a) => a.employeeId !== null)
     .map((a) => a.employeeId!);
 
-  const allEmployeeIds = [...new Set([...teamEmployeeIds, ...directEmployeeIds])];
+  const scopedEmployees = await db
+    .select({ id: employees.id })
+    .from(employees)
+    .where(
+      and(
+        eq(employees.organizationId, user.organizationId),
+        inArray(employees.id, [...new Set([...teamEmployeeIds, ...directEmployeeIds])])
+      )
+    );
+  const allEmployeeIds = scopedEmployees.map((e) => e.id);
 
   return {
     userId: user.id,
@@ -174,7 +199,12 @@ export async function listManagersForViewAs(organizationId: string): Promise<Man
 
 export const getAssignedTeams = cache(async function getAssignedTeams(ctx: ManagerContext) {
   if (ctx.assignedTeamIds.length === 0) return [];
-  return db.select().from(teams).where(inArray(teams.id, ctx.assignedTeamIds));
+  return db
+    .select()
+    .from(teams)
+    .where(
+      and(inArray(teams.id, ctx.assignedTeamIds), eq(teams.organizationId, ctx.organizationId))
+    );
 });
 
 /**
@@ -193,7 +223,10 @@ export async function getVisibleTeamsForManager(
     .filter((id): id is string => id !== null);
   const allIds = [...new Set([...ctx.assignedTeamIds, ...employeeTeamIds])];
   if (allIds.length === 0) return [];
-  return db.select().from(teams).where(inArray(teams.id, allIds));
+  return db
+    .select()
+    .from(teams)
+    .where(and(inArray(teams.id, allIds), eq(teams.organizationId, ctx.organizationId)));
 }
 
 export const getAssignedEmployees = cache(async function getAssignedEmployees(ctx: ManagerContext) {
@@ -202,7 +235,11 @@ export const getAssignedEmployees = cache(async function getAssignedEmployees(ct
     .select()
     .from(employees)
     .where(
-      and(inArray(employees.id, ctx.assignedEmployeeIds), eq(employees.employmentStatus, "active"))
+      and(
+        inArray(employees.id, ctx.assignedEmployeeIds),
+        eq(employees.employmentStatus, "active"),
+        eq(employees.organizationId, ctx.organizationId)
+      )
     );
 });
 
