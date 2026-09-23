@@ -290,12 +290,13 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
         await barrier;
         return { records: [record(12)], cursor: null, hasMore: false };
       };
-      const older = runSync(slow, config);
+      const older = runSync(slow, config, { weekOffset: 1 });
       await fetching;
       try {
-        expect((await runSync(connector([record(unchanged ? 41 : 52)]), config)).success).toBe(
-          true
-        );
+        expect(
+          (await runSync(connector([record(unchanged ? 41 : 52)]), config, { weekOffset: 0 }))
+            .success
+        ).toBe(true);
         const before = await values();
         release();
         expect((await older).success).toBe(false);
@@ -322,16 +323,90 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
       await barrier;
       return { records: [record(17, "2026-09-13")], cursor: null, hasMore: false };
     };
-    const older = runSync(slow, config);
+    const older = runSync(slow, config, { weekOffset: 1 });
     await fetching;
     try {
-      expect((await runSync(connector([record(51)]), config)).success).toBe(true);
+      expect((await runSync(connector([record(51)]), config, { weekOffset: 0 })).success).toBe(
+        true
+      );
       release();
       expect((await older).success).toBe(true);
       expect((await values()).find((v) => v.periodStart === "2026-09-13")?.numericValue).toBe(17);
     } finally {
       release();
       await older;
+    }
+  });
+  it("allows only one concurrent lease for overlapping source/week work", async () => {
+    let release!: () => void;
+    let started!: () => void;
+    const fetching = new Promise<void>((resolve) => {
+      started = resolve;
+    });
+    const barrier = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const slow = connector([record(61)]);
+    slow.fetchRecords = async () => {
+      started();
+      await barrier;
+      return { records: [record(61)], cursor: null, hasMore: false };
+    };
+    const running = runSync(slow, config, { weekOffset: 0 });
+    await fetching;
+    try {
+      const attempts = await Promise.all([
+        runSync(connector([record(62)]), config, { weekOffset: 0 }),
+        runSync(connector([record(63)]), config),
+      ]);
+      expect(attempts.every((result) => !result.success)).toBe(true);
+      const runs = await db
+        .select()
+        .from(syncRuns)
+        .where(
+          inArray(
+            syncRuns.id,
+            attempts.map((r) => r.syncRunId)
+          )
+        );
+      expect(runs.every((run) => run.status === "skipped")).toBe(true);
+    } finally {
+      release();
+      expect((await running).success).toBe(true);
+    }
+  });
+
+  it("reclaims expired work and prevents its old owner from publishing", async () => {
+    let release!: () => void;
+    let started!: (runId: string) => void;
+    const fetching = new Promise<string>((resolve) => {
+      started = resolve;
+    });
+    const barrier = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const slow = connector([record(71)]);
+    slow.fetchRecords = async (_config, ctx) => {
+      started(ctx.syncRunId);
+      await barrier;
+      return { records: [record(71)], cursor: null, hasMore: false };
+    };
+    const running = runSync(slow, config);
+    const oldRunId = await fetching;
+    try {
+      await db.execute(
+        sql`update ${syncRuns} set metadata_json = jsonb_set(metadata_json, '{leaseExpiresAt}', to_jsonb(clock_timestamp() - interval '1 second')) where id = ${oldRunId}`
+      );
+      expect((await runSync(connector([record(72)]), config)).success).toBe(true);
+      const before = await values();
+      release();
+      expect((await running).success).toBe(false);
+      expect(await values()).toEqual(before);
+      const errors = await db.select().from(syncErrors).where(eq(syncErrors.syncRunId, oldRunId));
+      expect(errors.some((error) => error.errorType === "lease_expired")).toBe(true);
+    } finally {
+      release();
+      await running;
     }
   });
 });

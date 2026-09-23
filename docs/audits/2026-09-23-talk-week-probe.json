@@ -1,0 +1,17 @@
+{
+  "kind": "read-only current-week Talk export probe",
+  "periodStart": "2026-09-20",
+  "periodEnd": "2026-09-26",
+  "pages": 6,
+  "complete": true,
+  "termination": "repeated boundary",
+  "rawRows": 4700,
+  "uniqueCalls": 4694,
+  "boundaryOrRevisionDuplicates": 6,
+  "callsCreatedInPeriod": 4621,
+  "excludedOutsideCreationPeriod": 73,
+  "elapsedSeconds": 15.97,
+  "rateLimitWaitSeconds": 0,
+  "idSetSha256": "897287f2f378324859aadae5b8cc08cfcc6417d2ba6e2ea5a1cbdbff079f7367",
+  "limitations": "Export completion observation only; not independent per-agent/leg business-metric reconciliation."
+}

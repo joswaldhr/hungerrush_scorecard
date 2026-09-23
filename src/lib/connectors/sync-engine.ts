@@ -11,6 +11,7 @@ import { eq, and, sql, inArray } from "drizzle-orm";
 import { createHash } from "crypto";
 import type { Connector, ConnectorConfig, SyncContext, IngestedRecord } from "./types";
 import { captureSyncRevisions } from "./sync-revisions";
+import { createLeasedSyncRun, renewSyncLease } from "./sync-lease";
 import { logger } from "@/lib/logger";
 import { computeMetricValuesFromFacts } from "@/lib/domain/metrics/compute-values";
 import { chunk } from "@/lib/utils";
@@ -71,11 +72,8 @@ export async function runSync(
   if (source.organizationId !== config.organizationId)
     throw new Error("Data source organization mismatch");
 
-  const [run] = await db
-    .insert(syncRuns)
-    .values({ dataSourceId: config.dataSourceId, status: "running" })
-    .returning();
-  if (!run) throw new Error("Failed to create sync run");
+  const run = await createLeasedSyncRun(config.dataSourceId, options.weekOffset);
+  if (run.status === "skipped") return { syncRunId: run.id, success: false, valuesWritten: 0 };
 
   const syncRunId = run.id;
   let success = true;
@@ -99,6 +97,7 @@ export async function runSync(
       };
 
       const fetchResult = await connector.fetchRecords(config, ctx);
+      await renewSyncLease(syncRunId);
       allFetchedRecords.push(...fetchResult.records);
 
       cursor = fetchResult.cursor;
@@ -139,6 +138,7 @@ export async function runSync(
         await tx.execute(
           sql`select id from ${dataSources} where id = ${config.dataSourceId} for update`
         );
+        await renewSyncLease(syncRunId, tx);
         // The publication lock alone does not order overlapping network fetches.
         // Reject an older observation if a later-started run already published
         // any of the same source records. Disjoint weeks can still publish.

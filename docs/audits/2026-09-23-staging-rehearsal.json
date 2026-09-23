@@ -1,10 +1,10 @@
 {
-  "timestamp": "2026-09-23T20:13:04.293Z",
-  "database": "cadence_stage_1790194378061",
+  "timestamp": "2026-09-23T22:02:23.315Z",
+  "database": "cadence_stage_1790200938779",
   "postgres": "PostgreSQL 16.14, compiled by Visual C++ build 1944, 64-bit",
   "scope": "isolated local staging; synthetic data; no vendor calls; not hosted production parity",
   "migration": "0011 -> 0012",
-  "migrationMs": 69,
+  "migrationMs": 57,
   "preservedExistingValue": 42,
   "correctedValue": null,
   "priorMetricRevision": 42,

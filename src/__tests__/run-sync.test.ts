@@ -1,3 +1,18 @@
+vi.mock("@/lib/connectors/sync-lease", async () => {
+  const { db } = await import("@/lib/db");
+  const { syncRuns } = await import("@/lib/db/schema");
+  return {
+    createLeasedSyncRun: async (dataSourceId: string) => {
+      const [run] = await db
+        .insert(syncRuns)
+        .values({ dataSourceId, status: "running" })
+        .returning();
+      if (!run) throw new Error("Failed to create sync run");
+      return run;
+    },
+    renewSyncLease: async () => {},
+  };
+});
 vi.mock("@/lib/connectors/sync-revisions", () => ({ captureSyncRevisions: vi.fn() }));
 // Tests for the runSync orchestration flow (sync-engine.ts).
 // This covers the fetch→publish→checkpoint sequence, error handling, and

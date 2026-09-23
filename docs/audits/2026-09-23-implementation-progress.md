@@ -12,7 +12,7 @@ Last updated: 2026-09-23. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Implemented locally | Navigation, organization and manager-scope regression tests |
 | Atomic sync publication and freshness | Implemented locally | PostgreSQL rollback tests; untouched periods preserved |
 | Null corrections and predecessor evidence | Implemented locally | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 273 tests, typecheck, full lint, production build |
+| Combined implementation validation | Passed | 280 tests, typecheck, full lint, production build |
 | Migration and corrected-sync rehearsal | Passed locally | Separate staging database; 0011 -> 0012; synthetic stored-data assertions |
 | Hosted staging / production parity | Database and core UI checks passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; cron runtime check remains open |
 | Zendesk completeness | Search and Talk safety guards implemented locally | 2,415-ticket export reconciled; Talk boundary verified; historical/agent semantics remain open |
@@ -595,3 +595,32 @@ status. Completed periods retain the existing performance assessment. Briefing d
 and distributions carry the same distinction. No target bands or calculations changed.
 
 Validation: 41 focused status/navigation/briefing tests, typecheck, and focused ESLint passed.
+
+
+## Durable sync claims and dead-job recovery — September 23
+
+Run creation now takes the source row lock and atomically checks a durable source/week lease
+stored in sync_runs metadata before fetching. A whole-source run conflicts with every week;
+different week scopes can proceed independently. Busy attempts are recorded as skipped and
+return an unsuccessful result without vendor calls. Database time controls a ten-minute
+expiry (longer than the hosted 300-second invocation limit). The owner renews between
+connector pages and must renew again under the publication lock before writing values.
+The next claim for that source marks expired running jobs failed with a lease_expired error;
+a returning expired owner cannot publish. No schema migration is required.
+
+Limitations: recovery is on the next source attempt, not an independent scheduled reaper.
+An individual fetch taking longer than ten minutes fails renewal; resumable ingestion is
+still needed for workloads that cannot fit the hosting budget. Existing legacy running
+rows use started_at plus ten minutes until replaced by a leased run. Drain old deployed
+workers at rollout because they do not enforce the lease protocol.
+
+Validation: 20 focused orchestration/PostgreSQL tests passed, including concurrent claims,
+whole-source versus single-week conflict, independent weeks, expiry takeover, and stale
+owner rejection. All 280 tests across 27 files then passed; full lint, typecheck, production
+build, and a fresh local 0011->0012 synthetic upgrade/replay rehearsal passed.
+
+A read-only current-week Talk export completed in six requests / 15.97 seconds: 4,700 raw
+rows, 4,694 unique calls, six boundary/revision duplicates, and 73 calls created outside
+the week excluded, leaving 4,621 weekly calls. No rate-limit waiting occurred. This verifies
+one observed export, not independent per-agent metric semantics or a worst-case runtime SLA.
+See `2026-09-23-talk-week-probe.json`. No live sync, production write, or historical repair ran.
