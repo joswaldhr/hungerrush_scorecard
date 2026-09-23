@@ -26,7 +26,7 @@ function TargetCell({ row }: { row: EmployeeMetricRow }) {
 export function MetricCategoryTable({ title, rows }: { title: string; rows: EmployeeMetricRow[] }) {
   return (
     <Card className="overflow-hidden print:break-inside-avoid">
-      <div className="border-b border-border/80 px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/50">
+      <div className="border-b border-border/80 px-5 py-3.5 print:py-1 bg-slate-50/50 dark:bg-slate-900/50">
         <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{title}</h2>
       </div>
       <div className="overflow-x-auto">

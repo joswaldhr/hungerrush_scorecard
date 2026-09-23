@@ -35,9 +35,9 @@ importers:
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(postgres@3.4.9)
-      html2canvas:
-        specifier: ^1.4.1
-        version: 1.4.1
+      html2canvas-pro:
+        specifier: ^2.4.4
+        version: 2.4.4
       jspdf:
         specifier: ^4.2.1
         version: 4.2.1
@@ -2711,6 +2711,10 @@ packages:
   html-encoding-sniffer@6.0.0:
     resolution: {integrity: sha512-CV9TW3Y3f8/wT0BRFc1/KAVQ3TUHiXmaAb6VW9vtiMFf7SLoMd1PdAc4W3KFOFETBJUb90KatHqlsZMWV+R9Gg==}
     engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
+
+  html2canvas-pro@2.4.4:
+    resolution: {integrity: sha512-SKpDtcVCSkbpV8R9ts5SQUC8cZyw5le0F/7kQMO+5s1NigLrDYvOe4Sl5wBe1hZaxAPymzbqgp/KX5ZVHuWghA==}
+    engines: {node: '>=16.0.0'}
 
   html2canvas@1.4.1:
     resolution: {integrity: sha512-fPU6BHNpsyIhr8yyMpTLLxAbkaK8ArIBcmZIRiBLiDhjeqvXolaEmDGmELFuX9I4xDcaKKcJl+TKZLqruBbmWA==}
@@ -6269,10 +6273,16 @@ snapshots:
     transitivePeerDependencies:
       - '@noble/hashes'
 
+  html2canvas-pro@2.4.4:
+    dependencies:
+      css-line-break: 2.1.0
+      text-segmentation: 1.0.3
+
   html2canvas@1.4.1:
     dependencies:
       css-line-break: 2.1.0
       text-segmentation: 1.0.3
+    optional: true
 
   ignore@5.3.2: {}
 

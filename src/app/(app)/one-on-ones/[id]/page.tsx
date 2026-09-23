@@ -112,7 +112,7 @@ export default async function OneOnOnePage({
   }));
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-12">
+    <div className="max-w-5xl mx-auto space-y-6 print:space-y-2 pb-12">
       <div className="print:hidden">
         <Link
           href="/one-on-ones"
@@ -125,7 +125,7 @@ export default async function OneOnOnePage({
 
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16 ring-2 ring-border shadow-xs shrink-0">
+          <Avatar className="h-16 w-16 print:h-10 print:w-10 ring-2 ring-border shadow-xs shrink-0">
             <AvatarFallback className="text-base font-bold bg-slate-100 dark:bg-slate-800 text-foreground">
               {initials(employee.displayName)}
             </AvatarFallback>

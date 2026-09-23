@@ -104,7 +104,7 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
     setExporting(true);
     close();
     try {
-      const html2canvas = (await import("html2canvas")).default;
+      const html2canvas = (await import("html2canvas-pro")).default;
       const { jsPDF } = await import("jspdf");
       const canvas = await html2canvas(el, { scale: 2, useCORS: true });
       const imgData = canvas.toDataURL("image/png");
@@ -120,7 +120,8 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
       pdf.addImage(imgData, "PNG", 0, 10, pdfWidth, pdfHeight);
       pdf.save(`${safeName(employeeName)}-scorecard-${fileDate()}.pdf`);
       toast.success("PDF downloaded");
-    } catch {
+    } catch (err) {
+      console.error("PDF export failed:", err);
       toast.error("Failed to generate PDF");
     } finally {
       setExporting(false);
@@ -133,7 +134,7 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
     setExporting(true);
     close();
     try {
-      const html2canvas = (await import("html2canvas")).default;
+      const html2canvas = (await import("html2canvas-pro")).default;
       const canvas = await html2canvas(el, { scale: 2, useCORS: true });
       canvas.toBlob((blob) => {
         if (!blob) {
@@ -143,7 +144,8 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
         triggerDownload(blob, `${safeName(employeeName)}-scorecard-${fileDate()}.png`);
         toast.success("PNG downloaded");
       }, "image/png");
-    } catch {
+    } catch (err) {
+      console.error("PNG export failed:", err);
       toast.error("Failed to generate PNG");
     } finally {
       setExporting(false);
@@ -164,7 +166,10 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
         .join(",");
     });
     const csv = [header, ...rows].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    // Excel assumes the system codepage (not UTF-8) for a CSV with no BOM, so
+    // the en/em dashes in target ranges and blank values ("75-128", "-")
+    // render as mojibake ("â€"") without this -- confirmed live.
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
     triggerDownload(blob, `${safeName(employeeName)}-metrics-${fileDate()}.csv`);
     toast.success("CSV downloaded");
   }

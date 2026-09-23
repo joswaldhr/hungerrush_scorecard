@@ -289,6 +289,29 @@ body {
     break-inside: avoid;
   }
 
+  /* Scorecard category cards: 2-column grid instead of one tall stacked
+     column -- the single-column layout (needed for the .grid linearization
+     above) was tall enough to spill onto a mostly-blank second page, since
+     break-inside: avoid pushes a whole card to the next page rather than
+     splitting it. A 2-column layout roughly halves the height each column
+     needs, and tighter row padding gives it more margin to actually fit. */
+  #scorecard-capture {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 1rem;
+    align-items: start;
+  }
+
+  #scorecard-capture > * {
+    margin-top: 0 !important;
+  }
+
+  #scorecard-capture table th,
+  #scorecard-capture table td {
+    padding-top: 0.35rem !important;
+    padding-bottom: 0.35rem !important;
+  }
+
   /* Links show URL */
   a[href^="http"]::after {
     content: " (" attr(href) ")";
