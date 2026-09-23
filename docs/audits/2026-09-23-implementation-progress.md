@@ -46,29 +46,20 @@ checks here. Do not push master as a staging shortcut: it is the production bran
 
 ## Release gate and next work
 
-**Next priority: establish hosted staging isolation before accumulating more major changes.**
-Read-only Vercel inspection on September 23 found no custom staging environment, production
-branch `master`, and one DATABASE_URL setting targeted to both preview and production.
-That initial shared configuration is now overridden for the audit branch. Hosted staging
-uses a separate database and branch-specific overrides for every inherited Preview key.
-The branch is published with automatic deployments disabled while staging sign-in is pending.
+**Next priority: Zendesk completeness and metric semantics.** Hosted staging isolation,
+separate Entra sign-in, migration 0012, and synthetic null/zero UI checks are complete.
+Automatic Preview deployment is enabled for the audit branch. See the dated hosted reports
+and latest entries below; earlier isolation checkpoints are historical.
 
-Local checkpoint is complete. Hosted release remains gated on:
+Remaining production release gates:
 
-- A separate staging database, ideally PostgreSQL 18.6 to match the observed pilot; scoped
-  credentials and a verified preview-only connection setting, distinct from production.
-- Staging-specific auth/callback configuration and synthetic identities; do not reuse
-  production cron secrets, heartbeat destinations, or write-capable vendor workflows.
-- Apply migration 0012 before deploying the new publisher; verify the release commit,
-  migration state, UI null/zero display, authorization, and a controlled sync trigger.
-- Record a recoverable production backup/restore point and deployment rollback reference
-  before production approval. Code rollback retains the additive revision table; data
-  reversal requires reviewed snapshots, not blindly republishing old numbers.
-- Review staged results with the user before any production migration/deployment or
-  historical replay. This is the requested deployment checkpoint, not a claim of readiness.
+- Verify a controlled hosted sync trigger; the browser blocked the attempted cron request,
+  so runtime cron authorization has not been established by that check.
+- Complete Zendesk completeness work and review metric semantics before historical repair.
+- Record a recoverable production backup/restore point and deployment rollback reference.
+  Code rollback retains the additive revision table; data reversal requires reviewed snapshots.
+- Review staged results with the user before production migration/deployment or historical replay.
 
-After staging isolation: verify Zendesk Search/Talk completeness and semantics, then prepare
-an auditable, narrowly scoped historical repair for false freshness and stale null facts.
 Other open risks include overlapping reporting calendars, historical targets/team context,
 source coverage quality in the manager UI, out-of-order sync observations, leases, revision
 retention, and an authorized revision-history viewer. See the audit for the full backlog.
@@ -452,3 +443,28 @@ vendor calls, production migrations, production deployments, or historical repai
 Fixture execution, targeted ESLint, and typecheck passed. No application source changed
 in this step; Vercel's actual Preview build succeeded. The broader audit remains open,
 including source completeness and the production release gate above.
+
+
+## Zendesk Search completeness guard — September 23
+
+Replaced silent Search truncation with a complete-cohort guard shared by the weekly ticket
+query and current backlog query. Counts over 1,000, changing counts, repeated/invalid IDs,
+missing results, empty nonterminal pages, and pagination loops now throw before publication.
+Exactly 1,000 unique results with a stable reported total are accepted without requesting
+an inaccessible page 11. Vendor request failures propagate. The existing atomic publisher
+preserves published facts and successful freshness when connector fetching fails.
+
+This deliberately trades availability for correctness: an oversized employee cohort fails
+that sync attempt instead of publishing partial values for everyone. Search Export or a
+validated partitioning strategy remains necessary to ingest larger cohorts. Stable counts
+and unique IDs detect these failures but do not prove a point-in-time snapshot while the
+vendor search index is changing. No metric formula, target band, or historical data changed.
+
+Validation: 10 focused pagination tests, project typecheck, focused ESLint, and diff whitespace
+checks passed. No live vendor calls, production writes, or historical replay performed.
+Talk modified-since pagination, creation-window filtering, stable-ID deduplication, exhaustion
+rules, and first-answering-agent versus per-agent metric semantics remain open. Talk-specific
+vendor documentation uses count/next_page semantics that differ from Support incremental
+exports; resolve that contract before substituting an assumed end-of-stream rule.
+
+Vendor reference: https://developer.zendesk.com/api-reference/ticketing/ticket-management/search/

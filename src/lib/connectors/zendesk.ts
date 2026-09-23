@@ -14,6 +14,7 @@ import { externalIdentities, employees } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { zendeskGet, type RequestStats } from "./zendesk-shared";
 import { logger } from "@/lib/logger";
+import { fetchCompleteSearch } from "./zendesk-search";
 import { mapWithConcurrency, weekDates } from "@/lib/utils";
 
 // Real timing data (2026-09-10, see FOLLOWUPS.md) showed the per-employee
@@ -130,35 +131,8 @@ function weekOf(weeksAgo: number): { periodStart: string; periodEnd: string } {
   return { periodStart, periodEnd };
 }
 
-// Zendesk's Search API hard-caps pagination at 1,000 total results --
-// requesting page 11 (results 1001-1100) returns a real 422 Unprocessable
-// Entity, confirmed against the live API (2026-09-15). A single employee
-// with unusually high ticket volume in one week hit this and, before this
-// fix, crashed the entire sync for every other employee too, since this
-// function's caller shares one try/catch across all employees. Stop before
-// requesting the page that would 422, and log what got truncated instead
-// of letting it throw. See FOLLOWUPS.md.
-const SEARCH_RESULT_CAP = 1000;
-
 async function searchAllPages(query: string): Promise<ZendeskTicket[]> {
-  const results: ZendeskTicket[] = [];
-  let path: string | null = `/search.json?query=${encodeURIComponent(query)}`;
-  while (path) {
-    const res: ZendeskSearchResponse = await zendeskGet<ZendeskSearchResponse>(path);
-    results.push(...res.results);
-    if (results.length >= SEARCH_RESULT_CAP) {
-      if (res.count > SEARCH_RESULT_CAP) {
-        logger.warn("Zendesk search result cap reached -- truncating instead of crashing", {
-          query,
-          realCount: res.count,
-          truncatedTo: results.length,
-        });
-      }
-      break;
-    }
-    path = res.next_page;
-  }
-  return results;
+  return fetchCompleteSearch(query, (path) => zendeskGet<ZendeskSearchResponse>(path));
 }
 
 async function fetchMetricSets(ticketIds: number[]): Promise<Map<number, ZendeskTicketMetricSet>> {

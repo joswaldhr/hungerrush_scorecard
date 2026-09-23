@@ -69,7 +69,7 @@ Talk definitions use database source strategy `zendesk`; source T above clarifie
 
 ## Shared source filters
 
-**Ticket profile S1:** active employees with mapped identities for the source. Search query is `type:ticket assignee:<email> updated>=<periodStart> updated<=<periodEnd>`. Thus ownership is current assignee, not necessarily the person who performed the event. Search result ceiling is 1,000; completeness is not propagated. Exact boundary interpretation by the source search service requires verification. Tickets can leave a historical updated-date cohort when modified later.
+**Ticket profile S1:** active employees with mapped identities for the source. Search query is `type:ticket assignee:<email> updated>=<periodStart> updated<=<periodEnd>`. Thus ownership is current assignee, not necessarily the person who performed the event. Search result ceiling is 1,000; the audit branch now rejects oversized or inconsistent result sets before publication. Larger complete cohorts still require an export or partitioning implementation. Exact boundary interpretation by the source search service requires verification. Tickets can leave a historical updated-date cohort when modified later.
 
 **Time profile S2:** S1 tickets whose UTC created date is also within the period. Metric sets come from `tickets/show_many.json?...&include=metric_sets`. `businessMinutes` excludes a business value of zero if calendar time is positive. This heuristic needs validation against business-hour settings; it changes the denominator. Other present business values are included. `averageOf` excludes nulls and rounds to one decimal.
 
