@@ -718,3 +718,18 @@ weekly selection, invalid selections, and access controls. A concurrent fixture 
 in preliminary runs was resolved by rerunning sequentially; those failed runs are not
 counted as validation. Full ESLint passed; Prettier found one pre-existing new identity-test
 formatting issue, corrected before commit. Hosted verification follows.
+
+
+## Database error confidentiality — September 23
+
+Fault-injection tests demonstrated that serializing a Drizzle error exposed SQL parameters
+in operational logs, and its message could also be stored in sync_errors. Database failures
+now produce a generic message and validated SQLSTATE code, retaining the surrounding sync
+run identifier without SQL, row values, driver details, or nested causes. Ordinary Error
+reasons remain available for diagnosis. This is database-error containment, not a blanket
+redaction policy for arbitrary application messages or historical log deletion.
+
+Validation: 22 focused logger, orchestration, and PostgreSQL publication tests passed. The
+real synthetic database failure now logs only DatabaseError / P0001; a Drizzle regression
+asserts private fixture content is absent from logs and the persisted-message formatter.
+Typecheck and focused ESLint passed.

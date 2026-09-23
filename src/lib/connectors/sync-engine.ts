@@ -13,6 +13,7 @@ import type { Connector, ConnectorConfig, SyncContext, IngestedRecord } from "./
 import { captureSyncRevisions } from "./sync-revisions";
 import { createLeasedSyncRun, renewSyncLease } from "./sync-lease";
 import { logger } from "@/lib/logger";
+import { safeErrorMessage } from "@/lib/error-summary";
 import { computeMetricValuesFromFacts } from "@/lib/domain/metrics/compute-values";
 import { chunk } from "@/lib/utils";
 
@@ -109,7 +110,7 @@ export async function runSync(
     }
   } catch (err) {
     success = false;
-    fetchErrors.push({ message: err instanceof Error ? err.message : String(err) });
+    fetchErrors.push({ message: safeErrorMessage(err) });
     logger.error("Sync fetch phase failed", { syncRunId, error: err });
   }
 
@@ -223,7 +224,7 @@ export async function runSync(
       await db.insert(syncErrors).values({
         syncRunId,
         errorType: "publish_fatal",
-        message: err instanceof Error ? err.message : String(err),
+        message: safeErrorMessage(err),
         retryable: true,
       });
     }
