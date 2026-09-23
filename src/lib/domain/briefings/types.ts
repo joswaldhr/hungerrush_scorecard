@@ -1,4 +1,5 @@
 import type { MetricStatus, ResolvedTarget, ValueType, Direction } from "../metrics/types";
+import type { OverallStatus } from "../metrics/status";
 
 // ── Briefing Types ─────────────────────────────────────────
 
@@ -21,6 +22,8 @@ export interface TeamBriefingPayload {
     warning: number;
     offTarget: number;
     noData: number;
+    partialData: number;
+    noTarget: number;
   };
   needsAttention: AttentionItem[];
   notableImprovements: ImprovementItem[];
@@ -69,7 +72,7 @@ export interface EmployeeSummaryPayload {
   executiveSummary: EvidencedStatement;
   changes: MetricChange[];
   metricSnapshots: MetricSnapshot[];
-  overallStatus: "on_track" | "mixed" | "needs_attention" | "no_data";
+  overallStatus: OverallStatus;
 }
 
 export interface MetricChange {

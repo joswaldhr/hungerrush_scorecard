@@ -1,4 +1,5 @@
 import type { ValueType } from "../metrics/types";
+import type { OverallStatus } from "../metrics/status";
 import { formatMetricValue } from "../metrics/types";
 import type { EvidencedStatement, EvidenceRef, MetricChange } from "./types";
 
@@ -22,7 +23,7 @@ export function describeChange(change: MetricChange): string {
 export function describeExecutiveSummary(
   employeeName: string,
   changes: MetricChange[],
-  overallStatus: "on_track" | "mixed" | "needs_attention" | "no_data"
+  overallStatus: OverallStatus
 ): EvidencedStatement {
   const improving = changes.filter((c) => c.changeDirection === "improved");
   const declining = changes.filter((c) => c.changeDirection === "declined");
@@ -32,6 +33,10 @@ export function describeExecutiveSummary(
 
   if (overallStatus === "no_data") {
     text = `No metric data has been recorded for ${employeeName} yet.`;
+  } else if (overallStatus === "partial_data") {
+    text = `Some metric data for ${employeeName} is missing or incomplete; an overall performance assessment is unavailable.`;
+  } else if (overallStatus === "no_target") {
+    text = `Metric data is available for ${employeeName}, but no targets are configured for an overall performance assessment.`;
   } else if (overallStatus === "on_track") {
     if (improving.length > 0) {
       text = `${employeeName} is performing well this week with improvements in ${improving.map((c) => c.metricName).join(", ")}.`;

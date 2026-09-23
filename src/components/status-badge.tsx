@@ -6,6 +6,7 @@ type Status =
   | "off_target"
   | "no_target"
   | "no_data"
+  | "partial_data"
   | "on_track"
   | "mixed"
   | "needs_attention";
@@ -61,6 +62,11 @@ const statusConfig: Record<Status, { label: string; className: string; dotClass:
     label: "No Data",
     className: "bg-transparent text-muted-foreground/70 border-dashed border-border font-medium",
     dotClass: "bg-muted-foreground/40",
+  },
+  partial_data: {
+    label: "Partial Data",
+    className: "bg-transparent text-muted-foreground border-dashed border-border font-medium",
+    dotClass: "bg-muted-foreground/50",
   },
 };
 

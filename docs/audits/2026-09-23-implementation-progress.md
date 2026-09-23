@@ -12,10 +12,10 @@ Last updated: 2026-09-23. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Implemented locally | Navigation, organization and manager-scope regression tests |
 | Atomic sync publication and freshness | Implemented locally | PostgreSQL rollback tests; untouched periods preserved |
 | Null corrections and predecessor evidence | Implemented locally | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 223 tests, typecheck, lint, production build |
+| Combined implementation validation | Passed | 273 tests, typecheck, full lint, production build |
 | Migration and corrected-sync rehearsal | Passed locally | Separate staging database; 0011 -> 0012; synthetic stored-data assertions |
 | Hosted staging / production parity | Database and core UI checks passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; cron runtime check remains open |
-| Zendesk completeness | Search and Talk safety guards implemented locally | Synthetic pagination tests passed; live export reconciliation and metric semantics remain open |
+| Zendesk completeness | Search and Talk safety guards implemented locally | 2,415-ticket export reconciled; Talk boundary verified; historical/agent semantics remain open |
 | Production rollout / historical repair | Not performed | Release gate below must be completed first |
 
 ## Git checkpoints
@@ -548,3 +548,18 @@ Vendor pagination links now must resolve to the configured HTTPS Zendesk origin 
 Seven focused tests cover foreign hosts, HTTP downgrade, path escape, embedded credentials,
 and valid relative/absolute API requests. This prevents pagination data from widening the
 authorization destination. Typecheck and focused lint passed.
+
+
+## Overall status evidence — September 23
+
+Empty scorecards now show No Data. Available data without evaluable targets shows No Target.
+Mixed missing/available values or any incomplete quality status shows neutral Partial Data,
+rather than an overall performance judgment. Confirmed zero remains valid data. Individual
+metric comparisons remain visible. Briefing text and distributions preserve these distinct
+states instead of treating them as successful performance. This does not yet resolve the
+separate in-progress-week judgment or historical membership/calendar issues.
+
+Validation: all 273 tests across 26 files passed against the isolated local database,
+including 11 new status fixtures. Project typecheck, full lint/format checks, and production
+build passed. No production deployment was performed. HANDOFF's stale shared-Preview warning
+was corrected to point to the established isolated staging configuration.

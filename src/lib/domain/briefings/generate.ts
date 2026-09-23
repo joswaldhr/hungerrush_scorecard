@@ -247,7 +247,14 @@ export async function generateTeamBriefing(
   const now = new Date();
 
   let allFreshness: Date | null = null;
-  const statusCounts = { onTarget: 0, warning: 0, offTarget: 0, noData: 0 };
+  const statusCounts = {
+    onTarget: 0,
+    warning: 0,
+    offTarget: 0,
+    noData: 0,
+    partialData: 0,
+    noTarget: 0,
+  };
   const needsAttention: AttentionItem[] = [];
   const notableImprovements: ImprovementItem[] = [];
 
@@ -261,6 +268,8 @@ export async function generateTeamBriefing(
     if (overall === "on_track") statusCounts.onTarget++;
     else if (overall === "needs_attention") statusCounts.offTarget++;
     else if (overall === "no_data") statusCounts.noData++;
+    else if (overall === "partial_data") statusCounts.partialData++;
+    else if (overall === "no_target") statusCounts.noTarget++;
     else statusCounts.warning++;
 
     const changes = computeChanges(metrics);
