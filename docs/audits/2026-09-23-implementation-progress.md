@@ -15,6 +15,7 @@ Last updated: 2026-09-23. **Hosted database and Preview sign-in/UI checks passed
 | Combined implementation validation | Passed | 223 tests, typecheck, lint, production build |
 | Migration and corrected-sync rehearsal | Passed locally | Separate staging database; 0011 -> 0012; synthetic stored-data assertions |
 | Hosted staging / production parity | Database and core UI checks passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; cron runtime check remains open |
+| Zendesk completeness | Search and Talk safety guards implemented locally | Synthetic pagination tests passed; live export reconciliation and metric semantics remain open |
 | Production rollout / historical repair | Not performed | Release gate below must be completed first |
 
 ## Git checkpoints
@@ -468,3 +469,32 @@ vendor documentation uses count/next_page semantics that differ from Support inc
 exports; resolve that contract before substituting an assumed end-of-stream rule.
 
 Vendor reference: https://developer.zendesk.com/api-reference/ticketing/ticket-management/search/
+
+
+## Zendesk Talk completeness guard — September 23
+
+Removed the unsafe created-after-week early stop and the successful return after the
+50-page budget. Talk now follows modified-since pagination until an explicitly empty
+response, validates each page count, and throws for missing/stalled continuation or budget
+exhaustion. It deduplicates stable call IDs using the latest updated_at, rejects conflicting
+equal-time versions and malformed IDs/timestamps, and filters the final cohort to both UTC
+creation boundaries. The exclusive upper boundary includes fractional seconds at week end.
+No Support-only end_of_stream assumption remains.
+
+Validation: 13 Talk fixtures plus the 10 Search fixtures pass, covering old-created/newly
+modified calls, pages entirely beyond the reporting week, repeated and revised calls,
+empty exports, page limits, loops, missing continuations, inconsistent counts, malformed
+records, conflicting corrections, and request failures. Project typecheck and focused
+ESLint passed. No live vendor requests, production writes, or historical replay performed.
+
+This is a conservative safety checkpoint, not completed live completeness acceptance.
+Talk's documented next_page remains a URL at exhaustion; the count property is documented
+but a short-page threshold is not explicit. Requiring count=0 may fail exports that repeat
+a nonempty boundary forever. Such failures now preserve existing published data instead
+of accepting an unproven cohort. Verify live cursor metadata/ID totals and implement a
+scalable export/checkpoint strategy before production release; 50 requests plus rate-limit
+backoff can still exceed hosting limits. Existing sync observation ordering and lease risks
+also remain open. Whole-call durations and first-answering-agent attribution are unchanged;
+this does not establish per-agent offers, acceptance events, or handling effort.
+
+Reference: https://developer.zendesk.com/api-reference/voice/talk-api/incremental_exports/

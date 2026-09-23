@@ -15,6 +15,7 @@ import { eq, and } from "drizzle-orm";
 import { zendeskGet, type RequestStats } from "./zendesk-shared";
 import { logger } from "@/lib/logger";
 import { fetchCompleteSearch } from "./zendesk-search";
+import { fetchCompleteTalkWeek, type TalkCall, type TalkPage } from "./zendesk-talk";
 import { mapWithConcurrency, weekDates } from "@/lib/utils";
 
 // Real timing data (2026-09-10, see FOLLOWUPS.md) showed the per-employee
@@ -94,7 +95,7 @@ interface ZendeskShowManyUsersResponse {
   users: ZendeskUserDetail[];
 }
 
-interface ZendeskCall {
+interface ZendeskCall extends TalkCall {
   agent_id: number | null;
   direction: string;
   completion_status: string;
@@ -103,12 +104,6 @@ interface ZendeskCall {
   hold_time: number;
   consultation_time: number;
   created_at: string;
-}
-
-interface ZendeskCallsResponse {
-  calls: ZendeskCall[];
-  next_page: string | null;
-  end_of_stream: boolean;
 }
 
 interface CallAggregate {
@@ -176,44 +171,15 @@ async function fetchRatings(
   return byAssignee;
 }
 
-// The Talk incremental-calls endpoint is a forward cursor export (start_time
-// only, no end_time) rather than a bounded search -- so pages are consumed
-// until either Zendesk says end_of_stream or an entire page comes back past
-// the target week, with a hard page cap as a safety valve.
-//
-// Diagnostic instrumentation (2026-09-10): real production timing showed
-// every week's fetch phase (not just the in-progress one) taking 250-296s
-// against Vercel's 300s limit -- suspiciously close to what repeated
-// Zendesk 429 backoff cycles would produce, since Talk endpoints are
-// rate-limited to 10 req/min (confirmed via Zendesk's own docs) and a
-// direct real API call confirmed `end_of_stream` never actually appears in
-// the response (so that half of the break condition below has always been
-// dead). pages/stats are logged and returned so a real run's numbers can
-// confirm or rule this out before deciding on a fix -- see FOLLOWUPS.md.
 async function fetchCallsForWeek(
   periodStart: string,
   periodEnd: string
 ): Promise<{ calls: ZendeskCall[]; diagnostics: Record<string, unknown> }> {
-  const startTime = Math.floor(new Date(`${periodStart}T00:00:00Z`).getTime() / 1000);
-  const endTime = new Date(`${periodEnd}T23:59:59Z`).getTime();
-  const calls: ZendeskCall[] = [];
-  let path: string | null = `/channels/voice/stats/incremental/calls.json?start_time=${startTime}`;
-  let pages = 0;
   const stats: RequestStats = { requests: 0, retries429: 0, backoffWaitMs: 0 };
   const startedAt = Date.now();
-  while (path && pages < 50) {
-    const res: ZendeskCallsResponse = await zendeskGet<ZendeskCallsResponse>(path, stats);
-    pages++;
-    let allPastWindow = res.calls.length > 0;
-    for (const call of res.calls) {
-      if (new Date(call.created_at).getTime() <= endTime) {
-        calls.push(call);
-        allPastWindow = false;
-      }
-    }
-    if (res.end_of_stream || allPastWindow) break;
-    path = res.next_page;
-  }
+  const { calls, pages } = await fetchCompleteTalkWeek(periodStart, periodEnd, (path) =>
+    zendeskGet<TalkPage<ZendeskCall>>(path, stats)
+  );
   const diagnostics = {
     periodStart,
     periodEnd,
