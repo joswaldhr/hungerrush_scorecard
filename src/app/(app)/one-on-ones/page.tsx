@@ -32,11 +32,11 @@ export default async function OneOnOnesPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-12">
+    <div className="max-w-6xl mx-auto space-y-6 pb-12">
       <header>
         <h1 className="text-2xl sm:text-[28px] font-bold text-foreground tracking-tight">1:1s</h1>
         <p className="mt-1 text-sm font-medium text-muted-foreground">
-          Pick someone to view their scorecard.
+          Select an employee to view their scorecard.
         </p>
       </header>
 

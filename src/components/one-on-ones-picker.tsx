@@ -3,9 +3,9 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/empty-state";
-import { Search, Users } from "lucide-react";
+import { SortControl } from "@/components/sort-control";
+import { ChevronRight, Search, Users } from "lucide-react";
 import { cn, initials } from "@/lib/utils";
 
 export interface PickerEmployee {
@@ -45,7 +45,42 @@ function groupByLine(
   return groups;
 }
 
+// Shared header treatment for both a team-level group (only shown for a
+// manager who sees more than one team) and a line-level group -- name,
+// employee count, and a divider that fills the remaining row width.
+function GroupHeading({
+  title,
+  count,
+  level,
+}: {
+  title: string;
+  count: number;
+  level: "h2" | "h3";
+}) {
+  const Heading = level;
+  return (
+    <div className="flex items-center gap-3">
+      <Heading
+        className={cn(
+          "font-bold text-foreground shrink-0",
+          level === "h2" ? "text-base" : "text-sm"
+        )}
+      >
+        {title}
+      </Heading>
+      <span className="text-xs font-medium text-muted-foreground shrink-0">
+        {count} {count === 1 ? "employee" : "employees"}
+      </span>
+      <div className="h-px flex-1 bg-border" />
+    </div>
+  );
+}
+
 type SortDir = "asc" | "desc";
+const SORT_OPTIONS = [
+  { value: "asc" as const, label: "A–Z" },
+  { value: "desc" as const, label: "Z–A" },
+];
 
 export function OneOnOnesPicker({ teams, employees }: OneOnOnesPickerProps) {
   const [query, setQuery] = useState("");
@@ -72,9 +107,9 @@ export function OneOnOnesPicker({ teams, employees }: OneOnOnesPickerProps) {
   const hasAnyResults = filtered.length > 0;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <div className="relative max-w-sm flex-1">
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+        <div className="relative flex-1">
           <Search
             className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
             aria-hidden="true"
@@ -83,30 +118,13 @@ export function OneOnOnesPicker({ teams, employees }: OneOnOnesPickerProps) {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name..."
+            placeholder="Search employees..."
             aria-label="Search employees"
             className="w-full rounded-lg border border-border/80 bg-card py-2 pl-9 pr-3 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[#009ca6] shadow-2xs"
           />
         </div>
 
-        <div className="flex items-center rounded-lg border border-border/80 bg-card p-1 shrink-0">
-          {(["asc", "desc"] as const).map((dir) => (
-            <button
-              key={dir}
-              type="button"
-              onClick={() => setSortDir(dir)}
-              aria-pressed={sortDir === dir}
-              className={cn(
-                "rounded-md px-2.5 py-1 text-xs font-semibold transition-colors",
-                sortDir === dir
-                  ? "bg-[#009ca6] text-white"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {dir === "asc" ? "A–Z" : "Z–A"}
-            </button>
-          ))}
-        </div>
+        <SortControl label="Sort" value={sortDir} options={SORT_OPTIONS} onChange={setSortDir} />
       </div>
 
       {!hasAnyResults ? (
@@ -117,34 +135,30 @@ export function OneOnOnesPicker({ teams, employees }: OneOnOnesPickerProps) {
           if (teamEmps.length === 0) return null;
 
           return (
-            <div key={team.id} className="space-y-3">
+            <div key={team.id} className="space-y-6">
               {teams.length > 1 && (
-                <h2 className="text-sm font-bold text-foreground px-1">{team.name}</h2>
+                <GroupHeading title={team.name} count={teamEmps.length} level="h2" />
               )}
 
-              <Card className="overflow-hidden">
+              <div className="space-y-6">
                 {groupByLine(teamEmps).map((group) => (
-                  <div key={group.label ?? "all"}>
+                  <div key={group.label ?? "all"} className="space-y-3">
                     {group.label && (
-                      <div className="bg-muted/40 border-b border-border/60 px-5 py-2">
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                          {group.label}
-                        </p>
-                      </div>
+                      <GroupHeading title={group.label} count={group.emps.length} level="h3" />
                     )}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 p-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                       {group.emps.map((emp) => (
                         <Link
                           key={emp.id}
                           href={`/one-on-ones/${emp.id}`}
-                          className="flex w-full min-w-0 flex-col items-center gap-2 rounded-lg border border-transparent px-3 py-4 text-center hover:border-border/60 hover:bg-muted/30 transition-colors group"
+                          className="flex items-center gap-3 rounded-lg border border-border/70 bg-card px-3.5 py-3 shadow-2xs hover:border-[#009ca6]/50 hover:bg-muted/40 transition-colors group"
                         >
                           <Avatar className="h-10 w-10 ring-1 ring-border shrink-0">
                             <AvatarFallback className="text-xs font-bold bg-slate-100 dark:bg-slate-800 text-foreground">
                               {initials(emp.displayName)}
                             </AvatarFallback>
                           </Avatar>
-                          <div className="w-full min-w-0">
+                          <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-foreground group-hover:text-[#009ca6] transition-colors truncate">
                               {emp.displayName}
                             </p>
@@ -154,12 +168,13 @@ export function OneOnOnesPicker({ teams, employees }: OneOnOnesPickerProps) {
                               </p>
                             )}
                           </div>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                         </Link>
                       ))}
                     </div>
                   </div>
                 ))}
-              </Card>
+              </div>
             </div>
           );
         })
