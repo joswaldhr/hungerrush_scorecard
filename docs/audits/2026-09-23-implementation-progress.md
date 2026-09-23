@@ -12,7 +12,7 @@ Last updated: 2026-09-23. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Implemented locally | Navigation, organization and manager-scope regression tests |
 | Atomic sync publication and freshness | Implemented locally | PostgreSQL rollback tests; untouched periods preserved |
 | Null corrections and predecessor evidence | Implemented locally | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 280 tests, typecheck, full lint, production build |
+| Combined implementation validation | Passed | 283 tests, typecheck, full lint, production build |
 | Migration and corrected-sync rehearsal | Passed locally | Separate staging database; 0011 -> 0012; synthetic stored-data assertions |
 | Hosted staging / production parity | Database and core UI checks passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; cron runtime check remains open |
 | Zendesk completeness | Search and Talk safety guards implemented locally | 2,415-ticket export reconciled; Talk boundary verified; historical/agent semantics remain open |
@@ -639,3 +639,11 @@ historical target snapshot is claimed: only the resolved scope is currently avai
 Validation: nine export/navigation tests, typecheck, and focused ESLint passed. Tests cover
 historical dates, zero versus missing, CSV quoting/formula text, capture identity and data
 details, disposal, and navigation after capture. Hosted visual export verification follows.
+
+
+Export follow-up: all 283 tests, full lint, typecheck, and production build passed at 5b7ff45.
+The hosted PNG was downloaded and visually inspected: employee header, both dated periods
+with UTC, provisional-period note, confirmed zero, missing value, and source-quality/version
+details rendered legibly with no clipping. The temporary export clone is hidden from the
+accessibility tree to avoid duplicate announcements while rendering. Synthetic output:
+`C:/Users/JamesOswald/Downloads/synthetic-employee-scorecard-2026-09-23.png`.

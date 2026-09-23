@@ -4,6 +4,7 @@ import { exportDataDetails, type ExportSnapshot } from "./domain/metrics/export-
 // can replace the live scorecard without changing the pending export.
 export function freezeScorecardCapture(source: HTMLElement, snapshot: ExportSnapshot) {
   const container = document.createElement("div");
+  container.setAttribute("aria-hidden", "true");
   const styles = getComputedStyle(source);
   Object.assign(container.style, {
     position: "absolute",
