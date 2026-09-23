@@ -2,6 +2,13 @@ import { describe, it, expect } from "vitest";
 import { compareValues, aggregateSourceValues } from "@/lib/domain/reconciliation/compare";
 
 describe("compareValues", () => {
+  it("requires exact count parity even inside a percentage tolerance", () => {
+    expect(compareValues(1000, 999, 5, "count").status).toBe("mismatch");
+    expect(compareValues(1000, 1000, 5, "count").status).toBe("match");
+    expect(compareValues(0, null, 5, "count").status).toBe("source_missing");
+    expect(compareValues(1000, 999, 5, "duration").status).toBe("match");
+  });
+
   it("returns match when values are within threshold", () => {
     const result = compareValues(100, 98, 5);
     expect(result.status).toBe("match");

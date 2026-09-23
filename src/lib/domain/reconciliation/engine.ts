@@ -10,7 +10,7 @@ import {
 } from "@/lib/db/schema";
 import { eq, and, inArray, isNull, or, lte, gt } from "drizzle-orm";
 import { assertOrganizationResource } from "@/lib/auth/organization-scope";
-import type { CalculationType } from "@/lib/domain/metrics/types";
+import type { CalculationType, ValueType } from "@/lib/domain/metrics/types";
 import { compareValues, aggregateSourceValues } from "./compare";
 
 export interface ReconciliationParams {
@@ -162,7 +162,12 @@ export async function runReconciliation(params: ReconciliationParams) {
         const sourceValues = sourceMap.get(`${metric.key}:${employeeId}`) ?? [];
         const sourceValue = aggregateSourceValues(sourceValues, calculationType);
 
-        const comparison = compareValues(cadenceValue, sourceValue, thresholdPct);
+        const comparison = compareValues(
+          cadenceValue,
+          sourceValue,
+          thresholdPct,
+          metric.valueType as ValueType
+        );
 
         switch (comparison.status) {
           case "match":

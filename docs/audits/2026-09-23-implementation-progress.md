@@ -647,3 +647,13 @@ with UTC, provisional-period note, confirmed zero, missing value, and source-qua
 details rendered legibly with no clipping. The temporary export clone is hidden from the
 accessibility tree to avoid duplicate announcements while rendering. Synthetic output:
 `C:/Users/JamesOswald/Downloads/synthetic-employee-scorecard-2026-09-23.png`.
+
+
+## Exact count reconciliation — September 23
+
+Count-valued metrics now require exact equality during internal reconciliation. A one-ticket
+or one-call difference cannot be classified as a match merely because it is below the general
+percentage tolerance. Other value types retain their configured tolerance. The reconciliation
+page describes this distinction and still identifies the comparison as stored-source-fact
+consistency, not an independent vendor audit. Twenty-one focused tests, typecheck, and focused
+lint passed. Independent event/agent ledgers and versioned non-count tolerances remain open.

@@ -94,6 +94,7 @@ export default async function ReconciliationPage() {
         <h1 className="text-xl font-semibold text-foreground">Data Reconciliation</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Compare Cadence metric values against stored source facts for your assigned employees
+          (counts require exact matches; other values use the configured tolerance)
         </p>
       </header>
 
