@@ -733,3 +733,21 @@ Validation: 22 focused logger, orchestration, and PostgreSQL publication tests p
 real synthetic database failure now logs only DatabaseError / P0001; a Drizzle regression
 asserts private fixture content is absent from logs and the persisted-message formatter.
 Typecheck and focused ESLint passed.
+
+
+## Reconciliation cooldown claims — September 23
+
+Reconciliation now locks its organization row and checks the cooldown with the database
+clock in the same transaction that creates the run. Simultaneous requests cannot both pass
+the earlier HTTP preflight check and start duplicate work. Losing requests return HTTP 429.
+The five-minute policy is unchanged; this is an atomic start claim, not a resumable worker
+or an expired-run recovery mechanism. No schema migration is required.
+
+Validation: 19 focused PostgreSQL/access-scope/rate-limit tests, typecheck, and focused lint
+passed. The new concurrency case starts two requests together, observes one successful run
+and one rate-limit rejection, and verifies a later run succeeds after the cooldown.
+
+Hosted history verification at 39db808 passed: the page showed confirmed zero separately
+from missing data, retained observation/version details, and selecting September 13–19
+changed both the URL and displayed interval. The desktop screenshot was legible without
+clipping. No production data changed.

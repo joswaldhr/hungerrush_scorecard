@@ -10,7 +10,7 @@ vi.mock("@/lib/db/schema", () => ({
     organizationId: "reconciliationRuns.organizationId",
   },
 }));
-vi.mock("drizzle-orm", () => ({ eq: vi.fn(), and: vi.fn(), gte: vi.fn() }));
+vi.mock("drizzle-orm", () => ({ eq: vi.fn(), and: vi.fn(), gte: vi.fn(), sql: vi.fn() }));
 
 import { isSyncRateLimited, isReconciliationRateLimited } from "@/lib/rate-limit";
 

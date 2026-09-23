@@ -6,6 +6,7 @@ import {
 } from "@/lib/auth/authorization";
 import { getScopedReconciliationRuns } from "@/lib/domain/reconciliation/queries";
 import { runReconciliation } from "@/lib/domain/reconciliation";
+import { ReconciliationRateLimitError } from "@/lib/domain/reconciliation/engine";
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import { isReconciliationRateLimited } from "@/lib/rate-limit";
@@ -82,6 +83,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result);
   } catch (err) {
+    if (err instanceof ReconciliationRateLimitError) {
+      return NextResponse.json({ error: err.message }, { status: 429 });
+    }
     logger.error("Reconciliation run failed", { error: err });
     return NextResponse.json({ error: "Reconciliation failed" }, { status: 500 });
   }

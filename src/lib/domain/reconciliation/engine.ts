@@ -7,11 +7,20 @@ import {
   normalizedFacts,
   teamMemberships,
   employees,
+  organizations,
 } from "@/lib/db/schema";
 import { eq, and, inArray, isNull, or, lte, gt } from "drizzle-orm";
 import { assertOrganizationResource } from "@/lib/auth/organization-scope";
 import type { CalculationType, ValueType } from "@/lib/domain/metrics/types";
 import { compareValues, aggregateSourceValues } from "./compare";
+import { isReconciliationRateLimited } from "@/lib/rate-limit";
+
+export class ReconciliationRateLimitError extends Error {
+  constructor() {
+    super("A reconciliation run already started recently. Try again in a few minutes.");
+    this.name = "ReconciliationRateLimitError";
+  }
+}
 
 export interface ReconciliationParams {
   organizationId: string;
@@ -28,18 +37,31 @@ export async function runReconciliation(params: ReconciliationParams) {
   const thresholdPct = params.thresholdPct ?? 5;
   if (params.teamId) await assertOrganizationResource(params.organizationId, "team", params.teamId);
 
-  const [run] = await db
-    .insert(reconciliationRuns)
-    .values({
-      organizationId: params.organizationId,
-      triggeredBy: params.triggeredBy,
-      teamId: params.teamId ?? null,
-      periodStart: params.periodStart,
-      periodEnd: params.periodEnd,
-      thresholdPct,
-      status: "running",
-    })
-    .returning();
+  // Serialize the cooldown check and claim across every worker for this organization.
+  const run = await db.transaction(async (tx) => {
+    const [organization] = await tx
+      .select({ id: organizations.id })
+      .from(organizations)
+      .where(eq(organizations.id, params.organizationId))
+      .for("update");
+    if (!organization) throw new Error("Organization not found");
+    if (await isReconciliationRateLimited(params.organizationId, tx)) {
+      throw new ReconciliationRateLimitError();
+    }
+    const [claimed] = await tx
+      .insert(reconciliationRuns)
+      .values({
+        organizationId: params.organizationId,
+        triggeredBy: params.triggeredBy,
+        teamId: params.teamId ?? null,
+        periodStart: params.periodStart,
+        periodEnd: params.periodEnd,
+        thresholdPct,
+        status: "running",
+      })
+      .returning();
+    return claimed;
+  });
 
   if (!run) throw new Error("Failed to create reconciliation run");
 
