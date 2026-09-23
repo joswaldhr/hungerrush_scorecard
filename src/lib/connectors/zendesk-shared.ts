@@ -35,11 +35,24 @@ export interface RequestStats {
 
 export async function zendeskGet<T>(pathOrUrl: string, stats?: RequestStats): Promise<T> {
   const url = pathOrUrl.startsWith("http") ? pathOrUrl : `${baseUrl()}${pathOrUrl}`;
+  const parsed = new URL(url);
+  // Pagination links are vendor response data, not authorization to send the
+  // account credential to another host. Redirects must not widen this boundary.
+  if (
+    parsed.origin !== new URL(baseUrl()).origin ||
+    !parsed.pathname.startsWith("/api/v2/") ||
+    parsed.username ||
+    parsed.password ||
+    parsed.hash
+  ) {
+    throw new Error("Zendesk request rejected: URL is outside the configured API");
+  }
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     if (stats) stats.requests++;
     const res = await fetch(url, {
       headers: { Authorization: authHeader() },
+      redirect: "error",
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
 

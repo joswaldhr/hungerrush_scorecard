@@ -539,3 +539,12 @@ fetches after both changed and unchanged newer results and concurrent disjoint w
 Typecheck and focused ESLint passed. The preceding export increment also passed typecheck
 and focused ESLint; live Search reconciliation matched 2,415 unique IDs to counts before
 and after across 25 export pages. No production publication or historical repair occurred.
+
+
+## Zendesk credential destination guard — September 23
+
+Vendor pagination links now must resolve to the configured HTTPS Zendesk origin and
+/api/v2/ path, with no embedded credentials or fragments. Fetch redirects are rejected.
+Seven focused tests cover foreign hosts, HTTP downgrade, path escape, embedded credentials,
+and valid relative/absolute API requests. This prevents pagination data from widening the
+authorization destination. Typecheck and focused lint passed.
