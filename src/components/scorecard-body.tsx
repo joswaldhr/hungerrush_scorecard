@@ -158,6 +158,10 @@ export function ScorecardBody({
         status: r.status.status,
         unit: r.unit,
         valueType: r.valueType,
+        qualityStatus: r.qualityStatus,
+        dataFreshnessAt: r.dataFreshnessAt ? new Date(r.dataFreshnessAt).toISOString() : null,
+        calculationVersion: r.calculationVersion,
+        targetSource: r.target?.source ?? null,
       })),
     [displayRows]
   );
@@ -207,6 +211,7 @@ export function ScorecardBody({
                 key={periodStart}
                 employeeName={employeeName}
                 periodLabel={`${formatWeekRangeLong(periodStart, periodEnd)}${inProgress ? " — In progress; targets cover the full week" : ""}`}
+                previousPeriodLabel={formatWeekRangeLong(previousPeriodStart, previousPeriodEnd)}
                 metrics={scorecardMetrics}
               />
             )}

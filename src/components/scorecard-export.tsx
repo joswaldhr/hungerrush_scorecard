@@ -13,60 +13,23 @@ import {
   ClipboardList,
   ChevronDown,
 } from "lucide-react";
-import { formatMetricValue } from "@/lib/domain/metrics/types";
-import type { ValueType } from "@/lib/domain/metrics/types";
+import {
+  exportCsv,
+  exportDataDetails,
+  formatExportValue as formatVal,
+  formatExportTarget as formatTarget,
+  type ExportSnapshot,
+  type ScorecardMetric,
+} from "@/lib/domain/metrics/export-snapshot";
+import { freezeScorecardCapture } from "@/lib/scorecard-capture";
+import { getStatusLabel } from "./status-badge";
+export type { ScorecardMetric } from "@/lib/domain/metrics/export-snapshot";
 import { cn } from "@/lib/utils";
 
 export const SCORECARD_CAPTURE_ID = "scorecard-capture";
 
-export interface ScorecardMetric {
-  category: string | null;
-  name: string;
-  currentValue: number | null;
-  previousValue: number | null;
-  targetValue: number | null;
-  targetType: string | null;
-  targetMin: number | null;
-  targetMax: number | null;
-  status: string;
-  unit: string | null;
-  valueType: ValueType;
-}
-
-interface ScorecardExportProps {
-  employeeName: string;
-  periodLabel: string;
-  metrics: ScorecardMetric[];
-}
-
-function formatVal(value: number | null, unit: string | null, valueType: ValueType): string {
-  if (value === null) return "—";
-  return formatMetricValue(value, unit, valueType);
-}
-
-function formatTarget(m: ScorecardMetric): string {
-  if (m.targetType === "range") {
-    if (m.targetMin === null || m.targetMax === null) return "—";
-    return `${formatVal(m.targetMin, m.unit, m.valueType)}–${formatVal(m.targetMax, m.unit, m.valueType)}`;
-  }
-  return formatVal(m.targetValue, m.unit, m.valueType);
-}
-
 function statusLabel(status: string): string {
-  switch (status) {
-    case "on_target":
-      return "On Target";
-    case "warning":
-      return "Warning";
-    case "off_target":
-      return "Off Target";
-    case "no_target":
-      return "No Target";
-    case "no_data":
-      return "No Data";
-    default:
-      return status;
-  }
+  return getStatusLabel(status as Parameters<typeof getStatusLabel>[0]);
 }
 
 function fileDate(): string {
@@ -91,7 +54,12 @@ function triggerDownload(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-export function ScorecardExport({ employeeName, periodLabel, metrics }: ScorecardExportProps) {
+export function ScorecardExport({
+  employeeName,
+  periodLabel,
+  previousPeriodLabel,
+  metrics,
+}: ExportSnapshot) {
   const [open, setOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -101,12 +69,18 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
   async function handlePdf() {
     const el = document.getElementById(SCORECARD_CAPTURE_ID);
     if (!el) return;
+    const frozen = freezeScorecardCapture(el, {
+      employeeName,
+      periodLabel,
+      previousPeriodLabel,
+      metrics,
+    });
     setExporting(true);
     close();
     try {
       const html2canvas = (await import("html2canvas-pro")).default;
       const { jsPDF } = await import("jspdf");
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true });
+      const canvas = await html2canvas(frozen.element, { scale: 2, useCORS: true });
       const imgData = canvas.toDataURL("image/png");
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
@@ -124,6 +98,7 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
       console.error("PDF export failed:", err);
       toast.error("Failed to generate PDF");
     } finally {
+      frozen.dispose();
       setExporting(false);
     }
   }
@@ -131,11 +106,17 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
   async function handlePng() {
     const el = document.getElementById(SCORECARD_CAPTURE_ID);
     if (!el) return;
+    const frozen = freezeScorecardCapture(el, {
+      employeeName,
+      periodLabel,
+      previousPeriodLabel,
+      metrics,
+    });
     setExporting(true);
     close();
     try {
       const html2canvas = (await import("html2canvas-pro")).default;
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true });
+      const canvas = await html2canvas(frozen.element, { scale: 2, useCORS: true });
       canvas.toBlob((blob) => {
         if (!blob) {
           toast.error("Failed to generate image");
@@ -148,24 +129,14 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
       console.error("PNG export failed:", err);
       toast.error("Failed to generate PNG");
     } finally {
+      frozen.dispose();
       setExporting(false);
     }
   }
 
   function handleCsv() {
     close();
-    const header = "Category,Metric,This Week,Last Week,Target,Status";
-    const rows = metrics.map((m) => {
-      const cat = m.category ?? "Other";
-      const curr = formatVal(m.currentValue, m.unit, m.valueType);
-      const prev = formatVal(m.previousValue, m.unit, m.valueType);
-      const target = formatTarget(m);
-      const status = statusLabel(m.status);
-      return [cat, m.name, curr, prev, target, status]
-        .map((v) => `"${v.replace(/"/g, '""')}"`)
-        .join(",");
-    });
-    const csv = [header, ...rows].join("\n");
+    const csv = exportCsv({ employeeName, periodLabel, previousPeriodLabel, metrics }, statusLabel);
     // Excel assumes the system codepage (not UTF-8) for a CSV with no BOM, so
     // the en/em dashes in target ranges and blank values ("75-128", "-")
     // render as mojibake ("â€"") without this -- confirmed live.
@@ -184,7 +155,7 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
       categories.set(cat, arr);
     }
 
-    let text = `Scorecard: ${employeeName}\nPeriod: ${periodLabel}\n`;
+    let text = `Scorecard: ${employeeName}\nPeriod: ${periodLabel} (UTC)\nComparison: ${previousPeriodLabel} (UTC)\n`;
     for (const [cat, catMetrics] of categories) {
       text += `\n${cat.toUpperCase()}\n`;
       for (const m of catMetrics) {
@@ -198,6 +169,7 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
     }
 
     try {
+      text += `\nData details\n${exportDataDetails(metrics)}`;
       await navigator.clipboard.writeText(text.trimEnd());
       toast.success("Scorecard copied to clipboard");
     } catch {

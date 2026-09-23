@@ -624,3 +624,18 @@ rows, 4,694 unique calls, six boundary/revision duplicates, and 73 calls created
 the week excluded, leaving 4,621 weekly calls. No rate-limit waiting occurred. This verifies
 one observed export, not independent per-agent metric semantics or a worst-case runtime SLA.
 See `2026-09-23-talk-week-probe.json`. No live sync, production write, or historical repair ran.
+
+
+## Export snapshot context — September 23
+
+CSV now includes employee, explicit current/comparison dates and UTC, source observation,
+quality, calculation version, and target scope for each metric. Spreadsheet formula-like
+text is escaped. Text exports carry the same context. PDF/PNG capture now freezes a DOM
+copy before asynchronous library loading, includes employee/reporting headers and data
+details, and disposes the temporary copy afterward; navigation cannot replace the pending
+export's rows. UI and exports now use the same status labels. No target-row ID or immutable
+historical target snapshot is claimed: only the resolved scope is currently available.
+
+Validation: nine export/navigation tests, typecheck, and focused ESLint passed. Tests cover
+historical dates, zero versus missing, CSV quoting/formula text, capture identity and data
+details, disposal, and navigation after capture. Hosted visual export verification follows.
