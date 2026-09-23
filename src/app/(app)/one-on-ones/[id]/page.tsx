@@ -9,9 +9,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { teams, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { weekBoundsForDate, weekDates, shiftWeekStart } from "@/lib/utils";
-
-const WEEK_PARAM_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+import { resolveReportingWeek, shiftWeekStart } from "@/lib/utils";
 
 export default async function OneOnOnePage({
   params,
@@ -24,10 +22,7 @@ export default async function OneOnOnePage({
   const { week: weekParam } = await searchParams;
   // Normalize to the containing Sunday-Saturday week, whether the value came
   // from the calendar picker (already a Sunday) or a hand-edited URL.
-  const periodStart =
-    weekParam && WEEK_PARAM_PATTERN.test(weekParam)
-      ? weekBoundsForDate(weekParam).periodStart
-      : weekDates(0).periodStart;
+  const periodStart = resolveReportingWeek(weekParam);
 
   const session = await auth();
   if (!session?.user?.email) redirect("/login");
@@ -86,6 +81,7 @@ export default async function OneOnOnePage({
         />
       ) : (
         <ScorecardBody
+          key={employee.id}
           employeeId={employee.id}
           employeeName={employee.displayName}
           employeeJobTitle={employee.jobTitle}

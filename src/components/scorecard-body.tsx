@@ -11,11 +11,10 @@ import { formatCategoryLabel } from "@/lib/domain/metrics/category-labels";
 import { deriveOverallStatus } from "@/lib/domain/metrics/status";
 import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
 import {
-  cn,
   initials,
   shiftWeekStart,
   weekBoundsForDate,
-  weekDates,
+  resolveReportingWeek,
   weeksAgoFor,
   formatWeekRangeShort,
   formatWeekRangeLong,
@@ -32,10 +31,7 @@ interface ScorecardBodyProps {
   initialRows: EmployeeMetricRow[];
 }
 
-// The 4 weeks the old tab UI exposed directly -- kept warm in cache so
-// jumping between recent weeks is instant even before the user touches
-// the navigator.
-const CANONICAL_WEEKS_AGO = [0, 1, 2, 3];
+const CACHE_TTL_MS = 60_000;
 
 export function ScorecardBody({
   employeeId,
@@ -47,82 +43,84 @@ export function ScorecardBody({
   initialRows,
 }: ScorecardBodyProps) {
   const [periodStart, setPeriodStart] = useState(initialPeriodStart);
-  const [rowsByWeek, setRowsByWeek] = useState<Record<string, EmployeeMetricRow[]>>({
-    [initialPeriodStart]: initialRows,
-  });
+  const [snapshot, setSnapshot] = useState({ periodStart: initialPeriodStart, rows: initialRows });
   const [loading, setLoading] = useState(false);
-
-  // Weeks we've already fetched (or are fetching), tracked outside state so
-  // fetchWeek can check it without a stale closure over rowsByWeek -- only
-  // ever mutated from inside fetchWeek's own body (in response to a real
-  // request starting/finishing), never during render.
-  const knownWeeksRef = useRef<Set<string>>(new Set([initialPeriodStart]));
-  const inFlightRef = useRef<Set<string>>(new Set());
-  // Tracks the most recent week that actually finished loading, so a
-  // navigation to an uncached week can keep showing real data instead of
-  // blanking the page while it fetches.
-  const [lastLoadedPeriod, setLastLoadedPeriod] = useState(initialPeriodStart);
+  const [error, setError] = useState<string | null>(null);
+  const cacheRef = useRef(new Map<string, { rows: EmployeeMetricRow[]; loadedAt: number }>());
+  const requestRef = useRef(0);
+  const selectedPeriodRef = useRef(initialPeriodStart);
 
   const fetchWeek = useCallback(
-    async (ps: string, opts: { markLoading: boolean }) => {
-      if (knownWeeksRef.current.has(ps) || inFlightRef.current.has(ps)) return;
-      inFlightRef.current.add(ps);
-      if (opts.markLoading) setLoading(true);
+    async (ps: string, force = false) => {
+      const request = ++requestRef.current;
+      selectedPeriodRef.current = ps;
+      setPeriodStart(ps);
+      setError(null);
+      const cached = cacheRef.current.get(ps);
+      if (!force && cached && Date.now() - cached.loadedAt < CACHE_TTL_MS) {
+        setSnapshot({ periodStart: ps, rows: cached.rows });
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
       try {
-        const result = await getWeekMetrics(employeeId, ps, shiftWeekStart(ps, -1));
-        knownWeeksRef.current.add(ps);
-        setRowsByWeek((prev) => ({ ...prev, [ps]: result }));
-        setLastLoadedPeriod(ps);
+        const rows = await getWeekMetrics(employeeId, ps);
+        // A slow response may never replace a more recently requested period.
+        if (request !== requestRef.current) return;
+        if (cacheRef.current.size >= 8) cacheRef.current.clear();
+        cacheRef.current.set(ps, { rows, loadedAt: Date.now() });
+        setSnapshot({ periodStart: ps, rows });
+      } catch {
+        if (request === requestRef.current) {
+          setError("Unable to load this week. Please try again.");
+        }
       } finally {
-        inFlightRef.current.delete(ps);
-        if (opts.markLoading) setLoading(false);
+        if (request === requestRef.current) setLoading(false);
       }
     },
     [employeeId]
   );
 
-  // Prefetch the 4 canonical weeks once on mount, silently -- these don't
-  // set the loading indicator since the user hasn't asked for them yet.
+  // Seed the cache from the server snapshot; invalidate pending work on unmount.
   useEffect(() => {
-    async function prefetchCanonicalWeeks() {
-      for (const weeksAgo of CANONICAL_WEEKS_AGO) {
-        const { periodStart: ps } = weekDates(weeksAgo);
-        await fetchWeek(ps, { markLoading: false });
-      }
-    }
-    void prefetchCanonicalWeeks();
-  }, [fetchWeek]);
+    const requests = requestRef;
+    cacheRef.current.set(initialPeriodStart, { rows: initialRows, loadedAt: Date.now() });
+    return () => {
+      requests.current++;
+    };
+  }, [initialPeriodStart, initialRows]);
 
   // Browser Back/Forward: history.pushState below doesn't reload the page,
   // so we need our own popstate handling to stay in sync with it.
   useEffect(() => {
     function onPopState() {
       const params = new URLSearchParams(window.location.search);
-      const week = params.get("week");
-      if (week) {
-        setPeriodStart(week);
-        void fetchWeek(week, { markLoading: true });
-      }
+      void fetchWeek(resolveReportingWeek(params.get("week")));
+    }
+    function onFocus() {
+      void fetchWeek(selectedPeriodRef.current, true);
     }
     window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.removeEventListener("popstate", onPopState);
+      window.removeEventListener("focus", onFocus);
+    };
   }, [fetchWeek]);
 
   const navigate = useCallback(
     (ps: string) => {
-      setPeriodStart(ps);
+      const week = resolveReportingWeek(ps);
       const url = new URL(window.location.href);
-      url.searchParams.set("week", ps);
+      url.searchParams.set("week", week);
       window.history.pushState(null, "", url.toString());
-      void fetchWeek(ps, { markLoading: true });
-      void fetchWeek(shiftWeekStart(ps, -1), { markLoading: false });
-      void fetchWeek(shiftWeekStart(ps, 1), { markLoading: false });
+      void fetchWeek(week);
     },
     [fetchWeek]
   );
 
-  const rows = rowsByWeek[periodStart];
-  const displayRows = rows ?? rowsByWeek[lastLoadedPeriod] ?? initialRows;
+  const ready = !loading && !error && snapshot.periodStart === periodStart;
+  const displayRows = snapshot.rows;
 
   const periodEnd = weekBoundsForDate(periodStart).periodEnd;
   const previousPeriodStart = shiftWeekStart(periodStart, -1);
@@ -177,33 +175,40 @@ export function ScorecardBody({
               <h1 className="text-2xl sm:text-[28px] font-bold text-foreground tracking-tight">
                 {employeeName}
               </h1>
-              <StatusBadge status={overallStatus} showDot />
+              {ready && <StatusBadge status={overallStatus} showDot />}
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
               {employeeJobTitle ?? "Support Specialist"} • {teamName}
               {managerName ? ` • Manager: ${managerName}` : ""}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Overall status:{" "}
-              <span className="font-semibold text-foreground">{getStatusLabel(overallStatus)}</span>
-              {offTargetNames.length > 0 && (
-                <>
-                  {" "}
-                  | {offTargetNames.length} metric{offTargetNames.length === 1 ? "" : "s"} outside
-                  target: {offTargetNames.join(", ")}
-                </>
-              )}
-            </p>
+            {ready && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Overall status:{" "}
+                <span className="font-semibold text-foreground">
+                  {getStatusLabel(overallStatus)}
+                </span>
+                {offTargetNames.length > 0 && (
+                  <>
+                    {" "}
+                    | {offTargetNames.length} metric{offTargetNames.length === 1 ? "" : "s"} outside
+                    target: {offTargetNames.join(", ")}
+                  </>
+                )}
+              </p>
+            )}
           </div>
         </div>
 
         <div className="flex flex-col items-end gap-2">
           <div className="flex items-center gap-2">
-            <ScorecardExport
-              employeeName={employeeName}
-              periodLabel={formatWeekRangeLong(periodStart, periodEnd)}
-              metrics={scorecardMetrics}
-            />
+            {ready && (
+              <ScorecardExport
+                key={periodStart}
+                employeeName={employeeName}
+                periodLabel={formatWeekRangeLong(periodStart, periodEnd)}
+                metrics={scorecardMetrics}
+              />
+            )}
             <WeekNavigator
               periodStart={periodStart}
               rangeLabel={formatWeekRangeLong(periodStart, periodEnd)}
@@ -215,25 +220,39 @@ export function ScorecardBody({
         </div>
       </header>
 
-      {/* No "no metrics assigned" branch here -- page.tsx already gates on
-          that before this component is ever rendered, and assignments
-          (unlike values) don't vary week to week, so it can't become true
-          later either. */}
-      <div
-        id={SCORECARD_CAPTURE_ID}
-        className={cn("space-y-6 transition-opacity", loading && !rows && "opacity-50")}
-      >
-        {Array.from(categories.entries()).map(([category, categoryRows]) => (
-          <MetricCategoryTable
-            key={category ?? "uncategorized"}
-            category={category}
-            title={formatCategoryLabel(category)}
-            rows={categoryRows}
-            currentLabel={formatWeekRangeShort(periodStart, periodEnd)}
-            previousLabel={formatWeekRangeShort(previousPeriodStart, previousPeriodEnd)}
-          />
-        ))}
-      </div>
+      {error ? (
+        <div role="alert" className="rounded-lg border p-6">
+          <p>{error}</p>
+          <button
+            type="button"
+            className="mt-3 underline"
+            onClick={() => void fetchWeek(periodStart, true)}
+          >
+            Retry
+          </button>
+        </div>
+      ) : !ready ? (
+        <div role="status" aria-live="polite" className="rounded-lg border p-6">
+          Loading {formatWeekRangeLong(periodStart, periodEnd)}…
+        </div>
+      ) : (
+        <div id={SCORECARD_CAPTURE_ID} className="space-y-6">
+          <p className="sr-only" role="status">
+            Loaded {formatWeekRangeLong(periodStart, periodEnd)}
+          </p>
+          {displayRows.length === 0 && <p>No metrics assigned for this scorecard.</p>}
+          {Array.from(categories.entries()).map(([category, categoryRows]) => (
+            <MetricCategoryTable
+              key={category ?? "uncategorized"}
+              category={category}
+              title={formatCategoryLabel(category)}
+              rows={categoryRows}
+              currentLabel={formatWeekRangeShort(periodStart, periodEnd)}
+              previousLabel={formatWeekRangeShort(previousPeriodStart, previousPeriodEnd)}
+            />
+          ))}
+        </div>
+      )}
     </>
   );
 }
