@@ -674,3 +674,21 @@ CSAT counts or loop indefinitely. Five focused real-connector fixtures passed, i
 ID/denominator preservation, unchanged normalized values, missing/zero samples, duplicate
 ratings, and cyclic pagination; typecheck passed. Payload retention/storage growth still
 needs an operational policy. The business-definition question remains pending with the user.
+
+
+## Employee backup payload retention — September 23
+
+Six tracked raw JSON backup files were removed from the current repository tree after
+creating a Windows DPAPI CurrentUser encrypted archive and verifying each decrypted byte
+stream against its SHA-256. The already-pseudonymized audit baseline was also archived as
+an additional precaution; its repository copy contains no email or UUID patterns and remains
+available for audit evidence. New `/backups/` output is ignored to prevent routine recommits.
+No application source imports the removed backup payloads.
+
+Archive: `C:/Users/JamesOswald/.codex/private-backups/cadence/20260923-171945`.
+The local manifest records original paths, sizes, hashes, and commit; RESTORE.txt describes
+recovery. All seven archived files passed round-trip verification. DPAPI requires this
+Windows user profile/key material: this is local confidential recovery storage, not a
+portable disaster-recovery backup or verified production restore point. Git history remains
+unchanged and still contains older copies; repository access review and coordinated history/
+retention cleanup remain release work. No external transfer or credential rotation occurred.
