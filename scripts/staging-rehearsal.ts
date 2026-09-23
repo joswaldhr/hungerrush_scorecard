@@ -1,4 +1,4 @@
-/** Local staging rehearsal. Never loads .env or contacts an external vendor. */
+/** Explicitly targeted staging rehearsal. Never loads .env or contacts a vendor. */
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { mkdtemp, mkdir, readFile, writeFile, copyFile } from "node:fs/promises";
@@ -12,20 +12,56 @@ import * as schema from "../src/lib/db/schema";
 import type { Connector } from "../src/lib/connectors/types";
 
 async function main() {
-  const adminUrl = new URL(process.env.STAGING_ADMIN_DATABASE_URL ?? "");
-  assert(
-    ["127.0.0.1", "localhost", "[::1]"].includes(adminUrl.hostname),
-    "Staging rehearsal requires loopback"
+  const hosted =
+    process.env.STAGING_RAILWAY_ENVIRONMENT_ID === "4e86528b-7329-4d73-a651-9f0fb3d07755";
+  const adminUrl = new URL(
+    (hosted ? process.env.STAGING_DATABASE_URL : process.env.STAGING_ADMIN_DATABASE_URL) ?? ""
   );
-  assert.equal(adminUrl.pathname, "/postgres", "Supply the local postgres administration database");
-  const database = `cadence_stage_${Date.now()}`;
-  const admin = postgres(adminUrl.toString(), { max: 1 });
-  await admin.unsafe(`CREATE DATABASE "${database}"`);
-  await admin.end();
-  adminUrl.pathname = `/${database}`;
+  let database: string;
+  if (hosted) {
+    assert.equal(adminUrl.protocol, "postgresql:");
+    assert.equal(
+      adminUrl.hostname,
+      "nozomi.proxy.rlwy.net",
+      "Only the approved staging endpoint is allowed"
+    );
+    assert.equal(adminUrl.port, "24570");
+    assert.equal(adminUrl.pathname, "/railway");
+    assert(adminUrl.password, "Password required");
+    // Do not let URL query options override the endpoint validated above.
+    adminUrl.search = "";
+    adminUrl.searchParams.set("sslmode", "require");
+    database = "railway";
+  } else {
+    assert(
+      ["127.0.0.1", "localhost", "[::1]"].includes(adminUrl.hostname),
+      "Staging rehearsal requires loopback"
+    );
+    assert.equal(
+      adminUrl.pathname,
+      "/postgres",
+      "Supply the local postgres administration database"
+    );
+    database = `cadence_stage_${Date.now()}`;
+    const admin = postgres(adminUrl.toString(), { max: 1 });
+    await admin.unsafe(`CREATE DATABASE "${database}"`);
+    await admin.end();
+    adminUrl.pathname = `/${database}`;
+  }
   process.env.DATABASE_URL = adminUrl.toString();
   const client = postgres(adminUrl.toString(), { max: 1 });
   const connection = drizzle(client, { schema });
+  if (hosted) {
+    const tables =
+      await client`select tablename from pg_tables where schemaname not in ('pg_catalog', 'information_schema')`;
+    assert.equal(
+      tables.length,
+      0,
+      "Hosted rehearsal requires an empty database; never reset populated data automatically"
+    );
+    const tls = await client`select ssl from pg_stat_ssl where pid = pg_backend_pid()`;
+    assert.equal(tls[0]?.ssl, true, "Hosted connection must use TLS");
+  }
   const migrationFolder = path.resolve("drizzle");
   const journal = JSON.parse(
     await readFile(path.join(migrationFolder, "meta/_journal.json"), "utf8")
@@ -199,7 +235,16 @@ async function main() {
     timestamp: new Date().toISOString(),
     database,
     postgres: version,
-    scope: "isolated local staging; synthetic data; no vendor calls; not hosted production parity",
+    scope: hosted
+      ? "isolated Railway staging; synthetic data; no vendor calls; not Vercel runtime validation"
+      : "isolated local staging; synthetic data; no vendor calls; not hosted production parity",
+    ...(hosted
+      ? {
+          railwayEnvironmentId: process.env.STAGING_RAILWAY_ENVIRONMENT_ID,
+          tlsEncrypted: true,
+          tlsCertificateValidation: "Railway self-signed certificate; sslmode=require",
+        }
+      : {}),
     migration: "0011 -> 0012",
     migrationMs,
     preservedExistingValue: 42,
@@ -211,7 +256,9 @@ async function main() {
     migrationRerunPreservedValues: true,
   };
   await writeFile(
-    "docs/audits/2026-09-23-staging-rehearsal.json",
+    hosted
+      ? "docs/audits/2026-09-23-hosted-staging-rehearsal.json"
+      : "docs/audits/2026-09-23-staging-rehearsal.json",
     JSON.stringify(report, null, 2) + "\n"
   );
   console.log(JSON.stringify(report, null, 2));
@@ -220,6 +267,8 @@ async function main() {
 main()
   .then(() => process.exit(0))
   .catch((error) => {
-    console.error(error);
+    console.error(
+      error instanceof Error ? `${error.name}: ${error.message}` : "Staging rehearsal failed"
+    );
     process.exit(1);
   });
