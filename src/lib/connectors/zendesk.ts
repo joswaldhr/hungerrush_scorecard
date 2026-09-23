@@ -296,7 +296,7 @@ export class ZendeskConnector implements Connector {
   }
 
   async resolveIdentities(
-    _config: ConnectorConfig,
+    config: ConnectorConfig,
     externalIds: string[]
   ): Promise<IdentityMatch[]> {
     const matches: IdentityMatch[] = [];
@@ -306,7 +306,12 @@ export class ZendeskConnector implements Connector {
       const [identity] = await db
         .select()
         .from(externalIdentities)
-        .where(eq(externalIdentities.externalId, email));
+        .where(
+          and(
+            eq(externalIdentities.externalId, email),
+            eq(externalIdentities.dataSourceId, config.dataSourceId)
+          )
+        );
       if (identity) {
         matches.push({
           externalId: email,

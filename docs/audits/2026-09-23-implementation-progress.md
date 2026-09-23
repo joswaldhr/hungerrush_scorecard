@@ -692,3 +692,12 @@ Windows user profile/key material: this is local confidential recovery storage, 
 portable disaster-recovery backup or verified production restore point. Git history remains
 unchanged and still contains older copies; repository access review and coordinated history/
 retention cleanup remain release work. No external transfer or credential rotation occurred.
+
+
+## Connector identity source scope — September 23
+
+Numeric Zendesk identity resolution now filters the Cadence identity lookup by data-source
+ID as well as external email. Matching email addresses in different source instances cannot
+resolve to the other instance's employee. A real PostgreSQL regression creates two
+organizations/sources with the same synthetic email and verifies both resolve correctly.
+The test, typecheck, and focused lint passed. Source-evidence focused lint also passed.
