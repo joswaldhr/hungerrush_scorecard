@@ -95,6 +95,42 @@ afterAll(async () => {
 });
 
 describe("setVisibilityOverride", () => {
+  it("serializes concurrent nullable-scope inserts into one rule", async () => {
+    mockAuth.mockResolvedValue({ user: { email: ADMIN_EMAIL } });
+    const input = {
+      scope: "global_default" as const,
+      managerUserId: null,
+      targetEmployeeId: null,
+      metricDefinitionId: METRIC_DEF_ID,
+      teamId: null,
+      line: "synthetic-concurrency",
+      hidden: true,
+    };
+    try {
+      await Promise.all([setVisibilityOverride(input), setVisibilityOverride(input)]);
+      const rows = await db
+        .select()
+        .from(metricVisibilityOverrides)
+        .where(
+          and(
+            eq(metricVisibilityOverrides.metricDefinitionId, METRIC_DEF_ID),
+            eq(metricVisibilityOverrides.line, input.line)
+          )
+        );
+      expect(rows).toHaveLength(1);
+      expect(rows[0]?.hiddenBy).toBe(ADMIN_USER_ID);
+    } finally {
+      await db
+        .delete(metricVisibilityOverrides)
+        .where(
+          and(
+            eq(metricVisibilityOverrides.metricDefinitionId, METRIC_DEF_ID),
+            eq(metricVisibilityOverrides.line, input.line)
+          )
+        );
+    }
+  });
+
   it("rejects a non-admin session without writing anything", async () => {
     mockAuth.mockResolvedValue({ user: { email: NON_ADMIN_EMAIL } });
 

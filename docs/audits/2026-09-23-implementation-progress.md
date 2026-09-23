@@ -12,7 +12,7 @@ Last updated: 2026-09-23. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Implemented locally | Navigation, organization and manager-scope regression tests |
 | Atomic sync publication and freshness | Implemented locally | PostgreSQL rollback tests; untouched periods preserved |
 | Null corrections and predecessor evidence | Implemented locally | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 283 tests, typecheck, full lint, production build |
+| Combined implementation validation | Passed | 296 tests across 32 files, TypeScript, full lint/format, production build |
 | Migration and corrected-sync rehearsal | Passed locally | Separate staging database; 0011 -> 0012; synthetic stored-data assertions |
 | Hosted staging / production parity | Database and core UI checks passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; cron runtime check remains open |
 | Zendesk completeness | Search and Talk safety guards implemented locally | 2,415-ticket export reconciled; Talk boundary verified; historical/agent semantics remain open |
@@ -61,9 +61,11 @@ Remaining production release gates:
   Code rollback retains the additive revision table; data reversal requires reviewed snapshots.
 - Review staged results with the user before production migration/deployment or historical replay.
 
-Other open risks include overlapping reporting calendars, historical targets/team context,
-source coverage quality in the manager UI, out-of-order sync observations, leases, revision
-retention, and an authorized revision-history viewer. See the audit for the full backlog.
+Stored reporting intervals, observation ordering, sync leases, and atomic reconciliation
+claims now have regression coverage. Remaining risks include historical targets/team context,
+independent source reconciliation, worst-case fetch budgets/resumability, revision retention,
+authorized revision-history inspection, and database-level visibility uniqueness. See the
+audit for the full backlog; these safeguards do not complete the entire overhaul.
 
 ## Repeatable local staging rehearsal
 
@@ -751,3 +753,18 @@ Hosted history verification at 39db808 passed: the page showed confirmed zero se
 from missing data, retained observation/version details, and selecting September 13–19
 changed both the URL and displayed interval. The desktop screenshot was legible without
 clipping. No production data changed.
+
+
+## Visibility save concurrency and combined validation — September 23
+
+Visibility saves now lock the parent metric and perform their read/write in one transaction.
+Concurrent application requests for the same nullable scope create one rule; an existing
+duplicate set fails for review rather than choosing an arbitrary row. Organization scope
+is rechecked while acquiring the lock. Empty-string line values are matched distinctly
+from null. Direct database writers remain subject to the legacy nullable unique index; a
+duplicate census and nulls-not-distinct database migration remain separate follow-up work.
+
+Validation: all 296 tests across 32 files passed, including the concurrent nullable-scope
+save regression, access boundaries, reconciliation claims, and sanitized database failures.
+Full ESLint, Prettier, TypeScript (production build), and production build passed. No
+production migration, deployment, historical replay, or business-formula change occurred.
