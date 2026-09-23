@@ -16,6 +16,7 @@ import { zendeskGet, type RequestStats } from "./zendesk-shared";
 import { logger } from "@/lib/logger";
 import { fetchCompleteSearch, type SearchExportPage } from "./zendesk-search";
 import { fetchCompleteTalkWeek, type TalkCall, type TalkPage } from "./zendesk-talk";
+import { averageEvidence, sourceIds } from "./source-evidence";
 import { mapWithConcurrency, weekDates } from "@/lib/utils";
 
 // Real timing data (2026-09-10, see FOLLOWUPS.md) showed the per-employee
@@ -55,6 +56,7 @@ interface ZendeskShowManyResponse {
 }
 
 interface ZendeskSatisfactionRating {
+  id: number;
   assignee_id: number | null;
   score: string;
 }
@@ -101,6 +103,7 @@ interface ZendeskCall extends TalkCall {
 }
 
 interface CallAggregate {
+  sourceEvidence: Record<string, unknown>;
   inboundOffered: number;
   inboundAccepted: number;
   inboundAbandonedOnHold: number;
@@ -151,10 +154,18 @@ async function fetchRatings(
 
   let path: string | null =
     `/satisfaction_ratings.json?score=received&start_time=${startTime}&end_time=${endTime}`;
+  const visited = new Set<string>();
+  const ratingIds = new Set<number>();
   while (path) {
+    if (visited.has(path) || visited.size >= 100)
+      throw new Error("Zendesk ratings incomplete: pagination stalled or budget exhausted");
+    visited.add(path);
     const res: ZendeskSatisfactionRatingsResponse =
       await zendeskGet<ZendeskSatisfactionRatingsResponse>(path);
     for (const rating of res.satisfaction_ratings) {
+      if (!Number.isSafeInteger(rating.id) || rating.id <= 0 || ratingIds.has(rating.id))
+        throw new Error("Zendesk ratings incomplete: invalid or repeated rating ID");
+      ratingIds.add(rating.id);
       if (rating.assignee_id === null) continue;
       const list = byAssignee.get(rating.assignee_id) ?? [];
       list.push(rating);
@@ -198,6 +209,17 @@ function aggregateCalls(calls: ZendeskCall[]): CallAggregate {
   const inboundConsult = inbound.filter((c) => c.consultation_time > 0);
 
   return {
+    sourceEvidence: {
+      contractVersion: 1,
+      attribution: "first_answering_agent_whole_call",
+      callIds: sourceIds(calls),
+      inboundTalk: averageEvidence(inbound.map((c) => c.talk_time)),
+      inboundHold: averageEvidence(inbound.map((c) => c.hold_time)),
+      inboundDuration: averageEvidence(inbound.map((c) => c.duration)),
+      inboundConsultation: averageEvidence(inboundConsult.map((c) => c.consultation_time)),
+      outboundTalk: averageEvidence(outbound.map((c) => c.talk_time)),
+      outboundHold: averageEvidence(outbound.map((c) => c.hold_time)),
+    },
     inboundOffered: inbound.length,
     inboundAccepted: inbound.filter((c) => c.completion_status === "completed").length,
     inboundAbandonedOnHold: inbound.filter((c) => c.completion_status === "abandoned_on_hold")
@@ -222,9 +244,10 @@ function businessMinutes(metric: ZendeskTimeMetric | null | undefined): number |
 }
 
 function averageOf(values: Array<number | null>): number | null {
-  const present = values.filter((v): v is number => v !== null);
-  if (present.length === 0) return null;
-  return Math.round((present.reduce((a, b) => a + b, 0) / present.length) * 10) / 10;
+  const evidence = averageEvidence(values);
+  return evidence.numerator === null
+    ? null
+    : Math.round((evidence.numerator / evidence.denominator) * 10) / 10;
 }
 
 // Elevation is tracked with two different tagging conventions in this Zendesk
@@ -426,6 +449,26 @@ export class ZendeskConnector implements Connector {
         periodStart,
         periodEnd,
         payload: {
+          sourceEvidence: {
+            contractVersion: 1,
+            cohort: "current_assignee_last_updated_in_period",
+            ticketIds: sourceIds(tickets),
+            resolvedTicketIds: sourceIds(
+              tickets.filter((t) => t.status === "solved" || t.status === "closed")
+            ),
+            createdCohortIds: sourceIds(createdInPeriod),
+            backlogTicketIds: weekOffset === 0 ? sourceIds(perEmployeeOpen.get(email) ?? []) : null,
+            fullResolutionBusinessMinutes: averageEvidence(
+              createdInPeriod.map((t) =>
+                businessMinutes(metricSets.get(t.id)?.full_resolution_time_in_minutes)
+              )
+            ),
+            firstReplyBusinessMinutes: averageEvidence(
+              createdInPeriod.map((t) =>
+                businessMinutes(metricSets.get(t.id)?.reply_time_in_minutes)
+              )
+            ),
+          },
           ticketsResolved: resolvedCount,
           ticketsUpdated: tickets.length,
           avgHandleTimeMinutes,
@@ -458,6 +501,10 @@ export class ZendeskConnector implements Connector {
         periodStart,
         periodEnd,
         payload: {
+          sourceEvidence: callAgg?.sourceEvidence ?? {
+            contractVersion: 1,
+            identityResolved: false,
+          },
           inboundOffered: callAgg?.inboundOffered ?? null,
           inboundAccepted: callAgg?.inboundAccepted ?? null,
           inboundAbandonedOnHold: callAgg?.inboundAbandonedOnHold ?? null,
@@ -481,7 +528,17 @@ export class ZendeskConnector implements Connector {
         occurredAt: now,
         periodStart,
         periodEnd,
-        payload: { csatScore, totalRatings: rated.length },
+        payload: {
+          csatScore,
+          totalRatings: rated.length,
+          sourceEvidence: {
+            contractVersion: 1,
+            identityResolved: numericId !== null,
+            ratingIds: sourceIds(rated),
+            numerator: good,
+            denominator: rated.length,
+          },
+        },
         sourceUpdatedAt: now,
       });
     }

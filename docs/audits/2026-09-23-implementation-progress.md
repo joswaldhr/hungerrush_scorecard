@@ -657,3 +657,20 @@ percentage tolerance. Other value types retain their configured tolerance. The r
 page describes this distinction and still identifies the comparison as stored-source-fact
 consistency, not an independent vendor audit. Twenty-one focused tests, typecheck, and focused
 lint passed. Independent event/agent ledgers and versioned non-count tolerances remain open.
+
+
+## Source evidence for version-1 calculations — September 23
+
+Zendesk summary payloads now retain sorted ticket/call/rating IDs and unrounded numerators
+and denominators for time averages and CSAT. Evidence names explicitly identify the current
+assignee/last-updated ticket cohort and first-answering-agent whole-call attribution. The
+existing normalization formulas, metric keys, and target bands are unchanged. First future
+publication will record the added evidence as a source-payload revision; past evidence is
+not reconstructed automatically. Null sample sets remain distinct from confirmed zero, and
+invalid numeric observations fail instead of publishing NaN.
+
+Ratings now reject duplicate/invalid IDs and cyclic/excessive pagination rather than inflate
+CSAT counts or loop indefinitely. Five focused real-connector fixtures passed, including
+ID/denominator preservation, unchanged normalized values, missing/zero samples, duplicate
+ratings, and cyclic pagination; typecheck passed. Payload retention/storage growth still
+needs an operational policy. The business-definition question remains pending with the user.
