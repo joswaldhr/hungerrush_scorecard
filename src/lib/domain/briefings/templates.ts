@@ -33,6 +33,8 @@ export function describeExecutiveSummary(
 
   if (overallStatus === "no_data") {
     text = `No metric data has been recorded for ${employeeName} yet.`;
+  } else if (overallStatus === "in_progress") {
+    text = `The reporting period for ${employeeName} is still in progress; comparisons against full-period targets are provisional.`;
   } else if (overallStatus === "partial_data") {
     text = `Some metric data for ${employeeName} is missing or incomplete; an overall performance assessment is unavailable.`;
   } else if (overallStatus === "no_target") {

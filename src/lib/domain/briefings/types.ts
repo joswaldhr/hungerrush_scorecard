@@ -23,6 +23,7 @@ export interface TeamBriefingPayload {
     offTarget: number;
     noData: number;
     partialData: number;
+    inProgress: number;
     noTarget: number;
   };
   needsAttention: AttentionItem[];

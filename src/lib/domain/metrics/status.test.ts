@@ -55,4 +55,16 @@ describe("overall performance requires sufficient evidence", () => {
     expect(summary.text).toContain("assessment");
     expect(summary.text).not.toContain("performing well");
   });
+  it("does not judge an unfinished period against full-week targets", () => {
+    const metrics = [row({ status: { status: "off_target", direction: "higher_is_better" } })];
+    const period = { periodStart: "2026-09-20", periodEnd: "2026-09-26", today: "2026-09-23" };
+    expect(deriveOverallStatus(metrics, period)).toBe("in_progress");
+    expect(deriveOverallStatus(metrics, { ...period, today: "2026-09-27" })).toBe(
+      "needs_attention"
+    );
+    expect(deriveOverallStatus([row({ currentValue: null })], period)).toBe("no_data");
+    expect(describeExecutiveSummary("Synthetic employee", [], "in_progress").text).toContain(
+      "provisional"
+    );
+  });
 });

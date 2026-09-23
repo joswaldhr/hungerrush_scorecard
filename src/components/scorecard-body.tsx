@@ -8,7 +8,7 @@ import { ScorecardExport, SCORECARD_CAPTURE_ID } from "@/components/scorecard-ex
 import type { ScorecardMetric } from "@/components/scorecard-export";
 import { WeekNavigator } from "@/components/week-navigator";
 import { formatCategoryLabel } from "@/lib/domain/metrics/category-labels";
-import { deriveOverallStatus } from "@/lib/domain/metrics/status";
+import { deriveOverallStatus, isReportingPeriodInProgress } from "@/lib/domain/metrics/status";
 import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
 import {
   initials,
@@ -127,7 +127,8 @@ export function ScorecardBody({
   const previousPeriodEnd = shiftWeekStart(periodEnd, -1);
   const weeksAgo = weeksAgoFor(periodStart);
 
-  const overallStatus = deriveOverallStatus(displayRows);
+  const overallStatus = deriveOverallStatus(displayRows, { periodStart, periodEnd });
+  const inProgress = isReportingPeriodInProgress(periodStart, periodEnd);
   const offTargetNames = useMemo(
     () => displayRows.filter((r) => r.status.status === "off_target").map((r) => r.name),
     [displayRows]
@@ -205,7 +206,7 @@ export function ScorecardBody({
               <ScorecardExport
                 key={periodStart}
                 employeeName={employeeName}
-                periodLabel={formatWeekRangeLong(periodStart, periodEnd)}
+                periodLabel={`${formatWeekRangeLong(periodStart, periodEnd)}${inProgress ? " — In progress; targets cover the full week" : ""}`}
                 metrics={scorecardMetrics}
               />
             )}
@@ -240,6 +241,12 @@ export function ScorecardBody({
           <p className="sr-only" role="status">
             Loaded {formatWeekRangeLong(periodStart, periodEnd)}
           </p>
+          {inProgress && (
+            <p className="text-xs text-muted-foreground">
+              This week is in progress. Targets cover the full week; individual comparisons are
+              provisional.
+            </p>
+          )}
           {displayRows.length === 0 && <p>No metrics assigned for this scorecard.</p>}
           {Array.from(categories.entries()).map(([category, categoryRows]) => (
             <MetricCategoryTable

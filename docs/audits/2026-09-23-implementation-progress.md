@@ -583,3 +583,15 @@ Hosted Preview eceade63e8b0c4cb028da6efa6053b06a13b9ec7 is READY
 (deployment dpl_6xM84u7neHJcZeQw2Y9y9of49bgK). Authenticated browser verification showed
 neutral Partial Data overall, confirmed zero 0.0, No Target for the zero metric, and No Data
 for the missing metric. Production remains on ab062c33f70e2152b8786f6a8ade5a7e0ab96697.
+
+
+## In-progress reporting context — September 23
+
+For a current UTC reporting interval with sufficient data and targets, the overall status
+is now neutral In Progress. Individual target comparisons retain their approved values,
+with a visible provisional/full-week explanation included in the capture area and exported
+period label. Missing/partial data and missing targets still take precedence over a period
+status. Completed periods retain the existing performance assessment. Briefing descriptions
+and distributions carry the same distinction. No target bands or calculations changed.
+
+Validation: 41 focused status/navigation/briefing tests, typecheck, and focused ESLint passed.

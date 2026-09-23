@@ -253,6 +253,7 @@ export async function generateTeamBriefing(
     offTarget: 0,
     noData: 0,
     partialData: 0,
+    inProgress: 0,
     noTarget: 0,
   };
   const needsAttention: AttentionItem[] = [];
@@ -264,10 +265,11 @@ export async function generateTeamBriefing(
       allFreshness = freshness;
     }
 
-    const overall = deriveOverallStatus(metrics);
+    const overall = deriveOverallStatus(metrics, { periodStart, periodEnd });
     if (overall === "on_track") statusCounts.onTarget++;
     else if (overall === "needs_attention") statusCounts.offTarget++;
     else if (overall === "no_data") statusCounts.noData++;
+    else if (overall === "in_progress") statusCounts.inProgress++;
     else if (overall === "partial_data") statusCounts.partialData++;
     else if (overall === "no_target") statusCounts.noTarget++;
     else statusCounts.warning++;
@@ -417,7 +419,7 @@ export async function generateEmployeeSummary(
     previousPeriodStart
   );
   const changes = computeChanges(metrics);
-  const overallStatus = deriveOverallStatus(metrics);
+  const overallStatus = deriveOverallStatus(metrics, { periodStart, periodEnd });
 
   return {
     meta: makeMeta(periodStart, periodEnd, oldestFreshness(metrics)),
