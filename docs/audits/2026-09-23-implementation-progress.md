@@ -2,7 +2,7 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-23. **Hosted database rehearsal passed; Preview deployment held for staging sign-in.**
+Last updated: 2026-09-23. **Hosted database and Preview sign-in/UI checks passed; production rollout not performed.**
 
 ## Current ledger
 
@@ -14,12 +14,12 @@ Last updated: 2026-09-23. **Hosted database rehearsal passed; Preview deployment
 | Null corrections and predecessor evidence | Implemented locally | Migration 0012; corrected null/zero and retained revisions tested |
 | Combined implementation validation | Passed | 223 tests, typecheck, lint, production build |
 | Migration and corrected-sync rehearsal | Passed locally | Separate staging database; 0011 -> 0012; synthetic stored-data assertions |
-| Hosted staging / production parity | Database rehearsal passed; UI pending | Separate Railway PostgreSQL 18.6, branch-scoped Preview credentials; staging Entra sign-in pending |
+| Hosted staging / production parity | Database and core UI checks passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; cron runtime check remains open |
 | Production rollout / historical repair | Not performed | Release gate below must be completed first |
 
 ## Git checkpoints
 
-Branch: `codex/audit-reliability-checkpoints` published to origin. Automatic deployment is disabled for this branch; no Preview or production deployment performed.
+Branch: `codex/audit-reliability-checkpoints` published to origin. Automatic Preview deployment was enabled after credential isolation and staging sign-in setup. Production was not deployed.
 
 - `ece704c`: audit, measured baseline, and metric contracts.
 - `f39d872`: organization/manager scope safeguards and isolated test configuration.
@@ -413,3 +413,42 @@ full application suite remains the prior 223-test checkpoint; it was not rerun h
 Commits: `a58dab5` records hosted rehearsal; `f73d3cd` isolates empty Preview overrides.
 Both are pushed to the audit branch. After pushing, the latest Vercel deployments still
 showed only master; the audit branch deployment hold is intact.
+
+
+### Staging sign-in and hosted Preview validated
+
+User approved the prepared registration and setup. Created `HungerRush Cadence Staging`,
+single-tenant HungerRush, client ID `12229084-a38a-4d21-8987-e6743ef616ec`, object ID
+`613f32f6-68e0-4762-b277-3c669b564387`. Created a 180-day client credential and saved it
+as a Sensitive secret exclusively for the audit branch's Vercel Preview. Updated the
+matching branch client ID and tenant issuer. Production registration and settings were
+not changed. Registered the exact HTTPS Web callback below; implicit token flows were
+left disabled.
+
+Preview alias:
+https://hungerrush-scorecard-git-code-20e6ca-water-hungerrush-scorecard.vercel.app
+Callback path: `/api/auth/callback/microsoft-entra-id`.
+
+Removed the temporary branch deployment hold in `eb119cf`. Vercel deployment
+`dpl_5eScpueKJ9dgHCZPogMQq2xsxpu8` became READY at full commit
+`eb119cfb5834dfbec01f6b2864daa9ad920d9900` with target Preview (not production).
+Microsoft sign-in and consent completed and returned to the hosted 1:1s page.
+
+The guarded `scripts/staging-preview-fixture.ts` added one non-admin manager mapping for
+the user's signed-in work account, one synthetic team, and zero/missing metrics to the
+existing synthetic rehearsal organization. It refuses any other host/environment or a
+populated user mapping and runs its changes in one transaction. The application showed
+only the assigned Synthetic employee, zero as 0.0, and null as an em dash with No Data.
+Previous-week navigation loaded Sep 13-19 and changed comparison labels to Sep 6-12.
+Accessing /admin as this non-admin manager redirected to /one-on-ones.
+
+Evidence: `2026-09-23-hosted-preview-validation.json`. Direct unauthenticated HTTP was
+intercepted by Vercel deployment protection (302 to its SSO endpoint). Attempting to open
+the cron endpoint in the browser was blocked by the browser client. Therefore hosted
+cron authorization/trigger behavior is NOT claimed verified; the prior local route tests
+and hosted synthetic publisher rehearsal remain the evidence for those layers. No live
+vendor calls, production migrations, production deployments, or historical repairs ran.
+
+Fixture execution, targeted ESLint, and typecheck passed. No application source changed
+in this step; Vercel's actual Preview build succeeded. The broader audit remains open,
+including source completeness and the production release gate above.
