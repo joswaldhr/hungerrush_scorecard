@@ -23,6 +23,7 @@ import {
 } from "@/lib/db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { getEmployeeMetricsBatch } from "@/lib/domain/metrics/queries";
+import { getStoredMetricHistory } from "@/lib/domain/metrics/history";
 import type { ManagerContext } from "@/lib/auth/authorization";
 
 // queries.ts imports assertCanAccessEmployee from authorization.ts, which
@@ -363,5 +364,71 @@ describe("getEmployeeMetricsBatch", () => {
         .set({ effectiveTo: null })
         .where(eq(metricAssignments.metricDefinitionId, HIDDEN_DEF_ID));
     }
+  });
+  it("keeps overlapping stored intervals distinct without normalizing their calendar", async () => {
+    const added = await db
+      .insert(metricValues)
+      .values([
+        {
+          metricDefinitionId: RANGE_DEF_ID,
+          employeeId: RESTAURANT_EMP_ID,
+          teamId: MENUFY_TEAM_ID,
+          periodStart: "2026-09-13",
+          periodEnd: "2026-09-19",
+          numericValue: 101,
+        },
+        {
+          metricDefinitionId: RANGE_DEF_ID,
+          employeeId: RESTAURANT_EMP_ID,
+          teamId: MENUFY_TEAM_ID,
+          periodStart: "2026-09-14",
+          periodEnd: "2026-09-19",
+          numericValue: 202,
+        },
+      ])
+      .returning();
+    try {
+      const ctx = ctxFor([RESTAURANT_EMP_ID]);
+      const sunday = await getStoredMetricHistory(ctx, RESTAURANT_EMP_ID, "2026-09-13/2026-09-19");
+      expect(sunday.rows.map((row) => row.numericValue)).toEqual([101]);
+      expect(sunday.periods).toContainEqual({ start: "2026-09-14", end: "2026-09-20" });
+      const weekly = await getEmployeeMetricsBatch(
+        ctx,
+        [RESTAURANT_EMP_ID],
+        MENUFY_TEAM_ID,
+        PERIOD_START,
+        PREVIOUS_PERIOD_START
+      );
+      expect(
+        weekly.get(RESTAURANT_EMP_ID)?.find((row) => row.definitionId === RANGE_DEF_ID)
+          ?.currentValue
+      ).toBe(15);
+      const monday = await getStoredMetricHistory(ctx, RESTAURANT_EMP_ID, "2026-09-14/2026-09-20");
+      expect(monday.rows.find((row) => row.key === "test_range_metric")?.numericValue).toBe(15);
+      const short = await getStoredMetricHistory(ctx, RESTAURANT_EMP_ID, "2026-09-14/2026-09-19");
+      expect(short.rows.map((row) => row.numericValue)).toEqual([202]);
+      expect(
+        (await getStoredMetricHistory(ctx, RESTAURANT_EMP_ID, "2026-09-01/2026-09-07")).selected
+      ).toBeNull();
+    } finally {
+      await db.delete(metricValues).where(
+        inArray(
+          metricValues.id,
+          added.map((row) => row.id)
+        )
+      );
+    }
+  });
+
+  it("enforces employee and organization scope for stored history", async () => {
+    await expect(getStoredMetricHistory(ctxFor([POS_EMP_ID]), RESTAURANT_EMP_ID)).rejects.toThrow(
+      "Unauthorized"
+    );
+    await expect(
+      getStoredMetricHistory(
+        { ...ctxFor([RESTAURANT_EMP_ID]), organizationId: "99999999-0000-4000-8000-000000009999" },
+        RESTAURANT_EMP_ID
+      )
+    ).rejects.toThrow("not permitted");
   });
 });

@@ -13,7 +13,7 @@ import { assertCanAccessEmployee } from "@/lib/auth/authorization";
 import { resolveTarget, evaluateStatus } from "./target-resolution";
 import { resolveVisibility } from "./visibility-resolution";
 import type { Direction, ResolvedTarget, ValueType } from "./types";
-import { isEffectiveOn } from "./effective-dates";
+import { isEffectiveOn, sevenDayPeriodEnd } from "./effective-dates";
 
 export interface EmployeeMetricRow {
   definitionId: string;
@@ -94,7 +94,8 @@ export async function getEmployeeMetricsBatch(
           and(
             inArray(metricValues.employeeId, employeeIds),
             inArray(metricValues.metricDefinitionId, defIds),
-            eq(metricValues.periodStart, periodStart)
+            eq(metricValues.periodStart, periodStart),
+            eq(metricValues.periodEnd, sevenDayPeriodEnd(periodStart))
           )
         ),
       db
@@ -104,7 +105,8 @@ export async function getEmployeeMetricsBatch(
           and(
             inArray(metricValues.employeeId, employeeIds),
             inArray(metricValues.metricDefinitionId, defIds),
-            eq(metricValues.periodStart, previousPeriodStart)
+            eq(metricValues.periodStart, previousPeriodStart),
+            eq(metricValues.periodEnd, sevenDayPeriodEnd(previousPeriodStart))
           )
         ),
       db.select().from(metricTargets).where(inArray(metricTargets.metricDefinitionId, defIds)),

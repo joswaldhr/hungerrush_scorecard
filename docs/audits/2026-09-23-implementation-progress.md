@@ -701,3 +701,20 @@ ID as well as external email. Matching email addresses in different source insta
 resolve to the other instance's employee. A real PostgreSQL regression creates two
 organizations/sources with the same synthetic email and verifies both resolve correctly.
 The test, typecheck, and focused lint passed. Source-evidence focused lint also passed.
+
+
+## Stored historical reporting intervals — September 23
+
+The scorecard now links to a read-only stored-period view. It selects exact start/end
+intervals, preserves overlapping reporting calendars separately, and enforces both employee
+and organization scope. The normal weekly query also matches both dates so a shorter
+interval sharing a start date cannot replace the intended week's value. Stored history
+shows values, recorded quality, observation time, and calculation version without applying
+current targets or claiming reconstructed historical employee context.
+
+Validation: all 292 tests across 30 files passed against the isolated local test database;
+the production build passed. Two new PostgreSQL cases verify overlapping intervals, regular
+weekly selection, invalid selections, and access controls. A concurrent fixture collision
+in preliminary runs was resolved by rerunning sequentially; those failed runs are not
+counted as validation. Full ESLint passed; Prettier found one pre-existing new identity-test
+formatting issue, corrected before commit. Hosted verification follows.

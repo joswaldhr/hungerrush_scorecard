@@ -22,27 +22,23 @@ it("resolves a repeated external email only within the configured source", async
       .values(
         people.map((id, i) => ({ id, organizationId: orgs[i]!, displayName: "Synthetic employee" }))
       );
-    await db
-      .insert(dataSources)
-      .values(
-        sources.map((id, i) => ({
-          id,
-          organizationId: orgs[i]!,
-          type: "zendesk",
-          displayName: "Synthetic source",
-        }))
-      );
-    await db
-      .insert(externalIdentities)
-      .values(
-        sources.map((id, i) => ({
-          dataSourceId: id,
-          employeeId: people[i]!,
-          externalId: "synthetic-shared@example.test",
-          externalEntityType: "user",
-          matchMethod: "manual",
-        }))
-      );
+    await db.insert(dataSources).values(
+      sources.map((id, i) => ({
+        id,
+        organizationId: orgs[i]!,
+        type: "zendesk",
+        displayName: "Synthetic source",
+      }))
+    );
+    await db.insert(externalIdentities).values(
+      sources.map((id, i) => ({
+        dataSourceId: id,
+        employeeId: people[i]!,
+        externalId: "synthetic-shared@example.test",
+        externalEntityType: "user",
+        matchMethod: "manual",
+      }))
+    );
     const connector = new ZendeskConnector();
     for (let i = 0; i < 2; i++) {
       const result = await connector.resolveIdentities(
