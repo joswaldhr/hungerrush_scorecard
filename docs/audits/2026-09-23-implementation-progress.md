@@ -522,3 +522,20 @@ Read-only response shape and reconciliation evidence is recorded in
 Validation: 24 focused Search/Talk fixtures passed, including a 1,200-ticket export and the
 observed repeated Talk boundary. Live data was held in memory; reports contain aggregate
 metadata and an ID-set digest only, not ticket/call contents or credentials.
+
+
+## Overlapping sync observation ordering — September 23
+
+Successful sync metadata now records the source-record keys observed, including unchanged
+payloads. While holding the existing source publication lock, a run rejects publication
+when a completed later-started run already observed any overlapping key. Different weeks
+remain independent. Superseded runs fail without replacing source records, facts, values,
+revisions, or the last-success checkpoint. This is a conservative run-start ordering guard,
+not proof of vendor snapshot isolation or a lease that avoids duplicate network work.
+Existing pre-change runs lack this metadata; deploy with old in-flight invocations drained.
+
+Validation: all 18 orchestration/PostgreSQL publication tests passed, including delayed-old
+fetches after both changed and unchanged newer results and concurrent disjoint weeks.
+Typecheck and focused ESLint passed. The preceding export increment also passed typecheck
+and focused ESLint; live Search reconciliation matched 2,415 unique IDs to counts before
+and after across 25 export pages. No production publication or historical repair occurred.

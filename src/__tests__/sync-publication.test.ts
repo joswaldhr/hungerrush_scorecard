@@ -272,4 +272,66 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
       )
     ).toBe(true);
   });
+  it.each([false, true])(
+    "rejects older overlapping fetches after a newer publication (unchanged=%s)",
+    async (unchanged) => {
+      await runSync(connector([record(41)]), config);
+      let release!: () => void;
+      let started!: () => void;
+      const fetching = new Promise<void>((resolve) => {
+        started = resolve;
+      });
+      const barrier = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const slow = connector([record(12)]);
+      slow.fetchRecords = async () => {
+        started();
+        await barrier;
+        return { records: [record(12)], cursor: null, hasMore: false };
+      };
+      const older = runSync(slow, config);
+      await fetching;
+      try {
+        expect((await runSync(connector([record(unchanged ? 41 : 52)]), config)).success).toBe(
+          true
+        );
+        const before = await values();
+        release();
+        expect((await older).success).toBe(false);
+        expect(await values()).toEqual(before);
+      } finally {
+        release();
+        await older;
+      }
+    }
+  );
+
+  it("allows overlapping runs for disjoint weeks", async () => {
+    let release!: () => void;
+    let started!: () => void;
+    const fetching = new Promise<void>((resolve) => {
+      started = resolve;
+    });
+    const barrier = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const slow = connector([record(17, "2026-09-13")]);
+    slow.fetchRecords = async () => {
+      started();
+      await barrier;
+      return { records: [record(17, "2026-09-13")], cursor: null, hasMore: false };
+    };
+    const older = runSync(slow, config);
+    await fetching;
+    try {
+      expect((await runSync(connector([record(51)]), config)).success).toBe(true);
+      release();
+      expect((await older).success).toBe(true);
+      expect((await values()).find((v) => v.periodStart === "2026-09-13")?.numericValue).toBe(17);
+    } finally {
+      release();
+      await older;
+    }
+  });
 });

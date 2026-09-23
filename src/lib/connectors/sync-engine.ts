@@ -127,6 +127,10 @@ export async function runSync(
   let totalErrors = fetchErrors.length;
   const publishStartedAt = Date.now();
 
+  const publicationKeys = allFetchedRecords.map((record) => ({
+    record_type: record.externalRecordType,
+    record_id: record.externalRecordId,
+  }));
   if (success) {
     try {
       await db.transaction(async (tx) => {
@@ -135,6 +139,31 @@ export async function runSync(
         await tx.execute(
           sql`select id from ${dataSources} where id = ${config.dataSourceId} for update`
         );
+        // The publication lock alone does not order overlapping network fetches.
+        // Reject an older observation if a later-started run already published
+        // any of the same source records. Disjoint weeks can still publish.
+        if (allFetchedRecords.length) {
+          const superseded = await tx.execute(sql`
+            select 1 from ${syncRuns} published
+            cross join lateral jsonb_to_recordset(
+              coalesce(published.metadata_json->'publicationKeys', '[]'::jsonb)
+            ) as observed(record_type text, record_id text)
+            join jsonb_to_recordset(${JSON.stringify(publicationKeys)}::jsonb)
+              as incoming(record_type text, record_id text)
+              on incoming.record_type = observed.record_type
+              and incoming.record_id = observed.record_id
+            where published.data_source_id = ${config.dataSourceId}
+              and published.status = 'completed'
+              and published.started_at >= (
+                select started_at from ${syncRuns} where id = ${syncRunId}
+              )
+              and published.id <> ${syncRunId}
+            limit 1
+          `);
+          if (superseded.length) {
+            throw new Error("Sync superseded by a newer publication for the same source records");
+          }
+        }
         const { ingested, skipped, errors } = await ingestRecords(
           tx,
           allFetchedRecords,
@@ -165,6 +194,7 @@ export async function runSync(
             errorCount: 0,
             cursor: finalCursor,
             metadataJson: {
+              publicationKeys,
               fetchMs,
               publishMs: Date.now() - publishStartedAt,
               computeValuesMs,
