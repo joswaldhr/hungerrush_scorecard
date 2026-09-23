@@ -1,34 +1,34 @@
-interface SearchPage<T> {
+export interface SearchExportPage<T> {
   results: T[];
-  next_page: string | null;
-  count: number;
+  meta: { has_more: boolean };
+  links: { next: string | null };
 }
 
-// Search exposes at most 1,000 results. Reject incomplete cohorts before the
-// publisher can replace existing facts with partial counts (including backlog).
+// Cursor export avoids offset Search's 1,000-result ceiling. Only an explicit
+// has_more=false completes a cohort; request failures or budgets never publish.
 export async function fetchCompleteSearch<T extends { id: number }>(
   query: string,
-  getPage: (path: string) => Promise<SearchPage<T>>
+  getPage: (path: string) => Promise<SearchExportPage<T>>,
+  pageBudget = 100
 ): Promise<T[]> {
   const results: T[] = [];
   const ids = new Set<number>();
   const visited = new Set<string>();
-  let expectedCount: number | undefined;
-  let path: string | null = `/search.json?query=${encodeURIComponent(query)}`;
-
-  while (path) {
-    if (visited.has(path) || visited.size >= 1000) {
-      throw new Error("Zendesk Search incomplete: pagination did not terminate");
-    }
+  // The exporter requires type as a separate filter, not in the query string.
+  if (!query.startsWith("type:ticket ")) throw new Error("Expected a ticket search query");
+  const params = new URLSearchParams({
+    "filter[type]": "ticket",
+    "page[size]": "100",
+    query: query.slice("type:ticket ".length),
+  });
+  let path = `/search/export.json?${params}`;
+  for (let pageNumber = 0; pageNumber < pageBudget; pageNumber++) {
+    if (visited.has(path)) throw new Error("Zendesk Search incomplete: pagination loop");
     visited.add(path);
     const page = await getPage(path);
-    if (!Number.isInteger(page.count) || page.count < 0 || page.count > 1000) {
-      throw new Error("Zendesk Search incomplete: invalid count or 1,000-result limit exceeded");
+    if (typeof page.meta?.has_more !== "boolean") {
+      throw new Error("Zendesk Search incomplete: missing completion indicator");
     }
-    if (expectedCount !== undefined && page.count !== expectedCount) {
-      throw new Error("Zendesk Search incomplete: result count changed during pagination");
-    }
-    expectedCount = page.count;
     for (const result of page.results) {
       if (!Number.isSafeInteger(result.id) || result.id <= 0 || ids.has(result.id)) {
         throw new Error("Zendesk Search incomplete: invalid or repeated ticket ID");
@@ -36,16 +36,11 @@ export async function fetchCompleteSearch<T extends { id: number }>(
       ids.add(result.id);
       results.push(result);
     }
-    if (results.length > expectedCount || (page.next_page && page.results.length === 0)) {
-      throw new Error("Zendesk Search incomplete: inconsistent pagination");
+    if (!page.meta.has_more) return results;
+    if (!page.links?.next || page.results.length === 0) {
+      throw new Error("Zendesk Search incomplete: missing continuation or empty nonterminal page");
     }
-    // At the exact cap, Zendesk may still advertise an inaccessible next page.
-    // The stable reported count and unique IDs establish completeness here.
-    if (results.length === 1000 && expectedCount === 1000) return results;
-    path = page.next_page;
+    path = page.links.next;
   }
-  if (results.length !== expectedCount) {
-    throw new Error("Zendesk Search incomplete: fetched fewer tickets than reported");
-  }
-  return results;
+  throw new Error("Zendesk Search incomplete: page budget exhausted");
 }

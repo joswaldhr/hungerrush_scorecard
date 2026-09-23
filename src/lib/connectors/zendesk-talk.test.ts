@@ -10,6 +10,7 @@ const call = (
 const page = (calls: TalkCall[], next_page: string | null = "/next") => ({
   calls,
   count: calls.length,
+  end_time: 1790199554,
   next_page,
 });
 const fetchWeek = (get: Parameters<typeof fetchCompleteTalkWeek>[2], budget?: number) =>
@@ -57,13 +58,29 @@ describe("Zendesk Talk complete weekly cohort", () => {
     expect(await fetchWeek(async () => page([]))).toEqual({ calls: [], pages: 1 });
   });
 
+  it("accepts the observed repeated terminal boundary only after identical data", async () => {
+    const get = vi.fn().mockResolvedValue(page([call(1)]));
+    expect(await fetchWeek(get)).toEqual({ calls: [call(1)], pages: 2 });
+  });
+
+  it("rejects regressing export watermarks", async () => {
+    const get = vi
+      .fn()
+      .mockResolvedValueOnce(page([call(1)]))
+      .mockResolvedValueOnce({ ...page([]), end_time: 1 });
+    await expect(fetchWeek(get)).rejects.toThrow("regressing export watermark");
+  });
+
   it("rejects page-budget exhaustion instead of publishing partial totals", async () => {
     const get = vi.fn().mockResolvedValue(page([call(1)]));
     await expect(fetchWeek(get, 1)).rejects.toThrow("page budget exhausted");
   });
 
   it("rejects a repeated nonempty cursor", async () => {
-    const get = vi.fn().mockResolvedValue(page([call(1)]));
+    const get = vi
+      .fn()
+      .mockResolvedValueOnce(page([call(1)]))
+      .mockResolvedValueOnce(page([call(2)]));
     await expect(fetchWeek(get)).rejects.toThrow("stalled pagination");
     expect(get).toHaveBeenCalledTimes(2);
   });

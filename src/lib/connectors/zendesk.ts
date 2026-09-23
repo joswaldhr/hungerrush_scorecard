@@ -14,7 +14,7 @@ import { externalIdentities, employees } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { zendeskGet, type RequestStats } from "./zendesk-shared";
 import { logger } from "@/lib/logger";
-import { fetchCompleteSearch } from "./zendesk-search";
+import { fetchCompleteSearch, type SearchExportPage } from "./zendesk-search";
 import { fetchCompleteTalkWeek, type TalkCall, type TalkPage } from "./zendesk-talk";
 import { mapWithConcurrency, weekDates } from "@/lib/utils";
 
@@ -37,12 +37,6 @@ interface ZendeskTicket {
   created_at: string;
   updated_at: string;
   tags: string[];
-}
-
-interface ZendeskSearchResponse {
-  results: ZendeskTicket[];
-  next_page: string | null;
-  count: number;
 }
 
 interface ZendeskTimeMetric {
@@ -127,7 +121,7 @@ function weekOf(weeksAgo: number): { periodStart: string; periodEnd: string } {
 }
 
 async function searchAllPages(query: string): Promise<ZendeskTicket[]> {
-  return fetchCompleteSearch(query, (path) => zendeskGet<ZendeskSearchResponse>(path));
+  return fetchCompleteSearch(query, (path) => zendeskGet<SearchExportPage<ZendeskTicket>>(path));
 }
 
 async function fetchMetricSets(ticketIds: number[]): Promise<Map<number, ZendeskTicketMetricSet>> {

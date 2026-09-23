@@ -498,3 +498,27 @@ also remain open. Whole-call durations and first-answering-agent attribution are
 this does not establish per-agent offers, acceptance events, or handling effort.
 
 Reference: https://developer.zendesk.com/api-reference/voice/talk-api/incremental_exports/
+
+
+## Vendor-verified pagination follow-up — September 23
+
+This supersedes the conservative Search-cap and empty-only Talk termination checkpoints.
+A read-only live Talk probe returned 320 calls followed by the identical final call, cursor,
+and end_time twice, with no end_of_stream. The collector now accepts that repeated boundary
+only when every call is identical to a retained version and the cursor and watermark are
+unchanged; new/conflicting records, regressing watermarks, loops, and budgets still fail.
+This verifies the observed terminal shape, not every historical call/agent metric.
+Metadata-only evidence is in `2026-09-23-talk-cursor-probe.json`.
+
+Ticket searches now use Search Export cursor pagination with `filter[type]=ticket`, preserving
+the assignee/date/status query criteria. Explicit has_more=false completes an export. This
+removes the offset API's 1,000-ticket limit; the safety budget of 100 pages (10,000 tickets
+at the requested page size) fails rather than truncates. Duplicate IDs, broken continuation,
+missing completion metadata, and vendor failures remain errors. The exporter has a lower
+100 requests/minute account limit; existing bounded concurrency and 429 handling apply.
+Read-only response shape and reconciliation evidence is recorded in
+`2026-09-23-search-export-probe.json`. No application sync or production writes were run.
+
+Validation: 24 focused Search/Talk fixtures passed, including a 1,200-ticket export and the
+observed repeated Talk boundary. Live data was held in memory; reports contain aggregate
+metadata and an ID-set digest only, not ticket/call contents or credentials.

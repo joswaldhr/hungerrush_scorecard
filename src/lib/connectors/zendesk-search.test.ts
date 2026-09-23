@@ -1,94 +1,64 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
 import { fetchCompleteSearch } from "./zendesk-search";
-
-const ticket = (id: number) => ({ id });
-
-describe("complete Zendesk Search cohorts", () => {
-  it("collects distinct tickets across all pages", async () => {
+const query = "type:ticket assignee:synthetic@example.test status<solved";
+const page = (ids: number[], more = false, next: string | null = null) => ({
+  results: ids.map((id) => ({ id })),
+  meta: { has_more: more },
+  links: { next },
+});
+describe("Zendesk cursor search export", () => {
+  it("retrieves more than 1,000 tickets and separates the required type filter", async () => {
+    let index = 0;
+    const get = vi.fn(async (_path: string) => {
+      const ids = Array.from({ length: 100 }, (_, n) => index * 100 + n + 1);
+      index++;
+      return page(ids, index < 12, `/page${index + 1}`);
+    });
+    expect(await fetchCompleteSearch(query, get)).toHaveLength(1200);
+    const url = new URL(get.mock.calls[0]![0]!, "https://example.test");
+    expect(url.searchParams.get("filter[type]")).toBe("ticket");
+    expect(url.searchParams.get("query")).toBe("assignee:synthetic@example.test status<solved");
+    expect(get).toHaveBeenCalledTimes(12);
+  });
+  it("accepts an explicitly empty export", async () => {
+    expect(await fetchCompleteSearch(query, async () => page([]))).toEqual([]);
+  });
+  it("rejects duplicate IDs", async () => {
     const get = vi
       .fn()
-      .mockResolvedValueOnce({ results: [ticket(1)], count: 2, next_page: "/page2" })
-      .mockResolvedValueOnce({ results: [ticket(2)], count: 2, next_page: null });
-    await expect(fetchCompleteSearch("type:ticket", get)).resolves.toEqual([ticket(1), ticket(2)]);
-    expect(get).toHaveBeenNthCalledWith(2, "/page2");
+      .mockResolvedValueOnce(page([1], true, "/two"))
+      .mockResolvedValueOnce(page([1]));
+    await expect(fetchCompleteSearch(query, get)).rejects.toThrow("repeated ticket ID");
   });
-
-  it("accepts an explicitly empty cohort", async () => {
+  it("rejects cursor loops", async () => {
+    let id = 0;
     await expect(
-      fetchCompleteSearch("empty", async () => ({ results: [], count: 0, next_page: null }))
-    ).resolves.toEqual([]);
+      fetchCompleteSearch(query, async () => page([++id], true, "/same"))
+    ).rejects.toThrow("pagination loop");
   });
-
-  it("rejects over-cap cohorts before requesting an inaccessible page", async () => {
-    const get = vi
-      .fn()
-      .mockResolvedValue({ results: [ticket(1)], count: 1001, next_page: "/page2" });
-    await expect(fetchCompleteSearch("large", get)).rejects.toThrow("limit exceeded");
-    expect(get).toHaveBeenCalledTimes(1);
-  });
-
-  it("accepts exactly 1,000 unique results without requesting page 11", async () => {
-    let page = 0;
-    const get = vi.fn(async () => ({
-      results: Array.from({ length: 100 }, (_, i) => ticket(page * 100 + i + 1)),
-      count: 1000,
-      next_page: `/page${++page + 1}`,
-    }));
-    await expect(fetchCompleteSearch("at cap", get)).resolves.toHaveLength(1000);
-    expect(get).toHaveBeenCalledTimes(10);
-  });
-
-  it("rejects missing results on a terminal page", async () => {
+  it.each([page([], true, "/next"), page([1], true, null)])(
+    "rejects broken continuation %#",
+    async (response) => {
+      await expect(fetchCompleteSearch(query, async () => response)).rejects.toThrow(
+        "missing continuation"
+      );
+    }
+  );
+  it("rejects exhausted budgets", async () => {
     await expect(
-      fetchCompleteSearch("short", async () => ({
-        results: [ticket(1)],
-        count: 2,
-        next_page: null,
-      }))
-    ).rejects.toThrow("fewer tickets");
+      fetchCompleteSearch(query, async () => page([1], true, "/next"), 1)
+    ).rejects.toThrow("page budget");
   });
-
-  it("rejects repeated IDs instead of counting them twice", async () => {
+  it("rejects missing completion metadata", async () => {
+    const get = vi.fn().mockResolvedValue({ results: [], meta: {}, links: {} });
+    await expect(fetchCompleteSearch(query, get)).rejects.toThrow("completion indicator");
+  });
+  it("propagates vendor errors", async () => {
     const get = vi
       .fn()
-      .mockResolvedValueOnce({ results: [ticket(1)], count: 2, next_page: "/page2" })
-      .mockResolvedValueOnce({ results: [ticket(1)], count: 2, next_page: null });
-    await expect(fetchCompleteSearch("duplicates", get)).rejects.toThrow("repeated ticket ID");
-  });
-
-  it("rejects changing totals during pagination", async () => {
-    const get = vi
-      .fn()
-      .mockResolvedValueOnce({ results: [ticket(1)], count: 2, next_page: "/page2" })
-      .mockResolvedValueOnce({ results: [ticket(2)], count: 3, next_page: null });
-    await expect(fetchCompleteSearch("moving", get)).rejects.toThrow("count changed");
-  });
-
-  it("rejects cyclic page links", async () => {
-    const get = vi
-      .fn()
-      .mockResolvedValueOnce({ results: [ticket(1)], count: 3, next_page: "/page2" })
-      .mockResolvedValueOnce({ results: [ticket(2)], count: 3, next_page: "/page2" });
-    await expect(fetchCompleteSearch("loop", get)).rejects.toThrow("did not terminate");
-    expect(get).toHaveBeenCalledTimes(2);
-  });
-
-  it("rejects empty nonterminal pages", async () => {
-    await expect(
-      fetchCompleteSearch("empty page", async () => ({
-        results: [],
-        count: 1,
-        next_page: "/page2",
-      }))
-    ).rejects.toThrow("inconsistent pagination");
-  });
-
-  it("propagates vendor failures without returning collected tickets", async () => {
-    const get = vi
-      .fn()
-      .mockResolvedValueOnce({ results: [ticket(1)], count: 2, next_page: "/page2" })
-      .mockRejectedValueOnce(new Error("rate limit exhausted"));
-    await expect(fetchCompleteSearch("failure", get)).rejects.toThrow("rate limit exhausted");
+      .mockResolvedValueOnce(page([1], true, "/two"))
+      .mockRejectedValueOnce(new Error("timeout"));
+    await expect(fetchCompleteSearch(query, get)).rejects.toThrow("timeout");
   });
 });
