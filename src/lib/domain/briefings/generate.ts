@@ -2,6 +2,7 @@ import type { ManagerContext } from "@/lib/auth/authorization";
 import { getAssignedEmployees } from "@/lib/auth/authorization";
 import { getEmployeeMetrics, getEmployeeMetricsBatch } from "../metrics/queries";
 import type { EmployeeMetricRow } from "../metrics/queries";
+import { deriveOverallStatus } from "../metrics/status";
 import { db } from "@/lib/db";
 import { actionItems, meetingReferences, meetingNotes } from "@/lib/db/schema";
 import { and, eq, inArray, lt } from "drizzle-orm";
@@ -92,25 +93,6 @@ function buildChangeEvidence(m: EmployeeMetricRow, changePercent: number | null)
   }
   const dir = changePercent > 0 ? "increased" : "decreased";
   return `${m.name} ${dir} ${Math.abs(changePercent).toFixed(0)}% from ${m.previousValue} to ${m.currentValue}.`;
-}
-
-export function deriveOverallStatus(
-  metrics: EmployeeMetricRow[]
-): "on_track" | "mixed" | "needs_attention" | "no_data" {
-  if (metrics.length === 0) return "on_track";
-  if (metrics.every((m) => m.status.status === "no_data")) return "no_data";
-
-  const withTargets = metrics.filter(
-    (m) => m.status.status !== "no_target" && m.status.status !== "no_data"
-  );
-  if (withTargets.length === 0) return "on_track";
-
-  const offTarget = withTargets.filter((m) => m.status.status === "off_target").length;
-  const onTarget = withTargets.filter((m) => m.status.status === "on_target").length;
-
-  if (offTarget >= 2 || offTarget > withTargets.length / 2) return "needs_attention";
-  if (onTarget === withTargets.length) return "on_track";
-  return "mixed";
 }
 
 function metricsToSnapshots(metrics: EmployeeMetricRow[]): MetricSnapshot[] {

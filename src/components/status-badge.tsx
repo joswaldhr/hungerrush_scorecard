@@ -53,13 +53,20 @@ const statusConfig: Record<Status, { label: string; className: string; dotClass:
       "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800/80 dark:text-slate-400 dark:border-slate-700",
     dotClass: "bg-slate-400",
   },
+  // Deliberately more subdued than no_target -- these are semantically
+  // different (a defined target with no value to compare, vs. the source
+  // never providing a usable value at all) and shouldn't read as
+  // interchangeable neutral badges.
   no_data: {
     label: "No Data",
-    className:
-      "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800/80 dark:text-slate-400 dark:border-slate-700",
-    dotClass: "bg-slate-400",
+    className: "bg-transparent text-muted-foreground/70 border-dashed border-border font-medium",
+    dotClass: "bg-muted-foreground/40",
   },
 };
+
+export function getStatusLabel(status: Status): string {
+  return (statusConfig[status] ?? statusConfig.no_data).label;
+}
 
 export function StatusBadge({
   status,

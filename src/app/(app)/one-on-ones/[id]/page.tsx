@@ -2,52 +2,32 @@ import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { getEffectiveManagerContext, getAssignedEmployees } from "@/lib/auth/authorization";
 import { getEmployeeMetrics } from "@/lib/domain/metrics/queries";
-import { formatCategoryLabel } from "@/lib/domain/metrics/category-labels";
-import { StatusBadge } from "@/components/status-badge";
-import { MetricCategoryTable } from "@/components/metric-category-table";
-import { ScorecardExport, SCORECARD_CAPTURE_ID } from "@/components/scorecard-export";
-import type { ScorecardMetric } from "@/components/scorecard-export";
 import { EmptyState } from "@/components/empty-state";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { deriveOverallStatus } from "@/lib/domain/briefings/generate";
-import { ArrowLeft, Calendar, Users } from "lucide-react";
+import { ScorecardBody } from "@/components/scorecard-body";
+import { ArrowLeft, Users } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { teams, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { cn, initials, weekDates } from "@/lib/utils";
+import { weekBoundsForDate, weekDates, shiftWeekStart } from "@/lib/utils";
 
-// Only single-week options -- the connector writes one metricValues row per
-// calendar week, so a "Last 4/12 Weeks" option that requested a multi-week
-// span here would never match a real row and would silently show "No Data"
-// for every metric. A true multi-week rollup would need weighted
-// re-aggregation from normalizedFacts, not a wider exact-match query.
-const PERIODS = [
-  { key: "this_week", label: "This Week", weeksAgo: 0 },
-  { key: "last_week", label: "Last Week", weeksAgo: 1 },
-  { key: "two_weeks_ago", label: "2 Weeks Ago", weeksAgo: 2 },
-  { key: "three_weeks_ago", label: "3 Weeks Ago", weeksAgo: 3 },
-] as const;
-
-type PeriodKey = (typeof PERIODS)[number]["key"];
-
-function periodDates(key: PeriodKey) {
-  const config = PERIODS.find((p) => p.key === key)!;
-  return weekDates(config.weeksAgo);
-}
+const WEEK_PARAM_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 export default async function OneOnOnePage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ period?: string }>;
+  searchParams: Promise<{ week?: string }>;
 }) {
   const { id } = await params;
-  const { period: periodParam } = await searchParams;
-  const period: PeriodKey = PERIODS.some((p) => p.key === periodParam)
-    ? (periodParam as PeriodKey)
-    : "this_week";
+  const { week: weekParam } = await searchParams;
+  // Normalize to the containing Sunday-Saturday week, whether the value came
+  // from the calendar picker (already a Sunday) or a hand-edited URL.
+  const periodStart =
+    weekParam && WEEK_PARAM_PATTERN.test(weekParam)
+      ? weekBoundsForDate(weekParam).periodStart
+      : weekDates(0).periodStart;
 
   const session = await auth();
   if (!session?.user?.email) redirect("/login");
@@ -83,33 +63,8 @@ export default async function OneOnOnePage({
         .then((r) => r[0])
     : null;
 
-  const { periodStart, periodEnd, previousPeriodStart } = periodDates(period);
-
+  const previousPeriodStart = shiftWeekStart(periodStart, -1);
   const rows = await getEmployeeMetrics(ctx, employee.id, teamId, periodStart, previousPeriodStart);
-  const overallStatus = deriveOverallStatus(rows);
-
-  const categories = new Map<string | null, typeof rows>();
-  for (const row of rows) {
-    const forCategory = categories.get(row.category) ?? [];
-    forCategory.push(row);
-    categories.set(row.category, forCategory);
-  }
-
-  const weekRangeFormatted = `Week of ${new Date(`${periodStart}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} – ${new Date(`${periodEnd}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}`;
-
-  const scorecardMetrics: ScorecardMetric[] = rows.map((r) => ({
-    category: r.category,
-    name: r.name,
-    currentValue: r.currentValue,
-    previousValue: r.previousValue,
-    targetValue: r.target?.targetValue ?? null,
-    targetType: r.target?.targetType ?? null,
-    targetMin: r.target?.targetMin ?? null,
-    targetMax: r.target?.targetMax ?? null,
-    status: r.status.status,
-    unit: r.unit,
-    valueType: r.valueType,
-  }));
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 print:space-y-2 pb-12">
@@ -123,62 +78,6 @@ export default async function OneOnOnePage({
         </Link>
       </div>
 
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16 print:h-10 print:w-10 ring-2 ring-border shadow-xs shrink-0">
-            <AvatarFallback className="text-base font-bold bg-slate-100 dark:bg-slate-800 text-foreground">
-              {initials(employee.displayName)}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl sm:text-[28px] font-bold text-foreground tracking-tight">
-                {employee.displayName}
-              </h1>
-              <StatusBadge status={overallStatus} showDot />
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {employee.jobTitle ?? "Support Specialist"} • {team?.name ?? "Team"}
-              {managerUser?.displayName ? ` • Manager: ${managerUser.displayName}` : ""}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-col items-end gap-1.5">
-          <div className="flex items-center gap-2">
-            <ScorecardExport
-              employeeName={employee.displayName}
-              periodLabel={weekRangeFormatted}
-              metrics={scorecardMetrics}
-            />
-            <div className="flex items-center rounded-lg border border-border/80 bg-card p-1 shadow-2xs text-xs font-semibold print:hidden">
-              {PERIODS.map((p) => {
-                const active = period === p.key;
-                return (
-                  <Link
-                    key={p.key}
-                    href={`/one-on-ones/${employee.id}?period=${p.key}`}
-                    aria-pressed={active}
-                    className={cn(
-                      "px-3 py-1.5 rounded-md transition-all",
-                      active
-                        ? "bg-teal-50 text-[#009ca6] border border-[#009ca6]/40 dark:bg-teal-950/60 shadow-2xs font-bold"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    {p.label}
-                  </Link>
-                );
-              })}
-              <div className="pl-1.5 pr-1 border-l border-border/70 text-muted-foreground">
-                <Calendar className="h-3.5 w-3.5" />
-              </div>
-            </div>
-          </div>
-          <div className="text-[11px] font-medium text-muted-foreground">{weekRangeFormatted}</div>
-        </div>
-      </header>
-
       {rows.length === 0 ? (
         <EmptyState
           icon={Users}
@@ -186,15 +85,15 @@ export default async function OneOnOnePage({
           description="This team doesn't have any metrics configured yet."
         />
       ) : (
-        <div id={SCORECARD_CAPTURE_ID} className="space-y-6">
-          {Array.from(categories.entries()).map(([category, categoryRows]) => (
-            <MetricCategoryTable
-              key={category ?? "uncategorized"}
-              title={formatCategoryLabel(category)}
-              rows={categoryRows}
-            />
-          ))}
-        </div>
+        <ScorecardBody
+          employeeId={employee.id}
+          employeeName={employee.displayName}
+          employeeJobTitle={employee.jobTitle}
+          teamName={team?.name ?? "Team"}
+          managerName={managerUser?.displayName ?? null}
+          initialPeriodStart={periodStart}
+          initialRows={rows}
+        />
       )}
     </div>
   );
