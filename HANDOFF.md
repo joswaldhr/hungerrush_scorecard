@@ -1,3 +1,10 @@
+> Current September 23 overhaul status: see
+> [implementation progress and release checkpoint](docs/audits/2026-09-23-implementation-progress.md).
+> The older production-complete statements below describe earlier sessions. The current
+> audit fixes are committed locally on `codex/audit-reliability-checkpoints` and are not deployed.
+> Vercel preview currently shares the production database setting; hosted staging isolation
+> is the next release prerequisite. Do not use preview as an isolated migration target.
+
 # Session Handoff — 2026-09-15
 
 ## TL;DR
