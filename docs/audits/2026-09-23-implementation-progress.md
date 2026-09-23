@@ -328,3 +328,37 @@ inherited credentials before deployment, not just the database. No Vercel change
 code pushes have been made.
 
 Cost reference: [Railway usage pricing](https://docs.railway.com/pricing/understanding-your-bill).
+
+
+### Hosted staging database provisioned and Preview secret scoped
+
+The user approved the $10/month operational staging budget, then explicitly approved
+password-protected public database access and saving the credential in this branch's
+Vercel Preview settings. These approvals supersede the pending-budget checkpoint above.
+The budget is not a provider-enforced spending cap.
+
+Created PostgreSQL service `Postgres-B35O`
+(`f6a324de-5ae5-4e13-a9cc-84a3feb37cf9`) in `cadence-staging`, using the PostgreSQL 18
+SSL image. Configured a 1 vCPU / 1 GB maximum and idle sleep. Public networking and the
+DATABASE_PUBLIC_URL variable were deployed successfully. No production data was copied.
+The public endpoint accepted a TCP connection and PostgreSQL SSL negotiation; this is
+not yet an authenticated database connection or certificate-validation test.
+
+Published `codex/audit-reliability-checkpoints` after commit `de6e624` disabled automatic
+Vercel deployments for this exact branch in vercel.json. Vercel refused branch-scoped
+variables until the branch existed in GitHub. Saving DATABASE_URL then succeeded as a
+Sensitive secret scoped exclusively to Preview and this branch. A read-only Vercel API
+inventory verified that scope and the separate pre-existing production/preview entry.
+The latest deployment inventory still contained only master deployments. No production
+settings were edited and no audit preview was deployed.
+
+Railway CLI authorization was declined because it requested broader persistent account
+permissions; the existing browser session sufficed. No CLI credential was granted.
+No credentials are stored in this ledger or committed files.
+
+Remaining before enabling this branch's deployment: isolate inherited vendor/Graph and
+auth settings, apply hosted staging migrations, run synthetic stored-data assertions,
+and verify the Preview deployment and authentication. DATABASE_URL configuration alone
+is not evidence that the application can connect. Keep the branch deployment hold until
+these prerequisites are met. The last full application suite remains 223 passing tests;
+this checkpoint changes deployment configuration only.
