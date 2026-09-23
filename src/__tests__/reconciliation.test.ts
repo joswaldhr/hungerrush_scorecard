@@ -103,6 +103,13 @@ describe("aggregateSourceValues", () => {
     expect(aggregateSourceValues([10, 20, 30], "latest")).toBe(30);
   });
 
+  it("preserves latest null corrections while ignoring nulls in numeric aggregates", () => {
+    expect(aggregateSourceValues([12, null], "latest")).toBeNull();
+    expect(aggregateSourceValues([12, null], "average")).toBe(12);
+    expect(aggregateSourceValues([null], "sum")).toBeNull();
+    expect(aggregateSourceValues([0, null], "sum")).toBe(0);
+  });
+
   it("handles single value", () => {
     expect(aggregateSourceValues([42], "average")).toBe(42);
     expect(aggregateSourceValues([42], "sum")).toBe(42);

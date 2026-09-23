@@ -831,3 +831,23 @@ export const reconciliationResults = pgTable(
     index("reconciliation_results_metric_id_idx").on(table.metricDefinitionId),
   ]
 );
+
+// Prior rows replaced by a sync publication. Written in the same transaction as
+// the correction; run -> data source defines organization ownership.
+export const syncRevisions = pgTable(
+  "sync_revisions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    syncRunId: uuid("sync_run_id")
+      .notNull()
+      .references(() => syncRuns.id),
+    entityType: text("entity_type").notNull(),
+    entityId: uuid("entity_id").notNull(),
+    snapshotJson: jsonb("snapshot_json").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("sync_revisions_run_idx").on(table.syncRunId),
+    index("sync_revisions_entity_idx").on(table.entityType, table.entityId),
+  ]
+);

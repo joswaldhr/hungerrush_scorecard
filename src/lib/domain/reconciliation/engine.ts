@@ -131,9 +131,12 @@ export async function runReconciliation(params: ReconciliationParams) {
       cadenceMap.set(`${row.metricDefinitionId}:${row.employeeId}`, row);
     }
 
-    const sourceMap = new Map<string, number[]>();
+    const sourceMap = new Map<string, (number | null)[]>();
+    sourceRows.sort(
+      (a, b) =>
+        a.sourceObservedAt.getTime() - b.sourceObservedAt.getTime() || a.id.localeCompare(b.id)
+    );
     for (const row of sourceRows) {
-      if (row.numericValue === null) continue;
       const key = `${row.factType}:${row.employeeId}`;
       const existing = sourceMap.get(key);
       if (existing) {

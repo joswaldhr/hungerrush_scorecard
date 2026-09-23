@@ -60,9 +60,11 @@ export function compareValues(
 }
 
 export function aggregateSourceValues(
-  values: number[],
+  observations: (number | null)[],
   calculationType: CalculationType
 ): number | null {
+  if (calculationType === "latest") return observations[observations.length - 1] ?? null;
+  const values = observations.filter((value): value is number => value !== null);
   if (values.length === 0) return null;
 
   switch (calculationType) {
@@ -76,8 +78,6 @@ export function aggregateSourceValues(
       return Math.max(...values);
     case "count":
       return values.length;
-    case "latest":
-      return values[values.length - 1] ?? null;
     default:
       return values[values.length - 1] ?? null;
   }

@@ -10,7 +10,9 @@ import {
 import { eq, and, sql, inArray } from "drizzle-orm";
 import { createHash } from "crypto";
 import type { Connector, ConnectorConfig, SyncContext, IngestedRecord } from "./types";
+import { captureSyncRevisions } from "./sync-revisions";
 import { logger } from "@/lib/logger";
+import { computeMetricValuesFromFacts } from "@/lib/domain/metrics/compute-values";
 import { chunk } from "@/lib/utils";
 
 function payloadHash(payload: Record<string, unknown>): string {
@@ -24,6 +26,8 @@ const WRITE_CHUNK_SIZE = 500;
 
 export interface SyncOptions {
   maxPages?: number;
+  // Explicit replay for reviewed corrections.
+  reprocessUnchanged?: boolean;
   // When set, sync exactly this one week (0 = current week, per the
   // connector's weekOf() convention) instead of sweeping MAX_WEEKS_BACK
   // weeks in one invocation. Added so a caller (the cron route) can split
@@ -54,7 +58,7 @@ export async function runSync(
   connector: Connector,
   config: ConnectorConfig,
   options: SyncOptions = {}
-): Promise<{ syncRunId: string; success: boolean }> {
+): Promise<{ syncRunId: string; success: boolean; valuesWritten: number }> {
   const singleWeek = options.weekOffset !== undefined;
   const maxPages = singleWeek ? 1 : (options.maxPages ?? 10);
 
@@ -63,6 +67,9 @@ export async function runSync(
     .from(dataSources)
     .where(eq(dataSources.id, config.dataSourceId));
   if (!source) throw new Error(`DataSource ${config.dataSourceId} not found`);
+
+  if (source.organizationId !== config.organizationId)
+    throw new Error("Data source organization mismatch");
 
   const [run] = await db
     .insert(syncRuns)
@@ -98,6 +105,8 @@ export async function runSync(
       finalCursor = cursor;
       if (fetchResult.diagnostics) fetchDiagnostics = fetchResult.diagnostics;
       if (!fetchResult.hasMore) break;
+      if (!singleWeek && page === maxPages - 1)
+        throw new Error("Sync page limit reached before completion");
     }
   } catch (err) {
     success = false;
@@ -110,39 +119,72 @@ export async function runSync(
   // ── PUBLISH PHASE ────────────────────────────────────────────
   // Short DB transaction: ingest → normalize → checkpoint.
   // If this fails, everything rolls back.
+  let valuesWritten = 0;
+  let computeValuesMs = 0;
   let totalIngested = 0;
   let totalNormalized = 0;
   let totalSkipped = 0;
   let totalErrors = fetchErrors.length;
   const publishStartedAt = Date.now();
 
-  if (success && allFetchedRecords.length > 0) {
+  if (success) {
     try {
       await db.transaction(async (tx) => {
+        // Serialize publication for this source so revision snapshots describe
+        // the committed predecessor even when fetches overlap.
+        await tx.execute(
+          sql`select id from ${dataSources} where id = ${config.dataSourceId} for update`
+        );
         const { ingested, skipped, errors } = await ingestRecords(
           tx,
           allFetchedRecords,
           config.dataSourceId,
-          syncRunId
+          syncRunId,
+          options.reprocessUnchanged ?? false
         );
         totalIngested = ingested;
         totalSkipped = skipped;
 
-        for (const err of errors) {
-          totalErrors++;
-          await tx.insert(syncErrors).values({
-            syncRunId,
-            errorType: "ingest",
-            message: err.message,
-            externalRecordId: err.externalRecordId,
-            retryable: true,
-          });
-        }
-
+        if (errors.length) throw new Error(`Ingestion rejected ${errors.length} records`);
         totalNormalized = await normalizeIngestedRecords(tx, connector, config, syncRunId);
+        const computeStartedAt = Date.now();
+        valuesWritten = await computeMetricValuesFromFacts(config.organizationId, source.type, {
+          connection: tx,
+          dataSourceId: config.dataSourceId,
+          syncRunId,
+        });
+        computeValuesMs = Date.now() - computeStartedAt;
+        await tx
+          .update(syncRuns)
+          .set({
+            status: "completed",
+            completedAt: new Date(),
+            recordsIngested: totalIngested,
+            recordsNormalized: totalNormalized,
+            recordsSkipped: totalSkipped,
+            errorCount: 0,
+            cursor: finalCursor,
+            metadataJson: {
+              fetchMs,
+              publishMs: Date.now() - publishStartedAt,
+              computeValuesMs,
+              valuesWritten,
+              weekOffset: options.weekOffset,
+              fetch: fetchDiagnostics,
+            },
+          })
+          .where(eq(syncRuns.id, syncRunId));
+        await tx
+          .update(dataSources)
+          .set({ lastSuccessfulSyncAt: new Date() })
+          .where(eq(dataSources.id, config.dataSourceId));
       });
     } catch (err) {
       success = false;
+      valuesWritten = 0;
+      totalIngested = 0;
+      totalNormalized = 0;
+      totalSkipped = 0;
       totalErrors++;
       logger.error("Sync publish phase failed (transaction rolled back)", {
         syncRunId,
@@ -167,76 +209,42 @@ export async function runSync(
     });
   }
 
-  const publishMs = Date.now() - publishStartedAt;
-
-  // ── CHECKPOINT ───────────────────────────────────────────────
-  // Cursor advances only after a successful publish.
-  await db
-    .update(syncRuns)
-    .set({
-      status: success ? "completed" : "failed",
-      completedAt: new Date(),
-      recordsIngested: totalIngested,
-      recordsNormalized: totalNormalized,
-      recordsSkipped: totalSkipped,
-      errorCount: totalErrors,
-      cursor: success ? finalCursor : null,
-      // Timing breakdown, added to isolate network-fetch time (untouched by
-      // the write-batching work) from DB-write time (what batching targets)
-      // — see FOLLOWUPS.md item 5. weekOffset records which single-week leg
-      // this run covers (undefined for a full multi-week sweep, e.g. the
-      // manual "Sync Now" path before it was scoped to week 0). fetch is
-      // connector-supplied diagnostics (opaque here) for isolating exactly
-      // where fetchMs goes on a real run, added while investigating why
-      // every week's fetch phase runs 250-296s against the 300s limit —
-      // see FOLLOWUPS.md's 2026-09-10 entry. Nothing reads this yet besides
-      // humans querying it directly.
-      metadataJson: { fetchMs, publishMs, weekOffset: options.weekOffset, fetch: fetchDiagnostics },
-    })
-    .where(eq(syncRuns.id, syncRunId));
-
-  if (success) {
+  if (!success) {
     await db
-      .update(dataSources)
-      .set({ lastSuccessfulSyncAt: new Date() })
-      .where(eq(dataSources.id, config.dataSourceId));
+      .update(syncRuns)
+      .set({
+        status: "failed",
+        completedAt: new Date(),
+        errorCount: totalErrors,
+        recordsIngested: 0,
+        recordsNormalized: 0,
+        recordsSkipped: 0,
+        cursor: null,
+        metadataJson: {
+          fetchMs,
+          publishMs: Date.now() - publishStartedAt,
+          computeValuesMs,
+          valuesWritten: 0,
+          weekOffset: options.weekOffset,
+          fetch: fetchDiagnostics,
+        },
+      })
+      .where(eq(syncRuns.id, syncRunId));
   }
-
-  return { syncRunId, success };
-}
-
-// computeMetricValuesFromFacts() runs as a separate step after runSync()
-// resolves (both route handlers call it that way) — this merges its timing
-// into the same sync_runs row's metadataJson rather than threading a whole
-// extra return value through the route handlers just for one number.
-export async function recordComputeValuesTiming(
-  syncRunId: string,
-  computeValuesMs: number
-): Promise<void> {
-  await db
-    .update(syncRuns)
-    .set({
-      metadataJson: sql`coalesce(${syncRuns.metadataJson}, '{}'::jsonb) || ${JSON.stringify({ computeValuesMs })}::jsonb`,
-    })
-    .where(eq(syncRuns.id, syncRunId));
+  return { syncRunId, success, valuesWritten };
 }
 
 type TxOrDb = typeof db;
 
-// A single row shape shared by the bulk write path and the per-record
-// fallback below, matching sourceRecords' actual insert/update columns.
 type SourceRecordRow = typeof sourceRecords.$inferInsert;
 
-// Exported for direct unit testing (sync-engine.test.ts) — sync-engine.ts
-// otherwise has zero test coverage today, and ingestRecords is the one
-// function here with real logic (skip-set computation, dedup, a
-// chunk-failure fallback) worth testing directly rather than only through
-// the full runSync() orchestration.
+// Exported for ingestion tests; publication wraps all writes in one transaction.
 export async function ingestRecords(
   tx: TxOrDb,
   records: IngestedRecord[],
   dataSourceId: string,
-  syncRunId: string
+  syncRunId: string,
+  reprocessUnchanged = false
 ): Promise<{
   ingested: number;
   skipped: number;
@@ -290,7 +298,7 @@ export async function ingestRecords(
   for (const record of records) {
     const hash = payloadHash(record.payload);
     const existing = existingByKey.get(`${record.externalRecordType}:${record.externalRecordId}`);
-    if (existing && existing.payloadHash === hash) {
+    if (!reprocessUnchanged && existing && existing.payloadHash === hash) {
       skipped++;
       continue;
     }
@@ -352,13 +360,7 @@ export async function ingestRecords(
   }
   const rows = [...dedupedRows.values()];
 
-  // ── Bulk upsert, falling back to one-by-one on a chunk failure ────────
-  // A whole chunk failing because of one bad row would otherwise abort the
-  // entire sync (not just that record) — the fallback preserves the
-  // per-record error isolation the rest of this pipeline relies on. In
-  // production history this fallback has never been exercised
-  // (sync_errors has had zero rows, ever), but the isolation contract
-  // shouldn't silently regress.
+  // Any rejected row aborts publication; PostgreSQL cannot retry an aborted transaction.
   let ingested = 0;
   const conflictTarget = [
     sourceRecords.dataSourceId,
@@ -367,59 +369,35 @@ export async function ingestRecords(
   ];
 
   for (const batch of chunk(rows, WRITE_CHUNK_SIZE)) {
-    try {
-      await tx
-        .insert(sourceRecords)
-        .values(batch)
-        .onConflictDoUpdate({
-          target: conflictTarget,
-          set: {
-            employeeId: sql`excluded.employee_id`,
-            occurredAt: sql`excluded.occurred_at`,
-            periodStart: sql`excluded.period_start`,
-            periodEnd: sql`excluded.period_end`,
-            payloadJson: sql`excluded.payload_json`,
-            payloadHash: sql`excluded.payload_hash`,
-            sourceUpdatedAt: sql`excluded.source_updated_at`,
-            ingestedAt: sql`excluded.ingested_at`,
-            syncRunId: sql`excluded.sync_run_id`,
-          },
-        });
-      ingested += batch.length;
-    } catch (err) {
-      logger.warn("Bulk source_records upsert failed for a chunk, falling back to one-by-one", {
-        syncRunId,
-        chunkSize: batch.length,
-        error: err instanceof Error ? err.message : String(err),
+    const previousIds = batch.flatMap((row) => {
+      const previous = existingByKey.get(`${row.externalRecordType}:${row.externalRecordId}`);
+      return previous ? [previous.id] : [];
+    });
+    if (previousIds.length)
+      await captureSyncRevisions(
+        tx,
+        "source_record",
+        inArray(sourceRecords.id, previousIds),
+        syncRunId
+      );
+    await tx
+      .insert(sourceRecords)
+      .values(batch)
+      .onConflictDoUpdate({
+        target: conflictTarget,
+        set: {
+          employeeId: sql`excluded.employee_id`,
+          occurredAt: sql`excluded.occurred_at`,
+          periodStart: sql`excluded.period_start`,
+          periodEnd: sql`excluded.period_end`,
+          payloadJson: sql`excluded.payload_json`,
+          payloadHash: sql`excluded.payload_hash`,
+          sourceUpdatedAt: sql`excluded.source_updated_at`,
+          ingestedAt: sql`excluded.ingested_at`,
+          syncRunId: sql`excluded.sync_run_id`,
+        },
       });
-      for (const row of batch) {
-        try {
-          await tx
-            .insert(sourceRecords)
-            .values(row)
-            .onConflictDoUpdate({
-              target: conflictTarget,
-              set: {
-                employeeId: row.employeeId,
-                occurredAt: row.occurredAt,
-                periodStart: row.periodStart,
-                periodEnd: row.periodEnd,
-                payloadJson: row.payloadJson,
-                payloadHash: row.payloadHash,
-                sourceUpdatedAt: row.sourceUpdatedAt,
-                ingestedAt: row.ingestedAt,
-                syncRunId: row.syncRunId,
-              },
-            });
-          ingested++;
-        } catch (rowErr) {
-          errors.push({
-            externalRecordId: row.externalRecordId,
-            message: rowErr instanceof Error ? rowErr.message : String(rowErr),
-          });
-        }
-      }
-    }
+    ingested += batch.length;
   }
 
   return { ingested, skipped, errors };
@@ -441,6 +419,16 @@ async function normalizeIngestedRecords(
       )
     );
 
+  const previousFacts: (typeof normalizedFacts.$inferSelect)[] = [];
+  for (const batch of chunk(
+    records.map((record) => record.id),
+    WRITE_CHUNK_SIZE
+  )) {
+    const condition = inArray(normalizedFacts.sourceRecordId, batch);
+    previousFacts.push(...(await tx.select().from(normalizedFacts).where(condition)));
+    await captureSyncRevisions(tx, "normalized_fact", condition, syncRunId);
+  }
+
   // Compute every fact in memory first (pure, no I/O) — the DB write is
   // batched below. Safe to batch arbitrarily: each source record has a
   // unique id and normalizeRecords() never returns the same factType twice
@@ -449,6 +437,17 @@ async function normalizeIngestedRecords(
   const rows: (typeof normalizedFacts.$inferInsert)[] = [];
 
   for (const record of records) {
+    const previous = previousFacts.filter((fact) => fact.sourceRecordId === record.id);
+    if (
+      previous.some(
+        (fact) =>
+          fact.employeeId !== record.employeeId ||
+          fact.periodStart !== record.periodStart ||
+          fact.periodEnd !== record.periodEnd
+      )
+    ) {
+      throw new Error("Source attribution changed; reviewed reassignment repair required");
+    }
     if (!record.employeeId || !record.periodStart || !record.periodEnd) continue;
 
     const facts = connector.normalizeRecords(
@@ -461,6 +460,18 @@ async function normalizeIngestedRecords(
 
     const sourceObservedAt = record.sourceUpdatedAt ?? record.occurredAt ?? record.ingestedAt;
 
+    // Retain a null tombstone for facts omitted by the corrected record.
+    for (const old of previous) {
+      if (!facts.some((fact) => fact.factType === old.factType))
+        rows.push({
+          ...old,
+          numericValue: null,
+          textValue: null,
+          booleanValue: null,
+          sourceObservedAt,
+          dimensionsJson: { correction: "omitted_from_normalized_record", syncRunId },
+        });
+    }
     for (const fact of facts) {
       rows.push({
         organizationId: config.organizationId,
@@ -492,6 +503,7 @@ async function normalizeIngestedRecords(
           textValue: sql`excluded.text_value`,
           booleanValue: sql`excluded.boolean_value`,
           unit: sql`excluded.unit`,
+          dimensionsJson: sql`excluded.dimensions_json`,
           sourceObservedAt: sql`excluded.source_observed_at`,
         },
       });

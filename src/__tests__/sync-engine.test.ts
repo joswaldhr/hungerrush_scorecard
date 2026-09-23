@@ -1,3 +1,4 @@
+vi.mock("@/lib/connectors/sync-revisions", () => ({ captureSyncRevisions: vi.fn() }));
 // ingestRecords() takes its DB handle as a parameter (tx: TxOrDb) rather than
 // importing `db` directly, so unlike compute-values.test.ts this doesn't need
 // to mock the @/lib/db module — a plain mock object standing in for `tx` is
@@ -124,7 +125,7 @@ describe("ingestRecords", () => {
     expect(result.ingested).toBe(0);
   });
 
-  it("falls back to one-by-one processing when a bulk chunk upsert fails, isolating the bad row", async () => {
+  it("aborts when a bulk upsert fails instead of retrying an aborted transaction", async () => {
     const good1 = record({ externalRecordId: "stats-a@example.com-2026-09-07" });
     const badRecord = record({ externalRecordId: "stats-bad@example.com-2026-09-07" });
     const good2 = record({ externalRecordId: "stats-b@example.com-2026-09-07" });
@@ -150,11 +151,10 @@ describe("ingestRecords", () => {
       }),
     }));
 
-    const result = await ingestRecords(tx, [good1, badRecord, good2], DATA_SOURCE_ID, SYNC_RUN_ID);
-
+    await expect(
+      ingestRecords(tx, [good1, badRecord, good2], DATA_SOURCE_ID, SYNC_RUN_ID)
+    ).rejects.toThrow("simulated constraint violation");
     expect(bulkAttempted).toBe(true);
-    expect(result.ingested).toBe(2);
-    expect(result.errors).toHaveLength(1);
-    expect(result.errors[0]!.externalRecordId).toBe(badRecord.externalRecordId);
+    expect(tx.insert).toHaveBeenCalledOnce();
   });
 });

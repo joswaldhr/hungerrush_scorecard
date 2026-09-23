@@ -3,8 +3,7 @@ import { getEffectiveManagerContext } from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
 import { dataSources } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
-import { runSync, recordComputeValuesTiming, ZendeskConnector } from "@/lib/connectors";
-import { computeMetricValuesFromFacts } from "@/lib/domain/metrics/compute-values";
+import { runSync, ZendeskConnector } from "@/lib/connectors";
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import { isSyncRateLimited } from "@/lib/rate-limit";
@@ -54,11 +53,10 @@ export async function POST(_request: Request) {
       { weekOffset: 0 }
     );
 
-    const computeStartedAt = Date.now();
-    const valuesWritten = await computeMetricValuesFromFacts(ctx.organizationId, "zendesk");
-    await recordComputeValuesTiming(result.syncRunId, Date.now() - computeStartedAt);
-
-    return NextResponse.json({ ...result, valuesWritten });
+    return NextResponse.json(
+      { ...result, ...(result.success ? {} : { error: "Sync failed; previous values preserved" }) },
+      { status: result.success ? 200 : 503 }
+    );
   } catch (err) {
     logger.error("Sync run failed", { error: err });
     return NextResponse.json({ error: "Sync failed" }, { status: 500 });

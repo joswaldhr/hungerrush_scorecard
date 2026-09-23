@@ -1,13 +1,7 @@
 import { db } from "@/lib/db";
 import { dataSources, rosterSourceTeamMappings } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import {
-  runSync,
-  recordComputeValuesTiming,
-  ZendeskConnector,
-  MAX_WEEKS_BACK,
-} from "@/lib/connectors";
-import { computeMetricValuesFromFacts } from "@/lib/domain/metrics/compute-values";
+import { runSync, ZendeskConnector, MAX_WEEKS_BACK } from "@/lib/connectors";
 import { discoverRosterCandidates } from "@/lib/domain/roster/reconcile";
 import { isSyncRateLimited } from "@/lib/rate-limit";
 import { env } from "@/lib/env";
@@ -73,15 +67,12 @@ export async function GET(request: Request) {
         },
         { weekOffset }
       );
-      const computeStartedAt = Date.now();
-      const valuesWritten = await computeMetricValuesFromFacts(source.organizationId, source.type);
-      await recordComputeValuesTiming(syncResult.syncRunId, Date.now() - computeStartedAt);
 
       // Roster membership doesn't change week-to-week — only check it once
       // a day (on the week=0 leg, or on an un-parameterized manual trigger)
       // rather than redundantly on all 4 staggered legs.
       let rosterResult: { newCandidates: number; departedCandidates: number } | null = null;
-      if (weekOffset === undefined || weekOffset === 0) {
+      if (syncResult.success && (weekOffset === undefined || weekOffset === 0)) {
         const [mapping] = await db
           .select({ id: rosterSourceTeamMappings.id })
           .from(rosterSourceTeamMappings)
@@ -96,7 +87,7 @@ export async function GET(request: Request) {
         dataSourceId: source.id,
         type: source.type,
         sync: syncResult,
-        valuesWritten,
+        valuesWritten: syncResult.valuesWritten,
         roster: rosterResult,
       });
     } catch (err) {
@@ -115,7 +106,9 @@ export async function GET(request: Request) {
   // never happened, which is exactly what should make the switch go silent
   // and alert. Best-effort only: a failure here must never affect the
   // response this route returns to Vercel's cron caller.
-  if (env.SYNC_HEARTBEAT_URL) {
+  const success =
+    results.length > 0 && results.every((result) => "sync" in result && result.sync?.success);
+  if (success && env.SYNC_HEARTBEAT_URL) {
     try {
       await fetch(env.SYNC_HEARTBEAT_URL, { method: "GET", signal: AbortSignal.timeout(5000) });
     } catch (err) {
@@ -125,5 +118,5 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.json({ results });
+  return NextResponse.json({ success, results }, { status: success ? 200 : 503 });
 }

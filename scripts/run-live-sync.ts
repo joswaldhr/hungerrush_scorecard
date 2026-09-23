@@ -1,6 +1,5 @@
 import { runSync } from "@/lib/connectors/sync-engine";
 import { ZendeskConnector } from "@/lib/connectors/zendesk";
-import { computeMetricValuesFromFacts } from "@/lib/domain/metrics/compute-values";
 
 const ORG_ID = "10000000-0000-4000-8000-000000000001";
 const DS = {
@@ -15,9 +14,8 @@ async function main() {
   });
   console.log("Zendesk:", zendeskResult);
 
-  console.log("Computing metric values from normalized facts...");
-  const zendeskValues = await computeMetricValuesFromFacts(ORG_ID, "zendesk");
-  console.log(`Wrote ${zendeskValues} metric values`);
+  if (!zendeskResult.success) throw new Error("Zendesk sync failed");
+  console.log(`Wrote ${zendeskResult.valuesWritten} metric values`);
 }
 
 main().catch((err) => {

@@ -1,3 +1,4 @@
+vi.mock("@/lib/connectors/sync-revisions", () => ({ captureSyncRevisions: vi.fn() }));
 // Tests for the runSync orchestration flow (sync-engine.ts).
 // This covers the fetch→publish→checkpoint sequence, error handling, and
 // weekOffset behavior — the untested orchestration path CLAUDE.md flags.
@@ -32,7 +33,6 @@ const config: ConnectorConfig = {
 
 let selectResults: unknown[];
 let insertReturning: unknown[];
-let transactionFn: ((tx: unknown) => Promise<void>) | null;
 let insertedSyncErrors: unknown[];
 let updatedSyncRuns: unknown[];
 let updatedDataSources: boolean;
@@ -42,6 +42,9 @@ const mockDb = vi.hoisted(() => {
   return dbProxy;
 });
 
+vi.mock("@/lib/domain/metrics/compute-values", () => ({
+  computeMetricValuesFromFacts: vi.fn(async () => 0),
+}));
 vi.mock("@/lib/db", () => ({ db: mockDb }));
 vi.mock("@/lib/db/schema", () => ({
   dataSources: { id: "dataSources.id" },
@@ -70,7 +73,6 @@ import { runSync } from "@/lib/connectors/sync-engine";
 function setupDbMock() {
   selectResults = [];
   insertReturning = [];
-  transactionFn = null;
   insertedSyncErrors = [];
   updatedSyncRuns = [];
   updatedDataSources = false;
@@ -113,6 +115,8 @@ function setupDbMock() {
   mockDb.transaction = vi.fn(async (cb: (tx: unknown) => Promise<void>) => {
     // Provide a minimal mock tx for ingestRecords/normalizeIngestedRecords
     const mockTx = {
+      execute: vi.fn(async () => []),
+      update: mockDb.update,
       select: vi.fn(() => ({
         from: () => ({
           where: () => Promise.resolve([]),
@@ -124,7 +128,6 @@ function setupDbMock() {
         }),
       })),
     };
-    transactionFn = cb;
     await cb(mockTx);
   });
 
@@ -179,7 +182,7 @@ describe("runSync orchestration", () => {
 
   it("completes successfully with records from the connector", async () => {
     selectResults = [
-      [{ id: DATA_SOURCE_ID }], // dataSources lookup
+      [{ id: DATA_SOURCE_ID, organizationId: ORG_ID, type: "test" }], // dataSources lookup
     ];
     insertReturning = [
       [{ id: SYNC_RUN_ID }], // syncRuns insert
@@ -206,7 +209,7 @@ describe("runSync orchestration", () => {
   });
 
   it("marks run as failed when fetch phase throws", async () => {
-    selectResults = [[{ id: DATA_SOURCE_ID }]];
+    selectResults = [[{ id: DATA_SOURCE_ID, organizationId: ORG_ID, type: "test" }]];
     insertReturning = [[{ id: SYNC_RUN_ID }]];
 
     const connector = makeConnector({
@@ -233,7 +236,7 @@ describe("runSync orchestration", () => {
   });
 
   it("marks run as failed when publish phase (transaction) throws", async () => {
-    selectResults = [[{ id: DATA_SOURCE_ID }]];
+    selectResults = [[{ id: DATA_SOURCE_ID, organizationId: ORG_ID, type: "test" }]];
     insertReturning = [[{ id: SYNC_RUN_ID }]];
 
     const connector = makeConnector({
@@ -263,7 +266,7 @@ describe("runSync orchestration", () => {
   });
 
   it("completes with zero counts when connector returns no records", async () => {
-    selectResults = [[{ id: DATA_SOURCE_ID }]];
+    selectResults = [[{ id: DATA_SOURCE_ID, organizationId: ORG_ID, type: "test" }]];
     insertReturning = [[{ id: SYNC_RUN_ID }]];
 
     const connector = makeConnector(); // default: returns 0 records
@@ -271,8 +274,8 @@ describe("runSync orchestration", () => {
     const result = await runSync(connector, config);
 
     expect(result.success).toBe(true);
-    // No publish transaction needed for empty data
-    expect(mockDb.transaction).not.toHaveBeenCalled();
+    // Even an empty successful run checkpoints atomically.
+    expect(mockDb.transaction).toHaveBeenCalledOnce();
     const checkpoint = updatedSyncRuns[0] as Record<string, unknown>;
     expect(checkpoint.status).toBe("completed");
     expect(checkpoint.recordsIngested).toBe(0);
@@ -291,7 +294,7 @@ describe("runSync orchestration", () => {
   });
 
   it("passes weekOffset as the cursor and fetches only 1 page", async () => {
-    selectResults = [[{ id: DATA_SOURCE_ID }]];
+    selectResults = [[{ id: DATA_SOURCE_ID, organizationId: ORG_ID, type: "test" }]];
     insertReturning = [[{ id: SYNC_RUN_ID }]];
 
     const fetchRecords = vi.fn(async (_cfg: ConnectorConfig, ctx: SyncContext) => ({
@@ -316,7 +319,7 @@ describe("runSync orchestration", () => {
   });
 
   it("paginates through multiple pages when hasMore is true", async () => {
-    selectResults = [[{ id: DATA_SOURCE_ID }]];
+    selectResults = [[{ id: DATA_SOURCE_ID, organizationId: ORG_ID, type: "test" }]];
     insertReturning = [[{ id: SYNC_RUN_ID }]];
 
     let callCount = 0;
