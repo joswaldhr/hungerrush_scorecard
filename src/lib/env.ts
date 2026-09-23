@@ -38,7 +38,13 @@ const envSchema = z.object({
 });
 
 function validateEnv() {
-  const result = envSchema.safeParse(process.env);
+  // A branch-scoped empty value overrides an inherited hosting credential.
+  // Treat it as unset so optional integrations stay disabled; required keys
+  // still fail validation and production sign-in retains its own guard.
+  const configured = Object.fromEntries(
+    Object.entries(process.env).filter(([, value]) => value !== "")
+  );
+  const result = envSchema.safeParse(configured);
   if (!result.success) {
     const formatted = result.error.issues
       .map((issue) => `  ${issue.path.join(".")}: ${issue.message}`)

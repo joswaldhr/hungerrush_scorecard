@@ -2,7 +2,7 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-23. **Local implementation validated; not deployed.**
+Last updated: 2026-09-23. **Hosted database rehearsal passed; Preview deployment held for staging sign-in.**
 
 ## Current ledger
 
@@ -14,12 +14,12 @@ Last updated: 2026-09-23. **Local implementation validated; not deployed.**
 | Null corrections and predecessor evidence | Implemented locally | Migration 0012; corrected null/zero and retained revisions tested |
 | Combined implementation validation | Passed | 223 tests, typecheck, lint, production build |
 | Migration and corrected-sync rehearsal | Passed locally | Separate staging database; 0011 -> 0012; synthetic stored-data assertions |
-| Hosted staging / production parity | Not ready | Vercel preview and production share DATABASE_URL; local PostgreSQL 16.14 vs pilot 18.6 |
+| Hosted staging / production parity | Database rehearsal passed; UI pending | Separate Railway PostgreSQL 18.6, branch-scoped Preview credentials; staging Entra sign-in pending |
 | Production rollout / historical repair | Not performed | Release gate below must be completed first |
 
 ## Git checkpoints
 
-Branch: `codex/audit-reliability-checkpoints`. No push or deployment performed.
+Branch: `codex/audit-reliability-checkpoints` published to origin. Automatic deployment is disabled for this branch; no Preview or production deployment performed.
 
 - `ece704c`: audit, measured baseline, and metric contracts.
 - `f39d872`: organization/manager scope safeguards and isolated test configuration.
@@ -49,8 +49,9 @@ checks here. Do not push master as a staging shortcut: it is the production bran
 **Next priority: establish hosted staging isolation before accumulating more major changes.**
 Read-only Vercel inspection on September 23 found no custom staging environment, production
 branch `master`, and one DATABASE_URL setting targeted to both preview and production.
-A preview URL alone therefore does not establish a safe staging database. No secrets or
-Vercel settings were changed. No code was pushed because a preview could inherit that database.
+That initial shared configuration is now overridden for the audit branch. Hosted staging
+uses a separate database and branch-specific overrides for every inherited Preview key.
+The branch is published with automatic deployments disabled while staging sign-in is pending.
 
 Local checkpoint is complete. Hosted release remains gated on:
 
@@ -362,3 +363,44 @@ and verify the Preview deployment and authentication. DATABASE_URL configuration
 is not evidence that the application can connect. Keep the branch deployment hold until
 these prerequisites are met. The last full application suite remains 223 passing tests;
 this checkpoint changes deployment configuration only.
+
+
+### Hosted database rehearsal passed; staging sign-in pending
+
+Executed the actual publisher against the new Railway staging database on PostgreSQL
+18.6. The script accepts hosted operation only with the exact approved environment ID,
+host, port, and database; it rejects any existing user tables before creating fixtures.
+The original loopback-only local administration mode remains available. No production
+connection string or vendor credentials were used. Temporary local input stayed in
+process memory and was discarded when validation completed.
+
+Evidence: `2026-09-23-hosted-staging-rehearsal.json`. Migration 0011 -> 0012 took 1,273 ms
+and preserved the synthetic legacy value 42. Correcting it to null produced missing
+quality and three revision snapshots, including prior metric value 42. A subsequent
+zero remained zero with source freshness preserved; an injected fetch failure left the
+published row unchanged. Re-running migrations preserved it too. The error log for the
+synthetic outage is an expected assertion, not a failed rehearsal.
+
+Both the rehearsal and branch DATABASE_URL require TLS (`sslmode=require`). This encrypts
+transport using Railway's self-signed certificate; it does not verify the server identity
+against a trusted certificate authority. Certificate trust configuration remains a
+separate hardening item, not a completed claim.
+
+Vercel now has branch-specific overrides for every inherited Preview key. Vendor,
+Graph, legacy Supabase/API, and Microsoft sign-in values are blank; AUTH_SECRET and
+CRON_SECRET are independently generated Sensitive secrets; SYNC_HEARTBEAT_URL is blank.
+Production/global entries were verified unchanged during isolation. DATABASE_URL remains
+a Sensitive secret scoped only to this branch and Preview. Optional blank environment
+values now parse as unset, while required keys still fail validation and the production
+SSO guard remains in place.
+
+The user is unsure whether a staging Entra registration exists. The Entra portal requires
+work-account sign-in; a browser tab is left open and sign-in requested. Do not enable the
+branch deployment until a separate staging registration/callback and synthetic user
+mapping are configured. Full Preview runtime, UI null/zero rendering, and sign-in checks
+remain unperformed. No production migration, deployment, or historical repair ran.
+
+Validation for this increment: five focused environment tests passed, including the
+production SSO startup guard with empty overrides. Targeted ESLint/Prettier and TypeScript
+checks passed. A non-approved hosted endpoint was rejected before connecting. The last
+full application suite remains the prior 223-test checkpoint; it was not rerun here.
