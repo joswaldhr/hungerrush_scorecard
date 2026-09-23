@@ -394,13 +394,22 @@ a Sensitive secret scoped only to this branch and Preview. Optional blank enviro
 values now parse as unset, while required keys still fail validation and the production
 SSO guard remains in place.
 
-The user is unsure whether a staging Entra registration exists. The Entra portal requires
-work-account sign-in; a browser tab is left open and sign-in requested. Do not enable the
-branch deployment until a separate staging registration/callback and synthetic user
-mapping are configured. Full Preview runtime, UI null/zero rendering, and sign-in checks
+The user was unsure whether a staging Entra registration exists. Portal sign-in is now
+complete. Owned applications showed only Support Scorecards; searching all registrations
+for score returned that app, and cadence returned zero results. Prepared the new-app form
+with name HungerRush Cadence Staging and Single tenant only - HungerRush. Registration
+has NOT been submitted. Requested approval for registration, the form's Microsoft Platform
+Policies acceptance, and saving the new staging sign-in credential only to this branch's
+Vercel Preview settings. This is a new access/terms approval, separate from the approved
+Railway database setup. Do not enable the branch deployment until staging registration,
+callback, and synthetic user mapping are configured. Full Preview runtime, UI null/zero rendering, and sign-in checks
 remain unperformed. No production migration, deployment, or historical repair ran.
 
 Validation for this increment: five focused environment tests passed, including the
 production SSO startup guard with empty overrides. Targeted ESLint/Prettier and TypeScript
 checks passed. A non-approved hosted endpoint was rejected before connecting. The last
 full application suite remains the prior 223-test checkpoint; it was not rerun here.
+
+Commits: `a58dab5` records hosted rehearsal; `f73d3cd` isolates empty Preview overrides.
+Both are pushed to the audit branch. After pushing, the latest Vercel deployments still
+showed only master; the audit branch deployment hold is intact.
