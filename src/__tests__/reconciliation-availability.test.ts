@@ -152,6 +152,27 @@ it("applies withholding to the manager results API", async () => {
   ).toBeNull();
   expect(JSON.stringify(body)).not.toContain("918273");
 });
+it.each(["running", "failed"])(
+  "withholds legacy partial comparison rows from a %s run",
+  async (status) => {
+    await db.update(reconciliationRuns).set({ status }).where(eq(reconciliationRuns.id, runId));
+    try {
+      expect(await getScopedReconciliationRun(ctx, runId)).toMatchObject({
+        run: { totalComparisons: 0, matchCount: 0, unavailableCount: 0 },
+        results: [],
+      });
+      expect((await getScopedReconciliationRuns(ctx))[0]).toMatchObject({
+        totalComparisons: 0,
+        matchCount: 0,
+      });
+    } finally {
+      await db
+        .update(reconciliationRuns)
+        .set({ status: "completed" })
+        .where(eq(reconciliationRuns.id, runId));
+    }
+  }
+);
 it("rejects malformed run IDs and foreign employee/definition associations", async () => {
   expect(await getScopedReconciliationRun(ctx, "not-a-uuid")).toBeNull();
   const detail = await getScopedReconciliationRun(

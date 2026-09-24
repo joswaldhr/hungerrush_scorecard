@@ -468,6 +468,20 @@ it("clears the suggested line when manual approval changes the suggested team", 
 });
 
 describe("reconciliation employee boundary", () => {
+  it("rejects a triggering user from another organization before creating a run", async () => {
+    await expect(
+      runReconciliation({
+        organizationId: a.org,
+        triggeredBy: b.user,
+        employeeIds: [a.employee],
+        periodStart: "2026-09-13",
+        periodEnd: "2026-09-19",
+      })
+    ).rejects.toThrow("not permitted");
+    expect(
+      await db.select().from(reconciliationRuns).where(eq(reconciliationRuns.organizationId, a.org))
+    ).toHaveLength(0);
+  });
   it("intersects the team with permitted employees, rather than expanding to coworkers", async () => {
     const result = await runReconciliation({
       organizationId: a.org,

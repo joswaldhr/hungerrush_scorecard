@@ -12,7 +12,7 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Published to Preview | Navigation, organization and manager-scope regression tests; keyboard checks passed |
 | Atomic sync publication and freshness | Published to Preview | PostgreSQL rollback tests; untouched periods preserved; live hosted trigger still gated |
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 482 tests across 56 files passed in PostgreSQL 18 CI run 36046548887 at 950afd7; both 0ccc9e2 CI runs also passed, including lint, TypeScript and production build |
+| Combined implementation validation | Passed | 486 tests across 57 files passed in PostgreSQL 18 CI run 36049665867 at 8772a8a, including lint, TypeScript and production build |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database, core UI, worker authentication and bounded ingestion/recovery passed | Separate PostgreSQL 18.6 and Entra app; four fresh ingestion processes, expired-lease takeover and replay verified; source disabled after rehearsal; recurring scheduling remains open |
 | Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; full-week export failed actor completeness verification; reviewed human provenance and independent parity remain open |
@@ -1492,3 +1492,27 @@ Thirty focused request, PostgreSQL scope/availability and cooldown cases pass, i
 zero/nonzero withholding, version-999 containment, raw-row preservation, foreign-definition
 and employee exclusion, and policy-filtered counts in the POST response. Hosted verification
 and the full suite follow with this change.
+
+Hosted verification passed at 6bc49e2 on dpl_5mhsgTJxV7D41VpqgP2YUGDsMbpz. The same
+synthetic stored run showed ticket values 42 and zero before refresh, then withheld both
+after deployment, with two attribution-unavailable rows and explicit employee names. Its
+other zero-value metric remained visible. The 320px check exposed overflow in the team
+selector and run summary; responsive stacking and bounded select width fixed it at 8772a8a
+on dpl_5PpxjBv65xKMdLzrsFiGPVUKwAtQ. Settled main client/scroll widths are 226/226;
+the table scrolls within its own 194px wrapper (477px contents). Viewport overrides were reset.
+Both 8772a8a CI runs 36049665867/36049660412 passed all 486 tests across 57 files and build.
+
+## Atomic reconciliation publication — September 24
+
+Reconciliation previously saved each 100-row result batch separately. A later insert failure
+could leave partial comparisons behind. It now reads definitions, scope, stored values and
+facts from one repeatable-read transaction and commits every result together with completion.
+Failure rolls back all comparisons while preserving the separately claimed run as failed.
+Manager queries also withhold partial legacy rows for running/failed runs. Run claiming
+verifies the triggering user's organization before consuming the cooldown.
+
+A real PostgreSQL trigger, scoped to one synthetic fixture, forced failure on row 101: no
+comparison rows survived, the run was marked failed, and a subsequent retry committed all
+101 results. The temporary trigger/function and fixture were removed. Scope/availability
+regressions cover running/failed legacy data and foreign triggering users. Full CI and
+hosted completion verification follow; no production rows were changed.

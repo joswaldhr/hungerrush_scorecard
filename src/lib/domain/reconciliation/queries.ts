@@ -53,6 +53,7 @@ function scopedCounts(results: { status: string }[]) {
 }
 
 async function scopedResults(ctx: ManagerContext, runIds: string[]) {
+  if (!runIds.length) return [];
   const rows = await db
     .select({
       ...getTableColumns(reconciliationResults),
@@ -100,7 +101,7 @@ export async function getScopedReconciliationRuns(ctx: ManagerContext, limit = 2
   if (!runs.length) return [];
   const results = await scopedResults(
     ctx,
-    runs.map((r) => r.id)
+    runs.filter((r) => r.status === "completed").map((r) => r.id)
   );
   return runs.map((run) => ({
     ...run,
@@ -115,6 +116,6 @@ export async function getScopedReconciliationRun(ctx: ManagerContext, runId: str
     .from(reconciliationRuns)
     .where(and(eq(reconciliationRuns.id, runId), visibleRun(ctx)));
   if (!run) return null;
-  const results = await scopedResults(ctx, [run.id]);
+  const results = run.status === "completed" ? await scopedResults(ctx, [run.id]) : [];
   return { run: { ...run, ...scopedCounts(results) }, results };
 }
