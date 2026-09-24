@@ -16,7 +16,7 @@ export default async function StoredPeriodsPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ period?: string }>;
+  searchParams: Promise<{ period?: string; before?: string; revisions?: string }>;
 }) {
   const session = await auth();
   if (!session?.user?.email) redirect("/login");
@@ -25,12 +25,25 @@ export default async function StoredPeriodsPage({
   const { id } = await params;
   const employee = (await getAssignedEmployees(ctx)).find((row) => row.id === id);
   if (!employee) notFound();
-  const { period } = await searchParams;
+  const { period, before, revisions: showRevisions } = await searchParams;
   const history = await getStoredMetricHistory(ctx, id, period);
   if (period && !history.selected) notFound();
-  const revisions = history.selected
-    ? await getStoredMetricRevisions(ctx, id, history.selected.start, history.selected.end)
-    : null;
+  let revisions = null;
+  if (history.selected) {
+    try {
+      revisions = await getStoredMetricRevisions(
+        ctx,
+        id,
+        history.selected.start,
+        history.selected.end,
+        before
+      );
+    } catch (error) {
+      if (error instanceof Error && error.message === "Invalid revision cursor") notFound();
+      throw error;
+    }
+  }
+  const historyPath = `/one-on-ones/${id}/history?${new URLSearchParams({ period: history.selected ? `${history.selected.start}/${history.selected.end}` : "" })}`;
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-12">
       <Link
@@ -119,7 +132,11 @@ export default async function StoredPeriodsPage({
               </tbody>
             </table>
           </section>
-          <details className="rounded-lg border border-border p-4">
+          <details
+            id="revisions"
+            open={before !== undefined || showRevisions === "1"}
+            className="rounded-lg border border-border p-4"
+          >
             <summary className="cursor-pointer font-medium">Retained previous values</summary>
             <p className="my-3 text-sm text-muted-foreground">
               These are previous values saved before a sync replaced them. They are not added to the
@@ -180,17 +197,31 @@ export default async function StoredPeriodsPage({
                     ))}
                   </tbody>
                 </table>
-                {revisions.hasMore && (
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    Showing the latest 25 retained values for this interval. Earlier revisions
-                    remain stored.
-                  </p>
-                )}
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">
                 No previous values retained for this interval.
               </p>
+            )}
+            {(before || revisions?.nextCursor) && (
+              <nav aria-label="Retained value pages" className="mt-4 flex flex-wrap gap-4 text-sm">
+                {before && (
+                  <Link
+                    href={`${historyPath}&revisions=1#revisions`}
+                    className="underline underline-offset-4"
+                  >
+                    Newest retained values
+                  </Link>
+                )}
+                {revisions?.nextCursor && (
+                  <Link
+                    href={`${historyPath}&before=${revisions.nextCursor}#revisions`}
+                    className="underline underline-offset-4"
+                  >
+                    Older retained values
+                  </Link>
+                )}
+              </nav>
             )}
           </details>
         </>

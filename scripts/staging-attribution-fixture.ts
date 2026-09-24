@@ -20,7 +20,7 @@ async function main() {
       assert.equal(orgs.length, 1);
       assert.equal(orgs[0]!.name, "Synthetic staging rehearsal");
       const org = orgs[0]!.id;
-      const sources = await tx`select type from data_sources`;
+      const sources = await tx`select id,type from data_sources`;
       assert(sources.length === 1 && sources[0]!.type === "staging");
       const staff = await tx`select id, display_name, primary_team_id from employees`;
       assert.equal(staff.length, 1);
@@ -57,6 +57,43 @@ async function main() {
           assert.equal(stored!.quality_status, "complete");
         }
       }
+      let retainedPageFixtures = 0;
+      if (process.argv[3] === "--revision-pages") {
+        stage = "revision_pages";
+        const [stored] = await tx`select v.id,v.metric_definition_id from metric_values v
+          join metric_definitions d on d.id=v.metric_definition_id
+          where d.organization_id=${org} and d.key='stage_metric' and d.source_strategy='staging'
+          and v.employee_id=${employee} and v.period_start='2026-09-13' and v.period_end='2026-09-19'`;
+        assert(stored);
+        const run = "f24ea800-0924-4000-8000-999999999999";
+        await tx`insert into sync_runs (id,data_source_id,status,metadata_json)
+          values (${run},${sources[0]!.id},'completed','{"syntheticFixture":"revision-pages"}') on conflict (id) do nothing`;
+        const [savedRun] =
+          await tx`select data_source_id,metadata_json from sync_runs where id=${run}`;
+        assert.equal(savedRun!.data_source_id, sources[0]!.id);
+        assert.equal(savedRun!.metadata_json.syntheticFixture, "revision-pages");
+        for (let index = 0; index < 30; index++) {
+          const id = `f24ea800-0924-4000-8000-${String(index).padStart(12, "0")}`;
+          const snapshot: Record<string, string | number> = {
+            employee_id: employee,
+            metric_definition_id: stored.metric_definition_id,
+            period_start: "2026-09-13",
+            period_end: "2026-09-19",
+            numeric_value: 1000 + index,
+            quality_status: "synthetic_fixture",
+            data_freshness_at: "2026-09-20T00:00:00Z",
+            calculation_version: 1,
+          };
+          await tx`insert into sync_revisions (id,sync_run_id,entity_type,entity_id,snapshot_json,created_at)
+            values (${id},${run},'metric_value',${stored.id},${tx.json(snapshot)},'2026-09-24T18:00:00Z'::timestamptz + (${index} * interval '1 second'))
+            on conflict (id) do nothing`;
+          const [saved] =
+            await tx`select sync_run_id,snapshot_json from sync_revisions where id=${id}`;
+          assert.equal(saved!.sync_run_id, run);
+          assert.deepEqual(saved!.snapshot_json, snapshot);
+          retainedPageFixtures++;
+        }
+      }
       return {
         verifiedAt: new Date().toISOString(),
         syntheticOnly: true,
@@ -64,6 +101,7 @@ async function main() {
         storedValues: [0, 42, 17, 17],
         expectedManagerValues: "unavailable: human attribution unverified",
         productionAccess: false,
+        retainedPageFixtures,
       };
     });
     if (process.argv[2]) await writeFile(process.argv[2], JSON.stringify(report, null, 2) + "\n");

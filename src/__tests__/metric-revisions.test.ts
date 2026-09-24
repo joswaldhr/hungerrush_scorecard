@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { randomUUID } from "node:crypto";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   dataSources,
@@ -180,8 +180,54 @@ it("bounds newest-first evidence and explicitly reports older retained revisions
   expect(result.rows).toHaveLength(25);
   expect(result.rows[0]?.evidence?.numericValue).toBe(25);
   expect(result.rows[24]?.evidence?.numericValue).toBe(1);
+  const older = await getStoredMetricRevisions(ctx, employee, start, end, result.nextCursor!);
+  expect(older.rows.map((row) => row.evidence?.numericValue)).toEqual([0]);
+  expect(older.hasMore).toBe(false);
+  expect(older.nextCursor).toBeNull();
   await expect(getStoredMetricRevisions(ctx, employee, "2026-02-30", end)).rejects.toThrow(
     "Invalid"
   );
   await expect(getStoredMetricRevisions(ctx, employee, end, start)).rejects.toThrow("Invalid");
+});
+
+it("pages precisely through tied and sub-millisecond timestamps without widening scope", async () => {
+  await db.delete(syncRevisions).where(eq(syncRevisions.syncRunId, run));
+  const inserted = await db
+    .insert(syncRevisions)
+    .values(
+      Array.from({ length: 52 }, (_, index) => ({
+        ...revision({ ...snapshot(), numeric_value: index }),
+        createdAt: sql`'2026-09-24T01:00:00.123456Z'::timestamptz + (${Math.floor(index / 2)} * interval '1 microsecond')`,
+      }))
+    )
+    .returning({ id: syncRevisions.id });
+  const first = await getStoredMetricRevisions(ctx, employee, start, end);
+  // A concurrent newer correction must not shift the next page or repeat rows.
+  await db
+    .insert(syncRevisions)
+    .values({ ...revision(snapshot()), createdAt: new Date("2026-09-25T00:00:00Z") });
+  const second = await getStoredMetricRevisions(ctx, employee, start, end, first.nextCursor!);
+  const third = await getStoredMetricRevisions(ctx, employee, start, end, second.nextCursor!);
+  expect([first.rows.length, second.rows.length, third.rows.length]).toEqual([25, 25, 2]);
+  const ids = [...first.rows, ...second.rows, ...third.rows].map((row) => row.id);
+  expect(new Set(ids).size).toBe(52);
+  expect(ids.sort()).toEqual(inserted.map((row) => row.id).sort());
+  expect(third.nextCursor).toBeNull();
+  expect(JSON.stringify(first)).not.toContain("cursorAt");
+  await expect(getStoredMetricRevisions(ctx, employee, start, end, "bad")).rejects.toThrow(
+    "Invalid revision cursor"
+  );
+  await expect(
+    getStoredMetricRevisions(ctx, employee, "2026-09-06", "2026-09-12", first.nextCursor!)
+  ).rejects.toThrow("Invalid revision cursor");
+  await expect(
+    getStoredMetricRevisions(ctx, otherEmployee, start, end, first.nextCursor!)
+  ).rejects.toThrow("Unauthorized");
+  const [foreign] = await db
+    .insert(syncRevisions)
+    .values(revision(snapshot(), foreignRun))
+    .returning();
+  await expect(getStoredMetricRevisions(ctx, employee, start, end, foreign!.id)).rejects.toThrow(
+    "Invalid revision cursor"
+  );
 });

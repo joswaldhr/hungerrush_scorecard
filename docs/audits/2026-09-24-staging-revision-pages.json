@@ -1,0 +1,14 @@
+{
+  "verifiedAt": "2026-09-24T18:37:53.105Z",
+  "syntheticOnly": true,
+  "definitions": 2,
+  "storedValues": [
+    0,
+    42,
+    17,
+    17
+  ],
+  "expectedManagerValues": "unavailable: human attribution unverified",
+  "productionAccess": false,
+  "retainedPageFixtures": 30
+}

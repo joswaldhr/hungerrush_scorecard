@@ -12,7 +12,7 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Published to Preview | Navigation, organization and manager-scope regression tests; keyboard checks passed |
 | Atomic sync publication and freshness | Published to Preview | PostgreSQL rollback tests; untouched periods preserved; live hosted trigger still gated |
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 434 tests across 52 files passed in PostgreSQL 18 CI run 36039876813 at a48ddd8, including lint, TypeScript and production build |
+| Combined implementation validation | Passed | 443 tests across 53 files passed in PostgreSQL 18 CI run 36041928943 at 53d4a4f, including lint, TypeScript and production build |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database, core UI and scheduler authentication passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; live ingestion and durable recurring Preview authentication remain open |
 | Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; full-week export failed actor completeness verification; reviewed human provenance and independent parity remain open |
@@ -74,7 +74,7 @@ Remaining production release gates:
 Stored reporting intervals, observation ordering, sync leases, and atomic reconciliation
 claims now have regression coverage. Remaining risks include historical targets/team context,
 independent source reconciliation, worst-case fetch budgets/resumability, revision retention,
-complete historical revision inspection, and production rollout of visibility uniqueness. See the
+historical context reconstruction, and production rollout of visibility uniqueness. See the
 audit for the full backlog; these safeguards do not complete the entire overhaul.
 
 ## Repeatable local staging rehearsal
@@ -1359,3 +1359,20 @@ Forty-four route/orchestration/PostgreSQL cases and TypeScript passed, including
 and unknown statuses, connector mismatch and disablement between fetch and publication.
 The preceding fa79f0b computation change passed both full CI runs 36041372021/36041364469.
 Source-account credential binding and in-flight shadow cancellation remain distinct work.
+
+## Retained revision pagination — September 24
+
+Stored reporting periods now allow navigation through retained prior values in bounded pages
+of 25, with an explicit return to the newest page. Changing the selected interval resets the
+cursor. Every cursor is resolved within the authorized employee, organization, source and
+interval; malformed, foreign and wrong-period cursors are rejected. PostgreSQL microsecond
+precision and UUID ordering prevent repeats/omissions across identical or closely spaced
+timestamps. Newer revisions arriving between pages do not shift older pages.
+
+Four PostgreSQL revision cases and TypeScript pass, including 52 closely spaced/tied rows,
+concurrent newer insertion, invalid/foreign/wrong-period anchors, null/zero and human-attribution
+withholding. Thirty explicitly marked synthetic revisions were added only to the guarded
+staging fixture for hosted navigation checks. The first staging connection reset before the
+transaction; the idempotent retry passed and removed its plaintext credential handoff.
+Hosted verification and full CI for this increment follow. Both source-disablement CI runs
+36041928943/36041923796 passed all 443 tests across 53 files and the production build.
