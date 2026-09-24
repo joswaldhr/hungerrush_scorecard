@@ -1,0 +1,1 @@
+ALTER TABLE "roster_candidates" ADD COLUMN "suggested_line" text;
