@@ -14,6 +14,7 @@ import { assertOrganizationResource } from "@/lib/auth/organization-scope";
 import type { CalculationType, ValueType } from "@/lib/domain/metrics/types";
 import { compareValues, aggregateSourceValues } from "./compare";
 import { isReconciliationRateLimited } from "@/lib/rate-limit";
+import { reconciliationRequestSchema } from "./request";
 
 export class ReconciliationRateLimitError extends Error {
   constructor() {
@@ -34,6 +35,8 @@ export interface ReconciliationParams {
 }
 
 export async function runReconciliation(params: ReconciliationParams) {
+  // Reject invalid CLI/service input before consuming the organization's cooldown.
+  reconciliationRequestSchema.parse(params);
   const thresholdPct = params.thresholdPct ?? 5;
   if (params.teamId) await assertOrganizationResource(params.organizationId, "team", params.teamId);
 

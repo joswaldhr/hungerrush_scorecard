@@ -1122,3 +1122,10 @@ and focused lint pass. The preceding combined check passed 395 tests across 48 f
 The attempted 390px browser viewport override did not affect the actual page viewport
 (measured 1869px); it was reset. Desktop rendering of both expanded metric disclosures
 was verified, but mobile behavior is not claimed verified from that attempt.
+
+## Reconciliation input boundary — September 24
+
+API and trusted CLI/service callers now share real calendar-date, ordered-interval,
+UUID-team and finite tolerance validation before a run claim. Legacy intervals remain
+unchanged. Eight API cases and the PostgreSQL cooldown/claim case pass; invalid input
+creates no run and does not consume cooldown. TypeScript and focused lint passed.

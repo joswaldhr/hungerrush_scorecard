@@ -10,20 +10,7 @@ import { ReconciliationRateLimitError } from "@/lib/domain/reconciliation/engine
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import { isReconciliationRateLimited } from "@/lib/rate-limit";
-import { z } from "zod";
-
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-
-const reconciliationRunBodySchema = z.object({
-  teamId: z.string().min(1).optional(),
-  periodStart: z.string().regex(DATE_RE, "Invalid date format (expected YYYY-MM-DD)"),
-  periodEnd: z.string().regex(DATE_RE, "Invalid date format (expected YYYY-MM-DD)"),
-  thresholdPct: z
-    .number()
-    .min(0, "thresholdPct must be 0-100")
-    .max(100, "thresholdPct must be 0-100")
-    .optional(),
-});
+import { reconciliationRequestSchema } from "@/lib/domain/reconciliation/request";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -43,7 +30,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const parsed = reconciliationRunBodySchema.safeParse(json);
+  const parsed = reconciliationRequestSchema.safeParse(json);
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
     const message = issue ? `${issue.path.join(".")}: ${issue.message}` : "Invalid request body";

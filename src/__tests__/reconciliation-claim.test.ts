@@ -27,6 +27,19 @@ it("atomically claims one reconciliation per cooldown and permits a later run", 
       periodStart: "2026-09-13",
       periodEnd: "2026-09-19",
     };
+    for (const invalid of [
+      { periodStart: "2026-02-30" },
+      { periodEnd: "2026-09-12" },
+      { thresholdPct: Infinity },
+    ]) {
+      await expect(runReconciliation({ ...params, ...invalid })).rejects.toThrow();
+    }
+    expect(
+      await db
+        .select()
+        .from(reconciliationRuns)
+        .where(eq(reconciliationRuns.organizationId, organizationId))
+    ).toHaveLength(0);
     const results = await Promise.allSettled([
       runReconciliation(params),
       runReconciliation(params),
