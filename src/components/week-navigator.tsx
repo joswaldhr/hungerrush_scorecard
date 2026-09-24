@@ -46,14 +46,14 @@ export function WeekNavigator({
 
   return (
     <div className="flex w-full min-w-0 max-w-full flex-col items-end gap-1.5 sm:w-auto print:hidden">
-      <div className="flex w-full items-center gap-1 rounded-lg border border-border/80 bg-card p-1 shadow-2xs">
+      <div className="grid grid-cols-3 sm:flex w-full items-center gap-1 rounded-lg border border-border/80 bg-card p-1 shadow-2xs">
         <button
           type="button"
           aria-label="Previous week"
           onClick={() => {
             onNavigate(shiftWeekStart(periodStart, -1));
           }}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md sm:h-7 sm:w-7 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          className="flex h-11 w-full shrink-0 items-center justify-center rounded-md sm:h-7 sm:w-7 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -63,7 +63,7 @@ export function WeekNavigator({
           aria-atomic="true"
           aria-busy={isLoading}
           className={cn(
-            "min-w-0 flex-1 sm:min-w-[170px] text-center text-sm font-semibold text-foreground tabular-nums transition-opacity",
+            "col-span-3 order-first sm:order-none min-w-0 flex-1 sm:min-w-[170px] text-center text-sm font-semibold text-foreground tabular-nums transition-opacity",
             isLoading && "opacity-50"
           )}
         >
@@ -77,7 +77,7 @@ export function WeekNavigator({
           onClick={() => {
             onNavigate(shiftWeekStart(periodStart, 1));
           }}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md sm:h-7 sm:w-7 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+          className="flex h-11 w-full shrink-0 items-center justify-center rounded-md sm:h-7 sm:w-7 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
@@ -103,7 +103,7 @@ export function WeekNavigator({
             aria-expanded={pickerOpen}
             aria-controls={pickerOpen ? pickerId : undefined}
             onClick={() => setPickerOpen((o) => !o)}
-            className="flex h-11 w-11 items-center justify-center rounded-md sm:h-7 sm:w-7 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            className="flex h-11 w-full items-center justify-center rounded-md sm:h-7 sm:w-7 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             <CalendarIcon className="h-3.5 w-3.5" />
           </button>
