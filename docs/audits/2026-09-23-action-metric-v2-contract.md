@@ -93,6 +93,28 @@ untouched and propagate to the caller. The existing connector's retry mode is un
 
 This is checkpoint storage and a one-page worker primitive, not an activated scheduler.
 Concurrent fetches may still spend two API requests even though only one response commits.
-Call-leg checkpoints, scheduler/retry ownership, retention/cleanup, immutable employee
+Scheduler/retry ownership, retention/cleanup, immutable employee
 mapping and automation attribution, and hosted restart tests remain before activation.
 No production checkpoint/event writes or metric publication were performed during testing.
+
+## Call-leg checkpoints and bounded worker
+
+Call legs now have a separate durable checkpoint. Each observed revision is retained;
+older arrivals cannot replace the newest revision and contradictory equal timestamps fail
+without advancing. Only closed intervals older than two minutes are accepted. A completed
+checkpoint is a fixed observation, not a promise that the vendor will never correct a leg.
+
+`/api/cron/action-shadow` authenticates with `CRON_SECRET` before reading configuration or
+data. `ACTION_SHADOW_SOURCE_ID` explicitly selects one Zendesk source belonging to the
+configured Zendesk account. Leaving it unset disables the worker. The route derives the
+organization from that source and never publishes metrics or advances production freshness.
+Each request allows six page attempts within a 200-second budget, reserving 35 seconds for
+the next request/commit. Retries persist their earliest next request time. Completed streams
+are skipped; an unfinished daily pair resumes even if one stream has not initialized yet.
+After downtime, closed days catch up sequentially. First activation starts the latest closed
+UTC day; historical backfill needs an explicitly selected earlier checkpoint.
+
+This account uses Vercel Hobby, whose cron jobs run at most daily. No unsupported frequent
+cron schedule was added. Activation needs a supported scheduler, a real authenticated hosted
+trigger/restart rehearsal, source-account binding verification, retention policy, and
+monitoring of incomplete days. No plan upgrade or hosted activation has occurred.

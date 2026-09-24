@@ -2,7 +2,7 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-23. **Hosted database and Preview sign-in/UI checks passed; production rollout not performed.**
+Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed; production rollout not performed.**
 
 ## Current ledger
 
@@ -12,7 +12,7 @@ Last updated: 2026-09-23. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Implemented locally | Navigation, organization and manager-scope regression tests |
 | Atomic sync publication and freshness | Implemented locally | PostgreSQL rollback tests; untouched periods preserved |
 | Null corrections and predecessor evidence | Implemented locally | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 313 tests across 35 files, TypeScript, full lint/format, production build |
+| Combined implementation validation | Passed | 325 tests across 38 files, TypeScript, full lint/format, production build |
 | Migration and corrected-sync rehearsal | Passed locally | Separate staging database; 0011 -> 0012; synthetic stored-data assertions |
 | Hosted staging / production parity | Database and core UI checks passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; cron runtime check remains open |
 | Zendesk completeness | Search and Talk safety guards implemented locally | 2,415-ticket export reconciled; Talk boundary verified; historical/agent semantics remain open |
@@ -42,8 +42,9 @@ checks here. Do not push master as a staging shortcut: it is the production bran
 3. Review the diff and tests, then create a focused commit before starting another increment.
 4. For database changes, rehearse an upgrade against existing synthetic or approved
    sanitized data, capture before/after evidence, and document rollback and compatibility.
-5. Stop at the release gate before hosted rollout or historical replay. Use the next-work
-   entry here after a restart rather than reconstructing progress from older handoffs.
+5. Continue autonomously under the user's September 24 authorization; do not request another
+   routine checkpoint approval. Complete the technical release gates before production
+   rollout or historical replay. Use this ledger after a restart rather than older handoffs.
 
 ## Release gate and next work
 
@@ -59,7 +60,9 @@ Remaining production release gates:
 - Complete Zendesk completeness work and review metric semantics before historical repair.
 - Record a recoverable production backup/restore point and deployment rollback reference.
   Code rollback retains the additive revision table; data reversal requires reviewed snapshots.
-- Review staged results with the user before production migration/deployment or historical replay.
+- Preserve reviewable staged results and a concrete rollback plan before production changes.
+  The user authorized continued execution on September 24; routine checkpoint approval is
+  no longer a gate. Missing access or unresolved business semantics still cannot be guessed.
 
 Stored reporting intervals, observation ordering, sync leases, and atomic reconciliation
 claims now have regression coverage. Remaining risks include historical targets/team context,
@@ -819,3 +822,26 @@ Six new PostgreSQL cases plus all eight ticket-checkpoint cases passed; TypeScri
 The cases cover revision retention, older late arrivals, contradictory revisions, source
 scope, retries, concurrent workers, open intervals, and stalled boundaries. The active
 publisher is unchanged. Worker scheduling and actor attribution follow this increment.
+
+## Bounded action worker and live local restart rehearsal — September 24
+
+The authenticated shadow route requires an explicit source opt-in and runs at most six page
+attempts per request. Ticket and leg streams resume independently; an unfinished pair is
+not skipped across midnight. Completed days catch up in order after downtime. The worker
+does not publish metrics or update source success timestamps. No hosted activation occurred.
+Vercel's team API confirms Hobby, which supports only daily cron jobs; a frequent schedule
+requires a supported separate scheduler. No paid plan changes were made.
+
+All 325 tests across 38 files, typecheck, full lint/format, and production build passed.
+`scripts/rehearse-action-worker.ts` separately exercised real read-only Zendesk requests
+with writes restricted to a loopback `_test` database. It loads only Zendesk keys from .env.
+Three independent process invocations resumed 0 -> 3 -> 7 -> 13 ticket pages and 0 -> 3 -> 5
+leg pages, ending with 11,954 ticket events and 2,532 legs. A fourth invocation made zero
+vendor requests and retained those counts. All four reports confirm zero normalized facts
+and unchanged source-success timestamps. Reports contain aggregate evidence only.
+
+The earlier source probe had 2,530 legs. These observations occurred at different times;
+the two-record difference is not proof of an ingestion error or independent reconciliation.
+An explicit correction/re-observation policy is required before activation. Scheduler
+ownership, hosted trigger/restart, source binding, immutable employee attribution,
+automation classification, retention, and monitoring remain open.
