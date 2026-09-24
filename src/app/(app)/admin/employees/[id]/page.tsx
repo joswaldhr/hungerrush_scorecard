@@ -1,9 +1,6 @@
-import { auth } from "@/lib/auth";
-import { redirect, notFound } from "next/navigation";
-import { isPlatformAdmin } from "@/lib/auth/authorization";
-import { db } from "@/lib/db";
-import { employees, teams, teamMemberships, managerAssignments, users } from "@/lib/db/schema";
-import { eq, and, isNull } from "drizzle-orm";
+import { notFound } from "next/navigation";
+import { requireAdmin } from "@/lib/auth/authorization";
+import { getAdminEmployeeDetail } from "@/lib/domain/roster/admin-queries";
 import Link from "next/link";
 import { updateEmployee, setEmployeeTeam } from "../../roster-actions";
 
@@ -13,35 +10,10 @@ export default async function AdminEmployeeDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const session = await auth();
-  if (!session?.user?.email) redirect("/login");
-  if (!(await isPlatformAdmin(session.user.email))) redirect("/");
-
-  const [employee] = await db.select().from(employees).where(eq(employees.id, id));
-  if (!employee) notFound();
-
-  const [allTeams, currentMembership] = await Promise.all([
-    db.select().from(teams),
-    db
-      .select()
-      .from(teamMemberships)
-      .where(and(eq(teamMemberships.employeeId, id), isNull(teamMemberships.effectiveTo)))
-      .then((r) => r[0] ?? null),
-  ]);
-
-  const currentManager = employee.primaryTeamId
-    ? await db
-        .select({ displayName: users.displayName })
-        .from(managerAssignments)
-        .innerJoin(users, eq(managerAssignments.managerUserId, users.id))
-        .where(
-          and(
-            eq(managerAssignments.teamId, employee.primaryTeamId),
-            isNull(managerAssignments.effectiveTo)
-          )
-        )
-        .then((r) => r[0] ?? null)
-    : null;
+  const admin = await requireAdmin();
+  const detail = await getAdminEmployeeDetail(admin.organizationId, id);
+  if (!detail) notFound();
+  const { employee, allTeams, currentMembership, currentManager } = detail;
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -134,10 +106,16 @@ export default async function AdminEmployeeDetailPage({
             : "this team has no manager assigned yet"}
           .
         </p>
-        <form action={setEmployeeTeam} className="flex items-end gap-3">
+        {employee.line && (
+          <p className="text-xs text-muted-foreground">
+            Current line: {employee.line}. Changing teams clears this team-specific line.
+          </p>
+        )}
+        <form action={setEmployeeTeam} className="flex flex-wrap items-end gap-3">
           <input type="hidden" name="employeeId" value={employee.id} />
           <div>
             <select
+              aria-label="Employee team"
               name="teamId"
               defaultValue={currentMembership?.teamId ?? ""}
               className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"

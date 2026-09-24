@@ -1,4 +1,6 @@
+// @vitest-environment node
 import { randomUUID } from "node:crypto";
+import { getAdminEmployeeDetail } from "@/lib/domain/roster/admin-queries";
 import { beforeAll, afterAll, describe, expect, it, vi } from "vitest";
 const authMock = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/auth", () => ({ auth: authMock }));
@@ -172,6 +174,85 @@ afterAll(async () => {
 });
 
 describe("organization-scoped admin actions", () => {
+  it("does not expose foreign employee details, teams, or manager names", async () => {
+    expect(await getAdminEmployeeDetail(a.org, b.employee)).toBeNull();
+    const [assignment] = await db
+      .insert(managerAssignments)
+      .values({
+        managerUserId: b.user,
+        teamId: a.team,
+        assignmentType: "team",
+        effectiveFrom: "2020-01-01",
+      })
+      .returning();
+    try {
+      const detail = await getAdminEmployeeDetail(a.org, a.employee);
+      expect(detail?.employee.id).toBe(a.employee);
+      expect(detail?.allTeams.map((t) => t.id)).toContain(a.team);
+      expect(detail?.allTeams.map((t) => t.id)).not.toContain(b.team);
+      expect(detail?.currentManager).toBeNull();
+      await db
+        .update(managerAssignments)
+        .set({ managerUserId: a.user, effectiveFrom: "2999-01-01" })
+        .where(eq(managerAssignments.id, assignment!.id));
+      expect((await getAdminEmployeeDetail(a.org, a.employee))?.currentManager).toBeNull();
+      await db
+        .update(managerAssignments)
+        .set({ effectiveFrom: "2020-01-01", effectiveTo: "2999-01-01" })
+        .where(eq(managerAssignments.id, assignment!.id));
+      expect((await getAdminEmployeeDetail(a.org, a.employee))?.currentManager?.displayName).toBe(
+        "Admin"
+      );
+    } finally {
+      await db.delete(managerAssignments).where(eq(managerAssignments.id, assignment!.id));
+    }
+  });
+  it("preserves same-team history and clears the old line on a real transfer", async () => {
+    const employeeId = randomUUID();
+    const newTeamId = randomUUID();
+    await db
+      .insert(teams)
+      .values({ id: newTeamId, organizationId: a.org, name: "Transfer team", slug: newTeamId });
+    await db.insert(employees).values({
+      id: employeeId,
+      organizationId: a.org,
+      displayName: "Synthetic transfer",
+      primaryTeamId: a.team,
+      line: "restaurant",
+    });
+    const [membership] = await db
+      .insert(teamMemberships)
+      .values({
+        employeeId,
+        teamId: a.team,
+        effectiveFrom: "2020-01-01",
+        effectiveTo: "2999-01-01",
+      })
+      .returning();
+    await setEmployeeTeam(form({ employeeId, teamId: a.team }));
+    expect((await getAdminEmployeeDetail(a.org, employeeId))?.currentMembership?.id).toBe(
+      membership!.id
+    );
+    expect(
+      await db.select().from(teamMemberships).where(eq(teamMemberships.employeeId, employeeId))
+    ).toEqual([membership]);
+    expect((await db.select().from(employees).where(eq(employees.id, employeeId)))[0]?.line).toBe(
+      "restaurant"
+    );
+    await setEmployeeTeam(form({ employeeId, teamId: newTeamId }));
+    const [transferred] = await db.select().from(employees).where(eq(employees.id, employeeId));
+    expect(transferred).toMatchObject({ primaryTeamId: newTeamId, line: null });
+    const memberships = await db
+      .select()
+      .from(teamMemberships)
+      .where(eq(teamMemberships.employeeId, employeeId));
+    expect(memberships.find((m) => m.id === membership!.id)?.effectiveTo).toBe(
+      new Date().toISOString().slice(0, 10)
+    );
+    expect(memberships.filter((m) => m.effectiveTo === null)).toMatchObject([
+      { teamId: newTeamId },
+    ]);
+  });
   it("derives create ownership from the session even with a foreign organizationId", async () => {
     await createEmployee(
       form({ displayName: "Created here", organizationId: b.org, teamId: a.team })

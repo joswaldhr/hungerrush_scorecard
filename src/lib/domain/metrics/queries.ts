@@ -10,6 +10,7 @@ import {
 import { eq, and, inArray } from "drizzle-orm";
 import type { ManagerContext } from "@/lib/auth/authorization";
 import { assertCanAccessEmployee } from "@/lib/auth/authorization";
+import { assertOrganizationResource } from "@/lib/auth/organization-scope";
 import { resolveTarget, evaluateStatus } from "./target-resolution";
 import { resolveVisibility } from "./visibility-resolution";
 import type { Direction, ResolvedTarget, ValueType } from "./types";
@@ -71,6 +72,18 @@ export async function getEmployeeMetricsBatch(
   const results = new Map<string, EmployeeMetricRow[]>();
   if (employeeIds.length === 0) return results;
 
+  const [, employeeRows] = await Promise.all([
+    assertOrganizationResource(ctx.organizationId, "team", teamId),
+    db
+      .select({ id: employees.id, line: employees.line })
+      .from(employees)
+      .where(
+        and(inArray(employees.id, employeeIds), eq(employees.organizationId, ctx.organizationId))
+      ),
+  ]);
+  if (employeeRows.length !== new Set(employeeIds).size)
+    throw new Error("Employee not found or not permitted");
+
   const allAssignments = await db
     .select()
     .from(metricAssignments)
@@ -84,9 +97,17 @@ export async function getEmployeeMetricsBatch(
 
   const defIds = assignments.map((a) => a.metricDefinitionId);
 
-  const [definitions, currentValues, previousValues, targets, visibilityOverrides, employeeRows] =
+  const [definitions, currentValues, previousValues, targets, visibilityOverrides] =
     await Promise.all([
-      db.select().from(metricDefinitions).where(inArray(metricDefinitions.id, defIds)),
+      db
+        .select()
+        .from(metricDefinitions)
+        .where(
+          and(
+            inArray(metricDefinitions.id, defIds),
+            eq(metricDefinitions.organizationId, ctx.organizationId)
+          )
+        ),
       db
         .select()
         .from(metricValues)
@@ -114,10 +135,6 @@ export async function getEmployeeMetricsBatch(
         .select()
         .from(metricVisibilityOverrides)
         .where(inArray(metricVisibilityOverrides.metricDefinitionId, defIds)),
-      db
-        .select({ id: employees.id, line: employees.line })
-        .from(employees)
-        .where(inArray(employees.id, employeeIds)),
     ]);
 
   const defMap = new Map(definitions.map((d) => [d.id, d]));

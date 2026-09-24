@@ -8,7 +8,7 @@ import { ArrowLeft, Users } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { teams, users } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { resolveReportingWeek, shiftWeekStart } from "@/lib/utils";
 
 export default async function OneOnOnePage({
@@ -48,13 +48,13 @@ export default async function OneOnOnePage({
   const team = await db
     .select()
     .from(teams)
-    .where(eq(teams.id, teamId))
+    .where(and(eq(teams.id, teamId), eq(teams.organizationId, ctx.organizationId)))
     .then((r) => r[0]);
   const managerUser = ctx.userId
     ? await db
         .select({ displayName: users.displayName })
         .from(users)
-        .where(eq(users.id, ctx.userId))
+        .where(and(eq(users.id, ctx.userId), eq(users.organizationId, ctx.organizationId)))
         .then((r) => r[0])
     : null;
 

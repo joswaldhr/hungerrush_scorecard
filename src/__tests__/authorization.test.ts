@@ -1,3 +1,4 @@
+// @vitest-environment node
 // Integration tests against a real Postgres database (see vitest.config.mts's
 // test.env, which points DATABASE_URL at the docker-compose db by default).
 // Locally: `docker compose up -d && pnpm db:migrate` before `pnpm test`.

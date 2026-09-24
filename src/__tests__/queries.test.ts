@@ -1,3 +1,4 @@
+// @vitest-environment node
 // Integration tests against a real Postgres database (see vitest.config.mts's
 // test.env, which points DATABASE_URL at the docker-compose db by default).
 // Locally: `docker compose up -d && pnpm db:migrate` before `pnpm test`.
@@ -9,6 +10,7 @@
 // integration/query-composition layer those units get wired into.
 
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
+import { randomUUID } from "node:crypto";
 import { db } from "@/lib/db";
 import {
   organizations,
@@ -218,6 +220,75 @@ function ctxFor(employeeIds: string[]): ManagerContext {
 }
 
 describe("getEmployeeMetricsBatch", () => {
+  it("rejects foreign teams/employees and ignores a corrupt cross-organization metric assignment", async () => {
+    const foreignOrg = randomUUID(),
+      foreignTeam = randomUUID(),
+      foreignEmployee = randomUUID(),
+      foreignMetric = randomUUID();
+    await db
+      .insert(organizations)
+      .values({ id: foreignOrg, name: "Synthetic foreign organization" });
+    try {
+      await db.insert(teams).values({
+        id: foreignTeam,
+        organizationId: foreignOrg,
+        name: "Foreign team",
+        slug: foreignTeam,
+      });
+      await db.insert(employees).values({
+        id: foreignEmployee,
+        organizationId: foreignOrg,
+        displayName: "Foreign employee",
+      });
+      await db.insert(metricDefinitions).values({
+        id: foreignMetric,
+        organizationId: foreignOrg,
+        name: "Foreign metric",
+        key: "foreign_metric",
+        valueType: "count",
+        direction: "neutral",
+      });
+      await db
+        .insert(metricAssignments)
+        .values({ metricDefinitionId: foreignMetric, teamId: MENUFY_TEAM_ID });
+      await expect(
+        getEmployeeMetricsBatch(
+          ctxFor([RESTAURANT_EMP_ID]),
+          [RESTAURANT_EMP_ID],
+          foreignTeam,
+          PERIOD_START,
+          PREVIOUS_PERIOD_START
+        )
+      ).rejects.toThrow("not permitted");
+      await expect(
+        getEmployeeMetricsBatch(
+          ctxFor([foreignEmployee]),
+          [foreignEmployee],
+          MENUFY_TEAM_ID,
+          PERIOD_START,
+          PREVIOUS_PERIOD_START
+        )
+      ).rejects.toThrow("not permitted");
+      const rows = await getEmployeeMetricsBatch(
+        ctxFor([RESTAURANT_EMP_ID]),
+        [RESTAURANT_EMP_ID],
+        MENUFY_TEAM_ID,
+        PERIOD_START,
+        PREVIOUS_PERIOD_START
+      );
+      expect(rows.get(RESTAURANT_EMP_ID)?.map((row) => row.definitionId)).not.toContain(
+        foreignMetric
+      );
+    } finally {
+      await db
+        .delete(metricAssignments)
+        .where(eq(metricAssignments.metricDefinitionId, foreignMetric));
+      await db.delete(metricDefinitions).where(eq(metricDefinitions.id, foreignMetric));
+      await db.delete(employees).where(eq(employees.id, foreignEmployee));
+      await db.delete(teams).where(eq(teams.id, foreignTeam));
+      await db.delete(organizations).where(eq(organizations.id, foreignOrg));
+    }
+  });
   it("resolves a range target end-to-end and evaluates status correctly", async () => {
     const batch = await getEmployeeMetricsBatch(
       ctxFor([RESTAURANT_EMP_ID]),

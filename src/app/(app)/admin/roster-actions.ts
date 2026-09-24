@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/auth/authorization";
 import { assertOrganizationResource } from "@/lib/auth/organization-scope";
 import { db } from "@/lib/db";
 import { employees, teams, teamMemberships } from "@/lib/db/schema";
-import { eq, and, isNull } from "drizzle-orm";
+import { eq, and, isNull, lte, gt, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 export async function createEmployee(formData: FormData) {
@@ -78,15 +78,23 @@ export async function setEmployeeTeam(formData: FormData) {
     await assertOrganizationResource(organizationId, "employee", employeeId, tx);
     if (teamId) await assertOrganizationResource(organizationId, "team", teamId, tx);
     // Serialize team changes for the same employee before closing memberships.
-    await tx
-      .select({ id: employees.id })
+    const [current] = await tx
+      .select({ id: employees.id, primaryTeamId: employees.primaryTeamId })
       .from(employees)
       .where(and(eq(employees.id, employeeId), eq(employees.organizationId, organizationId)))
       .for("update");
+    if (!current) throw new Error("Employee not found or not permitted");
+    if (current.primaryTeamId === teamId) return;
     await tx
       .update(teamMemberships)
       .set({ effectiveTo: today })
-      .where(and(eq(teamMemberships.employeeId, employeeId), isNull(teamMemberships.effectiveTo)));
+      .where(
+        and(
+          eq(teamMemberships.employeeId, employeeId),
+          lte(teamMemberships.effectiveFrom, today),
+          or(isNull(teamMemberships.effectiveTo), gt(teamMemberships.effectiveTo, today))
+        )
+      );
 
     if (teamId) {
       await tx.insert(teamMemberships).values({
@@ -98,7 +106,7 @@ export async function setEmployeeTeam(formData: FormData) {
 
     await tx
       .update(employees)
-      .set({ primaryTeamId: teamId })
+      .set({ primaryTeamId: teamId, line: null, updatedAt: new Date() })
       .where(and(eq(employees.id, employeeId), eq(employees.organizationId, organizationId)));
   });
 
