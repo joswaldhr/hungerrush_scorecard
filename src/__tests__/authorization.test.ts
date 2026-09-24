@@ -12,7 +12,7 @@ import {
   teamMemberships,
   managerAssignments,
 } from "@/lib/db/schema";
-import { inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
 let mockViewAsCookie: string | undefined;
 vi.mock("next/headers", () => ({
@@ -341,6 +341,32 @@ describe("assertCanAccessEmployee / assertCanAccessTeam", () => {
 });
 
 describe("listManagersForViewAs", () => {
+  it("uses inclusive starts and exclusive ends, including currently active finite assignments", async () => {
+    const [assignment] = await db
+      .insert(managerAssignments)
+      .values({
+        managerUserId: OUTSIDER_ID,
+        teamId: TEAM_ID,
+        assignmentType: "team",
+        effectiveFrom: "2999-01-01",
+      })
+      .returning();
+    try {
+      expect((await listManagersForViewAs(ORG_ID)).map((m) => m.userId)).not.toContain(OUTSIDER_ID);
+      await db
+        .update(managerAssignments)
+        .set({ effectiveFrom: "2020-01-01", effectiveTo: "2999-01-01" })
+        .where(eq(managerAssignments.id, assignment!.id));
+      expect((await listManagersForViewAs(ORG_ID)).map((m) => m.userId)).toContain(OUTSIDER_ID);
+      await db
+        .update(managerAssignments)
+        .set({ effectiveTo: new Date().toISOString().slice(0, 10) })
+        .where(eq(managerAssignments.id, assignment!.id));
+      expect((await listManagersForViewAs(ORG_ID)).map((m) => m.userId)).not.toContain(OUTSIDER_ID);
+    } finally {
+      await db.delete(managerAssignments).where(eq(managerAssignments.id, assignment!.id));
+    }
+  });
   it("includes active managers with a real assignment, not admins/outsiders/other orgs", async () => {
     const managers = await listManagersForViewAs(ORG_ID);
     const ids = managers.map((m) => m.userId);

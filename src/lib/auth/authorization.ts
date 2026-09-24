@@ -162,6 +162,7 @@ export interface ManagerOption {
 }
 
 export async function listManagersForViewAs(organizationId: string): Promise<ManagerOption[]> {
+  const today = new Date().toISOString().slice(0, 10);
   const rows = await db
     .select({
       userId: users.id,
@@ -174,7 +175,8 @@ export async function listManagersForViewAs(organizationId: string): Promise<Man
     .leftJoin(teams, eq(managerAssignments.teamId, teams.id))
     .where(
       and(
-        isNull(managerAssignments.effectiveTo),
+        lte(managerAssignments.effectiveFrom, today),
+        or(isNull(managerAssignments.effectiveTo), gt(managerAssignments.effectiveTo, today)),
         eq(users.status, "active"),
         eq(users.organizationId, organizationId)
       )

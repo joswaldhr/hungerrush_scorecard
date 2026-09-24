@@ -1,16 +1,10 @@
 "use server";
 
-import { requireAdmin } from "@/lib/auth/authorization";
+import { requireAdmin, getManagerContext, getAssignedEmployees } from "@/lib/auth/authorization";
 import { assertOrganizationResource, organizationMetricIds } from "@/lib/auth/organization-scope";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import {
-  metricVisibilityOverrides,
-  metricDefinitions,
-  teamMemberships,
-  managerAssignments,
-  employees,
-} from "@/lib/db/schema";
+import { metricVisibilityOverrides, metricDefinitions, users } from "@/lib/db/schema";
 import { eq, and, isNull, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -147,46 +141,13 @@ export async function getManagerScorecardCount(managerUserId: string): Promise<n
   const { organizationId } = await requireAdmin();
   await assertOrganizationResource(organizationId, "user", managerUserId);
 
-  const assignments = await db
-    .select()
-    .from(managerAssignments)
-    .where(
-      and(
-        eq(managerAssignments.managerUserId, managerUserId),
-        isNull(managerAssignments.effectiveTo)
-      )
-    );
-
-  const teamIds = assignments.filter((a) => a.teamId !== null).map((a) => a.teamId!);
-  const directEmployeeIds = assignments
-    .filter((a) => a.employeeId !== null)
-    .map((a) => a.employeeId!);
-
-  let teamEmployeeIds: string[] = [];
-  if (teamIds.length > 0) {
-    const memberships = await db
-      .select({ employeeId: teamMemberships.employeeId })
-      .from(teamMemberships)
-      .where(and(inArray(teamMemberships.teamId, teamIds), isNull(teamMemberships.effectiveTo)));
-    teamEmployeeIds = memberships.map((m) => m.employeeId);
-  }
-
-  const allEmployeeIds = [...new Set([...teamEmployeeIds, ...directEmployeeIds])];
-  if (allEmployeeIds.length === 0) return 0;
-
-  // Match getAssignedEmployees' convention -- don't count a since-deactivated
-  // employee toward "scorecards affected", or the confirmation dialog
-  // overstates the real impact of a bulk hide.
-  const activeEmployees = await db
-    .select({ id: employees.id })
-    .from(employees)
-    .where(
-      and(
-        inArray(employees.id, allEmployeeIds),
-        eq(employees.employmentStatus, "active"),
-        eq(employees.organizationId, organizationId)
-      )
-    );
-
-  return activeEmployees.length;
+  const [manager] = await db
+    .select({ email: users.email })
+    .from(users)
+    .where(and(eq(users.id, managerUserId), eq(users.organizationId, organizationId)))
+    .limit(1);
+  if (!manager) return 0;
+  const ctx = await getManagerContext(manager.email);
+  if (!ctx) return 0;
+  return (await getAssignedEmployees(ctx)).length;
 }

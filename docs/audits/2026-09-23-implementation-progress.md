@@ -1109,3 +1109,16 @@ Combined baseline: 385 tests across 48 files passed before the latest ten regres
 cases; those ten pass in focused runs. Full lint passed, TypeScript passed after fixing
 the rehearsal script's optional-row narrowing, and the production build passed. The
 latest target changes receive the final combined checks below.
+
+## Assignment-date consistency — September 24
+
+The affected-scorecard preview now reuses the manager authorization context and active
+employee query, including organization, employment status and effective dates. The View
+as picker uses inclusive assignment starts and exclusive ends rather than only selecting
+open-ended assignments. Forty-four focused admin/authorization/visibility cases pass,
+including future/ended exclusions and currently active finite assignments. TypeScript
+and focused lint pass. The preceding combined check passed 395 tests across 48 files.
+
+The attempted 390px browser viewport override did not affect the actual page viewport
+(measured 1869px); it was reset. Desktop rendering of both expanded metric disclosures
+was verified, but mobile behavior is not claimed verified from that attempt.

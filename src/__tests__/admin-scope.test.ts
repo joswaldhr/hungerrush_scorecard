@@ -47,7 +47,11 @@ import {
   getScopedReconciliationRun,
   getScopedReconciliationRuns,
 } from "@/lib/domain/reconciliation/queries";
-import { getManagerContext, type ManagerContext } from "@/lib/auth/authorization";
+import {
+  getManagerContext,
+  getAssignedEmployees,
+  type ManagerContext,
+} from "@/lib/auth/authorization";
 
 const a = {
   org: randomUUID(),
@@ -450,6 +454,7 @@ describe("reconciliation employee boundary", () => {
       effectiveFrom: "2999-01-01",
     });
     expect(await getManagerContext(email)).toBeNull();
+    expect(await getManagerScorecardCount(a.user)).toBe(0);
   });
 
   it("does not retain access through a membership closed today", async () => {
@@ -466,5 +471,8 @@ describe("reconciliation employee boundary", () => {
     const current = await getManagerContext(email);
     expect(current?.assignedEmployeeIds).not.toContain(a.employee);
     expect(current?.assignedEmployeeIds).toContain(coworker);
+    expect(await getManagerScorecardCount(a.user)).toBe(
+      (await getAssignedEmployees(current!)).length
+    );
   });
 });
