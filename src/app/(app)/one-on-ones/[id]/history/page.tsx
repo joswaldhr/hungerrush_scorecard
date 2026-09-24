@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getAssignedEmployees, getEffectiveManagerContext } from "@/lib/auth/authorization";
 import { getStoredMetricHistory } from "@/lib/domain/metrics/history";
+import { getStoredMetricRevisions } from "@/lib/domain/metrics/revisions";
 import { formatMetricValue, type ValueType } from "@/lib/domain/metrics/types";
 import { formatWeekRangeLong } from "@/lib/utils";
 
@@ -23,6 +24,9 @@ export default async function StoredPeriodsPage({
   const { period } = await searchParams;
   const history = await getStoredMetricHistory(ctx, id, period);
   if (period && !history.selected) notFound();
+  const revisions = history.selected
+    ? await getStoredMetricRevisions(ctx, id, history.selected.start, history.selected.end)
+    : null;
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-12">
       <Link
@@ -90,7 +94,9 @@ export default async function StoredPeriodsPage({
               <tbody>
                 {history.rows.map((row) => (
                   <tr key={row.id} className="border-t border-border">
-                    <th className="p-3 font-medium">{row.name}</th>
+                    <th scope="row" className="p-3 font-medium">
+                      {row.name}
+                    </th>
                     <td className="p-3 tabular-nums">
                       {row.numericValue === null
                         ? "—"
@@ -104,6 +110,76 @@ export default async function StoredPeriodsPage({
               </tbody>
             </table>
           </section>
+          <details className="rounded-lg border border-border p-4">
+            <summary className="cursor-pointer font-medium">Retained previous values</summary>
+            <p className="my-3 text-sm text-muted-foreground">
+              These are previous values saved before a sync replaced them. They are not added to the
+              current values above. Corrections made before revision tracking began may not be
+              available.
+            </p>
+            {revisions?.rows.length ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="text-muted-foreground">
+                    <tr>
+                      {[
+                        "Metric",
+                        "Previous value",
+                        "Recorded quality",
+                        "Source observed (UTC)",
+                        "Calculation version",
+                        "Revision recorded (UTC)",
+                      ].map((label) => (
+                        <th key={label} scope="col" className="p-3 font-medium">
+                          {label}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {revisions.rows.map((row) => (
+                      <tr key={row.id} className="border-t border-border">
+                        <th scope="row" className="p-3 font-medium">
+                          {row.name}
+                        </th>
+                        {row.evidence ? (
+                          <>
+                            <td className="p-3 tabular-nums">
+                              {row.evidence.numericValue === null
+                                ? "Unavailable"
+                                : formatMetricValue(
+                                    row.evidence.numericValue,
+                                    row.unit,
+                                    row.valueType as ValueType
+                                  )}
+                            </td>
+                            <td className="p-3">{row.evidence.quality}</td>
+                            <td className="p-3">{row.evidence.observedAt ?? "Unavailable"}</td>
+                            <td className="p-3">{row.evidence.calculationVersion}</td>
+                          </>
+                        ) : (
+                          <td colSpan={4} className="p-3">
+                            Revision evidence unavailable
+                          </td>
+                        )}
+                        <td className="p-3">{row.recordedAt.toISOString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {revisions.hasMore && (
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    Showing the latest 25 retained values for this interval. Earlier revisions
+                    remain stored.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No previous values retained for this interval.
+              </p>
+            )}
+          </details>
         </>
       ) : (
         <p className="text-muted-foreground">No stored reporting periods are available.</p>

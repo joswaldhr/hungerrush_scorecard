@@ -368,5 +368,10 @@ running this publisher. Null/omitted normalized facts can retract prior values, 
 zero remains numeric. Explicit reviewed replays can bypass payload hashing; scheduled
 and manual routes do not. Source-row publication locks preserve predecessor consistency;
 employee/period reattribution requires a separate reviewed repair. Revision organization
-ownership is derived through sync_runs -> data_sources; future readers must enforce that
-scope. Details, limitations, validation, and rollout are in the dated implementation report.
+ownership is derived through sync_runs -> data_sources. The stored-period page exposes the
+latest 25 prior metric values for its selected interval, using assigned-employee, employee
+organization, definition organization and source organization guards. It projects only
+metric evidence, validates its shape and never returns raw snapshots or source payloads.
+Null or malformed evidence remains unavailable; earlier corrections are not fabricated.
+The view discloses when older retained revisions exceed its bound. Details, limitations,
+validation, and rollout are in the dated implementation report.

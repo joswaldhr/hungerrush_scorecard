@@ -12,10 +12,10 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Published to Preview | Navigation, organization and manager-scope regression tests; keyboard checks passed |
 | Atomic sync publication and freshness | Published to Preview | PostgreSQL rollback tests; untouched periods preserved; live hosted trigger still gated |
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 395 tests across 48 files in the latest full run; subsequent 44 focused authorization cases passed, including one added case; lint, TypeScript and final production build passed |
+| Combined implementation validation | Passed | 420 tests across 50 files passed locally; CI run 36030090645 at d25d777 passed on PostgreSQL 18, including lint, TypeScript and production build; latest revision-reader checks recorded below |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database and core UI checks passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; cron runtime check remains open |
-| Zendesk completeness | Search and Talk safety guards implemented locally | 2,415-ticket export reconciled; Talk boundary verified; historical/agent semantics remain open |
+| Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; full-week export failed actor completeness verification; reviewed human provenance and independent parity remain open |
 | Production rollout / historical repair | Not performed | Release gate below must be completed first |
 
 ## Git checkpoints
@@ -69,7 +69,7 @@ Remaining production release gates:
 Stored reporting intervals, observation ordering, sync leases, and atomic reconciliation
 claims now have regression coverage. Remaining risks include historical targets/team context,
 independent source reconciliation, worst-case fetch budgets/resumability, revision retention,
-authorized revision-history inspection, and production rollout of visibility uniqueness. See the
+complete historical revision inspection, and production rollout of visibility uniqueness. See the
 audit for the full backlog; these safeguards do not complete the entire overhaul.
 
 ## Repeatable local staging rehearsal
@@ -1213,3 +1213,19 @@ report, employee totals or database writes were produced. The aggregate failure 
 whether accounts were deleted, missing or duplicated. The probe now supports explicit
 one-to-seven-day ranges and aggregate stage diagnostics; no further full-week retry is
 justified without addressing resumability and account-resolution evidence.
+
+## Scoped correction-history inspection — September 24
+
+Stored reporting periods now disclose up to 25 newest retained prior metric values, with
+source-observation and revision-recorded timestamps, quality and calculation version. Null
+remains unavailable and zero remains zero. Older retained rows are explicitly disclosed
+when the view is bounded; this is not a complete paginated revision archive. The reader
+checks assigned-employee scope, employee organization, metric-definition organization and
+sync source organization. It projects only safe metric fields, never raw snapshot/source
+payloads. Malformed evidence is shown as unavailable. Two PostgreSQL regressions cover
+cross-scope exclusion, private-field stripping, null/zero, malformed evidence, interval
+validation and newest-first bounds. No migration or data rewrite is needed.
+
+The preceding full local run passed 420 tests across 50 files. GitHub CI run 36030090645
+at d25d777 also passed PostgreSQL 18 tests, lint, TypeScript and production build. Correction
+history is validated separately before its next deployment.
