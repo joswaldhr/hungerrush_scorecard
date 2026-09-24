@@ -26,9 +26,12 @@ after this test until the source/attribution activation gates are met.
 Credential setup requires a fresh staging-only `ACTION_SHADOW_SECRET` saved in this service
 and in the audit branch's Vercel Preview environment. When set, the shadow route accepts
 only this dedicated credential; it does not accept the general CRON_SECRET. The old sync
-route remains independently authenticated. No scheduler credential has been generated or
-saved yet. The browser tool requires an at-action confirmation before granting this new
-access, even though routine implementation and staging work are already authorized.
+route remains independently authenticated. The user authorized the pending access setup on
+September 24. A fresh credential is now saved as a sensitive variable only for the audit
+branch's Vercel Preview and staged in the Railway scheduler service. An owner-only local
+recovery copy uses Windows DPAPI; the temporary plaintext handoff was removed. The scheduler
+has no database or vendor credentials. Authentication-only probe variables are staged;
+deployment and runtime outcomes are recorded below when verified.
 
 Relevant vendor documentation: [functions](https://docs.railway.com/functions) and
 [cron jobs](https://docs.railway.com/cron-jobs). No paid plan upgrade or production changes

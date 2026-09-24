@@ -46,6 +46,11 @@ checks here. Do not push master as a staging shortcut: it is the production bran
    routine checkpoint approval. Complete the technical release gates before production
    rollout or historical replay. Use this ledger after a restart rather than older handoffs.
 
+The user subsequently reaffirmed full execution permission in direct response to the
+staging scheduler access gate. That pending setup is authorized; do not ask for it again.
+The dedicated token is saved only in this branch's Preview settings and staged in the
+Railway scheduler. Deploy and verify the auth-only rehearsal before recording it complete.
+
 ## Release gate and next work
 
 **Next priority: Zendesk completeness and metric semantics.** Hosted staging isolation,
