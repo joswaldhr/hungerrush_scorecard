@@ -1036,3 +1036,13 @@ migration report for the guards and rollback compatibility. All 360 tests across
 pass, including automatic/pending line preservation and clearing after a manual team change.
 Full lint/format, TypeScript and production build also passed before publishing the application
 changes. Ordinary deployments do not run the explicit migration operator.
+
+## Scorecard keyboard controls — September 24
+
+Week navigation no longer blurs the active control. The date picker focuses its input,
+closes on Escape with focus returned, and closes when focus leaves. Its trigger and popup
+now share an outside-click boundary. Period labels announce changes politely.
+The export menu exposes menu semantics, Arrow/Home/End navigation, Escape focus return,
+and outside-focus dismissal without stealing focus. Three new interaction regressions
+plus nine existing navigation/export cases pass; focused lint and TypeScript pass.
+Hosted browser verification follows the Preview deployment.

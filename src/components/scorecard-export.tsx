@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useId, useRef } from "react";
 import { toast } from "sonner";
 import {
   Download,
@@ -64,7 +64,25 @@ export function ScorecardExport({
   const [linkCopied, setLinkCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
 
-  const close = useCallback(() => setOpen(false), []);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const openAtEnd = useRef(false);
+  const menuId = useId();
+  const close = useCallback((restoreFocus = true) => {
+    setOpen(false);
+    if (restoreFocus) triggerRef.current?.focus();
+  }, []);
+  useEffect(() => {
+    if (!open) return;
+    const items = menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]');
+    items?.[openAtEnd.current ? items.length - 1 : 0]?.focus();
+    const outside = (event: MouseEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) close(false);
+    };
+    document.addEventListener("mousedown", outside);
+    return () => document.removeEventListener("mousedown", outside);
+  }, [open, close]);
 
   async function handlePdf() {
     const el = document.getElementById(SCORECARD_CAPTURE_ID);
@@ -195,24 +213,44 @@ export function ScorecardExport({
   }
 
   const menuItems = [
-    { label: "Download as PDF", icon: FileText, action: handlePdf },
-    { label: "Download as PNG", icon: Image, action: handlePng },
-    { label: "Export to CSV", icon: Table2, action: handleCsv },
-    { label: "Copy as text", icon: ClipboardList, action: handleTextCopy },
+    { label: "Download as PDF", icon: FileText, action: "pdf" },
+    { label: "Download as PNG", icon: Image, action: "png" },
+    { label: "Export to CSV", icon: Table2, action: "csv" },
+    { label: "Copy as text", icon: ClipboardList, action: "text" },
     { label: "divider", icon: null, action: null },
     {
       label: linkCopied ? "Link copied!" : "Copy link",
       icon: linkCopied ? Check : Copy,
-      action: handleCopyLink,
+      action: "link",
     },
-    { label: "Print", icon: Printer, action: handlePrint },
+    { label: "Print", icon: Printer, action: "print" },
   ];
 
   return (
-    <div className="relative print:hidden">
+    <div
+      ref={rootRef}
+      className="relative print:hidden"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) close(false);
+      }}
+    >
       <button
+        ref={triggerRef}
         type="button"
-        onClick={() => setOpen(!open)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={open ? menuId : undefined}
+        onClick={() => {
+          openAtEnd.current = false;
+          setOpen(!open);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            openAtEnd.current = event.key === "ArrowUp";
+            setOpen(true);
+          }
+        }}
         disabled={exporting}
         className={cn(
           "flex items-center gap-1.5 rounded-lg border border-border/80 bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted transition-colors",
@@ -225,28 +263,73 @@ export function ScorecardExport({
       </button>
 
       {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={close} />
-          <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-border/80 bg-card shadow-lg z-50 py-1">
-            {menuItems.map((item, i) => {
-              if (item.label === "divider") {
-                return <div key={i} className="my-1 border-t border-border/60" />;
-              }
-              const Icon = item.icon!;
-              return (
-                <button
-                  key={item.label}
-                  type="button"
-                  onClick={item.action!}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground hover:bg-muted transition-colors text-left"
-                >
-                  <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </>
+        <div
+          ref={menuRef}
+          id={menuId}
+          role="menu"
+          aria-label="Export scorecard"
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault();
+              close();
+              return;
+            }
+            const items = Array.from(
+              event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')
+            );
+            const current = items.indexOf(document.activeElement as HTMLButtonElement);
+            let next: number;
+            if (event.key === "ArrowDown") next = (current + 1) % items.length;
+            else if (event.key === "ArrowUp") next = (current - 1 + items.length) % items.length;
+            else if (event.key === "Home") next = 0;
+            else if (event.key === "End") next = items.length - 1;
+            else return;
+            event.preventDefault();
+            items[next]?.focus();
+          }}
+          className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-border/80 bg-card shadow-lg z-50 py-1"
+        >
+          {menuItems.map((item, i) => {
+            if (item.label === "divider") {
+              return <div key={i} role="separator" className="my-1 border-t border-border/60" />;
+            }
+            const Icon = item.icon!;
+            return (
+              <button
+                key={item.label}
+                type="button"
+                role="menuitem"
+                tabIndex={-1}
+                onClick={() => {
+                  switch (item.action) {
+                    case "pdf":
+                      void handlePdf();
+                      break;
+                    case "png":
+                      void handlePng();
+                      break;
+                    case "csv":
+                      handleCsv();
+                      break;
+                    case "text":
+                      void handleTextCopy();
+                      break;
+                    case "link":
+                      void handleCopyLink();
+                      break;
+                    case "print":
+                      handlePrint();
+                      break;
+                  }
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground hover:bg-muted transition-colors text-left"
+              >
+                <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
       )}
     </div>
   );
