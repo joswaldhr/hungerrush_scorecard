@@ -1146,3 +1146,12 @@ cancelled. The local test configuration also rejects URL query/fragment override
 connecting, reusing the fixture endpoint guard. Existing Docker data is not upgraded in
 place. Local full checks pass: 410 tests across 50 files, lint and TypeScript; the final
 build and first remote CI run are verified separately below.
+
+## Connector diagnostic minimization — September 24
+
+Zendesk failures and retry logs now retain the API path template, HTTP code and retry
+information without search queries, account hostnames or numeric resource IDs. This also
+prevents email/actor lookup parameters from reaching persisted sync errors. Two additional
+regressions pass with the eight existing request-boundary cases; focused lint passed.
+The preceding 410-test full check and local production build passed. GitHub's first
+PostgreSQL 18 CI run has passed migrations and tests; final completion is checked below.

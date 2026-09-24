@@ -52,6 +52,8 @@ export async function zendeskGet<T>(
   ) {
     throw new Error("Zendesk request rejected: URL is outside the configured API");
   }
+  // Query strings can contain emails/actor IDs; resource paths can identify tickets.
+  const diagnosticPath = parsed.pathname.replace(/\/\d+(?=\/|\.|$)/g, "/[id]");
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     if (stats) stats.requests++;
@@ -67,10 +69,10 @@ export async function zendeskGet<T>(
         Number.isFinite(parsedRetryAfter) && parsedRetryAfter > 0 ? parsedRetryAfter : 60;
       if (options?.deferRateLimit) throw new SourceRetryLaterError(retryAfter * 1000);
       if (attempt === MAX_RETRIES) {
-        throw new Error(`Zendesk GET ${pathOrUrl} rate-limited after ${MAX_RETRIES} retries`);
+        throw new Error(`Zendesk GET ${diagnosticPath} rate-limited after ${MAX_RETRIES} retries`);
       }
       const waitMs = Math.min(retryAfter, 120) * 1000;
-      logger.warn("Zendesk 429 rate limit", { path: pathOrUrl, retryAfter, attempt });
+      logger.warn("Zendesk 429 rate limit", { path: diagnosticPath, retryAfter, attempt });
       if (stats) {
         stats.retries429++;
         stats.backoffWaitMs += waitMs;
@@ -80,11 +82,11 @@ export async function zendeskGet<T>(
     }
 
     if (!res.ok) {
-      throw new Error(`Zendesk GET ${pathOrUrl} failed: ${res.status} ${res.statusText}`);
+      throw new Error(`Zendesk GET ${diagnosticPath} failed: HTTP ${res.status}`);
     }
 
     return (await res.json()) as T;
   }
 
-  throw new Error(`Zendesk GET ${pathOrUrl} exhausted retries`);
+  throw new Error(`Zendesk GET ${diagnosticPath} exhausted retries`);
 }

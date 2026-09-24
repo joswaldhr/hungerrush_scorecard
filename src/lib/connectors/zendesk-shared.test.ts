@@ -9,8 +9,44 @@ vi.mock("@/lib/env", () => ({
 }));
 import { zendeskGet } from "./zendesk-shared";
 import { SourceRetryLaterError } from "./source-retry";
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+  vi.useRealTimers();
+});
 describe("Zendesk credential destination", () => {
+  it("omits search parameters and resource IDs from persisted failure reasons", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: false, status: 404, statusText: "private response" })
+    );
+    await expect(
+      zendeskGet("/tickets/12345/audits/67890.json?email=private@example.test")
+    ).rejects.toThrow("Zendesk GET /api/v2/tickets/[id]/audits/[id].json failed: HTTP 404");
+  });
+  it("omits actor IDs and queries from retry logs while retaining retry diagnostics", async () => {
+    vi.useFakeTimers();
+    const sink = vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce({ status: 429, headers: new Headers({ "Retry-After": "1" }) })
+        .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ users: [] }) })
+    );
+    const pending = zendeskGet("/users/show_many.json?ids=12345&email=private@example.test");
+    await vi.runAllTimersAsync();
+    await pending;
+    expect(sink).toHaveBeenCalledOnce();
+    const output = String(sink.mock.calls[0]?.[0]);
+    expect(output).not.toContain("12345");
+    expect(output).not.toContain("private");
+    expect(JSON.parse(output).context).toMatchObject({
+      path: "/api/v2/users/show_many.json",
+      retryAfter: 1,
+      attempt: 0,
+    });
+  });
   it("defers a rate-limited resumable page without sleeping or issuing another request", async () => {
     const fetch = vi
       .fn()
