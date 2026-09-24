@@ -9,10 +9,10 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Area | Status | Evidence / remaining work |
 |---|---|---|
 | Audit and metric contracts | Complete | Baseline at ab062c3; audit and contracts in this directory |
-| Reporting context and scope safeguards | Implemented locally | Navigation, organization and manager-scope regression tests |
-| Atomic sync publication and freshness | Implemented locally | PostgreSQL rollback tests; untouched periods preserved |
-| Null corrections and predecessor evidence | Implemented locally | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 360 tests across 43 files, full lint/format, TypeScript and production build |
+| Reporting context and scope safeguards | Published to Preview | Navigation, organization and manager-scope regression tests; keyboard checks passed |
+| Atomic sync publication and freshness | Published to Preview | PostgreSQL rollback tests; untouched periods preserved; live hosted trigger still gated |
+| Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
+| Combined implementation validation | Passed | 395 tests across 48 files in the latest full run; subsequent 44 focused authorization cases passed, including one added case; lint, TypeScript and final production build passed |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database and core UI checks passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; cron runtime check remains open |
 | Zendesk completeness | Search and Talk safety guards implemented locally | 2,415-ticket export reconciled; Talk boundary verified; historical/agent semantics remain open |
@@ -49,7 +49,7 @@ checks here. Do not push master as a staging shortcut: it is the production bran
 ## Release gate and next work
 
 **Next priority: Zendesk completeness and metric semantics.** Hosted staging isolation,
-separate Entra sign-in, migration 0012, and synthetic null/zero UI checks are complete.
+separate Entra sign-in, migrations through 0014, and synthetic null/zero UI checks are complete.
 Automatic Preview deployment is enabled for the audit branch. See the dated hosted reports
 and latest entries below; earlier isolation checkpoints are historical.
 
@@ -60,7 +60,7 @@ Remaining production release gates:
 - Complete Zendesk completeness work and review metric semantics before historical repair.
 - Refresh the validated September 24 production backup immediately before rollout and record
   the deployment rollback reference. The encrypted snapshot restored successfully and both
-  pending migrations preserved application data. Portable recovery/provider PITR remain open.
+  pending migrations through 0014 preserved application data. Portable recovery/provider PITR remain open.
   Code rollback retains the additive revision table; data reversal requires reviewed snapshots.
 - Preserve reviewable staged results and a concrete rollback plan before production changes.
   The user authorized continued execution on September 24; routine checkpoint approval is
@@ -69,14 +69,14 @@ Remaining production release gates:
 Stored reporting intervals, observation ordering, sync leases, and atomic reconciliation
 claims now have regression coverage. Remaining risks include historical targets/team context,
 independent source reconciliation, worst-case fetch budgets/resumability, revision retention,
-authorized revision-history inspection, and hosted rollout of visibility uniqueness. See the
+authorized revision-history inspection, and production rollout of visibility uniqueness. See the
 audit for the full backlog; these safeguards do not complete the entire overhaul.
 
 ## Repeatable local staging rehearsal
 
 `scripts/staging-rehearsal.ts` requires an explicit loopback administration URL and never
 loads .env. Each execution creates a uniquely named database, applies migrations through
-0011, inserts a synthetic legacy value of 42, applies 0012/0013, and runs the real publisher
+0011, inserts a synthetic legacy value of 42, applies migrations through 0014, and runs the real publisher
 with a synthetic connector. It asserts prior-row preservation, null correction, revision
 history, confirmed zero, failed-sync preservation, and migration idempotency. It retains
 the database for inspection and writes a credential-free report to
