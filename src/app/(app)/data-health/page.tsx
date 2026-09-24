@@ -12,6 +12,7 @@ import { CheckCircle, AlertTriangle, XCircle, Clock, Database } from "lucide-rea
 import { SyncNowButton } from "./actions";
 import { AutoRefresh } from "./auto-refresh";
 import { sourceSupport } from "@/lib/connectors/source-support";
+import { syncRunHealth } from "@/lib/connectors/sync-run-health";
 
 function syncStatusIcon(status: string) {
   switch (status) {
@@ -20,6 +21,7 @@ function syncStatusIcon(status: string) {
     case "running":
       return <Clock className="h-4 w-4 text-status-watch" aria-hidden="true" />;
     case "failed":
+    case "lease_expired":
       return <XCircle className="h-4 w-4 text-status-attention" aria-hidden="true" />;
     default:
       return <AlertTriangle className="h-4 w-4 text-muted-foreground" aria-hidden="true" />;
@@ -29,19 +31,6 @@ function syncStatusIcon(status: string) {
 function sanitizeErrorMessage(message: string): string {
   if (message.length > 200) return message.slice(0, 200) + "...";
   return message;
-}
-
-function syncStatusLabel(status: string): string {
-  switch (status) {
-    case "completed":
-      return "Healthy";
-    case "running":
-      return "Syncing";
-    case "failed":
-      return "Failed";
-    default:
-      return "Unknown";
-  }
 }
 
 export default async function DataHealthPage() {
@@ -84,12 +73,20 @@ export default async function DataHealthPage() {
         ? await db.select().from(syncErrors).where(eq(syncErrors.syncRunId, latestRun.id)).limit(5)
         : [];
 
-      return { source, latestRun: latestRun ?? null, errors: errorList };
+      return {
+        source,
+        latestRun: latestRun ?? null,
+        errors: errorList,
+        health: syncRunHealth(latestRun ?? null, nowTs),
+      };
     })
   );
 
   const anySyncing = sourceHealth.some(
-    (s) => sourceSupport(s.source.type) === "supported" && s.latestRun?.status === "running"
+    (s) =>
+      sourceSupport(s.source.type) === "supported" &&
+      s.source.status === "configured" &&
+      s.health.status === "running"
   );
 
   return (
@@ -103,15 +100,16 @@ export default async function DataHealthPage() {
       </header>
 
       <div className="space-y-3">
-        {sourceHealth.map(({ source, latestRun, errors }) => {
+        {sourceHealth.map(({ source, latestRun, errors, health }) => {
           const support = sourceSupport(source.type);
+          const enabled = source.status === "configured";
           return (
             <Card key={source.id}>
               <CardContent className="py-4 px-5">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    {support === "supported" && latestRun ? (
-                      syncStatusIcon(latestRun.status)
+                    {support === "supported" && enabled && latestRun ? (
+                      syncStatusIcon(health.status)
                     ) : (
                       <Database className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                     )}
@@ -123,11 +121,11 @@ export default async function DataHealthPage() {
                   <div className="flex items-center gap-3">
                     <Badge
                       variant={
-                        support !== "supported"
+                        support !== "supported" || !enabled
                           ? "secondary"
-                          : latestRun?.status === "completed"
+                          : health.status === "completed"
                             ? "default"
-                            : latestRun?.status === "failed"
+                            : ["failed", "lease_expired"].includes(health.status)
                               ? "destructive"
                               : "secondary"
                       }
@@ -136,11 +134,15 @@ export default async function DataHealthPage() {
                         ? "Retired"
                         : support === "unsupported"
                           ? "Not supported"
-                          : latestRun
-                            ? syncStatusLabel(latestRun.status)
-                            : "Never synced"}
+                          : !enabled
+                            ? source.status === "disabled"
+                              ? "Disabled"
+                              : "Not enabled"
+                            : health.label}
                     </Badge>
-                    {support === "supported" && <SyncNowButton dataSourceType={source.type} />}
+                    {support === "supported" && enabled && (
+                      <SyncNowButton dataSourceType={source.type} />
+                    )}
                   </div>
                 </div>
 
@@ -158,7 +160,7 @@ export default async function DataHealthPage() {
                 )}
 
                 <div className="mt-2">
-                  {support === "supported" ? (
+                  {support === "supported" && enabled ? (
                     <DataFreshness
                       freshnessAt={source.lastSuccessfulSyncAt?.toISOString() ?? null}
                       now={nowTs}
@@ -167,10 +169,16 @@ export default async function DataHealthPage() {
                     <p className="text-xs text-muted-foreground">
                       {support === "retired"
                         ? "This integration is retired. Historical records are retained."
-                        : "Synchronization is not available for this source."}
+                        : !enabled
+                          ? "Synchronization is disabled for this source. Stored values are retained."
+                          : "Synchronization is not available for this source."}
                     </p>
                   )}
                 </div>
+
+                {support === "supported" && enabled && health.explanation && (
+                  <p className="mt-2 text-xs text-status-attention">{health.explanation}</p>
+                )}
 
                 {errors.length > 0 && (
                   <div className="mt-3 space-y-1">

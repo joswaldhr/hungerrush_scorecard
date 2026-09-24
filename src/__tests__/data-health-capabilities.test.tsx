@@ -1,6 +1,16 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import { expect, it, vi } from "vitest";
+import { beforeEach, expect, it, vi } from "vitest";
+const state = vi.hoisted(() => ({
+  sourceStatus: "configured",
+  run: null as Record<string, unknown> | null,
+  refresh: vi.fn(),
+}));
+beforeEach(() => {
+  state.sourceStatus = "configured";
+  state.run = null;
+  state.refresh.mockClear();
+});
 vi.mock("@/lib/auth", () => ({
   auth: async () => ({ user: { email: "synthetic@example.invalid" } }),
 }));
@@ -21,10 +31,14 @@ vi.mock("@/lib/db", () => ({
                 id: type,
                 type,
                 displayName: type,
+                status: state.sourceStatus,
                 lastSuccessfulSyncAt: null,
               }))
             ),
-            { orderBy: () => ({ limit: async () => [] }) }
+            {
+              orderBy: () => ({ limit: async () => (state.run ? [state.run] : []) }),
+              limit: async () => [],
+            }
           ),
       }),
     }),
@@ -35,7 +49,12 @@ vi.mock("@/app/(app)/data-health/actions", () => ({
     <button>Sync {dataSourceType}</button>
   ),
 }));
-vi.mock("@/app/(app)/data-health/auto-refresh", () => ({ AutoRefresh: () => null }));
+vi.mock("@/app/(app)/data-health/auto-refresh", () => ({
+  AutoRefresh: ({ active }: { active: boolean }) => {
+    state.refresh(active);
+    return null;
+  },
+}));
 import DataHealthPage from "@/app/(app)/data-health/page";
 
 it("offers sync only for the shipped connector and labels retired/unsupported sources honestly", async () => {
@@ -58,3 +77,38 @@ it("offers sync only for the shipped connector and labels retired/unsupported so
     container.remove();
   }
 });
+
+it.each(["disabled", "configured"])(
+  "does not keep polling an expired job (%s source)",
+  async (sourceStatus) => {
+    state.sourceStatus = sourceStatus;
+    state.run = {
+      id: "run",
+      status: "running",
+      startedAt: new Date("2020-01-01T00:00:00Z"),
+      metadataJson: {},
+      recordsIngested: 0,
+      recordsNormalized: 0,
+      recordsSkipped: 0,
+      errorCount: 0,
+    };
+    Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
+    const container = document.createElement("div");
+    document.body.append(container);
+    const root = createRoot(container);
+    try {
+      await act(async () => root.render(await DataHealthPage()));
+      expect(state.refresh).toHaveBeenCalledWith(false);
+      expect(container.textContent).not.toContain("Syncing");
+      expect(container.textContent).toContain(
+        sourceStatus === "disabled" ? "Disabled" : "Interrupted"
+      );
+      expect(container.querySelectorAll("button")).toHaveLength(
+        sourceStatus === "disabled" ? 0 : 1
+      );
+    } finally {
+      await act(async () => root.unmount());
+      container.remove();
+    }
+  }
+);

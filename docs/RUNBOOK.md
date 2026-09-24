@@ -42,6 +42,11 @@ old last-good value is not proof of current source success. Do not repeatedly la
 exports after rate limits or completeness failures. Resume the retained checkpoint or use
 bounded diagnostics. Preserve aggregate failure evidence without raw IDs or employee payloads.
 
+Data Health labels completed work Published, not verified metric correctness. Interrupted
+means its running lease expired; a new sync can reclaim it through the transactional lease
+mechanism. Viewing the page does not modify the job. Disabled sources cannot start sync work,
+and a source disabled during a publishing fetch cannot commit that publication.
+
 ## Migration and recovery checks
 
 `scripts/staging-rehearsal.ts` creates a disposable local database and rehearses upgrades and

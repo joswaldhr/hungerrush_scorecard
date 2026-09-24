@@ -1383,3 +1383,16 @@ open, and interval selection reset the cursor. At settled 320px layout, main cli
 widths were 241/241 and disclosure widths 207/207; its table remained internally scrollable.
 Viewport emulation was reset. CI run 36042686344 passed all 444 tests across 53 files,
 lint, TypeScript and production build. Staging credentials were not retained in plaintext.
+
+## Operational source health — September 24
+
+Data Health now labels disabled/unrecognized source states and omits their Sync Now control.
+Running jobs whose lease has expired display Interrupted with a recovery explanation;
+legacy jobs use the same ten-minute fallback as lease takeover. Invalid lease metadata
+remains Unknown. Expired jobs no longer keep the page polling indefinitely. Completed
+runs are labeled Published rather than Healthy, since publication is not semantic validation.
+The health API retains raw stored status and adds derived operational health and sync enablement.
+These are read-only projections; no job rows are reaped or rewritten by viewing health.
+
+Six status/UI regression cases, TypeScript and focused lint passed, including renewed lease
+boundaries, legacy expiry, invalid metadata, disabled controls and polling suppression.

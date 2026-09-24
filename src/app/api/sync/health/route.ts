@@ -5,6 +5,7 @@ import { dataSources, syncRuns, syncErrors } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
+import { syncRunHealth } from "@/lib/connectors/sync-run-health";
 
 function sanitizeErrorMessage(message: string): string {
   if (message.length > 200) return message.slice(0, 200) + "...";
@@ -23,6 +24,7 @@ export async function GET() {
   }
 
   try {
+    const now = Date.now();
     const sources = await db
       .select()
       .from(dataSources)
@@ -50,6 +52,8 @@ export async function GET() {
           type: source.type,
           displayName: source.displayName,
           status: source.status,
+          syncEnabled: source.status === "configured" && source.type === "zendesk",
+          operationalHealth: syncRunHealth(latestRun ?? null, now),
           lastSuccessfulSyncAt: source.lastSuccessfulSyncAt?.toISOString() ?? null,
           latestRun: latestRun
             ? {
