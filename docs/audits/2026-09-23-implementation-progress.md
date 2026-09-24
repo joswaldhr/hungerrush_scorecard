@@ -845,3 +845,21 @@ the two-record difference is not proof of an ingestion error or independent reco
 An explicit correction/re-observation policy is required before activation. Scheduler
 ownership, hosted trigger/restart, source binding, immutable employee attribution,
 automation classification, retention, and monitoring remain open.
+
+## Source identity verification — September 24
+
+Added a strict exact-email identity observer and read-only aggregate census. It rejects
+ambiguous accounts, incomplete search pagination, and contradictory observations, and strips
+unrelated personal fields. Four focused regressions, TypeScript, formatting, and focused
+ESLint passed. The preceding worker checkpoint (d3f7854) is READY on Vercel Preview.
+
+The live read-only check covered all 97 Zendesk mappings: 73 exact matches, 24 missing,
+zero ambiguous matches, and zero duplicate numeric IDs. All 62 currently active Cadence
+employees matched active, unsuspended agent/admin accounts. Current mappings have no stored
+verification timestamps or numeric IDs. No identity rows or metric values were modified.
+`2026-09-24-action-identity-census.json` and `2026-09-24-action-identity-verification.json`
+retain aggregate results; account identifiers and email addresses are omitted.
+
+This verifies current matching, not historical roles, human account ownership, or manual
+action attribution. Immutable mapping observations and an explicit late-correction policy
+remain the next implementation work before enabling version-2 calculations.

@@ -118,3 +118,22 @@ This account uses Vercel Hobby, whose cron jobs run at most daily. No unsupporte
 cron schedule was added. Activation needs a supported scheduler, a real authenticated hosted
 trigger/restart rehearsal, source-account binding verification, retention policy, and
 monitoring of incomplete days. No plan upgrade or hosted activation has occurred.
+
+## Current identity evidence
+
+The September 24 read-only census found 97 source-scoped Cadence mappings, all email-based,
+with no verification timestamps, stored numeric IDs, cross-organization rows, or duplicate
+employee/source pairs. Exact-email searches at Zendesk matched 73 accounts and found no
+match for 24. All 62 currently active Cadence employees matched active, unsuspended Zendesk
+agent/admin accounts. No ambiguous or duplicate numeric-ID matches were observed. Across
+all matches, one account was suspended and one was an end user. These counts can overlap.
+
+`zendesk-action-identity.ts` verifies all search pages before accepting one exact match,
+rejects contradictory versions and incomplete pagination, and strips unrelated personal
+fields. The read-only census script retains only aggregate counts in its report. It does
+not update identity verification timestamps or persist numeric IDs. Source `verified`
+describes email verification; it does not establish human ownership or manual activity.
+See the [Zendesk users contract](https://developer.zendesk.com/api-reference/ticketing/users/users/).
+
+Historical eligibility and automation attribution remain unresolved. A frozen observation
+of today's matching accounts must not be presented as a historical employee-role snapshot.

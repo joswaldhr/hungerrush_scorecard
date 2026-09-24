@@ -1,0 +1,38 @@
+{
+  "observedAt": "2026-09-24T13:42:38.806Z",
+  "readOnly": true,
+  "identities": {
+    "total": 97,
+    "active_employee": 62,
+    "verification_timestamp_present": 0,
+    "numeric_external_id": 0,
+    "email_external_id": 97,
+    "organization_mismatch": 0
+  },
+  "methods": [
+    {
+      "method": "email",
+      "count": 36
+    },
+    {
+      "method": "roster_discovery",
+      "count": 61
+    }
+  ],
+  "duplicates": {
+    "employee_source_pairs_with_multiple_identities": 0
+  },
+  "vendorVerification": {
+    "completed": true,
+    "matched": 73,
+    "missing": 24,
+    "ambiguous": 0,
+    "currentActiveEmployeeAgent": 62,
+    "suspended": 1,
+    "inactive": 0,
+    "unverifiedEmail": 0,
+    "endUser": 1,
+    "duplicateNumericId": 0
+  },
+  "limitation": "Current exact-email Zendesk matches only. Numeric IDs were checked transiently, not persisted. Does not establish historical eligibility, service accounts, or manual human action."
+}
