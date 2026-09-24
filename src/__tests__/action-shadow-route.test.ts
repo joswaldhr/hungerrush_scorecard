@@ -66,7 +66,15 @@ it.each(["disabled", "retired", "unknown"])(
     mocks.env.ACTION_SHADOW_SOURCE_ID = "source";
     mocks.select.mockReturnValue({
       from: () => ({
-        where: async () => [{ id: "source", organizationId: "org", type: "zendesk", status }],
+        where: async () => [
+          {
+            id: "source",
+            organizationId: "org",
+            type: "zendesk",
+            configurationReference: "zendesk-account:synthetic",
+            status,
+          },
+        ],
       }),
     });
     expect((await GET(request())).status).toBe(503);
@@ -82,12 +90,40 @@ it("accepts only the dedicated scheduler credential when configured", async () =
   expect(await (await GET(request("dedicated-fixture-secret"))).json()).toEqual({ enabled: false });
   expect(mocks.select).not.toHaveBeenCalled();
 });
+it.each([null, "zendesk-account:another"])(
+  "rejects source account binding %s before lease or vendor work",
+  async (configurationReference) => {
+    mocks.env.ACTION_SHADOW_SOURCE_ID = "source";
+    mocks.select.mockReturnValue({
+      from: () => ({
+        where: async () => [
+          {
+            id: "source",
+            organizationId: "org",
+            type: "zendesk",
+            status: "configured",
+            configurationReference,
+          },
+        ],
+      }),
+    });
+    expect((await GET(request())).status).toBe(503);
+    expect(mocks.claim).not.toHaveBeenCalled();
+    expect(mocks.run).not.toHaveBeenCalled();
+  }
+);
 it("uses only the configured source's organization and a bounded worker", async () => {
   mocks.env.ACTION_SHADOW_SOURCE_ID = "source";
   mocks.select.mockReturnValue({
     from: () => ({
       where: async () => [
-        { id: "source", organizationId: "org", status: "configured", type: "zendesk" },
+        {
+          id: "source",
+          organizationId: "org",
+          status: "configured",
+          type: "zendesk",
+          configurationReference: "zendesk-account:synthetic",
+        },
       ],
     }),
   });
@@ -100,7 +136,12 @@ it("uses only the configured source's organization and a bounded worker", async 
   });
   expect(mocks.next).toHaveBeenCalledWith("org", "source");
   expect(mocks.run).toHaveBeenCalledWith(
-    { organizationId: "org", dataSourceId: "source", workerLeaseToken: "fixture-token" },
+    {
+      organizationId: "org",
+      dataSourceId: "source",
+      workerLeaseToken: "fixture-token",
+      workerAccountReference: "zendesk-account:synthetic",
+    },
     expect.any(Function)
   );
   expect(mocks.release).toHaveBeenCalledWith("source", "fixture-token");
@@ -111,7 +152,13 @@ it("does not start vendor work when another invocation owns the lease", async ()
   mocks.select.mockReturnValue({
     from: () => ({
       where: async () => [
-        { id: "source", organizationId: "org", status: "configured", type: "zendesk" },
+        {
+          id: "source",
+          organizationId: "org",
+          status: "configured",
+          type: "zendesk",
+          configurationReference: "zendesk-account:synthetic",
+        },
       ],
     }),
   });
@@ -127,7 +174,13 @@ it("releases the lease after worker failure", async () => {
   mocks.select.mockReturnValue({
     from: () => ({
       where: async () => [
-        { id: "source", organizationId: "org", status: "configured", type: "zendesk" },
+        {
+          id: "source",
+          organizationId: "org",
+          status: "configured",
+          type: "zendesk",
+          configurationReference: "zendesk-account:synthetic",
+        },
       ],
     }),
   });

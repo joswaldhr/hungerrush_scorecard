@@ -14,6 +14,7 @@ import { SourceRetryLaterError } from "@/lib/connectors/source-retry";
 
 const organizationId = randomUUID(),
   dataSourceId = randomUUID();
+const accountReference = "zendesk-account:synthetic";
 const base = {
   organizationId,
   dataSourceId,
@@ -72,6 +73,7 @@ beforeAll(async () => {
     id: dataSourceId,
     organizationId,
     type: "zendesk",
+    configurationReference: accountReference,
     status: "configured",
     displayName: "Synthetic write fence",
   });
@@ -80,7 +82,7 @@ beforeEach(async () => {
   await db.delete(sourceRecords).where(eq(sourceRecords.dataSourceId, dataSourceId));
   await db
     .update(dataSources)
-    .set({ status: "configured", type: "zendesk" })
+    .set({ status: "configured", type: "zendesk", configurationReference: accountReference })
     .where(eq(dataSources.id, dataSourceId));
 });
 afterAll(async () => {
@@ -89,9 +91,9 @@ afterAll(async () => {
   await db.delete(organizations).where(eq(organizations.id, organizationId));
 });
 async function ownedScope() {
-  const lease = await claimActionShadowLease(organizationId, dataSourceId);
+  const lease = await claimActionShadowLease(organizationId, dataSourceId, accountReference);
   if (!lease.acquired) throw new Error("Synthetic lease unavailable");
-  return { ...base, workerLeaseToken: lease.token };
+  return { ...base, workerLeaseToken: lease.token, workerAccountReference: accountReference };
 }
 async function expire() {
   await db
@@ -115,6 +117,31 @@ async function retainedTypes() {
   ).map((row) => row.type);
 }
 for (const stream of streams) {
+  it.each(["legacy", "another_account"] as const)(
+    `${stream.name}: refuses %s checkpoints before sending a page request`,
+    async (kind) => {
+      const original = kind === "legacy" ? base : await ownedScope();
+      await stream.advance(original, async () => stream.page);
+      await expire();
+      if (kind === "another_account")
+        await db
+          .update(dataSources)
+          .set({ configurationReference: "zendesk-account:another" })
+          .where(eq(dataSources.id, dataSourceId));
+      const reference = kind === "legacy" ? accountReference : "zendesk-account:another";
+      const lease = await claimActionShadowLease(organizationId, dataSourceId, reference);
+      if (!lease.acquired) throw new Error("Synthetic lease unavailable");
+      const get = vi.fn();
+      await expect(
+        stream.advance(
+          { ...base, workerLeaseToken: lease.token, workerAccountReference: reference },
+          get
+        )
+      ).rejects.toThrow("unbound or different account");
+      expect(get).not.toHaveBeenCalled();
+      expect((await stream.read(base)).pages).toBe(1);
+    }
+  );
   it(`${stream.name}: refuses an already disabled source before checkpoint creation or fetch`, async () => {
     const scope = await ownedScope();
     await db
@@ -125,11 +152,18 @@ for (const stream of streams) {
     await expect(stream.advance(scope, get)).rejects.toThrow("no longer enabled");
     expect(get).not.toHaveBeenCalled();
     expect(await retainedTypes()).toEqual(["zendesk_action_worker_lease_v2_shadow"]);
-    await expect(claimActionShadowLease(organizationId, dataSourceId)).rejects.toThrow(
-      "no longer enabled"
-    );
+    await expect(
+      claimActionShadowLease(organizationId, dataSourceId, accountReference)
+    ).rejects.toThrow("no longer enabled");
   });
-  it.each(["disabled", "type_changed", "expired", "replaced", "rate_limited"] as const)(
+  it.each([
+    "disabled",
+    "type_changed",
+    "account_changed",
+    "expired",
+    "replaced",
+    "rate_limited",
+  ] as const)(
     `${stream.name}: rejects %s authority after fetch and retains its durable cursor`,
     async (change) => {
       const scope = await ownedScope();
@@ -145,6 +179,11 @@ for (const stream of streams) {
               .update(dataSources)
               .set({ type: "staging" })
               .where(eq(dataSources.id, dataSourceId));
+          else if (change === "account_changed")
+            await db
+              .update(dataSources)
+              .set({ configurationReference: "zendesk-account:another" })
+              .where(eq(dataSources.id, dataSourceId));
           else {
             await expire();
             if (change === "replaced") await ownedScope();
@@ -152,7 +191,7 @@ for (const stream of streams) {
           if (change === "rate_limited") throw new SourceRetryLaterError(60_000);
           return stream.page;
         })
-      ).rejects.toThrow(/no longer (enabled|owned)/);
+      ).rejects.toThrow(/no longer (enabled|owned)|account binding changed/);
       expect(await stream.read(base)).toMatchObject({
         pages: 0,
         status: "pending",

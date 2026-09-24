@@ -250,3 +250,18 @@ with all writes confined to synthetic loopback fixtures. All three matched; the 
 observation retained active status after the fixture roster was changed to inactive, and
 retry performed no vendor requests. Sampled email fixture rows were removed afterward.
 The retained report is `2026-09-24-identity-snapshot-rehearsal.json`.
+
+### Hosted account and lease continuity
+
+Before a hosted shadow request acquires a lease, the source must be configured, owned by
+the selected organization, and have `configuration_reference = zendesk-account:<subdomain>`
+matching the credential's validated API subdomain. This is non-secret account routing metadata,
+not a credential or proof of human authorship. No metadata is inferred from display names.
+Each checkpoint persists that reference. A missing/legacy or different reference prevents
+resumption, including already completed checkpoints; account changes require a separate source.
+
+Checkpoint creation, page commits and retry deferrals lock the source and verify its status,
+account reference and current unexpired lease token. A source disabled/rebound during network
+work, or a worker whose lease expires or is replaced, cannot advance the checkpoint. Offline
+observation tools are explicitly separate and remain organization-scoped; existing production
+metadata and publishing behavior are unchanged by these shadow-only guards.

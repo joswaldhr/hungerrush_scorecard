@@ -17,6 +17,7 @@ beforeAll(async () => {
     id: dataSourceId,
     organizationId,
     type: "zendesk",
+    configurationReference: "zendesk-account:synthetic",
     status: "configured",
     displayName: "Synthetic lease",
   });
@@ -28,8 +29,8 @@ afterAll(async () => {
 });
 it("allows one concurrent owner, recovers expiry, and rejects stale-owner release", async () => {
   const claims = await Promise.all([
-    claimActionShadowLease(organizationId, dataSourceId),
-    claimActionShadowLease(organizationId, dataSourceId),
+    claimActionShadowLease(organizationId, dataSourceId, "zendesk-account:synthetic"),
+    claimActionShadowLease(organizationId, dataSourceId, "zendesk-account:synthetic"),
   ]);
   expect(claims.filter((claim) => claim.acquired)).toHaveLength(1);
   const owner = claims.find((claim) => claim.acquired)!;
@@ -40,15 +41,28 @@ it("allows one concurrent owner, recovers expiry, and rejects stale-owner releas
       payloadJson: sql`jsonb_set(${sourceRecords.payloadJson}, '{expiresAt}', '"2000-01-01T00:00:00.000Z"'::jsonb)`,
     })
     .where(eq(sourceRecords.dataSourceId, dataSourceId));
-  const next = await claimActionShadowLease(organizationId, dataSourceId);
+  const next = await claimActionShadowLease(
+    organizationId,
+    dataSourceId,
+    "zendesk-account:synthetic"
+  );
   expect(next.acquired).toBe(true);
   if (!next.acquired) throw new Error("Missing successor");
   await releaseActionShadowLease(dataSourceId, owner.token);
-  expect((await claimActionShadowLease(organizationId, dataSourceId)).acquired).toBe(false);
+  expect(
+    (await claimActionShadowLease(organizationId, dataSourceId, "zendesk-account:synthetic"))
+      .acquired
+  ).toBe(false);
   await releaseActionShadowLease(dataSourceId, next.token);
-  const afterRelease = await claimActionShadowLease(organizationId, dataSourceId);
+  const afterRelease = await claimActionShadowLease(
+    organizationId,
+    dataSourceId,
+    "zendesk-account:synthetic"
+  );
   expect(afterRelease.acquired).toBe(true);
 });
 it("rejects a different organization before acquiring a lease", async () => {
-  await expect(claimActionShadowLease(randomUUID(), dataSourceId)).rejects.toThrow();
+  await expect(
+    claimActionShadowLease(randomUUID(), dataSourceId, "zendesk-account:synthetic")
+  ).rejects.toThrow();
 });

@@ -14,6 +14,7 @@ const CHECKPOINT = "zendesk_ticket_action_checkpoint_v2_shadow";
 const EVENT = "zendesk_ticket_action_event_v2_shadow";
 const stateSchema = z.object({
   version: z.literal(1),
+  accountReference: z.string().optional(),
   start: z.string().datetime(),
   endExclusive: z.string().datetime(),
   path: z.string(),
@@ -43,6 +44,7 @@ function initialState(scope: TicketActionExportScope): State {
   const watermark = Math.floor(scope.start.getTime() / 1000);
   return {
     version: 1,
+    ...(scope.workerAccountReference ? { accountReference: scope.workerAccountReference } : {}),
     start: scope.start.toISOString(),
     endExclusive: scope.endExclusive.toISOString(),
     path: `/incremental/ticket_events.json?start_time=${watermark}&per_page=1000`,
@@ -87,6 +89,12 @@ async function checkpoint(scope: TicketActionExportScope, create = true) {
       )
     );
   if (!row && create) throw new Error("Ticket action checkpoint unavailable");
+  if (
+    row &&
+    scope.workerLeaseToken !== undefined &&
+    stateSchema.parse(row.payloadJson).accountReference !== scope.workerAccountReference
+  )
+    throw new Error("Ticket action checkpoint belongs to an unbound or different account");
   return row;
 }
 

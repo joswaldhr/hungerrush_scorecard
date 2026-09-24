@@ -5,6 +5,7 @@ import { dataSources } from "@/lib/db/schema";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import { zendeskGet } from "@/lib/connectors/zendesk-shared";
+import { assertZendeskAccountBinding } from "@/lib/connectors/zendesk-account-binding";
 import { nextActionShadowScope, runActionShadowBatch } from "@/lib/connectors/action-shadow-worker";
 import {
   claimActionShadowLease,
@@ -37,13 +38,17 @@ export async function GET(request: Request) {
       .where(eq(dataSources.id, env.ACTION_SHADOW_SOURCE_ID));
     if (!source || source.type !== "zendesk" || source.status !== "configured")
       return NextResponse.json({ error: "Invalid shadow source configuration" }, { status: 503 });
-    const lease = await claimActionShadowLease(source.organizationId, source.id);
+    const accountReference = assertZendeskAccountBinding(
+      source.configurationReference,
+      env.ZENDESK_SUBDOMAIN
+    );
+    const lease = await claimActionShadowLease(source.organizationId, source.id, accountReference);
     if (!lease.acquired)
       return NextResponse.json({ enabled: true, busy: true, retryAt: lease.retryAt });
     try {
       const scope = await nextActionShadowScope(source.organizationId, source.id);
       const result = await runActionShadowBatch(
-        { ...scope, workerLeaseToken: lease.token },
+        { ...scope, workerLeaseToken: lease.token, workerAccountReference: accountReference },
         (path) => zendeskGet(path, undefined, { deferRateLimit: true })
       );
       return NextResponse.json({ enabled: true, ...result });

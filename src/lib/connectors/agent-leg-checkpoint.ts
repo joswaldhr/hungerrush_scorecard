@@ -14,6 +14,7 @@ const CHECKPOINT = "zendesk_agent_leg_checkpoint_v2_shadow";
 const EVENT = "zendesk_agent_leg_record_v2_shadow";
 const stateSchema = z.object({
   version: z.literal(1),
+  accountReference: z.string().optional(),
   start: z.string().datetime(),
   endExclusive: z.string().datetime(),
   path: z.string(),
@@ -45,6 +46,7 @@ function initialState(scope: AgentLegExportScope): State {
   const watermark = Math.floor(scope.start.getTime() / 1000);
   return {
     version: 1,
+    ...(scope.workerAccountReference ? { accountReference: scope.workerAccountReference } : {}),
     start: scope.start.toISOString(),
     endExclusive: scope.endExclusive.toISOString(),
     path: `/channels/voice/stats/incremental/legs.json?start_time=${watermark}`,
@@ -89,6 +91,12 @@ async function checkpoint(scope: AgentLegExportScope, create = true) {
       )
     );
   if (!row && create) throw new Error("Agent leg checkpoint unavailable");
+  if (
+    row &&
+    scope.workerLeaseToken !== undefined &&
+    stateSchema.parse(row.payloadJson).accountReference !== scope.workerAccountReference
+  )
+    throw new Error("Agent leg checkpoint belongs to an unbound or different account");
   return row;
 }
 

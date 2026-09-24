@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { dataSources, sourceRecords } from "@/lib/db/schema";
 import { assertOrganizationResource } from "@/lib/auth/organization-scope";
+import { isZendeskAccountReference } from "./zendesk-account-binding";
 
 const TYPE = "zendesk_action_worker_lease_v2_shadow";
 const KEY = "source";
@@ -20,6 +21,7 @@ export interface ActionShadowWriteScope {
   dataSourceId: string;
   /** Hosted workers must fence every write; offline observation tools omit this token. */
   workerLeaseToken?: string;
+  workerAccountReference?: string;
 }
 type ShadowTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -44,6 +46,11 @@ export async function assertActionShadowWrite(
     .for("update");
   if (!source || source.type !== "zendesk" || source.status !== "configured")
     throw new Error("Shadow source is no longer enabled");
+  if (
+    !isZendeskAccountReference(scope.workerAccountReference) ||
+    source.configurationReference !== scope.workerAccountReference
+  )
+    throw new Error("Shadow source account binding changed");
   const [row] = await tx
     .select()
     .from(sourceRecords)
@@ -60,7 +67,11 @@ export async function assertActionShadowWrite(
 }
 
 /** Six minutes exceeds the hosted invocation limit; database time owns expiry. */
-export async function claimActionShadowLease(organizationId: string, dataSourceId: string) {
+export async function claimActionShadowLease(
+  organizationId: string,
+  dataSourceId: string,
+  accountReference: string
+) {
   return db.transaction(async (tx) => {
     const [source] = await tx
       .select()
@@ -70,6 +81,11 @@ export async function claimActionShadowLease(organizationId: string, dataSourceI
     await assertOrganizationResource(organizationId, "source", dataSourceId, tx);
     if (!source || source.type !== "zendesk" || source.status !== "configured")
       throw new Error("Shadow source is no longer enabled");
+    if (
+      !isZendeskAccountReference(accountReference) ||
+      source.configurationReference !== accountReference
+    )
+      throw new Error("Shadow source account binding does not match");
     const [clock] = await tx.execute<{ now: string; expires: string }>(sql`
       select clock_timestamp()::text as now, (clock_timestamp() + interval '6 minutes')::text as expires
     `);

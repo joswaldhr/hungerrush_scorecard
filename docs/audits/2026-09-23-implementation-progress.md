@@ -12,7 +12,7 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Published to Preview | Navigation, organization and manager-scope regression tests; keyboard checks passed |
 | Atomic sync publication and freshness | Published to Preview | PostgreSQL rollback tests; untouched periods preserved; live hosted trigger still gated |
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 450 tests across 54 files passed in PostgreSQL 18 CI run 36045473743 at 968aec0, including lint, TypeScript and production build |
+| Combined implementation validation | Passed | 464 tests across 55 files passed in PostgreSQL 18 CI run 36045957005 at 1e29a76, including lint, TypeScript and production build |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database, core UI and worker authentication passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; scoped short-lived GitHub identity verified; live ingestion and recurring scheduling remain open |
 | Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; full-week export failed actor completeness verification; reviewed human provenance and independent parity remain open |
@@ -1436,3 +1436,18 @@ Forty-four route/lease/worker/PostgreSQL checkpoint tests and TypeScript passed,
 14 new cases across ticket and Talk streams: pre-fetch disablement, mid-fetch disablement,
 source-type changes, expiry, successor takeover, rate-limit deferral and successful resume.
 No live ingestion was enabled and no production rows were modified.
+
+## Shadow account continuity — September 24
+
+Hosted shadow ingestion now requires an exact non-secret `zendesk-account:<subdomain>`
+configuration reference on the selected source. The credential's configured API host must
+match before lease acquisition; each write transaction rechecks that reference. Checkpoints
+retain the account reference and reject resumption from a different or unbound legacy account.
+Changing a source's account requires a separate source/checkpoint rather than mixing history.
+This binds account routing, not human activity attribution, and is limited to the shadow worker.
+No existing production source metadata was changed or guessed from display names.
+
+Sixty-two focused cases passed, plus TypeScript, lint and formatting. Coverage includes malformed
+subdomains, missing/wrong source bindings, mid-fetch rebinding and completed legacy/foreign
+checkpoints that must be refused before a vendor request. All 464 tests at the preceding
+write-authority checkpoint passed PostgreSQL 18 CI runs 36045957005/36045950693 and build.
