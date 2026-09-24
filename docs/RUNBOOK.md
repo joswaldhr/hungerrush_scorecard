@@ -29,12 +29,24 @@ Preview uses its separate Railway database and Entra sign-in registration. Check
 commit/deployment before claiming hosted verification. Use synthetic rows for UI tests and
 keep current/previous periods, null/zero and unauthorized cases distinct.
 
-The [scheduler report](audits/2026-09-24-shadow-scheduler.md) owns service IDs, current
-disablement and the hosted authentication evidence. `ACTION_SHADOW_SOURCE_ID` is unset.
+The [scheduler report](audits/2026-09-24-shadow-scheduler.md) owns service IDs, activation
+state and the hosted authentication evidence. Do not infer current flags from old checkpoints.
 The dedicated shadow token does not authenticate the normal publishing cron route. A passed
 auth-only probe means no source work happened; it does not prove live ingestion or restart.
-Do not reuse the revoked temporary share session. Durable recurring Preview authentication,
-source binding, live restart, retention and human attribution remain activation work.
+Do not reuse the revoked temporary share session. The staging GitHub workflow uses short-lived
+OIDC identity restricted to this repository, branch, workflow, audience and GitHub environment;
+Vercel accepts it for Preview only. Pushes and default manual dispatches perform auth-only checks.
+The explicit manual `ingest=true` input requests one bounded shadow batch in each of two fresh
+processes. It never publishes employee metrics. Recurring scheduling remains disabled.
+
+Hosted shadow ingestion requires `configuration_reference = zendesk-account:<subdomain>`
+on the selected source. Its account and current lease are checked at each checkpoint write;
+legacy/unbound and foreign-account checkpoints cannot resume. Use a separate source when
+changing accounts. The guarded `staging-shadow-observation.ts` script provisions/reports/disables
+only the fixed observation source in the approved Railway database. Its separate organization
+has no users, employees or metric definitions. Source evidence strips comments, subjects and
+unrelated fields. Inspect aggregate reports and disable the source/clear branch vendor settings
+after a controlled rehearsal. Retention and human attribution remain separate activation work.
 
 For a sync incident, inspect the source-scoped run outcome, last successful source observation,
 lease/checkpoint state and sanitized errors. A 200 response, a recomputation timestamp, or an

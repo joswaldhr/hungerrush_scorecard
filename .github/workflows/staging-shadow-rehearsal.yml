@@ -41,7 +41,7 @@ jobs:
           persist-credentials: false
       - name: Verify rehearsal request boundaries
         run: node --test scripts/probe-shadow-oidc.test.mjs
-      - name: Verify short-lived Preview identity with ingestion disabled
+      - name: Verify Preview identity and any explicitly requested shadow batch
         uses: actions/github-script@v7
         env:
           ACTION_SHADOW_SECRET: ${{ secrets.ACTION_SHADOW_SECRET }}

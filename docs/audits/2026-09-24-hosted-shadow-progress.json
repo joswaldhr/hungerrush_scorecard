@@ -1,0 +1,58 @@
+{
+  "observedAt": "2026-09-24T19:18:28.783Z",
+  "mode": "report",
+  "stagingOnly": true,
+  "accountBindingMatched": true,
+  "sourceStatus": "configured",
+  "publication": {
+    "employees": 0,
+    "users": 0,
+    "definitions": 0,
+    "facts": 0,
+    "publishing_runs": 0
+  },
+  "records": [
+    {
+      "type": "zendesk_action_worker_lease_v2_shadow",
+      "count": 1
+    },
+    {
+      "type": "zendesk_agent_leg_checkpoint_v2_shadow",
+      "count": 1
+    },
+    {
+      "type": "zendesk_agent_leg_record_v2_shadow",
+      "count": 2997
+    },
+    {
+      "type": "zendesk_agent_leg_revision_v2_shadow",
+      "count": 2997
+    },
+    {
+      "type": "zendesk_ticket_action_checkpoint_v2_shadow",
+      "count": 1
+    },
+    {
+      "type": "zendesk_ticket_action_event_v2_shadow",
+      "count": 3004
+    }
+  ],
+  "checkpoints": [
+    {
+      "stream": "legs",
+      "start": "2026-09-23T00:00:00.000Z",
+      "endExclusive": "2026-09-24T00:00:00.000Z",
+      "pages": 3,
+      "status": "pending",
+      "notBefore": null
+    },
+    {
+      "stream": "tickets",
+      "start": "2026-09-23T00:00:00.000Z",
+      "endExclusive": "2026-09-24T00:00:00.000Z",
+      "pages": 3,
+      "status": "pending",
+      "notBefore": null
+    }
+  ]
+}

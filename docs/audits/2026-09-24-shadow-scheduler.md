@@ -113,3 +113,37 @@ This supplies a durable short-lived identity path for manually dispatched workfl
 It does not establish recurring scheduling: GitHub scheduled workflows require the default
 branch, and the Railway service remains disabled. Live source ingestion, checkpoint restart
 and source-account binding remain release gates. Production settings and data were not changed.
+
+## Controlled hosted ingestion and recovery — September 24, 19:17–19:24 UTC
+
+The account-bound worker at 0ccc9e2 deployed READY as dpl_6MwKNPjYJ17a1zYX34E37Qr7jcjc.
+A separate staging observation organization/source was provisioned with zero users, employees,
+metric definitions, normalized facts and publishing runs. One vendor `users/me` GET verified
+the configured active API account before temporary vendor credentials and the explicit source
+ID were set only for the audit Preview branch. Production environment entries were compared
+before/after and remained unchanged. [Zendesk Show Self](https://developer.zendesk.com/api-reference/ticketing/users/users/#show-self)
+documents the authentication check; it supplies no human-activity attribution proof.
+
+Explicit manual runs 36047104134 and 36047408195 executed four separate processes, each
+with fresh OIDC identity and an independently acquired lease. The first saved three pages
+per stream; the second resumed to six pages per stream and completed Talk. The third resumed
+tickets to 12 pages; the fourth finished page 13. Each invocation performed at most six fetch
+steps. Both streams cover September 23 UTC. Retained in-period counts are 11,954 ticket events
+and 2,532 Talk legs; raw record counts are higher because boundary pages include later records.
+
+An explicitly expired staging lease was then inserted only after both streams completed,
+without overwriting an existing lease. Run 36047700931 reclaimed it and completed; its two
+fresh processes each returned zero fetch steps. This verifies hosted expired-lease takeover
+and idempotent replay, not an actual platform crash. Post-run checkpoints/counts/fingerprints
+were unchanged and no lease remained. The local retained September 23 observation has matching
+counts and fingerprints for both streams. This is consistency across the same export model,
+not independent closed-week reconciliation or human attribution certification.
+
+At 19:24 UTC the observation source was disabled, and branch-specific vendor credentials and
+source opt-in were cleared with explicit blank overrides (so shared credentials are not inherited).
+Railway scheduling remains disabled. Private plaintext handoffs were removed. The cleanup
+Preview deployment and post-cleanup auth checks follow. The stripped observation records remain
+isolated for analysis; a durable retention policy and recurring scheduling are still open.
+
+Aggregate evidence: `2026-09-24-hosted-shadow-provision.json`, `-progress.json`,
+`-completed.json`, `-disabled.json`, and `2026-09-24-shadow-environment-comparison.json`.

@@ -12,9 +12,9 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Published to Preview | Navigation, organization and manager-scope regression tests; keyboard checks passed |
 | Atomic sync publication and freshness | Published to Preview | PostgreSQL rollback tests; untouched periods preserved; live hosted trigger still gated |
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 464 tests across 55 files passed in PostgreSQL 18 CI run 36045957005 at 1e29a76, including lint, TypeScript and production build |
+| Combined implementation validation | Passed | 482 tests across 56 files passed in PostgreSQL 18 CI run 36046548887 at 950afd7; both 0ccc9e2 CI runs also passed, including lint, TypeScript and production build |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
-| Hosted staging / production parity | Database, core UI and worker authentication passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; scoped short-lived GitHub identity verified; live ingestion and recurring scheduling remain open |
+| Hosted staging / production parity | Database, core UI, worker authentication and bounded ingestion/recovery passed | Separate PostgreSQL 18.6 and Entra app; four fresh ingestion processes, expired-lease takeover and replay verified; source disabled after rehearsal; recurring scheduling remains open |
 | Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; full-week export failed actor completeness verification; reviewed human provenance and independent parity remain open |
 | Production rollout / historical repair | Not performed | Release gate below must be completed first |
 
@@ -61,8 +61,9 @@ and latest entries below; earlier isolation checkpoints are historical.
 
 Remaining production release gates:
 
-- Hosted scheduler authentication passed on September 24. Complete durable recurring
-  Preview access and a controlled live-ingestion/checkpoint-restart rehearsal before activation.
+- Hosted worker authentication, controlled ingestion, fresh-process checkpoint resumption and
+  simulated expired-lease takeover passed on September 24. Complete recurring scheduling,
+  retention and operational monitoring before ongoing activation.
 - Complete Zendesk completeness work and review metric semantics before historical repair.
 - Refresh the validated September 24 production backup immediately before rollout and record
   the deployment rollback reference. The encrypted snapshot restored successfully and both
@@ -1451,3 +1452,24 @@ Sixty-two focused cases passed, plus TypeScript, lint and formatting. Coverage i
 subdomains, missing/wrong source bindings, mid-fetch rebinding and completed legacy/foreign
 checkpoints that must be refused before a vendor request. All 464 tests at the preceding
 write-authority checkpoint passed PostgreSQL 18 CI runs 36045957005/36045950693 and build.
+
+## Hosted source observation and recovery — September 24
+
+Four fresh hosted processes across manual workflow runs 36047104134/36047408195 completed
+the September 23 UTC observation at 0ccc9e2. Ticket pages advanced 3 → 6 → 12 → 13; Talk
+completed at six pages. All batches respected the six-step bound. A deliberately expired
+staging lease was then reclaimed in run 36047700931; both of its processes returned zero
+fetch steps with completed checkpoints. This is a simulated orphan lease, not a platform crash.
+
+The isolated namespace retained zero employees/users/metric definitions/facts/publishing runs.
+In-period counts of 11,954 ticket events and 2,532 Talk legs, plus their fingerprints, match
+the retained local observation. Cross-environment consistency is not independent closed-week
+parity or proof of human authorship. Full CI at 950afd7 passed 482 tests across 56 files;
+0ccc9e2 CI runs 36047013059/36047005702 also passed.
+
+The source was disabled at 19:24 UTC, temporary branch vendor credentials/source opt-in were
+cleared using explicit blank overrides, and plaintext handoffs were removed. Production
+environment entries were unchanged. The cleanup deployment follows. Railway remains disabled;
+GitHub ingestion is explicit manual dispatch only. See the scheduler report and aggregate
+hosted-shadow JSON reports for exact evidence. Recurring execution, retention/monitoring,
+human/identity evidence and independent historical reconciliation remain open.

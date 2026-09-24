@@ -1,5 +1,6 @@
 /** Guarded hosted observation namespace; never creates employees, facts or metric values. */
 import assert from "node:assert/strict";
+import { createHash, randomUUID } from "node:crypto";
 import { writeFile } from "node:fs/promises";
 import postgres from "postgres";
 import { zendeskAccountReference } from "../src/lib/connectors/zendesk-account-binding";
@@ -9,7 +10,7 @@ const sourceId = "f24ea900-0924-4000-8000-000000000002";
 let stage = "configuration";
 async function main() {
   const [mode, output] = process.argv.slice(2);
-  assert(mode && ["provision", "report", "disable"].includes(mode) && output);
+  assert(mode && ["provision", "report", "disable", "seed-expired-lease"].includes(mode) && output);
   assert.equal(process.env.STAGING_RAILWAY_ENVIRONMENT_ID, "4e86528b-7329-4d73-a651-9f0fb3d07755");
   const url = new URL(process.env.STAGING_DATABASE_URL ?? "");
   assert.equal(url.protocol, "postgresql:");
@@ -65,23 +66,47 @@ async function main() {
         )
       );
       const checkpoints =
-        await tx`select external_record_type type,payload_json payload from source_records where data_source_id=${sourceId} and external_record_type in ('zendesk_ticket_action_checkpoint_v2_shadow','zendesk_agent_leg_checkpoint_v2_shadow') order by external_record_type,external_record_id`;
-      const periods = checkpoints.map((row) => {
+        await tx`select id,external_record_type type,payload_json payload from source_records where data_source_id=${sourceId} and external_record_type in ('zendesk_ticket_action_checkpoint_v2_shadow','zendesk_agent_leg_checkpoint_v2_shadow') order by external_record_type,external_record_id`;
+      const periods = [];
+      for (const row of checkpoints) {
         assert.equal(row.payload.accountReference, reference);
-        return {
+        const eventType = row.type.includes("ticket")
+          ? "zendesk_ticket_action_event_v2_shadow"
+          : "zendesk_agent_leg_record_v2_shadow";
+        const [cohort] = await tx`select count(*)::int count,
+          md5(coalesce(string_agg(payload_hash,',' order by external_record_id),'')) fingerprint
+          from source_records where data_source_id=${sourceId} and external_record_type=${eventType}
+          and external_record_id like ${row.id + ":%"}
+          and occurred_at >= ${row.payload.start}::timestamptz and occurred_at < ${row.payload.endExclusive}::timestamptz`;
+        periods.push({
           stream: row.type.includes("ticket") ? "tickets" : "legs",
           start: row.payload.start,
           endExclusive: row.payload.endExclusive,
           pages: row.payload.pages,
           status: row.payload.status,
           notBefore: row.payload.notBefore,
-        };
-      });
+          inPeriodRecords: cohort!.count,
+          cohortFingerprint: cohort!.fingerprint,
+        });
+      }
+      if (mode === "seed-expired-lease") {
+        stage = "expired_lease_fixture";
+        assert.equal(source.status, "configured");
+        assert.equal(periods.length, 2);
+        assert(periods.every((period) => period.status === "complete"));
+        const payload = { token: randomUUID(), expiresAt: "2000-01-01T00:00:00.000Z" };
+        const payloadHash = createHash("sha256").update(JSON.stringify(payload)).digest("hex");
+        const inserted =
+          await tx`insert into source_records (data_source_id,external_record_type,external_record_id,payload_json,payload_hash)
+          values (${sourceId},'zendesk_action_worker_lease_v2_shadow','source',${tx.json(payload)},${payloadHash}) on conflict do nothing returning id`;
+        assert.equal(inserted.length, 1, "Never replace an existing worker lease");
+      }
       return {
         observedAt: new Date().toISOString(),
         mode,
         stagingOnly: true,
         accountBindingMatched: true,
+        expiredLeaseSeeded: mode === "seed-expired-lease",
         sourceStatus: mode === "disable" ? "disabled" : source.status,
         publication: counts,
         records: types,

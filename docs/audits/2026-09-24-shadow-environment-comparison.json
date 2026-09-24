@@ -1,0 +1,23 @@
+{
+  "observedAt": "2026-09-24T19:23:39.834Z",
+  "day": "2026-09-23",
+  "databaseWrites": 0,
+  "vendorRequests": 0,
+  "streams": [
+    {
+      "stream": "legs",
+      "localRecords": 2532,
+      "hostedRecords": 2532,
+      "countMatches": true,
+      "fingerprintMatches": true
+    },
+    {
+      "stream": "tickets",
+      "localRecords": 11954,
+      "hostedRecords": 11954,
+      "countMatches": true,
+      "fingerprintMatches": true
+    }
+  ],
+  "limitation": "Consistency across retained observations using the same source-export model; not independent metric reconciliation or human attribution proof."
+}
