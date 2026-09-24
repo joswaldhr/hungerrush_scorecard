@@ -1591,3 +1591,10 @@ Seven date/scope regressions and eight existing worker/actor cases passed, along
 TypeScript and lint. The first September 13–19 batch retained three pages from each stream
 with zero normalized facts and no publication timestamp. Further fresh-process batches are
 in progress; this entry does not claim a completed week or explain the original actor failure.
+
+## Unused dependency removal — September 24
+
+Repository searches found no Radix tabs imports or component callers, and `pnpm why` showed
+only the direct application dependency. Removed `@radix-ui/react-tabs` and its lock entries;
+no other dependency versions changed. TypeScript and a frozen-lockfile install passed. The
+full CI/build check follows. Existing navigation and Radix primitives remain in use.
