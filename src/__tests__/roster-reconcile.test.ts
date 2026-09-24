@@ -416,14 +416,12 @@ describe("discoverRosterCandidates", () => {
     const otherUser = "99999999-0000-4000-8000-000000000111";
     const email = "other-org-manager@test.cadence.internal";
     await db.insert(organizations).values({ id: otherOrg, name: "Other synthetic org" });
-    await db
-      .insert(users)
-      .values({
-        id: otherUser,
-        organizationId: otherOrg,
-        email,
-        displayName: "Other synthetic manager",
-      });
+    await db.insert(users).values({
+      id: otherUser,
+      organizationId: otherOrg,
+      email,
+      displayName: "Other synthetic manager",
+    });
     try {
       const result = await discoverRosterCandidates(
         fakeConnector([
@@ -442,6 +440,77 @@ describe("discoverRosterCandidates", () => {
     } finally {
       await db.delete(users).where(eq(users.id, otherUser));
       await db.delete(organizations).where(eq(organizations.id, otherOrg));
+    }
+  });
+
+  it("serializes simultaneous discoveries and keeps only one pending departure per identity", async () => {
+    const email = "concurrent-hire@test.cadence.internal";
+    const connector = fakeConnector([
+      {
+        externalId: email,
+        externalEmail: email,
+        externalDisplayName: "Concurrent synthetic hire",
+        teamId: TEAM_ID,
+      },
+    ]);
+    const results = await Promise.all([
+      discoverRosterCandidates(connector, DATA_SOURCE_ID),
+      discoverRosterCandidates(connector, DATA_SOURCE_ID),
+    ]);
+    expect(results.reduce((total, result) => total + result.autoApproved, 0)).toBe(1);
+    expect(await db.select().from(employees).where(eq(employees.email, email))).toHaveLength(1);
+    expect(
+      await db.select().from(rosterCandidates).where(eq(rosterCandidates.externalId, email))
+    ).toHaveLength(1);
+    await Promise.all([
+      discoverRosterCandidates(fakeConnector([]), DATA_SOURCE_ID),
+      discoverRosterCandidates(fakeConnector([]), DATA_SOURCE_ID),
+    ]);
+    const departures = await db
+      .select()
+      .from(rosterCandidates)
+      .where(
+        and(
+          eq(rosterCandidates.dataSourceId, DATA_SOURCE_ID),
+          eq(rosterCandidates.externalId, email),
+          eq(rosterCandidates.changeType, "departed"),
+          eq(rosterCandidates.status, "pending")
+        )
+      );
+    expect(departures).toHaveLength(1);
+  });
+
+  it("refuses stale mapping observations without creating a candidate", async () => {
+    const email = "stale-mapping@test.cadence.internal";
+    const connector = {
+      discoverRoster: async () => {
+        await db
+          .update(rosterSourceTeamMappings)
+          .set({ line: "changed-during-fetch" })
+          .where(eq(rosterSourceTeamMappings.dataSourceId, DATA_SOURCE_ID));
+        return [
+          {
+            externalId: email,
+            externalEmail: email,
+            externalDisplayName: "Stale synthetic hire",
+            teamId: TEAM_ID,
+          },
+        ];
+      },
+    } as unknown as Connector;
+    try {
+      await expect(discoverRosterCandidates(connector, DATA_SOURCE_ID)).rejects.toThrow(
+        "Roster mappings changed"
+      );
+      expect(
+        await db.select().from(rosterCandidates).where(eq(rosterCandidates.externalId, email))
+      ).toHaveLength(0);
+      expect(await db.select().from(employees).where(eq(employees.email, email))).toHaveLength(0);
+    } finally {
+      await db
+        .update(rosterSourceTeamMappings)
+        .set({ line: null })
+        .where(eq(rosterSourceTeamMappings.dataSourceId, DATA_SOURCE_ID));
     }
   });
 });

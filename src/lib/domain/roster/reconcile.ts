@@ -12,6 +12,7 @@ import { eq, and, inArray } from "drizzle-orm";
 import type { Connector } from "@/lib/connectors";
 import type { DiscoveredRosterMember } from "@/lib/connectors/types";
 import { logger } from "@/lib/logger";
+import { assertOrganizationResource } from "@/lib/auth/organization-scope";
 
 const AUTO_APPROVE_ABSOLUTE_MAX = 5;
 const AUTO_APPROVE_ROSTER_PERCENT = 0.3;
@@ -40,110 +41,165 @@ export async function discoverRosterCandidates(
   );
   const discoveredIds = new Set(discovered.map((d) => d.externalId));
 
-  const known = await db
-    .select()
-    .from(externalIdentities)
-    .where(eq(externalIdentities.dataSourceId, dataSourceId));
-  const knownExternalIds = new Set(known.map((k) => k.externalId));
+  // Fetch externally before taking a database lock. Recheck configuration before writing.
+  return db.transaction(async (tx) => {
+    await tx
+      .select({ id: dataSources.id })
+      .from(dataSources)
+      .where(eq(dataSources.id, dataSourceId))
+      .for("update");
+    await assertOrganizationResource(source.organizationId, "source", dataSourceId, tx);
+    const currentMappings = await tx
+      .select()
+      .from(rosterSourceTeamMappings)
+      .where(eq(rosterSourceTeamMappings.dataSourceId, dataSourceId));
+    const mappingKey = (rows: typeof mappings) =>
+      JSON.stringify(
+        rows
+          .map((row) => [row.id, row.externalGroupId, row.teamId, row.line])
+          .sort((a, b) => String(a[0]).localeCompare(String(b[0])))
+      );
+    if (mappingKey(currentMappings) !== mappingKey(mappings))
+      throw new Error("Roster mappings changed during discovery; retry required");
+    for (const teamId of mappedTeamIds)
+      await assertOrganizationResource(source.organizationId, "team", teamId, tx);
+    if (discovered.some((member) => !mappedTeamIds.has(member.teamId)))
+      throw new Error("Discovered roster contains an unmapped team");
+    if (discoveredIds.size !== discovered.length)
+      throw new Error("Discovered roster contains duplicate identities");
+    const known = await tx
+      .select()
+      .from(externalIdentities)
+      .where(eq(externalIdentities.dataSourceId, dataSourceId));
+    const knownExternalIds = new Set(known.map((k) => k.externalId));
 
-  const existingNewCandidates = await db
-    .select({ externalId: rosterCandidates.externalId })
-    .from(rosterCandidates)
-    .where(
-      and(eq(rosterCandidates.dataSourceId, dataSourceId), eq(rosterCandidates.changeType, "new"))
-    );
-  const seenNewExternalIds = new Set(existingNewCandidates.map((c) => c.externalId));
+    const pendingDepartures = await tx
+      .select({ externalId: rosterCandidates.externalId })
+      .from(rosterCandidates)
+      .where(
+        and(
+          eq(rosterCandidates.dataSourceId, dataSourceId),
+          eq(rosterCandidates.changeType, "departed"),
+          eq(rosterCandidates.status, "pending")
+        )
+      );
+    const pendingDepartureIds = new Set(pendingDepartures.map((candidate) => candidate.externalId));
+    const existingNewCandidates = await tx
+      .select({ externalId: rosterCandidates.externalId })
+      .from(rosterCandidates)
+      .where(
+        and(eq(rosterCandidates.dataSourceId, dataSourceId), eq(rosterCandidates.changeType, "new"))
+      );
+    const seenNewExternalIds = new Set(existingNewCandidates.map((c) => c.externalId));
 
-  const managerUsers = await db
-    .select({ email: users.email })
-    .from(users)
-    .where(eq(users.organizationId, source.organizationId));
-  const managerEmails = new Set(managerUsers.map((u) => u.email.toLowerCase()));
+    const managerUsers = await tx
+      .select({ email: users.email })
+      .from(users)
+      .where(eq(users.organizationId, source.organizationId));
+    const managerEmails = new Set(managerUsers.map((u) => u.email.toLowerCase()));
 
-  let newCandidates = 0;
-  let autoApproved = 0;
-  let departedCandidates = 0;
+    let newCandidates = 0;
+    let autoApproved = 0;
+    let departedCandidates = 0;
 
-  // --- Pass 1: collect eligible new-hire candidates ---
-  const eligible: DiscoveredRosterMember[] = [];
-  for (const member of discovered) {
-    if (knownExternalIds.has(member.externalId)) continue;
-    if (seenNewExternalIds.has(member.externalId)) continue;
-    if (member.externalEmail && managerEmails.has(member.externalEmail.toLowerCase())) continue;
-    eligible.push(member);
-  }
+    // --- Pass 1: collect eligible new-hire candidates ---
+    const eligible: DiscoveredRosterMember[] = [];
+    for (const member of discovered) {
+      if (knownExternalIds.has(member.externalId)) continue;
+      if (seenNewExternalIds.has(member.externalId)) continue;
+      if (member.externalEmail && managerEmails.has(member.externalEmail.toLowerCase())) continue;
+      eligible.push(member);
+    }
 
-  // --- Circuit breaker: too many at once means something structural changed ---
-  let shouldAutoApprove = false;
-  if (eligible.length > 0 && eligible.length <= AUTO_APPROVE_ABSOLUTE_MAX) {
-    const mappedTeamIdArray = [...mappedTeamIds];
-    const activeEmployees =
-      mappedTeamIdArray.length > 0
-        ? await db
-            .select({ id: employees.id })
-            .from(employees)
-            .where(
-              and(
-                inArray(employees.primaryTeamId, mappedTeamIdArray),
-                eq(employees.employmentStatus, "active")
+    // --- Circuit breaker: too many at once means something structural changed ---
+    let shouldAutoApprove = false;
+    if (eligible.length > 0 && eligible.length <= AUTO_APPROVE_ABSOLUTE_MAX) {
+      const mappedTeamIdArray = [...mappedTeamIds];
+      const activeEmployees =
+        mappedTeamIdArray.length > 0
+          ? await tx
+              .select({ id: employees.id })
+              .from(employees)
+              .where(
+                and(
+                  inArray(employees.primaryTeamId, mappedTeamIdArray),
+                  eq(employees.employmentStatus, "active")
+                )
               )
-            )
-        : [];
-    const rosterSize = activeEmployees.length;
-    shouldAutoApprove =
-      rosterSize === 0 || eligible.length <= rosterSize * AUTO_APPROVE_ROSTER_PERCENT;
-  }
+          : [];
+      const rosterSize = activeEmployees.length;
+      shouldAutoApprove =
+        rosterSize === 0 || eligible.length <= rosterSize * AUTO_APPROVE_ROSTER_PERCENT;
+    }
 
-  if (shouldAutoApprove && eligible.length > 0) {
-    logger.info("Auto-approving new-hire candidates", {
-      dataSourceId,
-      count: eligible.length,
-    });
-  } else if (eligible.length > AUTO_APPROVE_ABSOLUTE_MAX) {
-    logger.warn("Circuit breaker tripped: too many new candidates, falling back to pending", {
-      dataSourceId,
-      eligibleCount: eligible.length,
-      absoluteMax: AUTO_APPROVE_ABSOLUTE_MAX,
-    });
-  }
+    if (shouldAutoApprove && eligible.length > 0) {
+      logger.info("Auto-approving new-hire candidates", {
+        dataSourceId,
+        count: eligible.length,
+      });
+    } else if (eligible.length > AUTO_APPROVE_ABSOLUTE_MAX) {
+      logger.warn("Circuit breaker tripped: too many new candidates, falling back to pending", {
+        dataSourceId,
+        eligibleCount: eligible.length,
+        absoluteMax: AUTO_APPROVE_ABSOLUTE_MAX,
+      });
+    }
 
-  // --- Pass 2: write candidates ---
-  for (const member of eligible) {
-    if (shouldAutoApprove) {
-      try {
-        await db.transaction(async (tx) => {
-          const today = new Date().toISOString().split("T")[0]!;
-          const [employee] = await tx
-            .insert(employees)
-            .values({
-              organizationId: source.organizationId,
-              displayName: member.externalDisplayName ?? member.externalEmail ?? member.externalId,
-              email: member.externalEmail,
-              primaryTeamId: member.teamId,
-            })
-            .returning();
+    // --- Pass 2: write candidates ---
+    for (const member of eligible) {
+      if (shouldAutoApprove) {
+        try {
+          await tx.transaction(async (tx) => {
+            const today = new Date().toISOString().split("T")[0]!;
+            const [employee] = await tx
+              .insert(employees)
+              .values({
+                organizationId: source.organizationId,
+                displayName:
+                  member.externalDisplayName ?? member.externalEmail ?? member.externalId,
+                email: member.externalEmail,
+                primaryTeamId: member.teamId,
+              })
+              .returning();
 
-          if (employee) {
-            await tx.insert(externalIdentities).values({
-              employeeId: employee.id,
+            if (employee) {
+              await tx.insert(externalIdentities).values({
+                employeeId: employee.id,
+                dataSourceId,
+                externalEntityType: "agent",
+                externalId: member.externalId,
+                externalEmail: member.externalEmail,
+                externalDisplayName: member.externalDisplayName,
+                matchMethod: "roster_discovery",
+                matchConfidence: 1,
+              });
+
+              if (member.teamId) {
+                await tx.insert(teamMemberships).values({
+                  employeeId: employee.id,
+                  teamId: member.teamId,
+                  effectiveFrom: today,
+                });
+              }
+            }
+
+            await tx.insert(rosterCandidates).values({
               dataSourceId,
-              externalEntityType: "agent",
               externalId: member.externalId,
               externalEmail: member.externalEmail,
               externalDisplayName: member.externalDisplayName,
-              matchMethod: "roster_discovery",
-              matchConfidence: 1,
+              changeType: "new",
+              suggestedTeamId: member.teamId,
+              status: "auto_approved",
+              reviewedAt: new Date(),
             });
-
-            if (member.teamId) {
-              await tx.insert(teamMemberships).values({
-                employeeId: employee.id,
-                teamId: member.teamId,
-                effectiveFrom: today,
-              });
-            }
-          }
-
+          });
+          autoApproved++;
+        } catch (err) {
+          logger.error("Failed to auto-approve candidate, inserting as pending", {
+            dataSourceId,
+            error: err,
+          });
           await tx.insert(rosterCandidates).values({
             dataSourceId,
             externalId: member.externalId,
@@ -151,17 +207,12 @@ export async function discoverRosterCandidates(
             externalDisplayName: member.externalDisplayName,
             changeType: "new",
             suggestedTeamId: member.teamId,
-            status: "auto_approved",
-            reviewedAt: new Date(),
+            status: "pending",
           });
-        });
-        autoApproved++;
-      } catch (err) {
-        logger.error("Failed to auto-approve candidate, inserting as pending", {
-          dataSourceId,
-          error: err,
-        });
-        await db.insert(rosterCandidates).values({
+          newCandidates++;
+        }
+      } else {
+        await tx.insert(rosterCandidates).values({
           dataSourceId,
           externalId: member.externalId,
           externalEmail: member.externalEmail,
@@ -172,44 +223,39 @@ export async function discoverRosterCandidates(
         });
         newCandidates++;
       }
-    } else {
-      await db.insert(rosterCandidates).values({
+    }
+
+    for (const identity of known) {
+      if (discoveredIds.has(identity.externalId) || pendingDepartureIds.has(identity.externalId))
+        continue;
+
+      const [employee] = await tx
+        .select({
+          primaryTeamId: employees.primaryTeamId,
+          employmentStatus: employees.employmentStatus,
+        })
+        .from(employees)
+        .where(
+          and(
+            eq(employees.id, identity.employeeId),
+            eq(employees.organizationId, source.organizationId)
+          )
+        );
+      if (!employee?.primaryTeamId || !mappedTeamIds.has(employee.primaryTeamId)) continue;
+      if (employee.employmentStatus !== "active") continue;
+
+      await tx.insert(rosterCandidates).values({
         dataSourceId,
-        externalId: member.externalId,
-        externalEmail: member.externalEmail,
-        externalDisplayName: member.externalDisplayName,
-        changeType: "new",
-        suggestedTeamId: member.teamId,
+        externalId: identity.externalId,
+        externalEmail: identity.externalEmail,
+        externalDisplayName: identity.externalDisplayName,
+        changeType: "departed",
+        employeeId: identity.employeeId,
         status: "pending",
       });
-      newCandidates++;
+      departedCandidates++;
     }
-  }
 
-  for (const identity of known) {
-    if (discoveredIds.has(identity.externalId)) continue;
-
-    const [employee] = await db
-      .select({
-        primaryTeamId: employees.primaryTeamId,
-        employmentStatus: employees.employmentStatus,
-      })
-      .from(employees)
-      .where(eq(employees.id, identity.employeeId));
-    if (!employee?.primaryTeamId || !mappedTeamIds.has(employee.primaryTeamId)) continue;
-    if (employee.employmentStatus !== "active") continue;
-
-    await db.insert(rosterCandidates).values({
-      dataSourceId,
-      externalId: identity.externalId,
-      externalEmail: identity.externalEmail,
-      externalDisplayName: identity.externalDisplayName,
-      changeType: "departed",
-      employeeId: identity.employeeId,
-      status: "pending",
-    });
-    departedCandidates++;
-  }
-
-  return { newCandidates, departedCandidates, autoApproved };
+    return { newCandidates, departedCandidates, autoApproved };
+  });
 }

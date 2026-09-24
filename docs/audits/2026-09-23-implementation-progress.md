@@ -12,7 +12,7 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Implemented locally | Navigation, organization and manager-scope regression tests |
 | Atomic sync publication and freshness | Implemented locally | PostgreSQL rollback tests; untouched periods preserved |
 | Null corrections and predecessor evidence | Implemented locally | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 346 tests across 42 files, TypeScript, full lint/format, production build |
+| Combined implementation validation | Passed | 350 tests across 42 files, TypeScript, full lint/format, production build |
 | Migration and corrected-sync rehearsal | Passed locally | Separate staging database; 0011 -> 0013; duplicate refusal/rollback and synthetic stored-data assertions |
 | Hosted staging / production parity | Database and core UI checks passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; cron runtime check remains open |
 | Zendesk completeness | Search and Talk safety guards implemented locally | 2,415-ticket export reconciled; Talk boundary verified; historical/agent semantics remain open |
@@ -58,7 +58,9 @@ Remaining production release gates:
 - Verify a controlled hosted sync trigger; the browser blocked the attempted cron request,
   so runtime cron authorization has not been established by that check.
 - Complete Zendesk completeness work and review metric semantics before historical repair.
-- Record a recoverable production backup/restore point and deployment rollback reference.
+- Refresh the validated September 24 production backup immediately before rollout and record
+  the deployment rollback reference. The encrypted snapshot restored successfully and both
+  pending migrations preserved application data. Portable recovery/provider PITR remain open.
   Code rollback retains the additive revision table; data reversal requires reviewed snapshots.
 - Preserve reviewable staged results and a concrete rollback plan before production changes.
   The user authorized continued execution on September 24; routine checkpoint approval is
@@ -982,3 +984,18 @@ the candidate's email and SQL payload are not logged. Manager-account exclusion 
 to the source organization. Nine roster integration tests pass, including an injected real
 database failure and a different-organization manager account; TypeScript passed.
 Discovery concurrency, multi-group/line policy and departure deduplication remain open.
+
+## Serialized roster discovery — September 24
+
+Vendor fetches complete before the source database row is locked. Reconciliation then
+rechecks mapping configuration and organization ownership and commits through one source
+transaction, with per-candidate savepoints for the pending fallback. Simultaneous discovery
+runs cannot create duplicate new hires or pending departures. Changed mappings and duplicate
+or unmapped returned identities fail before writes. Pending departures are reused; existing
+historical duplicates are not deleted. Eleven roster integration regressions pass, including
+simultaneous invocations and a mapping change during fetch. Multi-group/line policy remains
+open and is not inferred from whichever vendor group happens to be returned first.
+
+Combined validation after these increments: all 350 tests across 42 files, full lint/format,
+TypeScript and production build passed. The production restore rehearsal also passed on
+PostgreSQL 18.6. No production schema change, historical replay or v2 publication occurred.

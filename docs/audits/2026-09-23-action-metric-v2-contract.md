@@ -108,8 +108,10 @@ older arrivals cannot replace the newest revision and contradictory equal timest
 without advancing. Only closed intervals older than two minutes are accepted. A completed
 checkpoint is a fixed observation, not a promise that the vendor will never correct a leg.
 
-`/api/cron/action-shadow` authenticates with `CRON_SECRET` before reading configuration or
-data. `ACTION_SHADOW_SOURCE_ID` explicitly selects one Zendesk source belonging to the
+`/api/cron/action-shadow` authenticates with a dedicated `ACTION_SHADOW_SECRET` when set,
+otherwise `CRON_SECRET`, before reading configuration or data. A dedicated shadow credential
+does not grant access to the existing publication cron route. `ACTION_SHADOW_SOURCE_ID`
+explicitly selects one Zendesk source belonging to the
 configured Zendesk account. Leaving it unset disables the worker. The route derives the
 organization from that source and never publishes metrics or advances production freshness.
 Each request allows six page attempts within a 200-second budget, reserving 35 seconds for
