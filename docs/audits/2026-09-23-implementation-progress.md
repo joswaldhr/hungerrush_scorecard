@@ -12,7 +12,7 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Published to Preview | Navigation, organization and manager-scope regression tests; keyboard checks passed |
 | Atomic sync publication and freshness | Published to Preview | PostgreSQL rollback tests; untouched periods preserved; live hosted trigger still gated |
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 431 tests across 52 files passed in PostgreSQL 18 CI run 36038300941 at 49ef59f, including lint, TypeScript and production build |
+| Combined implementation validation | Passed | 434 tests across 52 files passed in PostgreSQL 18 CI run 36039876813 at a48ddd8, including lint, TypeScript and production build |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database, core UI and scheduler authentication passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; live ingestion and durable recurring Preview authentication remain open |
 | Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; full-week export failed actor completeness verification; reviewed human provenance and independent parity remain open |
@@ -1312,3 +1312,19 @@ selection are still needed for fully reconstructed historical scorecards.
 
 Twenty-seven query/UI/navigation/export regressions and TypeScript pass, including a line
 change after a period closes, the UTC end-of-period boundary and export propagation.
+
+Hosted Preview dpl_5NJwqwnypfc2DwE7BFCsUdfZ94PY at a48ddd8 displays the historical warning
+for September 13–19, retains the staging metric's numeric zero with No Target, and explains
+unverified historical context under Target from. Ticket counts remain unavailable for the
+separate human-attribution reason. The current period does not show the historical warning.
+CI run 36039876813 passed 434 tests across 52 files, lint, TypeScript and production build.
+
+## Documentation ownership — September 24
+
+CLAUDE.md now provides concise engineering rules, preserves the generated Next.js guidance,
+and records the user's standing authorization. docs/README.md identifies each document's
+owner and distinguishes historical investigations from current branch/deployment evidence.
+docs/RUNBOOK.md consolidates isolated validation, scheduler diagnosis, migration/recovery
+and technical release/rollback procedures. Obsolete claims that cron routes are untested
+were removed; older investigation evidence remains linked and retained. Local links and
+the documentation diff were checked. No application behavior or infrastructure changed.

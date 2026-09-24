@@ -1,231 +1,106 @@
-# HungerRush Cadence — Claude Code Instructions
+# Cadence engineering rules
 
-## Mission
+## Product
 
-Build HungerRush Cadence as a production-quality manager performance and meeting-preparation application.
+Cadence is an internal manager performance and 1:1 preparation application for HungerRush.
+The core journey is 1:1s → employee → reporting period → metrics → the existing meeting
+workflow. Preserve the September 22 product decision: do not restore Team, Home dashboards,
+or a standalone Employee experience without a new product decision. Do not add employee
+rankings, automated employment decisions, generic BI tooling, or AI-generated performance
+judgments. Trust and clarity come before visual novelty.
 
-Cadence is a manager intelligence layer that brings together relevant employee information from multiple company systems and turns it into a clear weekly briefing and 1:1 preparation experience.
+## Documentation and current work
 
-The first pilot is for two Support managers:
-- HungerRush POS Support
-- Menufy Support
+Start with [documentation ownership](docs/README.md), then read the documents relevant to
+the change. The [implementation ledger](docs/audits/2026-09-23-implementation-progress.md)
+owns the active audit branch's verified state, release gates and next work. The dated
+application audit is the original baseline, not a claim that its findings remain unfixed.
+Older HANDOFF, INVESTIGATION and FIX_LOG entries are historical evidence; read a relevant
+investigation before repeating it, and supersede conclusions only with new evidence.
 
-Do not build a POS-specific or Menufy-specific application. The pilot must prove that one configurable platform can support both.
+Schema and executable behavior establish implementation facts. Product decisions establish
+intent. If they disagree, document the difference; do not invent vendor behavior or quietly
+change business meaning to match the code. Update the owning document with meaningful changes.
 
-## Source of Truth
+## Architecture
 
-Read these documents before implementing:
-- docs/PRODUCT.md
-- docs/ARCHITECTURE.md
-- docs/DATA_MODEL.md
-- docs/DESIGN_SYSTEM.md
-- docs/INTEGRATIONS.md
-- docs/MVP.md
-- docs/METRIC_REGISTRY.md
-- docs/METRIC_TRACEABILITY.md
-- docs/BUILD_SPEC.md
+Keep a modular Next.js monolith. Server-side authorization and domain readers supply
+Cadence-owned data to manager pages. Vendor requests belong in connectors, never browser
+components. Metric calculations, target resolution, visibility, availability and status
+belong in `src/lib/domain/metrics`, with source-specific contracts at the connector boundary.
+Cron and manual publication use the same sync service. Do not add services, generic frameworks
+or caches without a measured requirement. Preserve working code and remove only proven dead paths.
 
-The product specification defines what Cadence should be.
-The architecture specification defines how the system should be structured.
-If implementation details are ambiguous, preserve the product principles rather than inventing vendor-specific assumptions.
+Zendesk ticketing and Talk are separate source surfaces. Entra supplies sign-in and separate
+Graph roster access. Assembled was removed; Rippling remains a stub. Current app weeks use
+Sunday–Saturday UTC via `src/lib/utils.ts`; stored older intervals retain their exact boundaries.
 
-## Non-Negotiable Rules
+## Data reliability
 
-1. Do not hard-code Zendesk, Assembled, or Rippling assumptions into core domain models or UI.
-2. External systems are connectors/data sources, not the application domain.
-3. Do not make one manager's current metrics the permanent metric set.
-4. Metrics, targets, assignments, context categories, and team views must be data-driven.
-5. Do not call external vendor APIs directly from browser components.
-6. Use Cadence-owned normalized data for manager-facing pages.
-7. Persist historical metric values.
-8. Preserve source provenance and freshness.
-9. Never silently turn missing/stale/partial data into zero.
-10. Enforce authorization on the server.
-11. Never expose secrets or access tokens to the browser.
-12. Do not build microservices unless a demonstrated requirement appears.
-13. Do not add a generic BI/report-builder framework to the MVP.
-14. Do not make AI the foundation of the product.
-15. Do not create automated employment decisions or employee rankings as the core product.
-16. Prefer deleting unnecessary UI over adding more dashboard content.
-17. The application must feel like a premium modern SaaS product, not an enterprise reporting portal.
-18. Use the HungerRush visual identity as the brand foundation.
-19. Build with synthetic fixtures before depending on live integrations.
-20. Complete and verify one phase before moving to the next.
+- Never turn unknown, missing, partial, failed or stale evidence into a believable zero.
+- Distinguish source observation time, calculation time, completeness and semantic verification.
+- Fetch before publication. Source records, facts, affected metric values, revision evidence,
+  checkpoint and success timestamp commit atomically. Failure preserves the last good publication.
+- Scope calculation to the changed source and affected employee/period groups. Null corrections
+  must retract old values while retaining predecessor evidence; zero remains numeric.
+- Preserve source IDs, observation/definition versions and denominators where needed to explain
+  a metric. A successful export or internal consistency check is not independent reconciliation.
+- Require bounded requests, timeouts, validated same-origin pagination, retry limits, leases
+  and resumable checkpoints where source work exceeds one invocation's budget.
+- The approved ticket policy credits verified human activity only. Role, channel and updater
+  ID alone are insufficient. Manager reads withhold unverified Zendesk ticket counts. Version 2
+  remains shadow-only until source-bound identity/activity evidence and reconciliation are proven.
+- Do not judge a closed period using today's team/line or edited targets. Until immutable
+  historical context exists, retain observations and expose unavailable target comparisons.
+- Never silently rewrite historical calculations, periods, source observations or targets.
+  Version changes need an explicit effective date, comparison, replay scope and rollback evidence.
 
-## Product UX
+## Security and operational safety
 
-The one core experience, as of 2026-09-22 (James's decision — see docs/PRODUCT.md's revision
-note), cut down further from the two-experience shape below, which was itself cut down from
-the original four in a 2026-09-03 stakeholder review (Home and the standalone Employee screen
-were both removed then, not merged):
+Derive identity and organization from server-side authentication. Check object ownership,
+assigned employee scope, active status and effective dates on every read and mutation.
+Do not expand an individual assignment into team access. Administrative permissions do not
+remove organization boundaries. Re-check related IDs and use transactions for multi-step writes.
 
-1:1s:
-"What do I need to know before I meet this person?"
-Principle: 1:1s prepares — with numbers, not narrative.
+Never log or commit credentials, raw employee/vendor payloads, or plaintext backups. Keep
+telemetry bounded and allowlisted. Tests and fixture resets use explicit isolated loopback
+or CI databases and must not load the shared `.env`. Production and Preview have separate
+database/authentication settings. Migrations are explicit operations, not build side effects.
+Use [the runbook](docs/RUNBOOK.md) for verification, recovery and deployment boundaries.
 
-The manager journey is:
-1:1s -> existing meeting workflow/Rippling.
+## UI and performance
 
-Team ("How is everyone doing?" / "Team compares") was removed 2026-09-22, not hidden — its
-page, route, and dedicated components were deleted outright, recoverable from git history if
-this is revisited. Home exists only as a redirect to /one-on-ones. There is no standalone
-Employee screen. Do not resurrect Team, Home, or a standalone Employee screen without an
-explicit product decision.
+Use the existing design system: restrained HungerRush navy/teal, readable operational tables,
+consistent typography and spacing, clear keyboard focus, accessible controls and contained
+small-screen layouts. Prefer removing clutter over adding cards or narrative. Preserve the
+loaded employee/period/value snapshot across navigation and every export; hide stale snapshot
+actions while a new period loads. Show uncertainty and recovery states in plain language.
 
-## Visual Direction
+Measure before optimizing. Record representative page/query/source timings and quotas.
+Avoid serial source waterfalls, broad historical recomputation and speculative indexes.
+Performance improvements must preserve outputs, access checks and freshness semantics.
 
-Target quality: modern, restrained SaaS.
+## Working discipline and completion
 
-Use the HungerRush navy and teal as the brand foundation, with mostly neutral surfaces and restrained status colors.
+Work in focused, reviewable increments tied to an audit finding or product requirement.
+State the acceptance check, inspect relevant implementation, make the smallest coherent change,
+run meaningful regression checks, review the diff, record evidence and commit before the next
+increment. Log unrelated discoveries in the ledger or FOLLOWUPS rather than silently expanding
+one change. Do not optimize for line count or a rewrite.
 
-Reference quality:
-- Linear
-- Stripe
-- Ramp
-- Vercel
+Continue authorized work autonomously under the user's September 24 instruction; do not require
+another routine checkpoint approval or a “keep going” message. A missing external fact is not
+permission to guess: record the exact uncertainty and continue independent work. Technical
+release gates remain requirements, not routine approval prompts.
 
-Do not copy those products.
-
-Prioritize:
-- whitespace
-- hierarchy
-- restrained color
-- consistent spacing
-- typography
-- simple visualizations
-- progressive disclosure
-- responsive layouts
-- accessibility
-- subtle interaction
-
-Avoid:
-- dense dashboards
-- excessive KPI cards
-- decorative gradients
-- heavy shadows
-- excessive borders
-- giant charts
-- excessive animation
-- generic AI-dashboard aesthetics
-
-## Engineering Style
-
-Prefer simple, readable TypeScript.
-Use domain boundaries.
-Keep vendor-specific code inside connectors.
-Keep business logic testable outside React components.
-Use server-side data access and authorization.
-Use typed schemas for external payload validation.
-Use database migrations.
-Do not create abstractions without a concrete need.
-Document non-obvious architectural decisions.
-
-## Development Workflow
-
-For each task:
-
-1. Read the relevant docs.
-2. Inspect the existing implementation.
-3. State the files/components you expect to change.
-4. Implement the smallest coherent change.
-5. Run relevant tests/type checks/lint.
-6. Fix failures.
-7. Review for hard-coded assumptions.
-8. Summarize what changed and what remains.
-
-Do not silently expand scope.
-
-## Definition of Done
-
-A feature is not done merely because it renders.
-
-It must:
-- satisfy the relevant product requirement
-- use the domain model correctly
-- respect permissions
-- handle loading, empty, stale, partial, and error states where applicable
-- have appropriate tests
-- avoid vendor coupling
-- meet the visual design rules
-- avoid unnecessary client-side work
-- pass type checking/lint/tests
-- be documented when it introduces a meaningful architectural decision
-- if it involves data (a sync, a metric, an aggregation, a migration): be verified against real
-  data with actual query/output results pasted somewhere reviewable — "should work now" is not
-  a valid stopping point
-- if it touches a scheduled/cron job: be triggered for real using the platform's own test/trigger
-  tooling if one exists, rather than reasoned about from the code alone — auth and caching
-  failures on cron jobs are frequently silent and invisible from a code read
-- if an investigation or report file already exists for the task at hand (e.g.
-  `INVESTIGATION.md`), have been read in full first — don't re-diagnose from scratch or
-  contradict its findings without new evidence
-- if the fix surfaces unrelated problems, have them logged to `FOLLOWUPS.md` with a pointer to
-  where they were found, rather than bundled into the same change
-- when genuinely blocked on something only a human can check (dashboard access, a business
-  decision, credentials), stop and ask for the specific fact needed — don't guess and ship a
-  "covers both cases" change
-
-## Metrics/sync system — known facts (see INVESTIGATION.md for detail)
-
-- All Zendesk data arrives via polling (daily Vercel Cron + a manual "Sync Now" button) — no
-  incoming webhooks exist anywhere in this app.
-- Ticketing metrics and Talk (call) metrics are separate Zendesk API surfaces with independent
-  failure modes.
-- The connector assumes a single Zendesk subdomain — unverified whether the real account is
-  multi-brand (see `FOLLOWUPS.md`).
-- Work week is Sunday-Saturday, UTC (changed from Monday-Sunday 2026-09-22 — Barbara confirmed
-  Menufy's real work week; applied company-wide since the setting is global and POS's is
-  unconfirmed, see FOLLOWUPS.md #27). The canonical implementation is `weekDates()` in
-  `src/lib/utils.ts` — `zendesk.ts`'s `weekOf()` and the one-on-ones page's `periodDates()` both
-  delegate to it now. `zendesk-mock.ts` and `scripts/run-reconciliation.ts` still have their own
-  local-server-time versions (a known, accepted UTC-vs-local divergence confined to dev/test
-  fixtures) — reuse `weekDates()` for anything new; don't add a 3rd reimplementation.
-- No error-monitoring/APM tool exists anywhere in the app (confirmed: no Sentry/Datadog/APM
-  dependency in `package.json`; `/api/client-error` only logs to server logs, no persistence
-  or alerting).
-- `sync-engine.ts`'s `runSync()` orchestration (fetch/publish/checkpoint, error handling,
-  weekOffset/pagination) has dedicated test coverage (`run-sync.test.ts`, `rate-limit.test.ts`,
-  added 2026-09-15). The HTTP route layer itself (`src/app/api/cron/sync/route.ts` — its
-  `CRON_SECRET` check, per-data-source error handling, roster-discovery gating) still has no
-  test file of its own — treat that specific layer as untested, not the orchestration logic
-  underneath it.
-- `csat_score` is a known, separately-broken metric (Zendesk data limitation, not a pipeline
-  bug) — don't conflate it with sync pipeline work.
-- Any external HTTP call to Zendesk must have a timeout (`AbortSignal.timeout(...)`). One was
-  missing until 2026-09-09 and caused an indefinite hang with zero errors anywhere — see the
-  incident note below.
-
-## Incident: Silent 5-Day Sync Outage (2026-09-09)
-
-The scheduled Zendesk sync produced no data for 5 days with zero errors anywhere in the app —
-a manager noticed only because "This Week" was empty on the scorecard. Full diagnosis in
-`INVESTIGATION.md`, the actual fix in `FIX_LOG.md`. Don't duplicate either here; the short
-version:
-
-- **Confirmed root cause**: nothing upstream of `runSync()` (the cron route's `CRON_SECRET`
-  check, or Vercel simply not invoking the cron) ever reached the sync logic — proven because
-  `runSync()` unconditionally writes a `sync_runs` row before doing any work, and none existed
-  for 5 days. The exact Vercel-side reason (not invoked vs. silently 401'd) needed Vercel
-  dashboard access this environment didn't have — see `FOLLOWUPS.md` item 4 if that's still
-  open when you read this.
-- **Separately found while verifying**: `zendesk-shared.ts`'s `fetch()` call had no timeout,
-  so a stalled connection could hang a sync forever with no error. Fixed alongside.
-- **Verification method that actually worked**: triggering a sync through the app's own
-  authenticated route (`/api/sync/run`, logged in as a real manager) and then querying
-  `sync_runs`/`metric_values`/`data_sources` directly — reasoning about the code was not
-  sufficient to catch either bug. If you hit a silent cron failure again, reach for a real
-  trigger + real query before guessing from a code read.
-
-## Current Build Constraint
-
-Zendesk and Entra ID integrations are live in production. Assembled was evaluated, then fully
-removed (connector code deleted 2026-09-03 — see docs/ARCHITECTURE.md's connector status
-table); do not assume it exists or try to wire anything into it. Rippling remains a stub — use
-synthetic fixtures and adapters for Rippling until live access is confirmed.
-
-Never invent API endpoints, credentials, scopes, or response fields for any vendor.
-
-When a vendor integration requires unknown information, stop at the connector boundary and document the exact missing requirement rather than guessing.
+Use real PostgreSQL tests for transactions, scope and migrations. Validate UI changes in the
+hosted synthetic Preview when relevant. Scheduled-job verification includes actual platform
+execution and observed output; auth-only rehearsal is distinct from live ingestion/restart.
+Run required type/lint/test/build checks for application changes. Record failures and practical
+limits honestly. Passing CI or a successful Preview does not mean production was deployed.
+Production release requires completed technical gates, a fresh validated backup, a concrete
+rollback reference and post-deployment verification. Never claim the app is fully correct while
+critical source semantics, recovery or operational verification remain unresolved.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
