@@ -11,6 +11,7 @@ import {
   boolean,
   index,
   uniqueIndex,
+  unique,
 } from "drizzle-orm/pg-core";
 
 // ── People ──────────────────────────────────────────────────
@@ -291,14 +292,16 @@ export const metricVisibilityOverrides = pgTable(
     index("metric_visibility_overrides_manager_idx").on(table.managerUserId),
     index("metric_visibility_overrides_employee_idx").on(table.targetEmployeeId),
     index("metric_visibility_overrides_metric_def_idx").on(table.metricDefinitionId),
-    uniqueIndex("metric_visibility_overrides_unique_idx").on(
-      table.scope,
-      table.managerUserId,
-      table.targetEmployeeId,
-      table.metricDefinitionId,
-      table.teamId,
-      table.line
-    ),
+    unique("metric_visibility_overrides_unique_idx")
+      .on(
+        table.scope,
+        table.managerUserId,
+        table.targetEmployeeId,
+        table.metricDefinitionId,
+        table.teamId,
+        table.line
+      )
+      .nullsNotDistinct(),
   ]
 );
 

@@ -228,3 +228,26 @@ describe("removeVisibilityOverride", () => {
     expect(rows).toHaveLength(0);
   });
 });
+
+it("enforces nullable scope uniqueness for concurrent direct database writers", async () => {
+  const rule = {
+    scope: "global_default",
+    metricDefinitionId: METRIC_DEF_ID,
+    hidden: true,
+    hiddenBy: ADMIN_USER_ID,
+  };
+  const results = await Promise.allSettled([
+    db.insert(metricVisibilityOverrides).values(rule),
+    db.insert(metricVisibilityOverrides).values(rule),
+  ]);
+  expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+  const failure = results.find((result) => result.status === "rejected");
+  expect(failure).toMatchObject({ status: "rejected", reason: { cause: { code: "23505" } } });
+  await db.insert(metricVisibilityOverrides).values({ ...rule, line: "" });
+  const rows = await db
+    .select()
+    .from(metricVisibilityOverrides)
+    .where(eq(metricVisibilityOverrides.metricDefinitionId, METRIC_DEF_ID));
+  expect(rows).toHaveLength(2);
+  expect(rows.map((row) => row.line)).toEqual(expect.arrayContaining([null, ""]));
+});

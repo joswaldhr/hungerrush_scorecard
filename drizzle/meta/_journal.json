@@ -92,6 +92,13 @@
       "when": 1790192430964,
       "tag": "0012_cool_wasp",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1790259652378,
+      "tag": "0013_visibility_scope_uniqueness",
+      "breakpoints": true
     }
   ]
 }

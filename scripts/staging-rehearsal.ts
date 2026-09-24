@@ -68,7 +68,7 @@ async function main() {
   );
   assert.equal(
     journal.entries.at(-1).tag,
-    "0012_cool_wasp",
+    "0013_visibility_scope_uniqueness",
     "Review the rehearsal when adding another migration"
   );
   const previousFolder = await mkdtemp(path.join(tmpdir(), "cadence-stage-migrations-"));
@@ -154,10 +154,51 @@ async function main() {
         .where(eq(schema.metricValues.metricDefinitionId, metric))
     )[0]!;
   const before = await readValue();
+  const actor = randomUUID(),
+    originalRule = randomUUID(),
+    duplicateRule = randomUUID();
+  await connection
+    .insert(schema.users)
+    .values({
+      id: actor,
+      organizationId: org,
+      email: "synthetic-stage@example.test",
+      displayName: "Synthetic admin",
+    });
+  const rule = {
+    scope: "global_default",
+    metricDefinitionId: metric,
+    hidden: true,
+    hiddenBy: actor,
+  };
+  await connection.insert(schema.metricVisibilityOverrides).values([
+    { ...rule, id: originalRule },
+    { ...rule, id: duplicateRule },
+  ]);
+  // Legacy NULL uniqueness permits these two rows. The upgrade must refuse rather than discard data.
+  await assert.rejects(migrate(connection, { migrationsFolder: migrationFolder }));
+  assert.equal((await connection.select().from(schema.metricVisibilityOverrides)).length, 2);
+  const indexAfterFailure =
+    await client`SELECT indexname FROM pg_indexes WHERE indexname = 'metric_visibility_overrides_unique_idx'`;
+  assert.equal(indexAfterFailure.length, 1, "Failed migration must restore the legacy index");
+  await connection
+    .delete(schema.metricVisibilityOverrides)
+    .where(eq(schema.metricVisibilityOverrides.id, duplicateRule));
   const started = Date.now();
   await migrate(connection, { migrationsFolder: migrationFolder });
   const migrationMs = Date.now() - started;
   assert.deepEqual(await readValue(), before, "Migration must preserve existing data");
+  assert.equal(
+    (await connection.select().from(schema.metricVisibilityOverrides))[0]?.id,
+    originalRule
+  );
+  await assert.rejects(connection.insert(schema.metricVisibilityOverrides).values(rule));
+  await connection.insert(schema.metricVisibilityOverrides).values({ ...rule, line: "" });
+  assert.equal(
+    (await connection.select().from(schema.metricVisibilityOverrides)).length,
+    2,
+    "Empty line and null must remain distinct"
+  );
 
   const { runSync } = await import("../src/lib/connectors/sync-engine");
   let numericValue: number | null = null;
@@ -245,7 +286,11 @@ async function main() {
           tlsCertificateValidation: "Railway self-signed certificate; sslmode=require",
         }
       : {}),
-    migration: "0011 -> 0012",
+    migration: "0011 -> 0013",
+    duplicateScopeUpgradeRejectedWithoutDataLoss: true,
+    failedUpgradeRestoredLegacyIndex: true,
+    nullableDuplicateRejected: true,
+    emptyLineRemainsDistinctFromNull: true,
     migrationMs,
     preservedExistingValue: 42,
     correctedValue: null,
@@ -257,8 +302,8 @@ async function main() {
   };
   await writeFile(
     hosted
-      ? "docs/audits/2026-09-23-hosted-staging-rehearsal.json"
-      : "docs/audits/2026-09-23-staging-rehearsal.json",
+      ? "docs/audits/2026-09-24-hosted-staging-rehearsal.json"
+      : "docs/audits/2026-09-24-staging-rehearsal.json",
     JSON.stringify(report, null, 2) + "\n"
   );
   console.log(JSON.stringify(report, null, 2));

@@ -12,8 +12,8 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Implemented locally | Navigation, organization and manager-scope regression tests |
 | Atomic sync publication and freshness | Implemented locally | PostgreSQL rollback tests; untouched periods preserved |
 | Null corrections and predecessor evidence | Implemented locally | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 339 tests across 41 files, TypeScript, full lint/format, production build |
-| Migration and corrected-sync rehearsal | Passed locally | Separate staging database; 0011 -> 0012; synthetic stored-data assertions |
+| Combined implementation validation | Passed | 346 tests across 42 files, TypeScript, full lint/format, production build |
+| Migration and corrected-sync rehearsal | Passed locally | Separate staging database; 0011 -> 0013; duplicate refusal/rollback and synthetic stored-data assertions |
 | Hosted staging / production parity | Database and core UI checks passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; cron runtime check remains open |
 | Zendesk completeness | Search and Talk safety guards implemented locally | 2,415-ticket export reconciled; Talk boundary verified; historical/agent semantics remain open |
 | Production rollout / historical repair | Not performed | Release gate below must be completed first |
@@ -67,18 +67,20 @@ Remaining production release gates:
 Stored reporting intervals, observation ordering, sync leases, and atomic reconciliation
 claims now have regression coverage. Remaining risks include historical targets/team context,
 independent source reconciliation, worst-case fetch budgets/resumability, revision retention,
-authorized revision-history inspection, and database-level visibility uniqueness. See the
+authorized revision-history inspection, and hosted rollout of visibility uniqueness. See the
 audit for the full backlog; these safeguards do not complete the entire overhaul.
 
 ## Repeatable local staging rehearsal
 
 `scripts/staging-rehearsal.ts` requires an explicit loopback administration URL and never
 loads .env. Each execution creates a uniquely named database, applies migrations through
-0011, inserts a synthetic legacy value of 42, applies 0012, and runs the real publisher
+0011, inserts a synthetic legacy value of 42, applies 0012/0013, and runs the real publisher
 with a synthetic connector. It asserts prior-row preservation, null correction, revision
 history, confirmed zero, failed-sync preservation, and migration idempotency. It retains
 the database for inspection and writes a credential-free report to
-`2026-09-23-staging-rehearsal.json`. This is not a live-vendor or hosted-runtime check.
+`2026-09-24-staging-rehearsal.json`. The original September 23 report is retained. This is
+not a live-vendor or hosted-runtime check. The new rehearsal also verifies that duplicate
+nullable visibility scopes abort the upgrade without losing rows or the old index.
 
 ```powershell
 $env:STAGING_ADMIN_DATABASE_URL = 'postgresql://cadence@127.0.0.1:55439/postgres'
@@ -91,6 +93,10 @@ Windows file-sharing retries during crash recovery. The cluster is stopped after
 Latest result: PostgreSQL 16.14, migration 69 ms, 42 preserved before correction, then NULL
 with three predecessor revisions, then confirmed 0; failed sync and repeated migration
 preserved the last value. The JSON report records the retained database name and timestamp.
+
+The September 24 run upgrades through 0013 in 127 ms after the deliberate duplicate-refusal
+check, preserves existing visibility data, and rejects direct duplicate null scopes while
+allowing an empty-string line. Hosted staging currently remains at 0012.
 
 ## Historical implementation notes
 
@@ -923,3 +929,24 @@ Full application validation before this increment passed 339 tests across 41 fil
 Scheduler and route focused tests passed; production build and TypeScript passed. No
 scheduler credential has been provisioned. Browser policy requires confirmation before
 granting the scheduler new access; this is a specific access gate, not a routine checkpoint.
+
+## Database visibility uniqueness — September 24
+
+The read-only production census found PostgreSQL 18.6 and 12 visibility rules with no
+duplicate or conflicting scopes. Migration 0013 replaces the nullable unique index with a
+NULLS NOT DISTINCT constraint. The current application remains compatible with either
+shape; direct database writers can no longer create duplicate null scopes after migration.
+
+The upgraded local rehearsal deliberately created duplicate legacy rules, demonstrated a
+failed transactional upgrade with both rows and the legacy index intact, then removed only
+the designated duplicate fixture and upgraded successfully through 0013. It preserved the
+original rule and metric data, rejected a duplicate null scope, and retained empty-string
+versus null semantics. The prior corrected-sync, revision, zero, failure, and idempotence
+checks also passed. Full validation: 346 tests across 42 files, lint/format, TypeScript, and
+production build. See `2026-09-24-visibility-constraint.md` for deployment and rollback.
+Neither hosted staging nor production has received migration 0013 yet.
+
+The scheduler access confirmation and automation-attribution definition remain pending.
+The scheduler code and credential isolation are published at 4ccf88c and that Preview is
+READY. Railway's disabled Run now test completed successfully; auth-probe source changes
+are staged but not deployed. No scheduler token has been generated, saved, or transmitted.
