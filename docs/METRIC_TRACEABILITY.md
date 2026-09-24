@@ -1,5 +1,11 @@
 # HungerRush Cadence — Metric Traceability
 
+> September 24 audit branch: legacy Zendesk ticket totals still exist as stored evidence,
+> but `metrics/availability.ts` prevents unverified human activity from reaching manager
+> values, status, comparisons, history or exports. The source calculation below is not
+> proof of human activity. See the [human-only contract](audits/2026-09-23-action-metric-v2-contract.md)
+> and [current implementation ledger](audits/2026-09-23-implementation-progress.md).
+
 For each live metric, the full path from the vendor API field to the number a manager sees, with exact file references. Pair with `docs/METRIC_REGISTRY.md` (what a metric means) and `docs/audits/2026-09-01-metric-integrity-report.md` (verdicts and findings).
 
 UI consumers for all five live metrics:

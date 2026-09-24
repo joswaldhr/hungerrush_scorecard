@@ -4,6 +4,10 @@ import { MetricIcon } from "@/components/metric-icon";
 import { Card } from "@/components/ui/card";
 import { formatMetricValue } from "@/lib/domain/metrics/types";
 import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
+import {
+  TICKET_ATTRIBUTION_QUALITY,
+  TICKET_ATTRIBUTION_REASON,
+} from "@/lib/domain/metrics/availability";
 
 const qualityLabels = new Map([
   ["complete", "Complete"],
@@ -12,6 +16,7 @@ const qualityLabels = new Map([
   ["stale", "Stale"],
   ["failed", "Failed"],
   ["unsupported", "Unsupported"],
+  [TICKET_ATTRIBUTION_QUALITY, "Human attribution unverified"],
 ]);
 const targetLabels = { employee: "Employee", role: "Role", team: "Team", org: "Organization" };
 
@@ -119,6 +124,11 @@ export function MetricCategoryTable({
                 </th>
                 <td className="py-2.5 px-3 text-right font-bold text-foreground bg-[#009ca6]/[0.06]">
                   <MetricValue value={row.currentValue} unit={row.unit} valueType={row.valueType} />
+                  {row.qualityStatus === TICKET_ATTRIBUTION_QUALITY && (
+                    <p className="mt-1 max-w-44 text-[10px] font-normal text-muted-foreground">
+                      {TICKET_ATTRIBUTION_REASON}
+                    </p>
+                  )}
                   {row.currentValue !== null && row.qualityStatus !== "complete" && (
                     <p className="mt-1 text-[10px] font-normal text-muted-foreground">
                       {qualityLabels.get(row.qualityStatus) ?? "Unverified"} data

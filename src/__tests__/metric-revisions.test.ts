@@ -102,6 +102,35 @@ afterAll(async () => {
   await db.delete(organizations).where(inArray(organizations.id, [org, foreignOrg]));
 });
 
+it("preserves stored ticket revisions while withholding unverified human counts", async () => {
+  const [inserted] = await db
+    .insert(syncRevisions)
+    .values(revision({ ...snapshot(), numeric_value: 8765 }))
+    .returning();
+  try {
+    await db
+      .update(metricDefinitions)
+      .set({ key: "tickets_updated", sourceStrategy: "zendesk" })
+      .where(eq(metricDefinitions.id, definition));
+    const result = await getStoredMetricRevisions(ctx, employee, start, end);
+    expect(result.rows.find((row) => row.id === inserted!.id)?.evidence).toMatchObject({
+      numericValue: null,
+      quality: "unverified_attribution",
+    });
+    const [stored] = await db
+      .select()
+      .from(syncRevisions)
+      .where(eq(syncRevisions.id, inserted!.id));
+    expect(stored?.snapshotJson).toMatchObject({ numeric_value: 8765, quality_status: "complete" });
+  } finally {
+    await db
+      .update(metricDefinitions)
+      .set({ key: "revision_fixture", sourceStrategy: null })
+      .where(eq(metricDefinitions.id, definition));
+    await db.delete(syncRevisions).where(eq(syncRevisions.id, inserted!.id));
+  }
+});
+
 it("exposes only authorized metric evidence, preserving zero, null and unreadable evidence", async () => {
   await db
     .insert(syncRevisions)

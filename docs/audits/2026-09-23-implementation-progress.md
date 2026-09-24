@@ -1277,3 +1277,15 @@ the earlier weekly failure or establish historical roles/human attribution.
 Scheduler checkpoint 0708ea4 passed both CI runs (36037075244 and 36037062390).
 Cleanup deployment logged disabled at 12:49 CDT, and revoked temporary access returned
 to Vercel protection. Production remains unchanged.
+
+## Manager-facing human attribution containment — September 24
+
+The approved human-only policy now applies to the existing manager read path as well as
+shadow calculations. Unverified Zendesk Tickets Updated/Resolved become unavailable in
+current/comparison values, status, exports, stored-period history and retained revision
+displays. An explicit reason appears in scorecards and history. Underlying values/revisions,
+targets and calculation versions remain unchanged; this is not a historical rewrite or
+activation of version 2. No arbitrary version or complete flag can bypass the guard.
+Eighteen query/history/revision/UI tests, TypeScript and focused lint pass, including
+storage preservation and an unaffected separate source strategy. Hosted verification follows.
+The actor-diagnostic checkpoint ea11849 passed CI runs 36037797548 and 36037791540.

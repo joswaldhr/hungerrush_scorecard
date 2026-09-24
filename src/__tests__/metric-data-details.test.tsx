@@ -111,3 +111,24 @@ it("renders unknown quality values without inheriting object properties", async 
     expect(container.querySelector("tbody td")?.textContent).toContain("Unverified data");
   });
 });
+
+it("explains unavailable human activity in the visible scorecard and printable content", async () => {
+  await renderRow(
+    {
+      ...row,
+      currentValue: null,
+      previousValue: null,
+      qualityStatus: "unverified_attribution",
+      status: { status: "no_data", direction: row.direction },
+    },
+    (container) => {
+      const current = container.querySelector("tbody td")!;
+      expect(current.textContent).toContain("—");
+      expect(current.textContent).toContain("Human activity attribution has not been verified.");
+      expect(current.querySelector('[data-html2canvas-ignore="true"]')).toBeNull();
+      expect(container.querySelector("details")?.textContent).toContain(
+        "Human attribution unverified"
+      );
+    }
+  );
+});

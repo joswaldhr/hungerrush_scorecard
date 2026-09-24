@@ -3,6 +3,7 @@ import { metricValues, metricDefinitions } from "@/lib/db/schema";
 import { and, desc, eq } from "drizzle-orm";
 import { assertCanAccessEmployee, type ManagerContext } from "@/lib/auth/authorization";
 import { assertOrganizationResource } from "@/lib/auth/organization-scope";
+import { requiresTicketAttributionVerification, TICKET_ATTRIBUTION_QUALITY } from "./availability";
 
 export async function getStoredMetricHistory(
   ctx: ManagerContext,
@@ -30,6 +31,7 @@ export async function getStoredMetricHistory(
     .select({
       id: metricValues.id,
       key: metricDefinitions.key,
+      sourceStrategy: metricDefinitions.sourceStrategy,
       name: metricDefinitions.name,
       valueType: metricDefinitions.valueType,
       unit: metricDefinitions.unit,
@@ -48,5 +50,13 @@ export async function getStoredMetricHistory(
       )
     )
     .orderBy(metricDefinitions.name, metricDefinitions.version);
-  return { periods, selected, rows };
+  return {
+    periods,
+    selected,
+    rows: rows.map(({ sourceStrategy, ...row }) =>
+      requiresTicketAttributionVerification({ key: row.key, sourceStrategy })
+        ? { ...row, numericValue: null, quality: TICKET_ATTRIBUTION_QUALITY }
+        : row
+    ),
+  };
 }

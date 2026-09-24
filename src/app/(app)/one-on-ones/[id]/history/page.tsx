@@ -6,6 +6,10 @@ import { getStoredMetricHistory } from "@/lib/domain/metrics/history";
 import { getStoredMetricRevisions } from "@/lib/domain/metrics/revisions";
 import { formatMetricValue, type ValueType } from "@/lib/domain/metrics/types";
 import { formatWeekRangeLong } from "@/lib/utils";
+import {
+  TICKET_ATTRIBUTION_QUALITY,
+  TICKET_ATTRIBUTION_REASON,
+} from "@/lib/domain/metrics/availability";
 
 export default async function StoredPeriodsPage({
   params,
@@ -42,7 +46,8 @@ export default async function StoredPeriodsPage({
       <p className="text-sm text-muted-foreground">
         Each interval shows its stored values separately, including older reporting calendars.
         Overlapping intervals are not added together. Historical targets and employee context have
-        not been verified for these snapshots.
+        not been verified for these snapshots. Unverified human ticket activity is unavailable;
+        original stored evidence is preserved.
       </p>
       {history.selected ? (
         <>
@@ -81,7 +86,7 @@ export default async function StoredPeriodsPage({
                   {[
                     "Metric",
                     "Stored value",
-                    "Recorded quality",
+                    "Data quality",
                     "Source observed (UTC)",
                     "Calculation version",
                   ].map((label) => (
@@ -102,7 +107,11 @@ export default async function StoredPeriodsPage({
                         ? "—"
                         : formatMetricValue(row.numericValue, row.unit, row.valueType as ValueType)}
                     </td>
-                    <td className="p-3">{row.quality}</td>
+                    <td className="p-3">
+                      {row.quality === TICKET_ATTRIBUTION_QUALITY
+                        ? TICKET_ATTRIBUTION_REASON
+                        : row.quality}
+                    </td>
                     <td className="p-3">{row.observedAt?.toISOString() ?? "Unavailable"}</td>
                     <td className="p-3">{row.calculationVersion}</td>
                   </tr>
@@ -125,7 +134,7 @@ export default async function StoredPeriodsPage({
                       {[
                         "Metric",
                         "Previous value",
-                        "Recorded quality",
+                        "Data quality",
                         "Source observed (UTC)",
                         "Calculation version",
                         "Revision recorded (UTC)",
@@ -153,7 +162,11 @@ export default async function StoredPeriodsPage({
                                     row.valueType as ValueType
                                   )}
                             </td>
-                            <td className="p-3">{row.evidence.quality}</td>
+                            <td className="p-3">
+                              {row.evidence.quality === TICKET_ATTRIBUTION_QUALITY
+                                ? TICKET_ATTRIBUTION_REASON
+                                : row.evidence.quality}
+                            </td>
                             <td className="p-3">{row.evidence.observedAt ?? "Unavailable"}</td>
                             <td className="p-3">{row.evidence.calculationVersion}</td>
                           </>

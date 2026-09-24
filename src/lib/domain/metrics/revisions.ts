@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { dataSources, metricDefinitions, syncRevisions, syncRuns } from "@/lib/db/schema";
 import { assertCanAccessEmployee, type ManagerContext } from "@/lib/auth/authorization";
 import { assertOrganizationResource } from "@/lib/auth/organization-scope";
+import { requiresTicketAttributionVerification, TICKET_ATTRIBUTION_QUALITY } from "./availability";
 
 const evidenceSchema = z.object({
   numericValue: z.number().finite().nullable(),
@@ -28,6 +29,8 @@ export async function getStoredMetricRevisions(
     .select({
       id: syncRevisions.id,
       name: metricDefinitions.name,
+      key: metricDefinitions.key,
+      sourceStrategy: metricDefinitions.sourceStrategy,
       unit: metricDefinitions.unit,
       valueType: metricDefinitions.valueType,
       recordedAt: syncRevisions.createdAt,
@@ -59,9 +62,16 @@ export async function getStoredMetricRevisions(
     .limit(26);
   return {
     hasMore: records.length > 25,
-    rows: records.slice(0, 25).map(({ evidence, ...row }) => {
+    rows: records.slice(0, 25).map(({ evidence, key, sourceStrategy, ...row }) => {
       const parsed = evidenceSchema.safeParse(evidence);
-      return { ...row, evidence: parsed.success ? parsed.data : null };
+      return {
+        ...row,
+        evidence: parsed.success
+          ? requiresTicketAttributionVerification({ key, sourceStrategy })
+            ? { ...parsed.data, numericValue: null, quality: TICKET_ATTRIBUTION_QUALITY }
+            : parsed.data
+          : null,
+      };
     }),
   };
 }

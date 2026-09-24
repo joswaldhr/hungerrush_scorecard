@@ -15,6 +15,7 @@ import { resolveTarget, evaluateStatus } from "./target-resolution";
 import { resolveVisibility } from "./visibility-resolution";
 import type { Direction, ResolvedTarget, ValueType } from "./types";
 import { isEffectiveOn, sevenDayPeriodEnd } from "./effective-dates";
+import { requiresTicketAttributionVerification, TICKET_ATTRIBUTION_QUALITY } from "./availability";
 
 export interface EmployeeMetricRow {
   definitionId: string;
@@ -213,6 +214,8 @@ export async function getEmployeeMetricsBatch(
       );
       const direction = def.direction as Direction;
       const valueType = def.valueType as ValueType;
+      const attributionUnavailable = requiresTicketAttributionVerification(def);
+      const currentValue = attributionUnavailable ? null : (current?.numericValue ?? null);
 
       rows.push({
         definitionId: defId,
@@ -224,11 +227,13 @@ export async function getEmployeeMetricsBatch(
         direction,
         displayOrder: assign.displayOrder,
         isPrimary: assign.isPrimary,
-        currentValue: current?.numericValue ?? null,
-        previousValue: previous?.numericValue ?? null,
+        currentValue,
+        previousValue: attributionUnavailable ? null : (previous?.numericValue ?? null),
         target: resolvedTarget,
-        status: evaluateStatus(current?.numericValue ?? null, resolvedTarget, direction),
-        qualityStatus: current?.qualityStatus ?? "missing",
+        status: evaluateStatus(currentValue, resolvedTarget, direction),
+        qualityStatus: attributionUnavailable
+          ? TICKET_ATTRIBUTION_QUALITY
+          : (current?.qualityStatus ?? "missing"),
         dataFreshnessAt: current?.dataFreshnessAt ?? null,
         calculationVersion: current?.calculationVersion ?? 0,
       });

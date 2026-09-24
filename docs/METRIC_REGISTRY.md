@@ -1,5 +1,15 @@
 # HungerRush Cadence — Metric Registry
 
+> September 24 audit branch: the tables below describe legacy configuration and include
+> superseded calendar/null behavior. Use the [contract audit](audits/2026-09-23-metric-contracts.md)
+> and [implementation ledger](audits/2026-09-23-implementation-progress.md) for current status.
+> The approved ticket policy counts verified human activity only. Until a source-bound
+> human-only publisher is validated, Zendesk `tickets_updated` and `tickets_resolved` values
+> are unavailable in manager scorecards, comparisons, exports and stored-period views.
+> Stored values/revisions are preserved, targets remain configured, and no historical
+> recalculation or production deployment is implied. A stored complete flag or version
+> number alone does not certify human activity.
+
 Source of truth: `metric_definitions` / `metric_targets` / `metric_assignments` rows. Originally populated only by `src/lib/fixtures/seed.ts` (last verified against `seed.ts` at commit `85969b6` on 2026-09-01) — there is still no admin UI that creates or edits metric configuration. Since 2026-09-17, `metric_targets`/`metric_visibility_overrides` rows can also come from the one-off `scripts/load-target-config.ts` loader (see `scripts/target-config-2026-09.json`), which is how the Menufy line-scoped range targets below were loaded — checking `seed.ts` alone will miss them. If either file has changed since it was last verified against, re-verify this table before trusting it.
 
 This is a reference document, not application code. It exists so that "what does this metric actually mean" has one answer instead of needing to be re-derived from `compute-values.ts` every time. See `docs/METRIC_TRACEABILITY.md` for the full source→UI chain per metric.

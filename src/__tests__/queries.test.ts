@@ -220,6 +220,81 @@ function ctxFor(employeeIds: string[]): ManagerContext {
 }
 
 describe("getEmployeeMetricsBatch", () => {
+  it("withholds unverified Zendesk ticket activity from current, comparison and history without rewriting storage", async () => {
+    const [previous] = await db
+      .insert(metricValues)
+      .values({
+        metricDefinitionId: RANGE_DEF_ID,
+        employeeId: RESTAURANT_EMP_ID,
+        teamId: MENUFY_TEAM_ID,
+        periodStart: PREVIOUS_PERIOD_START,
+        periodEnd: "2026-09-13",
+        numericValue: 42,
+        qualityStatus: "complete",
+        calculationVersion: 999,
+      })
+      .returning();
+    try {
+      for (const key of ["tickets_updated", "tickets_resolved"]) {
+        await db
+          .update(metricDefinitions)
+          .set({ key, sourceStrategy: "zendesk" })
+          .where(eq(metricDefinitions.id, RANGE_DEF_ID));
+        const batch = await getEmployeeMetricsBatch(
+          ctxFor([RESTAURANT_EMP_ID]),
+          [RESTAURANT_EMP_ID],
+          MENUFY_TEAM_ID,
+          PERIOD_START,
+          PREVIOUS_PERIOD_START
+        );
+        expect(
+          batch.get(RESTAURANT_EMP_ID)?.find((row) => row.definitionId === RANGE_DEF_ID)
+        ).toMatchObject({
+          currentValue: null,
+          previousValue: null,
+          qualityStatus: "unverified_attribution",
+          status: { status: "no_data" },
+        });
+        const history = await getStoredMetricHistory(
+          ctxFor([RESTAURANT_EMP_ID]),
+          RESTAURANT_EMP_ID,
+          `${PREVIOUS_PERIOD_START}/2026-09-13`
+        );
+        expect(history.rows.find((row) => row.id === previous!.id)).toMatchObject({
+          numericValue: null,
+          quality: "unverified_attribution",
+        });
+      }
+      const [stored] = await db
+        .select()
+        .from(metricValues)
+        .where(eq(metricValues.id, previous!.id));
+      expect(stored?.numericValue).toBe(42);
+      expect(stored?.qualityStatus).toBe("complete");
+      // A separate source's same-named contract must not inherit this vendor containment.
+      await db
+        .update(metricDefinitions)
+        .set({ sourceStrategy: "manual" })
+        .where(eq(metricDefinitions.id, RANGE_DEF_ID));
+      const unaffected = await getEmployeeMetricsBatch(
+        ctxFor([RESTAURANT_EMP_ID]),
+        [RESTAURANT_EMP_ID],
+        MENUFY_TEAM_ID,
+        PERIOD_START,
+        PREVIOUS_PERIOD_START
+      );
+      expect(
+        unaffected.get(RESTAURANT_EMP_ID)?.find((row) => row.definitionId === RANGE_DEF_ID)
+          ?.currentValue
+      ).toBe(15);
+    } finally {
+      await db
+        .update(metricDefinitions)
+        .set({ key: "test_range_metric", sourceStrategy: null })
+        .where(eq(metricDefinitions.id, RANGE_DEF_ID));
+      await db.delete(metricValues).where(eq(metricValues.id, previous!.id));
+    }
+  });
   it("rejects foreign teams/employees and ignores a corrupt cross-organization metric assignment", async () => {
     const foreignOrg = randomUUID(),
       foreignTeam = randomUUID(),

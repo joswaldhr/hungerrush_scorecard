@@ -10,6 +10,14 @@ The user selected **verified human activity only** on September 24. Uncertain at
 must be unavailable, never credited to an employee or substituted with zero. This supersedes
 the actor-only exploratory totals below, which are retained as historical diagnostics.
 
+The active publisher still lacks human attribution evidence. The September 24 manager
+read policy therefore withholds both ticket metrics from current/comparison values, status,
+exports, stored-period views and retained revision displays. `unverified_attribution`
+explains the unavailable state. No metric values, raw observations, targets, calculation
+versions or revisions are rewritten. This is containment, not version-2 activation; even
+a higher calculation version cannot bypass it. Other source strategies and metric keys
+are unaffected. Removing this guard requires a validated source-bound human-only publisher.
+
 Ticket updates count distinct tickets with a verified human field change or comment-presence
 event by an explicitly eligible updater within half-open UTC instants. Resolutions count distinct
 tickets transitioning from new/open/pending/hold to solved. Repeated resolutions by the
