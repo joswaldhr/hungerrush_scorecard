@@ -236,7 +236,7 @@ export default async function RosterReviewPage() {
                     <input type="hidden" name="candidateId" value={c.id} />
                     <button
                       type="submit"
-                      className="rounded-md bg-status-attention px-2.5 py-1 text-xs font-medium text-white hover:opacity-90"
+                      className="rounded-md bg-destructive px-2.5 py-1 text-xs font-medium text-destructive-foreground hover:bg-destructive/90"
                     >
                       Mark inactive
                     </button>

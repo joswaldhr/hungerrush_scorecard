@@ -12,7 +12,7 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Published to Preview | Navigation, organization and manager-scope regression tests; keyboard checks passed |
 | Atomic sync publication and freshness | Published to Preview | PostgreSQL rollback tests; untouched periods preserved; live hosted trigger still gated |
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 490 tests across 58 files passed in PostgreSQL 18 CI run 36050433388 at 41d5eb8, including lint, TypeScript and production build |
+| Combined implementation validation | Passed | 493 tests across 59 files passed in PostgreSQL 18 CI run 36051133675 at 54778e1, including lint, TypeScript and production build |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database, core UI, worker authentication and bounded ingestion/recovery passed | Separate PostgreSQL 18.6 and Entra app; four fresh ingestion processes, expired-lease takeover and replay verified; source disabled after rehearsal; recurring scheduling remains open |
 | Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; full-week export failed actor completeness verification; reviewed human provenance and independent parity remain open |
@@ -1537,3 +1537,24 @@ plus TypeScript and lint. Regression fixtures include a sibling account, a diffe
 and an intentionally inconsistent foreign-source FK, plus malformed provenance and single-source
 legacy behavior. Full CI follows. This is an internal consistency safeguard, not independent
 vendor-level reconciliation.
+
+Both source-scope CI runs 36051133675/36051129146 passed all 493 tests across 59 files,
+lint, TypeScript and build. Preview dpl_5jHfXG6bu72Qnw52F24ZXboBtPdV is READY at 54778e1.
+
+## Functional theme contrast — September 24
+
+Measured token combinations exposed low-contrast light-theme primary buttons, status text,
+muted text and input boundaries, plus several dark-theme combinations. Functional colors
+now provide normal-text contrast on the tested surfaces, including primary/destructive
+90% hover backgrounds. Navigation, profile initials and roster departure controls use the
+same tokens; the faint operations heading no longer reduces its text opacity. Global focus
+outlines use the theme ring. Brand artwork and chart colors remain separate.
+
+The repeatable diagnostic `scripts/audit-theme-contrast.mjs` records 96 token/surface pairs:
+51 failed before, zero after. Sixteen baseline pairs used clipped out-of-gamut colors;
+all tested final colors are in sRGB gamut. These are token coverage counts, not counts of
+rendered violations. The JSON before/after reports retain ratios and limitations. Thresholds
+follow [W3C text contrast](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)
+and [control contrast](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html).
+This limited check does not establish full WCAG conformance. Hosted visual verification
+and full CI follow; no business calculations changed.
