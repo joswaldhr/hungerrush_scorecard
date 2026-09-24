@@ -12,7 +12,7 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Implemented locally | Navigation, organization and manager-scope regression tests |
 | Atomic sync publication and freshness | Implemented locally | PostgreSQL rollback tests; untouched periods preserved |
 | Null corrections and predecessor evidence | Implemented locally | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 325 tests across 38 files, TypeScript, full lint/format, production build |
+| Combined implementation validation | Passed | 339 tests across 41 files, TypeScript, full lint/format, production build |
 | Migration and corrected-sync rehearsal | Passed locally | Separate staging database; 0011 -> 0012; synthetic stored-data assertions |
 | Hosted staging / production parity | Database and core UI checks passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; cron runtime check remains open |
 | Zendesk completeness | Search and Talk safety guards implemented locally | 2,415-ticket export reconciled; Talk boundary verified; historical/agent semantics remain open |
@@ -892,3 +892,20 @@ comparison, exact added/removed/changed IDs, idempotent completion, invalid-ID r
 and independence from daily scheduling. A live read-only Zendesk re-observation used four
 processes with local-only writes and a persisted rate-limit delay. Its final comparison
 matched 11,954 events and 2,532 legs exactly with zero differences and zero normalized facts.
+
+## Frozen identity evidence — September 24
+
+Added immutable source-scoped identity snapshots with explicit current observation times.
+Failures, ambiguous shared account IDs, changed mappings, and wrong-organization access
+save no partial snapshot. Concurrent captures produce one retained winner. Reusing an
+observation does not refetch, so roster changes cannot silently alter past evidence.
+Historical eligibility and human activity attribution remain explicitly unknown.
+
+Five PostgreSQL regressions and a three-account live-source rehearsal passed. Production
+mapping reads ran in a read-only transaction; writes were limited to synthetic loopback
+fixtures. All three exact matches survived a simulated roster change and retry used no
+vendor requests. Sample email fixture rows were removed; reports contain aggregates only.
+All 339 tests across 41 files, full lint/format, TypeScript, and production build passed.
+This capture primitive remains offline; it is not yet a scheduled identity refresh or a
+manager-facing metric calculation. The automation-versus-manual metric definition has
+been asked as a business clarification while independent infrastructure work continues.

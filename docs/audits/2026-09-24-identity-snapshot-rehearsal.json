@@ -1,0 +1,13 @@
+{
+  "observedAt": "2026-09-24T14:05:41.166Z",
+  "sampleMappings": 3,
+  "vendorRequests": 3,
+  "matched": 3,
+  "writes": "loopback synthetic fixtures only",
+  "productionWrites": 0,
+  "retainedAfterRosterChange": true,
+  "refetchOnRetry": false,
+  "rawEmailFixtureRowsRemoved": true,
+  "historicalEligibility": "unknown",
+  "humanActivityAttribution": "unknown"
+}

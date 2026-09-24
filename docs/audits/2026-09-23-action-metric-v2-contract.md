@@ -163,3 +163,24 @@ A September 24 live re-observation of September 23 resumed across four local pro
 including one persisted 429 delay. It matched all 11,954 ticket events and 2,532 call legs
 from the earlier local observation with zero additions, removals, or changes. No normalized
 facts were written. See `2026-09-24-action-reobservation-batch-4.json`.
+
+## Immutable identity observations
+
+`captureActionIdentitySnapshot` is an offline capture primitive, separate from the hosted
+worker. An explicit observation UUID retains exact source-account matches, current roster
+status, and per-match observation times. Raw emails, names, and phone numbers are omitted;
+the snapshot retains an email hash plus the internal employee/identity and numeric account
+IDs needed for provenance. Missing and ambiguous accounts remain explicit members.
+
+The capture saves nothing on vendor failure, duplicate account mappings, or roster changes
+during collection. Source and employee ownership are checked, the final inventory is
+rechecked under locks, and concurrent captures return one immutable winner. Reusing the
+UUID reads the saved observation without re-fetching; a new UUID creates a new observation.
+Capture is capped at 250 mappings, reserves source-request time, and is not a resumable
+hosted job. Historical eligibility and human activity attribution remain explicitly unknown.
+
+A live three-account rehearsal used read-only production mapping lookup and vendor GETs,
+with all writes confined to synthetic loopback fixtures. All three matched; the saved
+observation retained active status after the fixture roster was changed to inactive, and
+retry performed no vendor requests. Sampled email fixture rows were removed afterward.
+The retained report is `2026-09-24-identity-snapshot-rehearsal.json`.
