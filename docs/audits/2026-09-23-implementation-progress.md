@@ -1234,3 +1234,18 @@ Attribution follow-up: child-event IDs must be unique within an audit, preventin
 review from certifying contradictory changes. Summaries retain the review UUIDs supporting
 human credit and nonhuman exclusions. The 22 ticket-summary/checkpoint/worker cases pass;
 focused lint passes. The retained event shape and checkpoint namespace are unchanged.
+
+## Hosted correction history and attribution sample — September 24
+
+Preview at 128fac5 displayed current 0 separately from retained missing and 42 values,
+with correct observation/revision timestamps. Keyboard expansion passed. At a measured
+320px viewport, main width/scroll width were both 241px and disclosure width/scroll width
+were both 207px; tables scrolled inside their containers. The viewport override was reset.
+CI run 36030902277 at 9a70794 passed all checks on PostgreSQL 18 and the production build.
+
+A bounded read-only source sample independently matched 41 candidate child changes across
+12 current agent/admin audits. Twenty-five children carried rule channels, seven API,
+seven web, one system and one other; 26 had explicit child overrides. These are diagnostic
+channel counts, not verified human or employee totals. The aggregate-only report and
+repeatable probe are retained; no vendor or database writes occurred. The contract now
+records this evidence and the remaining source-bound human/identity verification gate.

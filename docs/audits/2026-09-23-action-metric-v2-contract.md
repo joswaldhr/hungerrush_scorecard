@@ -168,6 +168,23 @@ See the [Zendesk users contract](https://developer.zendesk.com/api-reference/tic
 Historical eligibility and automation attribution remain unresolved. A frozen observation
 of today's matching accounts must not be presented as a historical employee-role snapshot.
 
+### Bounded attribution census — September 24
+
+The read-only `probe-action-attribution.ts` sampled the first 100 incremental events from
+16:29:56 UTC and at most 12 audits belonging to current agent/admin actors. All 43 requested
+accounts were returned in this sample; this does not resolve the separate full-week lookup
+failure. All 41 candidate child changes matched the independent audit endpoint by child ID
+and type, with parent audit/ticket/actor/time also matching. Of these, 25 carried `rule`,
+seven `api`, seven `web`, one `system` and one other channel. Twenty-six children had explicit
+via overrides. Four parent audits were `web`, seven `api` and one other.
+
+These are channel-evidence counts, not verified human counts, employee totals or a
+representative sample. The probe made 14 GET requests and no database writes; its report
+retains aggregate counts only. See `2026-09-24-action-attribution-sample.json`.
+[Zendesk's via reference](https://developer.zendesk.com/documentation/ticketing/reference-guides/via-object-reference/)
+documents the rule channel and trigger/automation relations. The live presence of child
+overrides confirms that parent-level attribution alone cannot implement the chosen policy.
+
 ## Explicit re-observation policy
 
 Completed exports stay immutable. To inspect late arrivals or corrections, callers supply

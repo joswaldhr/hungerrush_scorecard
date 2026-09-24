@@ -1,0 +1,31 @@
+{
+  "observedAt": "2026-09-24T17:00:54.843Z",
+  "sampledFrom": "2026-09-24T16:29:56.198Z",
+  "mode": "read-only bounded sample; no human certification or metric publication",
+  "sampling": "first export page; at most 12 current agent/admin audits; not representative or complete",
+  "exportedEvents": 100,
+  "requestedActors": 43,
+  "unresolvedActors": 0,
+  "sampledAudits": 12,
+  "eligibleChanges": 41,
+  "missingAuditChildren": 0,
+  "auditChannels": {
+    "web": 4,
+    "other": 1,
+    "api": 7
+  },
+  "childChannels": {
+    "web": 7,
+    "other": 1,
+    "rule": 25,
+    "system": 1,
+    "api": 7
+  },
+  "explicitChildOverrides": 26,
+  "ruleChanges": 25,
+  "requests": {
+    "requests": 14,
+    "retries429": 0,
+    "backoffWaitMs": 0
+  }
+}
