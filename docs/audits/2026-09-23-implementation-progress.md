@@ -1137,3 +1137,12 @@ The server repeats sanitization for older or untrusted clients, ignores arbitrar
 and stack fields, strips employee path segments and all query/fragment data, and stops
 reading reports above 4 KiB. Six cases prove sensitive text is absent from logs and malformed
 or oversized reports do not compound the original failure. Focused tests and TypeScript pass.
+
+## Continuous validation on the audit branch — September 24
+
+CI now runs on this audit branch as well as master/PRs, uses a fresh PostgreSQL 18
+cadence_test database, and has read-only repository permissions with superseded runs
+cancelled. The local test configuration also rejects URL query/fragment overrides before
+connecting, reusing the fixture endpoint guard. Existing Docker data is not upgraded in
+place. Local full checks pass: 410 tests across 50 files, lint and TypeScript; the final
+build and first remote CI run are verified separately below.

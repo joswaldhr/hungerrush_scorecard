@@ -15,7 +15,7 @@ There are no microservices. The codebase is organized by domain boundary inside 
 | Styling | Tailwind CSS v4, CSS custom properties | OKLCH color space, `@theme inline` integration |
 | Components | shadcn/ui (new-york style, RSC-enabled) | Radix primitives, class-variance-authority, tailwind-merge |
 | Icons | Lucide React | |
-| Database | PostgreSQL 17 | Local via Docker Compose; Railway-managed instance in production |
+| Database | PostgreSQL | Railway production and staging: 18.6 (verified September 24); CI: 18; existing local Docker Compose: 17 |
 | ORM | Drizzle ORM + drizzle-kit | Schema in `src/lib/db/schema.ts`, migrations + tracked meta in `drizzle/` |
 | Auth | Auth.js (next-auth v5 beta) | Microsoft Entra ID SSO in production; Credentials provider for dev only |
 | Validation | Zod v4 | Environment validation; POST route body validation is still ad hoc (see Known Gaps) |

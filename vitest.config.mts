@@ -1,10 +1,12 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import { assertLocalFixtureDatabase } from "./src/lib/fixtures/local-database";
 
 // An explicit override supports isolated local clusters without ever loading .env.
 const testDatabaseUrl =
   process.env.TEST_DATABASE_URL ?? "postgresql://cadence:cadence_dev@localhost:5432/cadence";
+assertLocalFixtureDatabase(testDatabaseUrl);
 if (process.env.TEST_DATABASE_URL) {
   const url = new URL(testDatabaseUrl);
   if (
