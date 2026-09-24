@@ -18,31 +18,43 @@ export interface SetVisibilityInput {
   hidden: boolean;
 }
 
+const visibilityInputSchema = z.object({
+  scope: z.enum(["global_default", "manager_override", "scorecard_override"]),
+  managerUserId: z.uuid().nullable(),
+  targetEmployeeId: z.uuid().nullable(),
+  metricDefinitionId: z.uuid(),
+  teamId: z.uuid().nullable(),
+  line: z.string().max(100).nullable(),
+  hidden: z.boolean(),
+});
+
 export async function setVisibilityOverride(input: SetVisibilityInput): Promise<void> {
+  return setVisibilityOverrides([input]);
+}
+
+/** One editor save is one transaction, including all selected team/line rules. */
+export async function setVisibilityOverrides(rawInputs: SetVisibilityInput[]): Promise<void> {
   const { userId: hiddenBy, organizationId } = await requireAdmin();
-  input = z
-    .object({
-      scope: z.enum(["global_default", "manager_override", "scorecard_override"]),
-      managerUserId: z.uuid().nullable(),
-      targetEmployeeId: z.uuid().nullable(),
-      metricDefinitionId: z.uuid(),
-      teamId: z.uuid().nullable(),
-      line: z.string().max(100).nullable(),
-      hidden: z.boolean(),
-    })
-    .parse(input);
+  const inputs = z.array(visibilityInputSchema).min(1).max(3).parse(rawInputs);
+  const input = inputs[0]!;
+  const common = (item: SetVisibilityInput) => [
+    item.scope,
+    item.managerUserId,
+    item.targetEmployeeId,
+    item.metricDefinitionId,
+    item.hidden,
+  ];
+  if (
+    inputs.some((item) => JSON.stringify(common(item)) !== JSON.stringify(common(input))) ||
+    new Set(inputs.map((item) => JSON.stringify([item.teamId, item.line]))).size !== inputs.length
+  )
+    throw new Error("Visibility save must contain distinct rules for one selection");
   if (
     (input.scope === "global_default" && (input.managerUserId || input.targetEmployeeId)) ||
     (input.scope === "manager_override" && (!input.managerUserId || input.targetEmployeeId)) ||
     (input.scope === "scorecard_override" && (!input.targetEmployeeId || input.managerUserId))
   )
     throw new Error("Invalid visibility scope");
-  await assertOrganizationResource(organizationId, "metric", input.metricDefinitionId);
-  if (input.managerUserId)
-    await assertOrganizationResource(organizationId, "user", input.managerUserId);
-  if (input.targetEmployeeId)
-    await assertOrganizationResource(organizationId, "employee", input.targetEmployeeId);
-  if (input.teamId) await assertOrganizationResource(organizationId, "team", input.teamId);
 
   await db.transaction(async (tx) => {
     // Nullable scope columns do not enforce uniqueness in the legacy index.
@@ -58,55 +70,64 @@ export async function setVisibilityOverride(input: SetVisibilityInput): Promise<
       )
       .for("update");
     if (!metric) throw new Error("Metric not permitted");
-    const existing = await tx
-      .select({ id: metricVisibilityOverrides.id })
-      .from(metricVisibilityOverrides)
-      .where(
-        and(
-          eq(metricVisibilityOverrides.scope, input.scope),
-          input.managerUserId
-            ? eq(metricVisibilityOverrides.managerUserId, input.managerUserId)
-            : isNull(metricVisibilityOverrides.managerUserId),
-          input.targetEmployeeId
-            ? eq(metricVisibilityOverrides.targetEmployeeId, input.targetEmployeeId)
-            : isNull(metricVisibilityOverrides.targetEmployeeId),
-          eq(metricVisibilityOverrides.metricDefinitionId, input.metricDefinitionId),
-          input.teamId
-            ? eq(metricVisibilityOverrides.teamId, input.teamId)
-            : isNull(metricVisibilityOverrides.teamId),
-          input.line !== null
-            ? eq(metricVisibilityOverrides.line, input.line)
-            : isNull(metricVisibilityOverrides.line)
-        )
-      );
-
-    if (existing.length > 1) throw new Error("Duplicate visibility rules require review");
-
-    if (existing[0]) {
-      await tx
-        .update(metricVisibilityOverrides)
-        .set({ hidden: input.hidden, hiddenBy, hiddenAt: new Date() })
+    if (input.managerUserId)
+      await assertOrganizationResource(organizationId, "user", input.managerUserId, tx);
+    if (input.targetEmployeeId)
+      await assertOrganizationResource(organizationId, "employee", input.targetEmployeeId, tx);
+    for (const teamId of new Set(inputs.map((item) => item.teamId)))
+      if (teamId) await assertOrganizationResource(organizationId, "team", teamId, tx);
+    const hiddenAt = new Date();
+    for (const input of inputs) {
+      const existing = await tx
+        .select({ id: metricVisibilityOverrides.id })
+        .from(metricVisibilityOverrides)
         .where(
           and(
-            eq(metricVisibilityOverrides.id, existing[0].id),
-            inArray(
-              metricVisibilityOverrides.metricDefinitionId,
-              organizationMetricIds(organizationId)
-            )
+            eq(metricVisibilityOverrides.scope, input.scope),
+            input.managerUserId
+              ? eq(metricVisibilityOverrides.managerUserId, input.managerUserId)
+              : isNull(metricVisibilityOverrides.managerUserId),
+            input.targetEmployeeId
+              ? eq(metricVisibilityOverrides.targetEmployeeId, input.targetEmployeeId)
+              : isNull(metricVisibilityOverrides.targetEmployeeId),
+            eq(metricVisibilityOverrides.metricDefinitionId, input.metricDefinitionId),
+            input.teamId
+              ? eq(metricVisibilityOverrides.teamId, input.teamId)
+              : isNull(metricVisibilityOverrides.teamId),
+            input.line !== null
+              ? eq(metricVisibilityOverrides.line, input.line)
+              : isNull(metricVisibilityOverrides.line)
           )
         );
-    } else {
-      await tx.insert(metricVisibilityOverrides).values({
-        scope: input.scope,
-        managerUserId: input.managerUserId,
-        targetEmployeeId: input.targetEmployeeId,
-        metricDefinitionId: input.metricDefinitionId,
-        teamId: input.teamId,
-        line: input.line,
-        hidden: input.hidden,
-        hiddenBy,
-        hiddenAt: new Date(),
-      });
+
+      if (existing.length > 1) throw new Error("Duplicate visibility rules require review");
+
+      if (existing[0]) {
+        await tx
+          .update(metricVisibilityOverrides)
+          .set({ hidden: input.hidden, hiddenBy, hiddenAt })
+          .where(
+            and(
+              eq(metricVisibilityOverrides.id, existing[0].id),
+              inArray(
+                metricVisibilityOverrides.metricDefinitionId,
+                organizationMetricIds(organizationId)
+              )
+            )
+          );
+      } else {
+        await tx.insert(metricVisibilityOverrides).values({
+          scope: input.scope,
+          managerUserId: input.managerUserId,
+          targetEmployeeId: input.targetEmployeeId,
+          metricDefinitionId: input.metricDefinitionId,
+          teamId: input.teamId,
+          line: input.line,
+          hidden: input.hidden,
+          hiddenBy,
+          hiddenAt,
+        });
+      }
     }
   });
 

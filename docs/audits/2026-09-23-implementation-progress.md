@@ -12,7 +12,7 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Published to Preview | Navigation, organization and manager-scope regression tests; keyboard checks passed |
 | Atomic sync publication and freshness | Published to Preview | PostgreSQL rollback tests; untouched periods preserved; live hosted trigger still gated |
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 493 tests across 59 files passed in PostgreSQL 18 CI run 36052750919 at 79ca0d5, including lint, TypeScript and production build |
+| Combined implementation validation | Passed | 500 tests across 60 files passed in PostgreSQL 18 CI run 36053740377 at 6ad1093, including lint, TypeScript and production build |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database, core UI, worker authentication and bounded ingestion/recovery passed | Separate PostgreSQL 18.6 and Entra app; four fresh ingestion processes, expired-lease takeover and replay verified; source disabled after rehearsal; recurring scheduling remains open |
 | Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; full-week export failed actor completeness verification; reviewed human provenance and independent parity remain open |
@@ -1598,3 +1598,25 @@ Repository searches found no Radix tabs imports or component callers, and `pnpm 
 only the direct application dependency. Removed `@radix-ui/react-tabs` and its lock entries;
 no other dependency versions changed. TypeScript and a frozen-lockfile install passed. The
 full CI/build check follows. Existing navigation and Radix primitives remain in use.
+
+Both e716468 diagnostic CI runs 36053392040/36053384104 and both 6ad1093 dependency
+CI runs 36053740377/36053733130 passed 500 tests across 60 files, lint, TypeScript and build.
+
+## Atomic visibility editor saves and control labels — September 24
+
+Selecting both brands and both Menufy lines previously made three independent server requests.
+A later failure could leave only part of the intended visibility change applied. The editor
+now sends one bounded, validated selection; all rules save in one PostgreSQL transaction
+under the metric lock. Empty, duplicate, mixed-selection and foreign-resource batches fail
+without partial changes. The single-rule action uses the same implementation.
+
+The editor retains inputs and reports an unconfirmed save on errors, avoiding a false claim
+that a lost response means nothing was committed. Manager scope stays fixed while loading
+its confirmation count. Existing labels now name the selects and radio groups; roster
+mapping/team fields receive accessible names and radio boundaries use the input token.
+
+A fixture-scoped PostgreSQL trigger rejected the second rule after the first rule was
+updated: the original value survived, no later rows were saved, and retry committed all
+three rules with one attribution timestamp. Trigger/function and fixture rules were removed.
+Forty-four relevant visibility, editor and organization-scope tests passed across four files,
+plus TypeScript and lint. Full CI follows. No real visibility setting was changed.

@@ -114,18 +114,21 @@ export default async function RosterReviewPage() {
                 <input type="hidden" name="dataSourceId" value={source.id} />
                 <input
                   name="externalGroupId"
+                  aria-label="External group or team ID"
                   placeholder="Group/team ID"
                   required
                   className="rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
                 />
                 <input
                   name="externalGroupLabel"
+                  aria-label="Group mapping label"
                   placeholder="Label"
                   required
                   className="rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
                 />
                 <select
                   name="teamId"
+                  aria-label="Mapped team"
                   required
                   className="rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
                 >
@@ -180,6 +183,7 @@ export default async function RosterReviewPage() {
                     <input type="hidden" name="candidateId" value={c.id} />
                     <select
                       name="teamId"
+                      aria-label={`Team for ${c.externalDisplayName ?? c.externalEmail ?? c.externalId}`}
                       defaultValue={c.suggestedTeamId ?? ""}
                       className="rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
                     >

@@ -20,7 +20,7 @@ function RadioGroupItem({
     <label className="flex items-center gap-2 text-sm text-foreground">
       <RadioGroupPrimitive.Item
         className={cn(
-          "h-4 w-4 shrink-0 rounded-full border border-border",
+          "h-4 w-4 shrink-0 rounded-full border border-input",
           "data-[state=checked]:border-accent",
           className
         )}
