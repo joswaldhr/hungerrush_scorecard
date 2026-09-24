@@ -1263,3 +1263,17 @@ shadow bearer could not invoke metric publication. Ingestion stayed disabled. Th
 branch-alias share grant was revoked and the same cookie then redirected to protection;
 Railway cleanup disables requests/probe mode and removes the temporary cookie. See
 2026-09-24-shadow-scheduler.md for deployment references and remaining activation gates.
+
+## Actor completeness diagnostics — September 24
+
+The shared actor-batch verifier separates missing, duplicate and unexpected account results
+and refuses to supply eligible IDs for partial or inconsistent coverage. Weekly probe
+failures now preserve these aggregate counts without source IDs or payloads. Eight actor
+and exact-email regressions and TypeScript pass. The retained September 23 export resolved
+all 1,729 distinct positive actors with 18 source GETs, no 429s, zero ticket/call re-export
+requests and no database writes. This narrows verification to that day; it does not resolve
+the earlier weekly failure or establish historical roles/human attribution.
+
+Scheduler checkpoint 0708ea4 passed both CI runs (36037075244 and 36037062390).
+Cleanup deployment logged disabled at 12:49 CDT, and revoked temporary access returned
+to Vercel protection. Production remains unchanged.

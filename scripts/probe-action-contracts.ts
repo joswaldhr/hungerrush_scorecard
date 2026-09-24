@@ -7,6 +7,10 @@ import {
 } from "../src/lib/connectors/zendesk-ticket-actions";
 import { fetchAgentLegs, summarizeAgentLegs } from "../src/lib/connectors/zendesk-agent-legs";
 import { zendeskGet, type RequestStats } from "../src/lib/connectors/zendesk-shared";
+import {
+  ActionActorLookupError,
+  inspectActionActorBatch,
+} from "../src/lib/connectors/zendesk-action-actors";
 
 let stage = "arguments";
 const stats: RequestStats = { requests: 0, retries429: 0, backoffWaitMs: 0 };
@@ -52,31 +56,13 @@ async function main() {
   ];
   const agents = new Set<number>();
   for (let i = 0; i < ids.length; i += 100) {
-    const result = z
-      .object({
-        users: z.array(
-          z.object({
-            id: z.number().int().positive().safe(),
-            role: z.enum(["agent", "admin", "end-user"]),
-          })
-        ),
-      })
-      .parse(
-        await zendeskGet<unknown>(
-          `/users/show_many.json?ids=${ids.slice(i, i + 100).join(",")}`,
-          stats
-        )
-      );
-    const requested = new Set(ids.slice(i, i + 100));
-    const received = new Set(result.users.map((user) => user.id));
-    if (
-      result.users.length !== requested.size ||
-      received.size !== requested.size ||
-      [...received].some((id) => !requested.has(id))
-    )
-      throw new Error("Actor lookup incomplete or inconsistent");
-    for (const user of result.users)
-      if (user.role === "agent" || user.role === "admin") agents.add(user.id);
+    const batch = ids.slice(i, i + 100);
+    const result = inspectActionActorBatch(
+      batch,
+      await get(`/users/show_many.json?ids=${batch.join(",")}`)
+    );
+    if (!result.eligibleActorIds) throw new ActionActorLookupError(result.counts);
+    for (const id of result.eligibleActorIds) agents.add(id);
   }
   const ticketSummary = summarizeTicketActions(tickets, agents);
   const legSummary = summarizeAgentLegs(calls.legs, agents);
@@ -210,6 +196,7 @@ main().catch(async (error: unknown) => {
     stage,
     reason: knownReason,
     errorType: error instanceof Error ? error.name : "Unknown",
+    actorLookup: error instanceof ActionActorLookupError ? error.counts : undefined,
     requests: stats,
   };
   if (process.argv[3])

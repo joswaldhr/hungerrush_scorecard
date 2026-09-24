@@ -165,6 +165,21 @@ not update identity verification timestamps or persist numeric IDs. Source `veri
 describes email verification; it does not establish human ownership or manual activity.
 See the [Zendesk users contract](https://developer.zendesk.com/api-reference/ticketing/users/users/).
 
+The retained September 23 daily export was checked again on September 24 without
+refetching tickets or calls: all 1,729 distinct positive actors resolved exactly across
+18 GET requests, with zero missing, duplicate or unexpected results and no rate limits.
+This does not establish the cause of the separate September 13–19 weekly lookup failure.
+The shared batch verifier now reports those three failure categories as aggregate counts
+and withholds eligible IDs on any incomplete/inconsistent batch. The weekly failure report
+retains those counts rather than only a generic error. No unresolved actor is treated as
+an end user or automation.
+
+`probe-retained-action-actors.ts` uses an explicit read-only loopback connection and the
+existing completed export. On a missing-only response it may compare the documented
+`include_deleted=true` option, which includes inactive/deleted accounts; it does not infer
+which condition applies or certify historical roles. That fallback was not needed in this
+daily census. The aggregate report is `2026-09-24-retained-action-actors.json`.
+
 Historical eligibility and automation attribution remain unresolved. A frozen observation
 of today's matching accounts must not be presented as a historical employee-role snapshot.
 
