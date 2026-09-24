@@ -20,6 +20,7 @@ jobs:
   verify:
     if: github.repository == 'joswaldhr/hungerrush_scorecard' && github.ref == 'refs/heads/codex/audit-reliability-checkpoints'
     runs-on: ubuntu-latest
+    environment: cadence-staging-shadow
     timeout-minutes: 5
     permissions:
       contents: read
@@ -36,16 +37,19 @@ jobs:
         run: node --test scripts/probe-shadow-oidc.test.mjs
       - name: Verify short-lived Preview identity with ingestion disabled
         uses: actions/github-script@v7
+        env:
+          ACTION_SHADOW_SECRET: ${{ secrets.ACTION_SHADOW_SECRET }}
         with:
           script: |
             try {
+              if (!process.env.ACTION_SHADOW_SECRET) throw new Error('Staging worker credential is missing');
               const { rehearsePreviewProtection } = await import(`${process.env.GITHUB_WORKSPACE}/scripts/probe-shadow-oidc.mjs`);
               const report = await rehearsePreviewProtection(async (audience) => {
                 const token = await core.getIDToken(audience);
                 core.setSecret(token);
                 return token;
-              });
+              }, fetch, process.env.ACTION_SHADOW_SECRET);
               core.info(JSON.stringify(report));
             } catch {
-              core.setFailed('Preview identity rehearsal failed. No worker credential was sent and ingestion was not requested.');
+              core.setFailed('Preview authentication rehearsal failed. Only the fixed authentication-only endpoint may receive the staging worker credential; ingestion was not requested.');
             }
