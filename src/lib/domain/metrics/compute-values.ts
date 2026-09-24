@@ -60,7 +60,11 @@ export async function computeMetricValuesFromFacts(
 
   for (const def of defs) {
     const affectedFacts = await connection
-      .select()
+      .select({
+        employeeId: normalizedFacts.employeeId,
+        periodStart: normalizedFacts.periodStart,
+        periodEnd: normalizedFacts.periodEnd,
+      })
       .from(normalizedFacts)
       .where(
         and(
@@ -71,26 +75,39 @@ export async function computeMetricValuesFromFacts(
         )
       );
     if (affectedFacts.length === 0) continue;
-    const groupKey = (fact: typeof normalizedFacts.$inferSelect) =>
+    const groupKey = (fact: (typeof affectedFacts)[number]) =>
       `${fact.employeeId}|${fact.periodStart}|${fact.periodEnd}`;
-    const affectedGroups = new Set(affectedFacts.map(groupKey));
-    // Recompute whole affected groups, including unchanged contributing records.
-    const sourceFacts = await connection
-      .select()
-      .from(normalizedFacts)
-      .where(
-        and(
-          eq(normalizedFacts.organizationId, organizationId),
-          eq(normalizedFacts.factType, def.key),
-          eq(normalizedFacts.dataSourceId, scope.dataSourceId)
-        )
-      );
-    const facts = sourceFacts
-      .filter((fact) => affectedGroups.has(groupKey(fact)))
-      .sort(
-        (a, b) =>
-          a.sourceObservedAt.getTime() - b.sourceObservedAt.getTime() || a.id.localeCompare(b.id)
-      );
+    const affectedGroups = new Map(affectedFacts.map((fact) => [groupKey(fact), fact]));
+    // Restrict the read in PostgreSQL, not after transferring all source history.
+    // Include unchanged contributors in each exact employee/interval group. Bound
+    // parameters per query even when an explicit replay touches many periods.
+    const facts: (typeof normalizedFacts.$inferSelect)[] = [];
+    for (const groups of chunk([...affectedGroups.values()], WRITE_CHUNK_SIZE)) {
+      const contributors = await connection
+        .select()
+        .from(normalizedFacts)
+        .where(
+          and(
+            eq(normalizedFacts.organizationId, organizationId),
+            eq(normalizedFacts.factType, def.key),
+            eq(normalizedFacts.dataSourceId, scope.dataSourceId),
+            or(
+              ...groups.map((group) =>
+                and(
+                  eq(normalizedFacts.employeeId, group.employeeId),
+                  eq(normalizedFacts.periodStart, group.periodStart),
+                  eq(normalizedFacts.periodEnd, group.periodEnd)
+                )
+              )
+            )
+          )
+        );
+      facts.push(...contributors);
+    }
+    facts.sort(
+      (a, b) =>
+        a.sourceObservedAt.getTime() - b.sourceObservedAt.getTime() || a.id.localeCompare(b.id)
+    );
 
     const groups = new Map<
       string,

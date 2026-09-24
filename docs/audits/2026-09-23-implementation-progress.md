@@ -1328,3 +1328,20 @@ docs/RUNBOOK.md consolidates isolated validation, scheduler diagnosis, migration
 and technical release/rollback procedures. Obsolete claims that cron routes are untested
 were removed; older investigation evidence remains linked and retained. Local links and
 the documentation diff were checked. No application behavior or infrastructure changed.
+
+## Bounded contributor reads — September 24
+
+Metric recomputation previously fetched all historical facts for each source/metric and
+filtered affected employee/period groups in application memory. It now restricts those
+reads in PostgreSQL using exact employee/start/end predicates in batches of 500. Unchanged
+contributors within an affected group remain included; unrelated history is not transferred.
+No calculation formula, write scope, migration or publication boundary changed.
+
+Twenty-two formula/publication/scope cases and TypeScript passed. The new real-database
+regression crosses 501 affected intervals, includes an unchanged contributor, and excludes
+another employee and a different end date with the same start. Existing null correction,
+idempotency, ordering, lease and rollback tests pass. A read-only production EXPLAIN sample
+reduced returned rows from 864 to 1 and shared buffer hits from 292 to 7 for a one-group
+correction; execution was 0.587 ms versus 0.090 ms. This is a cache/order-sensitive sample,
+not an end-to-end sync benchmark. Only aggregate evidence is retained in
+2026-09-24-compute-read-scope.json; the probe performed no database writes.

@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-09-24T18:26:22.573Z",
+  "scenario": "One changed employee/interval group, selected from the latest retained fact; not a whole sync benchmark",
+  "databaseWrites": 0,
+  "broad": {
+    "rows": 864,
+    "executionMs": 0.587,
+    "planningMs": 0.359,
+    "sharedHitBlocks": 292,
+    "sharedReadBlocks": 0
+  },
+  "scoped": {
+    "rows": 1,
+    "executionMs": 0.09,
+    "planningMs": 0.151,
+    "sharedHitBlocks": 7,
+    "sharedReadBlocks": 0
+  },
+  "limits": "One read-only sample; timings are cache/order sensitive and do not establish production end-to-end latency."
+}

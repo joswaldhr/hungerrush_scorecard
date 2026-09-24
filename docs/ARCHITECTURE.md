@@ -355,7 +355,9 @@ opening the transaction. Source records, facts, affected metric values, complete
 checkpoint, and source last-success timestamp commit together. Callers must not compute
 values separately. Metric computation takes a source ID, run ID, and transaction connection;
 only affected employee-period groups are written, including unchanged contributors from
-that source. Freshness derives from source observations and is distinct from calculation
+that source. Contributor reads are filtered in PostgreSQL by exact employee/start/end groups,
+in batches of 500; a small correction no longer transfers the source's complete fact history.
+Freshness derives from source observations and is distinct from calculation
 time. Failed manual/cron runs return HTTP 503; cron sends its healthy heartbeat only when
 all configured sources succeed. This boundary does not establish vendor completeness or
 repair legacy null corrections or freshness. See the dated implementation progress report.
