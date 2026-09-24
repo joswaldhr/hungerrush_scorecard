@@ -346,25 +346,21 @@ it("does not use another organization's employee profile for a matching email", 
   const foreign = randomUUID();
   const local = randomUUID();
   try {
-    await db
-      .insert(employees)
-      .values({
-        id: foreign,
-        organizationId: OTHER_ORG_ID,
-        displayName: "Synthetic foreign profile",
-        email: MANAGER_EMAIL,
-        jobTitle: "Foreign title",
-      });
+    await db.insert(employees).values({
+      id: foreign,
+      organizationId: OTHER_ORG_ID,
+      displayName: "Synthetic foreign profile",
+      email: MANAGER_EMAIL,
+      jobTitle: "Foreign title",
+    });
     expect(await getUserJobTitle(MANAGER_EMAIL)).toBeNull();
-    await db
-      .insert(employees)
-      .values({
-        id: local,
-        organizationId: ORG_ID,
-        displayName: "Synthetic local profile",
-        email: MANAGER_EMAIL,
-        jobTitle: "Local title",
-      });
+    await db.insert(employees).values({
+      id: local,
+      organizationId: ORG_ID,
+      displayName: "Synthetic local profile",
+      email: MANAGER_EMAIL,
+      jobTitle: "Local title",
+    });
     expect(await getUserJobTitle(MANAGER_EMAIL)).toBe("Local title");
     expect(await getUserJobTitle("unknown@example.test")).toBeNull();
   } finally {
