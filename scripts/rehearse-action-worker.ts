@@ -64,7 +64,13 @@ async function main() {
         displayName: "Local action rehearsal",
       })
       .onConflictDoNothing();
-    const scope = { organizationId, dataSourceId, start, endExclusive };
+    const scope = {
+      organizationId,
+      dataSourceId,
+      start,
+      endExclusive,
+      observationId: process.argv[4],
+    };
     const before = {
       tickets: (await readTicketActionExport(scope)).state.pages,
       legs: (await readAgentLegExport(scope)).state.pages,
@@ -86,6 +92,23 @@ async function main() {
       .where(eq(schema.dataSources.id, dataSourceId));
     if (facts!.count !== 0 || source!.lastSuccessfulSyncAt !== null)
       throw new Error("Shadow rehearsal unexpectedly published data");
+    let comparison;
+    if (scope.observationId && batch.completed) {
+      const { compareActionObservation } =
+        await import("../src/lib/connectors/action-observation-comparison");
+      const result = await compareActionObservation(scope, scope.observationId);
+      const counts = (changes: { added: number[]; removed: number[]; changed: number[] } | null) =>
+        changes && {
+          added: changes.added.length,
+          removed: changes.removed.length,
+          changed: changes.changed.length,
+        };
+      comparison = {
+        status: result.status,
+        tickets: counts(result.tickets),
+        legs: counts(result.legs),
+      };
+    }
     const report = {
       observedAt: new Date().toISOString(),
       day,
@@ -97,6 +120,7 @@ async function main() {
       callLegs: legs.cohort?.legs.length ?? null,
       normalizedFacts: facts!.count,
       successfulSyncUnchanged: true,
+      comparison,
     };
     await writeFile(output, `${JSON.stringify(report, null, 2)}\n`);
     console.log(JSON.stringify(report));

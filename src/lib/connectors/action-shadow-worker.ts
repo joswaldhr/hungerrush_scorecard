@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, notLike, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { sourceRecords } from "@/lib/db/schema";
 import { assertOrganizationResource } from "@/lib/auth/organization-scope";
@@ -26,6 +26,7 @@ export async function nextActionShadowScope(
   const latestEnd = now.getTime() - midnight < 120_000 ? midnight - DAY : midnight;
   const filter = and(
     eq(sourceRecords.dataSourceId, dataSourceId),
+    notLike(sourceRecords.externalRecordId, "%/observation/%"),
     inArray(sourceRecords.externalRecordType, CHECKPOINTS)
   );
   const [pending] = await db
@@ -103,6 +104,7 @@ export async function runActionShadowBatch(
   return {
     periodStart: scope.start.toISOString(),
     periodEndExclusive: scope.endExclusive.toISOString(),
+    observationId: scope.observationId ?? null,
     completed: tickets.status === "complete" && legs.status === "complete",
     steps,
     streams: {

@@ -6,6 +6,7 @@ import { sourceRecords } from "@/lib/db/schema";
 import { assertOrganizationResource } from "@/lib/auth/organization-scope";
 import { parseAgentLegPage, type AgentLeg } from "./zendesk-agent-legs";
 import { SourceRetryLaterError } from "./source-retry";
+import { actionObservationKey } from "./action-observation-key";
 
 // Separate namespaces keep shadow checkpoints/events outside the active fact publisher.
 const CHECKPOINT = "zendesk_agent_leg_checkpoint_v2_shadow";
@@ -30,6 +31,7 @@ export interface AgentLegExportScope {
   dataSourceId: string;
   start: Date;
   endExclusive: Date;
+  observationId?: string;
 }
 
 function initialState(scope: AgentLegExportScope): State {
@@ -58,7 +60,11 @@ function initialState(scope: AgentLegExportScope): State {
 async function checkpoint(scope: AgentLegExportScope, create = true) {
   await assertOrganizationResource(scope.organizationId, "source", scope.dataSourceId);
   const state = initialState(scope);
-  const externalRecordId = `${state.start}/${state.endExclusive}`;
+  const externalRecordId = actionObservationKey(
+    state.start,
+    state.endExclusive,
+    scope.observationId
+  );
   if (create)
     await db
       .insert(sourceRecords)

@@ -877,3 +877,18 @@ Seven focused route/PostgreSQL cases, TypeScript, formatting, and focused lint p
 Checks demonstrated one concurrent owner, expiry recovery, stale-owner release rejection,
 cross-organization rejection, busy-route short-circuiting, and release after worker failure.
 This protects route invocations; direct calls to page primitives still need coordination.
+
+## Immutable re-observation and correction comparison — September 24
+
+An explicit observation UUID now creates a separate ticket/leg export for an existing
+interval. Retry resumes that observation; completed originals remain immutable. Daily
+catch-up excludes these records. Internal comparisons require both exports to be complete
+and list additions/removals/changes without publishing anything. Partial observations
+remain unavailable; no missing record is silently treated as a deletion or zero.
+
+All 18 focused checkpoint/worker PostgreSQL tests, typecheck, formatting, and focused lint
+passed. The new regression demonstrates unchanged original evidence, unavailable partial
+comparison, exact added/removed/changed IDs, idempotent completion, invalid-ID rejection,
+and independence from daily scheduling. A live read-only Zendesk re-observation used four
+processes with local-only writes and a persisted rate-limit delay. Its final comparison
+matched 11,954 events and 2,532 legs exactly with zero differences and zero normalized facts.

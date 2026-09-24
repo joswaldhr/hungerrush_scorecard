@@ -141,3 +141,25 @@ See the [Zendesk users contract](https://developer.zendesk.com/api-reference/tic
 
 Historical eligibility and automation attribution remain unresolved. A frozen observation
 of today's matching accounts must not be presented as a historical employee-role snapshot.
+
+## Explicit re-observation policy
+
+Completed exports stay immutable. To inspect late arrivals or corrections, callers supply
+a fresh UUID `observationId` on the same source and UTC interval. This creates separate
+checkpoints, records, and revisions. Retrying that UUID resumes its existing work; using a
+new UUID starts a new observation. The routine daily selector excludes re-observations, so
+an unfinished correction cannot interfere with normal catch-up. There is no public trigger
+parameter or automatic publication for these observations.
+
+`compareActionObservation` compares a completed re-observation against the initial export.
+It returns unavailable comparison data until both ticket and leg exports are complete.
+Added, removed, and changed source IDs are internal evidence; public rehearsal reports
+retain counts only. Even an empty difference remains review-required. A missing record is
+not automatically a deletion correction, and original metric values are never rewritten by
+this path. The eventual publication policy must bind reviewed observation and definition
+versions explicitly. Retention must keep observations referenced by published evidence.
+
+A September 24 live re-observation of September 23 resumed across four local processes,
+including one persisted 429 delay. It matched all 11,954 ticket events and 2,532 call legs
+from the earlier local observation with zero additions, removals, or changes. No normalized
+facts were written. See `2026-09-24-action-reobservation-batch-4.json`.

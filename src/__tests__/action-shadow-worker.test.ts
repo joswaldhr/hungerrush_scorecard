@@ -6,6 +6,8 @@ import { db } from "@/lib/db";
 import { organizations, dataSources, sourceRecords, normalizedFacts } from "@/lib/db/schema";
 import { nextActionShadowScope, runActionShadowBatch } from "@/lib/connectors/action-shadow-worker";
 import { SourceRetryLaterError } from "@/lib/connectors/source-retry";
+import { compareActionObservation } from "@/lib/connectors/action-observation-comparison";
+import { readTicketActionExport } from "@/lib/connectors/ticket-action-checkpoint";
 const organizationId = randomUUID(),
   dataSourceId = randomUUID();
 const now = new Date("2026-09-24T12:00:00Z");
@@ -109,4 +111,40 @@ it("keeps the two-minute source lag and rejects invalid budgets", async () => {
   await expect(runActionShadowBatch(scope, vi.fn(), { maxDurationMs: NaN })).rejects.toThrow(
     "budget"
   );
+});
+
+it("retains the original observation and reports changes only after a separate export completes", async () => {
+  const scope = await nextActionShadowScope(organizationId, dataSourceId, now);
+  await runActionShadowBatch(scope, get);
+  const observationId = randomUUID();
+  expect((await compareActionObservation(scope, observationId)).status).toBe("incomplete");
+  const revised = { ...scope, observationId };
+  const updated = async (path: string) => {
+    const result = await get(path);
+    if (result.ticket_events)
+      return {
+        ...result,
+        ticket_events: result.ticket_events.map((event) => ({ ...event, id: 2 })),
+      };
+    return { ...result, legs: result.legs!.map((leg) => ({ ...leg, talk_time: 20 })) };
+  };
+  await runActionShadowBatch(revised, updated, { maxPages: 1 });
+  expect((await compareActionObservation(scope, observationId)).status).toBe("incomplete");
+  // An unfinished correction must not replace normal daily catch-up selection.
+  expect(
+    (
+      await nextActionShadowScope(organizationId, dataSourceId, new Date("2026-09-27T12:00:00Z"))
+    ).start.toISOString()
+  ).toBe("2026-09-24T00:00:00.000Z");
+  await runActionShadowBatch(revised, updated);
+  expect(await compareActionObservation(scope, observationId)).toEqual({
+    status: "review_required",
+    tickets: { added: [2], removed: [1], changed: [] },
+    legs: { added: [], removed: [], changed: [1] },
+  });
+  expect((await readTicketActionExport(scope)).cohort?.events.map((event) => event.id)).toEqual([
+    1,
+  ]);
+  expect((await runActionShadowBatch(revised, vi.fn())).steps).toBe(0);
+  await expect(readTicketActionExport({ ...scope, observationId: "bad/id" })).rejects.toThrow();
 });
