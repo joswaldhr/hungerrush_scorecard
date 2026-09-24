@@ -91,3 +91,25 @@ trusted case must still be refused by application authentication. Three local re
 tests passed. Hosted results follow. This does not enable ingestion or recurring scheduling.
 See [Trusted Sources](https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection/trusted-sources)
 and the [project API](https://vercel.com/docs/rest-api/projects/update-an-existing-project).
+
+Hosted push run 36044229447 and manual audit-branch run 36044434119 both passed in two
+fresh sequential processes. Each reported anonymous 302, wrong-audience 302 and trusted
+application 401. Manual dispatch works without changing the default production branch.
+
+The follow-up run 36045340885 at 741879c verified the full worker authentication path in
+two fresh processes at 19:02:04/19:02:12 UTC. Both returned `workerAuthenticated: true`
+and `sourceIngestionStarted: false`. The endpoint's explicit `?probe=auth` mode was first
+deployed at 22d03b4 on dpl_FFDoq9EZsVHTvuxbfW2pftR5DeWH; it exits before source or lease
+access even if ingestion is configured later. Four standalone request-boundary tests and
+ten route tests passed locally, with TypeScript and focused lint.
+
+The dedicated staging worker credential is stored in the `cadence-staging-shadow` GitHub
+environment, whose custom deployment policy allows only the audit branch. Vercel's exact
+OIDC rule now also requires that environment claim; its Preview destination restriction
+and existing SSO protection are unchanged. GitHub holds no database or vendor credentials.
+The owner-only plaintext handoff was removed. No reusable Vercel bypass secret was created.
+
+This supplies a durable short-lived identity path for manually dispatched workflow runs.
+It does not establish recurring scheduling: GitHub scheduled workflows require the default
+branch, and the Railway service remains disabled. Live source ingestion, checkpoint restart
+and source-account binding remain release gates. Production settings and data were not changed.
