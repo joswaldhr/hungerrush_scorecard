@@ -68,7 +68,7 @@ async function main() {
   );
   assert.equal(
     journal.entries.at(-1).tag,
-    "0013_visibility_scope_uniqueness",
+    "0014_roster_candidate_line",
     "Review the rehearsal when adding another migration"
   );
   const previousFolder = await mkdtemp(path.join(tmpdir(), "cadence-stage-migrations-"));
@@ -107,6 +107,10 @@ async function main() {
     externalEntityType: "user",
     matchMethod: "manual",
   });
+  // Seed with SQL because the old schema intentionally has no suggested_line column.
+  const legacyCandidate = randomUUID();
+  await client`insert into roster_candidates (id, data_source_id, external_id, change_type)
+    values (${legacyCandidate}, ${source}, 'legacy-stage-candidate', 'new')`;
   await connection.insert(schema.metricDefinitions).values({
     id: metric,
     organizationId: org,
@@ -157,14 +161,12 @@ async function main() {
   const actor = randomUUID(),
     originalRule = randomUUID(),
     duplicateRule = randomUUID();
-  await connection
-    .insert(schema.users)
-    .values({
-      id: actor,
-      organizationId: org,
-      email: "synthetic-stage@example.test",
-      displayName: "Synthetic admin",
-    });
+  await connection.insert(schema.users).values({
+    id: actor,
+    organizationId: org,
+    email: "synthetic-stage@example.test",
+    displayName: "Synthetic admin",
+  });
   const rule = {
     scope: "global_default",
     metricDefinitionId: metric,
@@ -187,6 +189,20 @@ async function main() {
   const started = Date.now();
   await migrate(connection, { migrationsFolder: migrationFolder });
   const migrationMs = Date.now() - started;
+  const [preservedCandidate] = await connection
+    .select()
+    .from(schema.rosterCandidates)
+    .where(eq(schema.rosterCandidates.id, legacyCandidate));
+  assert.equal(preservedCandidate?.suggestedLine, null, "Legacy line must not be guessed");
+  await connection
+    .update(schema.rosterCandidates)
+    .set({ suggestedLine: "synthetic-line" })
+    .where(eq(schema.rosterCandidates.id, legacyCandidate));
+  const [lineCandidate] = await connection
+    .select()
+    .from(schema.rosterCandidates)
+    .where(eq(schema.rosterCandidates.id, legacyCandidate));
+  assert.equal(lineCandidate?.suggestedLine, "synthetic-line");
   assert.deepEqual(await readValue(), before, "Migration must preserve existing data");
   assert.equal(
     (await connection.select().from(schema.metricVisibilityOverrides))[0]?.id,
@@ -286,7 +302,7 @@ async function main() {
           tlsCertificateValidation: "Railway self-signed certificate; sslmode=require",
         }
       : {}),
-    migration: "0011 -> 0013",
+    migration: "0011 -> 0014",
     duplicateScopeUpgradeRejectedWithoutDataLoss: true,
     failedUpgradeRestoredLegacyIndex: true,
     nullableDuplicateRejected: true,

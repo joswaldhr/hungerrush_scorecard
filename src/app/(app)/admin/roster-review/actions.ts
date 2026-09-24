@@ -108,6 +108,8 @@ export async function approveNewCandidate(formData: FormData) {
           candidate.externalDisplayName ?? candidate.externalEmail ?? candidate.externalId,
         email: candidate.externalEmail,
         primaryTeamId: teamId,
+        // A changed team cannot inherit another team's discovered line.
+        line: teamId && teamId === candidate.suggestedTeamId ? candidate.suggestedLine : null,
       })
       .returning();
 

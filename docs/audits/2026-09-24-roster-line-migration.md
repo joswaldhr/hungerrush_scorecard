@@ -24,3 +24,11 @@ can finish while the old application remains compatible. The new code preserves 
 line through discovery, automatic approval and pending review. Conflicting lines in the same
 team are rejected. Manual approval preserves the suggestion only for its original team;
 the review UI explains that choosing another team clears that line.
+
+## Hosted result
+
+Preview deployment `dpl_13jvbWaW3w5BHw5jfVdfaqSvpgGf` completed READY with the one-off
+build override. The staging-only command verified migration through 0014 and unchanged
+contents of all 32 public tables / 28 rows. Production access was refused by construction.
+The application build also passed. Project-wide build settings were not changed; ordinary
+future deployments still use the normal build command.

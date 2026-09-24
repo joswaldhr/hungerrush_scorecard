@@ -12,8 +12,8 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Implemented locally | Navigation, organization and manager-scope regression tests |
 | Atomic sync publication and freshness | Implemented locally | PostgreSQL rollback tests; untouched periods preserved |
 | Null corrections and predecessor evidence | Implemented locally | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 350 tests across 42 files, TypeScript, full lint/format, production build |
-| Migration and corrected-sync rehearsal | Passed locally | Separate staging database; 0011 -> 0013; duplicate refusal/rollback and synthetic stored-data assertions |
+| Combined implementation validation | Passed | 360 tests across 43 files, full lint/format, TypeScript and production build |
+| Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database and core UI checks passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; cron runtime check remains open |
 | Zendesk completeness | Search and Talk safety guards implemented locally | 2,415-ticket export reconciled; Talk boundary verified; historical/agent semantics remain open |
 | Production rollout / historical repair | Not performed | Release gate below must be completed first |
@@ -1017,3 +1017,22 @@ by discovery; missing/duplicate/unrequested accounts abort the operation rather 
 a partial roster that could create false departures. No partial discovery reaches database
 reconciliation. Seven connector tests and TypeScript passed. This is a fail-closed bound,
 not resumable roster discovery or proof that source membership is an employment decision.
+
+## Roster line preservation and hosted migration — September 24
+
+Configured lines now travel through discovery into automatic hires and pending candidates.
+Migration 0014 adds nullable suggested_line without guessing a value for existing candidates.
+Conflicting team/line mappings fail closed. Manual approval retains the suggested line only
+for the suggested team; switching teams clears it and the review screen explains this.
+The review copy now accurately describes automatic small-batch approval.
+
+Local 0011-to-0014 upgrade rehearsal passed, preserving a legacy candidate with null line.
+A fresh encrypted production snapshot restored all 32 tables / 28,878 rows exactly, then
+upgraded through 0014 without changing existing application data. Production stayed read-only.
+The separate staging-only operator deployment dpl_13jvbWaW3w5BHw5jfVdfaqSvpgGf is READY;
+it applied through 0014 and verified all 32 public tables / 28 staging rows unchanged.
+No project-wide build settings or connection credentials were changed. See the roster-line
+migration report for the guards and rollback compatibility. All 360 tests across 43 files
+pass, including automatic/pending line preservation and clearing after a manual team change.
+Full lint/format, TypeScript and production build also passed before publishing the application
+changes. Ordinary deployments do not run the explicit migration operator.

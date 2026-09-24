@@ -513,4 +513,68 @@ describe("discoverRosterCandidates", () => {
         .where(eq(rosterSourceTeamMappings.dataSourceId, DATA_SOURCE_ID));
     }
   });
+
+  it("preserves a configured line for automatic and pending candidates", async () => {
+    await db
+      .update(rosterSourceTeamMappings)
+      .set({ line: "restaurant" })
+      .where(eq(rosterSourceTeamMappings.dataSourceId, DATA_SOURCE_ID));
+    try {
+      const member = {
+        externalId: "line-hire@example.invalid",
+        externalEmail: "line-hire@example.invalid",
+        externalDisplayName: "Line synthetic hire",
+        teamId: TEAM_ID,
+        line: "restaurant",
+      };
+      const discoverRoster = vi.fn(async () => [member]);
+      const result = await discoverRosterCandidates(
+        { discoverRoster } as unknown as Connector,
+        DATA_SOURCE_ID
+      );
+      expect(result.autoApproved).toBe(1);
+      expect(discoverRoster.mock.calls[0]).toEqual([
+        { dataSourceId: DATA_SOURCE_ID, organizationId: ORG_ID },
+        [{ externalGroupId: "1", teamId: TEAM_ID, line: "restaurant" }],
+      ]);
+      const [employee] = await db
+        .select()
+        .from(employees)
+        .where(eq(employees.email, member.externalEmail));
+      expect(employee!.line).toBe("restaurant");
+      const [candidate] = await db
+        .select()
+        .from(rosterCandidates)
+        .where(eq(rosterCandidates.externalId, member.externalId));
+      expect(candidate!.suggestedLine).toBe("restaurant");
+      const bulk = Array.from({ length: 6 }, (_, i) => ({
+        ...member,
+        externalId: `line-bulk-${i}@example.invalid`,
+        externalEmail: `line-bulk-${i}@example.invalid`,
+      }));
+      expect(
+        (await discoverRosterCandidates(fakeConnector(bulk), DATA_SOURCE_ID)).newCandidates
+      ).toBe(6);
+      const pending = await db
+        .select()
+        .from(rosterCandidates)
+        .where(
+          inArray(
+            rosterCandidates.externalId,
+            bulk.map((m) => m.externalId)
+          )
+        );
+      expect(pending).toHaveLength(6);
+      expect(
+        pending.every(
+          (candidate) => candidate.status === "pending" && candidate.suggestedLine === "restaurant"
+        )
+      ).toBe(true);
+    } finally {
+      await db
+        .update(rosterSourceTeamMappings)
+        .set({ line: null })
+        .where(eq(rosterSourceTeamMappings.dataSourceId, DATA_SOURCE_ID));
+    }
+  });
 });

@@ -596,6 +596,7 @@ export const rosterCandidates = pgTable(
     changeType: text("change_type").notNull(),
     employeeId: uuid("employee_id").references(() => employees.id),
     suggestedTeamId: uuid("suggested_team_id").references(() => teams.id),
+    suggestedLine: text("suggested_line"),
     status: text("status").notNull().default("pending"),
     reviewedBy: uuid("reviewed_by").references(() => users.id),
     reviewedAt: timestamp("reviewed_at", { withTimezone: true }),

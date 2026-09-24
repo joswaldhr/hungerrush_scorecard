@@ -46,6 +46,7 @@ export interface IdentityMatch {
 export interface RosterGroupMapping {
   externalGroupId: string;
   teamId: string;
+  line?: string | null;
 }
 
 export interface DiscoveredRosterMember {
@@ -53,6 +54,7 @@ export interface DiscoveredRosterMember {
   externalEmail: string | null;
   externalDisplayName: string | null;
   teamId: string;
+  line?: string | null;
 }
 
 export interface SyncResult {

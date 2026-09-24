@@ -89,3 +89,21 @@ it("requires an explicit final page and matching group membership", async () => 
     new ZendeskConnector().discoverRoster(config, [{ externalGroupId: "1", teamId: "team-a" }])
   ).rejects.toThrow("membership response");
 });
+
+it("preserves configured line and rejects conflicting lines within the same team", async () => {
+  pages();
+  const mappings = [
+    { externalGroupId: "1", teamId: "team-a", line: "restaurant" },
+    { externalGroupId: "2", teamId: "team-a", line: "restaurant" },
+  ];
+  expect((await new ZendeskConnector().discoverRoster(config, mappings))[0]!.line).toBe(
+    "restaurant"
+  );
+  pages();
+  await expect(
+    new ZendeskConnector().discoverRoster(config, [
+      mappings[0]!,
+      { ...mappings[1]!, line: "consumer" },
+    ])
+  ).rejects.toThrow("conflicting accounts");
+});

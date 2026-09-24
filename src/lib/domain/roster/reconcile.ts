@@ -32,6 +32,7 @@ export async function discoverRosterCandidates(
   const groupMappings = mappings.map((m) => ({
     externalGroupId: m.externalGroupId,
     teamId: m.teamId,
+    line: m.line,
   }));
   const mappedTeamIds = new Set(mappings.map((m) => m.teamId));
 
@@ -65,6 +66,15 @@ export async function discoverRosterCandidates(
       await assertOrganizationResource(source.organizationId, "team", teamId, tx);
     if (discovered.some((member) => !mappedTeamIds.has(member.teamId)))
       throw new Error("Discovered roster contains an unmapped team");
+    if (
+      discovered.some(
+        (member) =>
+          !mappings.some(
+            (mapping) => mapping.teamId === member.teamId && mapping.line === (member.line ?? null)
+          )
+      )
+    )
+      throw new Error("Discovered roster contains an unmapped line");
     if (discoveredIds.size !== discovered.length)
       throw new Error("Discovered roster contains duplicate identities");
     const known = await tx
@@ -159,6 +169,7 @@ export async function discoverRosterCandidates(
                   member.externalDisplayName ?? member.externalEmail ?? member.externalId,
                 email: member.externalEmail,
                 primaryTeamId: member.teamId,
+                line: member.line ?? null,
               })
               .returning();
 
@@ -190,6 +201,7 @@ export async function discoverRosterCandidates(
               externalDisplayName: member.externalDisplayName,
               changeType: "new",
               suggestedTeamId: member.teamId,
+              suggestedLine: member.line ?? null,
               status: "auto_approved",
               reviewedAt: new Date(),
             });
@@ -207,6 +219,7 @@ export async function discoverRosterCandidates(
             externalDisplayName: member.externalDisplayName,
             changeType: "new",
             suggestedTeamId: member.teamId,
+            suggestedLine: member.line ?? null,
             status: "pending",
           });
           newCandidates++;
@@ -219,6 +232,7 @@ export async function discoverRosterCandidates(
           externalDisplayName: member.externalDisplayName,
           changeType: "new",
           suggestedTeamId: member.teamId,
+          suggestedLine: member.line ?? null,
           status: "pending",
         });
         newCandidates++;

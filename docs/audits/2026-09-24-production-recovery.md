@@ -8,9 +8,11 @@ The 1,472,087-byte archive was protected with Windows DPAPI CurrentUser, decrypt
 SHA-256 checked before restoration. A fresh PostgreSQL 18.6 cluster listened only on
 127.0.0.1:55440, with a random SCRAM password and owner-only recovery-directory ACL.
 Restoration used one transaction and stopped on errors. All 32 tables / 28,878 rows matched
-the snapshot's sorted row-content digests. Migrations through 0013 passed on this copy;
+the snapshot's sorted row-content digests. Migrations through 0014 passed on the latest copy;
 all existing application table digests remained unchanged. The migration journal changed
-and the new sync_revisions table remained empty.
+and the new sync_revisions table remained empty. The new nullable suggested_line column was
+excluded only from the post-upgrade comparison when absent from the source schema; the
+pre-upgrade restored copy matched every source field.
 
 The cluster was stopped and removed, together with plaintext dumps and local password.
 The encrypted archive, manifest and operational server log remain under the successful

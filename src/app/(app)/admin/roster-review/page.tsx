@@ -59,8 +59,8 @@ export default async function RosterReviewPage() {
         <h1 className="text-xl font-semibold text-foreground">Roster Review</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           A stopgap for Rippling: diffs each connected source&apos;s configured groups against known
-          people and surfaces new hires and departures for review. Nothing here is auto-created or
-          auto-deactivated.
+          people. Small new-hire batches are approved automatically; larger batches appear here for
+          review. Departures always require review.
         </p>
       </header>
 
@@ -97,6 +97,7 @@ export default async function RosterReviewPage() {
                       <span>
                         {m.externalGroupLabel} ({m.externalGroupId}) →{" "}
                         {teamNameById.get(m.teamId) ?? "Unknown team"}
+                        {m.line ? ` · ${m.line}` : ""}
                       </span>
                       <form action={removeGroupMapping}>
                         <input type="hidden" name="mappingId" value={m.id} />
@@ -166,7 +167,13 @@ export default async function RosterReviewPage() {
                     {c.suggestedTeamId
                       ? (teamNameById.get(c.suggestedTeamId) ?? "Unknown team")
                       : "None"}
+                    {c.suggestedLine ? ` · ${c.suggestedLine}` : ""}
                   </p>
+                  {c.suggestedLine && (
+                    <p className="text-xs text-muted-foreground">
+                      Changing the team clears the suggested line.
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <form action={approveNewCandidate} className="flex items-center gap-2">

@@ -328,6 +328,8 @@ describe("organization-scoped admin actions", () => {
         externalId: "local-candidate",
         externalDisplayName: "New person",
         changeType: "new",
+        suggestedTeamId: a.team,
+        suggestedLine: "synthetic-line",
       })
       .returning();
     await Promise.all([
@@ -340,6 +342,11 @@ describe("organization-scoped admin actions", () => {
       .where(eq(rosterCandidates.id, candidate!.id));
     expect(current?.reviewedBy).toBe(a.user);
     expect(current?.status).toBe("approved");
+    const [approvedPerson] = await db
+      .select()
+      .from(employees)
+      .where(eq(employees.displayName, "New person"));
+    expect(approvedPerson?.line).toBe("synthetic-line");
     expect(
       await db
         .select()
@@ -352,6 +359,27 @@ describe("organization-scoped admin actions", () => {
         )
     ).toHaveLength(1);
   });
+});
+
+it("clears the suggested line when manual approval changes the suggested team", async () => {
+  const [candidate] = await db
+    .insert(rosterCandidates)
+    .values({
+      dataSourceId: a.source,
+      externalId: "unassigned-line-candidate",
+      externalDisplayName: "Unassigned line candidate",
+      changeType: "new",
+      suggestedTeamId: a.team,
+      suggestedLine: "synthetic-line",
+    })
+    .returning();
+  await approveNewCandidate(form({ candidateId: candidate!.id, teamId: "" }));
+  const [person] = await db
+    .select()
+    .from(employees)
+    .where(eq(employees.displayName, "Unassigned line candidate"));
+  expect(person?.primaryTeamId).toBeNull();
+  expect(person?.line).toBeNull();
 });
 
 describe("reconciliation employee boundary", () => {
