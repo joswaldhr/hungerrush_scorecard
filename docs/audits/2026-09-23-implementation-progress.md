@@ -12,7 +12,7 @@ Last updated: 2026-09-23. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Implemented locally | Navigation, organization and manager-scope regression tests |
 | Atomic sync publication and freshness | Implemented locally | PostgreSQL rollback tests; untouched periods preserved |
 | Null corrections and predecessor evidence | Implemented locally | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 296 tests across 32 files, TypeScript, full lint/format, production build |
+| Combined implementation validation | Passed | 304 tests across 34 files, TypeScript, full lint/format, production build |
 | Migration and corrected-sync rehearsal | Passed locally | Separate staging database; 0011 -> 0012; synthetic stored-data assertions |
 | Hosted staging / production parity | Database and core UI checks passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; cron runtime check remains open |
 | Zendesk completeness | Search and Talk safety guards implemented locally | 2,415-ticket export reconciled; Talk boundary verified; historical/agent semantics remain open |
@@ -768,3 +768,25 @@ Validation: all 296 tests across 32 files passed, including the concurrent nulla
 save regression, access boundaries, reconciliation claims, and sanitized database failures.
 Full ESLint, Prettier, TypeScript (production build), and production build passed. No
 production migration, deployment, historical replay, or business-formula change occurred.
+
+## Action-metric version 2 shadow implementation — September 23 (September 24 UTC)
+
+Following the user's continuation instruction, work proceeds in the recommended direction:
+new event/agent-leg contracts with existing history and targets preserved. Added ticket-event
+export validation and actor-based distinct-ticket projection, plus minimal agent-leg export
+and leg-grain completion/missed/declined evidence. They remain outside the active connector.
+See `2026-09-23-action-metric-v2-contract.md` for exact counting and unresolved attribution.
+
+Eight new synthetic regression cases passed alongside all 15 existing Talk cases. They cover
+actor attribution, repeated resolution deduplication, unknown prior state, incomplete
+coverage, conflicting events, pagination failures, transfers, missing/zero durations, and
+unknown leg statuses. Typecheck passed. A read-only source probe processed 657 events and
+69 legs; all three sampled resolutions matched the separate ticket-audit endpoint. Reports
+contain aggregate counts only. No application values or target bands were changed.
+
+Closed-day follow-up: September 23 UTC returned 11,954 events (13 pages) and 2,530 legs
+(four pages), including 14 missed, one declined, and one unreachable eligible-agent leg.
+All three sampled resolution audits matched. Identity/audit verification brought the total
+to 39 requests; one rate-limit retry waited 46 seconds. Persistent export checkpoints and
+source-specific employee/automation attribution remain prerequisites for activation.
+All 304 tests across 34 files, full lint/format, TypeScript, and production build passed.

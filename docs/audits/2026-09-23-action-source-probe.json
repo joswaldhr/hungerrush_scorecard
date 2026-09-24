@@ -1,0 +1,108 @@
+{
+  "scope": "read-only schema sample; no completeness claim",
+  "observedAt": "2026-09-24T00:35:07Z",
+  "sources": [
+    {
+      "endpoint": "/incremental/ticket_events.json",
+      "rows": 100,
+      "responseKeys": [
+        "count",
+        "end_of_stream",
+        "end_time",
+        "next_page",
+        "ticket_events"
+      ],
+      "recordFields": [
+        "child_events",
+        "created_at",
+        "event_type",
+        "id",
+        "system",
+        "ticket_id",
+        "timestamp",
+        "updater_id",
+        "via"
+      ],
+      "childFields": [
+        "added_tags",
+        "assignee_id",
+        "brand_id",
+        "comment_present",
+        "comment_public",
+        "custom_ticket_fields",
+        "event_type",
+        "external_id",
+        "group_id",
+        "id",
+        "is_public",
+        "organization_id",
+        "previous_value",
+        "priority",
+        "rel",
+        "removed_tags",
+        "requester_id",
+        "revision_id",
+        "satisfaction_score",
+        "status",
+        "subject",
+        "tags",
+        "ticket_form_id",
+        "type",
+        "via",
+        "via_reference_id"
+      ],
+      "eventsWithUpdater": 93,
+      "statusSolvedChildren": 11,
+      "eventTypes": {
+        "Audit": 100
+      }
+    },
+    {
+      "endpoint": "/channels/voice/stats/incremental/legs.json",
+      "rows": 214,
+      "responseKeys": [
+        "count",
+        "end_time",
+        "legs",
+        "next_page"
+      ],
+      "recordFields": [
+        "agent_id",
+        "available_via",
+        "call_charge",
+        "call_id",
+        "completion_status",
+        "conference_from",
+        "conference_time",
+        "conference_to",
+        "consultation_from",
+        "consultation_time",
+        "consultation_to",
+        "created_at",
+        "duration",
+        "forwarded_to",
+        "hold_time",
+        "id",
+        "minutes_billed",
+        "quality_issues",
+        "talk_time",
+        "transferred_from",
+        "transferred_to",
+        "type",
+        "updated_at",
+        "user_id",
+        "wrap_up_time"
+      ],
+      "legTypes": {
+        "external": 32,
+        "customer": 106,
+        "agent": 76
+      },
+      "statuses": {
+        "completed": 213,
+        "agent_missed": 1
+      },
+      "agentLegsWithPositiveAgent": 76
+    }
+  ]
+}

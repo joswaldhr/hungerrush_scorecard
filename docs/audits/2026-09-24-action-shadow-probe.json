@@ -1,0 +1,43 @@
+{
+  "observedAt": "2026-09-24T00:42:05.648Z",
+  "mode": "read-only shadow; no metric publication or target evaluation",
+  "day": "2026-09-24",
+  "agentScope": "source-verified current agent/admin roles; not Cadence employee identity mapping",
+  "ticketWindow": {
+    "start": "2026-09-24T00:00:00.000Z",
+    "endExclusive": "2026-09-24T00:40:00.337Z",
+    "coverage": "complete",
+    "pages": 1,
+    "observedThrough": "2026-09-24T00:40:58.000Z"
+  },
+  "ticketActions": {
+    "contract": "zendesk-ticket-actions-v2-shadow",
+    "events": 657,
+    "excludedEvents": 353,
+    "sumOfAgentDistinctUpdatedTickets": 177,
+    "sumOfKnownAgentDistinctResolvedTickets": 120,
+    "agentsWithUnavailableResolvedCount": 0,
+    "uncertainResolutionEvents": 0,
+    "auditSpotCheck": {
+      "sampled": 3,
+      "matched": 3,
+      "scope": "separate per-ticket audit endpoint; not full independent reconciliation"
+    }
+  },
+  "callLegs": {
+    "contract": "zendesk-agent-legs-v2-shadow",
+    "pages": 2,
+    "records": 69,
+    "window": "UTC created-date cohort through fetch; current day remains provisional",
+    "completed": 24,
+    "missed": 0,
+    "declined": 0,
+    "transferDeclined": 0,
+    "unreachable": 0
+  },
+  "requests": {
+    "requests": 8,
+    "retries429": 0,
+    "backoffWaitMs": 0
+  }
+}

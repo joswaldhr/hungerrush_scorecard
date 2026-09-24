@@ -20,14 +20,15 @@ export async function fetchCompleteTalkWeek<T extends TalkCall>(
   periodStart: string,
   periodEnd: string,
   getPage: (path: string) => Promise<TalkPage<T>>,
-  pageBudget = 50
+  pageBudget = 50,
+  resource: "calls" | "legs" = "calls"
 ): Promise<{ calls: T[]; pages: number }> {
   const start = Date.parse(`${periodStart}T00:00:00Z`);
   const endExclusive = Date.parse(`${periodEnd}T00:00:00Z`) + 86_400_000;
   if (!Number.isFinite(start) || !Number.isFinite(endExclusive) || start >= endExclusive) {
     throw new Error("Zendesk Talk invalid reporting period");
   }
-  let path: string = `/channels/voice/stats/incremental/calls.json?start_time=${start / 1000}`;
+  let path: string = `/channels/voice/stats/incremental/${resource}.json?start_time=${start / 1000}`;
   const visited = new Set<string>();
   const latest = new Map<number, T>();
   let previousEndTime: number | undefined;
