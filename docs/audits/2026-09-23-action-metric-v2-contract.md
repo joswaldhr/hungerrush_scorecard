@@ -6,13 +6,36 @@ assignments, targets, and production sync remain unchanged.
 
 ## Counting policy
 
-Ticket updates count distinct tickets with a field change or comment-presence event by an
-explicitly eligible updater within half-open UTC instants. Resolutions count distinct
+The user selected **verified human activity only** on September 24. Uncertain attribution
+must be unavailable, never credited to an employee or substituted with zero. This supersedes
+the actor-only exploratory totals below, which are retained as historical diagnostics.
+
+Ticket updates count distinct tickets with a verified human field change or comment-presence
+event by an explicitly eligible updater within half-open UTC instants. Resolutions count distinct
 tickets transitioning from new/open/pending/hold to solved. Repeated resolutions by the
 same actor count once per interval; two actors may each receive a count for one ticket.
 Closing a solved ticket and creation already in solved status do not count. Unknown prior
 status makes that actor's resolution count unavailable. Partial coverage makes all counts
 unavailable rather than zero. Subjects, comment bodies, and custom fields are stripped.
+
+The summary contract is now `zendesk-ticket-actions-v2-human-only-shadow`. Attribution is
+reviewed per child event, because manual activity and automation can share an audit.
+Verified nonhuman changes are excluded. A relevant child without reviewed evidence makes
+the actor's updated count unavailable; an unresolved solved transition also makes their
+resolved count unavailable. An unrelated uncertain comment does not invalidate an otherwise
+verified resolution. Partial counts are never presented as complete totals.
+
+The optional trusted offline review input binds review UUID, audit/event ID, child ID, ticket
+ID and actor ID. Mismatches and duplicate decisions fail closed. Callers must additionally
+bind the review to the same source and immutable observation before supplying it. No live
+review producer or approval endpoint exists yet; the probe supplies no reviews and cannot
+certify employee totals. Agent/admin role, matching email, updater/author ID and `web` channel
+alone are not accepted as proof of human activity. The retained export/checkpoint schema is
+unchanged; old observations are not silently upgraded to reviewed evidence.
+
+Zendesk documents that individual events can override the audit's `via` and that business
+rules generate events: [audit event reference](https://developer.zendesk.com/documentation/ticketing/reference-guides/ticket-audit-events-reference/).
+This supports child-level review; it does not establish a universal automatic human classifier.
 
 The reader validates counts, watermarks, completion metadata, and event identity. Identical
 boundary repeats are deduplicated; contradictory copies, stalled pagination, missing
@@ -59,7 +82,8 @@ independent metric reconciliation or a certification of manual employee attribut
 
 - Freeze source-specific employee mappings and historical eligibility.
 - Verify automation/service-account attribution. An audit updater is stronger evidence
-  than current assignee but does not prove manual human action.
+  than current assignee but does not prove manual human action. Implement source/observation-bound
+  review provenance before providing verified-human decisions to the summary function.
 - Join legs to calls for direction and define transfer, consultation, acceptance, and
   hang-up eligibility. Preserve leg versus distinct-call grain explicitly.
 - Reconcile a closed week independently and implement sustainable incremental checkpoints.

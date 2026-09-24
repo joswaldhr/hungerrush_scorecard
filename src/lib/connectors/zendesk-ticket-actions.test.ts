@@ -1,6 +1,10 @@
 // @vitest-environment node
 import { expect, it, vi } from "vitest";
-import { fetchTicketActions, summarizeTicketActions } from "./zendesk-ticket-actions";
+import {
+  fetchTicketActions,
+  summarizeTicketActions,
+  type ReviewedTicketAttribution,
+} from "./zendesk-ticket-actions";
 
 const start = new Date("2026-09-23T00:00:00Z");
 const end = new Date("2026-09-24T00:00:00Z");
@@ -26,12 +30,28 @@ const page = (events: unknown[], complete = true) => ({
   end_of_stream: complete,
   next_page: null,
 });
+const review = (
+  eventId = 1,
+  actorId = 42,
+  attribution: ReviewedTicketAttribution["attribution"] = "verified_human"
+): ReviewedTicketAttribution => ({
+  reviewId: "26dcac84-19b4-4809-907d-cc771fdb795a",
+  eventId,
+  ticketId: 10,
+  childEventId: eventId + 100,
+  actorId,
+  attribution,
+});
 
 it("attributes distinct resolved/updated tickets to actors and deduplicates repeated events", async () => {
   const cohort = await fetchTicketActions(start, end, async () =>
     page([event(), event(), event(2), event(3, 84), event(4, null)])
   );
-  const summary = summarizeTicketActions(cohort, new Set([42, 84, 99]));
+  const summary = summarizeTicketActions(cohort, new Set([42, 84, 99]), [
+    review(),
+    review(2),
+    review(3, 84),
+  ]);
   expect(summary.agents.map((a) => [a.agentId, a.ticketsResolved, a.ticketsUpdated])).toEqual([
     [42, 1, 1],
     [84, 1, 1],
@@ -77,9 +97,84 @@ it("requires a verified prior status and does not count closing or unchanged sol
     { ...event(3, 84), child_events: [{ id: 103, event_type: "Change", status: "solved" }] },
   ];
   const cohort = await fetchTicketActions(start, end, async () => page(rows));
-  const summary = summarizeTicketActions(cohort, new Set([42, 84]));
+  const summary = summarizeTicketActions(cohort, new Set([42, 84]), [
+    review(),
+    review(2),
+    review(3, 84),
+  ]);
   expect(summary.agents[0]?.ticketsResolved).toBe(0);
   expect(summary.agents[1]?.ticketsResolved).toBeNull();
+});
+
+it("does not infer human activity from an eligible actor, web channel, or comment author", async () => {
+  const cohort = await fetchTicketActions(start, end, async () =>
+    page([{ ...event(), via: { channel: "web" }, author_id: 42 }])
+  );
+  const result = summarizeTicketActions(cohort, new Set([42])).agents[0];
+  expect(result).toMatchObject({
+    ticketsUpdated: null,
+    ticketsResolved: null,
+    uncertainUpdates: 1,
+    uncertainResolutions: 1,
+    updatedTicketIds: [],
+    resolvedTicketIds: [],
+    eventIds: [],
+  });
+});
+
+it("excludes verified automation even when a human made another change in the same audit", async () => {
+  const mixed = event();
+  const cohort = await fetchTicketActions(start, end, async () =>
+    page([
+      {
+        ...mixed,
+        child_events: [
+          ...mixed.child_events,
+          { id: 999, event_type: "Comment", comment_present: true },
+        ],
+      },
+    ])
+  );
+  const summary = summarizeTicketActions(cohort, new Set([42]), [
+    review(1, 42, "verified_nonhuman"),
+    { ...review(), childEventId: 999 },
+  ]);
+  expect(summary.agents[0]).toMatchObject({
+    ticketsUpdated: 1,
+    ticketsResolved: 0,
+    excludedNonhumanChanges: 1,
+  });
+  expect(
+    summarizeTicketActions(cohort, new Set([42]), [{ ...review(), childEventId: 999 }]).agents[0]
+  ).toMatchObject({ ticketsUpdated: null, ticketsResolved: null });
+});
+
+it("keeps resolution available when only an unrelated update has unknown attribution", async () => {
+  const cohort = await fetchTicketActions(start, end, async () =>
+    page([
+      event(),
+      { ...event(2), child_events: [{ id: 102, event_type: "Comment", comment_present: true }] },
+    ])
+  );
+  expect(summarizeTicketActions(cohort, new Set([42]), [review()]).agents[0]).toMatchObject({
+    ticketsUpdated: null,
+    ticketsResolved: 1,
+    uncertainUpdates: 1,
+  });
+});
+
+it("rejects reviews for another actor, ticket, event, child, or duplicate review", async () => {
+  const cohort = await fetchTicketActions(start, end, async () => page([event()]));
+  for (const invalid of [
+    { ...review(), actorId: 84 },
+    { ...review(), ticketId: 99 },
+    { ...review(), eventId: 99 },
+    { ...review(), childEventId: 99 },
+  ])
+    expect(() => summarizeTicketActions(cohort, new Set([42]), [invalid])).toThrow("match");
+  expect(() => summarizeTicketActions(cohort, new Set([42]), [review(), review()])).toThrow(
+    "Duplicate"
+  );
 });
 
 it("fails closed on stalled pagination, missing completion markers, and budget exhaustion", async () => {

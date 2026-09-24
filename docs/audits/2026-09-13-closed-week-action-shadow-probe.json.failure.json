@@ -1,0 +1,12 @@
+{
+  "observedAt": "2026-09-24T16:41:12.361Z",
+  "status": "failed",
+  "stage": "actor_lookup",
+  "reason": "Actor lookup incomplete or inconsistent",
+  "errorType": "Error",
+  "requests": {
+    "requests": 152,
+    "retries429": 9,
+    "backoffWaitMs": 459000
+  }
+}

@@ -1178,3 +1178,38 @@ authorization cases; TypeScript and focused lint pass.
 Hosted mobile checks at aa0e4ad confirmed contained header/main widths at both 390px and
 320px, all four controls at 44px high, and the export menu inside the viewport. A further
 small-screen refinement gives the date its own row to avoid narrow multi-line wrapping.
+
+## Employee detail and metric read isolation — September 24
+
+Admin employee detail now derives organization from requireAdmin and scopes employee,
+team and active manager reads to it. Future or ended memberships/manager assignments
+are excluded. Same-team saves preserve line/history; a real transfer clears the old line
+and closes currently active memberships, including finite ones, without cancelling future
+scheduled memberships. Metric reads validate both team and employee organization and
+exclude foreign definitions even if a corrupt assignment references them. One-on-one
+team/manager labels are also organization-scoped. Fifty real-database authorization,
+admin and query cases pass; TypeScript and focused lint pass. The three database suites
+now use Node rather than an unnecessary DOM environment.
+
+The preceding branch CI run 36027898317 passed. Hosted 320px verification at 224907e
+confirmed the date fits on one line, main/header widths stay contained, export stays inside
+the viewport, and Escape restores focus. Viewport emulation was reset afterward.
+
+## Human-only attribution decision and weekly probe — September 24
+
+The user selected verified human activity only, with uncertain attribution unavailable.
+The shadow summary now requires child-level reviewed decisions before crediting activity,
+excludes verified automation and rejects mismatched/duplicate review records. Unknown
+attribution yields null for the affected metric; report totals preserve null instead of
+summing unknown values as zero. Nine focused ticket-event tests pass, including mixed
+manual/automation audits and uncertainty. This does not activate version 2 or certify
+historical version-1 employee totals; source-bound review production remains required.
+
+A read-only September 13–19 export fetched 85,066 ticket events in 88 pages and 17,172 call
+legs in 30 pages. Actor lookup then failed its completeness/consistency check. The run made
+152 requests, received nine 429 responses and honored 459 seconds of backoff. No success
+report, employee totals or database writes were produced. The aggregate failure report is
+2026-09-13-closed-week-action-shadow-probe.json.failure.json. The failure does not establish
+whether accounts were deleted, missing or duplicated. The probe now supports explicit
+one-to-seven-day ranges and aggregate stage diagnostics; no further full-week retry is
+justified without addressing resumability and account-resolution evidence.

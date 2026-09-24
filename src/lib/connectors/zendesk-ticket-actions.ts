@@ -90,11 +90,42 @@ export async function fetchTicketActions(
   throw new Error("Ticket action export page budget exhausted");
 }
 
-/** Shadow contract only: distinct tickets per eligible actor, never current assignee. */
+const reviewedAttributionSchema = z.object({
+  reviewId: z.string().uuid(),
+  eventId: z.number().int().positive().safe(),
+  ticketId: z.number().int().positive().safe(),
+  childEventId: z.number().int().positive().safe(),
+  actorId: z.number().int().positive().safe(),
+  attribution: z.enum(["verified_human", "verified_nonhuman"]),
+});
+export type ReviewedTicketAttribution = z.infer<typeof reviewedAttributionSchema>;
+
+/**
+ * Shadow only. Reviewed evidence is a trusted offline input, never inferred from
+ * role, channel, updater ID, or comment author. Missing child-level proof is unknown.
+ * Callers must bind reviews to the same source and immutable observation.
+ */
 export function summarizeTicketActions(
   cohort: Awaited<ReturnType<typeof fetchTicketActions>>,
-  eligibleAgentIds: ReadonlySet<number>
+  eligibleAgentIds: ReadonlySet<number>,
+  reviewedAttributions: readonly ReviewedTicketAttribution[] = []
 ) {
+  const events = new Map(cohort.events.map((event) => [event.id, event]));
+  const reviews = new Map<string, ReviewedTicketAttribution>();
+  for (const input of reviewedAttributions) {
+    const review = reviewedAttributionSchema.parse(input);
+    const event = events.get(review.eventId);
+    if (
+      !event ||
+      event.ticket_id !== review.ticketId ||
+      event.updater_id !== review.actorId ||
+      !event.child_events.some((child) => child.id === review.childEventId)
+    )
+      throw new Error("Attribution review does not match ticket action evidence");
+    const key = `${review.eventId}:${review.childEventId}`;
+    if (reviews.has(key)) throw new Error("Duplicate ticket action attribution review");
+    reviews.set(key, review);
+  }
   const byAgent = new Map<
     number,
     {
@@ -102,6 +133,8 @@ export function summarizeTicketActions(
       resolved: Set<number>;
       eventIds: number[];
       uncertainResolutions: number;
+      uncertainUpdates: number;
+      excludedNonhumanChanges: number;
     }
   >();
   for (const agentId of eligibleAgentIds) {
@@ -112,6 +145,8 @@ export function summarizeTicketActions(
       resolved: new Set(),
       eventIds: [],
       uncertainResolutions: 0,
+      uncertainUpdates: 0,
+      excludedNonhumanChanges: 0,
     });
   }
   let excludedEvents = 0;
@@ -121,34 +156,52 @@ export function summarizeTicketActions(
       excludedEvents++;
       continue;
     }
-    if (
-      !event.child_events.some(
-        (child) => child.event_type === "Change" || child.comment_present === true
-      )
-    )
-      continue;
-    agent.updated.add(event.ticket_id);
-    agent.eventIds.push(event.id);
+    let hasVerifiedHumanChange = false;
     for (const child of event.child_events) {
+      if (child.event_type !== "Change" && child.comment_present !== true) continue;
+      const attribution = reviews.get(`${event.id}:${child.id}`)?.attribution;
+      if (attribution === "verified_nonhuman") {
+        agent.excludedNonhumanChanges++;
+        continue;
+      }
+      if (attribution !== "verified_human") {
+        agent.uncertainUpdates++;
+        if (
+          child.event_type === "Change" &&
+          child.status === "solved" &&
+          (child.previousStatus === null ||
+            ["new", "open", "pending", "hold"].includes(child.previousStatus))
+        )
+          agent.uncertainResolutions++;
+        continue;
+      }
+      hasVerifiedHumanChange = true;
+      agent.updated.add(event.ticket_id);
       if (child.event_type !== "Change" || child.status !== "solved") continue;
       if (child.previousStatus === null) agent.uncertainResolutions++;
       else if (["new", "open", "pending", "hold"].includes(child.previousStatus)) {
         agent.resolved.add(event.ticket_id);
       }
     }
+    if (hasVerifiedHumanChange) agent.eventIds.push(event.id);
   }
   return {
-    contract: "zendesk-ticket-actions-v2-shadow" as const,
+    contract: "zendesk-ticket-actions-v2-human-only-shadow" as const,
     coverage: cohort.coverage,
     excludedEvents,
     agents: [...byAgent].map(([agentId, evidence]) => ({
       agentId,
-      ticketsUpdated: cohort.coverage === "complete" ? evidence.updated.size : null,
+      ticketsUpdated:
+        cohort.coverage === "complete" && evidence.uncertainUpdates === 0
+          ? evidence.updated.size
+          : null,
       ticketsResolved:
         cohort.coverage === "complete" && evidence.uncertainResolutions === 0
           ? evidence.resolved.size
           : null,
       uncertainResolutions: evidence.uncertainResolutions,
+      uncertainUpdates: evidence.uncertainUpdates,
+      excludedNonhumanChanges: evidence.excludedNonhumanChanges,
       updatedTicketIds: [...evidence.updated].sort((a, b) => a - b),
       resolvedTicketIds: [...evidence.resolved].sort((a, b) => a - b),
       eventIds: [...evidence.eventIds].sort((a, b) => a - b),
