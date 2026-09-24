@@ -950,3 +950,18 @@ The scheduler access confirmation and automation-attribution definition remain p
 The scheduler code and credential isolation are published at 4ccf88c and that Preview is
 READY. Railway's disabled Run now test completed successfully; auth-probe source changes
 are staged but not deployed. No scheduler token has been generated, saved, or transmitted.
+
+## Production recovery rehearsal — September 24
+
+A full custom-format PostgreSQL 18.6 snapshot was exported read-only, encrypted with
+Windows DPAPI, decrypted and SHA-256 verified, then restored into a new password-protected
+loopback PostgreSQL 18.6 cluster. All 32 tables / 28,878 rows matched the shared snapshot's
+content digests. Migrations 0012 and 0013 passed on this restored copy without changing any
+existing application table contents. The temporary database, plaintext dumps and password
+were removed after verification. The encrypted archive and manifest remain in private
+recovery storage outside Git. TypeScript passed; Preview 59bc8e8 is READY.
+
+See `2026-09-24-production-recovery.md` and the aggregate rehearsal JSON. This establishes
+application-data recovery, not portable off-machine disaster recovery or provider PITR.
+Global roles/ownership and external service configuration are not restored by this test.
+No production or hosted staging migration has been applied.
