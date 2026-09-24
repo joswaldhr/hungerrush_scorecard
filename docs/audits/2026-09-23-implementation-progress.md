@@ -1059,3 +1059,13 @@ team, with an assignment-review note. It renders only the already-authorized emp
 no query scope or access changes. Three rendering regressions confirm every supplied person
 appears exactly once, an entirely unassigned roster remains visible, and ordinary single-team
 null-line rosters retain their flat presentation. Focused lint and TypeScript passed.
+
+## Honest integration capabilities — September 24
+
+Data Health offers manual sync only for the shipped Zendesk connector, labels Assembled
+retired and other unimplemented types unsupported, and removes the misleading Entra roster
+counters. Historical records are retained. Unsupported sources do not trigger polling for
+old running jobs. Manual sync validates its body instead of silently syncing Zendesk when
+another type was requested; empty legacy requests remain compatible. Eleven focused cases
+pass, including unsupported/malformed rejection before rate-limit or sync work and UI
+visibility of the supported action. No source configuration or production records changed.

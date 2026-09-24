@@ -38,6 +38,30 @@ const cron = () =>
     })
   );
 describe("sync API failure reporting", () => {
+  it.each([
+    JSON.stringify({ dataSourceType: "assembled" }),
+    JSON.stringify({ dataSourceType: "entra" }),
+    "{broken",
+    JSON.stringify({ dataSourceId: "unselected-source" }),
+  ])("rejects unsupported or malformed manual requests without syncing (%s)", async (body) => {
+    const response = await POST(
+      new Request("https://cadence.test/api/sync/run", { method: "POST", body })
+    );
+    expect(response.status).toBe(400);
+    expect(mocks.run).not.toHaveBeenCalled();
+    expect(mocks.limited).not.toHaveBeenCalled();
+  });
+  it("accepts the explicit supported source type", async () => {
+    mocks.run.mockResolvedValue({ success: true, valuesWritten: 1 });
+    const response = await POST(
+      new Request("https://cadence.test/api/sync/run", {
+        method: "POST",
+        body: JSON.stringify({ dataSourceType: "zendesk" }),
+      })
+    );
+    expect(response.status).toBe(200);
+    expect(mocks.run).toHaveBeenCalledOnce();
+  });
   it("returns a non-success status for manual source failures", async () => {
     const response = await POST(
       new Request("https://cadence.test/api/sync/run", { method: "POST" })

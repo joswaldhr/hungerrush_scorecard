@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, AlertTriangle, XCircle, Clock, Database } from "lucide-react";
 import { SyncNowButton } from "./actions";
 import { AutoRefresh } from "./auto-refresh";
+import { sourceSupport } from "@/lib/connectors/source-support";
 
 function syncStatusIcon(status: string) {
   switch (status) {
@@ -87,7 +88,9 @@ export default async function DataHealthPage() {
     })
   );
 
-  const anySyncing = sourceHealth.some((s) => s.latestRun?.status === "running");
+  const anySyncing = sourceHealth.some(
+    (s) => sourceSupport(s.source.type) === "supported" && s.latestRun?.status === "running"
+  );
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -100,75 +103,91 @@ export default async function DataHealthPage() {
       </header>
 
       <div className="space-y-3">
-        {sourceHealth.map(({ source, latestRun, errors }) => (
-          <Card key={source.id}>
-            <CardContent className="py-4 px-5">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  {latestRun ? syncStatusIcon(latestRun.status) : syncStatusIcon("none")}
-                  <div>
-                    <h2 className="text-sm font-medium text-foreground">{source.displayName}</h2>
-                    <p className="text-xs text-muted-foreground">{source.type}</p>
+        {sourceHealth.map(({ source, latestRun, errors }) => {
+          const support = sourceSupport(source.type);
+          return (
+            <Card key={source.id}>
+              <CardContent className="py-4 px-5">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    {support === "supported" && latestRun ? (
+                      syncStatusIcon(latestRun.status)
+                    ) : (
+                      <Database className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                    )}
+                    <div>
+                      <h2 className="text-sm font-medium text-foreground">{source.displayName}</h2>
+                      <p className="text-xs text-muted-foreground">{source.type}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge
+                      variant={
+                        support !== "supported"
+                          ? "secondary"
+                          : latestRun?.status === "completed"
+                            ? "default"
+                            : latestRun?.status === "failed"
+                              ? "destructive"
+                              : "secondary"
+                      }
+                    >
+                      {support === "retired"
+                        ? "Retired"
+                        : support === "unsupported"
+                          ? "Not supported"
+                          : latestRun
+                            ? syncStatusLabel(latestRun.status)
+                            : "Never synced"}
+                    </Badge>
+                    {support === "supported" && <SyncNowButton dataSourceType={source.type} />}
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Badge
-                    variant={
-                      latestRun?.status === "completed"
-                        ? "default"
-                        : latestRun?.status === "failed"
-                          ? "destructive"
-                          : "secondary"
-                    }
-                  >
-                    {latestRun ? syncStatusLabel(latestRun.status) : "Never synced"}
-                  </Badge>
-                  {source.type !== "entra" && <SyncNowButton dataSourceType={source.type} />}
-                </div>
-              </div>
 
-              {latestRun && (
-                <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
-                  {source.type === "entra" ? (
-                    <>
-                      <span>{latestRun.recordsIngested} employees checked</span>
-                      <span>{latestRun.recordsNormalized} flagged as disabled</span>
-                    </>
+                {latestRun && (
+                  <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
+                    <span>{latestRun.recordsIngested} ingested</span>
+                    <span>{latestRun.recordsNormalized} normalized</span>
+                    {latestRun.recordsSkipped > 0 && (
+                      <span>{latestRun.recordsSkipped} skipped</span>
+                    )}
+                    {latestRun.errorCount > 0 && (
+                      <span className="text-status-attention">{latestRun.errorCount} errors</span>
+                    )}
+                  </div>
+                )}
+
+                <div className="mt-2">
+                  {support === "supported" ? (
+                    <DataFreshness
+                      freshnessAt={source.lastSuccessfulSyncAt?.toISOString() ?? null}
+                      now={nowTs}
+                    />
                   ) : (
-                    <>
-                      <span>{latestRun.recordsIngested} ingested</span>
-                      <span>{latestRun.recordsNormalized} normalized</span>
-                      {latestRun.recordsSkipped > 0 && (
-                        <span>{latestRun.recordsSkipped} skipped</span>
-                      )}
-                    </>
-                  )}
-                  {latestRun.errorCount > 0 && (
-                    <span className="text-status-attention">{latestRun.errorCount} errors</span>
-                  )}
-                </div>
-              )}
-
-              <div className="mt-2">
-                <DataFreshness
-                  freshnessAt={source.lastSuccessfulSyncAt?.toISOString() ?? null}
-                  now={nowTs}
-                />
-              </div>
-
-              {errors.length > 0 && (
-                <div className="mt-3 space-y-1">
-                  {errors.map((err) => (
-                    <p key={err.id} className="text-xs text-status-attention">
-                      {err.errorType}: {sanitizeErrorMessage(err.message)}
-                      {err.retryable && <span className="text-muted-foreground"> (retryable)</span>}
+                    <p className="text-xs text-muted-foreground">
+                      {support === "retired"
+                        ? "This integration is retired. Historical records are retained."
+                        : "Synchronization is not available for this source."}
                     </p>
-                  ))}
+                  )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+
+                {errors.length > 0 && (
+                  <div className="mt-3 space-y-1">
+                    {errors.map((err) => (
+                      <p key={err.id} className="text-xs text-status-attention">
+                        {err.errorType}: {sanitizeErrorMessage(err.message)}
+                        {err.retryable && (
+                          <span className="text-muted-foreground"> (retryable)</span>
+                        )}
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );

@@ -7,8 +7,9 @@ import { runSync, ZendeskConnector } from "@/lib/connectors";
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import { isSyncRateLimited } from "@/lib/rate-limit";
+import { z } from "zod";
 
-export async function POST(_request: Request) {
+export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -17,6 +18,21 @@ export async function POST(_request: Request) {
   const { ctx } = await getEffectiveManagerContext(session.user.email);
   if (!ctx) {
     return NextResponse.json({ error: "Not a manager" }, { status: 403 });
+  }
+
+  try {
+    const text = await request.text();
+    const parsed = z
+      .object({ dataSourceType: z.literal("zendesk").optional() })
+      .strict()
+      .safeParse(text ? JSON.parse(text) : {});
+    if (!parsed.success)
+      return NextResponse.json(
+        { error: "Invalid sync request; only Zendesk supports manual sync" },
+        { status: 400 }
+      );
+  } catch {
+    return NextResponse.json({ error: "Invalid sync request" }, { status: 400 });
   }
 
   try {
