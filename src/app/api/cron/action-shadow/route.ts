@@ -16,9 +16,10 @@ export const maxDuration = 300;
 
 /** Scheduler-neutral trigger; no frequency beyond the host plan is configured here. */
 export async function GET(request: Request) {
-  if (!env.CRON_SECRET)
+  const secret = env.ACTION_SHADOW_SECRET ?? env.CRON_SECRET;
+  if (!secret)
     return NextResponse.json({ error: "Worker authentication is not configured" }, { status: 503 });
-  if (request.headers.get("authorization") !== `Bearer ${env.CRON_SECRET}`)
+  if (request.headers.get("authorization") !== `Bearer ${secret}`)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!env.ACTION_SHADOW_SOURCE_ID) return NextResponse.json({ enabled: false });
   if (!env.ZENDESK_SUBDOMAIN || !env.ZENDESK_EMAIL || !env.ZENDESK_API_KEY)

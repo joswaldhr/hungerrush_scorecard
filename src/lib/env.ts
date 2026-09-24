@@ -31,6 +31,8 @@ const envSchema = z.object({
   CRON_SECRET: z.string().min(1).optional(),
   // Explicit single-source opt-in. Unset on production and Preview until rollout validation.
   ACTION_SHADOW_SOURCE_ID: z.string().uuid().optional(),
+  // Optional dedicated scheduler credential; when set, the shadow route stops accepting CRON_SECRET.
+  ACTION_SHADOW_SECRET: z.string().min(32).optional(),
 
   // Optional dead-man's-switch URL (e.g. a Healthchecks.io or Cronitor check
   // URL) pinged after /api/cron/sync completes its real work. Left unset,

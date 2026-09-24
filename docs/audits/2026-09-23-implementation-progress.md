@@ -909,3 +909,17 @@ All 339 tests across 41 files, full lint/format, TypeScript, and production buil
 This capture primitive remains offline; it is not yet a scheduled identity refresh or a
 manager-facing metric calculation. The automation-versus-manual metric definition has
 been asked as a business clarification while independent infrastructure work continues.
+
+## Railway staging scheduler — September 24
+
+Deployed a dependency-free hourly function in the existing staging environment, with no
+public domain and no restart loop. The platform's Run now test completed and logged disabled;
+no vendor or worker requests ran. Its hardcoded staging destination, redirect rejection,
+timeout, strict response handling, and dedicated shadow-only credential have regression
+coverage. An explicit auth-only probe supports testing while ingestion remains disabled.
+See `2026-09-24-shadow-scheduler.md` for service/deployment IDs and activation requirements.
+
+Full application validation before this increment passed 339 tests across 41 files.
+Scheduler and route focused tests passed; production build and TypeScript passed. No
+scheduler credential has been provisioned. Browser policy requires confirmation before
+granting the scheduler new access; this is a specific access gate, not a routine checkpoint.

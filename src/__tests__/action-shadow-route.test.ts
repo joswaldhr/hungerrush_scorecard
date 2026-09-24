@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   release: vi.fn(),
   env: {
     CRON_SECRET: "fixture",
+    ACTION_SHADOW_SECRET: undefined as string | undefined,
     ACTION_SHADOW_SOURCE_ID: undefined as string | undefined,
     ZENDESK_SUBDOMAIN: "synthetic",
     ZENDESK_EMAIL: "fixture@example.test",
@@ -28,6 +29,7 @@ import { GET } from "@/app/api/cron/action-shadow/route";
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.env.ACTION_SHADOW_SOURCE_ID = undefined;
+  mocks.env.ACTION_SHADOW_SECRET = undefined;
   mocks.claim.mockResolvedValue({ acquired: true, token: "fixture-token" });
   mocks.release.mockResolvedValue(undefined);
 });
@@ -41,6 +43,13 @@ it("rejects unauthorized triggers before database access", async () => {
 });
 it("does no work without an explicit source opt-in", async () => {
   expect(await (await GET(request())).json()).toEqual({ enabled: false });
+  expect(mocks.select).not.toHaveBeenCalled();
+});
+
+it("accepts only the dedicated scheduler credential when configured", async () => {
+  mocks.env.ACTION_SHADOW_SECRET = "dedicated-fixture-secret";
+  expect((await GET(request())).status).toBe(401);
+  expect(await (await GET(request("dedicated-fixture-secret"))).json()).toEqual({ enabled: false });
   expect(mocks.select).not.toHaveBeenCalled();
 });
 it("uses only the configured source's organization and a bounded worker", async () => {
