@@ -743,7 +743,7 @@ export class ZendeskConnector implements Connector {
     if (groupMappings.length === 0) return [];
 
     const members: DiscoveredRosterMember[] = [];
-    const seenExternalIds = new Set<string>();
+    const seenExternalIds = new Map<string, { userId: number; teamId: string }>();
 
     for (const mapping of groupMappings) {
       const userIds: number[] = [];
@@ -763,8 +763,15 @@ export class ZendeskConnector implements Connector {
         );
         for (const user of res.users) {
           if (!user.active || !user.email) continue;
-          if (seenExternalIds.has(user.email)) continue;
-          seenExternalIds.add(user.email);
+          const key = user.email.trim().toLowerCase();
+          const previous = seenExternalIds.get(key);
+          if (previous) {
+            if (previous.userId !== user.id || previous.teamId !== mapping.teamId) {
+              throw new Error("Roster identity has conflicting accounts or team mappings");
+            }
+            continue;
+          }
+          seenExternalIds.set(key, { userId: user.id, teamId: mapping.teamId });
           members.push({
             externalId: user.email,
             externalEmail: user.email,

@@ -999,3 +999,11 @@ open and is not inferred from whichever vendor group happens to be returned firs
 Combined validation after these increments: all 350 tests across 42 files, full lint/format,
 TypeScript and production build passed. The production restore rehearsal also passed on
 PostgreSQL 18.6. No production schema change, historical replay or v2 publication occurred.
+
+## Conflicting roster membership — September 24
+
+Zendesk discovery no longer silently selects the first team for an email. Repeated account
+membership in groups mapped to the same team is deduplicated; conflicting team assignments
+or separate numeric accounts sharing a case-insensitive email abort discovery before any
+reconciliation writes. Four connector regressions cover both traversal orders, compatible
+groups, and shared-email accounts. Existing line propagation remains separate work.
