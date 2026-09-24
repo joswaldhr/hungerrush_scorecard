@@ -1,0 +1,103 @@
+{
+  "observedAt": "2026-09-24T20:27:48.209Z",
+  "day": "2026-09-13",
+  "inclusiveEndDay": "2026-09-19",
+  "intervalDays": 7,
+  "actorOffset": 10000,
+  "actorEnd": 10607,
+  "nextActorOffset": null,
+  "coversEntireInventory": false,
+  "mode": "GET-only actor diagnostic from retained local exports; no employee totals or publication",
+  "ticketEvents": 85066,
+  "callLegs": 17172,
+  "requestedActors": 10607,
+  "actorInventoryHash": "e3543cd09898ff082153b723234ee50e45c901f9c135978269045adf9536d4c5",
+  "ticketOrCallExportRequests": 0,
+  "batches": [
+    {
+      "batch": 101,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 102,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 103,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 104,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 105,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 106,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 107,
+      "status": "complete",
+      "counts": {
+        "requested": 7,
+        "returned": 7,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    }
+  ],
+  "requests": {
+    "requests": 7,
+    "retries429": 0,
+    "backoffWaitMs": 0
+  },
+  "evaluatedBatchesComplete": true,
+  "defaultLookupComplete": false,
+  "historicalRoleAndHumanAttribution": "unverified"
+}

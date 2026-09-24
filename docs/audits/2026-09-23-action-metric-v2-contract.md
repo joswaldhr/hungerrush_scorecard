@@ -265,3 +265,18 @@ account reference and current unexpired lease token. A source disabled/rebound d
 work, or a worker whose lease expires or is replaced, cannot advance the checkpoint. Offline
 observation tools are explicitly separate and remain organization-scoped; existing production
 metadata and publishing behavior are unchanged by these shadow-only guards.
+
+
+### Retained full-week account census — September 24
+
+The September 13–19 cohort is now retained in a separate loopback-only observation, with
+85,066 ticket events and 17,172 call legs. Across six bounded account processes, all 10,607
+positive IDs were checked in 107 batches. One default lookup omitted an account; the
+`include_deleted=true` diagnostic restored exact coverage for that batch. No duplicate or
+unexpected IDs were returned. The original failed response was not retained, so exact
+identity with that earlier omission is unproven.
+
+This establishes current account coverage after the inclusive diagnostic, not historical
+employee-role eligibility or human authorship. No eligible employee totals were published
+and no human-only availability guard was relaxed. The detailed report and aggregate evidence
+are `2026-09-24-weekly-retained-diagnostic.md` and `2026-09-24-weekly-retained-summary.json`.

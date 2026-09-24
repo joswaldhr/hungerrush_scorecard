@@ -1,0 +1,72 @@
+{
+  "observedAt": "2026-09-24T20:28:29.397121+00:00",
+  "periodStart": "2026-09-13",
+  "periodEndInclusive": "2026-09-19",
+  "mode": "Retained loopback-only observations; vendor GETs only; no metric publication",
+  "collection": {
+    "processes": 24,
+    "requests": 128,
+    "ticketPages": 88,
+    "legPages": 32,
+    "ticketEvents": 85066,
+    "callLegs": 17172,
+    "checkpointContinuityVerified": true,
+    "normalizedFacts": 0,
+    "successfulPublicationUnchanged": true
+  },
+  "actors": {
+    "processes": 6,
+    "batches": 107,
+    "requested": 10607,
+    "inventoryHash": "e3543cd09898ff082153b723234ee50e45c901f9c135978269045adf9536d4c5",
+    "contiguousCoverageVerified": true,
+    "requests": 108,
+    "defaultMissing": 1,
+    "defaultDuplicates": 0,
+    "defaultUnexpected": 0,
+    "inclusiveFallbackBatches": 1,
+    "completeAfterInclusiveDiagnostic": true,
+    "historicalRoleAndHumanAttribution": "unverified"
+  },
+  "limitations": [
+    "The current default lookup omission is reproduced and the inactive/deleted-inclusive lookup resolves it. The original failed in-memory response was not retained, so exact identity with that earlier failure is unproven.",
+    "Current account coverage is not historical eligibility, verified human activity or independent metric reconciliation.",
+    "Matching earlier aggregate event/leg counts is not record-level equality with an unretained export."
+  ],
+  "reports": {
+    "collection": [
+      "2026-09-24-weekly-retained-batch-01.json",
+      "2026-09-24-weekly-retained-batch-02.json",
+      "2026-09-24-weekly-retained-batch-03.json",
+      "2026-09-24-weekly-retained-batch-04.json",
+      "2026-09-24-weekly-retained-batch-05.json",
+      "2026-09-24-weekly-retained-batch-06.json",
+      "2026-09-24-weekly-retained-batch-07.json",
+      "2026-09-24-weekly-retained-batch-08.json",
+      "2026-09-24-weekly-retained-batch-09.json",
+      "2026-09-24-weekly-retained-batch-10.json",
+      "2026-09-24-weekly-retained-batch-11.json",
+      "2026-09-24-weekly-retained-batch-12.json",
+      "2026-09-24-weekly-retained-batch-13.json",
+      "2026-09-24-weekly-retained-batch-14.json",
+      "2026-09-24-weekly-retained-batch-15.json",
+      "2026-09-24-weekly-retained-batch-16.json",
+      "2026-09-24-weekly-retained-batch-17.json",
+      "2026-09-24-weekly-retained-batch-18.json",
+      "2026-09-24-weekly-retained-batch-19.json",
+      "2026-09-24-weekly-retained-batch-20.json",
+      "2026-09-24-weekly-retained-batch-21.json",
+      "2026-09-24-weekly-retained-batch-22.json",
+      "2026-09-24-weekly-retained-batch-23.json",
+      "2026-09-24-weekly-retained-batch-24.json"
+    ],
+    "actors": [
+      "2026-09-24-weekly-actors-0000.json",
+      "2026-09-24-weekly-actors-2000.json",
+      "2026-09-24-weekly-actors-4000.json",
+      "2026-09-24-weekly-actors-6000.json",
+      "2026-09-24-weekly-actors-8000.json",
+      "2026-09-24-weekly-actors-10000.json"
+    ]
+  }
+}

@@ -12,10 +12,10 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Published to Preview | Navigation, organization and manager-scope regression tests; keyboard checks passed |
 | Atomic sync publication and freshness | Published to Preview | PostgreSQL rollback tests; untouched periods preserved; live hosted trigger still gated |
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 500 tests across 60 files passed in PostgreSQL 18 CI run 36053740377 at 6ad1093, including lint, TypeScript and production build |
+| Combined implementation validation | Passed | 505 tests across 61 files passed in PostgreSQL 18 CI run 36054548710 at 59f4f72, including lint, TypeScript and production build |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database, core UI, worker authentication and bounded ingestion/recovery passed | Separate PostgreSQL 18.6 and Entra app; four fresh ingestion processes, expired-lease takeover and replay verified; source disabled after rehearsal; recurring scheduling remains open |
-| Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; full-week export failed actor completeness verification; reviewed human provenance and independent parity remain open |
+| Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; retained full-week census reproduced one default lookup omission, resolved by inactive/deleted-inclusive diagnostic; historical eligibility, human provenance and independent parity remain open |
 | Production rollout / historical repair | Not performed | Release gate below must be completed first |
 
 ## Git checkpoints
@@ -1620,3 +1620,29 @@ updated: the original value survived, no later rows were saved, and retry commit
 three rules with one attribution timestamp. Trigger/function and fixture rules were removed.
 Forty-four relevant visibility, editor and organization-scope tests passed across four files,
 plus TypeScript and lint. Full CI follows. No real visibility setting was changed.
+
+Both full visibility CI runs 36054548710/36054541845 passed 505 tests across 61 files,
+lint, TypeScript and build. Preview dpl_HuruSpDjuFUqdBxu13zHdqoaTv5u became READY at
+59f4f72. Its historical synthetic scorecard retained the selected September 13–19 interval,
+ordinary zero/missing distinctions and human-attribution/context warnings. Administrative
+save behavior was verified in PostgreSQL and component tests; no hosted real-user rule was changed.
+
+## Completed weekly collection and reproduced lookup omission — September 24
+
+All 24 fresh loopback collection processes completed: 85,066 in-period ticket events from
+88 pages and 17,172 call legs from 32 pages, using 128 GET requests. Checkpoint continuity
+was verified across every process. No normalized facts or publication timestamp were written.
+The separate weekly source and checkpoints match the vendor account binding.
+
+Six read-only database/GET-only actor processes covered all 10,607 distinct positive IDs
+in 107 contiguous batches (108 GET requests). Default lookup omitted one account in batch
+67; the documented inactive/deleted-inclusive query returned exact coverage for that batch.
+No duplicate or unexpected accounts occurred. Aggregate inventory fingerprints match across
+all six slices. This reproduces a concrete completeness failure and its diagnostic resolution;
+the earlier discarded response cannot establish that its exact missing account was the same.
+
+The included account is not certified as a historical employee or human author. Existing
+human-only withholding remains intact. See `2026-09-24-weekly-retained-diagnostic.md` and
+`2026-09-24-weekly-retained-summary.json` for evidence and reproduction. No new source fetch
+is needed to continue examining this retained week. Historical eligibility, attribution review,
+independent metric parity and operational activation gates remain open.
