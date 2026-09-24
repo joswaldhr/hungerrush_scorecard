@@ -1007,3 +1007,13 @@ membership in groups mapped to the same team is deduplicated; conflicting team a
 or separate numeric accounts sharing a case-insensitive email abort discovery before any
 reconciliation writes. Four connector regressions cover both traversal orders, compatible
 groups, and shared-email accounts. Existing line propagation remains separate work.
+
+## Roster discovery completeness — September 24
+
+Membership traversal now requires explicit completion, validates returned group/account IDs,
+and rejects repeated cursors or more than 100 membership pages per group. Duplicate user IDs
+are fetched once. Every requested account must be returned exactly once with the fields used
+by discovery; missing/duplicate/unrequested accounts abort the operation rather than producing
+a partial roster that could create false departures. No partial discovery reaches database
+reconciliation. Seven connector tests and TypeScript passed. This is a fail-closed bound,
+not resumable roster discovery or proof that source membership is an employment decision.

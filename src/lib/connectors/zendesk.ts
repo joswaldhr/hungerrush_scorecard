@@ -746,21 +746,55 @@ export class ZendeskConnector implements Connector {
     const seenExternalIds = new Map<string, { userId: number; teamId: string }>();
 
     for (const mapping of groupMappings) {
+      if (!/^\d+$/.test(mapping.externalGroupId))
+        throw new Error("Invalid roster group identifier");
       const userIds: number[] = [];
+      const visited = new Set<string>();
       let path: string | null = `/groups/${mapping.externalGroupId}/memberships.json`;
       while (path) {
+        if (visited.has(path) || visited.size >= 100)
+          throw new Error("Roster membership pagination did not complete");
+        visited.add(path);
         const res: ZendeskGroupMembershipsResponse =
           await zendeskGet<ZendeskGroupMembershipsResponse>(path);
+        if (
+          !Array.isArray(res.group_memberships) ||
+          res.group_memberships.some(
+            (member) =>
+              !Number.isSafeInteger(member.user_id) ||
+              member.user_id <= 0 ||
+              String(member.group_id) !== mapping.externalGroupId
+          ) ||
+          !(
+            res.next_page === null ||
+            (typeof res.next_page === "string" && res.next_page.length > 0)
+          )
+        )
+          throw new Error("Incomplete or invalid roster membership response");
         userIds.push(...res.group_memberships.map((m) => m.user_id));
         path = res.next_page;
       }
 
-      for (let i = 0; i < userIds.length; i += 100) {
-        const batch = userIds.slice(i, i + 100);
+      const uniqueUserIds = [...new Set(userIds)];
+      for (let i = 0; i < uniqueUserIds.length; i += 100) {
+        const batch = uniqueUserIds.slice(i, i + 100);
         if (batch.length === 0) continue;
         const res = await zendeskGet<ZendeskShowManyUsersResponse>(
           `/users/show_many.json?ids=${batch.join(",")}`
         );
+        if (
+          !Array.isArray(res.users) ||
+          res.users.length !== batch.length ||
+          new Set(res.users.map((user) => user.id)).size !== batch.length ||
+          res.users.some(
+            (user) =>
+              !batch.includes(user.id) ||
+              typeof user.active !== "boolean" ||
+              !(user.email === null || typeof user.email === "string") ||
+              typeof user.name !== "string"
+          )
+        )
+          throw new Error("Roster user lookup did not return every requested account");
         for (const user of res.users) {
           if (!user.active || !user.email) continue;
           const key = user.email.trim().toLowerCase();

@@ -55,3 +55,37 @@ it("rejects separate source accounts sharing a case-insensitive email", async ()
     ])
   ).rejects.toThrow("conflicting accounts or team mappings");
 });
+
+it("rejects missing requested users instead of returning an empty roster", async () => {
+  vi.mocked(zendeskGet)
+    .mockResolvedValueOnce({ group_memberships: [{ user_id: 42, group_id: 1 }], next_page: null })
+    .mockResolvedValueOnce({ users: [] });
+  await expect(
+    new ZendeskConnector().discoverRoster(config, [{ externalGroupId: "1", teamId: "team-a" }])
+  ).rejects.toThrow("every requested account");
+});
+
+it("rejects a repeated pagination cursor without fetching forever", async () => {
+  vi.mocked(zendeskGet).mockResolvedValue({
+    group_memberships: [],
+    next_page: "/groups/1/memberships.json",
+  });
+  await expect(
+    new ZendeskConnector().discoverRoster(config, [{ externalGroupId: "1", teamId: "team-a" }])
+  ).rejects.toThrow("pagination did not complete");
+  expect(zendeskGet).toHaveBeenCalledTimes(1);
+});
+
+it("requires an explicit final page and matching group membership", async () => {
+  vi.mocked(zendeskGet).mockResolvedValueOnce({ group_memberships: [] });
+  await expect(
+    new ZendeskConnector().discoverRoster(config, [{ externalGroupId: "1", teamId: "team-a" }])
+  ).rejects.toThrow("membership response");
+  vi.mocked(zendeskGet).mockResolvedValueOnce({
+    group_memberships: [{ user_id: 42, group_id: 2 }],
+    next_page: null,
+  });
+  await expect(
+    new ZendeskConnector().discoverRoster(config, [{ externalGroupId: "1", teamId: "team-a" }])
+  ).rejects.toThrow("membership response");
+});
