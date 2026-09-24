@@ -1,0 +1,51 @@
+name: Staging shadow identity rehearsal
+
+on:
+  push:
+    branches: [codex/audit-reliability-checkpoints]
+    paths:
+      - .github/workflows/staging-shadow-rehearsal.yml
+      - scripts/probe-shadow-oidc.mjs
+      - scripts/probe-shadow-oidc.test.mjs
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging-shadow-identity-rehearsal
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: github.repository == 'joswaldhr/hungerrush_scorecard' && github.ref == 'refs/heads/codex/audit-reliability-checkpoints'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      max-parallel: 1
+      matrix:
+        process: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify rehearsal request boundaries
+        run: node --test scripts/probe-shadow-oidc.test.mjs
+      - name: Verify short-lived Preview identity with ingestion disabled
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              const { rehearsePreviewProtection } = await import(`${process.env.GITHUB_WORKSPACE}/scripts/probe-shadow-oidc.mjs`);
+              const report = await rehearsePreviewProtection(async (audience) => {
+                const token = await core.getIDToken(audience);
+                core.setSecret(token);
+                return token;
+              });
+              core.info(JSON.stringify(report));
+            } catch {
+              core.setFailed('Preview identity rehearsal failed. No worker credential was sent and ingestion was not requested.');
+            }

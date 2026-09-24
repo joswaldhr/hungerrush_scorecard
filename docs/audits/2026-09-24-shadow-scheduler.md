@@ -72,3 +72,22 @@ branch-scoped. The current scheduler has no such credential; adding it would bro
 staging worker's access beyond the branch-isolation boundary. A separate staging project or
 equivalently scoped supported execution path remains to be implemented. See
 [Vercel automation access](https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection/protection-bypass-automation).
+
+## Short-lived workflow identity rehearsal
+
+A supported alternative was identified in Vercel Trusted Sources. An external OIDC rule
+was applied through the documented project API with HTTP 200. It accepts only GitHub's
+issuer, repository ID 1280492920, owner ID 266567329, this repository name, the audit branch,
+the exact staging-shadow-rehearsal.yml workflow reference, push/manual events and the
+custom audience https://vercel.com/cadence-staging-shadow. Its sole destination environment
+is Preview; production is excluded. Existing trust configuration was null, and other
+project/protection settings were not changed. This is environment-scoped destination
+access, not a claim that Vercel restricts the destination to one branch alias.
+
+The new workflow runs two sequential processes, each obtaining fresh short-lived tokens.
+It tests anonymous, wrong-audience and trusted requests to the fixed staging shadow route.
+No worker credential, database credential or vendor credential is supplied; the successful
+trusted case must still be refused by application authentication. Three local request-boundary
+tests passed. Hosted results follow. This does not enable ingestion or recurring scheduling.
+See [Trusted Sources](https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection/trusted-sources)
+and the [project API](https://vercel.com/docs/rest-api/projects/update-an-existing-project).
