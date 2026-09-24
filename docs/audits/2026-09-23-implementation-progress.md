@@ -1473,3 +1473,22 @@ environment entries were unchanged. The cleanup deployment follows. Railway rema
 GitHub ingestion is explicit manual dispatch only. See the scheduler report and aggregate
 hosted-shadow JSON reports for exact evidence. Recurring execution, retention/monitoring,
 human/identity evidence and independent historical reconciliation remain open.
+
+Cleanup and follow-up Previews 393b14c/a743cb6 became READY. Auth-only run 36048271316
+and both full CI runs 36048277989/36048271347 passed. Supported workflow actions are pinned
+to their verified release commit SHAs, and checkout no longer persists its repository token.
+
+## Reconciliation attribution containment — September 24
+
+The reconciliation screen and its list/detail/run APIs could still expose unverified ticket
+totals and count them as matches. Their manager-facing projections now apply the same human-only
+availability policy as scorecards: values, deltas and diagnostic notes are withheld; visible
+counts classify those rows as attribution unavailable. Raw retained comparisons are unchanged.
+Definition and employee organization ownership are checked as well as manager assignment scope,
+and malformed run IDs return not found before querying PostgreSQL. The detail table now names
+the employee for each comparison and explains that stored-value agreement is not source validation.
+
+Thirty focused request, PostgreSQL scope/availability and cooldown cases pass, including
+zero/nonzero withholding, version-999 containment, raw-row preservation, foreign-definition
+and employee exclusion, and policy-filtered counts in the POST response. Hosted verification
+and the full suite follow with this change.

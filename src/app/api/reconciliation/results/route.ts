@@ -41,6 +41,7 @@ export async function GET(request: Request) {
         mismatchCount: run.mismatchCount,
         sourceMissingCount: run.sourceMissingCount,
         cadenceMissingCount: run.cadenceMissingCount,
+        unavailableCount: run.unavailableCount,
         startedAt: run.startedAt.toISOString(),
         completedAt: run.completedAt?.toISOString() ?? null,
       },
@@ -49,6 +50,7 @@ export async function GET(request: Request) {
         metricKey: r.metricKey,
         factType: r.factType,
         employeeId: r.employeeId,
+        employeeName: r.employeeName,
         periodStart: r.periodStart,
         periodEnd: r.periodEnd,
         cadenceValue: r.cadenceValue,
@@ -58,6 +60,7 @@ export async function GET(request: Request) {
         status: r.status,
         cadenceCalculationVersion: r.cadenceCalculationVersion,
         notes: r.notes,
+        unavailableReason: r.unavailableReason,
       })),
     });
   } catch (err) {

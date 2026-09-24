@@ -147,3 +147,11 @@ isolated for analysis; a durable retention policy and recurring scheduling are s
 
 Aggregate evidence: `2026-09-24-hosted-shadow-provision.json`, `-progress.json`,
 `-completed.json`, `-disabled.json`, and `2026-09-24-shadow-environment-comparison.json`.
+
+Cleanup Preview 393b14c became READY as dpl_4qbGydTcE2nbz8D6H63VE22Xjqss. The follow-up
+a743cb6 deployment dpl_HtDmuX5RmoCsmCX6Bq2nmTPQNsta is also READY; its auth-only workflow
+run 36048271316 passed with ingestion unrequested. Both full CI runs 36048277989/36048271347
+passed. Workflow actions now use verified immutable release commits for checkout v7.0.1,
+github-script v9.0.0, setup-node v7.0.0 and pnpm/action-setup v6.1.0, replacing the deprecated
+Node 20 action runtimes. Checkout does not persist its repository token. Application CI
+still uses Node 22. Production and source ingestion remain unchanged/disabled respectively.

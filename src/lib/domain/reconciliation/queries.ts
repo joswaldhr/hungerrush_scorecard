@@ -1,7 +1,18 @@
 import { db } from "@/lib/db";
-import { reconciliationRuns, reconciliationResults } from "@/lib/db/schema";
+import {
+  reconciliationRuns,
+  reconciliationResults,
+  metricDefinitions,
+  employees,
+} from "@/lib/db/schema";
 import type { ManagerContext } from "@/lib/auth/authorization";
-import { and, desc, eq, exists, inArray, or } from "drizzle-orm";
+import { and, desc, eq, exists, inArray, or, getTableColumns } from "drizzle-orm";
+import { z } from "zod";
+import {
+  requiresTicketAttributionVerification,
+  TICKET_ATTRIBUTION_QUALITY,
+  TICKET_ATTRIBUTION_REASON,
+} from "@/lib/domain/metrics/availability";
 
 function visibleRun(ctx: ManagerContext) {
   return and(
@@ -12,10 +23,17 @@ function visibleRun(ctx: ManagerContext) {
         db
           .select({ id: reconciliationResults.id })
           .from(reconciliationResults)
+          .innerJoin(employees, eq(employees.id, reconciliationResults.employeeId))
+          .innerJoin(
+            metricDefinitions,
+            eq(metricDefinitions.id, reconciliationResults.metricDefinitionId)
+          )
           .where(
             and(
               eq(reconciliationResults.reconciliationRunId, reconciliationRuns.id),
-              inArray(reconciliationResults.employeeId, ctx.assignedEmployeeIds)
+              inArray(reconciliationResults.employeeId, ctx.assignedEmployeeIds),
+              eq(employees.organizationId, ctx.organizationId),
+              eq(metricDefinitions.organizationId, ctx.organizationId)
             )
           )
       )
@@ -30,7 +48,46 @@ function scopedCounts(results: { status: string }[]) {
     mismatchCount: results.filter((r) => r.status === "mismatch").length,
     sourceMissingCount: results.filter((r) => r.status === "source_missing").length,
     cadenceMissingCount: results.filter((r) => r.status === "cadence_missing").length,
+    unavailableCount: results.filter((r) => r.status === TICKET_ATTRIBUTION_QUALITY).length,
   };
+}
+
+async function scopedResults(ctx: ManagerContext, runIds: string[]) {
+  const rows = await db
+    .select({
+      ...getTableColumns(reconciliationResults),
+      sourceStrategy: metricDefinitions.sourceStrategy,
+      definitionKey: metricDefinitions.key,
+      employeeName: employees.displayName,
+    })
+    .from(reconciliationResults)
+    .innerJoin(
+      metricDefinitions,
+      eq(metricDefinitions.id, reconciliationResults.metricDefinitionId)
+    )
+    .innerJoin(employees, eq(employees.id, reconciliationResults.employeeId))
+    .where(
+      and(
+        inArray(reconciliationResults.reconciliationRunId, runIds),
+        inArray(reconciliationResults.employeeId, ctx.assignedEmployeeIds),
+        eq(metricDefinitions.organizationId, ctx.organizationId),
+        eq(employees.organizationId, ctx.organizationId)
+      )
+    );
+  return rows.map(({ sourceStrategy, definitionKey, ...result }) => {
+    if (requiresTicketAttributionVerification({ key: definitionKey, sourceStrategy }))
+      return {
+        ...result,
+        cadenceValue: null,
+        sourceValue: null,
+        absoluteDelta: null,
+        relativeDeltaPct: null,
+        notes: null,
+        status: TICKET_ATTRIBUTION_QUALITY,
+        unavailableReason: TICKET_ATTRIBUTION_REASON,
+      };
+    return { ...result, unavailableReason: null };
+  });
 }
 
 export async function getScopedReconciliationRuns(ctx: ManagerContext, limit = 20) {
@@ -41,18 +98,10 @@ export async function getScopedReconciliationRuns(ctx: ManagerContext, limit = 2
     .orderBy(desc(reconciliationRuns.startedAt))
     .limit(limit);
   if (!runs.length) return [];
-  const results = await db
-    .select()
-    .from(reconciliationResults)
-    .where(
-      and(
-        inArray(
-          reconciliationResults.reconciliationRunId,
-          runs.map((r) => r.id)
-        ),
-        inArray(reconciliationResults.employeeId, ctx.assignedEmployeeIds)
-      )
-    );
+  const results = await scopedResults(
+    ctx,
+    runs.map((r) => r.id)
+  );
   return runs.map((run) => ({
     ...run,
     ...scopedCounts(results.filter((r) => r.reconciliationRunId === run.id)),
@@ -60,19 +109,12 @@ export async function getScopedReconciliationRuns(ctx: ManagerContext, limit = 2
 }
 
 export async function getScopedReconciliationRun(ctx: ManagerContext, runId: string) {
+  if (!z.string().uuid().safeParse(runId).success) return null;
   const [run] = await db
     .select()
     .from(reconciliationRuns)
     .where(and(eq(reconciliationRuns.id, runId), visibleRun(ctx)));
   if (!run) return null;
-  const results = await db
-    .select()
-    .from(reconciliationResults)
-    .where(
-      and(
-        eq(reconciliationResults.reconciliationRunId, run.id),
-        inArray(reconciliationResults.employeeId, ctx.assignedEmployeeIds)
-      )
-    );
+  const results = await scopedResults(ctx, [run.id]);
   return { run: { ...run, ...scopedCounts(results) }, results };
 }

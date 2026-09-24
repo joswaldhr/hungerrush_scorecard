@@ -27,6 +27,7 @@ function statusIcon(status: string) {
     case "source_missing":
       return <MinusCircle className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />;
     case "cadence_missing":
+    case "unverified_attribution":
       return <AlertTriangle className="h-3.5 w-3.5 text-status-watch" aria-hidden="true" />;
     default:
       return null;
@@ -69,6 +70,8 @@ export default async function ReconciliationPage() {
     id: string;
     metricKey: string;
     employeeId: string;
+    employeeName: string;
+    unavailableReason: string | null;
     cadenceValue: number | null;
     sourceValue: number | null;
     absoluteDelta: number | null;
@@ -95,6 +98,10 @@ export default async function ReconciliationPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           Compare Cadence metric values against stored source facts for your assigned employees
           (counts require exact matches; other values use the configured tolerance)
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Matching stored values does not verify source completeness or human activity. Ticket
+          activity remains unavailable until human attribution is verified.
         </p>
       </header>
 
@@ -130,6 +137,9 @@ export default async function ReconciliationPage() {
                     <div className="text-right text-xs text-muted-foreground">
                       <p>{run.totalComparisons} comparisons</p>
                       <p className="text-status-on-track">{run.matchCount} match</p>
+                      {run.unavailableCount > 0 && (
+                        <p>{run.unavailableCount} attribution unavailable</p>
+                      )}
                       {run.mismatchCount > 0 && (
                         <p className="text-status-attention">{run.mismatchCount} mismatch</p>
                       )}
@@ -157,6 +167,7 @@ export default async function ReconciliationPage() {
                   <thead>
                     <tr className="border-b text-left text-xs text-muted-foreground">
                       <th className="pb-2 pr-4">Status</th>
+                      <th className="pb-2 pr-4">Employee</th>
                       <th className="pb-2 pr-4">Metric</th>
                       <th className="pb-2 pr-4 text-right">Cadence</th>
                       <th className="pb-2 pr-4 text-right">Source</th>
@@ -170,9 +181,14 @@ export default async function ReconciliationPage() {
                         <td className="py-2 pr-4">
                           <div className="flex items-center gap-1.5">
                             {statusIcon(r.status)}
-                            <span className="text-xs">{r.status.replace(/_/g, " ")}</span>
+                            <span className="text-xs" title={r.unavailableReason ?? undefined}>
+                              {r.status === "unverified_attribution"
+                                ? "Attribution unavailable"
+                                : r.status.replace(/_/g, " ")}
+                            </span>
                           </div>
                         </td>
+                        <td className="py-2 pr-4">{r.employeeName}</td>
                         <td className="py-2 pr-4 font-medium">
                           {metricNameMap.get(r.metricKey) ?? r.metricKey.replace(/_/g, " ")}
                         </td>

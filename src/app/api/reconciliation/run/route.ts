@@ -4,7 +4,10 @@ import {
   getAssignedEmployees,
   getVisibleTeamsForManager,
 } from "@/lib/auth/authorization";
-import { getScopedReconciliationRuns } from "@/lib/domain/reconciliation/queries";
+import {
+  getScopedReconciliationRun,
+  getScopedReconciliationRuns,
+} from "@/lib/domain/reconciliation/queries";
 import { runReconciliation } from "@/lib/domain/reconciliation";
 import { ReconciliationRateLimitError } from "@/lib/domain/reconciliation/engine";
 import { NextResponse } from "next/server";
@@ -68,7 +71,26 @@ export async function POST(request: Request) {
       thresholdPct: body.thresholdPct,
     });
 
-    return NextResponse.json(result);
+    const visible = await getScopedReconciliationRun(ctx, result.runId);
+    if (!visible)
+      throw new Error("Completed reconciliation is not visible in the authorized scope");
+    const {
+      totalComparisons,
+      matchCount,
+      mismatchCount,
+      sourceMissingCount,
+      cadenceMissingCount,
+      unavailableCount,
+    } = visible.run;
+    return NextResponse.json({
+      runId: result.runId,
+      totalComparisons,
+      matchCount,
+      mismatchCount,
+      sourceMissingCount,
+      cadenceMissingCount,
+      unavailableCount,
+    });
   } catch (err) {
     if (err instanceof ReconciliationRateLimitError) {
       return NextResponse.json({ error: err.message }, { status: 429 });
@@ -105,6 +127,7 @@ export async function GET() {
         mismatchCount: r.mismatchCount,
         sourceMissingCount: r.sourceMissingCount,
         cadenceMissingCount: r.cadenceMissingCount,
+        unavailableCount: r.unavailableCount,
         startedAt: r.startedAt.toISOString(),
         completedAt: r.completedAt?.toISOString() ?? null,
       })),
