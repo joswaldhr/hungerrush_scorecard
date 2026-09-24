@@ -1,5 +1,7 @@
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
+import { assertLocalFixtureDatabase } from "./local-database";
+import { safeErrorMessage } from "../error-summary";
 import {
   organizations,
   users,
@@ -15,6 +17,8 @@ import {
   metricValues,
   metricObservations,
   syncRuns,
+  syncRevisions,
+  metricVisibilityOverrides,
   syncErrors,
   sourceRecords,
   normalizedFacts,
@@ -36,6 +40,7 @@ const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
   throw new Error("DATABASE_URL is required");
 }
+assertLocalFixtureDatabase(connectionString);
 
 const client = postgres(connectionString);
 const db = drizzle(client);
@@ -287,6 +292,8 @@ async function seed() {
 
   await db.transaction(async (tx) => {
     // Clear in reverse FK order
+    await tx.delete(metricVisibilityOverrides).execute();
+    await tx.delete(syncRevisions).execute();
     await tx.delete(reconciliationResults).execute();
     await tx.delete(reconciliationRuns).execute();
     await tx.delete(coachingRecords).execute();
@@ -872,7 +879,7 @@ async function seed() {
     ]);
 
     // Metric values are intentionally left empty here — real history comes
-    // from running the live Zendesk/Assembled sync against this real roster,
+    // from running an explicitly configured supported sync against this roster,
     // not from fabricated numbers attached to real people.
   });
 
@@ -884,13 +891,13 @@ async function seed() {
   console.log("  Managers: Alexander Smith (POS), Barbara Maenza (Menufy)");
   console.log("  Platform admin: James Oswald");
   console.log("  Metric definitions: 8 (first_contact_resolution unassigned — no live source)");
-  console.log("  Data sources: Zendesk, Assembled (real, live)");
+  console.log("  Data source records: Zendesk, Assembled (legacy); no vendor calls made");
   console.log("  Metric values: none — run a live sync to populate real history");
 
   await client.end();
 }
 
 seed().catch((err) => {
-  console.error("Seed failed:", err);
+  console.error("Seed failed:", safeErrorMessage(err));
   process.exit(1);
 });

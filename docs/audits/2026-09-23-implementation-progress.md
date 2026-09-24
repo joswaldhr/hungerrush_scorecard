@@ -1079,3 +1079,18 @@ stays Not recorded; no timestamp or version is invented. Rows use semantic row h
 The interactive disclosure is excluded from image capture and print; existing export
 provenance remains in the frozen snapshot. Three focused rendering cases and the three
 export regressions pass, along with focused lint and TypeScript. Hosted verification follows.
+
+## Local fixture reset safety — September 24
+
+The fixture seed now refuses hosted URLs, unexpected local database names and URL
+connection overrides before constructing a database client. Its reset order includes
+sync revisions and visibility overrides, and seed errors use the safe database summary.
+Ten guard cases pass. A repeatable disposable-loopback rehearsal applies all migrations,
+seeds 36 employees, adds referencing revision/visibility records, and successfully resets
+again. A synthetic hosted URL is refused without exposing its password. The rehearsal
+removes only its newly created local database. No hosted data was reset.
+
+Hosted metric-details verification passed at 36f9a12: complete observations show their
+UTC timestamp and version; the missing observation stays Not recorded. The first request
+failed with ECONNRESET during authorization; a full reload recovered. The existing Try
+again action reused the failed render, which is being corrected separately.
