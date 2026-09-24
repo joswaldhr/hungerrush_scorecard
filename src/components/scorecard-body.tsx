@@ -169,15 +169,15 @@ export function ScorecardBody({
   return (
     <>
       <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-start gap-4">
-          <Avatar className="h-16 w-16 print:h-10 print:w-10 ring-2 ring-border shadow-xs shrink-0">
+        <div className="flex min-w-0 max-w-full items-start gap-3 sm:gap-4">
+          <Avatar className="h-10 w-10 sm:h-16 sm:w-16 print:h-10 print:w-10 ring-2 ring-border shadow-xs shrink-0">
             <AvatarFallback className="text-base font-bold bg-slate-100 dark:bg-slate-800 text-foreground">
               {initials(employeeName)}
             </AvatarFallback>
           </Avatar>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl sm:text-[28px] font-bold text-foreground tracking-tight">
+          <div className="min-w-0 break-words">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <h1 className="text-2xl sm:text-[28px] font-bold text-foreground tracking-tight break-words max-w-full">
                 {employeeName}
               </h1>
               {ready && <StatusBadge status={overallStatus} showDot />}
@@ -204,8 +204,8 @@ export function ScorecardBody({
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-2">
-          <div className="flex items-center gap-2">
+        <div className="flex w-full min-w-0 flex-col items-start gap-2 sm:w-auto sm:items-end">
+          <div className="flex w-full min-w-0 flex-col items-start gap-2 sm:w-auto sm:flex-row sm:items-center">
             {ready && (
               <ScorecardExport
                 key={periodStart}

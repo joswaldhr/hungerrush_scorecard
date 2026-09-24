@@ -1155,3 +1155,15 @@ prevents email/actor lookup parameters from reaching persisted sync errors. Two 
 regressions pass with the eight existing request-boundary cases; focused lint passed.
 The preceding 410-test full check and local production build passed. GitHub's first
 PostgreSQL 18 CI run has passed migrations and tests; final completion is checked below.
+
+## Measured mobile overflow repair — September 24
+
+At an actual 390px viewport, the scorecard main container was 311px wide but its content
+extended to 413px; the identity/status header and week controls clipped. Table scrolling
+was contained correctly. The header now wraps, export stacks above week navigation on
+narrow screens, the date label can shrink/wrap, and mobile navigation/export controls have
+44px touch targets. The export menu anchors inside the available viewport. Twelve existing
+navigation/keyboard/export regressions and TypeScript pass; hosted measurement follows.
+
+CI run 36026548499 completed successfully on PostgreSQL 18, including fresh migrations,
+all 410 tests, lint, TypeScript and production build. The local production build also passed.

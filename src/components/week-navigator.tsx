@@ -45,15 +45,15 @@ export function WeekNavigator({
       : `${weeksAgo} WEEKS AGO`;
 
   return (
-    <div className="flex flex-col items-end gap-1.5 print:hidden">
-      <div className="flex items-center gap-1 rounded-lg border border-border/80 bg-card p-1 shadow-2xs">
+    <div className="flex w-full min-w-0 max-w-full flex-col items-end gap-1.5 sm:w-auto print:hidden">
+      <div className="flex w-full items-center gap-1 rounded-lg border border-border/80 bg-card p-1 shadow-2xs">
         <button
           type="button"
           aria-label="Previous week"
           onClick={() => {
             onNavigate(shiftWeekStart(periodStart, -1));
           }}
-          className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md sm:h-7 sm:w-7 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -63,7 +63,7 @@ export function WeekNavigator({
           aria-atomic="true"
           aria-busy={isLoading}
           className={cn(
-            "min-w-[170px] text-center text-sm font-semibold text-foreground tabular-nums transition-opacity",
+            "min-w-0 flex-1 sm:min-w-[170px] text-center text-sm font-semibold text-foreground tabular-nums transition-opacity",
             isLoading && "opacity-50"
           )}
         >
@@ -77,14 +77,14 @@ export function WeekNavigator({
           onClick={() => {
             onNavigate(shiftWeekStart(periodStart, 1));
           }}
-          className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md sm:h-7 sm:w-7 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
 
         <div
           ref={popoverRef}
-          className="relative border-l border-border/70 pl-1"
+          className="relative shrink-0 border-l border-border/70 pl-1"
           onKeyDown={(event) => {
             if (pickerOpen && event.key === "Escape") {
               event.preventDefault();
@@ -103,7 +103,7 @@ export function WeekNavigator({
             aria-expanded={pickerOpen}
             aria-controls={pickerOpen ? pickerId : undefined}
             onClick={() => setPickerOpen((o) => !o)}
-            className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            className="flex h-11 w-11 items-center justify-center rounded-md sm:h-7 sm:w-7 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             <CalendarIcon className="h-3.5 w-3.5" />
           </button>
@@ -128,14 +128,14 @@ export function WeekNavigator({
                   setPickerOpen(false);
                   triggerRef.current?.focus();
                 }}
-                className="rounded-md border border-border/80 bg-background px-2 py-1 text-xs text-foreground"
+                className="w-40 min-h-11 sm:min-h-0 rounded-md border border-border/80 bg-background px-2 py-1 text-xs text-foreground"
               />
             </div>
           )}
         </div>
       </div>
 
-      <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground">
+      <div className="flex max-w-full flex-wrap justify-end items-center gap-2 text-[11px] font-medium text-muted-foreground">
         <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold tracking-wide text-foreground/80">
           {contextLabel}
         </span>

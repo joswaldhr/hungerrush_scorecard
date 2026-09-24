@@ -253,7 +253,7 @@ export function ScorecardExport({
         }}
         disabled={exporting}
         className={cn(
-          "flex items-center gap-1.5 rounded-lg border border-border/80 bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted transition-colors",
+          "flex min-h-11 sm:min-h-0 items-center gap-1.5 rounded-lg border border-border/80 bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted transition-colors",
           exporting && "opacity-50 cursor-wait"
         )}
       >
@@ -287,7 +287,7 @@ export function ScorecardExport({
             event.preventDefault();
             items[next]?.focus();
           }}
-          className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-border/80 bg-card shadow-lg z-50 py-1"
+          className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1 w-48 rounded-lg border border-border/80 bg-card shadow-lg z-50 py-1"
         >
           {menuItems.map((item, i) => {
             if (item.label === "divider") {
@@ -322,7 +322,7 @@ export function ScorecardExport({
                       break;
                   }
                 }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground hover:bg-muted transition-colors text-left"
+                className="w-full min-h-11 sm:min-h-0 flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground hover:bg-muted transition-colors text-left"
               >
                 <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                 <span>{item.label}</span>
