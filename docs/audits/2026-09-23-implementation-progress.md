@@ -1069,3 +1069,13 @@ old running jobs. Manual sync validates its body instead of silently syncing Zen
 another type was requested; empty legacy requests remain compatible. Eleven focused cases
 pass, including unsupported/malformed rejection before rate-limit or sync work and UI
 visibility of the supported action. No source configuration or production records changed.
+
+## Per-metric data details — September 24
+
+Each metric now offers a native keyboard-accessible disclosure for recorded quality,
+source-observation time in UTC, calculation version and applied target scope. Partial or
+unverified non-null values carry a visible qualifier next to the number. Missing metadata
+stays Not recorded; no timestamp or version is invented. Rows use semantic row headers.
+The interactive disclosure is excluded from image capture and print; existing export
+provenance remains in the frozen snapshot. Three focused rendering cases and the three
+export regressions pass, along with focused lint and TypeScript. Hosted verification follows.
