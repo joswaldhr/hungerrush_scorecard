@@ -116,18 +116,18 @@ export default async function RosterReviewPage() {
                   name="externalGroupId"
                   placeholder="Group/team ID"
                   required
-                  className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+                  className="rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
                 />
                 <input
                   name="externalGroupLabel"
                   placeholder="Label"
                   required
-                  className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+                  className="rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
                 />
                 <select
                   name="teamId"
                   required
-                  className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+                  className="rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
                 >
                   <option value="">Team...</option>
                   {allTeams.map((t) => (
@@ -181,7 +181,7 @@ export default async function RosterReviewPage() {
                     <select
                       name="teamId"
                       defaultValue={c.suggestedTeamId ?? ""}
-                      className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+                      className="rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
                     >
                       <option value="">Unassigned</option>
                       {allTeams.map((t) => (

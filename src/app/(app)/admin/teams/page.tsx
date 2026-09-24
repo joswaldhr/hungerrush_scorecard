@@ -33,7 +33,7 @@ export default async function AdminTeamsPage() {
               id="name"
               name="name"
               required
-              className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+              className="rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground"
             />
           </div>
           {allOrgs.length > 1 && (
@@ -47,7 +47,7 @@ export default async function AdminTeamsPage() {
               <select
                 id="organizationId"
                 name="organizationId"
-                className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+                className="rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground"
               >
                 {allOrgs.map((o) => (
                   <option key={o.id} value={o.id}>

@@ -128,7 +128,7 @@ export function WeekNavigator({
                   setPickerOpen(false);
                   triggerRef.current?.focus();
                 }}
-                className="w-40 min-h-11 sm:min-h-0 rounded-md border border-border/80 bg-background px-2 py-1 text-xs text-foreground"
+                className="w-40 min-h-11 sm:min-h-0 rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
               />
             </div>
           )}

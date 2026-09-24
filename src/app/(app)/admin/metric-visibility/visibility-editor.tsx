@@ -117,7 +117,7 @@ export function VisibilityEditor({
         <select
           value={metricDefinitionId}
           onChange={(e) => setMetricDefinitionId(e.target.value)}
-          className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+          className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground"
         >
           <option value="">Select a metric...</option>
           {[...categories.entries()].map(([category, opts]) => (
@@ -147,7 +147,7 @@ export function VisibilityEditor({
           <select
             value={targetEmployeeId}
             onChange={(e) => setTargetEmployeeId(e.target.value)}
-            className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+            className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground"
           >
             <option value="">Select an employee...</option>
             {employeesList.map((e) => (
@@ -165,7 +165,7 @@ export function VisibilityEditor({
           <select
             value={managerUserId}
             onChange={(e) => setManagerUserId(e.target.value)}
-            className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+            className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground"
           >
             <option value="">Select a manager...</option>
             {managers.map((m) => (
@@ -207,7 +207,7 @@ export function VisibilityEditor({
           type="checkbox"
           checked={hidden}
           onChange={(e) => setHidden(e.target.checked)}
-          className="h-4 w-4 rounded border-border"
+          className="h-4 w-4 rounded border-input"
         />
         Hide this row (uncheck to show it again)
       </label>

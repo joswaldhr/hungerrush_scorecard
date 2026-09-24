@@ -132,7 +132,7 @@ export function OneOnOnesPicker({ teams, employees }: OneOnOnesPickerProps) {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search employees..."
             aria-label="Search employees"
-            className="w-full rounded-lg border border-border/80 bg-card py-2 pl-9 pr-3 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[#009ca6] shadow-2xs"
+            className="w-full rounded-lg border border-input bg-card py-2 pl-9 pr-3 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring shadow-2xs"
           />
         </div>
 

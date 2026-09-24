@@ -70,7 +70,7 @@ export default async function StoredPeriodsPage({
               <select
                 name="period"
                 defaultValue={`${history.selected.start}/${history.selected.end}`}
-                className="rounded-md border border-border bg-background px-3 py-2"
+                className="rounded-md border border-input bg-background px-3 py-2"
               >
                 {history.periods.map((interval) => (
                   <option

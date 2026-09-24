@@ -41,7 +41,7 @@ export default async function AdminEmployeeDetailPage({
               name="displayName"
               defaultValue={employee.displayName}
               required
-              className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+              className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground"
             />
           </div>
           <div>
@@ -53,7 +53,7 @@ export default async function AdminEmployeeDetailPage({
               name="email"
               type="email"
               defaultValue={employee.email ?? ""}
-              className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+              className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground"
             />
           </div>
           <div>
@@ -67,7 +67,7 @@ export default async function AdminEmployeeDetailPage({
               id="jobTitle"
               name="jobTitle"
               defaultValue={employee.jobTitle ?? ""}
-              className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+              className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground"
             />
           </div>
           <div>
@@ -81,7 +81,7 @@ export default async function AdminEmployeeDetailPage({
               id="employmentStatus"
               name="employmentStatus"
               defaultValue={employee.employmentStatus}
-              className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+              className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground"
             >
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
@@ -118,7 +118,7 @@ export default async function AdminEmployeeDetailPage({
               aria-label="Employee team"
               name="teamId"
               defaultValue={currentMembership?.teamId ?? ""}
-              className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+              className="rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground"
             >
               <option value="">Unassigned</option>
               {allTeams.map((t) => (

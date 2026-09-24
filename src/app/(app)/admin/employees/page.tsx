@@ -42,7 +42,7 @@ export default async function AdminEmployeesPage() {
               id="displayName"
               name="displayName"
               required
-              className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+              className="rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground"
             />
           </div>
           <div>
@@ -53,7 +53,7 @@ export default async function AdminEmployeesPage() {
               id="email"
               name="email"
               type="email"
-              className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+              className="rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground"
             />
           </div>
           <div>
@@ -66,7 +66,7 @@ export default async function AdminEmployeesPage() {
             <input
               id="jobTitle"
               name="jobTitle"
-              className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+              className="rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground"
             />
           </div>
           <div>
@@ -79,7 +79,7 @@ export default async function AdminEmployeesPage() {
             <select
               id="teamId"
               name="teamId"
-              className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+              className="rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground"
             >
               <option value="">Unassigned</option>
               {allTeams.map((t) => (
@@ -100,7 +100,7 @@ export default async function AdminEmployeesPage() {
               <select
                 id="organizationId"
                 name="organizationId"
-                className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+                className="rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground"
               >
                 {allOrgs.map((o) => (
                   <option key={o.id} value={o.id}>

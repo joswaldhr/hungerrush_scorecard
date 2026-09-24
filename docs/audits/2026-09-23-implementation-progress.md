@@ -12,7 +12,7 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Published to Preview | Navigation, organization and manager-scope regression tests; keyboard checks passed |
 | Atomic sync publication and freshness | Published to Preview | PostgreSQL rollback tests; untouched periods preserved; live hosted trigger still gated |
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 493 tests across 59 files passed in PostgreSQL 18 CI run 36051133675 at 54778e1, including lint, TypeScript and production build |
+| Combined implementation validation | Passed | 493 tests across 59 files passed in PostgreSQL 18 CI run 36052302791 at 8ea4c19, including lint, TypeScript and production build |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database, core UI, worker authentication and bounded ingestion/recovery passed | Separate PostgreSQL 18.6 and Entra app; four fresh ingestion processes, expired-lease takeover and replay verified; source disabled after rehearsal; recurring scheduling remains open |
 | Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; full-week export failed actor completeness verification; reviewed human provenance and independent parity remain open |
@@ -1558,3 +1558,11 @@ follow [W3C text contrast](https://www.w3.org/WAI/WCAG22/Understanding/contrast-
 and [control contrast](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html).
 This limited check does not establish full WCAG conformance. Hosted visual verification
 and full CI follow; no business calculations changed.
+
+Both full palette CI runs 36052302791/36052296111 passed. Preview
+`dpl_2CJgTCdH5JaERLBtkbZvN7WZedrc` at 8ea4c19 was inspected in both themes: primary
+buttons and selected navigation use the revised colors, synthetic ticket rows remain
+unavailable, and ordinary zero remains visible. Dark mode was restored. Inspection found
+custom search/select controls still using decorative borders; 24 native input/select
+controls now use the input token, and search focus uses the ring token. This follow-up
+requires deployed verification; no forms were submitted during the contrast checks.
