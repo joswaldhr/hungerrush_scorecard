@@ -12,7 +12,7 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Published to Preview | Navigation, organization and manager-scope regression tests; keyboard checks passed |
 | Atomic sync publication and freshness | Published to Preview | PostgreSQL rollback tests; untouched periods preserved; live hosted trigger still gated |
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 443 tests across 53 files passed in PostgreSQL 18 CI run 36041928943 at 53d4a4f, including lint, TypeScript and production build |
+| Combined implementation validation | Passed | 444 tests across 53 files passed in PostgreSQL 18 CI run 36042686344 at 22b7b6f, including lint, TypeScript and production build |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database, core UI and scheduler authentication passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; live ingestion and durable recurring Preview authentication remain open |
 | Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; full-week export failed actor completeness verification; reviewed human provenance and independent parity remain open |
@@ -1376,3 +1376,10 @@ staging fixture for hosted navigation checks. The first staging connection reset
 transaction; the idempotent retry passed and removed its plaintext credential handoff.
 Hosted verification and full CI for this increment follow. Both source-disablement CI runs
 36041928943/36041923796 passed all 443 tests across 53 files and the production build.
+
+Hosted verification passed at 22b7b6f on dpl_E6kJdrQ3XzTR26F6sXv7QhfRH1Fy: first page
+25 synthetic revisions, older page five, Enter-key return to newest kept the disclosure
+open, and interval selection reset the cursor. At settled 320px layout, main client/scroll
+widths were 241/241 and disclosure widths 207/207; its table remained internally scrollable.
+Viewport emulation was reset. CI run 36042686344 passed all 444 tests across 53 files,
+lint, TypeScript and production build. Staging credentials were not retained in plaintext.
