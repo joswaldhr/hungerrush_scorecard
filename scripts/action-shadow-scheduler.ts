@@ -3,7 +3,13 @@ const PREVIEW_ORIGIN =
   "https://hungerrush-scorecard-git-code-20e6ca-water-hungerrush-scorecard.vercel.app";
 
 export async function triggerActionShadow(
-  settings: { enabled?: string; token?: string; origin?: string; probe?: string },
+  settings: {
+    enabled?: string;
+    token?: string;
+    origin?: string;
+    probe?: string;
+    previewCookie?: string;
+  },
   request: typeof fetch = fetch
 ) {
   if (settings.enabled !== "true") return { status: "disabled" as const };
@@ -12,9 +18,19 @@ export async function triggerActionShadow(
   // A credential cannot be redirected to another deployment or vendor-controlled pagination URL.
   if (settings.origin !== PREVIEW_ORIGIN)
     throw new Error("Scheduler destination is not the staging deployment");
+  // Temporary, alias-scoped access for the hosted rehearsal only. Never use a
+  // human's browser session or a project-wide protection bypass credential here.
+  if (
+    settings.previewCookie &&
+    (settings.probe !== "true" || !/^_vercel_jwt=[A-Za-z0-9._~-]+$/.test(settings.previewCookie))
+  )
+    throw new Error("Preview session is only permitted for an explicit rehearsal");
   const response = await request(`${PREVIEW_ORIGIN}/api/cron/action-shadow`, {
     method: "GET",
-    headers: { authorization: `Bearer ${settings.token}` },
+    headers: {
+      authorization: `Bearer ${settings.token}`,
+      ...(settings.previewCookie ? { cookie: settings.previewCookie } : {}),
+    },
     redirect: "error",
     cache: "no-store",
     signal: AbortSignal.timeout(260_000),
@@ -51,6 +67,7 @@ if (process.env.RAILWAY_SERVICE_ID || process.env.ACTION_SHADOW_SCHEDULER_RUN ==
     token: process.env.ACTION_SHADOW_SECRET,
     origin: process.env.ACTION_SHADOW_ORIGIN,
     probe: process.env.ACTION_SHADOW_SCHEDULER_PROBE,
+    previewCookie: process.env.ACTION_SHADOW_PREVIEW_COOKIE,
   })
     .then((result) => console.log(JSON.stringify(result)))
     .catch(() => {

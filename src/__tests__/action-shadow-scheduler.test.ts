@@ -74,3 +74,29 @@ it("can verify authentication explicitly while ingestion remains disabled", asyn
     )
   ).rejects.toThrow("401");
 });
+
+it("restricts temporary alias-session access to explicit rehearsals and one cookie", async () => {
+  const request = vi.fn().mockResolvedValue(Response.json({ enabled: false }));
+  const previewCookie = "_vercel_jwt=synthetic.temporary.session";
+  expect(await triggerActionShadow({ ...settings, probe: "true", previewCookie }, request)).toEqual(
+    { status: "authenticated_disabled" }
+  );
+  expect(request).toHaveBeenCalledWith(
+    `${settings.origin}/api/cron/action-shadow`,
+    expect.objectContaining({
+      headers: { authorization: `Bearer ${settings.token}`, cookie: previewCookie },
+      redirect: "error",
+    })
+  );
+  request.mockClear();
+  await expect(triggerActionShadow({ ...settings, previewCookie }, request)).rejects.toThrow(
+    "rehearsal"
+  );
+  await expect(
+    triggerActionShadow(
+      { ...settings, probe: "true", previewCookie: `${previewCookie}; other=private` },
+      request
+    )
+  ).rejects.toThrow("rehearsal");
+  expect(request).not.toHaveBeenCalled();
+});

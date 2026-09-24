@@ -37,3 +37,31 @@ Relevant vendor documentation: [functions](https://docs.railway.com/functions) a
 [cron jobs](https://docs.railway.com/cron-jobs). No paid plan upgrade or production changes
 were made. The service uses the previously authorized staging hosting budget; actual ongoing
 usage still needs measurement after ingestion is enabled.
+
+## Hosted authentication rehearsal — September 24, 12:47 CDT
+
+Deployment `422ae54c-8768-487f-b80d-6abde7770454` completed a manual Railway execution
+in approximately three seconds. Platform logs report `status: authenticated_disabled`.
+The Vercel Preview was `dpl_4LXymfkWZT7NYL8uZtLCYF7BPkkY` at commit `4fd71db`.
+The source ID remains unset: no vendor fetch, checkpoint write or metric publication occurred.
+
+Independent hosted boundary checks returned 401 for missing/invalid worker tokens, 200
+with ingestion disabled for the dedicated shadow token, and 401 when that token was sent
+to the separate metric-publishing route. Vercel Preview protection remains enabled.
+An expiring share grant for this exact branch alias supplied a temporary session solely
+for the rehearsal. The scheduler accepts that session only in explicit probe mode and
+rejects redirects, other origins and multiple-cookie headers. Twelve focused scheduler
+and route tests, TypeScript and focused lint passed.
+
+After verification, the alias grant was revoked through Vercel's API (200, zero grants
+remaining); the same cookie then received a 302 to Vercel protection instead of reaching
+the application. Railway cleanup deployment `9e5cb7d3-4ca3-4443-8838-4d5524361971`
+sets enablement and probe mode to false and removes `ACTION_SHADOW_PREVIEW_COOKIE`.
+Its manual execution at 12:49 CDT completed and logged `status: disabled`.
+The dedicated worker token remains only in the authorized staging settings and encrypted
+local recovery storage; plaintext handoff files were removed.
+
+This completes hosted worker authentication and manual execution verification. Recurring
+protected-Preview authentication still needs a durable configuration before ingestion is
+enabled; the temporary share session is not that configuration. Live vendor ingestion,
+checkpoint restart, source completeness and reviewed human attribution remain separate gates.

@@ -14,7 +14,7 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
 | Combined implementation validation | Passed | 420 tests across 50 files passed locally; CI run 36030090645 at d25d777 passed on PostgreSQL 18, including lint, TypeScript and production build; latest revision-reader checks recorded below |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
-| Hosted staging / production parity | Database and core UI checks passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; cron runtime check remains open |
+| Hosted staging / production parity | Database, core UI and scheduler authentication passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; live ingestion and durable recurring Preview authentication remain open |
 | Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; full-week export failed actor completeness verification; reviewed human provenance and independent parity remain open |
 | Production rollout / historical repair | Not performed | Release gate below must be completed first |
 
@@ -48,8 +48,8 @@ checks here. Do not push master as a staging shortcut: it is the production bran
 
 The user subsequently reaffirmed full execution permission in direct response to the
 staging scheduler access gate. That pending setup is authorized; do not ask for it again.
-The dedicated token is saved only in this branch's Preview settings and staged in the
-Railway scheduler. Deploy and verify the auth-only rehearsal before recording it complete.
+The dedicated token is saved only in this branch's Preview settings and the Railway
+scheduler. The auth-only rehearsal passed; see the scheduler report for evidence and cleanup.
 
 ## Release gate and next work
 
@@ -60,8 +60,8 @@ and latest entries below; earlier isolation checkpoints are historical.
 
 Remaining production release gates:
 
-- Verify a controlled hosted sync trigger; the browser blocked the attempted cron request,
-  so runtime cron authorization has not been established by that check.
+- Hosted scheduler authentication passed on September 24. Complete durable recurring
+  Preview access and a controlled live-ingestion/checkpoint-restart rehearsal before activation.
 - Complete Zendesk completeness work and review metric semantics before historical repair.
 - Refresh the validated September 24 production backup immediately before rollout and record
   the deployment rollback reference. The encrypted snapshot restored successfully and both
@@ -1254,3 +1254,12 @@ seven web, one system and one other; 26 had explicit child overrides. These are 
 channel counts, not verified human or employee totals. The aggregate-only report and
 repeatable probe are retained; no vendor or database writes occurred. The contract now
 records this evidence and the remaining source-bound human/identity verification gate.
+
+## Hosted scheduler authentication — September 24
+
+Railway deployment 422ae54c-8768-487f-b80d-6abde7770454 logged authenticated_disabled
+at 12:47 CDT and completed. Missing/invalid bearer checks failed closed, and the dedicated
+shadow bearer could not invoke metric publication. Ingestion stayed disabled. The temporary
+branch-alias share grant was revoked and the same cookie then redirected to protection;
+Railway cleanup disables requests/probe mode and removes the temporary cookie. See
+2026-09-24-shadow-scheduler.md for deployment references and remaining activation gates.
