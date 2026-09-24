@@ -40,7 +40,7 @@ function groupByLine(
     const inLine = emps.filter((e) => e.line === line);
     if (inLine.length > 0) groups.push({ label: LINE_LABELS[line]!, emps: inLine });
   }
-  const other = emps.filter((e) => !e.line);
+  const other = emps.filter((e) => !e.line || !Object.keys(LINE_LABELS).includes(e.line));
   if (other.length > 0) groups.push({ label: "Other", emps: other });
   return groups;
 }
@@ -105,6 +105,18 @@ export function OneOnOnesPicker({ teams, employees }: OneOnOnesPickerProps) {
   }, [filtered]);
 
   const hasAnyResults = filtered.length > 0;
+  const knownTeamIds = new Set(teams.map((team) => team.id));
+  const unassigned = filtered.filter(
+    (employee) => !employee.primaryTeamId || !knownTeamIds.has(employee.primaryTeamId)
+  );
+  const displayGroups: Array<{ id: string | null; name: string; emps: PickerEmployee[] }> = teams
+    .map((team) => ({ ...team, emps: byTeam.get(team.id) ?? [] }))
+    .filter((team) => team.emps.length > 0);
+  if (unassigned.length)
+    displayGroups.push({ id: null, name: "Unassigned team", emps: unassigned });
+  const needsMappingReview =
+    unassigned.length > 0 ||
+    filtered.some((employee) => employee.line && !Object.keys(LINE_LABELS).includes(employee.line));
 
   return (
     <div className="space-y-8">
@@ -127,16 +139,21 @@ export function OneOnOnesPicker({ teams, employees }: OneOnOnesPickerProps) {
         <SortControl label="Sort" value={sortDir} options={SORT_OPTIONS} onChange={setSortDir} />
       </div>
 
+      {needsMappingReview && (
+        <p className="text-sm text-muted-foreground">
+          Some employees need a team or line assignment review. They remain available below.
+        </p>
+      )}
       {!hasAnyResults ? (
         <EmptyState icon={Users} title="No matches" description={`No one matches "${query}".`} />
       ) : (
-        teams.map((team) => {
-          const teamEmps = byTeam.get(team.id) ?? [];
-          if (teamEmps.length === 0) return null;
+        displayGroups.map((team) => {
+          const teamEmps = team.emps;
+          const showTeamHeading = displayGroups.length > 1 || team.id === null;
 
           return (
-            <div key={team.id} className="space-y-6">
-              {teams.length > 1 && (
+            <div key={team.id ?? "unassigned"} className="space-y-6">
+              {showTeamHeading && (
                 <GroupHeading title={team.name} count={teamEmps.length} level="h2" />
               )}
 
@@ -144,7 +161,11 @@ export function OneOnOnesPicker({ teams, employees }: OneOnOnesPickerProps) {
                 {groupByLine(teamEmps).map((group) => (
                   <div key={group.label ?? "all"} className="space-y-3">
                     {group.label && (
-                      <GroupHeading title={group.label} count={group.emps.length} level="h3" />
+                      <GroupHeading
+                        title={group.label}
+                        count={group.emps.length}
+                        level={showTeamHeading ? "h3" : "h2"}
+                      />
                     )}
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                       {group.emps.map((emp) => (

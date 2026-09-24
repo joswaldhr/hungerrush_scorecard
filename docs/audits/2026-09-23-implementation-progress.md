@@ -1046,3 +1046,16 @@ The export menu exposes menu semantics, Arrow/Home/End navigation, Escape focus 
 and outside-focus dismissal without stealing focus. Three new interaction regressions
 plus nine existing navigation/export cases pass; focused lint and TypeScript pass.
 Hosted browser verification follows the Preview deployment.
+
+Hosted verification at 6001fc7 passed: ArrowDown opened the export menu focused on PDF,
+End focused Print, Escape returned to Export, Tab exited to Previous week, and the date
+picker focused its input then returned to its trigger on Escape. No export was sent or
+downloaded during these keyboard checks.
+
+## Employee picker completeness — September 24
+
+The picker now places unexpected lines in Other and missing/unknown teams in Unassigned
+team, with an assignment-review note. It renders only the already-authorized employee list;
+no query scope or access changes. Three rendering regressions confirm every supplied person
+appears exactly once, an entirely unassigned roster remains visible, and ordinary single-team
+null-line rosters retain their flat presentation. Focused lint and TypeScript passed.
