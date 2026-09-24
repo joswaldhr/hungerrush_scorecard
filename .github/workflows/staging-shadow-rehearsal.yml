@@ -8,6 +8,12 @@ on:
       - scripts/probe-shadow-oidc.mjs
       - scripts/probe-shadow-oidc.test.mjs
   workflow_dispatch:
+    inputs:
+      ingest:
+        description: Run one bounded shadow batch per process after authentication checks
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -39,17 +45,22 @@ jobs:
         uses: actions/github-script@v7
         env:
           ACTION_SHADOW_SECRET: ${{ secrets.ACTION_SHADOW_SECRET }}
+          CONTROLLED_SHADOW_INGEST: ${{ github.event_name == 'workflow_dispatch' && inputs.ingest == true }}
         with:
           script: |
             try {
               if (!process.env.ACTION_SHADOW_SECRET) throw new Error('Staging worker credential is missing');
-              const { rehearsePreviewProtection } = await import(`${process.env.GITHUB_WORKSPACE}/scripts/probe-shadow-oidc.mjs`);
-              const report = await rehearsePreviewProtection(async (audience) => {
+              const { rehearsePreviewProtection, runControlledShadowBatch } = await import(`${process.env.GITHUB_WORKSPACE}/scripts/probe-shadow-oidc.mjs`);
+              const getToken = async (audience) => {
                 const token = await core.getIDToken(audience);
                 core.setSecret(token);
                 return token;
-              }, fetch, process.env.ACTION_SHADOW_SECRET);
+              };
+              const report = await rehearsePreviewProtection(getToken, fetch, process.env.ACTION_SHADOW_SECRET);
               core.info(JSON.stringify(report));
+              if (process.env.CONTROLLED_SHADOW_INGEST === 'true') {
+                core.info(JSON.stringify(await runControlledShadowBatch(getToken, process.env.ACTION_SHADOW_SECRET)));
+              }
             } catch {
-              core.setFailed('Preview authentication rehearsal failed. Only the fixed authentication-only endpoint may receive the staging worker credential; ingestion was not requested.');
+              core.setFailed('Isolated Preview rehearsal failed. Checkpoint state is retained; no credentials or vendor payloads are logged.');
             }

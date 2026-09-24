@@ -73,3 +73,73 @@ export async function rehearsePreviewProtection(getToken, request = fetch, worke
     sourceIngestionStarted: false,
   };
 }
+
+/** Explicit manual rehearsal only. One bounded batch; never publishes manager metrics. */
+export async function runControlledShadowBatch(getToken, workerToken, request = fetch) {
+  if (typeof workerToken !== "string" || !/^[A-Za-z0-9_-]{32,256}$/.test(workerToken))
+    throw new Error("Invalid staging worker credential");
+  const token = await getToken(audience);
+  if (
+    typeof token !== "string" ||
+    token.length > 16_384 ||
+    !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(token)
+  )
+    throw new Error("Invalid rehearsal identity token");
+  const response = await request(endpoint, {
+    headers: { "x-vercel-trusted-oidc-idp-token": token, authorization: `Bearer ${workerToken}` },
+    redirect: "error",
+    cache: "no-store",
+    signal: AbortSignal.timeout(260_000),
+  });
+  if (response.status !== 200) throw new Error("Controlled shadow batch failed");
+  const body = await response.json();
+  if (
+    body.enabled !== true ||
+    body.busy ||
+    typeof body.completed !== "boolean" ||
+    !Number.isInteger(body.steps) ||
+    body.steps < 0 ||
+    body.steps > 6 ||
+    body.observationId !== null
+  )
+    throw new Error("Unexpected shadow batch result");
+  const validDate = (value) =>
+    typeof value === "string" &&
+    /^\d{4}-\d{2}-\d{2}T00:00:00\.000Z$/.test(value) &&
+    new Date(value).toISOString() === value;
+  if (
+    !validDate(body.periodStart) ||
+    !validDate(body.periodEndExclusive) ||
+    Date.parse(body.periodEndExclusive) - Date.parse(body.periodStart) !== 86_400_000 ||
+    Date.parse(body.periodEndExclusive) > Date.now() - 120_000
+  )
+    throw new Error("Unexpected shadow batch interval");
+  const streams = {};
+  for (const key of ["tickets", "legs"]) {
+    const stream = body.streams?.[key];
+    if (
+      !stream ||
+      !["pending", "waiting", "complete"].includes(stream.status) ||
+      !Number.isSafeInteger(stream.pages) ||
+      stream.pages < 0 ||
+      !(
+        stream.notBefore === null ||
+        (typeof stream.notBefore === "string" &&
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(stream.notBefore) &&
+          Number.isFinite(Date.parse(stream.notBefore)))
+      )
+    )
+      throw new Error("Unexpected shadow stream result");
+    streams[key] = { status: stream.status, pages: stream.pages, notBefore: stream.notBefore };
+  }
+  if (body.completed !== Object.values(streams).every((stream) => stream.status === "complete"))
+    throw new Error("Inconsistent shadow completion result");
+  return {
+    status: "controlled_shadow_batch",
+    periodStart: body.periodStart,
+    periodEndExclusive: body.periodEndExclusive,
+    completed: body.completed,
+    steps: body.steps,
+    streams,
+  };
+}

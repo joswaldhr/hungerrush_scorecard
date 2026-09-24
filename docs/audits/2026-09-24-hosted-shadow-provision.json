@@ -1,0 +1,16 @@
+{
+  "observedAt": "2026-09-24T19:15:23.506Z",
+  "mode": "provision",
+  "stagingOnly": true,
+  "accountBindingMatched": true,
+  "sourceStatus": "configured",
+  "publication": {
+    "employees": 0,
+    "users": 0,
+    "definitions": 0,
+    "facts": 0,
+    "publishing_runs": 0
+  },
+  "records": [],
+  "checkpoints": []
+}
