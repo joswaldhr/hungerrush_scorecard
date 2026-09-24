@@ -972,3 +972,13 @@ The shadow scheduler now reads checkpoint state without materializing completed 
 leg cohorts. Completed observations still retain and expose their evidence through the
 explicit export readers. All 18 checkpoint/worker PostgreSQL regressions and TypeScript
 passed, including completed retries, resumption, correction comparison and daily selection.
+
+## Atomic automatic roster approval — September 24
+
+Automatic discovery approval now commits employee, identity, membership and reviewed
+candidate together. A failed membership insert rolls back the prior inserts before saving
+one pending candidate. Database errors retain their SQLSTATE through the sanitized logger;
+the candidate's email and SQL payload are not logged. Manager-account exclusion is scoped
+to the source organization. Nine roster integration tests pass, including an injected real
+database failure and a different-organization manager account; TypeScript passed.
+Discovery concurrency, multi-group/line policy and departure deduplication remain open.

@@ -2,7 +2,7 @@
 // test.env, which points DATABASE_URL at the docker-compose db by default).
 // Locally: `docker compose up -d && pnpm db:migrate` before `pnpm test`.
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { db } from "@/lib/db";
 import {
   organizations,
@@ -15,7 +15,7 @@ import {
   externalIdentities,
   teamMemberships,
 } from "@/lib/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, sql } from "drizzle-orm";
 import { discoverRosterCandidates } from "@/lib/domain/roster/reconcile";
 import type { Connector } from "@/lib/connectors";
 import type { DiscoveredRosterMember } from "@/lib/connectors/types";
@@ -359,5 +359,89 @@ describe("discoverRosterCandidates", () => {
       .where(eq(rosterCandidates.externalId, DEPARTED_EMAIL));
     expect(candidates).toHaveLength(1);
     expect(candidates[0]!.status).toBe("approved");
+  });
+
+  it("rolls back employee and identity creation when membership fails, retaining only a pending candidate", async () => {
+    const email = "atomic-rollback@test.cadence.internal";
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    await db.execute(
+      sql.raw(`CREATE OR REPLACE FUNCTION test_roster_membership_failure()
+      RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN
+      IF EXISTS (SELECT 1 FROM employees WHERE id=NEW.employee_id
+        AND email='atomic-rollback@test.cadence.internal') THEN
+        RAISE EXCEPTION 'Synthetic membership failure for atomic-rollback@test.cadence.internal';
+      END IF; RETURN NEW; END $$`)
+    );
+    await db.execute(
+      sql.raw(`CREATE TRIGGER test_roster_membership_failure
+      BEFORE INSERT ON team_memberships FOR EACH ROW EXECUTE FUNCTION test_roster_membership_failure()`)
+    );
+    try {
+      const result = await discoverRosterCandidates(
+        fakeConnector([
+          {
+            externalId: email,
+            externalEmail: email,
+            externalDisplayName: "Synthetic rollback",
+            teamId: TEAM_ID,
+          },
+        ]),
+        DATA_SOURCE_ID
+      );
+      expect(result.autoApproved).toBe(0);
+      expect(result.newCandidates).toBe(1);
+      expect(await db.select().from(employees).where(eq(employees.email, email))).toHaveLength(0);
+      expect(
+        await db.select().from(externalIdentities).where(eq(externalIdentities.externalId, email))
+      ).toHaveLength(0);
+      const candidates = await db
+        .select()
+        .from(rosterCandidates)
+        .where(eq(rosterCandidates.externalId, email));
+      expect(candidates).toHaveLength(1);
+      expect(candidates[0]!.status).toBe("pending");
+      expect(JSON.stringify(log.mock.calls)).not.toContain(email);
+      expect(JSON.stringify(log.mock.calls)).toContain("Database operation failed");
+    } finally {
+      await db.execute(
+        sql.raw("DROP TRIGGER IF EXISTS test_roster_membership_failure ON team_memberships")
+      );
+      await db.execute(sql.raw("DROP FUNCTION IF EXISTS test_roster_membership_failure()"));
+      log.mockRestore();
+    }
+  });
+
+  it("does not exclude a candidate because their email is a manager in a different organization", async () => {
+    const otherOrg = "99999999-0000-4000-8000-000000000110";
+    const otherUser = "99999999-0000-4000-8000-000000000111";
+    const email = "other-org-manager@test.cadence.internal";
+    await db.insert(organizations).values({ id: otherOrg, name: "Other synthetic org" });
+    await db
+      .insert(users)
+      .values({
+        id: otherUser,
+        organizationId: otherOrg,
+        email,
+        displayName: "Other synthetic manager",
+      });
+    try {
+      const result = await discoverRosterCandidates(
+        fakeConnector([
+          {
+            externalId: email,
+            externalEmail: email,
+            externalDisplayName: "Synthetic hire",
+            teamId: TEAM_ID,
+          },
+        ]),
+        DATA_SOURCE_ID
+      );
+      expect(result.autoApproved).toBe(1);
+      const [employee] = await db.select().from(employees).where(eq(employees.email, email));
+      expect(employee!.organizationId).toBe(ORG_ID);
+    } finally {
+      await db.delete(users).where(eq(users.id, otherUser));
+      await db.delete(organizations).where(eq(organizations.id, otherOrg));
+    }
   });
 });

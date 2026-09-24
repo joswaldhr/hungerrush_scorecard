@@ -54,7 +54,10 @@ export async function discoverRosterCandidates(
     );
   const seenNewExternalIds = new Set(existingNewCandidates.map((c) => c.externalId));
 
-  const managerUsers = await db.select({ email: users.email }).from(users);
+  const managerUsers = await db
+    .select({ email: users.email })
+    .from(users)
+    .where(eq(users.organizationId, source.organizationId));
   const managerEmails = new Set(managerUsers.map((u) => u.email.toLowerCase()));
 
   let newCandidates = 0;
@@ -108,53 +111,55 @@ export async function discoverRosterCandidates(
   for (const member of eligible) {
     if (shouldAutoApprove) {
       try {
-        const today = new Date().toISOString().split("T")[0]!;
-        const [employee] = await db
-          .insert(employees)
-          .values({
-            organizationId: source.organizationId,
-            displayName: member.externalDisplayName ?? member.externalEmail ?? member.externalId,
-            email: member.externalEmail,
-            primaryTeamId: member.teamId,
-          })
-          .returning();
+        await db.transaction(async (tx) => {
+          const today = new Date().toISOString().split("T")[0]!;
+          const [employee] = await tx
+            .insert(employees)
+            .values({
+              organizationId: source.organizationId,
+              displayName: member.externalDisplayName ?? member.externalEmail ?? member.externalId,
+              email: member.externalEmail,
+              primaryTeamId: member.teamId,
+            })
+            .returning();
 
-        if (employee) {
-          await db.insert(externalIdentities).values({
-            employeeId: employee.id,
+          if (employee) {
+            await tx.insert(externalIdentities).values({
+              employeeId: employee.id,
+              dataSourceId,
+              externalEntityType: "agent",
+              externalId: member.externalId,
+              externalEmail: member.externalEmail,
+              externalDisplayName: member.externalDisplayName,
+              matchMethod: "roster_discovery",
+              matchConfidence: 1,
+            });
+
+            if (member.teamId) {
+              await tx.insert(teamMemberships).values({
+                employeeId: employee.id,
+                teamId: member.teamId,
+                effectiveFrom: today,
+              });
+            }
+          }
+
+          await tx.insert(rosterCandidates).values({
             dataSourceId,
-            externalEntityType: "agent",
             externalId: member.externalId,
             externalEmail: member.externalEmail,
             externalDisplayName: member.externalDisplayName,
-            matchMethod: "roster_discovery",
-            matchConfidence: 1,
+            changeType: "new",
+            suggestedTeamId: member.teamId,
+            status: "auto_approved",
+            reviewedAt: new Date(),
           });
-
-          if (member.teamId) {
-            await db.insert(teamMemberships).values({
-              employeeId: employee.id,
-              teamId: member.teamId,
-              effectiveFrom: today,
-            });
-          }
-        }
-
-        await db.insert(rosterCandidates).values({
-          dataSourceId,
-          externalId: member.externalId,
-          externalEmail: member.externalEmail,
-          externalDisplayName: member.externalDisplayName,
-          changeType: "new",
-          suggestedTeamId: member.teamId,
-          status: "auto_approved",
-          reviewedAt: new Date(),
         });
         autoApproved++;
       } catch (err) {
         logger.error("Failed to auto-approve candidate, inserting as pending", {
-          externalId: member.externalId,
-          error: err instanceof Error ? err.message : String(err),
+          dataSourceId,
+          error: err,
         });
         await db.insert(rosterCandidates).values({
           dataSourceId,
