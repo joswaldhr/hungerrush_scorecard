@@ -806,3 +806,16 @@ checkpoint-write rollback. All 313 tests across 35 files, full lint/format, Type
 production build passed. This does not activate a
 scheduler or cover resumable call-leg ingestion, retention, or employee/service-account
 attribution. The existing read-only vendor probe still performs no database writes.
+
+## Resumable call-leg ingestion — September 24
+
+Added a separate call-leg checkpoint with atomic page/cursor writes, stale-worker rejection,
+persisted rate-limit deferral, and the verified Talk exhaustion boundary. Every observed
+version is retained in a revision namespace; the latest timestamp determines the current
+leg and same-time conflicts fail. Inserts/upserts are batched. Only closed intervals older
+than two minutes are accepted, avoiding a frozen incomplete current-period cohort.
+
+Six new PostgreSQL cases plus all eight ticket-checkpoint cases passed; TypeScript passed.
+The cases cover revision retention, older late arrivals, contradictory revisions, source
+scope, retries, concurrent workers, open intervals, and stalled boundaries. The active
+publisher is unchanged. Worker scheduling and actor attribution follow this increment.

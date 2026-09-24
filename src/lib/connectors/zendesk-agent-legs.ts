@@ -30,6 +30,10 @@ const pageSchema = z.object({
   next_page: z.string().nullable(),
 });
 
+export function parseAgentLegPage(value: unknown) {
+  return pageSchema.parse(value);
+}
+
 /** Shares the verified Talk completion guard, while retaining only metric evidence fields. */
 export async function fetchAgentLegs(
   periodStart: string,
@@ -41,7 +45,7 @@ export async function fetchAgentLegs(
     periodStart,
     periodEnd,
     async (path) => {
-      const { legs, ...page } = pageSchema.parse(await getPage(path));
+      const { legs, ...page } = parseAgentLegPage(await getPage(path));
       return { ...page, calls: legs };
     },
     pageBudget,
