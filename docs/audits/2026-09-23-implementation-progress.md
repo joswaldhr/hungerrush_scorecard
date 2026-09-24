@@ -863,3 +863,17 @@ retain aggregate results; account identifiers and email addresses are omitted.
 This verifies current matching, not historical roles, human account ownership, or manual
 action attribution. Immutable mapping observations and an explicit late-correction policy
 remain the next implementation work before enabling version-2 calculations.
+
+## Shadow scheduler ownership — September 24
+
+The shadow route now claims a source-level lease before selecting or fetching work. A
+simultaneous trigger reports busy with a retry timestamp and makes no vendor requests.
+Database time controls six-minute expiry (longer than the hosted invocation budget), and
+token-conditional release prevents a crashed owner's cleanup from deleting a replacement
+lease. Errors release the current lease while retaining export checkpoints. No schema
+migration is required; production and Preview ingestion remain disabled.
+
+Seven focused route/PostgreSQL cases, TypeScript, formatting, and focused lint passed.
+Checks demonstrated one concurrent owner, expiry recovery, stale-owner release rejection,
+cross-organization rejection, busy-route short-circuiting, and release after worker failure.
+This protects route invocations; direct calls to page primitives still need coordination.

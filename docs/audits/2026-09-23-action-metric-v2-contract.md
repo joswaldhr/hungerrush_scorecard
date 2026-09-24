@@ -93,6 +93,10 @@ untouched and propagate to the caller. The existing connector's retry mode is un
 
 This is checkpoint storage and a one-page worker primitive, not an activated scheduler.
 Concurrent fetches may still spend two API requests even though only one response commits.
+The hosted worker route now claims a source-level six-minute lease before selecting work.
+Concurrent route triggers return `busy` and a retry time without fetching vendor pages.
+Expiry uses database time, and cleanup is token-conditional so an old owner cannot remove
+its successor's lease. Direct checkpoint primitives still require caller coordination.
 Scheduler/retry ownership, retention/cleanup, immutable employee
 mapping and automation attribution, and hosted restart tests remain before activation.
 No production checkpoint/event writes or metric publication were performed during testing.
