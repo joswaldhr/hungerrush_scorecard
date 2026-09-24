@@ -12,7 +12,7 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Published to Preview | Navigation, organization and manager-scope regression tests; keyboard checks passed |
 | Atomic sync publication and freshness | Published to Preview | PostgreSQL rollback tests; untouched periods preserved; live hosted trigger still gated |
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 493 tests across 59 files passed in PostgreSQL 18 CI run 36052302791 at 8ea4c19, including lint, TypeScript and production build |
+| Combined implementation validation | Passed | 493 tests across 59 files passed in PostgreSQL 18 CI run 36052750919 at 79ca0d5, including lint, TypeScript and production build |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database, core UI, worker authentication and bounded ingestion/recovery passed | Separate PostgreSQL 18.6 and Entra app; four fresh ingestion processes, expired-lease takeover and replay verified; source disabled after rehearsal; recurring scheduling remains open |
 | Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; full-week export failed actor completeness verification; reviewed human provenance and independent parity remain open |
@@ -1566,3 +1566,28 @@ unavailable, and ordinary zero remains visible. Dark mode was restored. Inspecti
 custom search/select controls still using decorative borders; 24 native input/select
 controls now use the input token, and search focus uses the ring token. This follow-up
 requires deployed verification; no forms were submitted during the contrast checks.
+
+The 79ca0d5 control follow-up passed CI 36052750919/36052743364 and deployed READY as
+`dpl_7qsbhQW8tZxiL45wDURgyKDxKKgo`. Browser computed styles confirm the revised search
+border in both themes, including light RGB 123/137/156 against white. Dark mode was restored.
+
+## Retained closed-week diagnostic — September 24
+
+The original weekly probe lost its in-memory cohort when actor lookup failed. The existing
+loopback rehearsal now accepts `LOCAL_SHADOW_END_DAY` for one to seven closed days. Multi-day
+intervals use a separate deterministic fixture namespace; daily identifiers remain compatible.
+New fixtures carry an explicit source-account binding, and multi-day actor diagnostics require
+matching source and retained checkpoint bindings before vendor requests. Hosted scheduling
+continues to use daily intervals; these extensions are offline diagnostic tools only.
+
+`probe-retained-action-actors.ts` reads completed retained exports with a read-only database
+connection and uses `LOCAL_SHADOW_ACTOR_OFFSET` for at most 2,000 accounts per process.
+Reports distinguish the evaluated slice from full-inventory completeness and contain counts
+and an aggregate inventory hash, never account IDs or payloads. Missing-only batches may be
+compared with the documented inactive/deleted lookup option; those responses do not establish
+historical roles or human activity.
+
+Seven date/scope regressions and eight existing worker/actor cases passed, along with local
+TypeScript and lint. The first September 13–19 batch retained three pages from each stream
+with zero normalized facts and no publication timestamp. Further fresh-process batches are
+in progress; this entry does not claim a completed week or explain the original actor failure.

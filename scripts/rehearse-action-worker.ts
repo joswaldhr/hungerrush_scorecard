@@ -1,5 +1,5 @@
+import { actionRehearsalScope } from "../src/lib/fixtures/action-rehearsal-scope";
 /** One real-source batch per process; all writes are restricted to a loopback test DB. */
-import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { parseEnv } from "node:util";
 import postgres from "postgres";
@@ -19,11 +19,9 @@ async function main() {
     target.search
   )
     throw new Error("Rehearsal writes require a loopback PostgreSQL database ending in _test");
-  const start = new Date(`${day}T00:00:00Z`);
-  if (!Number.isFinite(start.getTime()) || start.toISOString().slice(0, 10) !== day)
-    throw new Error("Invalid day");
-  const endExclusive = new Date(start.getTime() + 86_400_000);
-  if (endExclusive.getTime() > Date.now() - 120_000) throw new Error("Require a closed day");
+  const inclusiveEndDay = process.env.LOCAL_SHADOW_END_DAY ?? day;
+  const interval = actionRehearsalScope(day, inclusiveEndDay);
+  const { start, endExclusive, organizationId, dataSourceId } = interval;
 
   // Read only vendor keys. Never import the production database URL or auth credentials.
   const vendor = parseEnv(await readFile(".env", "utf8"));
@@ -42,15 +40,10 @@ async function main() {
       await import("../src/lib/connectors/ticket-action-checkpoint");
     const { readAgentLegExport } = await import("../src/lib/connectors/agent-leg-checkpoint");
     const { zendeskGet } = await import("../src/lib/connectors/zendesk-shared");
+    const { zendeskAccountReference } =
+      await import("../src/lib/connectors/zendesk-account-binding");
+    const accountReference = zendeskAccountReference(vendor.ZENDESK_SUBDOMAIN!);
     // Deterministic rehearsal-only IDs allow subsequent processes to find the same checkpoint.
-    const id = (kind: string) => {
-      const hex = createHash("sha256")
-        .update(`local-action-rehearsal:${day}:${kind}`)
-        .digest("hex");
-      return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-8${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
-    };
-    const organizationId = id("organization"),
-      dataSourceId = id("source");
     await db
       .insert(schema.organizations)
       .values({ id: organizationId, name: "Local action rehearsal" })
@@ -62,14 +55,34 @@ async function main() {
         organizationId,
         type: "staging",
         displayName: "Local action rehearsal",
+        configurationReference: accountReference,
       })
       .onConflictDoNothing();
+    const [ownedSource] = await db
+      .select()
+      .from(schema.dataSources)
+      .where(eq(schema.dataSources.id, dataSourceId));
+    const [ownedOrganization] = await db
+      .select()
+      .from(schema.organizations)
+      .where(eq(schema.organizations.id, organizationId));
+    if (
+      ownedOrganization?.name !== "Local action rehearsal" ||
+      ownedSource?.organizationId !== organizationId ||
+      ownedSource.type !== "staging" ||
+      ownedSource.displayName !== "Local action rehearsal" ||
+      (ownedSource.configurationReference !== null &&
+        ownedSource.configurationReference !== accountReference) ||
+      (interval.days > 1 && ownedSource.configurationReference !== accountReference)
+    )
+      throw new Error("Rehearsal source inventory or account binding does not match");
     const scope = {
       organizationId,
       dataSourceId,
       start,
       endExclusive,
       observationId: process.argv[4],
+      workerAccountReference: accountReference,
     };
     const before = {
       tickets: (await readTicketActionExport(scope)).state.pages,
@@ -112,6 +125,9 @@ async function main() {
     const report = {
       observedAt: new Date().toISOString(),
       day,
+      inclusiveEndDay,
+      intervalDays: interval.days,
+      accountBindingMatched: ownedSource.configurationReference === accountReference,
       localWritesOnly: true,
       resumedPages: before,
       requests,

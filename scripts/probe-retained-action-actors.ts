@@ -1,9 +1,11 @@
+import { actionRehearsalScope } from "../src/lib/fixtures/action-rehearsal-scope";
 /** Read retained loopback exports and source account roles; no database or vendor writes. */
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { parseEnv } from "node:util";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
+import { eq } from "drizzle-orm";
 import { inspectActionActorBatch } from "../src/lib/connectors/zendesk-action-actors";
 
 async function main() {
@@ -18,11 +20,9 @@ async function main() {
     target.search
   )
     throw new Error("Require loopback test database");
-  const start = new Date(`${day}T00:00:00Z`);
-  if (!Number.isFinite(start.getTime()) || start.toISOString().slice(0, 10) !== day)
-    throw new Error("Invalid day");
-  const endExclusive = new Date(start.getTime() + 86_400_000);
-  if (endExclusive.getTime() > Date.now() - 120_000) throw new Error("Require a closed day");
+  const inclusiveEndDay = process.env.LOCAL_SHADOW_END_DAY ?? day;
+  const interval = actionRehearsalScope(day, inclusiveEndDay);
+  const { start, endExclusive, organizationId, dataSourceId } = interval;
   const vendor = parseEnv(await readFile(".env", "utf8"));
   for (const key of ["ZENDESK_SUBDOMAIN", "ZENDESK_EMAIL", "ZENDESK_API_KEY"])
     if (vendor[key]) process.env[key] = vendor[key];
@@ -37,15 +37,25 @@ async function main() {
   const db = drizzle(client, { schema });
   (globalThis as unknown as { _cadenceDb: typeof db })._cadenceDb = db;
   try {
-    const id = (kind: string) => {
-      const hex = createHash("sha256")
-        .update(`local-action-rehearsal:${day}:${kind}`)
-        .digest("hex");
-      return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-8${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
-    };
+    const { zendeskAccountReference } =
+      await import("../src/lib/connectors/zendesk-account-binding");
+    const accountReference = zendeskAccountReference(vendor.ZENDESK_SUBDOMAIN!);
+    const [source] = await db
+      .select()
+      .from(schema.dataSources)
+      .where(eq(schema.dataSources.id, dataSourceId));
+    if (
+      source?.organizationId !== organizationId ||
+      source.type !== "staging" ||
+      source.displayName !== "Local action rehearsal" ||
+      (source.configurationReference !== null &&
+        source.configurationReference !== accountReference) ||
+      (interval.days > 1 && source.configurationReference !== accountReference)
+    )
+      throw new Error("Retained source inventory or account binding does not match");
     const scope = {
-      organizationId: id("organization"),
-      dataSourceId: id("source"),
+      organizationId,
+      dataSourceId,
       start,
       endExclusive,
     };
@@ -55,6 +65,12 @@ async function main() {
     const tickets = await readTicketActionExport(scope),
       legs = await readAgentLegExport(scope);
     if (!tickets.cohort || !legs.cohort) throw new Error("Require completed retained exports");
+    if (
+      interval.days > 1 &&
+      (tickets.state.accountReference !== accountReference ||
+        legs.state.accountReference !== accountReference)
+    )
+      throw new Error("Retained checkpoints belong to a different account");
     const ids = [
       ...new Set(
         [
@@ -63,12 +79,21 @@ async function main() {
         ].filter((id): id is number => id !== null && id > 0)
       ),
     ].sort((a, b) => a - b);
-    if (ids.length > 2000) throw new Error("Actor census exceeds bounded request budget");
+    if (ids.length > 20_000) throw new Error("Actor inventory exceeds diagnostic size bound");
+    const actorOffset = Number(process.env.LOCAL_SHADOW_ACTOR_OFFSET ?? 0);
+    if (
+      !Number.isSafeInteger(actorOffset) ||
+      actorOffset < 0 ||
+      actorOffset % 100 !== 0 ||
+      (actorOffset >= ids.length && ids.length !== 0)
+    )
+      throw new Error("Invalid actor batch offset");
+    const actorEnd = Math.min(ids.length, actorOffset + 2000);
     const { zendeskGet } = await import("../src/lib/connectors/zendesk-shared");
     const stats = { requests: 0, retries429: 0, backoffWaitMs: 0 };
     const batches = [];
     const began = Date.now();
-    for (let i = 0; i < ids.length; i += 100) {
+    for (let i = actorOffset; i < actorEnd; i += 100) {
       if (Date.now() - began > 170_000) throw new Error("Actor census budget exhausted");
       const batch = ids.slice(i, i + 100),
         path = `/users/show_many.json?ids=${batch.join(",")}`;
@@ -88,7 +113,7 @@ async function main() {
         inclusive = { status: expanded.status, counts: expanded.counts };
       }
       batches.push({
-        batch: batches.length + 1,
+        batch: i / 100 + 1,
         status: result.status,
         counts: result.counts,
         includingInactiveOrDeleted: inclusive,
@@ -98,14 +123,25 @@ async function main() {
     const report = {
       observedAt: new Date().toISOString(),
       day,
+      inclusiveEndDay,
+      intervalDays: interval.days,
+      actorOffset,
+      actorEnd,
+      nextActorOffset: actorEnd < ids.length ? actorEnd : null,
+      coversEntireInventory: actorOffset === 0 && actorEnd === ids.length,
       mode: "GET-only actor diagnostic from retained local exports; no employee totals or publication",
       ticketEvents: tickets.cohort.events.length,
       callLegs: legs.cohort.legs.length,
       requestedActors: ids.length,
+      actorInventoryHash: createHash("sha256").update(JSON.stringify(ids)).digest("hex"),
       ticketOrCallExportRequests: 0,
       batches,
       requests: stats,
-      defaultLookupComplete: batches.every((batch) => batch.status === "complete"),
+      evaluatedBatchesComplete: batches.every((batch) => batch.status === "complete"),
+      defaultLookupComplete:
+        actorOffset === 0 &&
+        actorEnd === ids.length &&
+        batches.every((batch) => batch.status === "complete"),
       historicalRoleAndHumanAttribution: "unverified",
     };
     await writeFile(output, JSON.stringify(report, null, 2) + "\n");
