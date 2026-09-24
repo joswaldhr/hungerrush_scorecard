@@ -72,6 +72,7 @@ export default async function ReconciliationPage() {
     employeeId: string;
     employeeName: string;
     unavailableReason: string | null;
+    notes: string | null;
     cadenceValue: number | null;
     sourceValue: number | null;
     absoluteDelta: number | null;
@@ -187,6 +188,9 @@ export default async function ReconciliationPage() {
                                 : r.status.replace(/_/g, " ")}
                             </span>
                           </div>
+                          {r.notes && !r.unavailableReason && (
+                            <p className="mt-1 max-w-64 text-xs text-muted-foreground">{r.notes}</p>
+                          )}
                         </td>
                         <td className="py-2 pr-4">{r.employeeName}</td>
                         <td className="py-2 pr-4 font-medium">

@@ -8,6 +8,7 @@ import {
   teamMemberships,
   employees,
   organizations,
+  dataSources,
 } from "@/lib/db/schema";
 import { eq, and, inArray, isNull, or, lte, gt } from "drizzle-orm";
 import { assertOrganizationResource } from "@/lib/auth/organization-scope";
@@ -129,6 +130,18 @@ export async function runReconciliation(params: ReconciliationParams) {
         }
 
         const metricDefIds = activeMetrics.map((m) => m.id);
+        const ownedSources = await tx
+          .select({ id: dataSources.id, type: dataSources.type })
+          .from(dataSources)
+          .where(
+            and(
+              eq(dataSources.organizationId, params.organizationId),
+              inArray(
+                dataSources.type,
+                activeMetrics.map((metric) => metric.sourceStrategy!)
+              )
+            )
+          );
 
         const [cadenceRows, sourceRows] = await Promise.all([
           tx
@@ -149,6 +162,10 @@ export async function runReconciliation(params: ReconciliationParams) {
               and(
                 inArray(normalizedFacts.employeeId, employeeIds),
                 eq(normalizedFacts.organizationId, params.organizationId),
+                inArray(
+                  normalizedFacts.dataSourceId,
+                  ownedSources.map((source) => source.id)
+                ),
                 eq(normalizedFacts.periodStart, params.periodStart),
                 eq(normalizedFacts.periodEnd, params.periodEnd)
               )
@@ -166,7 +183,7 @@ export async function runReconciliation(params: ReconciliationParams) {
             a.sourceObservedAt.getTime() - b.sourceObservedAt.getTime() || a.id.localeCompare(b.id)
         );
         for (const row of sourceRows) {
-          const key = `${row.factType}:${row.employeeId}`;
+          const key = `${row.dataSourceId}:${row.factType}:${row.employeeId}`;
           const existing = sourceMap.get(key);
           if (existing) {
             existing.push(row.numericValue);
@@ -188,7 +205,31 @@ export async function runReconciliation(params: ReconciliationParams) {
             const cadenceRow = cadenceMap.get(`${metric.id}:${employeeId}`);
             const cadenceValue = cadenceRow?.numericValue ?? null;
 
-            const sourceValues = sourceMap.get(`${metric.key}:${employeeId}`) ?? [];
+            // Reconcile the source that published this value, never a sum across accounts.
+            const provenance = cadenceRow?.provenanceJson;
+            const provenanceRecord =
+              provenance && typeof provenance === "object" && !Array.isArray(provenance)
+                ? (provenance as Record<string, unknown>)
+                : undefined;
+            const malformedProvenance = provenance != null && !provenanceRecord;
+            const wrongStrategy =
+              provenanceRecord?.sourceStrategy !== undefined &&
+              provenanceRecord.sourceStrategy !== metric.sourceStrategy;
+            const sourceReference = provenanceRecord?.dataSourceId;
+            const candidates = ownedSources.filter(
+              (source) => source.type === metric.sourceStrategy
+            );
+            const sourceId =
+              malformedProvenance || wrongStrategy
+                ? undefined
+                : typeof sourceReference === "string"
+                  ? candidates.find((source) => source.id === sourceReference)?.id
+                  : sourceReference === undefined && candidates.length === 1
+                    ? candidates[0]!.id
+                    : undefined;
+            const sourceValues = sourceId
+              ? (sourceMap.get(`${sourceId}:${metric.key}:${employeeId}`) ?? [])
+              : [];
             const sourceValue = aggregateSourceValues(sourceValues, calculationType);
 
             const comparison = compareValues(
@@ -227,6 +268,9 @@ export async function runReconciliation(params: ReconciliationParams) {
               cadenceCalculationVersion: cadenceRow?.calculationVersion ?? null,
               metricKey: metric.key,
               factType: metric.key,
+              notes: sourceId
+                ? null
+                : "A single owned source instance could not be established for this comparison.",
             });
           }
         }

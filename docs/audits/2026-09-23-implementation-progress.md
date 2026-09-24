@@ -12,7 +12,7 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Published to Preview | Navigation, organization and manager-scope regression tests; keyboard checks passed |
 | Atomic sync publication and freshness | Published to Preview | PostgreSQL rollback tests; untouched periods preserved; live hosted trigger still gated |
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 486 tests across 57 files passed in PostgreSQL 18 CI run 36049665867 at 8772a8a, including lint, TypeScript and production build |
+| Combined implementation validation | Passed | 490 tests across 58 files passed in PostgreSQL 18 CI run 36050433388 at 41d5eb8, including lint, TypeScript and production build |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database, core UI, worker authentication and bounded ingestion/recovery passed | Separate PostgreSQL 18.6 and Entra app; four fresh ingestion processes, expired-lease takeover and replay verified; source disabled after rehearsal; recurring scheduling remains open |
 | Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; full-week export failed actor completeness verification; reviewed human provenance and independent parity remain open |
@@ -1516,3 +1516,24 @@ comparison rows survived, the run was marked failed, and a subsequent retry comm
 101 results. The temporary trigger/function and fixture were removed. Scope/availability
 regressions cover running/failed legacy data and foreign triggering users. Full CI and
 hosted completion verification follow; no production rows were changed.
+
+Both full CI runs 36050433388/36050428285 passed 490 tests across 58 files, lint, TypeScript
+and build. At Preview dpl_68fiJ5fuA8Aei8pUxg9zoCmvwiWf (41d5eb8), a fresh synthetic run
+completed with four comparisons, one valid match, two attribution-unavailable results and
+one missing source value. No vendor request or production mutation was involved.
+
+## Reconciliation source-instance scope — September 24
+
+The consistency engine previously pooled facts by metric and employee, combining unrelated
+source instances. Comparisons now honor the source ID retained in the value's provenance,
+restricted to the owning organization and the definition's connector type. Legacy values
+without a source ID are compared only when exactly one owned matching source exists.
+Invalid/foreign claims, conflicting strategy metadata and ambiguous legacy provenance remain
+source-unavailable with an explanation; no source is guessed. Existing comparison evidence
+and manager human-attribution withholding remain intact.
+
+Twenty-two focused PostgreSQL source, atomic-publication and authorization cases passed,
+plus TypeScript and lint. Regression fixtures include a sibling account, a different connector
+and an intentionally inconsistent foreign-source FK, plus malformed provenance and single-source
+legacy behavior. Full CI follows. This is an internal consistency safeguard, not independent
+vendor-level reconciliation.
