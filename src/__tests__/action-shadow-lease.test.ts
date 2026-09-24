@@ -13,9 +13,13 @@ const organizationId = randomUUID(),
   dataSourceId = randomUUID();
 beforeAll(async () => {
   await db.insert(organizations).values({ id: organizationId, name: "Synthetic lease" });
-  await db
-    .insert(dataSources)
-    .values({ id: dataSourceId, organizationId, type: "staging", displayName: "Synthetic lease" });
+  await db.insert(dataSources).values({
+    id: dataSourceId,
+    organizationId,
+    type: "zendesk",
+    status: "configured",
+    displayName: "Synthetic lease",
+  });
 });
 afterAll(async () => {
   await db.delete(sourceRecords).where(eq(sourceRecords.dataSourceId, dataSourceId));

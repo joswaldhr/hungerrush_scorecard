@@ -42,8 +42,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ enabled: true, busy: true, retryAt: lease.retryAt });
     try {
       const scope = await nextActionShadowScope(source.organizationId, source.id);
-      const result = await runActionShadowBatch(scope, (path) =>
-        zendeskGet(path, undefined, { deferRateLimit: true })
+      const result = await runActionShadowBatch(
+        { ...scope, workerLeaseToken: lease.token },
+        (path) => zendeskGet(path, undefined, { deferRateLimit: true })
       );
       return NextResponse.json({ enabled: true, ...result });
     } finally {

@@ -7,6 +7,7 @@ import { assertOrganizationResource } from "@/lib/auth/organization-scope";
 import { parseTicketActionPage, type TicketActionEvent } from "./zendesk-ticket-actions";
 import { SourceRetryLaterError } from "./source-retry";
 import { actionObservationKey } from "./action-observation-key";
+import { assertActionShadowWrite, type ActionShadowWriteScope } from "./action-shadow-lease";
 
 // Separate namespaces keep shadow checkpoints/events outside the active fact publisher.
 const CHECKPOINT = "zendesk_ticket_action_checkpoint_v2_shadow";
@@ -25,9 +26,7 @@ const stateSchema = z.object({
 type State = z.infer<typeof stateSchema>;
 const hash = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 
-export interface TicketActionExportScope {
-  organizationId: string;
-  dataSourceId: string;
+export interface TicketActionExportScope extends ActionShadowWriteScope {
   start: Date;
   endExclusive: Date;
   observationId?: string;
@@ -64,16 +63,19 @@ async function checkpoint(scope: TicketActionExportScope, create = true) {
     scope.observationId
   );
   if (create)
-    await db
-      .insert(sourceRecords)
-      .values({
-        dataSourceId: scope.dataSourceId,
-        externalRecordType: CHECKPOINT,
-        externalRecordId,
-        payloadJson: state,
-        payloadHash: hash(state),
-      })
-      .onConflictDoNothing();
+    await db.transaction(async (tx) => {
+      await assertActionShadowWrite(scope, tx);
+      await tx
+        .insert(sourceRecords)
+        .values({
+          dataSourceId: scope.dataSourceId,
+          externalRecordType: CHECKPOINT,
+          externalRecordId,
+          payloadJson: state,
+          payloadHash: hash(state),
+        })
+        .onConflictDoNothing();
+    });
   const [row] = await db
     .select()
     .from(sourceRecords)
@@ -111,7 +113,7 @@ export async function advanceTicketActionExport(
       notBefore: new Date(Date.now() + error.retryAfterMs).toISOString(),
     };
     return db.transaction(async (tx) => {
-      await assertOrganizationResource(scope.organizationId, "source", scope.dataSourceId, tx);
+      await assertActionShadowWrite(scope, tx);
       const [locked] = await tx
         .select()
         .from(sourceRecords)
@@ -152,7 +154,7 @@ export async function advanceTicketActionExport(
     records.set(key, event);
   }
   return db.transaction(async (tx) => {
-    await assertOrganizationResource(scope.organizationId, "source", scope.dataSourceId, tx);
+    await assertActionShadowWrite(scope, tx);
     const [locked] = await tx
       .select()
       .from(sourceRecords)

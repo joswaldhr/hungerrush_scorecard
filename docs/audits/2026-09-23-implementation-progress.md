@@ -12,9 +12,9 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Published to Preview | Navigation, organization and manager-scope regression tests; keyboard checks passed |
 | Atomic sync publication and freshness | Published to Preview | PostgreSQL rollback tests; untouched periods preserved; live hosted trigger still gated |
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 444 tests across 53 files passed in PostgreSQL 18 CI run 36042686344 at 22b7b6f, including lint, TypeScript and production build |
+| Combined implementation validation | Passed | 450 tests across 54 files passed in PostgreSQL 18 CI run 36045473743 at 968aec0, including lint, TypeScript and production build |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
-| Hosted staging / production parity | Database, core UI and scheduler authentication passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; live ingestion and durable recurring Preview authentication remain open |
+| Hosted staging / production parity | Database, core UI and worker authentication passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; scoped short-lived GitHub identity verified; live ingestion and recurring scheduling remain open |
 | Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; full-week export failed actor completeness verification; reviewed human provenance and independent parity remain open |
 | Production rollout / historical repair | Not performed | Release gate below must be completed first |
 
@@ -49,7 +49,8 @@ checks here. Do not push master as a staging shortcut: it is the production bran
 The user subsequently reaffirmed full execution permission in direct response to the
 staging scheduler access gate. That pending setup is authorized; do not ask for it again.
 The dedicated token is saved only in this branch's Preview settings and the Railway
-scheduler. The auth-only rehearsal passed; see the scheduler report for evidence and cleanup.
+scheduler, plus the audit-branch-restricted GitHub staging environment. Auth-only rehearsals
+passed; see the scheduler report for evidence and cleanup.
 
 ## Release gate and next work
 
@@ -1415,3 +1416,23 @@ OIDC request-boundary tests, TypeScript and focused lint passed. The branch-rest
 `cadence-staging-shadow` GitHub environment holds only the dedicated staging worker secret;
 the temporary private handoff was removed. The workflow does not use that secret yet:
 the safe route must deploy first. Full worker authentication results will follow separately.
+
+The full worker authentication rehearsal subsequently passed in both fresh processes of run
+36045340885 at 741879c. GitHub environment claims are now required by Vercel's Preview-only
+trust rule. The safe auth-only route was READY at 22d03b4 before credentials were sent.
+Ingestion remains disabled, Railway remains disabled and recurring scheduling is not configured.
+
+## In-flight shadow write authority — September 24
+
+Hosted shadow requests now carry their lease token into checkpoint creation, page commits
+and rate-limit deferrals. Each write transaction locks the source first, rechecks its
+organization/type/configured status, then verifies the current lease token and database-clock
+expiry before locking the checkpoint. Disabled sources and expired or superseded workers
+cannot commit a fetched page or advance a retry cursor. Lease acquisition also rejects an
+already disabled or mismatched source. Explicit offline observation tools retain their
+organization-scoped behavior; this does not establish source-account credential binding.
+
+Forty-four route/lease/worker/PostgreSQL checkpoint tests and TypeScript passed, including
+14 new cases across ticket and Talk streams: pre-fetch disablement, mid-fetch disablement,
+source-type changes, expiry, successor takeover, rate-limit deferral and successful resume.
+No live ingestion was enabled and no production rows were modified.

@@ -99,6 +99,10 @@ it("uses only the configured source's organization and a bounded worker", async 
     steps: 6,
   });
   expect(mocks.next).toHaveBeenCalledWith("org", "source");
+  expect(mocks.run).toHaveBeenCalledWith(
+    { organizationId: "org", dataSourceId: "source", workerLeaseToken: "fixture-token" },
+    expect.any(Function)
+  );
   expect(mocks.release).toHaveBeenCalledWith("source", "fixture-token");
 });
 
