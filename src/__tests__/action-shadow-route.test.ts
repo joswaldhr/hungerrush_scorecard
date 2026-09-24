@@ -45,6 +45,21 @@ it("does no work without an explicit source opt-in", async () => {
   expect(await (await GET(request())).json()).toEqual({ enabled: false });
   expect(mocks.select).not.toHaveBeenCalled();
 });
+it("authenticates an explicit probe without source work even when ingestion is configured", async () => {
+  mocks.env.ACTION_SHADOW_SOURCE_ID = "source";
+  const probe = (token: string) =>
+    new Request("https://test.invalid/api/cron/action-shadow?probe=auth", {
+      headers: { authorization: `Bearer ${token}` },
+    });
+  expect((await GET(probe("wrong"))).status).toBe(401);
+  expect(await (await GET(probe("fixture"))).json()).toEqual({
+    authenticated: true,
+    ingestionRequested: false,
+  });
+  expect(mocks.select).not.toHaveBeenCalled();
+  expect(mocks.claim).not.toHaveBeenCalled();
+  expect(mocks.run).not.toHaveBeenCalled();
+});
 it.each(["disabled", "retired", "unknown"])(
   "refuses a %s shadow source before taking a lease",
   async (status) => {

@@ -60,3 +60,27 @@ test("rejects malformed identity headers without sending them", async () => {
   );
   assert.equal(calls, 1);
 });
+test("authenticates a worker only through the explicit no-ingestion mode", async () => {
+  const calls = [];
+  const responses = [
+    new Response(null, { status: 302 }),
+    new Response(null, { status: 302 }),
+    Response.json({ error: "Unauthorized" }, { status: 401 }),
+    Response.json({ authenticated: true, ingestionRequested: false }),
+  ];
+  const token = "synthetic-worker-credential-32characters";
+  const result = await rehearsePreviewProtection(
+    async () => "a.b.c",
+    async (url, options) => {
+      calls.push({ url, options });
+      return responses.shift();
+    },
+    token
+  );
+  assert.equal(result.workerAuthenticated, true);
+  assert.equal(result.sourceIngestionStarted, false);
+  assert.equal(new URL(calls[3].url).search, "?probe=auth");
+  assert.equal(calls[3].options.redirect, "error");
+  assert.equal(calls[3].options.headers.authorization, `Bearer ${token}`);
+  assert.doesNotMatch(JSON.stringify(result), /synthetic-worker/);
+});

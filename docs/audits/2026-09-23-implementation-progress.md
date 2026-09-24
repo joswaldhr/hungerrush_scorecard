@@ -1396,3 +1396,22 @@ These are read-only projections; no job rows are reaped or rewritten by viewing 
 
 Six status/UI regression cases, TypeScript and focused lint passed, including renewed lease
 boundaries, legacy expiry, invalid metadata, disabled controls and polling suppression.
+
+Full CI runs 36043747376/36043755514 passed all 449 tests across 54 files, lint,
+TypeScript and build. Preview dpl_39U1vybaV9woR1ktPpd3cEViX1he displayed the synthetic
+unsupported source without a sync control.
+
+## Preview workflow authentication — September 24
+
+GitHub OIDC rehearsal runs 36044229447 (push) and 36044434119 (manual audit-branch
+dispatch) passed in two fresh sequential processes each. Anonymous and wrong-audience
+requests stayed behind Vercel protection (302); trusted identity reached application
+authentication and received its expected 401. Trust is restricted to the exact repository,
+branch, workflow and audience, with Preview-only destination access. No source work ran.
+
+The shadow route now offers an authenticated `?probe=auth` mode that returns before all
+source/lease work even if ingestion is later configured. Ten route tests, four standalone
+OIDC request-boundary tests, TypeScript and focused lint passed. The branch-restricted
+`cadence-staging-shadow` GitHub environment holds only the dedicated staging worker secret;
+the temporary private handoff was removed. The workflow does not use that secret yet:
+the safe route must deploy first. Full worker authentication results will follow separately.

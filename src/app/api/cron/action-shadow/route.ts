@@ -21,6 +21,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Worker authentication is not configured" }, { status: 503 });
   if (request.headers.get("authorization") !== `Bearer ${secret}`)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // A credential rehearsal must never become ingestion if source settings change later.
+  if (new URL(request.url).searchParams.get("probe") === "auth")
+    return NextResponse.json({ authenticated: true, ingestionRequested: false });
   if (!env.ACTION_SHADOW_SOURCE_ID) return NextResponse.json({ enabled: false });
   if (!env.ZENDESK_SUBDOMAIN || !env.ZENDESK_EMAIL || !env.ZENDESK_API_KEY)
     return NextResponse.json(
