@@ -72,6 +72,8 @@ export async function runSync(
 
   if (source.organizationId !== config.organizationId)
     throw new Error("Data source organization mismatch");
+  if (source.status !== "configured") throw new Error("Data source is not enabled for sync");
+  if (source.type !== connector.sourceType) throw new Error("Data source connector mismatch");
 
   const run = await createLeasedSyncRun(config.dataSourceId, options.weekOffset);
   if (run.status === "skipped") return { syncRunId: run.id, success: false, valuesWritten: 0 };
@@ -136,9 +138,16 @@ export async function runSync(
       await db.transaction(async (tx) => {
         // Serialize publication for this source so revision snapshots describe
         // the committed predecessor even when fetches overlap.
-        await tx.execute(
-          sql`select id from ${dataSources} where id = ${config.dataSourceId} for update`
+        const [publicationSource] = await tx.execute(
+          sql`select organization_id, status, type from ${dataSources} where id = ${config.dataSourceId} for update`
         );
+        if (
+          !publicationSource ||
+          publicationSource.organization_id !== config.organizationId ||
+          publicationSource.status !== "configured" ||
+          publicationSource.type !== connector.sourceType
+        )
+          throw new Error("Data source changed or disabled before publication");
         await renewSyncLease(syncRunId, tx);
         // The publication lock alone does not order overlapping network fetches.
         // Reject an older observation if a later-started run already published

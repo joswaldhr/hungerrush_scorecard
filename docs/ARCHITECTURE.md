@@ -362,6 +362,12 @@ time. Failed manual/cron runs return HTTP 503; cron sends its healthy heartbeat 
 all configured sources succeed. This boundary does not establish vendor completeness or
 repair legacy null corrections or freshness. See the dated implementation progress report.
 
+Only a source with status `configured` can sync. Other statuses fail closed before vendor
+work; the publisher rechecks source organization, status and connector type under its source
+row lock. Disabling a source during a fetch prevents publication. Manual, cron and shadow
+triggers enforce the same enablement rule before starting work. This does not establish
+source-account credential binding or cancel an already-running shadow page request.
+
 ### Correction evidence — 2026-09-23
 
 The publisher records predecessor snapshots in `sync_revisions` before replacing source

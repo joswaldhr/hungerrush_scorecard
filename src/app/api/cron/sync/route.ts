@@ -52,6 +52,10 @@ export async function GET(request: Request) {
   const results = [];
 
   for (const source of sources) {
+    if (source.status !== "configured") {
+      results.push({ dataSourceId: source.id, type: source.type, skipped: "source_not_enabled" });
+      continue;
+    }
     if (await isSyncRateLimited(source.id)) {
       results.push({ dataSourceId: source.id, type: source.type, skipped: "rate_limited" });
       continue;

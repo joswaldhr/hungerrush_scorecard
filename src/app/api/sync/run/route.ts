@@ -46,6 +46,9 @@ export async function POST(request: Request) {
     if (!source) {
       return NextResponse.json({ error: "Zendesk data source not configured" }, { status: 404 });
     }
+    if (source.status !== "configured") {
+      return NextResponse.json({ error: "Zendesk data source is not enabled" }, { status: 503 });
+    }
 
     if (await isSyncRateLimited(source.id)) {
       return NextResponse.json(

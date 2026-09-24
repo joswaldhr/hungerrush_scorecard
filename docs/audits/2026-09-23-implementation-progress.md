@@ -1345,3 +1345,17 @@ reduced returned rows from 864 to 1 and shared buffer hits from 292 to 7 for a o
 correction; execution was 0.587 ms versus 0.090 ms. This is a cache/order-sensitive sample,
 not an end-to-end sync benchmark. Only aggregate evidence is retained in
 2026-09-24-compute-read-scope.json; the probe performed no database writes.
+
+## Source disablement boundary — September 24
+
+The audit's source-status gap remained in both publishing and shadow routes. Only
+`configured` sources now start work; disabled, retired and unrecognized states fail closed.
+The publisher also rejects a mismatched connector before fetching, then checks source
+organization, type and status again under the publication lock. Disabling a source during
+its fetch preserves existing values, revisions and last-success state. Cron cannot report
+a healthy heartbeat for skipped disabled sources. No stored source statuses were changed.
+
+Forty-four route/orchestration/PostgreSQL cases and TypeScript passed, including disabled
+and unknown statuses, connector mismatch and disablement between fetch and publication.
+The preceding fa79f0b computation change passed both full CI runs 36041372021/36041364469.
+Source-account credential binding and in-flight shadow cancellation remain distinct work.

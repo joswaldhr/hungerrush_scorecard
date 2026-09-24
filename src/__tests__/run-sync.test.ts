@@ -130,7 +130,10 @@ function setupDbMock() {
   mockDb.transaction = vi.fn(async (cb: (tx: unknown) => Promise<void>) => {
     // Provide a minimal mock tx for ingestRecords/normalizeIngestedRecords
     const mockTx = {
-      execute: vi.fn(async () => []),
+      execute: vi
+        .fn()
+        .mockResolvedValue([])
+        .mockResolvedValueOnce([{ organization_id: ORG_ID, status: "configured", type: "test" }]),
       update: mockDb.update,
       select: vi.fn(() => ({
         from: () => ({
@@ -197,7 +200,7 @@ describe("runSync orchestration", () => {
 
   it("completes successfully with records from the connector", async () => {
     selectResults = [
-      [{ id: DATA_SOURCE_ID, organizationId: ORG_ID, type: "test" }], // dataSources lookup
+      [{ id: DATA_SOURCE_ID, organizationId: ORG_ID, status: "configured", type: "test" }], // dataSources lookup
     ];
     insertReturning = [
       [{ id: SYNC_RUN_ID }], // syncRuns insert
@@ -224,7 +227,9 @@ describe("runSync orchestration", () => {
   });
 
   it("marks run as failed when fetch phase throws", async () => {
-    selectResults = [[{ id: DATA_SOURCE_ID, organizationId: ORG_ID, type: "test" }]];
+    selectResults = [
+      [{ id: DATA_SOURCE_ID, organizationId: ORG_ID, status: "configured", type: "test" }],
+    ];
     insertReturning = [[{ id: SYNC_RUN_ID }]];
 
     const connector = makeConnector({
@@ -251,7 +256,9 @@ describe("runSync orchestration", () => {
   });
 
   it("marks run as failed when publish phase (transaction) throws", async () => {
-    selectResults = [[{ id: DATA_SOURCE_ID, organizationId: ORG_ID, type: "test" }]];
+    selectResults = [
+      [{ id: DATA_SOURCE_ID, organizationId: ORG_ID, status: "configured", type: "test" }],
+    ];
     insertReturning = [[{ id: SYNC_RUN_ID }]];
 
     const connector = makeConnector({
@@ -281,7 +288,9 @@ describe("runSync orchestration", () => {
   });
 
   it("completes with zero counts when connector returns no records", async () => {
-    selectResults = [[{ id: DATA_SOURCE_ID, organizationId: ORG_ID, type: "test" }]];
+    selectResults = [
+      [{ id: DATA_SOURCE_ID, organizationId: ORG_ID, status: "configured", type: "test" }],
+    ];
     insertReturning = [[{ id: SYNC_RUN_ID }]];
 
     const connector = makeConnector(); // default: returns 0 records
@@ -309,7 +318,9 @@ describe("runSync orchestration", () => {
   });
 
   it("passes weekOffset as the cursor and fetches only 1 page", async () => {
-    selectResults = [[{ id: DATA_SOURCE_ID, organizationId: ORG_ID, type: "test" }]];
+    selectResults = [
+      [{ id: DATA_SOURCE_ID, organizationId: ORG_ID, status: "configured", type: "test" }],
+    ];
     insertReturning = [[{ id: SYNC_RUN_ID }]];
 
     const fetchRecords = vi.fn(async (_cfg: ConnectorConfig, ctx: SyncContext) => ({
@@ -334,7 +345,9 @@ describe("runSync orchestration", () => {
   });
 
   it("paginates through multiple pages when hasMore is true", async () => {
-    selectResults = [[{ id: DATA_SOURCE_ID, organizationId: ORG_ID, type: "test" }]];
+    selectResults = [
+      [{ id: DATA_SOURCE_ID, organizationId: ORG_ID, status: "configured", type: "test" }],
+    ];
     insertReturning = [[{ id: SYNC_RUN_ID }]];
 
     let callCount = 0;

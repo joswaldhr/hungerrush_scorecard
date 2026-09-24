@@ -32,7 +32,7 @@ export async function GET(request: Request) {
       .select()
       .from(dataSources)
       .where(eq(dataSources.id, env.ACTION_SHADOW_SOURCE_ID));
-    if (!source || source.type !== "zendesk")
+    if (!source || source.type !== "zendesk" || source.status !== "configured")
       return NextResponse.json({ error: "Invalid shadow source configuration" }, { status: 503 });
     const lease = await claimActionShadowLease(source.organizationId, source.id);
     if (!lease.acquired)

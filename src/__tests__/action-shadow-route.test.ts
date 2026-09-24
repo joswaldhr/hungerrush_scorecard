@@ -45,6 +45,21 @@ it("does no work without an explicit source opt-in", async () => {
   expect(await (await GET(request())).json()).toEqual({ enabled: false });
   expect(mocks.select).not.toHaveBeenCalled();
 });
+it.each(["disabled", "retired", "unknown"])(
+  "refuses a %s shadow source before taking a lease",
+  async (status) => {
+    mocks.env.ACTION_SHADOW_SOURCE_ID = "source";
+    mocks.select.mockReturnValue({
+      from: () => ({
+        where: async () => [{ id: "source", organizationId: "org", type: "zendesk", status }],
+      }),
+    });
+    expect((await GET(request())).status).toBe(503);
+    expect(mocks.claim).not.toHaveBeenCalled();
+    expect(mocks.next).not.toHaveBeenCalled();
+    expect(mocks.run).not.toHaveBeenCalled();
+  }
+);
 
 it("accepts only the dedicated scheduler credential when configured", async () => {
   mocks.env.ACTION_SHADOW_SECRET = "dedicated-fixture-secret";
@@ -55,7 +70,11 @@ it("accepts only the dedicated scheduler credential when configured", async () =
 it("uses only the configured source's organization and a bounded worker", async () => {
   mocks.env.ACTION_SHADOW_SOURCE_ID = "source";
   mocks.select.mockReturnValue({
-    from: () => ({ where: async () => [{ id: "source", organizationId: "org", type: "zendesk" }] }),
+    from: () => ({
+      where: async () => [
+        { id: "source", organizationId: "org", status: "configured", type: "zendesk" },
+      ],
+    }),
   });
   mocks.next.mockResolvedValue({ dataSourceId: "source", organizationId: "org" });
   mocks.run.mockResolvedValue({ completed: false, steps: 6 });
@@ -71,7 +90,11 @@ it("uses only the configured source's organization and a bounded worker", async 
 it("does not start vendor work when another invocation owns the lease", async () => {
   mocks.env.ACTION_SHADOW_SOURCE_ID = "source";
   mocks.select.mockReturnValue({
-    from: () => ({ where: async () => [{ id: "source", organizationId: "org", type: "zendesk" }] }),
+    from: () => ({
+      where: async () => [
+        { id: "source", organizationId: "org", status: "configured", type: "zendesk" },
+      ],
+    }),
   });
   mocks.claim.mockResolvedValue({ acquired: false, retryAt: "2026-09-24T14:00:00.000Z" });
   expect(await (await GET(request())).json()).toMatchObject({ busy: true });
@@ -83,7 +106,11 @@ it("does not start vendor work when another invocation owns the lease", async ()
 it("releases the lease after worker failure", async () => {
   mocks.env.ACTION_SHADOW_SOURCE_ID = "source";
   mocks.select.mockReturnValue({
-    from: () => ({ where: async () => [{ id: "source", organizationId: "org", type: "zendesk" }] }),
+    from: () => ({
+      where: async () => [
+        { id: "source", organizationId: "org", status: "configured", type: "zendesk" },
+      ],
+    }),
   });
   mocks.run.mockRejectedValue(new Error("Synthetic worker failure"));
   expect((await GET(request())).status).toBe(503);

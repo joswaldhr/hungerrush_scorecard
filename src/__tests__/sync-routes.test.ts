@@ -25,7 +25,7 @@ import { GET } from "@/app/api/cron/sync/route";
 import { POST } from "@/app/api/sync/run/route";
 beforeEach(() => {
   vi.clearAllMocks();
-  mocks.sources = [{ id: "source", organizationId: "org", type: "zendesk" }];
+  mocks.sources = [{ id: "source", organizationId: "org", status: "configured", type: "zendesk" }];
   mocks.limited.mockResolvedValue(false);
   mocks.run.mockResolvedValue({ success: false, syncRunId: "run", valuesWritten: 0 });
   mocks.fetch.mockResolvedValue(new Response());
@@ -38,6 +38,19 @@ const cron = () =>
     })
   );
 describe("sync API failure reporting", () => {
+  it.each(["disabled", "retired", "unknown"])(
+    "refuses %s sources in cron and manual triggers",
+    async (status) => {
+      mocks.sources = [{ id: "source", organizationId: "org", type: "zendesk", status }];
+      expect((await cron()).status).toBe(503);
+      expect(
+        (await POST(new Request("https://cadence.test/api/sync/run", { method: "POST" }))).status
+      ).toBe(503);
+      expect(mocks.run).not.toHaveBeenCalled();
+      expect(mocks.limited).not.toHaveBeenCalled();
+      expect(mocks.fetch).not.toHaveBeenCalled();
+    }
+  );
   it.each([
     JSON.stringify({ dataSourceType: "assembled" }),
     JSON.stringify({ dataSourceType: "entra" }),

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { beforeAll, afterAll, describe, it, expect } from "vitest";
+import { beforeAll, afterAll, describe, it, expect, vi } from "vitest";
 import { eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
@@ -106,6 +106,24 @@ afterAll(async () => {
   await db.delete(organizations).where(eq(organizations.id, org));
 });
 describe.sequential("atomic metric publication (PostgreSQL)", () => {
+  it("rejects disabled sources and mismatched connectors before fetch or run creation", async () => {
+    const disabled = connector([]);
+    const fetch = vi.spyOn(disabled, "fetchRecords");
+    await db.update(dataSources).set({ status: "disabled" }).where(eq(dataSources.id, source));
+    try {
+      await expect(runSync(disabled, config)).rejects.toThrow("not enabled");
+      expect(fetch).not.toHaveBeenCalled();
+      expect(
+        await db.select().from(syncRuns).where(eq(syncRuns.dataSourceId, source))
+      ).toHaveLength(0);
+    } finally {
+      await db.update(dataSources).set({ status: "configured" }).where(eq(dataSources.id, source));
+    }
+    await expect(runSync({ ...disabled, sourceType: "other" }, config)).rejects.toThrow(
+      "connector mismatch"
+    );
+    expect(fetch).not.toHaveBeenCalled();
+  });
   it("publishes values with source timestamps and preserves untouched weeks and contributing records", async () => {
     expect(
       (
@@ -136,6 +154,30 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
     expect(await values()).toEqual(before);
     const [afterSource] = await db.select().from(dataSources).where(eq(dataSources.id, source));
     expect(afterSource?.lastSuccessfulSyncAt).toEqual(beforeSource?.lastSuccessfulSyncAt);
+  });
+  it("refuses publication when the source is disabled during its fetch", async () => {
+    const before = await values();
+    const [priorSource] = await db.select().from(dataSources).where(eq(dataSources.id, source));
+    const interrupted = connector([record(700)]);
+    interrupted.fetchRecords = async () => {
+      await db.update(dataSources).set({ status: "disabled" }).where(eq(dataSources.id, source));
+      return { records: [record(700)], cursor: "done", hasMore: false };
+    };
+    try {
+      const result = await runSync(interrupted, config);
+      expect(result).toMatchObject({ success: false, valuesWritten: 0 });
+      expect(await values()).toEqual(before);
+      const [afterSource] = await db.select().from(dataSources).where(eq(dataSources.id, source));
+      expect(afterSource?.lastSuccessfulSyncAt).toEqual(priorSource?.lastSuccessfulSyncAt);
+      expect(
+        await db.select().from(sourceRecords).where(eq(sourceRecords.syncRunId, result.syncRunId))
+      ).toHaveLength(0);
+      expect(
+        await db.select().from(syncRevisions).where(eq(syncRevisions.syncRunId, result.syncRunId))
+      ).toHaveLength(0);
+    } finally {
+      await db.update(dataSources).set({ status: "configured" }).where(eq(dataSources.id, source));
+    }
   });
   it("a metric write failure rolls back source records, facts, values and success checkpoint", async () => {
     const beforeValues = await values();

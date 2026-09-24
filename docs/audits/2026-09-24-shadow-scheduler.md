@@ -65,3 +65,10 @@ This completes hosted worker authentication and manual execution verification. R
 protected-Preview authentication still needs a durable configuration before ingestion is
 enabled; the temporary share session is not that configuration. Live vendor ingestion,
 checkpoint restart, source completeness and reviewed human attribution remain separate gates.
+
+The September 24 follow-up confirmed that Vercel's supported automation bypass is available
+on all plans, but each secret grants access to all deployments in its project. It is not
+branch-scoped. The current scheduler has no such credential; adding it would broaden the
+staging worker's access beyond the branch-isolation boundary. A separate staging project or
+equivalently scoped supported execution path remains to be implemented. See
+[Vercel automation access](https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection/protection-bypass-automation).
