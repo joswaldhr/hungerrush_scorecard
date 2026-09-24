@@ -6,28 +6,35 @@ const eventSchema = z.object({
   ticket_id: z.number().int().positive().safe(),
   updater_id: z.number().int().safe().nullable(),
   created_at: z.string().datetime({ offset: true }),
-  child_events: z.array(
-    z
-      .object({
-        id: z.number().int().positive().safe(),
-        event_type: z.string(),
-        status: z
-          .enum(["new", "open", "pending", "hold", "solved", "closed", "deleted"])
-          .optional(),
-        previous_value: z.unknown().optional(),
-        comment_present: z.boolean().optional(),
-      })
-      .transform(({ previous_value, ...event }) => ({
-        ...event,
-        // Previous values of unrelated fields can contain private content.
-        previousStatus:
-          event.status &&
-          typeof previous_value === "string" &&
-          ["new", "open", "pending", "hold", "solved", "closed", "deleted"].includes(previous_value)
-            ? previous_value
-            : null,
-      }))
-  ),
+  child_events: z
+    .array(
+      z
+        .object({
+          id: z.number().int().positive().safe(),
+          event_type: z.string(),
+          status: z
+            .enum(["new", "open", "pending", "hold", "solved", "closed", "deleted"])
+            .optional(),
+          previous_value: z.unknown().optional(),
+          comment_present: z.boolean().optional(),
+        })
+        .transform(({ previous_value, ...event }) => ({
+          ...event,
+          // Previous values of unrelated fields can contain private content.
+          previousStatus:
+            event.status &&
+            typeof previous_value === "string" &&
+            ["new", "open", "pending", "hold", "solved", "closed", "deleted"].includes(
+              previous_value
+            )
+              ? previous_value
+              : null,
+        }))
+    )
+    .refine(
+      (children) => new Set(children.map((child) => child.id)).size === children.length,
+      "Duplicate ticket action child IDs"
+    ),
 });
 export type TicketActionEvent = z.output<typeof eventSchema>;
 
@@ -135,6 +142,7 @@ export function summarizeTicketActions(
       uncertainResolutions: number;
       uncertainUpdates: number;
       excludedNonhumanChanges: number;
+      reviewIds: Set<string>;
     }
   >();
   for (const agentId of eligibleAgentIds) {
@@ -147,6 +155,7 @@ export function summarizeTicketActions(
       uncertainResolutions: 0,
       uncertainUpdates: 0,
       excludedNonhumanChanges: 0,
+      reviewIds: new Set(),
     });
   }
   let excludedEvents = 0;
@@ -159,7 +168,9 @@ export function summarizeTicketActions(
     let hasVerifiedHumanChange = false;
     for (const child of event.child_events) {
       if (child.event_type !== "Change" && child.comment_present !== true) continue;
-      const attribution = reviews.get(`${event.id}:${child.id}`)?.attribution;
+      const review = reviews.get(`${event.id}:${child.id}`);
+      const attribution = review?.attribution;
+      if (review) agent.reviewIds.add(review.reviewId);
       if (attribution === "verified_nonhuman") {
         agent.excludedNonhumanChanges++;
         continue;
@@ -202,6 +213,7 @@ export function summarizeTicketActions(
       uncertainResolutions: evidence.uncertainResolutions,
       uncertainUpdates: evidence.uncertainUpdates,
       excludedNonhumanChanges: evidence.excludedNonhumanChanges,
+      reviewIds: [...evidence.reviewIds].sort(),
       updatedTicketIds: [...evidence.updated].sort((a, b) => a - b),
       resolvedTicketIds: [...evidence.resolved].sort((a, b) => a - b),
       eventIds: [...evidence.eventIds].sort((a, b) => a - b),

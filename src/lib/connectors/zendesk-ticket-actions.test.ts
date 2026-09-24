@@ -58,6 +58,7 @@ it("attributes distinct resolved/updated tickets to actors and deduplicates repe
     [99, 0, 0],
   ]);
   expect(summary.agents[0]?.eventIds).toEqual([1, 2]);
+  expect(summary.agents[0]?.reviewIds).toEqual([review().reviewId]);
   expect(summary.excludedEvents).toBe(1);
   expect(JSON.stringify(cohort)).not.toContain("private subject");
 });
@@ -143,10 +144,28 @@ it("excludes verified automation even when a human made another change in the sa
     ticketsUpdated: 1,
     ticketsResolved: 0,
     excludedNonhumanChanges: 1,
+    reviewIds: [review().reviewId],
   });
   expect(
     summarizeTicketActions(cohort, new Set([42]), [{ ...review(), childEventId: 999 }]).agents[0]
   ).toMatchObject({ ticketsUpdated: null, ticketsResolved: null });
+});
+
+it("rejects duplicate child IDs so one review cannot certify two different changes", async () => {
+  const row = event();
+  await expect(
+    fetchTicketActions(start, end, async () =>
+      page([
+        {
+          ...row,
+          child_events: [
+            ...row.child_events,
+            { ...row.child_events[0], previous_value: "pending" },
+          ],
+        },
+      ])
+    )
+  ).rejects.toThrow("Duplicate ticket action child IDs");
 });
 
 it("keeps resolution available when only an unrelated update has unknown attribution", async () => {

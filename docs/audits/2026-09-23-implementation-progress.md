@@ -1229,3 +1229,8 @@ validation and newest-first bounds. No migration or data rewrite is needed.
 The preceding full local run passed 420 tests across 50 files. GitHub CI run 36030090645
 at d25d777 also passed PostgreSQL 18 tests, lint, TypeScript and production build. Correction
 history is validated separately before its next deployment.
+
+Attribution follow-up: child-event IDs must be unique within an audit, preventing one
+review from certifying contradictory changes. Summaries retain the review UUIDs supporting
+human credit and nonhuman exclusions. The 22 ticket-summary/checkpoint/worker cases pass;
+focused lint passes. The retained event shape and checkpoint namespace are unchanged.
