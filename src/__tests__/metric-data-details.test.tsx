@@ -104,3 +104,10 @@ it("keeps absent observations and calculation versions explicitly unrecorded", a
     }
   );
 });
+
+it("renders unknown quality values without inheriting object properties", async () => {
+  await renderRow({ ...row, qualityStatus: "constructor" }, (container) => {
+    expect(container.querySelector("details")?.textContent).toContain("Not verified");
+    expect(container.querySelector("tbody td")?.textContent).toContain("Unverified data");
+  });
+});

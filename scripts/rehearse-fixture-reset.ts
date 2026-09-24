@@ -37,15 +37,20 @@ async function main() {
     const before = await client`select count(*)::int as count from employees`;
     const [run] =
       await client`insert into sync_runs (data_source_id) select id from data_sources limit 1 returning id`;
+    assert(run);
     await client`insert into sync_revisions (sync_run_id, entity_type, entity_id, snapshot_json) values (${run.id}, 'fixture', ${randomUUID()}, '{}')`;
     await client`insert into metric_visibility_overrides (scope, metric_definition_id, hidden, hidden_by) select 'global_default', m.id, true, u.id from metric_definitions m cross join users u limit 1`;
     assert.equal(seed(adminUrl.toString()).status, 0, "Repeated local seed failed");
     const after = await client`select count(*)::int as count from employees`;
-    assert(before[0].count > 0);
+    assert(before[0] && before[0].count > 0);
+    assert(after[0]);
     assert.deepEqual(after, before);
     for (const table of ["sync_revisions", "metric_visibility_overrides", "sync_runs"]) {
-      const [row] = await client.unsafe(`select count(*)::int as count from "${table}"`);
-      assert.equal(row.count, 0);
+      const rows: { count: number }[] = await client.unsafe<{ count: number }[]>(
+        `select count(*)::int as count from "${table}"`
+      );
+      assert(rows[0]);
+      assert.equal(rows[0].count, 0);
     }
     console.log(
       JSON.stringify({

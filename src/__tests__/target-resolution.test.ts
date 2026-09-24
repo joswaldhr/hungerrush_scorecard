@@ -5,6 +5,46 @@ import {
   evaluateChangeStatus,
 } from "@/lib/domain/metrics/target-resolution";
 import { GOLDEN_STATUS_SCENARIOS } from "@/lib/fixtures/golden-dataset";
+import type { ResolvedTarget } from "@/lib/domain/metrics/types";
+
+describe("invalid target evidence", () => {
+  const target: ResolvedTarget = {
+    targetType: "range",
+    targetValue: null,
+    warningValue: null,
+    targetMin: 10,
+    targetMax: 20,
+    source: "team",
+    priority: 0,
+  };
+  it.each([
+    { targetMin: 30 },
+    { targetMin: NaN },
+    { targetMax: Infinity },
+    { targetType: "minimum" as const, targetValue: Infinity },
+    { targetType: "exact" as const, targetValue: 10, warningValue: -1 },
+  ])("does not judge performance against malformed bounds %j", (invalid) => {
+    expect(evaluateStatus(15, { ...target, ...invalid }, "higher_is_better").status).toBe(
+      "no_target"
+    );
+  });
+  it.each([NaN, Infinity, -Infinity])("does not judge a non-finite value %s", (value) => {
+    expect(evaluateStatus(value, target, "higher_is_better").status).toBe("no_data");
+    expect(evaluateChangeStatus(value, "higher_is_better").status).toBe("no_data");
+  });
+  it("does not substitute a broad target for an invalid employee rule", () => {
+    const base = { ...target, employeeId: null, roleKey: null, teamId: "team-1", line: null };
+    expect(
+      resolveTarget(
+        [base, { ...base, employeeId: "emp-1", targetMin: 30 }],
+        "emp-1",
+        null,
+        "team-1",
+        null
+      )
+    ).toBeNull();
+  });
+});
 
 const EMP_ID = "emp-1";
 const TEAM_ID = "team-1";

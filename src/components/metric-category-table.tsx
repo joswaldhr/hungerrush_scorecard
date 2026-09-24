@@ -5,14 +5,14 @@ import { Card } from "@/components/ui/card";
 import { formatMetricValue } from "@/lib/domain/metrics/types";
 import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
 
-const qualityLabels: Record<string, string> = {
-  complete: "Complete",
-  partial: "Partial",
-  missing: "Missing",
-  stale: "Stale",
-  failed: "Failed",
-  unsupported: "Unsupported",
-};
+const qualityLabels = new Map([
+  ["complete", "Complete"],
+  ["partial", "Partial"],
+  ["missing", "Missing"],
+  ["stale", "Stale"],
+  ["failed", "Failed"],
+  ["unsupported", "Unsupported"],
+]);
 const targetLabels = { employee: "Employee", role: "Role", team: "Team", org: "Organization" };
 
 function MetricDataDetails({ row }: { row: EmployeeMetricRow }) {
@@ -29,7 +29,7 @@ function MetricDataDetails({ row }: { row: EmployeeMetricRow }) {
       <dl className="mt-2 space-y-1 text-[11px]">
         <div>
           <dt className="inline font-medium">Data quality: </dt>
-          <dd className="inline">{qualityLabels[row.qualityStatus] ?? "Not verified"}</dd>
+          <dd className="inline">{qualityLabels.get(row.qualityStatus) ?? "Not verified"}</dd>
         </div>
         <div>
           <dt className="inline font-medium">Source observed: </dt>
@@ -121,7 +121,7 @@ export function MetricCategoryTable({
                   <MetricValue value={row.currentValue} unit={row.unit} valueType={row.valueType} />
                   {row.currentValue !== null && row.qualityStatus !== "complete" && (
                     <p className="mt-1 text-[10px] font-normal text-muted-foreground">
-                      {qualityLabels[row.qualityStatus] ?? "Unverified"} data
+                      {qualityLabels.get(row.qualityStatus) ?? "Unverified"} data
                     </p>
                   )}
                 </td>

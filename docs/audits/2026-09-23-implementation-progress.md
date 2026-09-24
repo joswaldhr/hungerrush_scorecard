@@ -1094,3 +1094,18 @@ Hosted metric-details verification passed at 36f9a12: complete observations show
 UTC timestamp and version; the missing observation stays Not recorded. The first request
 failed with ECONNRESET during authorization; a full reload recovered. The existing Try
 again action reused the failed render, which is being corrected separately.
+
+## Error recovery and invalid numeric evidence — September 24
+
+The global error boundary now makes a fresh page request on Try again, matching the
+recovery that succeeded after staging ECONNRESET. Unknown metric quality strings use a
+Map lookup and cannot inherit object properties; its rendering regression passes.
+Target evaluation rejects non-finite or reversed bounds and negative exact tolerances.
+An invalid highest-priority target returns No target rather than silently substituting
+a broader rule. Non-finite values/changes return No data. Nine new invalid-evidence
+cases pass alongside all 34 existing target scenarios. No stored target was modified.
+
+Combined baseline: 385 tests across 48 files passed before the latest ten regression
+cases; those ten pass in focused runs. Full lint passed, TypeScript passed after fixing
+the rehearsal script's optional-row narrowing, and the production build passed. The
+latest target changes receive the final combined checks below.

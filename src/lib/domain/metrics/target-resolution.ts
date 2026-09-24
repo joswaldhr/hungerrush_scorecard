@@ -13,6 +13,31 @@ interface TargetCandidate {
   line: string | null;
 }
 
+function hasValidTargetBounds(
+  target: Pick<
+    TargetCandidate,
+    "targetType" | "targetValue" | "warningValue" | "targetMin" | "targetMax"
+  >
+): boolean {
+  if (target.targetType === "range") {
+    return (
+      target.targetMin !== null &&
+      target.targetMax !== null &&
+      Number.isFinite(target.targetMin) &&
+      Number.isFinite(target.targetMax) &&
+      target.targetMin <= target.targetMax
+    );
+  }
+  if (!["minimum", "maximum", "exact"].includes(target.targetType)) return false;
+  return (
+    target.targetValue !== null &&
+    Number.isFinite(target.targetValue) &&
+    (target.warningValue === null ||
+      (Number.isFinite(target.warningValue) &&
+        (target.targetType !== "exact" || target.warningValue >= 0)))
+  );
+}
+
 export function resolveTarget(
   candidates: TargetCandidate[],
   employeeId: string,
@@ -34,6 +59,8 @@ export function resolveTarget(
 
   const best = scored[0];
   if (!best || best.score < 0) return null;
+  // An invalid specific rule must not silently fall back to a broader judgment.
+  if (!hasValidTargetBounds(best)) return null;
   // Equal-precedence conflicting rules have no justified winner. Returning no
   // target is safer than a database-order-dependent performance judgment.
   const tied = scored.filter(
@@ -106,8 +133,8 @@ export function evaluateStatus(
   target: ResolvedTarget | null,
   direction: Direction
 ): MetricStatus {
-  if (value === null) return { status: "no_data", direction };
-  if (!target) return { status: "no_target", direction };
+  if (value === null || !Number.isFinite(value)) return { status: "no_data", direction };
+  if (!target || !hasValidTargetBounds(target)) return { status: "no_target", direction };
 
   const { targetValue, warningValue, targetType, targetMin, targetMax } = target;
 
@@ -175,7 +202,8 @@ export function evaluateChangeStatus(
   changePct: number | null,
   direction: Direction
 ): { status: "on_target" | "warning" | "off_target" | "no_data"; isImproved: boolean } {
-  if (changePct === null) return { status: "no_data", isImproved: false };
+  if (changePct === null || !Number.isFinite(changePct))
+    return { status: "no_data", isImproved: false };
 
   const isImproved =
     (direction === "higher_is_better" && changePct > 0) ||
