@@ -8,8 +8,19 @@ vi.mock("@/lib/env", () => ({
   },
 }));
 import { zendeskGet } from "./zendesk-shared";
+import { SourceRetryLaterError } from "./source-retry";
 afterEach(() => vi.unstubAllGlobals());
 describe("Zendesk credential destination", () => {
+  it("defers a rate-limited resumable page without sleeping or issuing another request", async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValue({ status: 429, headers: new Headers({ "Retry-After": "46" }) });
+    vi.stubGlobal("fetch", fetch);
+    await expect(
+      zendeskGet("/incremental/ticket_events.json", undefined, { deferRateLimit: true })
+    ).rejects.toMatchObject({ name: SourceRetryLaterError.name, retryAfterMs: 46000 });
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
   it.each([
     "https://outside.example/api/v2/tickets.json",
     "http://synthetic.zendesk.com/api/v2/tickets.json",

@@ -12,7 +12,7 @@ Last updated: 2026-09-23. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Implemented locally | Navigation, organization and manager-scope regression tests |
 | Atomic sync publication and freshness | Implemented locally | PostgreSQL rollback tests; untouched periods preserved |
 | Null corrections and predecessor evidence | Implemented locally | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 304 tests across 34 files, TypeScript, full lint/format, production build |
+| Combined implementation validation | Passed | 313 tests across 35 files, TypeScript, full lint/format, production build |
 | Migration and corrected-sync rehearsal | Passed locally | Separate staging database; 0011 -> 0012; synthetic stored-data assertions |
 | Hosted staging / production parity | Database and core UI checks passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; cron runtime check remains open |
 | Zendesk completeness | Search and Talk safety guards implemented locally | 2,415-ticket export reconciled; Talk boundary verified; historical/agent semantics remain open |
@@ -790,3 +790,19 @@ All three sampled resolution audits matched. Identity/audit verification brought
 to 39 requests; one rate-limit retry waited 46 seconds. Persistent export checkpoints and
 source-specific employee/automation attribution remain prerequisites for activation.
 All 304 tests across 34 files, full lint/format, TypeScript, and production build passed.
+
+## Resumable ticket-event ingestion — September 23
+
+Added a database-backed shadow checkpoint using separate existing source-record namespaces.
+Each invocation fetches one page; events and cursor commit together, stale competing fetches
+cannot rewind progress, and conflicting history aborts before advancement. Source ownership
+is enforced. Incomplete intervals remain unavailable; reads do not initialize checkpoints.
+Zendesk's opt-in deferred retry mode persists a 429 retry window instead of sleeping inside
+a hosted request. Existing connector retry behavior and all metric publications are unchanged.
+
+Focused PostgreSQL checks passed for restart after failure, concurrent workers, conflicting
+events, provider lag, organization boundaries, persisted retry deadlines, and forced
+checkpoint-write rollback. All 313 tests across 35 files, full lint/format, TypeScript, and
+production build passed. This does not activate a
+scheduler or cover resumable call-leg ingestion, retention, or employee/service-account
+attribution. The existing read-only vendor probe still performs no database writes.

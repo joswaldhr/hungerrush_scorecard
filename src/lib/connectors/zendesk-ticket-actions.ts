@@ -39,6 +39,10 @@ const pageSchema = z.object({
   next_page: z.string().nullable(),
 });
 
+export function parseTicketActionPage(value: unknown) {
+  return pageSchema.parse(value);
+}
+
 export async function fetchTicketActions(
   start: Date,
   endExclusive: Date,
@@ -57,7 +61,7 @@ export async function fetchTicketActions(
   for (let pages = 1; pages <= pageBudget; pages++) {
     if (visited.has(path)) throw new Error("Ticket action export stalled");
     visited.add(path);
-    const page = pageSchema.parse(await getPage(path));
+    const page = parseTicketActionPage(await getPage(path));
     if (page.count !== page.ticket_events.length || page.end_time < watermark) {
       throw new Error("Ticket action export has inconsistent count or watermark");
     }

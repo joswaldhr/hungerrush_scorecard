@@ -1,5 +1,6 @@
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
+import { SourceRetryLaterError } from "./source-retry";
 
 const MAX_RETRIES = 3;
 // A stalled connection with no timeout hangs the whole sync forever — nothing
@@ -33,7 +34,11 @@ export interface RequestStats {
   backoffWaitMs: number;
 }
 
-export async function zendeskGet<T>(pathOrUrl: string, stats?: RequestStats): Promise<T> {
+export async function zendeskGet<T>(
+  pathOrUrl: string,
+  stats?: RequestStats,
+  options?: { deferRateLimit?: boolean }
+): Promise<T> {
   const url = pathOrUrl.startsWith("http") ? pathOrUrl : `${baseUrl()}${pathOrUrl}`;
   const parsed = new URL(url);
   // Pagination links are vendor response data, not authorization to send the
@@ -57,10 +62,13 @@ export async function zendeskGet<T>(pathOrUrl: string, stats?: RequestStats): Pr
     });
 
     if (res.status === 429) {
+      const parsedRetryAfter = Number(res.headers.get("Retry-After") ?? "60");
+      const retryAfter =
+        Number.isFinite(parsedRetryAfter) && parsedRetryAfter > 0 ? parsedRetryAfter : 60;
+      if (options?.deferRateLimit) throw new SourceRetryLaterError(retryAfter * 1000);
       if (attempt === MAX_RETRIES) {
         throw new Error(`Zendesk GET ${pathOrUrl} rate-limited after ${MAX_RETRIES} retries`);
       }
-      const retryAfter = parseInt(res.headers.get("Retry-After") ?? "60", 10);
       const waitMs = Math.min(retryAfter, 120) * 1000;
       logger.warn("Zendesk 429 rate limit", { path: pathOrUrl, retryAfter, attempt });
       if (stats) {

@@ -70,3 +70,29 @@ independent metric reconciliation or a certification of manual employee attribut
 
 The new readers are not imported by the active connector. The probe has no database imports
 or writes and requires an explicit day and output path.
+
+## Durable ticket-event checkpoint implementation
+
+`ticket-action-checkpoint.ts` adds a separate database-backed shadow workflow, not used by
+the read-only probe above. One invocation fetches one page. Existing `source_records` stores
+the cursor and minimal events under separate versioned shadow namespaces; no schema change
+is required. Each fixed UTC interval has its own checkpoint. Events are namespaced by that
+checkpoint, so distinct observation runs/intervals do not overwrite one another's evidence.
+
+Events and continuation commit in one transaction. An optimistic state comparison under a
+checkpoint row lock discards stale competing responses. Conflicting immutable events fail
+without moving the cursor. Readers expose no cohort until the end watermark covers the
+requested interval; incomplete source boundaries remain waiting. Reads do not create rows.
+The implementation detects pagination cycles across invocations and strips private content
+before persistence. Source ownership is checked before fetch and inside write transactions.
+
+Use `zendeskGet(path, undefined, { deferRateLimit: true })` as the page callback for a bounded
+worker. A 429 then returns a typed retry delay immediately; the checkpoint persists the
+retry time and refuses early requests without sleeping. Other failures leave progress
+untouched and propagate to the caller. The existing connector's retry mode is unchanged.
+
+This is checkpoint storage and a one-page worker primitive, not an activated scheduler.
+Concurrent fetches may still spend two API requests even though only one response commits.
+Call-leg checkpoints, scheduler/retry ownership, retention/cleanup, immutable employee
+mapping and automation attribution, and hosted restart tests remain before activation.
+No production checkpoint/event writes or metric publication were performed during testing.
