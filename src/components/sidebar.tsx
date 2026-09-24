@@ -1,8 +1,5 @@
 import { auth, signOut } from "@/lib/auth";
-import { isPlatformAdmin } from "@/lib/auth/authorization";
-import { db } from "@/lib/db";
-import { employees } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { isPlatformAdmin, getUserJobTitle } from "@/lib/auth/authorization";
 import { SidebarClient } from "./sidebar-client";
 
 const primaryNav = [{ label: "1:1s", href: "/one-on-ones", iconName: "Calendar" }];
@@ -41,15 +38,7 @@ export async function Sidebar() {
   const isAdmin = user?.email ? await isPlatformAdmin(user.email) : false;
   const secondary = isAdmin ? adminNav : [];
 
-  let jobTitle: string | null = null;
-  if (user?.email) {
-    const emp = await db
-      .select({ jobTitle: employees.jobTitle })
-      .from(employees)
-      .where(eq(employees.email, user.email))
-      .then((r) => r[0]);
-    jobTitle = emp?.jobTitle ?? null;
-  }
+  const jobTitle = user?.email ? await getUserJobTitle(user.email) : null;
 
   async function handleSignOut() {
     "use server";

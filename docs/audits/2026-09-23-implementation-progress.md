@@ -1167,3 +1167,14 @@ navigation/keyboard/export regressions and TypeScript pass; hosted measurement f
 
 CI run 36026548499 completed successfully on PostgreSQL 18, including fresh migrations,
 all 410 tests, lint, TypeScript and production build. The local production build also passed.
+
+## Sidebar organization scope — September 24
+
+The sidebar job-title lookup now resolves the active signed-in user's organization before
+reading an employee profile. A matching email in a different organization cannot supply
+profile data. The new real-database negative case passes alongside the 23 existing
+authorization cases; TypeScript and focused lint pass.
+
+Hosted mobile checks at aa0e4ad confirmed contained header/main widths at both 390px and
+320px, all four controls at 44px high, and the export menu inside the viewport. A further
+small-screen refinement gives the date its own row to avoid narrow multi-line wrapping.

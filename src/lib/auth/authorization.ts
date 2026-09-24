@@ -96,6 +96,17 @@ export async function getManagerContext(email: string): Promise<ManagerContext |
   return buildManagerContext(user);
 }
 
+export async function getUserJobTitle(email: string): Promise<string | null> {
+  const user = await getActiveUserByEmail(email);
+  if (!user) return null;
+  const [employee] = await db
+    .select({ jobTitle: employees.jobTitle })
+    .from(employees)
+    .where(and(eq(employees.email, user.email), eq(employees.organizationId, user.organizationId)))
+    .limit(1);
+  return employee?.jobTitle ?? null;
+}
+
 export const isPlatformAdmin = cache(async function isPlatformAdmin(
   email: string
 ): Promise<boolean> {

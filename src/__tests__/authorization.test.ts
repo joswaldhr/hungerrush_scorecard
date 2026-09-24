@@ -3,6 +3,7 @@
 // Locally: `docker compose up -d && pnpm db:migrate` before `pnpm test`.
 
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
+import { randomUUID } from "node:crypto";
 import { db } from "@/lib/db";
 import {
   organizations,
@@ -34,6 +35,7 @@ vi.mock("@/lib/auth", () => ({ auth: async () => null }));
 
 const {
   getManagerContext,
+  getUserJobTitle,
   getEffectiveManagerContext,
   isPlatformAdmin,
   assertCanAccessEmployee,
@@ -338,6 +340,36 @@ describe("assertCanAccessEmployee / assertCanAccessTeam", () => {
     expect(() => assertCanAccessEmployee(ctx!, OTHER_EMPLOYEE_ID)).toThrow();
     expect(() => assertCanAccessTeam(ctx!, OTHER_TEAM_ID)).toThrow();
   });
+});
+
+it("does not use another organization's employee profile for a matching email", async () => {
+  const foreign = randomUUID();
+  const local = randomUUID();
+  try {
+    await db
+      .insert(employees)
+      .values({
+        id: foreign,
+        organizationId: OTHER_ORG_ID,
+        displayName: "Synthetic foreign profile",
+        email: MANAGER_EMAIL,
+        jobTitle: "Foreign title",
+      });
+    expect(await getUserJobTitle(MANAGER_EMAIL)).toBeNull();
+    await db
+      .insert(employees)
+      .values({
+        id: local,
+        organizationId: ORG_ID,
+        displayName: "Synthetic local profile",
+        email: MANAGER_EMAIL,
+        jobTitle: "Local title",
+      });
+    expect(await getUserJobTitle(MANAGER_EMAIL)).toBe("Local title");
+    expect(await getUserJobTitle("unknown@example.test")).toBeNull();
+  } finally {
+    await db.delete(employees).where(inArray(employees.id, [foreign, local]));
+  }
 });
 
 describe("listManagersForViewAs", () => {
