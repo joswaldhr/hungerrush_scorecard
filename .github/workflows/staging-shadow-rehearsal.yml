@@ -36,13 +36,13 @@ jobs:
       matrix:
         process: [1, 2]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Verify rehearsal request boundaries
         run: node --test scripts/probe-shadow-oidc.test.mjs
       - name: Verify Preview identity and any explicitly requested shadow batch
-        uses: actions/github-script@v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           ACTION_SHADOW_SECRET: ${{ secrets.ACTION_SHADOW_SECRET }}
           CONTROLLED_SHADOW_INGEST: ${{ github.event_name == 'workflow_dispatch' && inputs.ingest == true }}
