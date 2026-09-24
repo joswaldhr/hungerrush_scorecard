@@ -965,3 +965,10 @@ See `2026-09-24-production-recovery.md` and the aggregate rehearsal JSON. This e
 application-data recovery, not portable off-machine disaster recovery or provider PITR.
 Global roles/ownership and external service configuration are not restored by this test.
 No production or hosted staging migration has been applied.
+
+## Bounded checkpoint reads — September 24
+
+The shadow scheduler now reads checkpoint state without materializing completed ticket or
+leg cohorts. Completed observations still retain and expose their evidence through the
+explicit export readers. All 18 checkpoint/worker PostgreSQL regressions and TypeScript
+passed, including completed retries, resumption, correction comparison and daily selection.

@@ -276,6 +276,12 @@ export async function advanceAgentLegExport(
   });
 }
 
+/** Scheduling needs only the checkpoint, never the potentially large completed cohort. */
+export async function readAgentLegState(scope: AgentLegExportScope) {
+  const row = await checkpoint(scope, false);
+  return row ? stateSchema.parse(row.payloadJson) : initialState(scope);
+}
+
 export async function readAgentLegExport(scope: AgentLegExportScope) {
   const row = await checkpoint(scope, false);
   if (!row) return { state: initialState(scope), cohort: null };

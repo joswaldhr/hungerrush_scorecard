@@ -206,6 +206,12 @@ export async function advanceTicketActionExport(
   });
 }
 
+/** Scheduling needs only the checkpoint, never the potentially large completed cohort. */
+export async function readTicketActionState(scope: TicketActionExportScope) {
+  const row = await checkpoint(scope, false);
+  return row ? stateSchema.parse(row.payloadJson) : initialState(scope);
+}
+
 export async function readTicketActionExport(scope: TicketActionExportScope) {
   const row = await checkpoint(scope, false);
   if (!row) return { state: initialState(scope), cohort: null };

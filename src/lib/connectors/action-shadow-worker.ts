@@ -4,10 +4,10 @@ import { sourceRecords } from "@/lib/db/schema";
 import { assertOrganizationResource } from "@/lib/auth/organization-scope";
 import {
   advanceTicketActionExport,
-  readTicketActionExport,
+  readTicketActionState,
   type TicketActionExportScope,
 } from "./ticket-action-checkpoint";
-import { advanceAgentLegExport, readAgentLegExport } from "./agent-leg-checkpoint";
+import { advanceAgentLegExport, readAgentLegState } from "./agent-leg-checkpoint";
 
 const DAY = 86_400_000;
 const CHECKPOINTS = [
@@ -81,8 +81,8 @@ export async function runActionShadowBatch(
   }
   const started = Date.now();
   let steps = 0;
-  let tickets = (await readTicketActionExport(scope)).state;
-  let legs = (await readAgentLegExport(scope)).state;
+  let tickets = await readTicketActionState(scope);
+  let legs = await readAgentLegState(scope);
   while (steps < maxPages && Date.now() - started < maxDurationMs - 35_000) {
     let attempted = false;
     for (const stream of ["tickets", "legs"] as const) {
