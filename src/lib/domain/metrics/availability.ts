@@ -15,3 +15,4 @@ export function requiresTicketAttributionVerification(definition: {
 
 export const TICKET_ATTRIBUTION_QUALITY = "unverified_attribution";
 export const TICKET_ATTRIBUTION_REASON = "Human activity attribution has not been verified.";
+export const HISTORICAL_TARGET_REASON = "Historical target context has not been verified.";

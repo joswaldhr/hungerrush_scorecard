@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { exportCsv, type ExportSnapshot } from "@/lib/domain/metrics/export-snapshot";
+import {
+  exportCsv,
+  exportDataDetails,
+  type ExportSnapshot,
+} from "@/lib/domain/metrics/export-snapshot";
 import { freezeScorecardCapture } from "@/lib/scorecard-capture";
 
 const snapshot: ExportSnapshot = {
@@ -30,6 +34,19 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 describe("scorecard export context", () => {
+  it("carries unavailable historical target context into CSV and captured/text evidence", () => {
+    const metrics = snapshot.metrics.map((metric) => ({
+      ...metric,
+      targetContextStatus: "historical_unverified" as const,
+    }));
+    expect(exportCsv({ ...snapshot, metrics }, () => "No Target")).toContain('"Target context"');
+    expect(exportCsv({ ...snapshot, metrics }, () => "No Target")).toContain(
+      "Historical target context has not been verified."
+    );
+    expect(exportDataDetails(metrics)).toContain(
+      "Historical target context has not been verified."
+    );
+  });
   it("exports actual periods, employee, quality and source observation while preserving zero", () => {
     const csv = exportCsv(snapshot, () => "No Target");
     expect(csv).toContain(snapshot.employeeName);

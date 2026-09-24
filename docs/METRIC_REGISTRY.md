@@ -9,6 +9,11 @@
 > Stored values/revisions are preserved, targets remain configured, and no historical
 > recalculation or production deployment is implied. A stored complete flag or version
 > number alone does not certify human activity.
+>
+> Closed-period target judgments are also withheld until historical team/line and target
+> context is preserved. Numeric observations remain available under their own quality rules;
+> current-week targets still use effective configuration. Exports carry the historical
+> target-context warning. This avoids reinterpreting past performance after a profile edit.
 
 Source of truth: `metric_definitions` / `metric_targets` / `metric_assignments` rows. Originally populated only by `src/lib/fixtures/seed.ts` (last verified against `seed.ts` at commit `85969b6` on 2026-09-01) — there is still no admin UI that creates or edits metric configuration. Since 2026-09-17, `metric_targets`/`metric_visibility_overrides` rows can also come from the one-off `scripts/load-target-config.ts` loader (see `scripts/target-config-2026-09.json`), which is how the Menufy line-scoped range targets below were loaded — checking `seed.ts` alone will miss them. If either file has changed since it was last verified against, re-verify this table before trusting it.
 

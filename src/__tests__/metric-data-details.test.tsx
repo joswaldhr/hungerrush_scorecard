@@ -112,6 +112,15 @@ it("renders unknown quality values without inheriting object properties", async 
   });
 });
 
+it("distinguishes an unverified historical target from an unconfigured target", async () => {
+  await renderRow({ ...row, targetContextStatus: "historical_unverified" }, (container) => {
+    expect(container.querySelector("details")?.textContent).toContain(
+      "Historical target context has not been verified."
+    );
+    expect(container.querySelector("tbody td")?.textContent).toBe("0");
+  });
+});
+
 it("explains unavailable human activity in the visible scorecard and printable content", async () => {
   await renderRow(
     {

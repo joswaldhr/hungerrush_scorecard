@@ -34,6 +34,7 @@ export interface EmployeeMetricRow {
   qualityStatus: string;
   dataFreshnessAt: Date | null;
   calculationVersion: number;
+  targetContextStatus?: "current" | "historical_unverified";
 }
 
 export async function getEmployeeMetrics(
@@ -72,6 +73,11 @@ export async function getEmployeeMetricsBatch(
 
   const results = new Map<string, EmployeeMetricRow[]>();
   if (employeeIds.length === 0) return results;
+  // Effective target dates alone cannot reconstruct an employee's old team/line,
+  // or target edits made in place. Until publication preserves that context, do
+  // not turn today's configuration into a historical performance judgment.
+  const historicalTargetContext =
+    sevenDayPeriodEnd(periodStart) < new Date().toISOString().slice(0, 10);
 
   const [, employeeRows] = await Promise.all([
     assertOrganizationResource(ctx.organizationId, "team", teamId),
@@ -205,13 +211,9 @@ export async function getEmployeeMetricsBatch(
           line: t.line,
         }));
 
-      const resolvedTarget = resolveTarget(
-        candidateTargets,
-        employeeId,
-        null,
-        teamId,
-        employeeLine
-      );
+      const resolvedTarget = historicalTargetContext
+        ? null
+        : resolveTarget(candidateTargets, employeeId, null, teamId, employeeLine);
       const direction = def.direction as Direction;
       const valueType = def.valueType as ValueType;
       const attributionUnavailable = requiresTicketAttributionVerification(def);
@@ -236,6 +238,7 @@ export async function getEmployeeMetricsBatch(
           : (current?.qualityStatus ?? "missing"),
         dataFreshnessAt: current?.dataFreshnessAt ?? null,
         calculationVersion: current?.calculationVersion ?? 0,
+        targetContextStatus: historicalTargetContext ? "historical_unverified" : "current",
       });
     }
 

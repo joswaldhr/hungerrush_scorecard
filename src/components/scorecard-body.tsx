@@ -20,6 +20,7 @@ import {
   formatWeekRangeLong,
 } from "@/lib/utils";
 import { getWeekMetrics } from "@/app/(app)/one-on-ones/[id]/actions";
+import { HISTORICAL_TARGET_REASON } from "@/lib/domain/metrics/availability";
 
 interface ScorecardBodyProps {
   employeeId: string;
@@ -162,6 +163,7 @@ export function ScorecardBody({
         dataFreshnessAt: r.dataFreshnessAt ? new Date(r.dataFreshnessAt).toISOString() : null,
         calculationVersion: r.calculationVersion,
         targetSource: r.target?.source ?? null,
+        targetContextStatus: r.targetContextStatus,
       })),
     [displayRows]
   );
@@ -250,6 +252,12 @@ export function ScorecardBody({
             <p className="text-xs text-muted-foreground">
               This week is in progress. Targets cover the full week; individual comparisons are
               provisional.
+            </p>
+          )}
+          {displayRows.some((row) => row.targetContextStatus === "historical_unverified") && (
+            <p className="text-xs text-muted-foreground">
+              {HISTORICAL_TARGET_REASON} Target comparisons are unavailable for this past week.
+              Metric selection uses the current team; profile details describe the current employee.
             </p>
           )}
           {displayRows.length === 0 && <p>No metrics assigned for this scorecard.</p>}

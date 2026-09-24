@@ -1,4 +1,5 @@
 import { formatMetricValue, type ValueType } from "./types";
+import { HISTORICAL_TARGET_REASON } from "./availability";
 
 export interface ScorecardMetric {
   category: string | null;
@@ -16,6 +17,7 @@ export interface ScorecardMetric {
   dataFreshnessAt: string | null;
   calculationVersion: number;
   targetSource: string | null;
+  targetContextStatus?: "current" | "historical_unverified";
 }
 
 export interface ExportSnapshot {
@@ -53,6 +55,7 @@ export function exportCsv(snapshot: ExportSnapshot, statusLabel: (status: string
       "Source observed at (UTC)",
       "Calculation version",
       "Target scope",
+      "Target context",
     ],
   ];
   for (const metric of snapshot.metrics)
@@ -70,6 +73,11 @@ export function exportCsv(snapshot: ExportSnapshot, statusLabel: (status: string
       metric.dataFreshnessAt ?? "Unavailable",
       String(metric.calculationVersion),
       metric.targetSource ?? "None",
+      metric.targetContextStatus === "historical_unverified"
+        ? HISTORICAL_TARGET_REASON
+        : metric.targetContextStatus === "current"
+          ? "Current profile"
+          : "Not recorded",
     ]);
   // Quoting alone does not prevent spreadsheet formula execution.
   return rows
@@ -88,7 +96,7 @@ export function exportDataDetails(metrics: ScorecardMetric[]) {
   return metrics
     .map(
       (metric) =>
-        `${metric.name}: ${metric.qualityStatus}; observed ${metric.dataFreshnessAt ?? "unavailable"}; calculation v${metric.calculationVersion}; target scope ${metric.targetSource ?? "none"}`
+        `${metric.name}: ${metric.qualityStatus}; observed ${metric.dataFreshnessAt ?? "unavailable"}; calculation v${metric.calculationVersion}; target scope ${metric.targetSource ?? "none"}${metric.targetContextStatus === "historical_unverified" ? `; ${HISTORICAL_TARGET_REASON}` : ""}`
     )
     .join("\n");
 }

@@ -1298,3 +1298,17 @@ equal client/scroll widths of 226px; viewport overrides were reset. CSV download
 triggered successfully, but downloaded file bytes were not inspected. CI run 36038300941
 passed all 431 tests across 52 files, lint, TypeScript and build. The repeatable hosted
 fixture enforces the exact approved staging endpoint and synthetic-only inventory.
+
+## Historical target-context containment — September 24
+
+Closed-period scorecards no longer evaluate a past observation against today's employee
+team/line or in-place target configuration. Without a preserved historical target context,
+the reader returns no target and an explicit historical_unverified context marker. Current
+period targets still resolve normally through their effective dates; numeric observations
+and configured/stored targets remain unchanged. The scorecard explains that profile/metric
+selection uses current context, and CSV/text/image/print evidence carries the target warning.
+This contains misleading past judgments; immutable publication context and historical metric
+selection are still needed for fully reconstructed historical scorecards.
+
+Twenty-seven query/UI/navigation/export regressions and TypeScript pass, including a line
+change after a period closes, the UTC end-of-period boundary and export propagation.

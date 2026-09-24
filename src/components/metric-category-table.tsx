@@ -7,6 +7,7 @@ import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
 import {
   TICKET_ATTRIBUTION_QUALITY,
   TICKET_ATTRIBUTION_REASON,
+  HISTORICAL_TARGET_REASON,
 } from "@/lib/domain/metrics/availability";
 
 const qualityLabels = new Map([
@@ -55,7 +56,11 @@ function MetricDataDetails({ row }: { row: EmployeeMetricRow }) {
         <div>
           <dt className="inline font-medium">Target from: </dt>
           <dd className="inline">
-            {row.target ? targetLabels[row.target.source] : "No target applied"}
+            {row.targetContextStatus === "historical_unverified"
+              ? HISTORICAL_TARGET_REASON
+              : row.target
+                ? targetLabels[row.target.source]
+                : "No target applied"}
           </dd>
         </div>
       </dl>

@@ -70,6 +70,8 @@ async function cleanup() {
 }
 
 beforeAll(async () => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date("2026-09-16T12:00:00Z"));
   await cleanup();
 
   await db.insert(organizations).values({ id: ORG_ID, name: "Test Org" });
@@ -207,7 +209,11 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await cleanup();
+  try {
+    await cleanup();
+  } finally {
+    vi.useRealTimers();
+  }
 });
 
 function ctxFor(employeeIds: string[]): ManagerContext {
@@ -220,6 +226,48 @@ function ctxFor(employeeIds: string[]): ManagerContext {
 }
 
 describe("getEmployeeMetricsBatch", () => {
+  it("does not reinterpret a closed period using a later employee line", async () => {
+    vi.setSystemTime(new Date("2026-09-21T00:00:00Z"));
+    try {
+      const read = async () =>
+        (
+          await getEmployeeMetricsBatch(
+            ctxFor([RESTAURANT_EMP_ID]),
+            [RESTAURANT_EMP_ID],
+            MENUFY_TEAM_ID,
+            PERIOD_START,
+            PREVIOUS_PERIOD_START
+          )
+        )
+          .get(RESTAURANT_EMP_ID)!
+          .find((row) => row.definitionId === RANGE_DEF_ID)!;
+      const before = await read();
+      expect(before).toMatchObject({
+        currentValue: 15,
+        target: null,
+        targetContextStatus: "historical_unverified",
+        status: { status: "no_target" },
+      });
+      await db
+        .update(employees)
+        .set({ line: "consumer" })
+        .where(eq(employees.id, RESTAURANT_EMP_ID));
+      const after = await read();
+      expect(after.target).toBeNull();
+      expect(after.status).toEqual(before.status);
+      expect(after.currentValue).toBe(15);
+      // UTC last day remains an open period; it is never closed early in local time.
+      vi.setSystemTime(new Date("2026-09-20T23:59:59Z"));
+      expect((await read()).targetContextStatus).toBe("current");
+      expect((await read()).target?.targetMin).toBe(30);
+    } finally {
+      await db
+        .update(employees)
+        .set({ line: "restaurant" })
+        .where(eq(employees.id, RESTAURANT_EMP_ID));
+      vi.setSystemTime(new Date("2026-09-16T12:00:00Z"));
+    }
+  });
   it("withholds unverified Zendesk ticket activity from current, comparison and history without rewriting storage", async () => {
     const [previous] = await db
       .insert(metricValues)
