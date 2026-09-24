@@ -1129,3 +1129,11 @@ API and trusted CLI/service callers now share real calendar-date, ordered-interv
 UUID-team and finite tolerance validation before a run claim. Legacy intervals remain
 unchanged. Eight API cases and the PostgreSQL cooldown/claim case pass; invalid input
 creates no run and does not consume cooldown. TypeScript and focused lint passed.
+
+## Bounded browser error telemetry — September 24
+
+Error boundaries now send only a route template, boundary category and bounded digest.
+The server repeats sanitization for older or untrusted clients, ignores arbitrary message
+and stack fields, strips employee path segments and all query/fragment data, and stops
+reading reports above 4 KiB. Six cases prove sensitive text is absent from logs and malformed
+or oversized reports do not compound the original failure. Focused tests and TypeScript pass.
