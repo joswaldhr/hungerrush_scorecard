@@ -12,7 +12,7 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Published to Preview | Navigation, organization and manager-scope regression tests; keyboard checks passed |
 | Atomic sync publication and freshness | Published to Preview | PostgreSQL rollback tests; untouched periods preserved; live hosted trigger still gated |
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 420 tests across 50 files passed locally; CI run 36030090645 at d25d777 passed on PostgreSQL 18, including lint, TypeScript and production build; latest revision-reader checks recorded below |
+| Combined implementation validation | Passed | 431 tests across 52 files passed in PostgreSQL 18 CI run 36038300941 at 49ef59f, including lint, TypeScript and production build |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database, core UI and scheduler authentication passed | Separate PostgreSQL 18.6, Entra app, branch-scoped secrets; live ingestion and durable recurring Preview authentication remain open |
 | Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; full-week export failed actor completeness verification; reviewed human provenance and independent parity remain open |
@@ -1289,3 +1289,12 @@ activation of version 2. No arbitrary version or complete flag can bypass the gu
 Eighteen query/history/revision/UI tests, TypeScript and focused lint pass, including
 storage preservation and an unaffected separate source strategy. Hosted verification follows.
 The actor-diagnostic checkpoint ea11849 passed CI runs 36037797548 and 36037791540.
+
+Hosted verification at 49ef59f passed on Preview dpl_nFCJLDnPsS5AuCxwSbm3yVPHZpJH.
+Synthetic stored ticket values 0/42 and comparison values 17/17 displayed as unavailable
+with the attribution reason and No Data status. Stored-period history applied the same
+policy; the separate confirmed-zero metric remained 0. The main container at 320px had
+equal client/scroll widths of 226px; viewport overrides were reset. CSV download was
+triggered successfully, but downloaded file bytes were not inspected. CI run 36038300941
+passed all 431 tests across 52 files, lint, TypeScript and build. The repeatable hosted
+fixture enforces the exact approved staging endpoint and synthetic-only inventory.
