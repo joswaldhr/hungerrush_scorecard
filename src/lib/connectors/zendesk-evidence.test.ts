@@ -20,7 +20,7 @@ afterEach(() => {
   get.mockReset();
 });
 
-it("retains source IDs and unrounded denominators without changing v1 metrics", async () => {
+it("retains evidence and includes reported business zeros despite positive calendar time", async () => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-09-23T12:00:00Z"));
   const ticket = (id: number, status: string) => ({
@@ -74,8 +74,8 @@ it("retains source IDs and unrounded denominators without changing v1 metrics", 
         metric_sets: [
           {
             ticket_id: 1,
-            full_resolution_time_in_minutes: { calendar: 10, business: 10 },
-            reply_time_in_minutes: { calendar: 0, business: 0 },
+            full_resolution_time_in_minutes: { calendar: 10, business: 0 },
+            reply_time_in_minutes: { calendar: 10, business: 0 },
           },
           {
             ticket_id: 2,
@@ -98,14 +98,15 @@ it("retains source IDs and unrounded denominators without changing v1 metrics", 
   expect(tickets).toMatchObject({
     ticketsResolved: 1,
     ticketsUpdated: 2,
-    avgHandleTimeMinutes: 10,
+    avgHandleTimeMinutes: 0,
     avgResponseTimeMinutes: 10,
     backlogCount: 1,
     sourceEvidence: {
+      durationPolicy: "include_reported_business_zero",
       ticketIds: [1, 2],
       resolvedTicketIds: [1],
       backlogTicketIds: [2],
-      fullResolutionBusinessMinutes: { numerator: 10, denominator: 1 },
+      fullResolutionBusinessMinutes: { numerator: 0, denominator: 1 },
       firstReplyBusinessMinutes: { numerator: 20, denominator: 2 },
     },
   });
@@ -132,7 +133,7 @@ it("retains source IDs and unrounded denominators without changing v1 metrics", 
     "2026-09-20",
     "2026-09-26"
   );
-  expect(facts.find((fact) => fact.factType === "avg_handle_time")?.numericValue).toBe(10);
+  expect(facts.find((fact) => fact.factType === "avg_handle_time")?.numericValue).toBe(0);
   expect(facts.find((fact) => fact.factType === "csat_score")?.numericValue).toBe(50);
 });
 

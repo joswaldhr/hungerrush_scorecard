@@ -226,6 +226,46 @@ function ctxFor(employeeIds: string[]): ManagerContext {
 }
 
 describe("getEmployeeMetricsBatch", () => {
+  it("explains unsupported Zendesk blanks without treating other sources as unsupported", async () => {
+    const read = async () =>
+      (
+        await getEmployeeMetricsBatch(
+          ctxFor([POS_EMP_ID]),
+          [POS_EMP_ID],
+          POS_TEAM_ID,
+          PREVIOUS_PERIOD_START,
+          "2026-08-31"
+        )
+      )
+        .get(POS_EMP_ID)!
+        .find((row) => row.definitionId === HIDDEN_DEF_ID)!;
+    try {
+      await db
+        .update(metricDefinitions)
+        .set({ key: "missed_calls", sourceStrategy: "zendesk" })
+        .where(eq(metricDefinitions.id, HIDDEN_DEF_ID));
+      expect(await read()).toMatchObject({
+        currentValue: null,
+        qualityStatus: "unsupported",
+        missingReason: "This metric is not connected to historical agent call-leg data.",
+      });
+      await db
+        .update(metricDefinitions)
+        .set({ sourceStrategy: "manual" })
+        .where(eq(metricDefinitions.id, HIDDEN_DEF_ID));
+      expect(await read()).toMatchObject({
+        currentValue: null,
+        qualityStatus: "missing",
+        missingReason: null,
+        sourceDescription: null,
+      });
+    } finally {
+      await db
+        .update(metricDefinitions)
+        .set({ key: "test_hidden_metric", sourceStrategy: null })
+        .where(eq(metricDefinitions.id, HIDDEN_DEF_ID));
+    }
+  });
   it("does not reinterpret a closed period using a later employee line", async () => {
     vi.setSystemTime(new Date("2026-09-21T00:00:00Z"));
     try {

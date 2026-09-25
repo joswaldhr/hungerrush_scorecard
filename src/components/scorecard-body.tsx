@@ -164,6 +164,8 @@ export function ScorecardBody({
         calculationVersion: r.calculationVersion,
         targetSource: r.target?.source ?? null,
         targetContextStatus: r.targetContextStatus,
+        sourceDescription: r.sourceDescription,
+        missingReason: r.missingReason,
       })),
     [displayRows]
   );

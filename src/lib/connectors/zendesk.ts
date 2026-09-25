@@ -41,8 +41,8 @@ interface ZendeskTicket {
 }
 
 interface ZendeskTimeMetric {
-  calendar: number;
-  business: number;
+  calendar: number | null;
+  business: number | null;
 }
 
 interface ZendeskTicketMetricSet {
@@ -238,8 +238,12 @@ function aggregateCalls(calls: ZendeskCall[]): CallAggregate {
 }
 
 function businessMinutes(metric: ZendeskTimeMetric | null | undefined): number | null {
-  if (!metric) return null;
-  if (metric.business === 0 && metric.calendar > 0) return null;
+  // Zero elapsed business minutes can coexist with positive calendar minutes
+  // (for example, work outside the schedule). Only null means unmeasured.
+  // Dropping reported zeros biases the mean upward and changes its denominator.
+  if (metric?.business == null) return null;
+  if (!Number.isFinite(metric.business) || metric.business < 0)
+    throw new Error("Invalid Zendesk business duration");
   return metric.business;
 }
 
@@ -456,6 +460,7 @@ export class ZendeskConnector implements Connector {
         payload: {
           sourceEvidence: {
             contractVersion: 1,
+            durationPolicy: "include_reported_business_zero",
             cohort: "current_assignee_last_updated_in_period",
             ticketIds: sourceIds(tickets),
             resolvedTicketIds: sourceIds(

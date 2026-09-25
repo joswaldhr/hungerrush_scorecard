@@ -16,6 +16,7 @@ import { resolveVisibility } from "./visibility-resolution";
 import type { Direction, ResolvedTarget, ValueType } from "./types";
 import { isEffectiveOn, sevenDayPeriodEnd } from "./effective-dates";
 import { requiresTicketAttributionVerification, TICKET_ATTRIBUTION_QUALITY } from "./availability";
+import { metricSourceDescription, unsupportedMetricReason } from "./source-description";
 
 export interface EmployeeMetricRow {
   definitionId: string;
@@ -35,6 +36,8 @@ export interface EmployeeMetricRow {
   dataFreshnessAt: Date | null;
   calculationVersion: number;
   targetContextStatus?: "current" | "historical_unverified";
+  sourceDescription?: string | null;
+  missingReason?: string | null;
 }
 
 export async function getEmployeeMetrics(
@@ -218,6 +221,8 @@ export async function getEmployeeMetricsBatch(
       const valueType = def.valueType as ValueType;
       const attributionUnavailable = requiresTicketAttributionVerification(def);
       const currentValue = attributionUnavailable ? null : (current?.numericValue ?? null);
+      const missingReason =
+        currentValue === null ? unsupportedMetricReason(def.key, def.sourceStrategy) : null;
 
       rows.push({
         definitionId: defId,
@@ -235,10 +240,14 @@ export async function getEmployeeMetricsBatch(
         status: evaluateStatus(currentValue, resolvedTarget, direction),
         qualityStatus: attributionUnavailable
           ? TICKET_ATTRIBUTION_QUALITY
-          : (current?.qualityStatus ?? "missing"),
+          : missingReason
+            ? "unsupported"
+            : (current?.qualityStatus ?? "missing"),
         dataFreshnessAt: current?.dataFreshnessAt ?? null,
         calculationVersion: current?.calculationVersion ?? 0,
         targetContextStatus: historicalTargetContext ? "historical_unverified" : "current",
+        sourceDescription: metricSourceDescription(def.key, def.sourceStrategy),
+        missingReason,
       });
     }
 

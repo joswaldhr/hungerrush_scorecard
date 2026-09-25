@@ -18,6 +18,8 @@ export interface ScorecardMetric {
   calculationVersion: number;
   targetSource: string | null;
   targetContextStatus?: "current" | "historical_unverified";
+  sourceDescription?: string | null;
+  missingReason?: string | null;
 }
 
 export interface ExportSnapshot {
@@ -56,6 +58,8 @@ export function exportCsv(snapshot: ExportSnapshot, statusLabel: (status: string
       "Calculation version",
       "Target scope",
       "Target context",
+      "Source measurement",
+      "Unavailable reason",
     ],
   ];
   for (const metric of snapshot.metrics)
@@ -78,6 +82,8 @@ export function exportCsv(snapshot: ExportSnapshot, statusLabel: (status: string
         : metric.targetContextStatus === "current"
           ? "Current profile"
           : "Not recorded",
+      metric.sourceDescription ?? "",
+      metric.missingReason ?? "",
     ]);
   // Quoting alone does not prevent spreadsheet formula execution.
   return rows
@@ -96,7 +102,7 @@ export function exportDataDetails(metrics: ScorecardMetric[]) {
   return metrics
     .map(
       (metric) =>
-        `${metric.name}: ${metric.qualityStatus}; observed ${metric.dataFreshnessAt ?? "unavailable"}; calculation v${metric.calculationVersion}; target scope ${metric.targetSource ?? "none"}${metric.targetContextStatus === "historical_unverified" ? `; ${HISTORICAL_TARGET_REASON}` : ""}`
+        `${metric.name}: ${metric.qualityStatus}; observed ${metric.dataFreshnessAt ?? "unavailable"}; calculation v${metric.calculationVersion}; target scope ${metric.targetSource ?? "none"}${metric.targetContextStatus === "historical_unverified" ? `; ${HISTORICAL_TARGET_REASON}` : ""}${metric.sourceDescription ? `; ${metric.sourceDescription}` : ""}${metric.missingReason ? `; ${metric.missingReason}` : ""}`
     )
     .join("\n");
 }
