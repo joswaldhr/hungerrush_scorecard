@@ -1,5 +1,11 @@
 # September 25 scheduled sync verification
 
+Final check: 07:55 UTC September 25. All four scheduled **metric publications** are
+verified with exact week intervals and zero metric errors. Offsets 1–3 returned HTTP
+200; offset 0 returned HTTP 503 only after publication, during roster discovery.
+PR25 corrects that roster conflict, but its corrected roster path has not yet been
+observed on the scheduler. No manual sync was added to manufacture this evidence.
+
 ## Observed scheduler failure
 
 Read-only production database and Vercel request-log checks began at 07:00 UTC.
@@ -37,8 +43,38 @@ Offset 2 also completed on the same pre-fix deployment: scheduler request
 07:19:28.689–07:22:55.770 UTC (207.081 seconds): 186 source records, 1,080
 normalized/published values, zero skips/errors. Fetch/publication took 197,010/9,468 ms.
 All intervals were September 6–12; predecessor revisions: 186 source, 1,066 fact,
-1,066 metric. Only offset 3 remains unverified at 07:24 UTC.
+1,066 metric. Offset 3 was still pending at the initial 07:24 UTC checkpoint.
 No extra sync was triggered during this verification.
+
+## Final late-window observations
+
+The project-wide production log query at 07:55:50 UTC crossed deployment boundaries
+and returned all retained matching requests without a further page. Offsets 1 and 2
+still matched their earlier successful observations. The final offset 3 invocation
+ran on PR25 deployment `dpl_5MWPNsFU8DRv2zzKg7TgAi1noGE1`:
+
+| Field | Observed value |
+|---|---|
+| Scheduler identity / offset | vercel-cron/1.0 / 3 |
+| Request start / duration | 07:27:58.093 UTC / 234,708 ms |
+| Request outcome | HTTP 200, no logged errors, no function crash |
+| Metric run | 07:27:59.236–07:31:52.465 UTC, completed, zero errors |
+| Fetch / publish | 222,698 / 9,914 ms |
+| Source / normalized / published / skipped | 186 / 1,074 / 1,074 / 0 |
+| Source and value intervals | August 30–September 5 exclusively |
+| Retained predecessor revisions | 186 source, 1,064 fact, 1,064 metric |
+
+The read-only database census at 07:55:50.838 UTC showed six completed runs that day:
+the two previously documented manual refreshes and the four scheduled publications.
+No running or stale-running rows remained. The earlier offset 0 request was outside
+the currently returned log window; its already-recorded 07:00 observation remains
+the platform evidence, corroborated by its retained database run and revision rows.
+
+PR25 was still the READY production target at this final check, with all four cron
+definitions enabled. The longest observed request was 234.708 seconds, below the
+configured 300-second function limit; this does not establish a worst-case runtime
+guarantee. Offset 3 skips roster discovery by design and therefore does not validate
+the corrected current-week roster path.
 
 ## Bounded correction
 
@@ -86,8 +122,8 @@ deployment. Merged-master CI 36107218863 also passed.
 
 The same one-time verification was moved to 07:55 UTC (02:55 Central) for the final
 late-window check, without requiring user participation or creating an ongoing monitor.
-The follow-up must inspect project-wide production logs across deployment changes,
-correlate offset 3 with database evidence, record remaining limits, and pause itself.
+The follow-up completed the project-wide log/database comparison above. This one-time
+automation was paused after the completed check; no recurring monitor is enabled.
 
 ## Remaining limits
 

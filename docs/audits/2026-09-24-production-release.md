@@ -3,9 +3,9 @@
 September 25 update: PR24's metric-duration and display correction is deployed at
 86a0b10. The first actual scheduled current-week metric publication completed, but
 post-publication roster discovery returned HTTP 503. PR25's bounded roster correction
-is deployed as 467c2fa / dpl_5MWPNsFU8DRv2zzKg7TgAi1noGE1. Three scheduled metric
-publications are verified; offset 3 and a scheduled execution of the corrected roster
-path remain unverified. Correction and remaining scheduled-week verification are tracked in
+is deployed as 467c2fa / dpl_5MWPNsFU8DRv2zzKg7TgAi1noGE1. All four scheduled metric
+publications are verified, including offset 3 on PR25; a scheduled execution of the
+corrected roster path remains unverified. Correction and final scheduled verification are tracked in
 `2026-09-25-scheduled-sync-verification.md`; the evidence below describes the original
 core rollout and remains historical.
 
@@ -44,7 +44,9 @@ publication and recurring shadow ingestion remain disabled. These conditions are
 product behavior, not a claim that the underlying evidence problem has been solved.
 
 The controlled sync does not demonstrate a scheduled cron run, worst-case runtime or
-independent metric correctness. Observe the next scheduled execution. Hosted export file
+independent metric correctness. Actual scheduled metric publications were subsequently
+verified September 25, as recorded above; scheduled corrected-roster execution and
+worst-case runtime remain unverified. Hosted export file
 bytes remain uninspected because the available browser bridge did not expose downloads or
 the application clipboard output; automated export-content tests pass. External heartbeat
 delivery, portable recovery/provider PITR, shadow retention and historical reconstruction
