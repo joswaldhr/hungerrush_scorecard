@@ -1,0 +1,13 @@
+{
+  "observedAt": "2026-09-25T21:13:01.4188269Z",
+  "environment": "hosted-synthetic-staging",
+  "bytes": 3645,
+  "sha256": "278cbeb1885bdb360f7dd849d8df47265904b8d53131ce60d8efb1a2257bed00",
+  "rows": 7,
+  "firstReplyDisplay": "0:00:40",
+  "measuredTickets": 3,
+  "cohortTickets": 4,
+  "sourceContextAndUnitsVerified": true,
+  "humanMetricsUnavailable": true,
+  "productionDataExported": false
+}

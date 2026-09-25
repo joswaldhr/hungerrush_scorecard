@@ -2,7 +2,26 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-25 (21:08 UTC). **Core, metric-display and roster corrections are deployed. Both-week CSAT source-ticket sets match for Menufy and POS. Menufy inbound sets match 1,927 named legs across both weeks; POS matches 2,012 legs for one week. The replacement CSAT candidate passes 118 offline cases, repeated Menufy source parity and live POS collection for all 39 active identities. Adapter CI passes 628 tests / 73 files. The staff census matches all 62 active employees; explicit policy and per-team selection are implemented. Hosted staging is migrated through 0015 and synthetic CSAT publication passes. Production migration 0015 and the explicit account binding are applied; existing values and revisions are preserved. PR27 is deployed and one controlled CSAT publication is independently verified: 62 employees, 85 values, zero differences. CSAT source-to-production arithmetic is verified for 3/40 assignments; target compatibility and genuine scheduled execution remain open, so full-contract certification remains 0/40. Human metrics, recurring shadow/v2 publication and historical repair remain disabled.**
+Last updated: 2026-09-25 (21:14 UTC). **Core, metric-display and roster corrections are deployed. Both-week CSAT source-ticket sets match for Menufy and POS. Menufy inbound sets match 1,927 named legs across both weeks; POS matches 2,012 legs for one week. The replacement CSAT candidate passes 118 offline cases, repeated Menufy source parity and live POS collection for all 39 active identities. Adapter CI passes 628 tests / 73 files. The staff census matches all 62 active employees; explicit policy and per-team selection are implemented. Hosted staging is migrated through 0015 and synthetic CSAT publication passes. Production migration 0015 and the explicit account binding are applied; existing values and revisions are preserved. PR27 is deployed and one controlled CSAT publication is independently verified: 62 employees, 85 values, zero differences. CSAT source-to-production arithmetic is verified for 3/40 assignments; target compatibility and genuine scheduled execution remain open, so full-contract certification remains 0/40. Human metrics, recurring shadow/v2 publication and historical repair remain disabled.**
+
+## First-reply hosted verification — September 25, 21:14 UTC
+
+PR29 candidate `65b332a` is pushed; Preview `dpl_2mMRPKLSMAfu27mTcuh97E3oeDqQ`
+is READY. Current/history render 0:00:40 with three measured tickets out of four, Central
+reporting time, version 2 and unverified targets. Legacy 999-minute and null revisions
+retain their separate meaning. The actual 3,645-byte CSV has all seven rows, correct
+context and unavailable human metrics. Production policy preflight validates all 23
+active employees, one team/assignment, source account and minute-duration-average definition.
+
+The new backup restores 40,032 rows across 33 tables with exact digests. A null launcher
+profile produced a relative local recovery path; the restore succeeded but cleanup stopped
+at its path guard. The disposable server is stopped and all files were moved into the
+restricted private backup directory outside Git; no private files were staged. The operator
+now rejects relative/in-repository profiles before making a backup. Private disposable
+recovery files remain retained. Full CI found eight formula-test stub failures because its
+mock did not implement the newly joined source-record projection; all 662 other cases,
+including real PostgreSQL publication tests, passed. The stub is corrected, its eight
+original assertions pass locally, and full CI is being rerun. Production remains unchanged.
 
 ## First-reply candidate — September 25, 21:08 UTC
 

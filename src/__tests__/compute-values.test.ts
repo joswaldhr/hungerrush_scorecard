@@ -61,8 +61,9 @@ function setup(
   const insertedRows: Array<Record<string, unknown>> = [];
   let selectCall = -1;
 
-  mockDb.select.mockImplementation((_projection?: unknown) => ({
-    from: () => ({
+  mockDb.select.mockImplementation((projection?: Record<string, unknown>) => {
+    const chain = {
+      innerJoin: () => chain,
       where: () => {
         selectCall++;
         if (selectCall === 1) {
@@ -77,15 +78,21 @@ function setup(
         }
         // facts (one call per def; only one def here)
         return Promise.resolve(
-          facts.map((fact, i) => ({
-            ...fact,
-            id: String(i),
-            sourceObservedAt: new Date(`2026-09-0${i + 1}T00:00:00Z`),
-          }))
+          facts.map((fact, i) => {
+            const row = {
+              ...fact,
+              id: String(i),
+              sourceObservedAt: new Date(`2026-09-0${i + 1}T00:00:00Z`),
+            };
+            return projection && "fact" in projection
+              ? { fact: row, recordType: "golden", recordContract: null }
+              : row;
+          })
         );
       },
-    }),
-  }));
+    };
+    return { from: () => chain };
+  });
 
   mockDb.insert.mockImplementation(() => ({
     values: (values: Record<string, unknown> | Record<string, unknown>[]) => {

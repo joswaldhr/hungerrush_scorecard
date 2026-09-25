@@ -1,0 +1,19 @@
+{
+  "observedAt": "2026-09-25T21:14:24.065Z",
+  "environment": "hosted-synthetic-staging",
+  "deployment": "dpl_2mMRPKLSMAfu27mTcuh97E3oeDqQ",
+  "candidate": "65b332ae1da3c5d51aa95da54edadc650d69d20c",
+  "currentValue": "0:00:40",
+  "name": "Avg First Reply — Business Time",
+  "sampleCount": 3,
+  "cohortCount": 4,
+  "reportingTimeZone": "America/Chicago",
+  "calculationVersion": 2,
+  "unverifiedTargetsWithheld": true,
+  "historyValueAndContextVerified": true,
+  "legacyRevisionNameAndValuePreserved": true,
+  "nullRevisionPreserved": true,
+  "humanMetricsUnavailable": true,
+  "actualCsvBytesInspected": true,
+  "pdfAndPngForThisCandidateInspected": false
+}
