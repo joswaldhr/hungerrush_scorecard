@@ -76,3 +76,23 @@ Production environment metadata at this checkpoint includes the existing databas
 cron and Zendesk keys; neither shadow opt-in nor shadow credential nor sync heartbeat URL
 is present. Metadata presence is not credential validation. Production environment entries
 were not changed. External sync alert delivery is not configured by this release check.
+
+## Candidate fetch and authentication checks
+
+The existing production Microsoft sign-in completed successfully into the admin view. No
+new credential or role was required. Candidate CI runs 36084274927/36084270689 and Preview
+`dpl_HeLiguYaVE1fYaETCPerNGFVmJkd` passed at a2752aa.
+
+The candidate's actual current-week Zendesk fetch completed in 159,204 ms with 318 GETs,
+five rate-limit responses/retries, 62 identities and 186 in-memory records. The PostgreSQL
+connection was read-only, and the harness did not call the sync publisher or retain payloads.
+See `2026-09-24-production-fetch-release-candidate.json`. This is one local timing sample;
+it excludes publication/hosted latency and does not certify worst-case duration or business
+attribution. The standalone harness caps requests and fetch duration and aborts sibling
+requests during cleanup. No recurring ingestion was enabled.
+
+The synthetic Preview export menu actions executed, but file-byte acceptance remains open:
+the in-app browser download observation timed out and its clipboard bridge returned the
+prior editor clipboard even after the page showed the copy-success toast. Neither observation
+proves an application export defect or proves the exported file is correct. Existing automated
+export-context/CSV tests pass; do not substitute that for hosted file-byte inspection.
