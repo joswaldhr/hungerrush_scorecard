@@ -147,3 +147,51 @@ or retained source evidence was modified. Formatting/lint status is recorded in 
 No new production formulas were deployed in this increment. Shadow recurring ingestion,
 version-2 publication and historical repair remain disabled. Hosted export-file byte inspection
 and corrected scheduled roster execution remain unverified as recorded in the release ledger.
+
+## Expanded CSAT qualification — second investigation increment
+
+The Menufy report comparison now covers **all 23 report rows across both September 6–12
+and September 13–19: 46 exact good/bad/surveyed count matches, 46 displayed score matches
+and 46 displayed response-percentage matches**. Unrounded reference arithmetic is retained
+privately. The second period was selected only in an unsaved report view, then discarded by
+reloading; no report definition was saved.
+
+This expansion exposed a source-population trap in the diagnostic query itself. Searching
+`satisfaction:offered satisfaction:good satisfaction:bad` returned 4,271 unique tickets over
+five completed export pages, exactly matching that query's separate count. However, the
+tenant search treated ratings with comments separately. It omitted 44 tickets returned by
+`satisfaction:goodwithcomment satisfaction:badwithcomment`, with zero ID overlap. This first
+population matched only 12 of 23 report rows for September 13. The missing variants were
+added, and the combined population of **4,315 unique tickets / 4,315 metric sets** matched
+the expanded count endpoint and both weeks' report rows. This demonstrates why matching
+pagination counts cannot by itself establish semantic completeness. Comment bodies were not
+retained in the minimal private snapshot or committed.
+
+The [Zendesk search reference](https://support.zendesk.com/hc/en-us/articles/4408886879258-Zendesk-Support-search-reference)
+documents the separate commented-rating search values. Future survey collection must include
+all five search variants, or collect an independently complete unfiltered solved population
+and select raw offered/good/bad scores locally. API ticket score values and search values
+are different vocabularies; do not insert `goodwithcomment` into the raw-score calculation.
+
+The report population covers 19 of the 23 active mapped Menufy employees. The other four
+identities each resolved uniquely to an active unsuspended Zendesk agent and had zero
+currently assigned solved tickets across the padded two-week interval, even without group
+restrictions. They therefore have no survey denominator in this current-assignee contract;
+do not publish a 0% CSAT score for them or assume a broken identity mapping. Report rows and
+the active roster are not interchangeable denominators.
+
+For the incident employee's September 13 week, an unsaved Ticket ID decomposition was also
+read completely: 147 distinct solved-ticket rows, all ticket/metric cells, including 12
+surveyed tickets. Those **12 exact ticket IDs matched** the independent source set. The
+temporary decomposition was discarded. Full report-population ticket-set parity remains
+open; the 46 numeric matches do not silently promote it to passed.
+
+POS's survey-count report was found and inspected: current assignee rows, good/bad ticket
+counts, solved date and Central time, plus brand/group/rating filters. Its copied dataset and
+exact filter values still require inspection before declaring POS parity.
+
+Aggregate evidence: `2026-09-25-menufy-csat-parity.json`. The diagnostic CLI now records whether
+its source population includes all solved tickets or only surveyed statuses. First-increment
+commit `37aa246` is pushed in draft PR27; both CI runs 36164672208 / 36164703108 passed.
+Production formulas, target versions and data remain unchanged. Candidate contract,
+late-update/replay behavior, exact full source-set qualification and rollout gates remain.

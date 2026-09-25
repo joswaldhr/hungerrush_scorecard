@@ -23,8 +23,8 @@ automated reconciliation, target review, staging/UI/export and production checks
 | avg_talk_time_outbound | 2 | D | Verify outbound report aggregation, zero policy and agent-leg attribution |
 | avoidable_worked_elevated_tickets | 2 | B | Team-specific fields differ; work attribution and history unresolved |
 | backlog_count | 1 | R | Snapshot measure; compare matched observation time and exact status/group scope |
-| csat_response_rate | 1 | R | Offered/rated source exists; one employee/week numerically matches report; full qualification pending |
-| csat_score | 2 | R | Solved-date report differs from rating-received integration; Menufy sample matches, POS contract pending |
+| csat_response_rate | 1 | R | All 23 Menufy report rows match for two weeks; one exact ticket set matched; full set/release qualification pending |
+| csat_score | 2 | R | Menufy 46 row-week numeric matches; report covers 19 active employees, other four have no scoped denominator. POS solved-date report found; filter/contract qualification pending |
 | declined_calls | 1 | D | Distinct declined legs are in manager report; transfer-declined treatment pending |
 | inbound_calls_abandoned_on_hold | 2 | D | Custom report formula and responsible leg attribution pending |
 | inbound_calls_accepted | 2 | D | Menufy uses distinct accepted legs; current completed whole calls are a different grain |

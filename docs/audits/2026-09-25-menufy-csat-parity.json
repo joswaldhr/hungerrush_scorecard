@@ -1,0 +1,62 @@
+{
+  "observedAt": "2026-09-25T17:15:04.741Z",
+  "scope": "Menufy five-group solved-ticket CSAT reference; two closed Central-time weeks",
+  "initialCensus": {
+    "tickets": 4271,
+    "pages": 5,
+    "omittedCommentedRatings": 44,
+    "reportRowsWithExactCounts": 12,
+    "totalReportRows": 23
+  },
+  "correctedCensus": {
+    "tickets": 4315,
+    "uniqueTickets": 4315,
+    "metricSets": 4315,
+    "commentSupplementPages": 1,
+    "countEndpoint": 4315,
+    "unknownScores": 0,
+    "groupsOutsideScope": 0
+  },
+  "lastWeekParity": {
+    "periodStart": "2026-09-13",
+    "periodEnd": "2026-09-19",
+    "reportRows": 23,
+    "identityMatches": 23,
+    "exactGoodBadSurveyedCountMatches": 23,
+    "displayScoreMatches": 23,
+    "displayResponseMatches": 23,
+    "unroundedArithmeticRetained": true,
+    "exactReportTicketSetParity": false
+  },
+  "inputSha256": "f3c7a040392f4ec0d9288bd136b91629ac1d0a327b38694f85ae3f3ebbaf128c",
+  "limitations": [
+    "Exact report surveyed-ticket set matched for one incident employee/week; full-population ticket-set parity remains open.",
+    "Sequential source requests and Explore refresh time differ.",
+    "New production contract, targets, late updates and publication remain unqualified."
+  ],
+  "previousWeekParity": {
+    "periodStart": "2026-09-06",
+    "periodEnd": "2026-09-12",
+    "reportRows": 23,
+    "identityMatches": 23,
+    "exactGoodBadSurveyedCountMatches": 23,
+    "displayScoreMatches": 23,
+    "displayResponseMatches": 23,
+    "unroundedArithmeticRetained": true,
+    "exactReportTicketSetParity": false
+  },
+  "roster": {
+    "activeMapped": 23,
+    "matchedReportUsers": 19,
+    "zeroActivityAdditionalEmployees": 4,
+    "zeroActivityBasis": "Current-assignee solved-ticket count is zero for all groups across the padded two-week interval"
+  },
+  "incidentTicketSetParity": {
+    "reportDecompositionRows": 147,
+    "distinctReportTickets": 147,
+    "allCellsRead": true,
+    "reportSurveyedTickets": 12,
+    "referenceSurveyedTickets": 12,
+    "exactSurveyedSetMatch": true
+  }
+}

@@ -2,7 +2,7 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-25 (17:02 UTC). **Core, metric-display and roster corrections are deployed. The new metric-accuracy investigation is underway: manager reports found, Central-time/cohort mismatches traced, and one closed-week CSAT sample numerically matched with an independent reference. New report contracts are not yet production-certified. All four earlier scheduled metric publications passed; corrected scheduled roster execution remains unverified.**
+Last updated: 2026-09-25 (17:20 UTC). **Core, metric-display and roster corrections are deployed. The new metric-accuracy investigation is underway: manager reports found, Central-time/cohort mismatches traced, and all 23 Menufy CSAT report rows numerically matched for two closed weeks. One incident ticket set also matches exactly. New report contracts are not yet production-certified. All four earlier scheduled metric publications passed; corrected scheduled roster execution remains unverified.**
 
 ## Current ledger
 
@@ -82,6 +82,16 @@ last-update filter excluding 133 prior-week created tickets in the incident samp
 separate solved-date census with the exact report groups matched one visible CSAT row;
 Central time gives 12 surveyed tickets where UTC gives 13. This is sample numeric parity,
 not full ticket-set/team/two-week qualification. No new production formulas are published.
+
+The next investigation increment expanded Menufy CSAT to all 23 report rows and both closed
+weeks: 46 exact good/bad/surveyed count and displayed-percentage matches. It caught a
+diagnostic search omission of 44 ratings with comments; the corrected 4,315-ticket census
+matches the expanded source count and has complete metric-set coverage. One incident
+employee/week also matches all 12 exact surveyed ticket IDs from Explore decomposition.
+The report covers 19 active employees; the other four have verified zero current-assignee
+solved tickets in the padded interval. Full-population ticket-set parity and production
+qualification remain open. See `2026-09-25-menufy-csat-parity.json`. Both first-increment CI
+runs for 37aa246 passed; draft PR27 contains the diagnostic work, not a production rollout.
 
 **Next priority: Friday, September 25 release handoff for Monday, September 28 use.**
 The user is unavailable Saturday and Sunday. Do not plan user participation on those days.

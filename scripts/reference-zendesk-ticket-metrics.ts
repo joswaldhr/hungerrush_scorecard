@@ -15,6 +15,7 @@ const snapshotSchema = z.object({
     expectedCount: z.number().int().nonnegative(),
     pages: z.number().int().positive(),
     basis: z.enum(["created-current-assignee", "solved-current-assignee"]),
+    satisfactionScope: z.enum(["all", "offered-good-bad"]).default("all"),
   }),
   tickets: z.array(
     z.object({
