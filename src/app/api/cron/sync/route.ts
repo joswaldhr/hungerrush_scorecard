@@ -88,7 +88,7 @@ export async function GET(request: Request) {
             rosterResult = await discoverRosterCandidates(connector, source.id);
           }
         } catch (err) {
-          rosterError = err instanceof Error ? err.message : "Unknown roster error";
+          rosterError = (err instanceof Error && err.message) || "Unknown roster error";
           logger.error("Cron roster discovery failed after metric publication", {
             error: err,
             dataSourceId: source.id,

@@ -48,24 +48,27 @@ const cron = (week = 1) =>
     })
   );
 describe("sync API failure reporting", () => {
-  it("preserves published metric results but withholds a healthy heartbeat on roster failure", async () => {
-    mocks.run.mockResolvedValue({ success: true, syncRunId: "run", valuesWritten: 4 });
-    mocks.roster.mockRejectedValue(new Error("Roster conflict"));
-    const response = await cron(0);
-    expect(response.status).toBe(503);
-    expect(await response.json()).toMatchObject({
-      success: false,
-      results: [
-        {
-          sync: { success: true, syncRunId: "run" },
-          valuesWritten: 4,
-          roster: null,
-          rosterError: "Roster conflict",
-        },
-      ],
-    });
-    expect(mocks.fetch).not.toHaveBeenCalled();
-  });
+  it.each(["Roster conflict", ""])(
+    "preserves published metric results but withholds a healthy heartbeat on roster failure (%s)",
+    async (error) => {
+      mocks.run.mockResolvedValue({ success: true, syncRunId: "run", valuesWritten: 4 });
+      mocks.roster.mockRejectedValue(new Error(error));
+      const response = await cron(0);
+      expect(response.status).toBe(503);
+      expect(await response.json()).toMatchObject({
+        success: false,
+        results: [
+          {
+            sync: { success: true, syncRunId: "run" },
+            valuesWritten: 4,
+            roster: null,
+            rosterError: error || "Unknown roster error",
+          },
+        ],
+      });
+      expect(mocks.fetch).not.toHaveBeenCalled();
+    }
+  );
   it("requires successful roster discovery on the current-week leg", async () => {
     mocks.run.mockResolvedValue({ success: true, syncRunId: "run", valuesWritten: 4 });
     expect((await cron(0)).status).toBe(200);
