@@ -232,3 +232,43 @@ unsupported denominator/response fields. Full ticket-set parity and publication 
 See `2026-09-25-pos-csat-parity.json`. The preceding bff1258 commit passed both CI runs
 36166480209 / 36166486352. Across the Menufy and POS reports, 110 row-week count comparisons
 now match; this is not 110 separately certified metrics or production verification.
+
+## Inbound call reference — first full week
+
+The saved Menufy inbound report uses September 13–19, Central time, four selected call
+groups, three service lines and inbound direction. All 31 rows and 11 cells per row were
+read, including its unnamed row. Thirty named rows resolve uniquely to source users.
+The saved report was reopened and all count/duration cells matched the captured baseline;
+temporary UI inspection changes were not saved.
+
+The custom offered measure adds distinct accepted, declined and missed legs. Its answer
+percentage divides accepted legs by offers. Accepted legs require an agent leg, completed
+status and positive talk time; a completed zero-talk leg does not qualify. Declines include
+declined transfers. Unreachable legs are not part of this particular offered formula.
+These distinctions are supported by the inspected tenant formulas and Zendesk's
+[Voice metric definitions](https://support.zendesk.com/hc/en-us/articles/4409156145434-Metrics-and-attributes-for-Zendesk-Voice).
+
+An independent diagnostic reproduced all **30 named rows across eight measures**: offered,
+accepted, declined, missed, abandoned-on-hold participation, sum of talk seconds, maximum
+hold seconds and distinct inbound calls. The bounded read used 17 call pages and 34 leg
+pages, with verified export exhaustion, unique latest records and no orphan joins in the
+retained padded population. That population contains 9,621 calls and 19,084 legs; 897 calls
+match the exact report scope. No duration values were missing in the compared named rows.
+
+The report's custom abandoned-on-hold formula counts distinct inbound call IDs with that
+whole-call outcome, grouped by leg agent. It therefore reports participation, not proof
+that an employee was responsible for the abandonment. Its general duration/call measures
+also lack the built-in acceptance measure's additional agent-leg restriction. The offline
+reference preserves those differences, including named supervisor participation.
+
+Seven focused call-reference tests cover repeated offers, transfer declines, zero talk,
+Central boundaries, missing durations, supervisor participation, invalid values and join
+failures. Source-set parity, second-week qualification, ongoing correction/replay behavior,
+scorecard target compatibility and release validation remain open. Full fetched leg records
+are being retained privately for the second comparison so parent-call cohorts are not
+silently bounded by leg creation date. No production formula or publication changed.
+
+A separate POS employee report uses leg-agent rows with average leg talk/duration/consultation
+but average **whole-call** hold, plus leg-date/type/role/status and group filters. Another
+POS-manager-associated report uses first-call-agent rows. These are distinct contracts;
+Menufy's report semantics must not be applied to POS merely because labels are similar.

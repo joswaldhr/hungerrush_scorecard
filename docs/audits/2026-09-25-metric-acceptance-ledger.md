@@ -25,11 +25,11 @@ automated reconciliation, target review, staging/UI/export and production checks
 | backlog_count | 1 | R | Snapshot measure; compare matched observation time and exact status/group scope |
 | csat_response_rate | 1 | R | All 23 Menufy report rows match for two weeks; one exact ticket set matched; full set/release qualification pending |
 | csat_score | 2 | R | Menufy 46 row-week numeric matches; POS 64 exact good/bad matches after correcting the temporary date filter (saved Last Week report actually uses 30 days). Seven active identities across both teams have no eligible ratings/denominator. Full set/release qualification pending |
-| declined_calls | 1 | D | Distinct declined legs are in manager report; transfer-declined treatment pending |
-| inbound_calls_abandoned_on_hold | 2 | D | Custom report formula and responsible leg attribution pending |
-| inbound_calls_accepted | 2 | D | Menufy uses distinct accepted legs; current completed whole calls are a different grain |
-| inbound_calls_offered | 2 | D | Custom offered-to-agent formula pending; whole-call agent is not every offer recipient |
-| missed_calls | 1 | D | Distinct missed legs report found; Central call-date/source coverage pending |
+| declined_calls | 1 | R | Menufy 30/30 first-week rows match distinct declined plus transfer-declined legs; full source sets and second week pending |
+| inbound_calls_abandoned_on_hold | 2 | R | Menufy 30/30 participation counts match; custom formula does not identify responsibility at hang-up. POS contract differs |
+| inbound_calls_accepted | 2 | R | Menufy 30/30 rows match distinct completed agent legs with positive talk; zero-talk completions are excluded. POS qualification pending |
+| inbound_calls_offered | 2 | R | Menufy 30/30 rows match accepted + declined + missed legs; unreachable excluded from this report. Full release gates remain |
+| missed_calls | 1 | R | Menufy 30/30 distinct missed-leg counts match Central call-date scope; full source sets and second week pending |
 | outbound_calls | 2 | D | Outbound leg agent report found; exact count and filtering pending |
 | outbound_calls_completed | 2 | D | Verify accepted/completed semantics and repeat legs per call |
 | outbound_calls_non_answered | 2 | D | Failed whole calls alone do not define all unanswered employee attempts |

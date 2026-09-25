@@ -1,0 +1,49 @@
+{
+  "observedAt": "2026-09-25T17:46:48.182Z",
+  "mode": "read-only independent report comparison; no production publication",
+  "period": {
+    "start": "2026-09-13",
+    "end": "2026-09-19",
+    "timezone": "America/Chicago",
+    "basis": "call-created"
+  },
+  "report": {
+    "selectedGroups": 4,
+    "selectedServiceLines": 3,
+    "direction": "inbound",
+    "namedRows": 30,
+    "unnamedRowsExcluded": 1,
+    "allCountAndDurationCellsRecheckedAgainstSavedReport": true
+  },
+  "source": {
+    "callPages": 17,
+    "legPages": 34,
+    "paddedCallRecords": 9621,
+    "paddedLegRecords": 19084,
+    "scopedCalls": 897,
+    "orphanJoins": 0,
+    "requests": 51
+  },
+  "comparisons": {
+    "matchedRows": 30,
+    "measures": [
+      "offered legs",
+      "accepted legs",
+      "declined legs",
+      "missed legs",
+      "abandoned-call participation",
+      "sum leg talk seconds",
+      "maximum leg hold seconds",
+      "distinct participating inbound calls"
+    ],
+    "missingDurationRows": 0
+  },
+  "limitations": [
+    "Numeric parity is not full source-ID-set parity.",
+    "Report participation in abandoned calls does not establish employee responsibility.",
+    "Report sum and maximum durations are not scorecard averages.",
+    "First snapshot pads the call and leg creation windows; unbounded related-leg retention is still required.",
+    "POS report definitions differ and are not certified by this comparison.",
+    "No production contract, target or publication was changed."
+  ]
+}

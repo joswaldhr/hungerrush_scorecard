@@ -200,10 +200,10 @@ async function fetchCallsForWeek(
 
 // Only the fields confirmed on real call records map cleanly here. "Missed",
 // "Declined", and transfer counts (w/ and w/o consult) are NOT available on
-// individual call records in this Zendesk instance -- they only exist on the
-// live-only agents_overview/agents_activity endpoints (see [[phone-system]]
-// memory), which can't be queried historically. Deliberately not
-// approximated from a proxy signal here.
+// individual call records. Historical leg exports expose these events, but
+// their agent attribution, call joins and target contract must be qualified
+// before publication (see zendesk-agent-legs and the September 25 investigation).
+// Deliberately not approximated from whole-call fields here.
 function aggregateCalls(calls: ZendeskCall[]): CallAggregate {
   const inbound = calls.filter((c) => c.direction === "inbound");
   const outbound = calls.filter((c) => c.direction === "outbound");

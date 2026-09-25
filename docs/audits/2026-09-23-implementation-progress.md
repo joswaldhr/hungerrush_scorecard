@@ -2,7 +2,7 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-25 (17:28 UTC). **Core, metric-display and roster corrections are deployed. The metric investigation has matched 110 CSAT report row-weeks across Menufy and POS, exposed timezone/cohort/report-period discrepancies, and matched one incident ticket set exactly. New report contracts are not yet production-certified. All four earlier scheduled metric publications passed; corrected scheduled roster execution remains unverified.**
+Last updated: 2026-09-25 (17:57 UTC). **Core, metric-display and roster corrections are deployed. The metric investigation has matched 110 CSAT report row-weeks across Menufy and POS, plus 30 Menufy inbound report rows across eight measures for one closed week. Timezone/cohort/report-period discrepancies are documented, and one incident CSAT ticket set matched exactly. New report contracts are not yet production-certified. All four earlier scheduled metric publications passed; corrected scheduled roster execution remains unverified.**
 
 ## Current ledger
 
