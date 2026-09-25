@@ -6,6 +6,51 @@ workstream. The earlier core release and scheduled-sync verification do not cert
 business definitions or employee attribution. This planning checkpoint makes no
 production configuration, metric, target, or historical-data changes.
 
+## Review upgrades — September 25
+
+The review found five execution weaknesses in the first plan: no early bounded decision
+on missing source capabilities; too much sequential dependency on human attribution;
+no explicit independence check for the current reconciliation tool; blanket historical
+acceptance that cannot apply to missing snapshots; and insufficient protection against
+future regressions after a one-time match. The changes below address these directly.
+
+### First execution checkpoint: outcomes within 90 minutes
+
+This is a time budget for triage, not a promise to certify the full account in 90 minutes.
+The implementing agent owns the ledger, investigations and next actions; use the user only
+for decisions that genuinely cannot be resolved from existing evidence.
+
+| Budget | Required output |
+|---|---|
+| First 20 minutes | Refresh the live assigned-metric inventory and retained-evidence manifest; identify changed versus reusable observations; produce the denominator for progress reporting. |
+| Next 30 minutes | Locate accessible manager reports/views and inspect the minimum configuration needed to decide reporting timezone, human-attribution feasibility, agent-leg coverage, active-time tracking and survey-denominator availability. Bound report hunting here; missing access becomes a precise dependency. |
+| Remaining 40 minutes | Produce the first trace of the reported response-time discrepancy and transferred-call discrepancy from retained records where possible; identify any already-displayed value/target judgment that needs containment. Record one concrete next action per unresolved metric and a revised forecast. |
+
+At this checkpoint classify each metric by remedy: existing-data calculation fix, missing
+producer, definition/target mismatch, permission gap, attribution gap, or genuinely absent
+historical/source evidence. Record the evidence for that classification. An exhausted time
+budget is not proof that a source is absent. Set a next check/dependency rather than endlessly
+repeating the same probe. Missing instrumentation must have a proposed collection point,
+first reliable reporting date, coverage validation and backfill limitations.
+
+### Delivery order and completion accounting
+
+Investigate high-impact ticket attribution immediately, but do not make independent call,
+duration, rating and backlog corrections wait for a universal human-event classifier.
+Interleave these workstreams under one shared source request budget without multiplying API load.
+
+Use one acceptance row per assigned metric and applicable team/line/definition variant,
+with subordinate employee/period comparisons. Required fields are: baseline definition,
+proposed contract/version, source and cutoff, coverage proof, reference result, missing/extra
+IDs, numerator/denominator differences, target compatibility, UI/export result, deployment,
+remaining dependency, next action and evidence location. Keep identity-level details private.
+
+Report progress separately as definitions settled, source coverage established, independently
+matched, production verified, and unavailable with a named dependency. The denominator is
+all live applicable assignments, including unsupported ones; hiding or removing a metric
+does not improve the completion percentage. A well-explained unavailable value is useful
+containment, not completion of the user's goal to have that metric working.
+
 ## Intended outcome and acceptance standard
 
 Every assigned metric has a documented meaning, a complete source population, correct
@@ -79,6 +124,15 @@ Deliverable: per-metric state of verified, incorrect definition, missing produce
 incomplete source coverage, ambiguous attribution, or unavailable source capability;
 include the actual cause and next action for each blank or suspicious value.
 
+Before bulk collection, inventory private retained observations by source account, endpoint,
+period, source/observation cutoff, schema version, completion watermark and digest. Reuse
+only compatible complete observations. Fetch bounded account/group streams once per
+required period where permissions allow, then join employee identities locally; avoid
+repeating a full source crawl per employee or metric. Minimize private fields, honor shared
+rate limits, record retry/checkpoint budgets and stop as incomplete on budget exhaustion.
+Concurrent source changes require versioned observations and a later overlap/recheck, not
+an invented claim that several endpoints formed an atomic vendor snapshot.
+
 ## Phase 2 — Freeze definitions before comparing numbers
 
 For every metric specify: source endpoint/fields; event or snapshot grain; inclusion and
@@ -135,6 +189,14 @@ where relevant; today's 62 active employees are not sufficient historical scope.
 September 20–26 as provisional through a fixed observation cutoff, not a final week.
 Include August 30–September 5 in regression comparison after the initial two weeks pass.
 
+Qualification is metric-specific. Reconstructable historical event metrics use the two
+closed weeks. Snapshot metrics use matched observation instants and only historical
+snapshots that actually exist. Newly instrumented metrics can qualify prospectively from
+their documented complete-coverage start; older periods remain unavailable. A present-day
+identity/role observation does not qualify a historical period. Keep these differences in
+the acceptance ledger so absent old snapshots neither hold up valid current reporting nor
+get described as verified historical values.
+
 Start detailed exception tracing with the reported Menufy employee and a POS employee, then expand to all eligible
 employees and both Menufy lines. Include transfers, multi-group membership, integration-heavy
 activity, reopened tickets, no activity, no surveys, late ratings and near-midnight events.
@@ -144,6 +206,37 @@ numerator, denominator and value. The reference calculation must not simply call
 production calculator. Compare raw source/audits, applicable Zendesk report, retained
 observations, normalized facts, stored metric, API result, rendered scorecard, previous-week
 view, history and export. Matching totals with different underlying IDs do not pass.
+
+### Independent verification tooling — prerequisite to certification
+
+The code review found that `src/lib/domain/reconciliation/engine.ts` reads `normalizedFacts`
+and compares them with `metricValues`; it does not independently fetch or reconstruct
+Zendesk activity. Its default threshold is 5%, and `compare.ts` applies relative tolerance
+to non-count metrics. This is an internal publication-consistency check, not an independent
+business-accuracy certificate. Its runner also writes reconciliation results to the database;
+do not invoke it as though it were a read-only source diagnostic.
+
+Build a separate read-only reference runner against the private evidence bundle. Share
+authentication, transport and validated pagination infrastructure where useful, but do not
+import production cohort selection, attribution, formula or rounding code as the oracle.
+The runner must emit aggregate missing/extra source-ID counts, numerator/denominator deltas,
+definition/cutoff identity and an explicit pass/fail/incomplete result for every expected row.
+An empty comparison or two missing values is never a pass. No generic percentage tolerance
+is accepted; document source precision/rounding for each metric before comparing it.
+
+Independence also applies to source population: compare export IDs/completeness metadata
+against a separate available census or endpoint/report with equivalent scope. An audit
+lookup for already-selected tickets verifies those events, not omitted tickets. Two
+calculators operating on the same incomplete extract can agree and still be wrong; record
+population uncertainty separately and do not certify complete coverage from that agreement.
+
+Use a small hand-worked synthetic truth set with known included/excluded IDs and expected
+arithmetic to validate the reference runner. Add failure cases that drop or duplicate an
+event, change the credited actor, shift a timezone boundary, omit a page, or swap a denominator.
+The checker must detect them. Where two different source sets produce equal totals, it must
+still fail. Test documented subset/deduplication rules; do not invent an offers = accepted +
+missed + declined identity unless source state semantics make those categories exhaustive
+and mutually exclusive.
 
 Use matching observation cutoffs and source versions. Count/source-set comparisons require
 exact agreement. Duration/percentage sums and denominators must agree before formatting;
@@ -160,13 +253,21 @@ rule; they do not certify every unreviewed event or future activity.
 
 ## Phase 4 — Implement complete producers and controlled publication
 
-Order the implementation by demonstrated defect and dependency:
+Order work by demonstrated impact and available evidence, with explicit dependencies:
 
-1. Tickets Updated/Resolved attribution and the reported response-time discrepancy, alongside
-   account/report discovery. These establish why the most visible values are missing/wrong.
-2. Agent-level call participation and durations, then offered/accepted/missed/declined states.
-3. Response/resolution/handling definitions, CSAT score and response-rate evidence.
-4. Escalation/avoidable work and backlog snapshots; end-to-end parity for every remaining row.
+1. **Immediate diagnosis and containment:** trace the reported response-time and transferred-call
+   examples, assess ticket attribution feasibility and identify invalid displayed judgments.
+   Preserve correct values; for a proven incompatible metric/target pair, withhold the affected
+   judgment and explain the mismatch until corrected. Do not overwrite evidence with zero.
+2. **First independently releasable batch:** implement the call participation/duration correction
+   once the grain and source coverage pass; release duration-cohort, CSAT-score or current-backlog
+   corrections when each is demonstrated. Do not wait for unrelated instrumentation gaps.
+3. **Evidence-dependent metrics:** implement human ticket attribution, offers/missed/declined,
+   active handling, survey response rate and escalation work as their source contracts pass.
+   Each unresolved source capability gets the concrete dependency from the 90-minute checkpoint,
+   then a targeted investigation or implementation rather than repeated generic audits.
+4. **Complete account coverage:** expand each passing definition to every applicable employee,
+   team/line and qualification window; close all acceptance rows and retain history limits.
 
 Reuse the existing bounded action/leg readers, source bindings, checkpoints, immutable
 observations and revisions. Add only the missing reviewed attribution producer, computation
@@ -185,6 +286,24 @@ and restore evidence, a rollback target and read-only production comparison afte
 Remove attribution withholding only for genuinely certified source-bound calculations;
 never globally relax the guard because a version number changed.
 
+Before each batch, retain old and candidate calculations on identical evidence without
+publishing the candidate. Compare the full scoped population; then stage synthetic employee
+and manager views for both POS and Menufy lines. Production publication must bind the metric
+contract version, source, valid identity/attribution evidence and target version together.
+An unrelated source or later unknown event cannot inherit a previously certified result.
+Where an existing guard is global, narrow it by validated provenance through regression-tested
+code rather than disabling it globally. Roll back a failed batch without undoing independently
+verified batches or erasing the failed observations.
+
+Define failure handling before activation: a changed source schema, incomplete watermark,
+unknown relevant attribution, missing identity, stale data or reconciliation mismatch must
+invalidate the affected scope or preserve its prior verified value with an explicit stale
+state. It must not silently publish fresh-looking values. Configure and test an authorized
+internal operational failure signal; no unsolicited messages to the identified managers.
+Qualify ongoing accuracy with a second scheduled observation/replay and a bounded late-update
+case, in addition to initial closed-period parity. No claim of permanent accuracy follows
+from two historical weeks matching once.
+
 Historical repair is a separate, explicit operation after current computation is certified:
 select the exact range and eligible history, rehearse an aggregate before/after comparison,
 retain predecessor revisions and calculation/target context, and provide a rollback plan.
@@ -200,8 +319,10 @@ because it now displays a value.
 Acceptance includes:
 
 - All live assigned metrics have an explicit state and owner action; no unexplained blanks.
-- Certified metrics match all employee-level source sets and unrounded arithmetic for both
-  initial closed weeks, with provisional current-week evidence clearly labeled.
+- Certified metrics match all employee-level source sets and unrounded arithmetic for their
+  qualification windows: both closed weeks for reconstructable event metrics, matched
+  observation instants for snapshots, and a documented prospective window for new collection.
+  Provisional current-week evidence and uncertifiable historical ranges remain explicit.
 - Dates, time basis, sample size, targets, team/line and employee scope agree throughout
   scorecards, prior periods, history and actual downloaded export bytes. Hosted export-byte
   inspection remains a real outstanding check, not covered by unit tests alone.
@@ -212,14 +333,14 @@ Acceptance includes:
   business-value reconciliation; corrected roster scheduling still needs observation.
 
 Friday September 25 remains the handoff target; no weekend user participation is assumed.
-The first investigation block should produce the complete defect/source-capability matrix
-and a revised completion forecast before expanding implementation. Planning estimates for
-hands-on work: 2–4 hours for account/report mapping and definitions; 4–8 hours for the first
-closed-week independent reconstructions; subsequent implementation/validation depends on
-the demonstrated gaps. These are estimates, not measured durations or a promise that all
-metrics can be certified before Monday. Missing historical evidence or new instrumentation
-can extend delivery. Publish verified fixes as they clear the gates and report the remaining
-metric-specific dependencies plainly.
+The first 90-minute execution checkpoint produces the defect/source-capability matrix,
+first traced discrepancies or precise blockers, and a forecast by metric family. The earlier
+6–12-hour discovery/reconstruction estimate is provisional; replace it using observed page
+counts, retained-data reuse, access, source coverage and measured reference-run runtime.
+It is not a reason to delay an independently verified correction until all research finishes.
+If a missing source prevents Monday certification, identify the exact affected metric,
+required collection/access change, earliest reliable data date and current safe display.
+No unresolved dependency is counted as completion, and no weekend user response is assumed.
 
 ## Sources and related evidence
 

@@ -67,6 +67,13 @@ The user supplied manager identities privately as report-discovery starting poin
 does not know the report names. This expands the prior core-release scope into metric
 correctness; it does not certify the current meanings or activate shadow/v2/historical repair.
 The plan is recorded; the new comprehensive live investigation has not yet been executed.
+The subsequent plan review added a 90-minute first execution checkpoint, independent
+source-population and calculation checks, evidence-specific historical qualification,
+independently releasable correction batches, and progress that does not count unavailable
+metrics as completed. Code review confirmed the existing reconciliation tool compares
+normalized facts to published values and defaults to 5% tolerance for non-count metrics;
+it cannot serve as the independent accuracy certificate. These are plan upgrades, not
+newly executed source investigations or production changes.
 
 **Next priority: Friday, September 25 release handoff for Monday, September 28 use.**
 The user is unavailable Saturday and Sunday. Do not plan user participation on those days.
