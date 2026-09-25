@@ -141,3 +141,38 @@ it("explains unavailable human activity in the visible scorecard and printable c
     }
   );
 });
+
+it("explains unsupported blanks visibly without representing them as confirmed zero", async () => {
+  await renderRow(
+    {
+      ...row,
+      currentValue: null,
+      qualityStatus: "unsupported",
+      missingReason: "Historical call-leg data is not connected.",
+    },
+    (container) => {
+      expect(container.querySelector("tbody td")?.textContent).toContain(
+        "—Historical call-leg data is not connected."
+      );
+      expect(container.querySelector("details")?.textContent).toContain("Unsupported");
+    }
+  );
+});
+
+it("discloses that the handle-time source measures resolution elapsed time", async () => {
+  await renderRow(
+    {
+      ...row,
+      key: "avg_handle_time",
+      sourceDescription: "Elapsed business minutes to full resolution.",
+    },
+    (container) => {
+      expect(container.querySelector("tbody th")?.textContent).toContain(
+        "Source measures full resolution time, not active handling time."
+      );
+      expect(container.querySelector("details")?.textContent).toContain(
+        "Source measurement: Elapsed business minutes"
+      );
+    }
+  );
+});

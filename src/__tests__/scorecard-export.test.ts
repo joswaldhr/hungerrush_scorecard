@@ -34,6 +34,18 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 describe("scorecard export context", () => {
+  it("retains source definitions and unsupported reasons in CSV and copied/captured content", () => {
+    const metrics = snapshot.metrics.map((metric) => ({
+      ...metric,
+      sourceDescription: "First reply in business minutes.",
+      missingReason: "Survey denominator unavailable.",
+    }));
+    const csv = exportCsv({ ...snapshot, metrics }, () => "No Data");
+    expect(csv).toContain('"Source measurement","Unavailable reason"');
+    expect(csv).toContain("First reply in business minutes.");
+    expect(csv).toContain("Survey denominator unavailable.");
+    expect(exportDataDetails(metrics)).toContain("Survey denominator unavailable.");
+  });
   it("carries unavailable historical target context into CSV and captured/text evidence", () => {
     const metrics = snapshot.metrics.map((metric) => ({
       ...metric,

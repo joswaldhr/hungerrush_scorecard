@@ -33,6 +33,12 @@ function MetricDataDetails({ row }: { row: EmployeeMetricRow }) {
         Data details<span className="sr-only"> for {row.name}</span>
       </summary>
       <dl className="mt-2 space-y-1 text-[11px]">
+        {row.sourceDescription && (
+          <div>
+            <dt className="inline font-medium">Source measurement: </dt>
+            <dd className="inline">{row.sourceDescription}</dd>
+          </div>
+        )}
         <div>
           <dt className="inline font-medium">Data quality: </dt>
           <dd className="inline">{qualityLabels.get(row.qualityStatus) ?? "Not verified"}</dd>
@@ -108,7 +114,14 @@ export function MetricCategoryTable({
         <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{title}</h2>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-xs">
+        <table className="w-full min-w-[640px] table-fixed text-xs print:min-w-0">
+          <colgroup>
+            <col className="w-[32%]" />
+            <col className="w-[18%]" />
+            <col className="w-[18%]" />
+            <col className="w-[16%]" />
+            <col className="w-[16%]" />
+          </colgroup>
           <thead>
             <tr className="border-b border-border/80 bg-slate-50/30 dark:bg-slate-900/30 text-left font-semibold text-muted-foreground">
               <th className="py-2 px-4">Metric</th>
@@ -125,6 +138,11 @@ export function MetricCategoryTable({
               <tr key={row.definitionId} className="hover:bg-muted/30 transition-colors">
                 <th scope="row" className="py-2.5 px-4 text-left font-semibold text-foreground">
                   {row.name}
+                  {row.key === "avg_handle_time" && row.sourceDescription && (
+                    <p className="mt-1 max-w-56 text-[10px] font-normal text-muted-foreground">
+                      Source measures full resolution time, not active handling time.
+                    </p>
+                  )}
                   <MetricDataDetails row={row} />
                 </th>
                 <td className="py-2.5 px-3 text-right font-bold text-foreground bg-[#009ca6]/[0.06]">
@@ -132,6 +150,11 @@ export function MetricCategoryTable({
                   {row.qualityStatus === TICKET_ATTRIBUTION_QUALITY && (
                     <p className="mt-1 max-w-44 text-[10px] font-normal text-muted-foreground">
                       {TICKET_ATTRIBUTION_REASON}
+                    </p>
+                  )}
+                  {row.currentValue === null && row.missingReason && (
+                    <p className="mt-1 max-w-44 text-[10px] font-normal text-muted-foreground">
+                      {row.missingReason}
                     </p>
                   )}
                   {row.currentValue !== null && row.qualityStatus !== "complete" && (

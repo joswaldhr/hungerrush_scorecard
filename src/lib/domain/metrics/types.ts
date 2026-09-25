@@ -32,6 +32,28 @@ export interface MetricStatus {
   direction: Direction;
 }
 
+export const DURATION_FORMAT_LABEL = "H:MM:SS (hours:minutes:seconds)";
+export const DURATION_CLOCK_NOTE =
+  "Ticket response and resolution use business time; call metrics use elapsed time.";
+
+/** Convert at presentation only. Stored units and target calculations stay unchanged. */
+export function formatDuration(value: number, unit: string | null): string {
+  const scale = new Map([
+    ["s", 1],
+    ["seconds", 1],
+    ["min", 60],
+    ["minutes", 60],
+    ["h", 3600],
+    ["hours", 3600],
+  ]).get(unit ?? "");
+  if (scale === undefined) return `${value.toFixed(1)}${unit ? ` ${unit}` : ""}`;
+  const seconds = Math.round(Math.abs(value) * scale);
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainder = seconds % 60;
+  return `${value < 0 && seconds > 0 ? "−" : ""}${hours}:${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
+}
+
 export function formatMetricValue(
   value: number,
   unit: string | null,
@@ -41,10 +63,7 @@ export function formatMetricValue(
     case "percentage":
       return `${value.toFixed(1)}%`;
     case "duration":
-      if (unit === "min" || unit === "minutes") return `${value.toFixed(1)}m`;
-      if (unit === "h" || unit === "hours") return `${value.toFixed(1)}h`;
-      if (unit === "s" || unit === "seconds") return `${value.toFixed(0)}s`;
-      return `${value.toFixed(1)}`;
+      return formatDuration(value, unit);
     case "count":
       return value.toFixed(0);
     case "numeric":

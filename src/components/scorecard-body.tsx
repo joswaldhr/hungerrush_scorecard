@@ -21,6 +21,7 @@ import {
 } from "@/lib/utils";
 import { getWeekMetrics } from "@/app/(app)/one-on-ones/[id]/actions";
 import { HISTORICAL_TARGET_REASON } from "@/lib/domain/metrics/availability";
+import { DURATION_CLOCK_NOTE, DURATION_FORMAT_LABEL } from "@/lib/domain/metrics/types";
 
 interface ScorecardBodyProps {
   employeeId: string;
@@ -164,6 +165,8 @@ export function ScorecardBody({
         calculationVersion: r.calculationVersion,
         targetSource: r.target?.source ?? null,
         targetContextStatus: r.targetContextStatus,
+        sourceDescription: r.sourceDescription,
+        missingReason: r.missingReason,
       })),
     [displayRows]
   );
@@ -248,6 +251,11 @@ export function ScorecardBody({
           <p className="sr-only" role="status">
             Loaded {formatWeekRangeLong(periodStart, periodEnd)}
           </p>
+          {displayRows.some((row) => row.valueType === "duration") && (
+            <p className="text-xs text-muted-foreground">
+              Times use {DURATION_FORMAT_LABEL}. {DURATION_CLOCK_NOTE}
+            </p>
+          )}
           {inProgress && (
             <p className="text-xs text-muted-foreground">
               This week is in progress. Targets cover the full week; individual comparisons are

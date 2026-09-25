@@ -4,7 +4,12 @@ import { auth } from "@/lib/auth";
 import { getAssignedEmployees, getEffectiveManagerContext } from "@/lib/auth/authorization";
 import { getStoredMetricHistory } from "@/lib/domain/metrics/history";
 import { getStoredMetricRevisions } from "@/lib/domain/metrics/revisions";
-import { formatMetricValue, type ValueType } from "@/lib/domain/metrics/types";
+import {
+  DURATION_CLOCK_NOTE,
+  DURATION_FORMAT_LABEL,
+  formatMetricValue,
+  type ValueType,
+} from "@/lib/domain/metrics/types";
 import { formatWeekRangeLong } from "@/lib/utils";
 import {
   TICKET_ATTRIBUTION_QUALITY,
@@ -64,6 +69,9 @@ export default async function StoredPeriodsPage({
       </p>
       {history.selected ? (
         <>
+          <p className="text-sm text-muted-foreground">
+            Times use {DURATION_FORMAT_LABEL}. {DURATION_CLOCK_NOTE}
+          </p>
           <form className="flex flex-wrap items-end gap-3">
             <label className="grid gap-2 text-sm">
               Reporting interval (UTC)
