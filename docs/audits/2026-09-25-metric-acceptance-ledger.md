@@ -1,13 +1,13 @@
 # Metric acceptance ledger
 
 September 25 live investigation. Denominator: **23 assigned keys / 40 team assignments**.
-This increment certifies **0 of 40 assignments for production under the new report contracts**.
+**Source-to-production arithmetic is verified for 3 of 40 assignments (CSAT)** across 62 employees and 85 current-week values. Full-contract certification remains **0 of 40** while target compatibility and genuine scheduled CSAT execution remain open.
 That does not undo prior infrastructure/display validation. A sample match is not full
 qualification; disabled metrics are not counted as complete. Evidence and private snapshot
 locations are described in `2026-09-25-zendesk-live-findings.md` and the local investigation
-scratch area. Current production contract versions remain unchanged.
+scratch area. CSAT now uses explicit solved-date/current-assignee contract and calculation version 2 from September 20. Earlier observations retain their original meaning.
 
-Status abbreviations: D = definition discovery; R = independent reference in progress;
+Status abbreviations: PV = production values independently verified; D = definition discovery; R = independent reference in progress;
 B = source/attribution dependency. All rows still require applicable source coverage,
 automated reconciliation, target review, staging/UI/export and production checks.
 
@@ -23,8 +23,8 @@ automated reconciliation, target review, staging/UI/export and production checks
 | avg_talk_time_outbound | 2 | D | Verify outbound report aggregation, zero policy and agent-leg attribution |
 | avoidable_worked_elevated_tickets | 2 | B | Team-specific fields differ; work attribution and history unresolved |
 | backlog_count | 1 | R | Snapshot measure; compare matched observation time and exact status/group scope |
-| csat_response_rate | 1 | R | Both weeks match all Menufy surveyed/rated ticket IDs. Candidate passes live full-cohort parity for one week; publisher and release qualification pending |
-| csat_score | 2 | R | Both-week full good/bad ticket sets match Menufy and POS. Candidate passes 118 offline cases and one live Menufy week. Publisher/version/target context and release remain open |
+| csat_response_rate | 1 | PV | Menufy two-week source sets match; all 23 current-week production values independently reconcile. Current/history and export context pass. Targets remain withheld; genuine scheduled execution remains unobserved |
+| csat_score | 2 | PV | Both teams' two-week source sets match; all 62 current-week production values independently reconcile. PR27 deployed with retained revisions and precision safeguards. Targets remain withheld; genuine scheduled execution remains unobserved |
 | declined_calls | 1 | R | Menufy 56 row-weeks match distinct declined plus transfer-declined legs; both-week exact source sets pass; publisher and target context pending |
 | inbound_calls_abandoned_on_hold | 2 | R | Menufy 56 participation row-weeks match, not employee responsibility. POS on-hold label wrongly counts IVR/queue/voicemail abandonment; do not copy it |
 | inbound_calls_accepted | 2 | R | Menufy 56 row-weeks and POS 55 rows match completed positive-talk agent legs. POS exact source set matches; target/period and release gates remain |

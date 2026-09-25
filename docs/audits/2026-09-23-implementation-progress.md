@@ -2,7 +2,32 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-25 (20:31 UTC). **Core, metric-display and roster corrections are deployed. Both-week CSAT source-ticket sets match for Menufy and POS. Menufy inbound sets match 1,927 named legs across both weeks; POS matches 2,012 legs for one week. The replacement CSAT candidate passes 118 offline cases, repeated Menufy source parity and live POS collection for all 39 active identities. Adapter CI passes 628 tests / 73 files. The staff census matches all 62 active employees; explicit policy and per-team selection are implemented. Hosted staging is migrated through 0015 and synthetic CSAT publication passes. Production migration 0015 and the explicit account binding are applied; existing values and revisions are preserved. Replacement publication is pending deployment. Binding/cutover, hosted and release gates remain unfinished: 0/40 newly certified assignments. Human metrics, recurring shadow/v2 publication and historical repair remain disabled.**
+Last updated: 2026-09-25 (20:40 UTC). **Core, metric-display and roster corrections are deployed. Both-week CSAT source-ticket sets match for Menufy and POS. Menufy inbound sets match 1,927 named legs across both weeks; POS matches 2,012 legs for one week. The replacement CSAT candidate passes 118 offline cases, repeated Menufy source parity and live POS collection for all 39 active identities. Adapter CI passes 628 tests / 73 files. The staff census matches all 62 active employees; explicit policy and per-team selection are implemented. Hosted staging is migrated through 0015 and synthetic CSAT publication passes. Production migration 0015 and the explicit account binding are applied; existing values and revisions are preserved. PR27 is deployed and one controlled CSAT publication is independently verified: 62 employees, 85 values, zero differences. CSAT source-to-production arithmetic is verified for 3/40 assignments; target compatibility and genuine scheduled execution remain open, so full-contract certification remains 0/40. Human metrics, recurring shadow/v2 publication and historical repair remain disabled.**
+
+## Production CSAT publication — September 25, 20:40 UTC
+
+PR27 merged as `958c34d`; production `dpl_BHFqukJpcQmjntNbRuEfLUBEdbiC` is READY
+and assigned to the production alias. Master CI 36186509593 passed. The deployment
+contains the four original daily sync entries plus four separate CSAT entries at 08, 10,
+12 and 14 UTC. The week-before-cutover request returned a skip and performed no sync.
+
+One explicitly controlled current-week request returned HTTP 200 in 135.413 seconds,
+publishing 85 values for 62 active employees. Database timing is 125.211 seconds fetch,
+7.744 seconds publish, using 104 source GETs. Read-only independent reconstruction checks
+all 85 values and exact cohort sets: zero differences, zero run errors. The run retains
+42 previous values, 42 fact revisions and 62 source-record revisions. Earlier periods and
+other metric families were not recalculated. The first diagnostic verifier needed explicit
+SQL date serialization and the correct calculation timestamp column; those were verifier
+corrections, not further production syncs or data changes.
+
+The refreshed production employee page displays the new CSAT values, America/Chicago,
+version 2, explicit current-assignee/solved-date meaning and unverified-target explanation.
+The page needed a normal reload to replace the older client bundle. Hosted current/history
+and CSV/PDF/PNG synthetic export checks are recorded separately. This establishes CSAT
+source-to-production arithmetic for three assigned team metrics, not all 40 assignments.
+Target qualification and genuine scheduled CSAT execution remain open; no scheduled run
+has been manufactured or claimed. Human ticket metrics, action shadow/v2 publication and
+historical repair remain disabled. Next work addresses the first-reply creation-cohort bug.
 
 ## Production CSAT preparation — September 25, 20:31 UTC
 
