@@ -1,0 +1,11 @@
+{
+  "observedAt": "2026-09-25T20:29:30.848Z",
+  "candidate": "37dcca3799d6905f64ba20c92e6a4e68b96663f2",
+  "migration": "0015_metric_numeric_precision",
+  "backupSha256": "39af84168fc1c5d3d2e62c6588b5c3a5ea65b08936f8fd871311fd84c18018e3",
+  "existingApplicationDataUnchangedByMigration": true,
+  "accountBindingAdded": true,
+  "legacyJournalGapPreserved": true,
+  "revisionRows": 10792,
+  "policyActivated": false
+}

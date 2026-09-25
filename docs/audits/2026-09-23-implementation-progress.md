@@ -2,7 +2,28 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-25 (20:22 UTC). **Core, metric-display and roster corrections are deployed. Both-week CSAT source-ticket sets match for Menufy and POS. Menufy inbound sets match 1,927 named legs across both weeks; POS matches 2,012 legs for one week. The replacement CSAT candidate passes 118 offline cases, repeated Menufy source parity and live POS collection for all 39 active identities. Adapter CI passes 628 tests / 73 files. The staff census matches all 62 active employees; explicit policy and per-team selection are implemented. Hosted staging is migrated through 0015 and synthetic CSAT publication passes. Neither migration 0015 nor replacement collection is active in production. Binding/cutover, hosted and release gates remain unfinished: 0/40 newly certified assignments. Human metrics, recurring shadow/v2 publication and historical repair remain disabled.**
+Last updated: 2026-09-25 (20:31 UTC). **Core, metric-display and roster corrections are deployed. Both-week CSAT source-ticket sets match for Menufy and POS. Menufy inbound sets match 1,927 named legs across both weeks; POS matches 2,012 legs for one week. The replacement CSAT candidate passes 118 offline cases, repeated Menufy source parity and live POS collection for all 39 active identities. Adapter CI passes 628 tests / 73 files. The staff census matches all 62 active employees; explicit policy and per-team selection are implemented. Hosted staging is migrated through 0015 and synthetic CSAT publication passes. Production migration 0015 and the explicit account binding are applied; existing values and revisions are preserved. Replacement publication is pending deployment. Binding/cutover, hosted and release gates remain unfinished: 0/40 newly certified assignments. Human metrics, recurring shadow/v2 publication and historical repair remain disabled.**
+
+## Production CSAT preparation — September 25, 20:31 UTC
+
+Release candidate `37dcca3` passed CI 36185792408 / 36185786907 and Preview
+`dpl_Hrc7tZKm4siErDagUUh6cjUC1S1x` is READY. Production still exactly matched the
+20:15 UTC restored backup and had no running syncs. The guarded migration transaction at
+20:29 UTC widened both numeric columns, preserved all existing application values and
+10,792 revision rows, retained the intentional older journal gap, and set the explicit
+Zendesk account binding. A separate read-only application check validates all 62 active
+identities, two teams and three metric assignments against the private policy.
+
+The production-only policy is configured for the prospective 2026-09-20 boundary; it
+becomes active with the release deployment. Earlier periods, POS response rate and human
+activity publication remain outside the new contract. The rollback deployment is
+`dpl_13VC6maonBNasapMFosPq9KfwDQU` (`e83e891`); rollback must remove policy ownership
+and restore the four original cron entries together, retaining widened columns and revisions.
+
+Actual hosted CSV, PDF and PNG files have now been inspected. PDF/PNG show aligned columns,
+correct percentages, preserved context and unavailable human activity. The PDF is a raster
+capture and 13.9 MB; search/accessibility and file-size optimization remain separate work.
+Production publication and genuine scheduled execution are not yet claimed.
 
 ## Hosted CSAT qualification — September 25, 20:22 UTC
 
