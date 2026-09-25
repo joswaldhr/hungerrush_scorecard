@@ -1,0 +1,29 @@
+{
+  "observedAt": "2026-09-25T19:37:57.816Z",
+  "mode": "read-only source collection and offline adapter/reference replay; no database writes",
+  "team": "Menufy",
+  "periodStart": "2026-09-13",
+  "periodEnd": "2026-09-19",
+  "timeZone": "America/Chicago",
+  "scopedIdentities": 27,
+  "activeIdentities": 23,
+  "groups": 5,
+  "brands": null,
+  "requests": 116,
+  "observationStartedAt": "2026-09-25T19:34:33.295Z",
+  "observationEndedAt": "2026-09-25T19:36:27.155Z",
+  "elapsedSeconds": 113.86,
+  "paddedTickets": 5764,
+  "metricSets": 5764,
+  "cohortTickets": 4357,
+  "good": 60,
+  "bad": 13,
+  "surveyed": 1823,
+  "priorReferenceIdentities": 23,
+  "previouslyUnratedIdentities": 4,
+  "independentLiveReferenceDifferences": 0,
+  "priorObservationDifferences": 0,
+  "limits": [
+    "Production policy, combined runtime and hosted release remain unqualified."
+  ]
+}

@@ -1,4 +1,6 @@
 export const SOLVED_CSAT_CONTRACT = "zendesk-solved-current-assignee-csat-v1";
+// Explicit replacement meaning, independent of later edits to the definition row.
+export const SOLVED_CSAT_CALCULATION_VERSION = 2;
 export const INCOMPATIBLE_COMPARISON_REASON =
   "Comparison unavailable because the source definition, scope or reporting timezone changed.";
 export const SOURCE_TARGET_REASON = "Targets have not been verified for this source definition.";

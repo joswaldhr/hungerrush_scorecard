@@ -71,6 +71,21 @@ it("emits explicit null and zero facts rather than dropping corrected values", (
   offered.metrics = offered.metrics.slice(2);
   expect(facts(offered).map((f) => f.numericValue)).toEqual([null, 0]);
 });
+
+it("publishes only the metrics explicitly selected for a team", () => {
+  const record = buildSolvedCsatRecord(syntheticCsatSnapshot(), {
+    ...identity,
+    metricKeys: ["csat_score"],
+  });
+  const normalized = normalizeSolvedCsatRecord(
+    record.payload,
+    "employee",
+    null,
+    "2026-09-13",
+    "2026-09-19"
+  );
+  expect(normalized.map((f) => f.factType)).toEqual(["csat_score"]);
+});
 it("binds comparisons to canonical account, identity, group and brand scope", () => {
   const reordered = syntheticCsatSnapshot();
   reordered.coverage.groupIds = [21, 20];

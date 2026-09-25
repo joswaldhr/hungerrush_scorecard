@@ -494,7 +494,7 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
         name: "Synthetic score",
         sourceStrategy: "test",
         calculationType: "average",
-        version: 2,
+        version: 1,
       },
       {
         id: responseId,
@@ -503,7 +503,7 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
         name: "Synthetic response",
         sourceStrategy: "test",
         calculationType: "sum",
-        version: 2,
+        version: 1,
       },
     ]);
     const snapshot: Awaited<ReturnType<typeof fetchSolvedCsatCandidate>> = {

@@ -11,7 +11,11 @@ import { aggregateSourceValues } from "@/lib/domain/reconciliation/compare";
 import { captureSyncRevisions } from "@/lib/connectors/sync-revisions";
 import { chunk } from "@/lib/utils";
 import type { CalculationType } from "./types";
-import { sharedMetricSourceContext, SOLVED_CSAT_CONTRACT } from "./source-context";
+import {
+  sharedMetricSourceContext,
+  SOLVED_CSAT_CONTRACT,
+  SOLVED_CSAT_CALCULATION_VERSION,
+} from "./source-context";
 
 // Rows per bulk upsert statement — see the same constant's comment in
 // sync-engine.ts. metricValues has fewer columns than normalizedFacts but
@@ -157,7 +161,10 @@ export async function computeMetricValuesFromFacts(
               ? value
               : Math.round(value * 100) / 100,
         textValue: null,
-        calculationVersion: def.version,
+        calculationVersion:
+          sourceContext?.sourceContract === SOLVED_CSAT_CONTRACT
+            ? SOLVED_CSAT_CALCULATION_VERSION
+            : def.version,
         calculatedAt: new Date(),
         dataFreshnessAt: new Date(Math.min(...group.observed.map((date) => date.getTime()))),
         qualityStatus:

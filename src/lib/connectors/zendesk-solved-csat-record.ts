@@ -9,6 +9,11 @@ type Snapshot = Awaited<ReturnType<typeof fetchSolvedCsatCandidate>>;
 const id = z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
 const payloadSchema = z.object({
   sourceContract: z.literal(SOLVED_CSAT_CONTRACT),
+  metricKeys: z
+    .array(z.enum(["csat_score", "csat_response_rate"]))
+    .min(1)
+    .max(2)
+    .refine((keys) => new Set(keys).size === keys.length),
   sourceEvidence: z.object({
     complete: z.literal(true),
     population: z.literal("all-solved-satisfaction-states"),
@@ -60,7 +65,7 @@ function parseEvidence(payload: unknown, periodStart: string, periodEnd: string)
       })
     )
     .digest("hex");
-  return { evidence, result, sourceScopeFingerprint };
+  return { evidence, result, sourceScopeFingerprint, metricKeys: parsed.data.metricKeys };
 }
 
 /** Ingestion adapter only. The live collector remains disconnected until release qualification. */
@@ -71,6 +76,7 @@ export function buildSolvedCsatRecord(
     subdomain: string;
     agentId: number;
     externalId: string;
+    metricKeys?: Array<"csat_score" | "csat_response_rate">;
   }
 ): IngestedRecord {
   const accountReference = assertZendeskAccountBinding(
@@ -103,6 +109,7 @@ export function buildSolvedCsatRecord(
   const ticketIds = new Set(tickets.map((t) => t.id));
   const payload = {
     sourceContract: SOLVED_CSAT_CONTRACT,
+    metricKeys: identity.metricKeys ?? ["csat_score", "csat_response_rate"],
     sourceEvidence: {
       complete: true,
       population: coverage.population,
@@ -144,38 +151,40 @@ export function normalizeSolvedCsatRecord(
   periodStart: string,
   periodEnd: string
 ): NormalizedFactInput[] {
-  const { evidence, result, sourceScopeFingerprint } = parseEvidence(
+  const { evidence, result, sourceScopeFingerprint, metricKeys } = parseEvidence(
     payload,
     periodStart,
     periodEnd
   );
-  return (["score", "response"] as const).map((kind) => ({
-    employeeId,
-    teamId,
-    periodStart,
-    periodEnd,
-    factType: kind === "score" ? "csat_score" : "csat_response_rate",
-    numericValue: result[kind].value,
-    textValue: null,
-    booleanValue: null,
-    unit: "%",
-    dimensionsJson: {
-      sourceContract: SOLVED_CSAT_CONTRACT,
-      reportingTimeZone: evidence.scope.timeZone,
-      sourceScopeFingerprint,
-      numerator: result[kind].numerator,
-      denominator: result[kind].denominator,
-      cohortTicketIds: result.cohortIds,
-      numeratorTicketIds:
-        kind === "score"
-          ? result.goodIds
-          : [...result.goodIds, ...result.badIds].sort((a, b) => a - b),
-      denominatorTicketIds:
-        kind === "score"
-          ? [...result.goodIds, ...result.badIds].sort((a, b) => a - b)
-          : result.surveyedIds,
-      observationStartedAt: evidence.observationStartedAt,
-      observationEndedAt: evidence.observationEndedAt,
-    },
-  }));
+  return (["score", "response"] as const)
+    .filter((kind) => metricKeys.includes(kind === "score" ? "csat_score" : "csat_response_rate"))
+    .map((kind) => ({
+      employeeId,
+      teamId,
+      periodStart,
+      periodEnd,
+      factType: kind === "score" ? "csat_score" : "csat_response_rate",
+      numericValue: result[kind].value,
+      textValue: null,
+      booleanValue: null,
+      unit: "%",
+      dimensionsJson: {
+        sourceContract: SOLVED_CSAT_CONTRACT,
+        reportingTimeZone: evidence.scope.timeZone,
+        sourceScopeFingerprint,
+        numerator: result[kind].numerator,
+        denominator: result[kind].denominator,
+        cohortTicketIds: result.cohortIds,
+        numeratorTicketIds:
+          kind === "score"
+            ? result.goodIds
+            : [...result.goodIds, ...result.badIds].sort((a, b) => a - b),
+        denominatorTicketIds:
+          kind === "score"
+            ? [...result.goodIds, ...result.badIds].sort((a, b) => a - b)
+            : result.surveyedIds,
+        observationStartedAt: evidence.observationStartedAt,
+        observationEndedAt: evidence.observationEndedAt,
+      },
+    }));
 }
