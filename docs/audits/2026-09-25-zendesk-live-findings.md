@@ -195,3 +195,40 @@ its source population includes all solved tickets or only surveyed statuses. Fir
 commit `37aa246` is pushed in draft PR27; both CI runs 36164672208 / 36164703108 passed.
 Production formulas, target versions and data remain unchanged. Candidate contract,
 late-update/replay behavior, exact full source-set qualification and rollout gates remain.
+
+## POS CSAT qualification — third investigation increment
+
+The POS report's saved title says Last Week, but its inspected date configuration is
+**30 days ago through yesterday (August 26–September 24 at observation)**. A dashboard
+may apply an additional date override; the standalone report title alone is not a reliable
+period contract. No existing report was renamed or saved during this investigation.
+
+Its exact filters are one brand, 20 groups and good/bad ratings. Five selected groups are
+deleted and absent from the default active-group lookup. The inclusive group listing's
+continuation link dropped its original `exclude_deleted=false` and page-size parameters;
+following it unchanged produced duplicates and an incomplete population. Preserving those
+documented parameters on continuation recovered all 151 distinct groups versus 134 active
+groups and resolved all 20 report selections. Source-count/uniqueness guards caught the
+incomplete lookup before it was accepted.
+
+With temporary, unsaved date ranges aligned to the two closed Central-time weeks, the
+independent source extraction exactly matches **34 POS report rows for September 6–12 and
+30 rows for September 13–19**, for good and bad counts. Each week's nonzero reference rows
+also matches the report row count. The extract contains 226 unique rated tickets, all 226
+metric sets, the correct brand/groups and both commented-rating search variants. Identity
+matches are unambiguous. The report view was reloaded to discard temporary date changes.
+
+The extraction covers 36 of 39 active POS identities. The remaining three identities resolve
+uniquely to active unsuspended agents and have zero currently assigned rated tickets in the
+padded interval even without group restrictions. No rating means no CSAT score, not zero.
+
+This report exposes good/bad counts, not an independently displayed score formula; that
+distinction remains explicit. A rated-only extraction does **not** qualify CSAT response
+percentage. The offline CLI omits the surveyed denominator and response result for rated-only
+inputs and rejects satisfaction-filtered creation populations for first-reply references.
+TypeScript and formatting passed; actual POS diagnostic output was checked for absence of
+unsupported denominator/response fields. Full ticket-set parity and publication remain open.
+
+See `2026-09-25-pos-csat-parity.json`. The preceding bff1258 commit passed both CI runs
+36166480209 / 36166486352. Across the Menufy and POS reports, 110 row-week count comparisons
+now match; this is not 110 separately certified metrics or production verification.

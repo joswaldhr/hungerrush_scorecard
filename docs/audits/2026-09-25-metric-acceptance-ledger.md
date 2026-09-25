@@ -24,7 +24,7 @@ automated reconciliation, target review, staging/UI/export and production checks
 | avoidable_worked_elevated_tickets | 2 | B | Team-specific fields differ; work attribution and history unresolved |
 | backlog_count | 1 | R | Snapshot measure; compare matched observation time and exact status/group scope |
 | csat_response_rate | 1 | R | All 23 Menufy report rows match for two weeks; one exact ticket set matched; full set/release qualification pending |
-| csat_score | 2 | R | Menufy 46 row-week numeric matches; report covers 19 active employees, other four have no scoped denominator. POS solved-date report found; filter/contract qualification pending |
+| csat_score | 2 | R | Menufy 46 row-week numeric matches; POS 64 exact good/bad matches after correcting the temporary date filter (saved Last Week report actually uses 30 days). Seven active identities across both teams have no eligible ratings/denominator. Full set/release qualification pending |
 | declined_calls | 1 | D | Distinct declined legs are in manager report; transfer-declined treatment pending |
 | inbound_calls_abandoned_on_hold | 2 | D | Custom report formula and responsible leg attribution pending |
 | inbound_calls_accepted | 2 | D | Menufy uses distinct accepted legs; current completed whole calls are a different grain |

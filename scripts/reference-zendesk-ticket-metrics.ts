@@ -15,7 +15,7 @@ const snapshotSchema = z.object({
     expectedCount: z.number().int().nonnegative(),
     pages: z.number().int().positive(),
     basis: z.enum(["created-current-assignee", "solved-current-assignee"]),
-    satisfactionScope: z.enum(["all", "offered-good-bad"]).default("all"),
+    satisfactionScope: z.enum(["all", "offered-good-bad", "rated-only"]).default("all"),
   }),
   tickets: z.array(
     z.object({
@@ -59,6 +59,11 @@ async function main() {
   const snapshot = snapshotSchema.parse(JSON.parse(bytes.toString("utf8")));
   if (snapshot.population.expectedCount !== snapshot.tickets.length)
     throw new Error("Census count mismatch");
+  if (
+    snapshot.population.basis === "created-current-assignee" &&
+    snapshot.population.satisfactionScope !== "all"
+  )
+    throw new Error("Reply reference requires an unfiltered satisfaction population");
   const results = snapshot.cases.map((scope, index) => {
     const result =
       snapshot.population.basis === "created-current-assignee"
@@ -69,6 +74,11 @@ async function main() {
     const aggregates = Object.fromEntries(
       Object.entries(rest).filter(([, value]) => !Array.isArray(value))
     );
+    // A rated-only census qualifies score arithmetic, never survey response rate.
+    if (snapshot.population.satisfactionScope === "rated-only") {
+      delete aggregates.surveyed;
+      delete aggregates.responsePercent;
+    }
     const baseline = scope.baselineCohortIds ? new Set(scope.baselineCohortIds) : null;
     const selected = new Set(cohortIds);
     return {

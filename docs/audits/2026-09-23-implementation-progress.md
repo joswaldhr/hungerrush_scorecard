@@ -2,7 +2,7 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-25 (17:20 UTC). **Core, metric-display and roster corrections are deployed. The new metric-accuracy investigation is underway: manager reports found, Central-time/cohort mismatches traced, and all 23 Menufy CSAT report rows numerically matched for two closed weeks. One incident ticket set also matches exactly. New report contracts are not yet production-certified. All four earlier scheduled metric publications passed; corrected scheduled roster execution remains unverified.**
+Last updated: 2026-09-25 (17:28 UTC). **Core, metric-display and roster corrections are deployed. The metric investigation has matched 110 CSAT report row-weeks across Menufy and POS, exposed timezone/cohort/report-period discrepancies, and matched one incident ticket set exactly. New report contracts are not yet production-certified. All four earlier scheduled metric publications passed; corrected scheduled roster execution remains unverified.**
 
 ## Current ledger
 
@@ -92,6 +92,14 @@ The report covers 19 active employees; the other four have verified zero current
 solved tickets in the padded interval. Full-population ticket-set parity and production
 qualification remain open. See `2026-09-25-menufy-csat-parity.json`. Both first-increment CI
 runs for 37aa246 passed; draft PR27 contains the diagnostic work, not a production rollout.
+
+POS CSAT now has 64 exact good/bad row-week matches (34 and 30 rows), using 226 unique
+rated tickets with complete metric sets. The saved Last Week report actually uses the last
+30 days; comparisons used unsaved corrected weekly ranges and were discarded. Its 20-group
+scope includes five deleted groups; continuation parameters had to be preserved to obtain a
+complete group inventory. Three active POS identities have verified zero rated-ticket counts.
+The rated-only diagnostic does not claim a survey denominator or response rate. Both CI runs
+for bff1258 passed. Production formulas remain unchanged; call attribution is next.
 
 **Next priority: Friday, September 25 release handoff for Monday, September 28 use.**
 The user is unavailable Saturday and Sunday. Do not plan user participation on those days.
