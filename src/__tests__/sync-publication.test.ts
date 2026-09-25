@@ -17,6 +17,7 @@ import {
 } from "@/lib/db/schema";
 import { runSync } from "@/lib/connectors/sync-engine";
 import type { Connector, IngestedRecord } from "@/lib/connectors/types";
+import { SOLVED_CSAT_CONTRACT } from "@/lib/domain/metrics/source-context";
 
 const org = randomUUID(),
   employee = randomUUID(),
@@ -55,7 +56,7 @@ function connector(records: IngestedRecord[], fail = false): Connector {
         textValue: null,
         booleanValue: null,
         unit: "count",
-        dimensionsJson: null,
+        dimensionsJson: (row.payload.sourceContext as Record<string, unknown> | undefined) ?? null,
       })),
     resolveIdentities: async () => [],
     discoverRoster: async () => [],
@@ -154,6 +155,33 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
     expect(await values()).toEqual(before);
     const [afterSource] = await db.select().from(dataSources).where(eq(dataSources.id, source));
     expect(afterSource?.lastSuccessfulSyncAt).toEqual(beforeSource?.lastSuccessfulSyncAt);
+  });
+  it("preserves explicit source context and atomically rejects mixed contributor definitions", async () => {
+    const context = {
+      sourceContract: SOLVED_CSAT_CONTRACT,
+      reportingTimeZone: "America/Chicago",
+    };
+    const candidate = {
+      ...record(5, "2026-08-02"),
+      periodEnd: "2026-08-08",
+      payload: { value: 100 / 3, sourceContext: context },
+    };
+    expect((await runSync(connector([candidate]), config)).success).toBe(true);
+    const before = await values();
+    expect(
+      before.find((v) => v.periodStart === candidate.periodStart)?.provenanceJson
+    ).toMatchObject(context);
+    expect(before.find((v) => v.periodStart === candidate.periodStart)?.numericValue).toBe(100 / 3);
+    const mixed = { ...record(7, "2026-08-02", "legacy"), periodEnd: "2026-08-08" };
+    const result = await runSync(connector([mixed]), config);
+    expect(result).toMatchObject({ success: false, valuesWritten: 0 });
+    expect(await values()).toEqual(before);
+    expect(
+      await db.select().from(sourceRecords).where(eq(sourceRecords.syncRunId, result.syncRunId))
+    ).toHaveLength(0);
+    expect(
+      await db.select().from(syncRevisions).where(eq(syncRevisions.syncRunId, result.syncRunId))
+    ).toHaveLength(0);
   });
   it("refuses publication when the source is disabled during its fetch", async () => {
     const before = await values();

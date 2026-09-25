@@ -4,6 +4,8 @@ import { and, desc, eq } from "drizzle-orm";
 import { assertCanAccessEmployee, type ManagerContext } from "@/lib/auth/authorization";
 import { assertOrganizationResource } from "@/lib/auth/organization-scope";
 import { requiresTicketAttributionVerification, TICKET_ATTRIBUTION_QUALITY } from "./availability";
+import { readMetricSourceContext } from "./source-context";
+import { metricSourceDescription } from "./source-description";
 
 export async function getStoredMetricHistory(
   ctx: ManagerContext,
@@ -39,6 +41,7 @@ export async function getStoredMetricHistory(
       quality: metricValues.qualityStatus,
       observedAt: metricValues.dataFreshnessAt,
       calculationVersion: metricValues.calculationVersion,
+      provenance: metricValues.provenanceJson,
     })
     .from(metricValues)
     .innerJoin(metricDefinitions, eq(metricDefinitions.id, metricValues.metricDefinitionId))
@@ -53,10 +56,17 @@ export async function getStoredMetricHistory(
   return {
     periods,
     selected,
-    rows: rows.map(({ sourceStrategy, ...row }) =>
-      requiresTicketAttributionVerification({ key: row.key, sourceStrategy })
-        ? { ...row, numericValue: null, quality: TICKET_ATTRIBUTION_QUALITY }
-        : row
-    ),
+    rows: rows.map(({ sourceStrategy, provenance, ...row }) => {
+      const context = readMetricSourceContext(provenance);
+      return {
+        ...row,
+        ...(requiresTicketAttributionVerification({ key: row.key, sourceStrategy })
+          ? { numericValue: null, quality: TICKET_ATTRIBUTION_QUALITY }
+          : {}),
+        sourceContract: context?.sourceContract ?? null,
+        reportingTimeZone: context?.reportingTimeZone ?? "UTC",
+        sourceDescription: metricSourceDescription(row.key, sourceStrategy, context),
+      };
+    }),
   };
 }

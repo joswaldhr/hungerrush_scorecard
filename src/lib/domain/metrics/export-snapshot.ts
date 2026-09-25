@@ -1,5 +1,6 @@
 import { DURATION_FORMAT_LABEL, formatMetricValue, type ValueType } from "./types";
 import { HISTORICAL_TARGET_REASON } from "./availability";
+import { SOURCE_TARGET_REASON } from "./source-context";
 
 export interface ScorecardMetric {
   category: string | null;
@@ -17,9 +18,12 @@ export interface ScorecardMetric {
   dataFreshnessAt: string | null;
   calculationVersion: number;
   targetSource: string | null;
-  targetContextStatus?: "current" | "historical_unverified";
+  targetContextStatus?: "current" | "historical_unverified" | "source_unverified";
   sourceDescription?: string | null;
   missingReason?: string | null;
+  sourceContract?: string | null;
+  reportingTimeZone?: string | null;
+  comparisonUnavailableReason?: string | null;
 }
 
 export interface ExportSnapshot {
@@ -45,8 +49,8 @@ export function exportCsv(snapshot: ExportSnapshot, statusLabel: (status: string
   const rows = [
     [
       "Employee",
-      "Period (UTC)",
-      "Comparison period (UTC)",
+      "Period",
+      "Comparison period",
       "Category",
       "Metric",
       "Current value",
@@ -61,6 +65,9 @@ export function exportCsv(snapshot: ExportSnapshot, statusLabel: (status: string
       "Source measurement",
       "Unavailable reason",
       "Display unit",
+      "Reporting timezone",
+      "Source definition",
+      "Comparison unavailable reason",
     ],
   ];
   for (const metric of snapshot.metrics)
@@ -80,12 +87,17 @@ export function exportCsv(snapshot: ExportSnapshot, statusLabel: (status: string
       metric.targetSource ?? "None",
       metric.targetContextStatus === "historical_unverified"
         ? HISTORICAL_TARGET_REASON
-        : metric.targetContextStatus === "current"
-          ? "Current profile"
-          : "Not recorded",
+        : metric.targetContextStatus === "source_unverified"
+          ? SOURCE_TARGET_REASON
+          : metric.targetContextStatus === "current"
+            ? "Current profile"
+            : "Not recorded",
       metric.sourceDescription ?? "",
       metric.missingReason ?? "",
       metric.valueType === "duration" ? DURATION_FORMAT_LABEL : (metric.unit ?? ""),
+      metric.reportingTimeZone ?? "UTC",
+      metric.sourceContract ?? "Legacy / not recorded",
+      metric.comparisonUnavailableReason ?? "",
     ]);
   // Quoting alone does not prevent spreadsheet formula execution.
   return rows
@@ -104,7 +116,7 @@ export function exportDataDetails(metrics: ScorecardMetric[]) {
   return metrics
     .map(
       (metric) =>
-        `${metric.name}: ${metric.qualityStatus}; observed ${metric.dataFreshnessAt ?? "unavailable"}; calculation v${metric.calculationVersion}; target scope ${metric.targetSource ?? "none"}${metric.targetContextStatus === "historical_unverified" ? `; ${HISTORICAL_TARGET_REASON}` : ""}${metric.sourceDescription ? `; ${metric.sourceDescription}` : ""}${metric.missingReason ? `; ${metric.missingReason}` : ""}${metric.valueType === "duration" ? `; times ${DURATION_FORMAT_LABEL}` : ""}`
+        `${metric.name}: ${metric.qualityStatus}; observed ${metric.dataFreshnessAt ?? "unavailable"}; calculation v${metric.calculationVersion}; reporting timezone ${metric.reportingTimeZone ?? "UTC"}; source definition ${metric.sourceContract ?? "legacy / not recorded"}; target scope ${metric.targetSource ?? "none"}${metric.targetContextStatus === "historical_unverified" ? `; ${HISTORICAL_TARGET_REASON}` : metric.targetContextStatus === "source_unverified" ? `; ${SOURCE_TARGET_REASON}` : ""}${metric.sourceDescription ? `; ${metric.sourceDescription}` : ""}${metric.missingReason ? `; ${metric.missingReason}` : ""}${metric.comparisonUnavailableReason ? `; ${metric.comparisonUnavailableReason}` : ""}${metric.valueType === "duration" ? `; times ${DURATION_FORMAT_LABEL}` : ""}`
     )
     .join("\n");
 }

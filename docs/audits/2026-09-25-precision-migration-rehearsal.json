@@ -1,0 +1,28 @@
+{
+  "observedAt": "2026-09-25T19:17:42.387Z",
+  "environment": "isolated loopback synthetic test database",
+  "migration": "0014 -> 0015",
+  "preservedRows": [
+    {
+      "table": "metric_values",
+      "rows": 0,
+      "checksum": "d751713988987e9331980363e24189ce"
+    },
+    {
+      "table": "normalized_facts",
+      "rows": 0,
+      "checksum": "d751713988987e9331980363e24189ce"
+    }
+  ],
+  "columnTypes": [
+    {
+      "table_name": "metric_values",
+      "data_type": "double precision"
+    },
+    {
+      "table_name": "normalized_facts",
+      "data_type": "double precision"
+    }
+  ],
+  "note": "Widening preserves stored float4 values; it cannot recover previously discarded precision. No production migration applied."
+}

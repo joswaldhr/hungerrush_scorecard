@@ -135,7 +135,14 @@ it("exposes only authorized metric evidence, preserving zero, null and unreadabl
   await db
     .insert(syncRevisions)
     .values([
-      revision(snapshot()),
+      revision({
+        ...snapshot(),
+        provenance_json: {
+          sourceContract: "synthetic-v1",
+          reportingTimeZone: "America/Chicago",
+          rawPrivateSource: "DO NOT EXPOSE",
+        },
+      }),
       revision({ ...snapshot(), numeric_value: null }),
       revision({ ...snapshot(), numeric_value: "invalid" }),
       revision({ ...snapshot(), employee_id: otherEmployee }),
@@ -152,6 +159,10 @@ it("exposes only authorized metric evidence, preserving zero, null and unreadabl
   expect(result.rows.find((row) => row.evidence?.numericValue === 0)?.evidence?.observedAt).toBe(
     "2026-09-20T00:00:00+00:00"
   );
+  expect(result.rows.find((row) => row.evidence?.numericValue === 0)?.evidence).toMatchObject({
+    sourceContract: "synthetic-v1",
+    reportingTimeZone: "America/Chicago",
+  });
   expect(JSON.stringify(result)).not.toMatch(
     /DO NOT EXPOSE|snapshotJson|employee_id|source_record/
   );

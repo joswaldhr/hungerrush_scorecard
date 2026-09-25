@@ -59,3 +59,34 @@ and has both request and elapsed-time ceilings. It does not run an application s
    does not activate historical repair or make the other metric families complete.
 
 Reference: [Zendesk Support search reference](https://support.zendesk.com/hc/en-us/articles/4408886879258-Zendesk-Support-search-reference).
+
+## Source context and precision increment
+
+The candidate publication infrastructure now retains an explicit source contract and
+reporting timezone from normalized facts into metric provenance. Mixed contracts or
+timezones roll back the entire publication. This CSAT contract requires exactly one
+complete employee-period snapshot; it cannot average multiple percentage summaries.
+Current/history/revision views and CSV/text/captured exports retain the observation's
+context. Comparisons across incompatible definitions are unavailable, and targets for
+an explicit replacement definition are withheld until a contract-specific target policy
+is qualified. This increment does not approve existing targets or enable the collector.
+
+A real PostgreSQL test exposed single-precision loss in both normalized facts and
+metric values. Migration 0015 widens only those two numeric columns to double precision.
+New solved-CSAT values skip the legacy two-decimal storage rounding; raw numerator and
+denominator evidence still belongs in the candidate adapter. Double precision follows
+JavaScript number precision; it is not arbitrary-precision decimal arithmetic.
+
+The isolated loopback database migrated 0014 -> 0015; its two metric tables were empty.
+The populated regression separately runs the actual SQL against transaction-local tables
+with null, zero, fractional, large and negative fixtures, checking exact preservation of
+their preexisting stored values and precision of newly written fractions. Neither check
+substitutes for a fresh production backup and restore rehearsal. The production schema
+has not been changed. Widening cannot reconstruct precision lost in historical values.
+
+For deployment, use the established fresh backup/restore gate and bounded lock/statement
+timeouts. Stop overlapping publications before the table rewrite. Application rollback
+can retain the widened compatible columns; do not narrow them and discard new precision.
+Any restored backup must account for intervening writes. Candidate adapter, account/team
+scope binding, effective-period cutover, scheduler runtime budget, hosted checks and
+production verification remain open.

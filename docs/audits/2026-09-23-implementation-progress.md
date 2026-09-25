@@ -2,7 +2,31 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-25 (18:59 UTC). **Core, metric-display and roster corrections are deployed. Both-week CSAT source-ticket sets match for Menufy and POS. Menufy inbound sets match 1,927 named legs across both weeks; POS matches 2,012 legs for one week. The replacement CSAT candidate passes 118 offline cases and one live closed-week collection: 4,357 report tickets match exactly. Candidate tests and independent references pass (32 tests). Integration, target/version context and production release remain unfinished: 0/40 newly certified assignments. Human metrics, recurring shadow/v2 publication and historical repair remain disabled.**
+Last updated: 2026-09-25 (19:20 UTC). **Core, metric-display and roster corrections are deployed. Both-week CSAT source-ticket sets match for Menufy and POS. Menufy inbound sets match 1,927 named legs across both weeks; POS matches 2,012 legs for one week. The replacement CSAT candidate passes 118 offline cases and one live closed-week collection: 4,357 report tickets match exactly. Source-context safeguards and a precision migration are implemented and tested locally; neither the migration nor replacement collector is active in production. Adapter, binding/cutover, hosted and release gates remain unfinished: 0/40 newly certified assignments. Human metrics, recurring shadow/v2 publication and historical repair remain disabled.**
+
+## CSAT publication safeguards — September 25, 19:20 UTC
+
+The latest prior candidate commit `8f68d0e` passed CI 36177033773 and 36177028398.
+This next increment preserves explicit source-contract/timezone context in facts, published
+values, scorecards, historical snapshots, retained revisions and exports. Incompatible
+contributors roll back atomically; comparison values and existing targets are withheld when
+their definitions are not compatible or qualified. Legacy observations retain their own
+meaning. A CSAT snapshot cannot be combined with a second percentage summary.
+
+PostgreSQL exposed float4 precision loss (`100/3` became `33.333332`). Migration 0015 widens
+only `normalized_facts.numeric_value` and `metric_values.numeric_value`; the new CSAT contract
+also avoids legacy two-decimal storage rounding. The isolated local 0014 -> 0015 migration
+succeeded on empty metric tables. A separate populated temporary-table test runs the actual
+migration SQL and preserves six prior values per table, then verifies a new one-third value.
+No production schema or source configuration changed. Existing lost precision is not repaired.
+
+The database integration set passes 34 tests, including publication rollback, comparisons,
+history, revisions and the populated precision migration. Source-context/description cases
+passed eight tests. Updated browser-component/export checks pass fifteen tests. TypeScript
+passed; full lint is running at this checkpoint. Production requires a fresh backup/restore, publication coordination and bounded
+lock waits before this table rewrite. Retain the widened columns for application rollback.
+The remaining candidate gates are in `2026-09-25-csat-release-candidate.md`; raw source sets
+and employee mappings remain private. Hosted Cadence export-file bytes remain unverified.
 
 ## Current ledger
 

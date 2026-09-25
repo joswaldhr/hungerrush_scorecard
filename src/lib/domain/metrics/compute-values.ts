@@ -11,6 +11,7 @@ import { aggregateSourceValues } from "@/lib/domain/reconciliation/compare";
 import { captureSyncRevisions } from "@/lib/connectors/sync-revisions";
 import { chunk } from "@/lib/utils";
 import type { CalculationType } from "./types";
+import { sharedMetricSourceContext, SOLVED_CSAT_CONTRACT } from "./source-context";
 
 // Rows per bulk upsert statement — see the same constant's comment in
 // sync-engine.ts. metricValues has fewer columns than normalizedFacts but
@@ -118,6 +119,7 @@ export async function computeMetricValuesFromFacts(
         values: (number | null)[];
         observed: Date[];
         factIds: string[];
+        contexts: unknown[];
       }
     >();
     for (const fact of facts) {
@@ -129,14 +131,17 @@ export async function computeMetricValuesFromFacts(
         values: [],
         observed: [],
         factIds: [],
+        contexts: [],
       };
       group.values.push(fact.numericValue);
       group.observed.push(fact.sourceObservedAt);
       group.factIds.push(fact.id);
+      group.contexts.push(fact.dimensionsJson);
       groups.set(key, group);
     }
 
     for (const group of groups.values()) {
+      const sourceContext = sharedMetricSourceContext(group.contexts);
       const value = aggregateSourceValues(group.values, def.calculationType as CalculationType);
 
       rows.push({
@@ -145,7 +150,12 @@ export async function computeMetricValuesFromFacts(
         teamId: teamByEmployee.get(group.employeeId) ?? null,
         periodStart: group.periodStart,
         periodEnd: group.periodEnd,
-        numericValue: value === null ? null : Math.round(value * 100) / 100,
+        numericValue:
+          value === null
+            ? null
+            : sourceContext?.sourceContract === SOLVED_CSAT_CONTRACT
+              ? value
+              : Math.round(value * 100) / 100,
         textValue: null,
         calculationVersion: def.version,
         calculatedAt: new Date(),
@@ -161,6 +171,7 @@ export async function computeMetricValuesFromFacts(
           dataSourceId: scope.dataSourceId,
           syncRunId: scope.syncRunId,
           factIds: group.factIds,
+          ...(sourceContext ?? {}),
         },
       });
     }

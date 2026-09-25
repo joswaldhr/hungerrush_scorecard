@@ -23,7 +23,11 @@ import {
   metricValues,
   metricVisibilityOverrides,
 } from "@/lib/db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, and } from "drizzle-orm";
+import {
+  SOLVED_CSAT_CONTRACT,
+  INCOMPATIBLE_COMPARISON_REASON,
+} from "@/lib/domain/metrics/source-context";
 import { getEmployeeMetricsBatch } from "@/lib/domain/metrics/queries";
 import { getStoredMetricHistory } from "@/lib/domain/metrics/history";
 import type { ManagerContext } from "@/lib/auth/authorization";
@@ -226,6 +230,83 @@ function ctxFor(employeeIds: string[]): ManagerContext {
 }
 
 describe("getEmployeeMetricsBatch", () => {
+  it("keeps replacement CSAT context in current/history and withholds incompatible comparisons and targets", async () => {
+    const context = { sourceContract: SOLVED_CSAT_CONTRACT, reportingTimeZone: "America/Chicago" };
+    const currentScope = and(
+      eq(metricValues.metricDefinitionId, RANGE_DEF_ID),
+      eq(metricValues.employeeId, RESTAURANT_EMP_ID),
+      eq(metricValues.periodStart, PERIOD_START)
+    );
+    const [prior] = await db
+      .insert(metricValues)
+      .values({
+        metricDefinitionId: RANGE_DEF_ID,
+        employeeId: RESTAURANT_EMP_ID,
+        teamId: MENUFY_TEAM_ID,
+        periodStart: PREVIOUS_PERIOD_START,
+        periodEnd: "2026-09-13",
+        numericValue: 42,
+      })
+      .returning();
+    const read = async () =>
+      (
+        await getEmployeeMetricsBatch(
+          ctxFor([RESTAURANT_EMP_ID]),
+          [RESTAURANT_EMP_ID],
+          MENUFY_TEAM_ID,
+          PERIOD_START,
+          PREVIOUS_PERIOD_START
+        )
+      )
+        .get(RESTAURANT_EMP_ID)!
+        .find((r) => r.definitionId === RANGE_DEF_ID)!;
+    try {
+      await db
+        .update(metricDefinitions)
+        .set({ key: "csat_response_rate", sourceStrategy: "zendesk" })
+        .where(eq(metricDefinitions.id, RANGE_DEF_ID));
+      await db.update(metricValues).set({ provenanceJson: context }).where(currentScope);
+      expect(await read()).toMatchObject({
+        currentValue: 15,
+        previousValue: null,
+        target: null,
+        targetContextStatus: "source_unverified",
+        comparisonUnavailableReason: INCOMPATIBLE_COMPARISON_REASON,
+        ...context,
+      });
+      expect((await read()).sourceDescription).toContain("offered plus rated surveys");
+      const history = await getStoredMetricHistory(
+        ctxFor([RESTAURANT_EMP_ID]),
+        RESTAURANT_EMP_ID,
+        `${PERIOD_START}/2026-09-20`
+      );
+      expect(history.rows.find((r) => r.key === "csat_response_rate")).toMatchObject(context);
+      await db
+        .update(metricValues)
+        .set({ provenanceJson: context })
+        .where(eq(metricValues.id, prior!.id));
+      expect(await read()).toMatchObject({ previousValue: 42, comparisonUnavailableReason: null });
+      await db
+        .update(metricValues)
+        .set({ numericValue: null, qualityStatus: "missing" })
+        .where(currentScope);
+      expect(await read()).toMatchObject({
+        currentValue: null,
+        qualityStatus: "missing",
+        missingReason: "No offered or rated surveys in the solved-ticket cohort.",
+      });
+    } finally {
+      await db.delete(metricValues).where(eq(metricValues.id, prior!.id));
+      await db
+        .update(metricValues)
+        .set({ provenanceJson: null, numericValue: 15, qualityStatus: "complete" })
+        .where(currentScope);
+      await db
+        .update(metricDefinitions)
+        .set({ key: "test_range_metric", sourceStrategy: null })
+        .where(eq(metricDefinitions.id, RANGE_DEF_ID));
+    }
+  });
   it("explains unsupported Zendesk blanks without treating other sources as unsupported", async () => {
     const read = async () =>
       (

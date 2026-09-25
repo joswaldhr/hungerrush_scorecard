@@ -17,6 +17,11 @@ import type { Direction, ResolvedTarget, ValueType } from "./types";
 import { isEffectiveOn, sevenDayPeriodEnd } from "./effective-dates";
 import { requiresTicketAttributionVerification, TICKET_ATTRIBUTION_QUALITY } from "./availability";
 import { metricSourceDescription, unsupportedMetricReason } from "./source-description";
+import {
+  readMetricSourceContext,
+  compatibleMetricSourceContexts,
+  INCOMPATIBLE_COMPARISON_REASON,
+} from "./source-context";
 
 export interface EmployeeMetricRow {
   definitionId: string;
@@ -35,9 +40,12 @@ export interface EmployeeMetricRow {
   qualityStatus: string;
   dataFreshnessAt: Date | null;
   calculationVersion: number;
-  targetContextStatus?: "current" | "historical_unverified";
+  targetContextStatus?: "current" | "historical_unverified" | "source_unverified";
   sourceDescription?: string | null;
   missingReason?: string | null;
+  sourceContract?: string | null;
+  reportingTimeZone?: string | null;
+  comparisonUnavailableReason?: string | null;
 }
 
 export async function getEmployeeMetrics(
@@ -198,6 +206,11 @@ export async function getEmployeeMetricsBatch(
 
       const current = currentMap.get(defId);
       const previous = previousMap.get(defId);
+      const sourceContext = readMetricSourceContext(current?.provenanceJson);
+      const comparisonCompatible = compatibleMetricSourceContexts(
+        current?.provenanceJson,
+        previous?.provenanceJson
+      );
 
       const candidateTargets = targets
         .filter((t) => t.metricDefinitionId === defId && isEffectiveOn(t, periodStart))
@@ -214,15 +227,18 @@ export async function getEmployeeMetricsBatch(
           line: t.line,
         }));
 
-      const resolvedTarget = historicalTargetContext
-        ? null
-        : resolveTarget(candidateTargets, employeeId, null, teamId, employeeLine);
+      const resolvedTarget =
+        historicalTargetContext || sourceContext !== null
+          ? null
+          : resolveTarget(candidateTargets, employeeId, null, teamId, employeeLine);
       const direction = def.direction as Direction;
       const valueType = def.valueType as ValueType;
       const attributionUnavailable = requiresTicketAttributionVerification(def);
       const currentValue = attributionUnavailable ? null : (current?.numericValue ?? null);
       const missingReason =
-        currentValue === null ? unsupportedMetricReason(def.key, def.sourceStrategy) : null;
+        currentValue === null
+          ? unsupportedMetricReason(def.key, def.sourceStrategy, sourceContext)
+          : null;
 
       rows.push({
         definitionId: defId,
@@ -235,18 +251,27 @@ export async function getEmployeeMetricsBatch(
         displayOrder: assign.displayOrder,
         isPrimary: assign.isPrimary,
         currentValue,
-        previousValue: attributionUnavailable ? null : (previous?.numericValue ?? null),
+        previousValue:
+          attributionUnavailable || !comparisonCompatible ? null : (previous?.numericValue ?? null),
         target: resolvedTarget,
         status: evaluateStatus(currentValue, resolvedTarget, direction),
         qualityStatus: attributionUnavailable
           ? TICKET_ATTRIBUTION_QUALITY
-          : missingReason
+          : missingReason && sourceContext === null
             ? "unsupported"
             : (current?.qualityStatus ?? "missing"),
         dataFreshnessAt: current?.dataFreshnessAt ?? null,
         calculationVersion: current?.calculationVersion ?? 0,
-        targetContextStatus: historicalTargetContext ? "historical_unverified" : "current",
-        sourceDescription: metricSourceDescription(def.key, def.sourceStrategy),
+        targetContextStatus: sourceContext
+          ? "source_unverified"
+          : historicalTargetContext
+            ? "historical_unverified"
+            : "current",
+        sourceDescription: metricSourceDescription(def.key, def.sourceStrategy, sourceContext),
+        sourceContract: sourceContext?.sourceContract ?? null,
+        reportingTimeZone: sourceContext?.reportingTimeZone ?? "UTC",
+        comparisonUnavailableReason:
+          previous && !comparisonCompatible ? INCOMPATIBLE_COMPARISON_REASON : null,
         missingReason,
       });
     }

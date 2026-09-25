@@ -4,6 +4,7 @@ import { MetricIcon } from "@/components/metric-icon";
 import { Card } from "@/components/ui/card";
 import { formatMetricValue } from "@/lib/domain/metrics/types";
 import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
+import { SOURCE_TARGET_REASON } from "@/lib/domain/metrics/source-context";
 import {
   TICKET_ATTRIBUTION_QUALITY,
   TICKET_ATTRIBUTION_REASON,
@@ -33,6 +34,16 @@ function MetricDataDetails({ row }: { row: EmployeeMetricRow }) {
         Data details<span className="sr-only"> for {row.name}</span>
       </summary>
       <dl className="mt-2 space-y-1 text-[11px]">
+        <div>
+          <dt className="inline font-medium">Reporting timezone: </dt>
+          <dd className="inline">{row.reportingTimeZone ?? "UTC"}</dd>
+        </div>
+        {row.comparisonUnavailableReason && (
+          <div>
+            <dt className="inline font-medium">Comparison: </dt>
+            <dd className="inline">{row.comparisonUnavailableReason}</dd>
+          </div>
+        )}
         {row.sourceDescription && (
           <div>
             <dt className="inline font-medium">Source measurement: </dt>
@@ -64,9 +75,11 @@ function MetricDataDetails({ row }: { row: EmployeeMetricRow }) {
           <dd className="inline">
             {row.targetContextStatus === "historical_unverified"
               ? HISTORICAL_TARGET_REASON
-              : row.target
-                ? targetLabels[row.target.source]
-                : "No target applied"}
+              : row.targetContextStatus === "source_unverified"
+                ? SOURCE_TARGET_REASON
+                : row.target
+                  ? targetLabels[row.target.source]
+                  : "No target applied"}
           </dd>
         </div>
       </dl>

@@ -74,7 +74,7 @@ export default async function StoredPeriodsPage({
           </p>
           <form className="flex flex-wrap items-end gap-3">
             <label className="grid gap-2 text-sm">
-              Reporting interval (UTC)
+              Reporting interval (timezone shown per metric)
               <select
                 name="period"
                 defaultValue={`${history.selected.start}/${history.selected.end}`}
@@ -99,7 +99,7 @@ export default async function StoredPeriodsPage({
           </form>
           <section className="overflow-x-auto rounded-lg border border-border">
             <h2 className="border-b border-border p-4 font-semibold">
-              {formatWeekRangeLong(history.selected.start, history.selected.end)} (UTC)
+              {formatWeekRangeLong(history.selected.start, history.selected.end)}
             </h2>
             <table className="w-full text-left text-sm">
               <thead className="text-muted-foreground">
@@ -122,6 +122,10 @@ export default async function StoredPeriodsPage({
                   <tr key={row.id} className="border-t border-border">
                     <th scope="row" className="p-3 font-medium">
                       {row.name}
+                      <p className="mt-1 text-xs font-normal text-muted-foreground">
+                        {row.reportingTimeZone}
+                        {row.sourceDescription ? ` · ${row.sourceDescription}` : ""}
+                      </p>
                     </th>
                     <td className="p-3 tabular-nums">
                       {row.numericValue === null
@@ -193,7 +197,12 @@ export default async function StoredPeriodsPage({
                                 : row.evidence.quality}
                             </td>
                             <td className="p-3">{row.evidence.observedAt ?? "Unavailable"}</td>
-                            <td className="p-3">{row.evidence.calculationVersion}</td>
+                            <td className="p-3">
+                              {row.evidence.calculationVersion}
+                              <p className="text-xs text-muted-foreground">
+                                {row.evidence.reportingTimeZone}
+                              </p>
+                            </td>
                           </>
                         ) : (
                           <td colSpan={4} className="p-3">

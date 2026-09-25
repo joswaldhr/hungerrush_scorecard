@@ -5,12 +5,15 @@ import { dataSources, metricDefinitions, syncRevisions, syncRuns } from "@/lib/d
 import { assertCanAccessEmployee, type ManagerContext } from "@/lib/auth/authorization";
 import { assertOrganizationResource } from "@/lib/auth/organization-scope";
 import { requiresTicketAttributionVerification, TICKET_ATTRIBUTION_QUALITY } from "./availability";
+import { readMetricSourceContext } from "./source-context";
 
 const evidenceSchema = z.object({
   numericValue: z.number().finite().nullable(),
   quality: z.string().max(64),
   observedAt: z.string().datetime({ offset: true }).nullable(),
   calculationVersion: z.number().int().nonnegative(),
+  sourceContract: z.string().nullable().optional(),
+  reportingTimeZone: z.string().nullable().optional(),
 });
 
 /** Only metric evidence is exposed, never raw source payloads or snapshot JSON. */
@@ -44,7 +47,9 @@ export async function getStoredMetricRevisions(
         'numericValue', ${snapshot}->'numeric_value',
         'quality', ${snapshot}->'quality_status',
         'observedAt', ${snapshot}->'data_freshness_at',
-        'calculationVersion', ${snapshot}->'calculation_version'
+        'calculationVersion', ${snapshot}->'calculation_version',
+        'sourceContract', ${snapshot}->'provenance_json'->'sourceContract',
+        'reportingTimeZone', ${snapshot}->'provenance_json'->'reportingTimeZone'
       )`,
       })
       .from(syncRevisions)
@@ -86,12 +91,30 @@ export async function getStoredMetricRevisions(
       .slice(0, 25)
       .map(({ evidence, key, sourceStrategy, cursorAt: _cursorAt, ...row }) => {
         const parsed = evidenceSchema.safeParse(evidence);
+        let context;
+        try {
+          context = parsed.success
+            ? readMetricSourceContext({
+                sourceContract: parsed.data.sourceContract ?? undefined,
+                reportingTimeZone: parsed.data.reportingTimeZone ?? undefined,
+              })
+            : null;
+        } catch {
+          return { ...row, evidence: null };
+        }
+        const safeEvidence = parsed.success
+          ? {
+              ...parsed.data,
+              sourceContract: context?.sourceContract ?? null,
+              reportingTimeZone: context?.reportingTimeZone ?? "UTC",
+            }
+          : null;
         return {
           ...row,
-          evidence: parsed.success
+          evidence: safeEvidence
             ? requiresTicketAttributionVerification({ key, sourceStrategy })
-              ? { ...parsed.data, numericValue: null, quality: TICKET_ATTRIBUTION_QUALITY }
-              : parsed.data
+              ? { ...safeEvidence, numericValue: null, quality: TICKET_ATTRIBUTION_QUALITY }
+              : safeEvidence
             : null,
         };
       }),

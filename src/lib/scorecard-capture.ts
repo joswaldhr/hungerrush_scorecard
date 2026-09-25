@@ -20,7 +20,7 @@ export function freezeScorecardCapture(source: HTMLElement, snapshot: ExportSnap
   heading.textContent = snapshot.employeeName;
   heading.style.fontSize = "24px";
   const period = document.createElement("p");
-  period.textContent = `${snapshot.periodLabel} (UTC) • Comparison: ${snapshot.previousPeriodLabel} (UTC)`;
+  period.textContent = `${snapshot.periodLabel} • Comparison: ${snapshot.previousPeriodLabel} • Reporting timezones are listed in data details.`;
   period.style.marginBottom = "20px";
   const clone = source.cloneNode(true) as HTMLElement;
   clone.removeAttribute("id");

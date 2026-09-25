@@ -1,0 +1,2 @@
+ALTER TABLE "metric_values" ALTER COLUMN "numeric_value" SET DATA TYPE double precision;--> statement-breakpoint
+ALTER TABLE "normalized_facts" ALTER COLUMN "numeric_value" SET DATA TYPE double precision;

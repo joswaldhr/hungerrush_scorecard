@@ -167,6 +167,9 @@ export function ScorecardBody({
         targetContextStatus: r.targetContextStatus,
         sourceDescription: r.sourceDescription,
         missingReason: r.missingReason,
+        sourceContract: r.sourceContract,
+        reportingTimeZone: r.reportingTimeZone,
+        comparisonUnavailableReason: r.comparisonUnavailableReason,
       })),
     [displayRows]
   );

@@ -173,7 +173,7 @@ export function ScorecardExport({
       categories.set(cat, arr);
     }
 
-    let text = `Scorecard: ${employeeName}\nPeriod: ${periodLabel} (UTC)\nComparison: ${previousPeriodLabel} (UTC)\n`;
+    let text = `Scorecard: ${employeeName}\nPeriod: ${periodLabel}\nComparison: ${previousPeriodLabel}\nReporting timezones are listed in data details.\n`;
     for (const [cat, catMetrics] of categories) {
       text += `\n${cat.toUpperCase()}\n`;
       for (const m of catMetrics) {
