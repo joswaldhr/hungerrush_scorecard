@@ -53,12 +53,20 @@ export async function GET(request: Request) {
       source.configurationReference,
       env.ZENDESK_SUBDOMAIN
     );
-    if (probe === "health")
+    if (probe === "health") {
+      const health = await readActionShadowHealth(
+        source.organizationId,
+        source.id,
+        accountReference
+      );
+      const sourceEnabled = health.status !== "disabled";
       return NextResponse.json({
-        enabled: source.status === "configured",
+        enabled: sourceEnabled && Boolean(env.ZENDESK_EMAIL && env.ZENDESK_API_KEY),
+        sourceEnabled,
         ingestionRequested: false,
-        health: await readActionShadowHealth(source.organizationId, source.id, accountReference),
+        health,
       });
+    }
     const lease = await claimActionShadowLease(source.organizationId, source.id, accountReference);
     if (!lease.acquired)
       return NextResponse.json({ enabled: true, busy: true, retryAt: lease.retryAt });

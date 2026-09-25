@@ -66,6 +66,8 @@ selected source. It never acquires a lease, creates a cursor, fetches vendor dat
 facts. The same Preview protection and dedicated shadow credential apply. Vendor email/API
 key are not needed for this read, but source ID and matching account subdomain must be configured.
 No source opt-in returns `enabled: false`; a selected disabled source reports disabled health.
+For selected sources, `sourceEnabled` reports source status; `enabled` additionally requires
+vendor credential configuration. Neither flag asserts that an external scheduler is running.
 Unknown probe names return 400 before database work rather than accidentally invoking ingestion.
 
 Interpret `health.status`, not HTTP 200 alone:

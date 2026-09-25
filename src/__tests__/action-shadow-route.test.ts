@@ -104,7 +104,8 @@ it.each(["configured", "disabled"])(
       })
     );
     expect(await response.json()).toEqual({
-      enabled: status === "configured",
+      enabled: false,
+      sourceEnabled: status === "configured",
       ingestionRequested: false,
       health: { status: healthStatus, publicationVerified: false },
     });
@@ -113,6 +114,37 @@ it.each(["configured", "disabled"])(
     expect(mocks.run).not.toHaveBeenCalled();
   }
 );
+it("reports credential-configured health separately from requesting ingestion", async () => {
+  mocks.env.ACTION_SHADOW_SOURCE_ID = "source";
+  mocks.select.mockReturnValue({
+    from: () => ({
+      where: async () => [
+        {
+          id: "source",
+          organizationId: "org",
+          type: "zendesk",
+          status: "configured",
+          configurationReference: "zendesk-account:synthetic",
+        },
+      ],
+    }),
+  });
+  mocks.health.mockResolvedValue({ status: "current", publicationVerified: false });
+  const response = await GET(
+    new Request("https://test.invalid/api/cron/action-shadow?probe=health", {
+      headers: { authorization: "Bearer fixture" },
+    })
+  );
+  expect(await response.json()).toMatchObject({
+    enabled: true,
+    sourceEnabled: true,
+    ingestionRequested: false,
+    health: { status: "current", publicationVerified: false },
+  });
+  expect(mocks.run).not.toHaveBeenCalled();
+  expect(mocks.claim).not.toHaveBeenCalled();
+});
+
 it.each(["disabled", "retired", "unknown"])(
   "refuses a %s shadow source before taking a lease",
   async (status) => {

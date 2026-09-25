@@ -1759,3 +1759,11 @@ Sixteen health cases, fifteen route cases and seven scheduler cases passed; Type
 full lint and formatting passed. The additional retry-order regression confirms that later
 missing days cannot bypass the oldest day's rate-limit deadline. No hosted source was enabled
 for these tests. CI and Preview deployment follow.
+
+Both 9ea48aa CI runs 36082590020/36082585605 passed. Preview
+`dpl_2JG95EDKec2qm6V3Bh7aJdp7Uybw` is READY. Authentication-only workflow 36082699269
+also passed in two fresh processes with ingestion false. The health report itself is verified
+by the PostgreSQL/route tests; the source remains disabled rather than being enabled for a demo.
+Review added separate source-status and credential-ready flags: a configured source without
+vendor credentials must not report ingestion enabled. A final route regression covers the
+credential-configured case without starting the worker.
