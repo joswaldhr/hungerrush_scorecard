@@ -2,7 +2,35 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-25 (21:14 UTC). **Core, metric-display and roster corrections are deployed. Both-week CSAT source-ticket sets match for Menufy and POS. Menufy inbound sets match 1,927 named legs across both weeks; POS matches 2,012 legs for one week. The replacement CSAT candidate passes 118 offline cases, repeated Menufy source parity and live POS collection for all 39 active identities. Adapter CI passes 628 tests / 73 files. The staff census matches all 62 active employees; explicit policy and per-team selection are implemented. Hosted staging is migrated through 0015 and synthetic CSAT publication passes. Production migration 0015 and the explicit account binding are applied; existing values and revisions are preserved. PR27 is deployed and one controlled CSAT publication is independently verified: 62 employees, 85 values, zero differences. CSAT source-to-production arithmetic is verified for 3/40 assignments; target compatibility and genuine scheduled execution remain open, so full-contract certification remains 0/40. Human metrics, recurring shadow/v2 publication and historical repair remain disabled.**
+Last updated: 2026-09-25 (21:23 UTC). **Core, metric-display and roster corrections are deployed. CSAT and Menufy first reply are live with independent source-to-production verification: 108 current-week values across 62 employees, zero differences. This covers 4/40 assigned team metrics; full-contract certification remains 0/40 while target qualification and genuine replacement scheduler execution remain open. CI passes 670 tests / 86 files. Hosted current/history and actual CSV/PDF/PNG files are verified. Call, active-effort, backlog and human-attribution work remains; human metrics, action shadow/v2 publication and historical repair remain disabled.**
+
+## Production first reply — September 25, 21:23 UTC
+
+PR29 merged as `6187fa4`; production `dpl_D5oNXaBMCDk6eKepzVvMnWeqftJC` is READY
+and assigned. CI 36190440603 / 36190445990 and master 36190793028 pass 670 tests across
+86 files, migrations, lint, TypeScript and production build. The production-only Menufy
+policy begins September 20. Four separate daily slots at 16/18/20/22 UTC are installed;
+the pre-cutover probe returns HTTP 200 skip without a sync.
+
+One labeled controlled current-week request returned HTTP 200 in 73.546 seconds and
+published 23 values. Database timing: 64.412 seconds fetch, 6.689 seconds publication,
+72 source GETs, zero errors. Independent reconstruction verifies all 23 exact cohorts,
+measured sets, sums, denominators and stored means: zero differences. The observation
+contains 1,135 measured durations, 1,488 missing durations and 481 reported zeros. Hashes
+prove unrelated values, earlier periods, original source records and all legacy facts are
+unchanged. Nineteen prior values are retained as revisions.
+
+The production employee scorecard now displays first-reply business time, the measured
+count out of the full cohort, version 2, Central reporting time and withheld incompatible
+comparisons/targets. Large native business durations remain intact; this is ticket service
+time, not active effort or verified reply authorship. Synthetic history, CSV and actual
+PDF/PNG file inspection pass, with aligned columns and preserved context. The one-page
+PDF remains a 17.6 MB raster export; optimization/accessibility remains open.
+
+This adds one production-verified assignment (4/40 total), not 100% metric certification.
+No genuine scheduled first-reply publication is claimed. Next work addresses call-leg
+attribution and remaining duration/count contracts. See the first-reply production
+publication and hosted image export JSON evidence.
 
 ## First-reply hosted verification — September 25, 21:14 UTC
 

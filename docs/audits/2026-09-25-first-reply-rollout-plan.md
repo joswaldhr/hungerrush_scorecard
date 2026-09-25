@@ -1,5 +1,11 @@
 # First-reply correction and acceptance gates
 
+Release status: PR29 is deployed. One controlled production publication independently
+verifies all 23 Menufy values and exact source sets, preserving legacy facts, 19 previous
+values, all other metrics and earlier periods. Current/history and actual CSV/PDF/PNG
+exports pass. The sequence below records the release design; genuine scheduled execution
+and target qualification remain open. See the authoritative implementation ledger.
+
 The response-time defect is a population error as well as a labeling problem. The old
 collector requires tickets to be created and last updated in the week. A later update
 can remove a ticket from that historical population. Long native business durations are
