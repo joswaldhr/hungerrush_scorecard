@@ -1,0 +1,15 @@
+{
+  "observedAt": "2026-09-25T21:57:30.763503+00:00",
+  "sourceReadOnly": true,
+  "independentImplementation": "Python, no candidate imports",
+  "employeeCases": 62,
+  "calculatedCases": 60,
+  "unavailableCases": 2,
+  "fieldComparisons": 4982,
+  "differences": 0,
+  "unavailableReason": "Two active POS employees have an agent leg whose parent call is missing from the completed call export and bounded overlap read.",
+  "sourcePopulationIndependentlyCertified": false,
+  "atomicSnapshot": false,
+  "sourceGetRequests": 0,
+  "productionActivated": false
+}

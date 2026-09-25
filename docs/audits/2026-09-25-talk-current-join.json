@@ -1,0 +1,25 @@
+{
+  "observedAt": "2026-09-25T21:47:36.114Z",
+  "sourceReadOnly": true,
+  "requests": 7,
+  "overlapSeconds": 300,
+  "originalCalls": 8029,
+  "joinedCalls": 8071,
+  "retainedLegs": 16026,
+  "missingParentLegs": 6,
+  "missingParentCalls": 5,
+  "callsWatermark": "2026-09-25T21:47:27.000Z",
+  "legsWatermark": "2026-09-25T21:30:01.000Z",
+  "atomicSnapshot": false,
+  "sha256": "5e617590081d18a2f61a1d444465b01f4fbf3133066dca7c0c686a779ab8568e",
+  "productionActivated": false,
+  "sourceExportExhausted": true,
+  "joinedPopulationComplete": false,
+  "activeEmployeeCasesAffected": 2,
+  "documentedSingleCallProbe": {
+    "requests": 2,
+    "missingParentHttp": 404,
+    "knownControlHttp": 404,
+    "conclusion": "The single-call API does not resolve these legacy export IDs; a 404 is not evidence of deletion."
+  }
+}

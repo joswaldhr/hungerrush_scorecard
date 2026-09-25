@@ -2,7 +2,21 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-25 (21:23 UTC). **Core, metric-display and roster corrections are deployed. CSAT and Menufy first reply are live with independent source-to-production verification: 108 current-week values across 62 employees, zero differences. This covers 4/40 assigned team metrics; full-contract certification remains 0/40 while target qualification and genuine replacement scheduler execution remain open. CI passes 670 tests / 86 files. Hosted current/history and actual CSV/PDF/PNG files are verified. Call, active-effort, backlog and human-attribution work remains; human metrics, action shadow/v2 publication and historical repair remain disabled.**
+Last updated: 2026-09-25 (22:00 UTC). **Core, metric-display and roster corrections are deployed. CSAT and Menufy first reply are live with independent source-to-production verification: 108 current-week values across 62 employees, zero differences. This covers 4/40 assigned team metrics; full-contract certification remains 0/40 while target qualification and genuine replacement scheduler execution remain open. CI passes 670 tests / 86 files. Hosted current/history and actual CSV/PDF/PNG files are verified. Call, active-effort, backlog and human-attribution work remains; human metrics, action shadow/v2 publication and historical repair remain disabled.**
+
+## Talk calculation qualification — September 25, 22:00 UTC
+
+The new, inactive participation calculator matches 111 closed-week employee cases /
+997 comparisons against the independent references with zero differences. A separate
+Python reconstruction of the current-week candidate matches 4,982 fields: 60 numeric
+employee cases and two correctly unavailable POS cases with missing parent-call joins.
+Source extraction and a bounded overlap read made 39 GETs; two additional diagnostic
+single-call GETs returned 404 for both a missing parent and a known control. The current
+joined population is **not certified complete**. A pure resumable cursor transition is
+implemented; durable storage, source-coverage release gates and publication remain work.
+Production remains 4/40 verified assignments. Human metrics/action shadow/action-v2 and
+historical repair remain disabled. See `2026-09-25-talk-rollout-plan.md` and its aggregate
+evidence files. No new call values, production database changes or call schedules were made.
 
 ## Production first reply — September 25, 21:23 UTC
 

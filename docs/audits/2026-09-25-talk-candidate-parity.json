@@ -1,0 +1,33 @@
+{
+  "observedAt": "2026-09-25T21:53:49.090Z",
+  "sourceReadOnly": true,
+  "liveRequests": 0,
+  "candidateContract": "zendesk-talk-participation-candidate-v1",
+  "employeePeriodCases": 111,
+  "fieldComparisons": 997,
+  "differences": 0,
+  "teams": [
+    {
+      "team": "Menufy",
+      "cases": 56,
+      "periods": [
+        "2026-09-13",
+        "2026-09-06"
+      ],
+      "differences": 0
+    },
+    {
+      "team": "POS",
+      "cases": 55,
+      "periods": [
+        "2026-09-13"
+      ],
+      "differences": 0
+    }
+  ],
+  "sourceCoverage": "Retained separately qualified report/export populations; this adds calculator parity, not a new source census.",
+  "durationContract": "All selected agent/supervisor legs except unreachable; include reported zero, exclude null separately per field. Means differ intentionally from Menufy SUM/MAX and POS repeated whole-call hold.",
+  "reportOfferedIsRoutingTotal": false,
+  "outboundNonAnsweredQualified": false,
+  "productionActivated": false
+}
