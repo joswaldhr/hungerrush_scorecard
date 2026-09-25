@@ -2,7 +2,7 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-24 (02:18 UTC September 25). **Core release deployed to production; sign-in/read checks and a controlled current-week sync passed. Unverified attribution and historical target context remain unavailable.**
+Last updated: 2026-09-25 (07:15 UTC). **Core and metric-display fixes are deployed. The first actual scheduled metric publication passed, but its later roster discovery returned HTTP 503. A bounded roster fix is validated locally; other scheduled weeks and rollout verification remain in progress.**
 
 ## Current ledger
 
@@ -10,13 +10,13 @@ Last updated: 2026-09-24 (02:18 UTC September 25). **Core release deployed to pr
 |---|---|---|
 | Audit and metric contracts | Complete | Baseline at ab062c3; audit and contracts in this directory |
 | Reporting context and scope safeguards | Published to production | Navigation, organization and manager-scope regression tests; production current/previous week and history checks passed |
-| Atomic sync publication and freshness | Production controlled sync passed | 186 source records, 1,110 values, zero errors, 170 seconds; only current-week records/values published; scheduled execution still to observe |
+| Atomic sync publication and freshness | Scheduled metric publication passed; roster request failed | Actual scheduler at 06:09 UTC published 192 values with zero metric errors; subsequent overlapping-line roster discovery failed. See 2026-09-25-scheduled-sync-verification.md; offsets 1–3 still being observed |
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 552 tests across 64 files; candidate CI 36085132342/36085128949 and merged-production CI 36085309616 passed, including lint, TypeScript and production build |
+| Combined implementation validation | Released metric correction passed; roster fix locally validated | PR24: 570 tests, master CI 36088295911. Roster fix: 580 tests / 66 files, lint and TypeScript; CI/rollout pending |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database, core UI, worker authentication and bounded ingestion/recovery passed | Separate PostgreSQL 18.6 and Entra app; four fresh ingestion processes, expired-lease takeover and replay verified; source disabled after rehearsal; recurring scheduling remains open |
 | Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; retained full-week census reproduced one default lookup omission, resolved by inactive/deleted-inclusive diagnostic; historical eligibility, human provenance and independent parity remain open |
-| Production rollout / historical repair | Core release deployed; no historical repair | PR22 merged at ef8cd6d; deployment dpl_3Xnasc88uF51ckmZFk5aF2nv87fq READY; see 2026-09-24-production-release.md |
+| Production rollout / historical repair | Core and metric-display correction deployed; no historical repair | PR24 merged at 86a0b10, deployment dpl_6ge4wS2wdDF3PSqWiyTgyXjjZ4vd READY; scheduled roster correction in progress |
 
 ## Git checkpoints
 

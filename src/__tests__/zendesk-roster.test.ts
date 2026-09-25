@@ -9,6 +9,59 @@ const config = { organizationId: "synthetic-org", dataSourceId: "synthetic-sourc
 const user = { id: 42, email: "synthetic@example.invalid", name: "Synthetic", active: true };
 beforeEach(() => vi.resetAllMocks());
 
+it.each(["restaurant", "consumer"])(
+  "retains the existing %s line for one account in both line groups",
+  async (line) => {
+    pages();
+    const result = await new ZendeskConnector().discoverRoster(
+      config,
+      [
+        { externalGroupId: "1", teamId: "team-a", line: "restaurant" },
+        { externalGroupId: "2", teamId: "team-a", line: "consumer" },
+      ],
+      [{ externalId: user.email, teamId: "team-a", line }]
+    );
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({ externalId: user.email, teamId: "team-a", line });
+  }
+);
+
+it.each([
+  [{ externalId: user.email, teamId: "team-a", line: null }],
+  [{ externalId: user.email, teamId: "team-a", line: "unobserved" }],
+  [{ externalId: user.email, teamId: "team-b", line: "consumer" }],
+  [
+    { externalId: user.email, teamId: "team-a", line: "consumer" },
+    { externalId: user.email, teamId: "team-a", line: "restaurant" },
+  ],
+])("rejects missing, unmatched or ambiguous saved assignments (%j)", async (...assignments) => {
+  pages();
+  await expect(
+    new ZendeskConnector().discoverRoster(
+      config,
+      [
+        { externalGroupId: "1", teamId: "team-a", line: "restaurant" },
+        { externalGroupId: "2", teamId: "team-a", line: "consumer" },
+      ],
+      assignments
+    )
+  ).rejects.toThrow("conflicting accounts");
+});
+
+it("never uses a saved line to merge different accounts sharing an email", async () => {
+  pages({ ...user, id: 43 });
+  await expect(
+    new ZendeskConnector().discoverRoster(
+      config,
+      [
+        { externalGroupId: "1", teamId: "team-a", line: "restaurant" },
+        { externalGroupId: "2", teamId: "team-a", line: "consumer" },
+      ],
+      [{ externalId: user.email, teamId: "team-a", line: "consumer" }]
+    )
+  ).rejects.toThrow("conflicting accounts");
+});
+
 function pages(secondUser = user) {
   vi.mocked(zendeskGet)
     .mockResolvedValueOnce({ group_memberships: [{ user_id: 42, group_id: 1 }], next_page: null })

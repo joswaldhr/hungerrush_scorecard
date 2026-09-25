@@ -514,6 +514,40 @@ describe("discoverRosterCandidates", () => {
     }
   });
 
+  it("refuses an assignment changed during external discovery without creating candidates", async () => {
+    const before = await db
+      .select()
+      .from(rosterCandidates)
+      .where(eq(rosterCandidates.dataSourceId, DATA_SOURCE_ID));
+    const connector: Pick<Connector, "discoverRoster"> = {
+      discoverRoster: async (_config, _mappings, assignments) => {
+        expect(assignments).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ externalId: NEW_HIRE_EMAIL, teamId: TEAM_ID, line: null }),
+          ])
+        );
+        await db
+          .update(employees)
+          .set({ line: "consumer" })
+          .where(eq(employees.email, NEW_HIRE_EMAIL));
+        return [];
+      },
+    };
+    try {
+      await expect(
+        discoverRosterCandidates(connector as Connector, DATA_SOURCE_ID)
+      ).rejects.toThrow("Roster assignments changed");
+      expect(
+        await db
+          .select()
+          .from(rosterCandidates)
+          .where(eq(rosterCandidates.dataSourceId, DATA_SOURCE_ID))
+      ).toEqual(before);
+    } finally {
+      await db.update(employees).set({ line: null }).where(eq(employees.email, NEW_HIRE_EMAIL));
+    }
+  });
+
   it("preserves a configured line for automatic and pending candidates", async () => {
     await db
       .update(rosterSourceTeamMappings)
@@ -536,6 +570,7 @@ describe("discoverRosterCandidates", () => {
       expect(discoverRoster.mock.calls[0]).toEqual([
         { dataSourceId: DATA_SOURCE_ID, organizationId: ORG_ID },
         [{ externalGroupId: "1", teamId: TEAM_ID, line: "restaurant" }],
+        expect.any(Array),
       ]);
       const [employee] = await db
         .select()

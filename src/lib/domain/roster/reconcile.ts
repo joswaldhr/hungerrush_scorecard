@@ -36,9 +36,26 @@ export async function discoverRosterCandidates(
   }));
   const mappedTeamIds = new Set(mappings.map((m) => m.teamId));
 
+  const assignmentFields = {
+    externalId: externalIdentities.externalId,
+    teamId: employees.primaryTeamId,
+    line: employees.line,
+  };
+  const assignmentScope = and(
+    eq(externalIdentities.dataSourceId, dataSourceId),
+    eq(employees.organizationId, source.organizationId),
+    eq(employees.employmentStatus, "active")
+  );
+  const existingAssignments = await db
+    .select(assignmentFields)
+    .from(externalIdentities)
+    .innerJoin(employees, eq(employees.id, externalIdentities.employeeId))
+    .where(assignmentScope);
+
   const discovered = await connector.discoverRoster(
     { dataSourceId, organizationId: source.organizationId },
-    groupMappings
+    groupMappings,
+    existingAssignments
   );
   const discoveredIds = new Set(discovered.map((d) => d.externalId));
 
@@ -50,6 +67,20 @@ export async function discoverRosterCandidates(
       .where(eq(dataSources.id, dataSourceId))
       .for("update");
     await assertOrganizationResource(source.organizationId, "source", dataSourceId, tx);
+    const currentAssignments = await tx
+      .select(assignmentFields)
+      .from(externalIdentities)
+      .innerJoin(employees, eq(employees.id, externalIdentities.employeeId))
+      .where(assignmentScope)
+      .for("share");
+    const assignmentKey = (rows: typeof existingAssignments) =>
+      JSON.stringify(rows.map((row) => JSON.stringify(row)).sort());
+    const observedIds = new Set(existingAssignments.map((row) => row.externalId));
+    if (
+      assignmentKey(currentAssignments.filter((row) => observedIds.has(row.externalId))) !==
+      assignmentKey(existingAssignments)
+    )
+      throw new Error("Roster assignments changed during discovery; retry required");
     const currentMappings = await tx
       .select()
       .from(rosterSourceTeamMappings)

@@ -1,5 +1,12 @@
 # Core production release
 
+September 25 update: PR24's metric-duration and display correction is deployed at
+86a0b10. The first actual scheduled current-week metric publication completed, but
+post-publication roster discovery returned HTTP 503. The bounded correction and
+remaining scheduled-week verification are tracked in
+`2026-09-25-scheduled-sync-verification.md`; the evidence below describes the original
+core rollout and remains historical.
+
 The core audit fixes are deployed at [Cadence](https://hungerrush-scorecard.vercel.app).
 [PR22](https://github.com/joswaldhr/hungerrush_scorecard/pull/22) merged as
 `ef8cd6db12e9c3b077a425274a03771c5d48b771`; Vercel deployment

@@ -8,6 +8,7 @@ import type {
   HealthStatus,
   RosterGroupMapping,
   DiscoveredRosterMember,
+  ExistingRosterAssignment,
 } from "./types";
 import { db } from "@/lib/db";
 import { externalIdentities, employees } from "@/lib/db/schema";
@@ -743,14 +744,14 @@ export class ZendeskConnector implements Connector {
 
   async discoverRoster(
     _config: ConnectorConfig,
-    groupMappings: RosterGroupMapping[]
+    groupMappings: RosterGroupMapping[],
+    existingAssignments: ExistingRosterAssignment[] = []
   ): Promise<DiscoveredRosterMember[]> {
     if (groupMappings.length === 0) return [];
 
-    const members: DiscoveredRosterMember[] = [];
     const seenExternalIds = new Map<
       string,
-      { userId: number; teamId: string; line: string | null }
+      { userId: number; member: DiscoveredRosterMember; lines: Set<string | null> }
     >();
 
     for (const mapping of groupMappings) {
@@ -808,31 +809,46 @@ export class ZendeskConnector implements Connector {
           const key = user.email.trim().toLowerCase();
           const previous = seenExternalIds.get(key);
           if (previous) {
-            if (
-              previous.userId !== user.id ||
-              previous.teamId !== mapping.teamId ||
-              previous.line !== (mapping.line ?? null)
-            ) {
+            if (previous.userId !== user.id || previous.member.teamId !== mapping.teamId) {
               throw new Error("Roster identity has conflicting accounts or team mappings");
             }
+            previous.lines.add(mapping.line ?? null);
             continue;
           }
           seenExternalIds.set(key, {
             userId: user.id,
-            teamId: mapping.teamId,
-            line: mapping.line ?? null,
-          });
-          members.push({
-            externalId: user.email,
-            externalEmail: user.email,
-            externalDisplayName: user.name,
-            teamId: mapping.teamId,
-            line: mapping.line ?? null,
+            lines: new Set([mapping.line ?? null]),
+            member: {
+              externalId: user.email,
+              externalEmail: user.email,
+              externalDisplayName: user.name,
+              teamId: mapping.teamId,
+              line: mapping.line ?? null,
+            },
           });
         }
       }
     }
 
-    return members;
+    return [...seenExternalIds.entries()].map(([key, { member, lines }]) => {
+      if (lines.size > 1) {
+        // Group membership proves presence, not a new primary line. Retain an
+        // existing assignment only when this same account is observed in it.
+        const matches = existingAssignments.filter(
+          (assignment) => assignment.externalId.trim().toLowerCase() === key
+        );
+        const existing = matches[0];
+        if (
+          matches.length !== 1 ||
+          !existing ||
+          existing.teamId !== member.teamId ||
+          existing.line === null ||
+          !lines.has(existing.line)
+        )
+          throw new Error("Roster identity has conflicting accounts or team mappings");
+        return { ...member, externalId: existing.externalId, line: existing.line };
+      }
+      return member;
+    });
   }
 }

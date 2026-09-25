@@ -57,6 +57,12 @@ export interface DiscoveredRosterMember {
   line?: string | null;
 }
 
+export interface ExistingRosterAssignment {
+  externalId: string;
+  teamId: string | null;
+  line: string | null;
+}
+
 export interface SyncResult {
   recordsIngested: number;
   recordsNormalized: number;
@@ -109,6 +115,7 @@ export interface Connector {
    */
   discoverRoster(
     config: ConnectorConfig,
-    groupMappings: RosterGroupMapping[]
+    groupMappings: RosterGroupMapping[],
+    existingAssignments?: ExistingRosterAssignment[]
   ): Promise<DiscoveredRosterMember[]>;
 }
