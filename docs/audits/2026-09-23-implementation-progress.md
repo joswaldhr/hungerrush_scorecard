@@ -1541,7 +1541,7 @@ vendor-level reconciliation.
 Both source-scope CI runs 36051133675/36051129146 passed all 493 tests across 59 files,
 lint, TypeScript and build. Preview dpl_5jHfXG6bu72Qnw52F24ZXboBtPdV is READY at 54778e1.
 
-## Functional theme contrast — September 24
+## Functional theme contrast â€” September 24
 
 Measured token combinations exposed low-contrast light-theme primary buttons, status text,
 muted text and input boundaries, plus several dark-theme combinations. Functional colors
@@ -1571,7 +1571,7 @@ The 79ca0d5 control follow-up passed CI 36052750919/36052743364 and deployed REA
 `dpl_7qsbhQW8tZxiL45wDURgyKDxKKgo`. Browser computed styles confirm the revised search
 border in both themes, including light RGB 123/137/156 against white. Dark mode was restored.
 
-## Retained closed-week diagnostic — September 24
+## Retained closed-week diagnostic â€” September 24
 
 The original weekly probe lost its in-memory cohort when actor lookup failed. The existing
 loopback rehearsal now accepts `LOCAL_SHADOW_END_DAY` for one to seven closed days. Multi-day
@@ -1588,11 +1588,11 @@ compared with the documented inactive/deleted lookup option; those responses do 
 historical roles or human activity.
 
 Seven date/scope regressions and eight existing worker/actor cases passed, along with local
-TypeScript and lint. The first September 13–19 batch retained three pages from each stream
+TypeScript and lint. The first September 13â€“19 batch retained three pages from each stream
 with zero normalized facts and no publication timestamp. Further fresh-process batches are
 in progress; this entry does not claim a completed week or explain the original actor failure.
 
-## Unused dependency removal — September 24
+## Unused dependency removal â€” September 24
 
 Repository searches found no Radix tabs imports or component callers, and `pnpm why` showed
 only the direct application dependency. Removed `@radix-ui/react-tabs` and its lock entries;
@@ -1602,7 +1602,7 @@ full CI/build check follows. Existing navigation and Radix primitives remain in 
 Both e716468 diagnostic CI runs 36053392040/36053384104 and both 6ad1093 dependency
 CI runs 36053740377/36053733130 passed 500 tests across 60 files, lint, TypeScript and build.
 
-## Atomic visibility editor saves and control labels — September 24
+## Atomic visibility editor saves and control labels â€” September 24
 
 Selecting both brands and both Menufy lines previously made three independent server requests.
 A later failure could leave only part of the intended visibility change applied. The editor
@@ -1623,11 +1623,11 @@ plus TypeScript and lint. Full CI follows. No real visibility setting was change
 
 Both full visibility CI runs 36054548710/36054541845 passed 505 tests across 61 files,
 lint, TypeScript and build. Preview dpl_HuruSpDjuFUqdBxu13zHdqoaTv5u became READY at
-59f4f72. Its historical synthetic scorecard retained the selected September 13–19 interval,
+59f4f72. Its historical synthetic scorecard retained the selected September 13â€“19 interval,
 ordinary zero/missing distinctions and human-attribution/context warnings. Administrative
 save behavior was verified in PostgreSQL and component tests; no hosted real-user rule was changed.
 
-## Completed weekly collection and reproduced lookup omission — September 24
+## Completed weekly collection and reproduced lookup omission â€” September 24
 
 All 24 fresh loopback collection processes completed: 85,066 in-period ticket events from
 88 pages and 17,172 call legs from 32 pages, using 128 GET requests. Checkpoint continuity
@@ -1647,7 +1647,7 @@ human-only withholding remains intact. See `2026-09-24-weekly-retained-diagnosti
 is needed to continue examining this retained week. Historical eligibility, attribution review,
 independent metric parity and operational activation gates remain open.
 
-## Sidebar focus contrast — September 24
+## Sidebar focus contrast â€” September 24
 
 The light theme retains a dark sidebar, so its focus outlines now use the dedicated sidebar
 ring rather than the darker main-content ring. The contrast diagnostic adds sidebar-background
@@ -1655,3 +1655,36 @@ and sidebar-accent cases in both themes: all 100 current token/surface checks pa
 out-of-gamut clipping. The original 96-pair before/after reports remain historical evidence;
 `2026-09-24-theme-contrast-focus.json` records the expanded check. Hosted keyboard verification
 follows with the Preview deployment.
+
+Both 367f7e1 CI runs 36079703912/36079701938 passed. Preview
+`dpl_6hzB92HGT4Y2f9Eo8gh3NdjMxxyg` is READY. Keyboard Tab focused sidebar navigation
+with a visible 2px outline: RGB 0/156/166 in light mode and 64/184/176 in dark mode.
+Dark mode was restored. The first reload failed during an account lookup with ECONNRESET;
+retry and a subsequent reload succeeded. A bounded read-recovery and error-redaction follow-up
+is in progress; successful retry does not erase the original failure.
+
+## Immutable audit evidence and actor disagreement â€” September 24
+
+The offline audit capture binds minimal candidate-child evidence to the source account,
+completed export checkpoint, immutable observation key and retained event hashes/digest.
+Ticket/event/time and candidate child identity/status must match. It retains audit author
+and export updater separately: disagreement is explicit evidence, never reassignment or
+human certification. Parent and child channel/rule metadata remain separate. Comment bodies,
+custom-field values, rule names, contact details and raw vendor metadata are omitted.
+
+Source disable/rebind or event mutation during collection prevents commit. Concurrent matching
+captures reuse one immutable winner; conflicting captures fail. Replays validate the binding
+and evidence digest without fetching. Historical eligibility and human attribution are always
+unknown. No server route, review decision, metric publisher or production database write was added.
+
+Seventeen PostgreSQL cases passed, including mismatch rejection, author/updater disagreement,
+privacy stripping, observation isolation, mutation races and concurrent captures. The bounded
+loopback rehearsal retained first/middle/last candidates by event ID from September 13â€“19:
+three GETs, three audits, 16 candidate children. One author differs from the export updater;
+one email-origin audit has 13 rule-linked child overrides. This deterministic sample is not
+a population estimate or reviewed human evidence. A fresh-process replay made zero GETs.
+Both processes found zero normalized facts and no publication timestamp. Aggregate-only
+reports: `2026-09-24-retained-audit-evidence.json` and its `-replay.json` counterpart.
+TypeScript and lint passed; full CI follows. Two audit documents also had legacy non-UTF-8
+dash bytes repaired without changing their meaning. The next separate fix addresses the
+observed Preview connection reset.

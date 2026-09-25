@@ -267,9 +267,9 @@ observation tools are explicitly separate and remain organization-scoped; existi
 metadata and publishing behavior are unchanged by these shadow-only guards.
 
 
-### Retained full-week account census — September 24
+### Retained full-week account census â€” September 24
 
-The September 13–19 cohort is now retained in a separate loopback-only observation, with
+The September 13â€“19 cohort is now retained in a separate loopback-only observation, with
 85,066 ticket events and 17,172 call legs. Across six bounded account processes, all 10,607
 positive IDs were checked in 107 batches. One default lookup omitted an account; the
 `include_deleted=true` diagnostic restored exact coverage for that batch. No duplicate or
@@ -280,3 +280,20 @@ This establishes current account coverage after the inclusive diagnostic, not hi
 employee-role eligibility or human authorship. No eligible employee totals were published
 and no human-only availability guard was relaxed. The detailed report and aggregate evidence
 are `2026-09-24-weekly-retained-diagnostic.md` and `2026-09-24-weekly-retained-summary.json`.
+
+### Source-bound audit evidence
+
+`captureActionAuditEvidence` is an offline-only capture primitive. It uses the documented
+[single-audit GET](https://developer.zendesk.com/api-reference/ticketing/tickets/ticket_audits/#show-audit)
+and retains minimal candidate-child channel/rule metadata against a completed, account-bound
+export observation. Exact ticket/event/time and child identity/status matches are required.
+Audit author and export updater are separate claims; disagreement is retained explicitly.
+Parent channels do not replace child overrides or establish human activity. Both attribution
+and historical eligibility remain unknown, and these captures are not accepted review decisions.
+
+Saved captures validate source/event binding and digest, reject mutations or conflicting
+concurrent captures, and replay without fetching. The three-audit weekly rehearsal retained
+one author/updater disagreement and an email-origin audit with 13 rule-linked child changes.
+Fresh-process replay made zero source requests. Counts and limitations are retained in
+`2026-09-24-retained-audit-evidence.json` and `2026-09-24-retained-audit-evidence-replay.json`.
+No production or hosted data was written and no employee totals were published.
