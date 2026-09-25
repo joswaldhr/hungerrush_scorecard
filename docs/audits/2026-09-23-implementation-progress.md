@@ -12,7 +12,7 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Published to Preview | Navigation, organization and manager-scope regression tests; keyboard checks passed |
 | Atomic sync publication and freshness | Published to Preview | PostgreSQL rollback tests; untouched periods preserved; live hosted trigger still gated |
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 532 tests across 63 files passed in PostgreSQL 18 CI run 36081493636 at 55d477e, including lint, TypeScript and production build |
+| Combined implementation validation | Passed | 552 tests across 64 files passed in PostgreSQL 18 CI run 36082934341 at 0aea6e8, including lint, TypeScript and production build |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database, core UI, worker authentication and bounded ingestion/recovery passed | Separate PostgreSQL 18.6 and Entra app; four fresh ingestion processes, expired-lease takeover and replay verified; source disabled after rehearsal; recurring scheduling remains open |
 | Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; retained full-week census reproduced one default lookup omission, resolved by inactive/deleted-inclusive diagnostic; historical eligibility, human provenance and independent parity remain open |
@@ -1767,3 +1767,10 @@ by the PostgreSQL/route tests; the source remains disabled rather than being ena
 Review added separate source-status and credential-ready flags: a configured source without
 vendor credentials must not report ingestion enabled. A final route regression covers the
 credential-configured case without starting the worker.
+
+Final readiness-flag validation at 0aea6e8 passed CI 36082934341: 552 tests across 64 files,
+lint, TypeScript, migrations and production build. Preview
+`dpl_3XenavGaBj913rv8eF5GEE5pzc2j` is READY. The companion push CI is recorded in GitHub;
+the source and Railway ingestion flags remain disabled. These checks complete this health
+read-path increment, not the outstanding attribution, historical context, independent metric
+reconciliation, retention, alert-delivery or production-rollout gates.
