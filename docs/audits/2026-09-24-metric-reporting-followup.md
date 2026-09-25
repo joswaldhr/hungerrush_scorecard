@@ -61,3 +61,27 @@ transfer and distinct-call eligibility. Validate intended POS/Menufy report coho
 target applicability against the reports the managers actually use. Verify survey invitation
 coverage before producing response rate. Complete verified human activity attribution before
 publishing Tickets Updated/Resolved. Do not label successful tests as business parity.
+
+## Duration and readability plan
+
+The user specifically requested consistent time measurement and aligned columns.
+
+1. Use `H:MM:SS` for every supported duration on scorecards, comparison periods, targets,
+   stored history and CSV/text/PDF/image exports. Convert minutes/hours/seconds only at the
+   formatting boundary. Round to the nearest second, preserve zero, and never wrap at 24h.
+   Counts and percentages retain their own formats. Unknown duration units remain explicit
+   rather than being guessed. Export metadata declares the display format.
+2. Keep business time distinct from elapsed time: ticket first reply/full resolution use the
+   Zendesk business-minute measurements; calls use elapsed duration. Do not multiply a target
+   in storage or change a period/timezone to make a displayed number look better.
+3. Disclose the current full-resolution-versus-handling mismatch and the first-reply cohort.
+   The user-visible time standard is a readability correction, not certification of the
+   underlying cohort, employee attribution or handling-effort target.
+4. Give each category the same five fixed column widths, with horizontal scrolling on narrow
+   screens. Long metric names and explanations must wrap without moving the numeric columns.
+5. Verify boundary rounding, equivalent units, values over 24 hours, actual/prior/target parity
+   and exported units. Visually inspect the hosted scorecard at desktop and narrow widths.
+
+Tickets Resolved remains blocked by the selected verified-human policy; it is not missing
+because of the duration formatter or a failed employee sync. Source-based action publication
+must resolve that separately. Call attribution needs its own correction as established above.

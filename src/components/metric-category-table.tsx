@@ -114,7 +114,14 @@ export function MetricCategoryTable({
         <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{title}</h2>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-xs">
+        <table className="w-full min-w-[640px] table-fixed text-xs print:min-w-0">
+          <colgroup>
+            <col className="w-[32%]" />
+            <col className="w-[18%]" />
+            <col className="w-[18%]" />
+            <col className="w-[16%]" />
+            <col className="w-[16%]" />
+          </colgroup>
           <thead>
             <tr className="border-b border-border/80 bg-slate-50/30 dark:bg-slate-900/30 text-left font-semibold text-muted-foreground">
               <th className="py-2 px-4">Metric</th>
