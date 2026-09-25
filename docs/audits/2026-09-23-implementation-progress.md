@@ -89,7 +89,8 @@ Remaining activation and operating checks:
 Stored reporting intervals, observation ordering, sync leases, and atomic reconciliation
 claims now have regression coverage. Remaining risks include historical targets/team context,
 independent source reconciliation, worst-case fetch budgets/resumability, revision retention,
-historical context reconstruction, and production rollout of visibility uniqueness. See the
+historical context reconstruction, and scheduled-run observation. Visibility uniqueness is
+now enforced in production. See the
 audit for the full backlog; these safeguards do not complete the entire overhaul.
 
 ## Repeatable local staging rehearsal
