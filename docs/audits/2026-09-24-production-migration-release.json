@@ -1,0 +1,15 @@
+{
+  "observedAt": "2026-09-25T02:09:10.333Z",
+  "candidate": "4f1dd1643f763ae84f004d35526c2bcc02b9b440",
+  "backupSha256": "9859a7acc1997ce52b51d7a2cd3c808620532bc59dfcf3a1644e81a0cd51241e",
+  "migrationsApplied": [
+    "0012_cool_wasp",
+    "0013_visibility_scope_uniqueness",
+    "0014_roster_candidate_line"
+  ],
+  "existingApplicationDataUnchanged": true,
+  "revisionRows": 0,
+  "legacyJournalGapPreserved": true,
+  "previousDeployment": "dpl_n5978weiS8aDUPYswkWAMkmbw7JL",
+  "deploymentPerformed": false
+}

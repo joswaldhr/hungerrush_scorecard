@@ -96,3 +96,23 @@ the in-app browser download observation timed out and its clipboard bridge retur
 prior editor clipboard even after the page showed the copy-success toast. Neither observation
 proves an application export defect or proves the exported file is correct. Existing automated
 export-context/CSV tests pass; do not substitute that for hosted file-byte inspection.
+
+## Production migration checkpoint — 02:09 UTC September 25
+
+The guarded operator command rechecked the exact candidate HEAD, clean checkout, restored
+backup less than one hour old, all 11 migration hashes, zero recent running jobs, zero duplicate
+visibility scopes, and an exact content match between every production table and the restored
+backup manifest. It then ran the standard transactional Drizzle migrator with 5-second lock
+and 60-second statement limits. Migrations 0012–0014 applied successfully. Every existing
+application table retained its row count and content digest (excluding only the new nullable
+roster column); the new revision table is empty. The historical 0009 journal gap was preserved.
+See `2026-09-24-production-migration-release.json`. No historical repair or metric publication
+was run. Application deployment is the next step.
+
+Application rollback target remains `dpl_n5978weiS8aDUPYswkWAMkmbw7JL`. Preserve the compatible
+schema and revision evidence on rollback. Vercel's documented rollback restores the prior
+deployment's configuration and cron definitions and disables automatic production-domain
+assignment until a later promotion. The official CLI implements rollback with an empty-body
+POST to `/v9/projects/{projectId}/rollback/{deploymentId}`. This action has not been invoked.
+References: [Vercel Instant Rollback](https://vercel.com/docs/instant-rollback) and
+[official CLI implementation](https://github.com/vercel/vercel/blob/main/packages/cli/src/commands/rollback/request-rollback.ts).

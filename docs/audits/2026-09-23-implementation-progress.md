@@ -2,7 +2,7 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed; production rollout not performed.**
+Last updated: 2026-09-24 (02:09 UTC September 25). **Production migrations 0012–0014 applied with existing data preserved; application deployment pending.**
 
 ## Current ledger
 
@@ -16,7 +16,7 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database, core UI, worker authentication and bounded ingestion/recovery passed | Separate PostgreSQL 18.6 and Entra app; four fresh ingestion processes, expired-lease takeover and replay verified; source disabled after rehearsal; recurring scheduling remains open |
 | Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; retained full-week census reproduced one default lookup omission, resolved by inactive/deleted-inclusive diagnostic; historical eligibility, human provenance and independent parity remain open |
-| Production rollout / historical repair | Not performed | Release gate below must be completed first |
+| Production rollout / historical repair | Schema upgraded; application deployment pending; no historical repair | Fresh restore and candidate fetch checks passed; see 2026-09-25-release-plan.md |
 
 ## Git checkpoints
 
