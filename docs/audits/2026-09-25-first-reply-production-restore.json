@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-09-25T21:08:44.569Z",
+  "sourceReadOnly": true,
+  "dumpFormat": "PostgreSQL custom",
+  "plaintextBytes": 2919898,
+  "sha256": "1f0972c31b7d6194ac2ab19422be2ce7302c31e6484fb2f64df32cc3fc4ca9c0",
+  "encryption": "Windows DPAPI CurrentUser",
+  "encryptedRoundTrip": true,
+  "restored": true,
+  "tableCount": 33,
+  "rowCount": 40032,
+  "allTableDigestsMatch": true,
+  "restoredCopyMigrationsThrough": "0015_metric_numeric_precision",
+  "existingApplicationDataUnchangedAfterMigration": true,
+  "globalsAndOriginalOwnershipRestored": false,
+  "limitation": "Recovery requires this Windows user profile; not a portable disaster-recovery copy or provider PITR.",
+  "operatorCompletion": "Exact restore verified; cleanup encountered a relative launcher profile. All private files were moved outside the repository to the restricted backup directory, with the disposable server stopped.",
+  "privateDisposableCopyRetained": true,
+  "backupPathGuardAdded": true
+}

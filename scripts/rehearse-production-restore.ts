@@ -84,7 +84,16 @@ async function main() {
   assert.equal(sourceUrl.hostname, "metro.proxy.rlwy.net");
   assert.equal(sourceUrl.port, "57223");
   assert.equal(sourceUrl.pathname, "/railway");
-  const base = path.join(os.homedir(), ".codex", "private-backups", "cadence");
+  const profile = os.homedir();
+  // Reject a missing/relative launcher profile before creating any source backup.
+  // Node coerces a null environment entry into the literal relative path "null".
+  assert(path.isAbsolute(profile), "Absolute Windows profile directory required");
+  const relativeProfile = path.relative(process.cwd(), profile);
+  assert(
+    relativeProfile.startsWith("..") || path.isAbsolute(relativeProfile),
+    "Recovery profile must be outside the repository"
+  );
+  const base = path.join(profile, ".codex", "private-backups", "cadence");
   const root = path.join(base, `restore-${Date.now()}`);
   assert.equal(path.dirname(root), base);
   await mkdir(root, { recursive: true });

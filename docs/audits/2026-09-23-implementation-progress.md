@@ -2,7 +2,21 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-25 (20:40 UTC). **Core, metric-display and roster corrections are deployed. Both-week CSAT source-ticket sets match for Menufy and POS. Menufy inbound sets match 1,927 named legs across both weeks; POS matches 2,012 legs for one week. The replacement CSAT candidate passes 118 offline cases, repeated Menufy source parity and live POS collection for all 39 active identities. Adapter CI passes 628 tests / 73 files. The staff census matches all 62 active employees; explicit policy and per-team selection are implemented. Hosted staging is migrated through 0015 and synthetic CSAT publication passes. Production migration 0015 and the explicit account binding are applied; existing values and revisions are preserved. PR27 is deployed and one controlled CSAT publication is independently verified: 62 employees, 85 values, zero differences. CSAT source-to-production arithmetic is verified for 3/40 assignments; target compatibility and genuine scheduled execution remain open, so full-contract certification remains 0/40. Human metrics, recurring shadow/v2 publication and historical repair remain disabled.**
+Last updated: 2026-09-25 (21:08 UTC). **Core, metric-display and roster corrections are deployed. Both-week CSAT source-ticket sets match for Menufy and POS. Menufy inbound sets match 1,927 named legs across both weeks; POS matches 2,012 legs for one week. The replacement CSAT candidate passes 118 offline cases, repeated Menufy source parity and live POS collection for all 39 active identities. Adapter CI passes 628 tests / 73 files. The staff census matches all 62 active employees; explicit policy and per-team selection are implemented. Hosted staging is migrated through 0015 and synthetic CSAT publication passes. Production migration 0015 and the explicit account binding are applied; existing values and revisions are preserved. PR27 is deployed and one controlled CSAT publication is independently verified: 62 employees, 85 values, zero differences. CSAT source-to-production arithmetic is verified for 3/40 assignments; target compatibility and genuine scheduled execution remain open, so full-contract certification remains 0/40. Human metrics, recurring shadow/v2 publication and historical repair remain disabled.**
+
+## First-reply candidate — September 25, 21:08 UTC
+
+The complete Menufy creation census matches independent arithmetic and exact ticket sets
+for all 23 active employees in both observed weeks: 46 cases, zero differences, 180 GETs
+in 180.634 seconds. The new dedicated first-reply record preserves the shared legacy
+agent-statistics payload and explicitly supersedes only its response-time contribution.
+PostgreSQL tests prove unrelated values/earlier weeks and raw legacy facts remain intact,
+later legacy refreshes cannot replace the corrected value, null corrections remain null,
+and a changed team rolls the publication back. Source sample counts, business-time label,
+precision and version 2 follow the stored contract. Hosted synthetic publication also passes with unchanged unrelated values, retained legacy
+facts/revisions, idempotent replay and null corrections. Full CI, hosted rendering/export,
+fresh backup and production enablement follow; no first-reply production claim is made.
+See `2026-09-25-first-reply-rollout-plan.md` and the two aggregate qualification files.
 
 ## Production CSAT publication — September 25, 20:40 UTC
 

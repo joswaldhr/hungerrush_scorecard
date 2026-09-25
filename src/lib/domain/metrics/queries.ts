@@ -16,7 +16,11 @@ import { resolveVisibility } from "./visibility-resolution";
 import type { Direction, ResolvedTarget, ValueType } from "./types";
 import { isEffectiveOn, sevenDayPeriodEnd } from "./effective-dates";
 import { requiresTicketAttributionVerification, TICKET_ATTRIBUTION_QUALITY } from "./availability";
-import { metricSourceDescription, unsupportedMetricReason } from "./source-description";
+import {
+  metricSourceDescription,
+  metricSourceName,
+  unsupportedMetricReason,
+} from "./source-description";
 import {
   readMetricSourceContext,
   compatibleMetricSourceContexts,
@@ -243,7 +247,7 @@ export async function getEmployeeMetricsBatch(
       rows.push({
         definitionId: defId,
         key: def.key,
-        name: def.name,
+        name: metricSourceName(def.name, def.key, sourceContext),
         category: def.category,
         unit: def.unit,
         valueType,

@@ -11,6 +11,8 @@ const envSchema = z.object({
   ZENDESK_API_KEY: z.string().min(1).optional(),
   // Private, explicit prospective CSAT ownership policy. Unset until release qualification.
   ZENDESK_CSAT_POLICY: z.string().min(1).optional(),
+  // Separate prospective first-reply collector; disabled until qualified.
+  ZENDESK_FIRST_REPLY_POLICY: z.string().min(1).optional(),
 
   // Assembled connector (optional)
   ASSEMBLED_API_KEY: z.string().min(1).optional(),

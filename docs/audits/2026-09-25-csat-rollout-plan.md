@@ -1,7 +1,10 @@
 # CSAT rollout plan after source qualification
 
-No production activation has occurred. This plan replaces the assumption that another
-collector can simply be appended to the existing scheduled sync.
+Status update: PR27 is deployed and the controlled production publication is independently
+verified (85 values / 62 employees, zero differences); see the authoritative implementation
+ledger and `2026-09-25-csat-production-publication.json`. Genuine scheduled execution and
+target qualification remain open. The preparation sequence below records the release
+design and its historical gates; statements about pending activation describe that stage.
 
 ## Qualified source behavior
 

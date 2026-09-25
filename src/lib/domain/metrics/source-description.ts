@@ -1,4 +1,14 @@
-import { SOLVED_CSAT_CONTRACT, type MetricSourceContext } from "./source-context";
+import {
+  FIRST_REPLY_CONTRACT,
+  SOLVED_CSAT_CONTRACT,
+  type MetricSourceContext,
+} from "./source-context";
+
+export function metricSourceName(name: string, key: string, context?: MetricSourceContext | null) {
+  return key === "avg_response_time" && context?.sourceContract === FIRST_REPLY_CONTRACT
+    ? "Avg First Reply — Business Time"
+    : name;
+}
 
 /** Describe the stored observation's contract, not the latest collector's behavior. */
 export function metricSourceDescription(
@@ -6,7 +16,13 @@ export function metricSourceDescription(
   sourceStrategy: string | null,
   context?: MetricSourceContext | null
 ) {
-  if (sourceStrategy !== "zendesk") return null;
+  if (key === "avg_response_time" && context?.sourceContract === FIRST_REPLY_CONTRACT) {
+    const sample =
+      context.sampleCount === undefined
+        ? ""
+        : ` ${context.sampleCount} measured tickets out of ${context.cohortCount}; tickets without a reported duration are excluded, reported zeros are included.`;
+    return `Mean Zendesk business time to the first public agent reply on tickets created in this period (${context.reportingTimeZone}), attributed to their current assignee within the configured groups and brand scope. This measures ticket service time, not the employee's active effort or every reply.${sample}`;
+  }
   if (context?.sourceContract === SOLVED_CSAT_CONTRACT) {
     const cohort = `Tickets last solved in this period (${context.reportingTimeZone}), attributed to their current assignee at observation time within the configured groups and brand scope.`;
     if (key === "csat_score")
@@ -14,6 +30,7 @@ export function metricSourceDescription(
     if (key === "csat_response_rate")
       return `${cohort} Good plus bad ratings divided by offered plus rated surveys. Offered is the vendor survey state, not confirmed email delivery.`;
   }
+  if (sourceStrategy !== "zendesk") return null;
   const descriptions = new Map<string, string>([
     [
       "avg_handle_time",
@@ -84,11 +101,14 @@ export function unsupportedMetricReason(
   context?: MetricSourceContext | null
 ) {
   if (sourceStrategy !== "zendesk") return null;
+  if (key === "avg_response_time" && context?.sourceContract === FIRST_REPLY_CONTRACT)
+    return "No reported first-reply business durations in the created-ticket cohort.";
   if (context?.sourceContract === SOLVED_CSAT_CONTRACT) {
     if (key === "csat_score") return "No rated tickets in the solved-ticket cohort.";
     if (key === "csat_response_rate")
       return "No offered or rated surveys in the solved-ticket cohort.";
   }
+  if (sourceStrategy !== "zendesk") return null;
   if (key === "csat_response_rate")
     return "CSAT response rate is not connected: the survey invitation denominator is unavailable.";
   if (key === "missed_calls" || key === "declined_calls")

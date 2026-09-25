@@ -1,0 +1,18 @@
+{
+  "observedAt": "2026-09-25T21:06:17.331Z",
+  "environment": "hosted-synthetic-staging",
+  "vendorRequests": 0,
+  "productionAccess": false,
+  "values": 1,
+  "meanBusinessMinutes": 0.6666666666666666,
+  "expectedDisplay": "0:00:40",
+  "sampleCount": 3,
+  "cohortCount": 4,
+  "unrelatedValuesUnchanged": true,
+  "legacyFactRetained": true,
+  "legacyRevisionPreserved": true,
+  "identicalReplayWrites": 0,
+  "nullCorrection": true,
+  "finalFixtureRestored": true,
+  "hostedUiAndExportVerified": false
+}

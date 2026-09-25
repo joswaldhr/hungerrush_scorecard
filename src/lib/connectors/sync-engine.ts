@@ -17,7 +17,7 @@ import { logger } from "@/lib/logger";
 import { safeErrorMessage } from "@/lib/error-summary";
 import { computeMetricValuesFromFacts } from "@/lib/domain/metrics/compute-values";
 import { chunk } from "@/lib/utils";
-import { SOLVED_CSAT_CONTRACT } from "@/lib/domain/metrics/source-context";
+import { completeSnapshotVersion } from "@/lib/domain/metrics/source-context";
 
 function payloadHash(payload: Record<string, unknown>): string {
   return createHash("sha256").update(JSON.stringify(payload)).digest("hex");
@@ -463,22 +463,24 @@ async function normalizeIngestedRecords(
     );
 
   const previousFacts: (typeof normalizedFacts.$inferSelect)[] = [];
-  // The qualified CSAT cohort is bound to the employee's active team at fetch.
+  // Each qualified snapshot cohort is bound to the employee's active team at fetch.
   // Lock that assignment through publication instead of passing the legacy null
   // team or allowing a roster edit between this check and the commit.
-  const csatEmployeeIds = [
+  const snapshotEmployeeIds = [
     ...new Set(
       records
         .filter(
           (record) =>
-            (record.payloadJson as Record<string, unknown>)?.sourceContract === SOLVED_CSAT_CONTRACT
+            completeSnapshotVersion(
+              (record.payloadJson as Record<string, unknown>)?.sourceContract as string | undefined
+            ) !== null
         )
         .map((record) => record.employeeId)
         .filter((id): id is string => id !== null)
     ),
   ];
-  const csatTeams = new Map<string, string | null>();
-  for (const batch of chunk(csatEmployeeIds, WRITE_CHUNK_SIZE)) {
+  const snapshotTeams = new Map<string, string | null>();
+  for (const batch of chunk(snapshotEmployeeIds, WRITE_CHUNK_SIZE)) {
     const current = await tx
       .select({ id: employees.id, teamId: employees.primaryTeamId })
       .from(employees)
@@ -490,7 +492,7 @@ async function normalizeIngestedRecords(
         )
       )
       .for("share");
-    for (const employee of current) csatTeams.set(employee.id, employee.teamId);
+    for (const employee of current) snapshotTeams.set(employee.id, employee.teamId);
   }
   for (const batch of chunk(
     records.map((record) => record.id),
@@ -520,16 +522,18 @@ async function normalizeIngestedRecords(
     ) {
       throw new Error("Source attribution changed; reviewed reassignment repair required");
     }
-    const isSolvedCsat =
-      (record.payloadJson as Record<string, unknown>)?.sourceContract === SOLVED_CSAT_CONTRACT;
-    if (isSolvedCsat && (!record.employeeId || !csatTeams.has(record.employeeId)))
-      throw new Error("CSAT employee is no longer active in the source organization");
+    const isCompleteSnapshot =
+      completeSnapshotVersion(
+        (record.payloadJson as Record<string, unknown>)?.sourceContract as string | undefined
+      ) !== null;
+    if (isCompleteSnapshot && (!record.employeeId || !snapshotTeams.has(record.employeeId)))
+      throw new Error("Snapshot employee is no longer active in the source organization");
     if (!record.employeeId || !record.periodStart || !record.periodEnd) continue;
 
     const facts = connector.normalizeRecords(
       [{ sourceRecordId: record.id, payload: record.payloadJson as Record<string, unknown> }],
       record.employeeId,
-      isSolvedCsat ? csatTeams.get(record.employeeId)! : null,
+      isCompleteSnapshot ? snapshotTeams.get(record.employeeId)! : null,
       record.periodStart,
       record.periodEnd
     );

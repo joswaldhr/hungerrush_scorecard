@@ -1,6 +1,10 @@
 import { expect, it } from "vitest";
-import { metricSourceDescription, unsupportedMetricReason } from "./source-description";
-import { SOLVED_CSAT_CONTRACT } from "./source-context";
+import {
+  metricSourceDescription,
+  metricSourceName,
+  unsupportedMetricReason,
+} from "./source-description";
+import { FIRST_REPLY_CONTRACT, SOLVED_CSAT_CONTRACT } from "./source-context";
 
 it("uses replacement semantics only for explicitly classified observations", () => {
   const context = { sourceContract: SOLVED_CSAT_CONTRACT, reportingTimeZone: "America/Chicago" };
@@ -32,4 +36,21 @@ it("does not attach Zendesk semantics to manual values or unknown keys", () => {
   expect(metricSourceDescription("avg_handle_time", "manual")).toBeNull();
   expect(unsupportedMetricReason("missed_calls", "manual")).toBeNull();
   expect(metricSourceDescription("constructor", "zendesk")).toBeNull();
+});
+
+it("describes first reply with its measured denominator and preserves legacy names", () => {
+  const c = {
+    sourceContract: FIRST_REPLY_CONTRACT,
+    reportingTimeZone: "America/Chicago",
+    sampleCount: 3,
+    cohortCount: 5,
+  };
+  expect(metricSourceName("Avg Response", "avg_response_time", c)).toContain("First Reply");
+  expect(metricSourceName("Avg Response", "avg_response_time", null)).toBe("Avg Response");
+  expect(metricSourceDescription("avg_response_time", "zendesk", c)).toContain(
+    "3 measured tickets out of 5"
+  );
+  expect(unsupportedMetricReason("avg_response_time", "zendesk", c)).toContain(
+    "No reported first-reply"
+  );
 });

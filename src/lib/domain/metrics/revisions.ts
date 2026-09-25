@@ -6,6 +6,7 @@ import { assertCanAccessEmployee, type ManagerContext } from "@/lib/auth/authori
 import { assertOrganizationResource } from "@/lib/auth/organization-scope";
 import { requiresTicketAttributionVerification, TICKET_ATTRIBUTION_QUALITY } from "./availability";
 import { readMetricSourceContext } from "./source-context";
+import { metricSourceName } from "./source-description";
 
 const evidenceSchema = z.object({
   numericValue: z.number().finite().nullable(),
@@ -115,6 +116,7 @@ export async function getStoredMetricRevisions(
           : null;
         return {
           ...row,
+          name: metricSourceName(row.name, key, context),
           evidence: safeEvidence
             ? requiresTicketAttributionVerification({ key, sourceStrategy })
               ? { ...safeEvidence, numericValue: null, quality: TICKET_ATTRIBUTION_QUALITY }

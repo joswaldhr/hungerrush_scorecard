@@ -1,0 +1,18 @@
+{
+  "observedAt": "2026-09-25T20:46:21.367Z",
+  "mode": "offline independent first-reply candidate replay",
+  "sourceSnapshotSha256": "0a9c5920ffa0ffefcc980d188d6a0c7c530626cddcdde2ce6d717faaf9ff777b",
+  "retainedTickets": 284,
+  "retainedMetricSets": 284,
+  "cases": 4,
+  "independentDifferences": 0,
+  "exactCohortAndMeasuredSetsMatch": true,
+  "unroundedSumsAndMeansMatch": true,
+  "vendorRequests": 0,
+  "databaseWrites": 0,
+  "productionActivated": false,
+  "limitations": [
+    "One retained incident identity across two weeks and two timezones, not team-wide source qualification.",
+    "No target, hosted publication or production replacement is claimed."
+  ]
+}
