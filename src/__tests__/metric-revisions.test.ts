@@ -132,25 +132,23 @@ it("preserves stored ticket revisions while withholding unverified human counts"
 });
 
 it("exposes only authorized metric evidence, preserving zero, null and unreadable evidence", async () => {
-  await db
-    .insert(syncRevisions)
-    .values([
-      revision({
-        ...snapshot(),
-        provenance_json: {
-          sourceContract: "synthetic-v1",
-          reportingTimeZone: "America/Chicago",
-          rawPrivateSource: "DO NOT EXPOSE",
-        },
-      }),
-      revision({ ...snapshot(), numeric_value: null }),
-      revision({ ...snapshot(), numeric_value: "invalid" }),
-      revision({ ...snapshot(), employee_id: otherEmployee }),
-      revision({ ...snapshot(), metric_definition_id: foreignDefinition }),
-      revision(snapshot(), foreignRun),
-      revision(snapshot(), run, "source_record"),
-      revision({ ...snapshot(), period_start: "2026-09-14" }),
-    ]);
+  await db.insert(syncRevisions).values([
+    revision({
+      ...snapshot(),
+      provenance_json: {
+        sourceContract: "synthetic-v1",
+        reportingTimeZone: "America/Chicago",
+        rawPrivateSource: "DO NOT EXPOSE",
+      },
+    }),
+    revision({ ...snapshot(), numeric_value: null }),
+    revision({ ...snapshot(), numeric_value: "invalid" }),
+    revision({ ...snapshot(), employee_id: otherEmployee }),
+    revision({ ...snapshot(), metric_definition_id: foreignDefinition }),
+    revision(snapshot(), foreignRun),
+    revision(snapshot(), run, "source_record"),
+    revision({ ...snapshot(), period_start: "2026-09-14" }),
+  ]);
   const result = await getStoredMetricRevisions(ctx, employee, start, end);
   expect(result.rows).toHaveLength(3);
   expect(result.rows.map((row) => row.evidence?.numericValue)).toEqual(
