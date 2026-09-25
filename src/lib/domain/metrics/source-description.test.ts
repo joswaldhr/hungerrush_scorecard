@@ -1,5 +1,15 @@
 import { expect, it } from "vitest";
 import { metricSourceDescription, unsupportedMetricReason } from "./source-description";
+import { SOLVED_CSAT_CONTRACT } from "./source-context";
+
+it("uses replacement semantics only for explicitly classified observations", () => {
+  const context = { sourceContract: SOLVED_CSAT_CONTRACT, reportingTimeZone: "America/Chicago" };
+  expect(metricSourceDescription("csat_score", "zendesk", context)).toContain("last solved");
+  expect(metricSourceDescription("csat_score", "zendesk")).toContain("ratings received");
+  expect(unsupportedMetricReason("csat_response_rate", "zendesk", context)).toContain(
+    "No offered or rated"
+  );
+});
 
 it("does not imply employee handling effort or offered events from whole-ticket/call metrics", () => {
   expect(metricSourceDescription("avg_handle_time", "zendesk")).toContain("does not measure");

@@ -1,0 +1,48 @@
+{
+  "observedAt": "2026-09-25T16:57:02.252Z",
+  "calculatedAt": "2026-09-25T16:59:55.555Z",
+  "inputSha256": "8d19ef0222bf2ceed64ad08e324221fa4afda25de9cccee539e02819e26c684c",
+  "mode": "offline independent arithmetic; no publication",
+  "population": {
+    "complete": true,
+    "expectedCount": 187,
+    "pages": 2,
+    "basis": "solved-current-assignee"
+  },
+  "limitations": [
+    "Source completeness is a supplied census assertion, not certified by this runner.",
+    "Current assignment and source observation must match the comparison reference.",
+    "A creation census cannot qualify solved-date CSAT; separate population required.",
+    "Results do not certify human activity, historical assignment, or manager-report parity."
+  ],
+  "results": [
+    {
+      "case": 1,
+      "startDay": "2026-09-13",
+      "endDay": "2026-09-19",
+      "timeZone": "UTC",
+      "cohortCount": 150,
+      "good": 0,
+      "bad": 0,
+      "rated": 0,
+      "surveyed": 13,
+      "satisfactionPercent": null,
+      "responsePercent": 0,
+      "comparison": null
+    },
+    {
+      "case": 2,
+      "startDay": "2026-09-13",
+      "endDay": "2026-09-19",
+      "timeZone": "America/Chicago",
+      "cohortCount": 147,
+      "good": 0,
+      "bad": 0,
+      "rated": 0,
+      "surveyed": 12,
+      "satisfactionPercent": null,
+      "responsePercent": 0,
+      "comparison": null
+    }
+  ]
+}

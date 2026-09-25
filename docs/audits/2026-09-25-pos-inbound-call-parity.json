@@ -1,0 +1,67 @@
+{
+  "observedAt": "2026-09-25T18:14:22.971Z",
+  "report": "copied employee inbound report; diagnostic parity only",
+  "period": {
+    "start": "2026-09-13",
+    "end": "2026-09-19",
+    "timezone": "America/Chicago",
+    "basis": "leg-created",
+    "savedDefault": "30 days ago through yesterday"
+  },
+  "namedRows": 55,
+  "uniqueIdentityMatches": 55,
+  "matchedRows": 55,
+  "measures": [
+    "accepted agent legs",
+    "declined agent legs",
+    "missed agent legs",
+    "report mislabeled abandonment count",
+    "mean leg talk seconds",
+    "mean whole-call hold weighted by joined legs",
+    "mean leg duration seconds",
+    "mean non-null leg consultation seconds"
+  ],
+  "scope": {
+    "selectedGroupLabels": 18,
+    "resolvedByCurrentOrDeletedName": 14,
+    "unresolvedHistoricalLabels": 4,
+    "direction": "inbound",
+    "unreachableExcluded": true,
+    "agentAndSupervisorDurations": true
+  },
+  "findings": [
+    "The on-hold abandonment label actually counts IVR, queue and voicemail abandonment.",
+    "Report duration display truncates fractional seconds; raw arithmetic is retained independently.",
+    "Repeated agent legs reweight the whole-call hold average.",
+    "Named supervisor legs enter general durations/participation while built-in acceptance remains agent-only."
+  ],
+  "limitations": [
+    "One closed week has full selected-agent source-leg parity; second week and future agent/group scope binding remain open.",
+    "Four historical selected group labels are unresolved; numerical parity does not establish future scope binding.",
+    "Matching an incorrectly labeled formula is not approval to publish it.",
+    "No production formula, target, identity or source setting was changed."
+  ],
+  "csvVerification": {
+    "observedAt": "2026-09-25T18:23:00.465Z",
+    "bytes": 14583,
+    "sha256": "5b9db5dbadd8755dce57544c97962a0a429f4853b96564bdf9d643ab1e854ce4",
+    "rows": 55,
+    "columns": 11,
+    "measuresCompared": 8,
+    "mismatches": 0,
+    "countsExact": true,
+    "maxDurationDifferenceSeconds": 1.7763568394002505e-15,
+    "absoluteToleranceSeconds": 1e-9
+  },
+  "sourceSetVerification": {
+    "period": "2026-09-13/2026-09-19",
+    "exportBytes": 536479,
+    "sha256": "efded97861cc556e3f641a812893328e5881413b95dee15930c42494ca19d93c",
+    "reportedLegs": 2012,
+    "independentLegs": 2012,
+    "duplicates": 0,
+    "missing": 0,
+    "extra": 0,
+    "identityAndEightMeasureMatches": 2012
+  }
+}

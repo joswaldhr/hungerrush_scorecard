@@ -2,7 +2,124 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-25 (07:55 UTC). **Core, metric-display and roster corrections are deployed. All four actual scheduled metric publications passed with exact reporting intervals and zero metric errors; no runs are stuck. The current-week request's later roster failure was corrected in PR25, but the corrected roster path has not yet run on the scheduler. The final one-time verification is complete.**
+Last updated: 2026-09-25 (20:31 UTC). **Core, metric-display and roster corrections are deployed. Both-week CSAT source-ticket sets match for Menufy and POS. Menufy inbound sets match 1,927 named legs across both weeks; POS matches 2,012 legs for one week. The replacement CSAT candidate passes 118 offline cases, repeated Menufy source parity and live POS collection for all 39 active identities. Adapter CI passes 628 tests / 73 files. The staff census matches all 62 active employees; explicit policy and per-team selection are implemented. Hosted staging is migrated through 0015 and synthetic CSAT publication passes. Production migration 0015 and the explicit account binding are applied; existing values and revisions are preserved. Replacement publication is pending deployment. Binding/cutover, hosted and release gates remain unfinished: 0/40 newly certified assignments. Human metrics, recurring shadow/v2 publication and historical repair remain disabled.**
+
+## Production CSAT preparation — September 25, 20:31 UTC
+
+Release candidate `37dcca3` passed CI 36185792408 / 36185786907 and Preview
+`dpl_Hrc7tZKm4siErDagUUh6cjUC1S1x` is READY. Production still exactly matched the
+20:15 UTC restored backup and had no running syncs. The guarded migration transaction at
+20:29 UTC widened both numeric columns, preserved all existing application values and
+10,792 revision rows, retained the intentional older journal gap, and set the explicit
+Zendesk account binding. A separate read-only application check validates all 62 active
+identities, two teams and three metric assignments against the private policy.
+
+The production-only policy is configured for the prospective 2026-09-20 boundary; it
+becomes active with the release deployment. Earlier periods, POS response rate and human
+activity publication remain outside the new contract. The rollback deployment is
+`dpl_13VC6maonBNasapMFosPq9KfwDQU` (`e83e891`); rollback must remove policy ownership
+and restore the four original cron entries together, retaining widened columns and revisions.
+
+Actual hosted CSV, PDF and PNG files have now been inspected. PDF/PNG show aligned columns,
+correct percentages, preserved context and unavailable human activity. The PDF is a raster
+capture and 13.9 MB; search/accessibility and file-size optimization remain separate work.
+Production publication and genuine scheduled execution are not yet claimed.
+
+## Hosted CSAT qualification — September 25, 20:22 UTC
+
+Commit `0881ac0` passed CI 36184492751 / 36184488065: 647 tests / 79 files,
+PostgreSQL migrations, lint, TypeScript and build. Preview deployment
+`dpl_4ZHp9Zg8Czx8NoaW9jnWzQUL9f4a` is READY. Hosted staging upgraded through 0015,
+preserving all 21,262 rows across 32 application tables.
+
+The fresh read-only production backup at 20:15 UTC restored all 39,798 rows across 33
+tables with exact digests. Widening the restored copy through 0015 preserved application
+data. Production schema and configuration remain unchanged.
+
+The first synthetic attempt stopped at an outdated one-organization fixture guard; the
+script now selects the named synthetic organization and leaves the separate disabled shadow
+organization untouched. The next attempt exposed a real publisher integration defect:
+normalization always received a null team, so valid team-bound CSAT snapshots were rejected.
+The transaction rolled back. The fix resolves and locks active employee/team rows during
+publication; missing identities and changed teams reject the batch. The PostgreSQL regression
+now exercises a non-null team through the actual publisher, plus missing and reassigned
+identities. All 28 focused pipeline tests pass, including the extended 18 publication cases.
+
+The fixed hosted synthetic rehearsal passed replacement, precise 100/3 storage, version 2,
+legacy revision retention, zero-write identical replay, explicit null correction and final
+fixture restoration. Preview displays 33.3% / 75.0%, America/Chicago, version 2 and the
+unverified-target explanation. Hosted history also shows the corrected values and retained 99% legacy predecessor, precise-contract predecessors and null corrections. Actual hosted CSV bytes were downloaded and inspected: 2,309 bytes, UTF-8 BOM, six rows, correct displayed percentages/context and unavailable human counts. PDF/PNG byte verification remains separate. No vendor
+requests or production writes were used for the hosted publication rehearsal.
+
+## Bounded CSAT invocation — September 25, 20:15 UTC
+
+The complete two-team read-only rehearsal finished in 146.427 seconds using 152 GETs:
+62 active employees, 85 normalized facts, and zero differences against independent
+calculations or retained prior observations. See `2026-09-25-combined-csat-runtime.json`.
+Policy/staff increment `d2809ca` passed both CI runs 36181714899 / 36181709051
+(634 tests / 75 files, migrations, lint, TypeScript and build).
+
+The dedicated one-week route now uses a global 240-request / 240-second fetch budget,
+strict account endpoint checks and no automatic retries. Legacy collection skips CSAT
+only for policy-owned teams and periods, including manual refreshes. Publication rejects
+employee/team changes during collection and source account-binding changes. Missing
+identities, ambiguous assignments, foreign organizations and partial fetches fail closed.
+Sixty-three targeted cases across nine files, TypeScript and focused ESLint pass.
+No policy or new cron schedule is configured. Production remains unchanged.
+
+Migration operators now include 0015 with bounded lock/statement waits. Exact backup
+restore comparison remains byte-representation strict; migration comparisons normalize
+only the widening numeric cast. Hosted migration/publication/export inspection and a
+fresh production restore rehearsal remain release gates, not completed checks.
+
+## CSAT adapter checkpoint — September 25, 19:30 UTC
+
+**19:45 UTC continuation:** adapter commit `f9840fd` passed CI 36180161226 / 36180157579
+(628 tests / 73 files, migrations, lint, TypeScript and build). Live POS collection now
+qualifies all 39 active identities and exactly matches all 105 closed-week rated tickets.
+The repeated Menufy observation covers all 23 active identities and retains the exact
+4,357-ticket report cohort with no source changes. A four-request staff census matches all
+62 active employees. The prospective source/team policy parser, explicit per-team metric
+selection and frozen replacement calculation version pass 24 targeted tests; staff census
+guards pass three tests. See `2026-09-25-csat-rollout-plan.md`: measured runtime requires a
+separate bounded CSAT invocation, not sequential addition to the existing 195–235-second
+sync. Production configuration, schema and cron entries remain unchanged.
+
+Source-contract context now also includes a canonical account/agent/group/brand fingerprint.
+The adapter retains minimal source fields, numerator/denominator ticket sets and explicit
+nulls. Actual normalizer + PostgreSQL publication replaces a legacy score, keeps its revision,
+preserves a repeating fraction, skips an identical replay and retracts an empty correction.
+Forty-two targeted cases, TypeScript and focused ESLint pass. A private offline replay matches
+all 23 retained live cases / 46 facts / 4,357 cohort tickets, without source requests or DB writes.
+
+The previous context/precision increment passed CI 36179269877 / 36179265357 at `7572eb8`
+(623 tests / 72 files, migration, lint, TypeScript and build). Its local formatting issue was
+corrected. Current adapter CI follows. The production fetch path, source data and schema remain
+unchanged; see `2026-09-25-csat-release-candidate.md` for the remaining activation gates.
+
+## CSAT publication safeguards — September 25, 19:20 UTC
+
+The latest prior candidate commit `8f68d0e` passed CI 36177033773 and 36177028398.
+This next increment preserves explicit source-contract/timezone context in facts, published
+values, scorecards, historical snapshots, retained revisions and exports. Incompatible
+contributors roll back atomically; comparison values and existing targets are withheld when
+their definitions are not compatible or qualified. Legacy observations retain their own
+meaning. A CSAT snapshot cannot be combined with a second percentage summary.
+
+PostgreSQL exposed float4 precision loss (`100/3` became `33.333332`). Migration 0015 widens
+only `normalized_facts.numeric_value` and `metric_values.numeric_value`; the new CSAT contract
+also avoids legacy two-decimal storage rounding. The isolated local 0014 -> 0015 migration
+succeeded on empty metric tables. A separate populated temporary-table test runs the actual
+migration SQL and preserves six prior values per table, then verifies a new one-third value.
+No production schema or source configuration changed. Existing lost precision is not repaired.
+
+The database integration set passes 34 tests, including publication rollback, comparisons,
+history, revisions and the populated precision migration. Source-context/description cases
+passed eight tests. Updated browser-component/export checks pass fifteen tests. TypeScript
+passed; full lint is running at this checkpoint. Production requires a fresh backup/restore, publication coordination and bounded
+lock waits before this table rewrite. Retain the widened columns for application rollback.
+The remaining candidate gates are in `2026-09-25-csat-release-candidate.md`; raw source sets
+and employee mappings remain private. Hosted Cadence export-file bytes remain unverified.
 
 ## Current ledger
 
@@ -58,6 +175,48 @@ Prioritize the core release over further optional audit expansion; do not imply 
 target guarantees resolution of vendor attribution evidence.
 
 ## Release gate and next work
+
+**September 25 follow-on request: investigate and correct all POS/Menufy Zendesk metrics.**
+The user asked for a deep investigation and an accuracy plan after scheduled verification.
+See `2026-09-25-zendesk-metric-accuracy-plan.md` for the complete assigned-metric matrix,
+manager-report discovery, independent event/leg reconciliation and publication gates.
+The user supplied manager identities privately as report-discovery starting points and
+does not know the report names. This expands the prior core-release scope into metric
+correctness; it does not certify the current meanings or activate shadow/v2/historical repair.
+The user authorized execution. Live findings, the aggregate census and the 23-key /
+40-assignment acceptance ledger are now recorded in `2026-09-25-zendesk-live-findings.md`,
+`2026-09-25-metric-accuracy-census.json` and `2026-09-25-metric-acceptance-ledger.md`.
+The subsequent plan review added a 90-minute first execution checkpoint, independent
+source-population and calculation checks, evidence-specific historical qualification,
+independently releasable correction batches, and progress that does not count unavailable
+metrics as completed. Code review confirmed the existing reconciliation tool compares
+normalized facts to published values and defaults to 5% tolerance for non-count metrics;
+it cannot serve as the independent accuracy certificate. A separate offline reference now
+calculates creation-cohort first reply and solved-date CSAT from minimal private snapshots,
+with no connector/normalizer imports or database/vendor writes. Ten focused tests,
+TypeScript, focused ESLint and formatting passed. Live GETs reproduced stored first-reply arithmetic but exposed a
+last-update filter excluding 133 prior-week created tickets in the incident sample. A
+separate solved-date census with the exact report groups matched one visible CSAT row;
+Central time gives 12 surveyed tickets where UTC gives 13. This is sample numeric parity,
+not full ticket-set/team/two-week qualification. No new production formulas are published.
+
+The next investigation increment expanded Menufy CSAT to all 23 report rows and both closed
+weeks: 46 exact good/bad/surveyed count and displayed-percentage matches. It caught a
+diagnostic search omission of 44 ratings with comments; the corrected 4,315-ticket census
+matches the expanded source count and has complete metric-set coverage. One incident
+employee/week also matches all 12 exact surveyed ticket IDs from Explore decomposition.
+The report covers 19 active employees; the other four have verified zero current-assignee
+solved tickets in the padded interval. Full-population ticket-set parity and production
+qualification remain open. See `2026-09-25-menufy-csat-parity.json`. Both first-increment CI
+runs for 37aa246 passed; draft PR27 contains the diagnostic work, not a production rollout.
+
+POS CSAT now has 64 exact good/bad row-week matches (34 and 30 rows), using 226 unique
+rated tickets with complete metric sets. The saved Last Week report actually uses the last
+30 days; comparisons used unsaved corrected weekly ranges and were discarded. Its 20-group
+scope includes five deleted groups; continuation parameters had to be preserved to obtain a
+complete group inventory. Three active POS identities have verified zero rated-ticket counts.
+The rated-only diagnostic does not claim a survey denominator or response rate. Both CI runs
+for bff1258 passed. Production formulas remain unchanged; call attribution is next.
 
 **Next priority: Friday, September 25 release handoff for Monday, September 28 use.**
 The user is unavailable Saturday and Sunday. Do not plan user participation on those days.

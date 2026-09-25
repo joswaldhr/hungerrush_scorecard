@@ -39,7 +39,8 @@ async function powershell(script: string, env = process.env) {
 type Inventory = { table: string; count: number; digest: string | null }[];
 async function inventory(
   tx: postgres.TransactionSql,
-  omitNewRosterLine = false
+  omitNewRosterLine = false,
+  normalizeNumericWidening = false
 ): Promise<Inventory> {
   await tx`set local timezone = 'UTC'`;
   const tables = await tx`select schemaname, tablename from pg_tables
@@ -49,8 +50,14 @@ async function inventory(
   for (const table of tables) {
     const omit =
       omitNewRosterLine && table.tablename === "roster_candidates" ? ["suggested_line"] : [];
+    // Exact source/restore comparison remains unchanged. Only migration comparisons
+    // normalize the JSON representation of the same widened numeric value.
+    const value =
+      normalizeNumericWidening && ["metric_values", "normalized_facts"].includes(table.tablename)
+        ? tx`(to_jsonb(t) || jsonb_build_object('numeric_value', t.numeric_value::double precision))`
+        : tx`to_jsonb(t)`;
     const [row] = await tx`select count(*)::int as count,
-      md5(string_agg(md5((to_jsonb(t) - ${omit}::text[])::text), '' order by md5((to_jsonb(t) - ${omit}::text[])::text))) as digest
+      md5(string_agg(md5((${value} - ${omit}::text[])::text), '' order by md5((${value} - ${omit}::text[])::text))) as digest
       from ${tx(table.schemaname)}.${tx(table.tablename)} t`;
     result.push({
       table: `${table.schemaname}.${table.tablename}`,
@@ -73,7 +80,7 @@ async function main() {
   assert(process.env.RESTORE_PG_BIN, "Explicit PostgreSQL 18 binary directory required");
   const sourceUrl = new URL(process.env.DATABASE_URL ?? "");
   const journal = JSON.parse(await readFile("drizzle/meta/_journal.json", "utf8"));
-  assert.equal(journal.entries.at(-1).tag, "0014_roster_candidate_line");
+  assert.equal(journal.entries.at(-1).tag, "0015_metric_numeric_precision");
   assert.equal(sourceUrl.hostname, "metro.proxy.rlwy.net");
   assert.equal(sourceUrl.port, "57223");
   assert.equal(sourceUrl.pathname, "/railway");
@@ -214,11 +221,13 @@ async function main() {
         await local`select 1 from information_schema.columns where table_schema='public'
         and table_name='roster_candidates' and column_name='suggested_line'`;
       const baseline = await local.begin("read only", (tx) =>
-        inventory(tx, lineExists.length === 0)
+        inventory(tx, lineExists.length === 0, true)
       );
+      await local`set lock_timeout = '10s'`;
+      await local`set statement_timeout = '120s'`;
       await migrate(drizzle(local), { migrationsFolder: "drizzle" });
       const upgraded = await local.begin("read only", (tx) =>
-        inventory(tx, lineExists.length === 0)
+        inventory(tx, lineExists.length === 0, true)
       );
       for (const original of baseline.filter(
         (table) => table.table !== "drizzle.__drizzle_migrations"
@@ -249,7 +258,7 @@ async function main() {
       tableCount: before.length,
       rowCount: before.reduce((n, t) => n + t.count, 0),
       allTableDigestsMatch: true,
-      restoredCopyMigrationsThrough: "0014_roster_candidate_line",
+      restoredCopyMigrationsThrough: "0015_metric_numeric_precision",
       existingApplicationDataUnchangedAfterMigration: true,
       globalsAndOriginalOwnershipRestored: false,
       limitation:

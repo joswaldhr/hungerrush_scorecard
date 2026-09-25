@@ -1,6 +1,19 @@
-/** Explain the active source calculation without promising unimplemented metrics. */
-export function metricSourceDescription(key: string, sourceStrategy: string | null) {
+import { SOLVED_CSAT_CONTRACT, type MetricSourceContext } from "./source-context";
+
+/** Describe the stored observation's contract, not the latest collector's behavior. */
+export function metricSourceDescription(
+  key: string,
+  sourceStrategy: string | null,
+  context?: MetricSourceContext | null
+) {
   if (sourceStrategy !== "zendesk") return null;
+  if (context?.sourceContract === SOLVED_CSAT_CONTRACT) {
+    const cohort = `Tickets last solved in this period (${context.reportingTimeZone}), attributed to their current assignee at observation time within the configured groups and brand scope.`;
+    if (key === "csat_score")
+      return `${cohort} Good ratings divided by good plus bad ratings; no ratings means no score.`;
+    if (key === "csat_response_rate")
+      return `${cohort} Good plus bad ratings divided by offered plus rated surveys. Offered is the vendor survey state, not confirmed email delivery.`;
+  }
   const descriptions = new Map<string, string>([
     [
       "avg_handle_time",
@@ -65,8 +78,17 @@ export function metricSourceDescription(key: string, sourceStrategy: string | nu
   return null;
 }
 
-export function unsupportedMetricReason(key: string, sourceStrategy: string | null) {
+export function unsupportedMetricReason(
+  key: string,
+  sourceStrategy: string | null,
+  context?: MetricSourceContext | null
+) {
   if (sourceStrategy !== "zendesk") return null;
+  if (context?.sourceContract === SOLVED_CSAT_CONTRACT) {
+    if (key === "csat_score") return "No rated tickets in the solved-ticket cohort.";
+    if (key === "csat_response_rate")
+      return "No offered or rated surveys in the solved-ticket cohort.";
+  }
   if (key === "csat_response_rate")
     return "CSAT response rate is not connected: the survey invitation denominator is unavailable.";
   if (key === "missed_calls" || key === "declined_calls")

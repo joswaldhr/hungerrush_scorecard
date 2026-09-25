@@ -1,0 +1,14 @@
+{
+  "observedAt": "2026-09-25T19:28:05.367Z",
+  "mode": "offline adapter replay; no source requests or database writes",
+  "cases": 23,
+  "metricFacts": 46,
+  "reportCohortTickets": 4357,
+  "differences": 0,
+  "sourceObservationStartedAt": "2026-09-25T18:54:10.159Z",
+  "sourceObservationEndedAt": "2026-09-25T18:56:10.422Z",
+  "scopeFingerprintsRetained": true,
+  "limits": [
+    "Does not qualify POS live collection, source policy cutover or production publication."
+  ]
+}

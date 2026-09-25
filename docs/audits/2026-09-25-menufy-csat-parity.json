@@ -1,0 +1,88 @@
+{
+  "observedAt": "2026-09-25T17:15:04.741Z",
+  "scope": "Menufy five-group solved-ticket CSAT reference; two closed Central-time weeks",
+  "initialCensus": {
+    "tickets": 4271,
+    "pages": 5,
+    "omittedCommentedRatings": 44,
+    "reportRowsWithExactCounts": 12,
+    "totalReportRows": 23
+  },
+  "correctedCensus": {
+    "tickets": 4315,
+    "uniqueTickets": 4315,
+    "metricSets": 4315,
+    "commentSupplementPages": 1,
+    "countEndpoint": 4315,
+    "unknownScores": 0,
+    "groupsOutsideScope": 0
+  },
+  "lastWeekParity": {
+    "periodStart": "2026-09-13",
+    "periodEnd": "2026-09-19",
+    "reportRows": 23,
+    "identityMatches": 23,
+    "exactGoodBadSurveyedCountMatches": 23,
+    "displayScoreMatches": 23,
+    "displayResponseMatches": 23,
+    "unroundedArithmeticRetained": true,
+    "exactReportTicketSetParity": true
+  },
+  "inputSha256": "f3c7a040392f4ec0d9288bd136b91629ac1d0a327b38694f85ae3f3ebbaf128c",
+  "limitations": [
+    "All good/bad/surveyed ticket sets match both closed weeks; production collection and late-update qualification remain open.",
+    "Sequential source requests and Explore refresh time differ.",
+    "New production contract, targets, late updates and publication remain unqualified."
+  ],
+  "previousWeekParity": {
+    "periodStart": "2026-09-06",
+    "periodEnd": "2026-09-12",
+    "reportRows": 23,
+    "identityMatches": 23,
+    "exactGoodBadSurveyedCountMatches": 23,
+    "displayScoreMatches": 23,
+    "displayResponseMatches": 23,
+    "unroundedArithmeticRetained": true,
+    "exactReportTicketSetParity": true
+  },
+  "roster": {
+    "activeMapped": 23,
+    "matchedReportUsers": 19,
+    "zeroActivityAdditionalEmployees": 4,
+    "zeroActivityBasis": "Current-assignee solved-ticket count is zero for all groups across the padded two-week interval"
+  },
+  "incidentTicketSetParity": {
+    "reportDecompositionRows": 147,
+    "distinctReportTickets": 147,
+    "allCellsRead": true,
+    "reportSurveyedTickets": 12,
+    "referenceSurveyedTickets": 12,
+    "exactSurveyedSetMatch": true
+  },
+  "fullSourceSetExports": [
+    {
+      "periodStart": "2026-09-13",
+      "rows": 4357,
+      "bytes": 490426,
+      "good": 60,
+      "bad": 13,
+      "surveyed": 1823,
+      "missing": 0,
+      "extra": 0,
+      "duplicateTickets": 0,
+      "sha256": "49762620c10d885e026f1b3b5fdf68dbabb2373217e1b0a1f3f47342d6f6b6b3"
+    },
+    {
+      "periodStart": "2026-09-06",
+      "rows": 4310,
+      "bytes": 486924,
+      "good": 47,
+      "bad": 11,
+      "surveyed": 1946,
+      "missing": 0,
+      "extra": 0,
+      "duplicateTickets": 0,
+      "sha256": "9c0b7e28001e6902ec5f01ca4fcf0ab815ffbd3261e89393852e5205ec91a326"
+    }
+  ]
+}

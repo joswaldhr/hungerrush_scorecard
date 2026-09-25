@@ -1,12 +1,17 @@
 // @vitest-environment node
 import { afterEach, expect, it, vi } from "vitest";
 import { averageEvidence, sourceIds } from "./source-evidence";
+import type { ZendeskCsatPolicy } from "./zendesk-csat-policy";
+const policyProvider = vi.hoisted(() => vi.fn<() => ZendeskCsatPolicy | null>(() => null));
+vi.mock("./zendesk-csat-config", () => ({ configuredCsatPolicy: policyProvider }));
 const email = "synthetic@example.test";
 vi.mock("@/lib/db", () => ({
   db: {
     select: () => ({
       from: () => ({
-        innerJoin: () => ({ where: async () => [{ externalId: "synthetic@example.test" }] }),
+        innerJoin: () => ({
+          where: async () => [{ externalId: "synthetic@example.test", teamId: "synthetic-team" }],
+        }),
       }),
     }),
   },
@@ -18,6 +23,7 @@ import { ZendeskConnector } from "./zendesk";
 afterEach(() => {
   vi.useRealTimers();
   get.mockReset();
+  policyProvider.mockReturnValue(null);
 });
 
 it("retains evidence and includes reported business zeros despite positive calendar time", async () => {
@@ -141,6 +147,47 @@ it("distinguishes missing samples from confirmed zero", () => {
   expect(averageEvidence([null])).toEqual({ numerator: null, denominator: 0 });
   expect(averageEvidence([null, 0])).toEqual({ numerator: 0, denominator: 1 });
   expect(() => averageEvidence([NaN])).toThrow("Invalid numeric");
+});
+
+it("leaves prospective CSAT to its dedicated collector while preserving legacy earlier periods", async () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-09-25T12:00:00Z"));
+  policyProvider.mockReturnValue({
+    schemaVersion: 1,
+    dataSourceId: "source",
+    organizationId: "org",
+    accountReference: "zendesk-account:synthetic",
+    reportingTimeZone: "America/Chicago",
+    effectivePeriodStart: "2026-09-20",
+    teams: [
+      { teamId: "synthetic-team", groupIds: [20], brandIds: null, metricKeys: ["csat_score"] },
+    ],
+  });
+  get.mockImplementation(async (path: string) => {
+    if (path.startsWith("/satisfaction_ratings"))
+      return { satisfaction_ratings: [], next_page: null };
+    if (path.startsWith("/channels/voice"))
+      return { calls: [], count: 0, end_time: 1790078400, next_page: null };
+    if (path.startsWith("/search/export"))
+      return { results: [], meta: { has_more: false }, links: { next: null } };
+    if (path.startsWith("/users/search")) return { users: [{ id: 7, email }] };
+    throw new Error("Unexpected source endpoint");
+  });
+  const config = { dataSourceId: "source", organizationId: "org" };
+  const connector = new ZendeskConnector();
+  const current = await connector.fetchRecords(config, {
+    ...config,
+    syncRunId: "run",
+    cursor: "0",
+  });
+  expect(current.records.map((r) => r.externalRecordType)).toEqual(["agent_stats", "call_stats"]);
+  expect(get.mock.calls.some(([path]) => path.startsWith("/satisfaction_ratings"))).toBe(false);
+  const earlier = await connector.fetchRecords(config, {
+    ...config,
+    syncRunId: "run",
+    cursor: "1",
+  });
+  expect(earlier.records.some((r) => r.externalRecordType === "csat_summary")).toBe(true);
 });
 it("produces stable evidence ID ordering and rejects invalid IDs", () => {
   expect(sourceIds([{ id: 2 }, { id: 1 }])).toEqual([1, 2]);

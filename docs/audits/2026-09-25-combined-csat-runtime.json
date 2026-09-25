@@ -1,0 +1,27 @@
+{
+  "observedAt": "2026-09-25T19:54:14.695Z",
+  "mode": "read-only complete two-team fetch; no database or configuration writes",
+  "family": "solved_csat",
+  "periodStart": "2026-09-13",
+  "periodEnd": "2026-09-19",
+  "reportingTimeZone": "America/Chicago",
+  "policyFingerprint": "0bf7063a09a5a60c1dcb717afa17bfe0c9d373a681281f8a4ba75c13c00bb841",
+  "activeEmployees": 62,
+  "staffPages": 4,
+  "staffRecords": 368,
+  "collections": 2,
+  "paddedTickets": 7301,
+  "requests": 152,
+  "elapsedMs": 146427,
+  "requestBudget": 240,
+  "elapsedBudgetMs": 240000,
+  "sourceRecords": 62,
+  "metricFacts": 85,
+  "independentCases": 62,
+  "independentDifferences": 0,
+  "priorObservationDifferences": 0,
+  "limits": [
+    "Does not prove hosted publication latency or scheduled execution.",
+    "No production policy, migration, job or historical repair activated."
+  ]
+}

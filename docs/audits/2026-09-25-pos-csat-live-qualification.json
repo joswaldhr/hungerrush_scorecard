@@ -1,0 +1,29 @@
+{
+  "observedAt": "2026-09-25T19:33:50.040Z",
+  "mode": "read-only source collection and offline adapter/reference replay; no database writes",
+  "team": "POS",
+  "periodStart": "2026-09-13",
+  "periodEnd": "2026-09-19",
+  "timeZone": "America/Chicago",
+  "activeIdentities": 39,
+  "groups": 20,
+  "brands": 1,
+  "requests": 38,
+  "observationStartedAt": "2026-09-25T19:30:52.141Z",
+  "observationEndedAt": "2026-09-25T19:31:48.922Z",
+  "elapsedSeconds": 56.781,
+  "paddedTickets": 1896,
+  "metricSets": 1896,
+  "cohortTickets": 1563,
+  "good": 101,
+  "bad": 4,
+  "surveyed": 1107,
+  "priorReferenceIdentities": 36,
+  "previouslyUnratedIdentities": 3,
+  "independentLiveReferenceDifferences": 0,
+  "priorObservationDifferences": 0,
+  "limits": [
+    "POS response rate has no manager-report denominator parity or metric assignment qualification.",
+    "Production policy, combined runtime and hosted release remain unqualified."
+  ]
+}

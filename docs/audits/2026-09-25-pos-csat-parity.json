@@ -1,0 +1,85 @@
+{
+  "observedAt": "2026-09-25T17:27:13.417Z",
+  "scope": "POS score reference; two closed Central-time solved-date weeks",
+  "report": {
+    "savedTitlePeriod": "Last Week",
+    "actualSavedFrom": "2026-08-26",
+    "actualSavedThrough": "2026-09-24",
+    "actualSavedRelativeRange": "30 days ago through yesterday",
+    "comparisonPeriodsAppliedOnlyInUnsavedView": true,
+    "selectedBrandCount": 1,
+    "selectedGroupCount": 20,
+    "deletedSelectedGroups": 5,
+    "selectedRatingValues": ["good", "bad"]
+  },
+  "source": {
+    "tickets": 226,
+    "uniqueTickets": 226,
+    "metricSets": 226,
+    "countEndpoint": 226,
+    "exportPages": 1,
+    "searchIncludedCommentedRatingVariants": true,
+    "groupsOutside": 0,
+    "brandOutside": 0,
+    "inputSha256": "75b179a797b3074f97b8350124ded358ed1ed3f2537bc7684d39b7683c56e6b2"
+  },
+  "comparisons": [
+    {
+      "startDay": "2026-09-06",
+      "endDay": "2026-09-12",
+      "reportRows": 34,
+      "identityMatches": 34,
+      "exactGoodBadMatches": 34,
+      "nonzeroReferenceRows": 34
+    },
+    {
+      "startDay": "2026-09-13",
+      "endDay": "2026-09-19",
+      "reportRows": 30,
+      "identityMatches": 30,
+      "exactGoodBadMatches": 30,
+      "nonzeroReferenceRows": 30
+    }
+  ],
+  "roster": {
+    "activeMapped": 39,
+    "inTwoWeekRatedPopulation": 36,
+    "otherIdentitiesResolved": 3,
+    "otherCurrentAssigneeRatedCountAllGroups": 0
+  },
+  "limits": [
+    "Only good/bad report counts are compared, not an independently displayed POS score formula.",
+    "Rated-only extraction cannot establish a surveyed denominator or CSAT response rate.",
+    "Both good/bad source-ticket sets match exactly; current-assignee contract versions, late changes, target context and production rollout remain open."
+  ],
+  "groupDiscovery": {
+    "currentGroups": 134,
+    "includingDeleted": 151,
+    "nextLinkDroppedOriginalParameters": true,
+    "correctedContinuationPreservedExcludeDeletedAndPageSize": true
+  },
+  "fullSourceSetExports": [
+    {
+      "periodStart": "2026-09-13",
+      "rows": 105,
+      "bytes": 8032,
+      "good": 101,
+      "bad": 4,
+      "missing": 0,
+      "extra": 0,
+      "duplicateTickets": 0,
+      "sha256": "7893002904b2324522298d919053b678e86db9ddb37383da6ddfd781269b9342"
+    },
+    {
+      "periodStart": "2026-09-06",
+      "rows": 98,
+      "bytes": 7506,
+      "good": 95,
+      "bad": 3,
+      "missing": 0,
+      "extra": 0,
+      "duplicateTickets": 0,
+      "sha256": "fc3daa27e8e7a9d396f0343307c31d749c80e45cab52753ed862105b5a430cd0"
+    }
+  ]
+}

@@ -34,6 +34,24 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 describe("scorecard export context", () => {
+  it("exports per-metric timezone and changed-definition context without labeling all periods UTC", () => {
+    const metrics = snapshot.metrics.map((metric) => ({
+      ...metric,
+      reportingTimeZone: "America/Chicago",
+      sourceContract: "synthetic-v1",
+      targetContextStatus: "source_unverified" as const,
+      comparisonUnavailableReason: "Definitions changed; comparison unavailable.",
+    }));
+    const csv = exportCsv({ ...snapshot, metrics }, () => "No Target");
+    expect(csv).not.toContain("Period (UTC)");
+    expect(csv).toContain(
+      '"America/Chicago","synthetic-v1","Definitions changed; comparison unavailable."'
+    );
+    expect(exportDataDetails(metrics)).toContain("reporting timezone America/Chicago");
+    expect(exportDataDetails(metrics)).toContain(
+      "Targets have not been verified for this source definition."
+    );
+  });
   it("retains source definitions and unsupported reasons in CSV and copied/captured content", () => {
     const metrics = snapshot.metrics.map((metric) => ({
       ...metric,

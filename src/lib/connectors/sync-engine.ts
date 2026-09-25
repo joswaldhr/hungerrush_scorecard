@@ -6,6 +6,7 @@ import {
   sourceRecords,
   normalizedFacts,
   externalIdentities,
+  employees,
 } from "@/lib/db/schema";
 import { eq, and, sql, inArray } from "drizzle-orm";
 import { createHash } from "crypto";
@@ -16,6 +17,7 @@ import { logger } from "@/lib/logger";
 import { safeErrorMessage } from "@/lib/error-summary";
 import { computeMetricValuesFromFacts } from "@/lib/domain/metrics/compute-values";
 import { chunk } from "@/lib/utils";
+import { SOLVED_CSAT_CONTRACT } from "@/lib/domain/metrics/source-context";
 
 function payloadHash(payload: Record<string, unknown>): string {
   return createHash("sha256").update(JSON.stringify(payload)).digest("hex");
@@ -139,13 +141,14 @@ export async function runSync(
         // Serialize publication for this source so revision snapshots describe
         // the committed predecessor even when fetches overlap.
         const [publicationSource] = await tx.execute(
-          sql`select organization_id, status, type from ${dataSources} where id = ${config.dataSourceId} for update`
+          sql`select organization_id, status, type, configuration_reference from ${dataSources} where id = ${config.dataSourceId} for update`
         );
         if (
           !publicationSource ||
           publicationSource.organization_id !== config.organizationId ||
           publicationSource.status !== "configured" ||
-          publicationSource.type !== connector.sourceType
+          publicationSource.type !== connector.sourceType ||
+          publicationSource.configuration_reference !== source.configurationReference
         )
           throw new Error("Data source changed or disabled before publication");
         await renewSyncLease(syncRunId, tx);
@@ -460,6 +463,35 @@ async function normalizeIngestedRecords(
     );
 
   const previousFacts: (typeof normalizedFacts.$inferSelect)[] = [];
+  // The qualified CSAT cohort is bound to the employee's active team at fetch.
+  // Lock that assignment through publication instead of passing the legacy null
+  // team or allowing a roster edit between this check and the commit.
+  const csatEmployeeIds = [
+    ...new Set(
+      records
+        .filter(
+          (record) =>
+            (record.payloadJson as Record<string, unknown>)?.sourceContract === SOLVED_CSAT_CONTRACT
+        )
+        .map((record) => record.employeeId)
+        .filter((id): id is string => id !== null)
+    ),
+  ];
+  const csatTeams = new Map<string, string | null>();
+  for (const batch of chunk(csatEmployeeIds, WRITE_CHUNK_SIZE)) {
+    const current = await tx
+      .select({ id: employees.id, teamId: employees.primaryTeamId })
+      .from(employees)
+      .where(
+        and(
+          inArray(employees.id, batch),
+          eq(employees.organizationId, config.organizationId),
+          eq(employees.employmentStatus, "active")
+        )
+      )
+      .for("share");
+    for (const employee of current) csatTeams.set(employee.id, employee.teamId);
+  }
   for (const batch of chunk(
     records.map((record) => record.id),
     WRITE_CHUNK_SIZE
@@ -488,12 +520,16 @@ async function normalizeIngestedRecords(
     ) {
       throw new Error("Source attribution changed; reviewed reassignment repair required");
     }
+    const isSolvedCsat =
+      (record.payloadJson as Record<string, unknown>)?.sourceContract === SOLVED_CSAT_CONTRACT;
+    if (isSolvedCsat && (!record.employeeId || !csatTeams.has(record.employeeId)))
+      throw new Error("CSAT employee is no longer active in the source organization");
     if (!record.employeeId || !record.periodStart || !record.periodEnd) continue;
 
     const facts = connector.normalizeRecords(
       [{ sourceRecordId: record.id, payload: record.payloadJson as Record<string, unknown> }],
       record.employeeId,
-      null,
+      isSolvedCsat ? csatTeams.get(record.employeeId)! : null,
       record.periodStart,
       record.periodEnd
     );

@@ -1,0 +1,92 @@
+{
+  "observedAt": "2026-09-25T16:56:01.593Z",
+  "calculatedAt": "2026-09-25T16:56:35.010Z",
+  "inputSha256": "0a9c5920ffa0ffefcc980d188d6a0c7c530626cddcdde2ce6d717faaf9ff777b",
+  "mode": "offline independent arithmetic; no publication",
+  "population": {
+    "complete": true,
+    "expectedCount": 284,
+    "pages": 3,
+    "basis": "created-current-assignee"
+  },
+  "limitations": [
+    "Source completeness is a supplied census assertion, not certified by this runner.",
+    "Current assignment and source observation must match the comparison reference.",
+    "A creation census cannot qualify solved-date CSAT; separate population required.",
+    "Results do not certify human activity, historical assignment, or manager-report parity."
+  ],
+  "results": [
+    {
+      "case": 1,
+      "startDay": "2026-09-13",
+      "endDay": "2026-09-19",
+      "timeZone": "UTC",
+      "cohortCount": 161,
+      "numerator": 19838,
+      "denominator": 64,
+      "missingDurationCount": 97,
+      "meanMinutes": 309.96875,
+      "medianMinutes": 235,
+      "zeroCount": 13,
+      "comparison": {
+        "baselineCount": 28,
+        "referenceOnly": 133,
+        "baselineOnly": 0
+      }
+    },
+    {
+      "case": 2,
+      "startDay": "2026-09-13",
+      "endDay": "2026-09-19",
+      "timeZone": "America/Chicago",
+      "cohortCount": 166,
+      "numerator": 26275,
+      "denominator": 67,
+      "missingDurationCount": 99,
+      "meanMinutes": 392.1641791044776,
+      "medianMinutes": 246,
+      "zeroCount": 13,
+      "comparison": {
+        "baselineCount": 28,
+        "referenceOnly": 142,
+        "baselineOnly": 4
+      }
+    },
+    {
+      "case": 3,
+      "startDay": "2026-09-20",
+      "endDay": "2026-09-26",
+      "timeZone": "UTC",
+      "cohortCount": 109,
+      "numerator": 59803,
+      "denominator": 52,
+      "missingDurationCount": 57,
+      "meanMinutes": 1150.0576923076924,
+      "medianMinutes": 1196,
+      "zeroCount": 1,
+      "comparison": {
+        "baselineCount": 104,
+        "referenceOnly": 5,
+        "baselineOnly": 0
+      }
+    },
+    {
+      "case": 4,
+      "startDay": "2026-09-20",
+      "endDay": "2026-09-26",
+      "timeZone": "America/Chicago",
+      "cohortCount": 100,
+      "numerator": 51206,
+      "denominator": 45,
+      "missingDurationCount": 55,
+      "meanMinutes": 1137.911111111111,
+      "medianMinutes": 1080,
+      "zeroCount": 1,
+      "comparison": {
+        "baselineCount": 104,
+        "referenceOnly": 5,
+        "baselineOnly": 9
+      }
+    }
+  ]
+}

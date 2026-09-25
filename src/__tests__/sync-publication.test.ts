@@ -4,6 +4,7 @@ import { eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   organizations,
+  teams,
   employees,
   dataSources,
   externalIdentities,
@@ -17,11 +18,16 @@ import {
 } from "@/lib/db/schema";
 import { runSync } from "@/lib/connectors/sync-engine";
 import type { Connector, IngestedRecord } from "@/lib/connectors/types";
+import { SOLVED_CSAT_CONTRACT } from "@/lib/domain/metrics/source-context";
+import { ZendeskConnector } from "@/lib/connectors/zendesk";
+import { buildSolvedCsatRecord } from "@/lib/connectors/zendesk-solved-csat-record";
+import type { fetchSolvedCsatCandidate } from "@/lib/connectors/zendesk-solved-csat";
 
 const org = randomUUID(),
   employee = randomUUID(),
   source = randomUUID(),
-  metric = randomUUID();
+  metric = randomUUID(),
+  team = randomUUID();
 const config = { organizationId: org, dataSourceId: source };
 const observation = new Date("2026-09-21T07:30:00Z");
 function record(value: number | null, week = "2026-09-20", id = "summary"): IngestedRecord {
@@ -55,7 +61,7 @@ function connector(records: IngestedRecord[], fail = false): Connector {
         textValue: null,
         booleanValue: null,
         unit: "count",
-        dimensionsJson: null,
+        dimensionsJson: (row.payload.sourceContext as Record<string, unknown> | undefined) ?? null,
       })),
     resolveIdentities: async () => [],
     discoverRoster: async () => [],
@@ -67,8 +73,14 @@ async function values() {
 beforeAll(async () => {
   await db.insert(organizations).values({ id: org, name: "Publication test" });
   await db
-    .insert(employees)
-    .values({ id: employee, organizationId: org, displayName: "Test employee" });
+    .insert(teams)
+    .values({ id: team, organizationId: org, name: "Synthetic team", slug: "publication-test" });
+  await db.insert(employees).values({
+    id: employee,
+    organizationId: org,
+    displayName: "Test employee",
+    primaryTeamId: team,
+  });
   await db
     .insert(dataSources)
     .values({ id: source, organizationId: org, type: "test", displayName: "Test" });
@@ -103,6 +115,7 @@ afterAll(async () => {
   await db.delete(metricDefinitions).where(eq(metricDefinitions.id, metric));
   await db.delete(dataSources).where(eq(dataSources.id, source));
   await db.delete(employees).where(eq(employees.id, employee));
+  await db.delete(teams).where(eq(teams.id, team));
   await db.delete(organizations).where(eq(organizations.id, org));
 });
 describe.sequential("atomic metric publication (PostgreSQL)", () => {
@@ -154,6 +167,33 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
     expect(await values()).toEqual(before);
     const [afterSource] = await db.select().from(dataSources).where(eq(dataSources.id, source));
     expect(afterSource?.lastSuccessfulSyncAt).toEqual(beforeSource?.lastSuccessfulSyncAt);
+  });
+  it("preserves explicit source context and atomically rejects mixed contributor definitions", async () => {
+    const context = {
+      sourceContract: SOLVED_CSAT_CONTRACT,
+      reportingTimeZone: "America/Chicago",
+    };
+    const candidate = {
+      ...record(5, "2026-08-02"),
+      periodEnd: "2026-08-08",
+      payload: { value: 100 / 3, sourceContext: context },
+    };
+    expect((await runSync(connector([candidate]), config)).success).toBe(true);
+    const before = await values();
+    expect(
+      before.find((v) => v.periodStart === candidate.periodStart)?.provenanceJson
+    ).toMatchObject(context);
+    expect(before.find((v) => v.periodStart === candidate.periodStart)?.numericValue).toBe(100 / 3);
+    const mixed = { ...record(7, "2026-08-02", "legacy"), periodEnd: "2026-08-08" };
+    const result = await runSync(connector([mixed]), config);
+    expect(result).toMatchObject({ success: false, valuesWritten: 0 });
+    expect(await values()).toEqual(before);
+    expect(
+      await db.select().from(sourceRecords).where(eq(sourceRecords.syncRunId, result.syncRunId))
+    ).toHaveLength(0);
+    expect(
+      await db.select().from(syncRevisions).where(eq(syncRevisions.syncRunId, result.syncRunId))
+    ).toHaveLength(0);
   });
   it("refuses publication when the source is disabled during its fetch", async () => {
     const before = await values();
@@ -228,6 +268,27 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
     } finally {
       await db.execute(sql.raw(`DROP TRIGGER IF EXISTS ${trigger} ON metric_values`));
       await db.execute(sql.raw(`DROP FUNCTION ${trigger}()`));
+    }
+  });
+
+  it("rejects a source account-binding change during collection", async () => {
+    const before = await values();
+    const interrupted = connector([record(999)]);
+    interrupted.fetchRecords = async () => {
+      await db
+        .update(dataSources)
+        .set({ configurationReference: "zendesk-account:changed" })
+        .where(eq(dataSources.id, source));
+      return { records: [record(999)], cursor: null, hasMore: false };
+    };
+    try {
+      expect((await runSync(interrupted, config)).success).toBe(false);
+      expect(await values()).toEqual(before);
+    } finally {
+      await db
+        .update(dataSources)
+        .set({ configurationReference: null })
+        .where(eq(dataSources.id, source));
     }
   });
   it("rejects a cross-organization source before creating a run", async () => {
@@ -449,6 +510,156 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
     } finally {
       release();
       await running;
+    }
+  });
+
+  it("replaces a legacy CSAT snapshot through the real normalizer, retains revisions and retracts to null", async () => {
+    const scoreId = randomUUID(),
+      responseId = randomUUID();
+    await db.insert(metricDefinitions).values([
+      {
+        id: scoreId,
+        organizationId: org,
+        key: "csat_score",
+        name: "Synthetic score",
+        sourceStrategy: "test",
+        calculationType: "average",
+        version: 1,
+      },
+      {
+        id: responseId,
+        organizationId: org,
+        key: "csat_response_rate",
+        name: "Synthetic response",
+        sourceStrategy: "test",
+        calculationType: "sum",
+        version: 1,
+      },
+    ]);
+    const snapshot: Awaited<ReturnType<typeof fetchSolvedCsatCandidate>> = {
+      tickets: (["good", "bad", "bad", "offered"] as const).map((score, i) => ({
+        id: i + 1,
+        assignee_id: 7,
+        group_id: 20,
+        brand_id: 30,
+        satisfaction_rating: { score },
+      })),
+      metrics: [1, 2, 3, 4].map((ticket_id) => ({ ticket_id, solved_at: "2026-07-07T12:00:00Z" })),
+      coverage: {
+        complete: true,
+        population: "all-solved-satisfaction-states",
+        requests: 2,
+        query: "synthetic",
+        observationStartedAt: "2026-07-12T07:00:00Z",
+        observationEndedAt: "2026-07-12T07:00:01Z",
+        timeZone: "America/Chicago",
+        periodStart: "2026-07-05",
+        periodEnd: "2026-07-11",
+        groupIds: [20],
+        brandIds: [30],
+        agentIds: [7],
+      },
+    };
+    const identity = {
+      agentId: 7,
+      externalId: "agent",
+      accountReference: "zendesk-account:synthetic",
+      subdomain: "synthetic",
+      employeeContext: { employeeId: employee, teamId: team },
+    };
+    const candidate = buildSolvedCsatRecord(snapshot, identity);
+    const normalize = new ZendeskConnector();
+    const publish = (record: IngestedRecord) => {
+      const replay = connector([record]);
+      replay.normalizeRecords = normalize.normalizeRecords.bind(normalize);
+      return runSync(replay, config);
+    };
+    const read = () =>
+      db
+        .select()
+        .from(metricValues)
+        .where(inArray(metricValues.metricDefinitionId, [scoreId, responseId]));
+    try {
+      expect(
+        (
+          await publish({
+            ...candidate,
+            payload: { csatScore: 99 },
+            sourceUpdatedAt: new Date("2026-07-12T06:00:00Z"),
+          })
+        ).success
+      ).toBe(true);
+      expect((await publish(candidate)).valuesWritten).toBe(2);
+      const stored = await read();
+      expect(stored.find((v) => v.metricDefinitionId === scoreId)).toMatchObject({
+        numericValue: 100 / 3,
+        calculationVersion: 2,
+        provenanceJson: {
+          sourceContract: SOLVED_CSAT_CONTRACT,
+          reportingTimeZone: "America/Chicago",
+        },
+      });
+      expect(stored.find((v) => v.metricDefinitionId === responseId)?.numericValue).toBe(75);
+      expect((stored[0]!.provenanceJson as Record<string, unknown>).sourceScopeFingerprint).toMatch(
+        /^[a-f0-9]{64}$/
+      );
+      const records = await db
+        .select()
+        .from(sourceRecords)
+        .where(eq(sourceRecords.externalRecordId, candidate.externalRecordId));
+      expect(records).toHaveLength(1);
+      const retained = await db
+        .select()
+        .from(syncRevisions)
+        .where(
+          eq(syncRevisions.entityId, stored.find((v) => v.metricDefinitionId === scoreId)!.id)
+        );
+      expect(
+        retained.some((r) => (r.snapshotJson as Record<string, unknown>).numeric_value === 99)
+      ).toBe(true);
+      expect((await publish(candidate)).valuesWritten).toBe(0);
+      expect(
+        (
+          await publish({
+            ...candidate,
+            externalRecordId: `${candidate.externalRecordId}-unmapped`,
+            employeeExternalId: "removed-identity",
+          })
+        ).success
+      ).toBe(false);
+      expect(await read()).toEqual(stored);
+      // The actual publisher must supply the locked current team to the normalizer.
+      // A real reassignment after collection rejects the entire corrected batch.
+      await db.update(employees).set({ primaryTeamId: null }).where(eq(employees.id, employee));
+      try {
+        const movedSnapshot = {
+          ...snapshot,
+          coverage: {
+            ...snapshot.coverage,
+            observationStartedAt: "2026-07-12T07:30:00Z",
+            observationEndedAt: "2026-07-12T07:30:01Z",
+          },
+        };
+        expect((await publish(buildSolvedCsatRecord(movedSnapshot, identity))).success).toBe(false);
+        expect(await read()).toEqual(stored);
+      } finally {
+        await db.update(employees).set({ primaryTeamId: team }).where(eq(employees.id, employee));
+      }
+      snapshot.tickets = [];
+      snapshot.metrics = [];
+      snapshot.coverage.observationStartedAt = "2026-07-12T08:00:00Z";
+      snapshot.coverage.observationEndedAt = "2026-07-12T08:00:01Z";
+      expect((await publish(buildSolvedCsatRecord(snapshot, identity))).valuesWritten).toBe(2);
+      expect(
+        (await read()).every((v) => v.numericValue === null && v.qualityStatus === "missing")
+      ).toBe(true);
+    } finally {
+      await db
+        .delete(metricValues)
+        .where(inArray(metricValues.metricDefinitionId, [scoreId, responseId]));
+      await db
+        .delete(metricDefinitions)
+        .where(inArray(metricDefinitions.id, [scoreId, responseId]));
     }
   });
 });

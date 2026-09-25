@@ -1,0 +1,9 @@
+{
+  "observedAt": "2026-09-25T20:14:28.192Z",
+  "event": "staging_migration_verified",
+  "through": "0015_metric_numeric_precision",
+  "existingTableContentsPreserved": true,
+  "tables": 32,
+  "rows": 21262,
+  "productionAccess": false
+}

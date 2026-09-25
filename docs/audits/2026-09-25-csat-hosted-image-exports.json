@@ -1,0 +1,23 @@
+{
+  "observedAt": "2026-09-25T20:29:05.997Z",
+  "environment": "hosted-synthetic-preview",
+  "files": [
+    {
+      "format": "pdf",
+      "bytes": 13896454,
+      "sha256": "8bcc09d0b660ee6abcd70d3961c94eab1857cb558c94242d7665ae760a8792cc",
+      "visuallyInspected": true,
+      "columnsAligned": true,
+      "valuesAndContextPresent": true
+    },
+    {
+      "format": "png",
+      "bytes": 533888,
+      "sha256": "5ff6d4c45dd67269aad7037b3ccac97d2aa64d175aca7745b532bd270182baac",
+      "visuallyInspected": true,
+      "columnsAligned": true,
+      "valuesAndContextPresent": true
+    }
+  ],
+  "limitation": "PDF uses a raster image and is 13.9 MB; text search/accessibility and file-size optimization remain separate improvements."
+}

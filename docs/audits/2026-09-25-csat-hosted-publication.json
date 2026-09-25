@@ -1,0 +1,15 @@
+{
+  "observedAt": "2026-09-25T20:20:46.987Z",
+  "environment": "hosted-synthetic-staging",
+  "vendorRequests": 0,
+  "productionAccess": false,
+  "values": 2,
+  "score": 33.333333333333336,
+  "responseRate": 75,
+  "legacyRevisionPreserved": true,
+  "identicalReplayWrites": 0,
+  "nullCorrection": true,
+  "finalFixtureRestored": true,
+  "hostedUiAndHistoryVerified": true,
+  "hostedCsvBytesVerified": true
+}

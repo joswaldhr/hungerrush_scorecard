@@ -60,6 +60,25 @@ it("shows recorded evidence for confirmed zero without conflating it with missin
   });
 });
 
+it("explains withheld comparisons and targets when a source definition changes", async () => {
+  await renderRow(
+    {
+      ...row,
+      reportingTimeZone: "America/Chicago",
+      targetContextStatus: "source_unverified",
+      comparisonUnavailableReason: "Source definition changed.",
+    },
+    (container) => {
+      const details = container.querySelector("details")!;
+      expect(details.textContent).toContain("Reporting timezone: America/Chicago");
+      expect(details.textContent).toContain("Source definition changed.");
+      expect(details.textContent).toContain(
+        "Targets have not been verified for this source definition."
+      );
+    }
+  );
+});
+
 it("marks partial numeric results visibly and identifies the applied target scope", async () => {
   await renderRow(
     {
