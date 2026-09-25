@@ -230,6 +230,10 @@
   outline-offset: 2px;
 }
 
+[data-sidebar] :focus-visible {
+  outline-color: var(--sidebar-ring);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

@@ -97,6 +97,7 @@ export function SidebarClient({
 
   return (
     <aside
+      data-sidebar
       className={cn(
         "flex h-screen flex-col bg-sidebar-background text-sidebar-foreground transition-[width] duration-200 shrink-0 border-r border-sidebar-border/40 select-none",
         collapsed ? "w-16" : "w-[var(--sidebar-width)]"

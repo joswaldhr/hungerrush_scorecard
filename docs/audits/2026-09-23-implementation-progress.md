@@ -1646,3 +1646,12 @@ human-only withholding remains intact. See `2026-09-24-weekly-retained-diagnosti
 `2026-09-24-weekly-retained-summary.json` for evidence and reproduction. No new source fetch
 is needed to continue examining this retained week. Historical eligibility, attribution review,
 independent metric parity and operational activation gates remain open.
+
+## Sidebar focus contrast — September 24
+
+The light theme retains a dark sidebar, so its focus outlines now use the dedicated sidebar
+ring rather than the darker main-content ring. The contrast diagnostic adds sidebar-background
+and sidebar-accent cases in both themes: all 100 current token/surface checks pass, with no
+out-of-gamut clipping. The original 96-pair before/after reports remain historical evidence;
+`2026-09-24-theme-contrast-focus.json` records the expanded check. Hosted keyboard verification
+follows with the Preview deployment.

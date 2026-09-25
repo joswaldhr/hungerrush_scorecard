@@ -86,6 +86,8 @@ for (const [theme, values] of Object.entries({ light, dark })) {
     check(`status-${status}`, `status-${status}-bg`);
   check("sidebar-foreground", "sidebar-background");
   check("sidebar-primary-foreground", "sidebar-primary");
+  check("sidebar-ring", "sidebar-background", 3);
+  check("sidebar-ring", "sidebar-accent", 3);
   for (const surface of ["background", "card"]) {
     check("input", surface, 3);
     check("ring", surface, 3);
