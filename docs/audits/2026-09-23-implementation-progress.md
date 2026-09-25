@@ -12,7 +12,7 @@ Last updated: 2026-09-24. **Hosted database and Preview sign-in/UI checks passed
 | Reporting context and scope safeguards | Published to Preview | Navigation, organization and manager-scope regression tests; keyboard checks passed |
 | Atomic sync publication and freshness | Published to Preview | PostgreSQL rollback tests; untouched periods preserved; live hosted trigger still gated |
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 505 tests across 61 files passed in PostgreSQL 18 CI run 36054548710 at 59f4f72, including lint, TypeScript and production build |
+| Combined implementation validation | Passed | 531 tests across 63 files passed in PostgreSQL 18 CI run 36081192353 at 4b78f07, including lint, TypeScript and production build |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database, core UI, worker authentication and bounded ingestion/recovery passed | Separate PostgreSQL 18.6 and Entra app; four fresh ingestion processes, expired-lease takeover and replay verified; source disabled after rehearsal; recurring scheduling remains open |
 | Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; retained full-week census reproduced one default lookup omission, resolved by inactive/deleted-inclusive diagnostic; historical eligibility, human provenance and independent parity remain open |
@@ -1707,3 +1707,22 @@ repeated failure, database authorization/schema/constraint failures, cyclic caus
 error stripping. All 24 existing PostgreSQL authorization tests also passed, plus TypeScript
 and lint. Full CI and deployed read verification follow. This does not claim that all possible
 database connection failures elsewhere in the application have been eliminated.
+
+Both audit-evidence CI runs 36080998224/36080994551 and both account-recovery CI runs
+36081192353/36081188930 passed. The latter ran 531 tests across 63 files, lint, TypeScript
+and production build. Preview `dpl_9gc1tCGHoYvVpRPRtmFrXiZ245mY` is READY at 4b78f07;
+the historical synthetic scorecard loaded after reload with attribution/context guards intact.
+Actual transport interruption was reproduced in targeted tests, not induced on the hosted database.
+
+## Scheduler authentication probe isolation — September 24
+
+The dormant Railway caller still sent its authentication probe to the ingestion route without
+the explicit `probe=auth` query. Although the source opt-in is currently cleared, later
+configuration could turn that probe into a real batch. Probe mode now always calls the
+dedicated auth-only endpoint and accepts only `authenticated: true, ingestionRequested: false`.
+Ingestion-shaped responses fail instead of being reported as a successful probe. Ordinary
+batch requests retain their existing explicit path and response checks.
+
+Seven scheduler cases and twelve route cases passed, plus TypeScript and lint. The route
+tests already prove authentication probes exit before source/lease/vendor access even when
+source configuration exists. The hosted scheduler remains disabled; code deployment follows.

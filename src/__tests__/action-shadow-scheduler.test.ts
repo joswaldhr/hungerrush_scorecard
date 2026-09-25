@@ -62,11 +62,14 @@ it("reports an active lease without treating overlap as a source failure", async
   });
 });
 
-it("can verify authentication explicitly while ingestion remains disabled", async () => {
-  const request = vi.fn().mockResolvedValue(Response.json({ enabled: false }));
+it("uses the non-ingesting authentication route even if source configuration changes", async () => {
+  const request = vi
+    .fn()
+    .mockResolvedValue(Response.json({ authenticated: true, ingestionRequested: false }));
   expect(await triggerActionShadow({ ...settings, probe: "true" }, request)).toEqual({
-    status: "authenticated_disabled",
+    status: "authenticated",
   });
+  expect(request.mock.calls[0]?.[0]).toBe(`${settings.origin}/api/cron/action-shadow?probe=auth`);
   await expect(
     triggerActionShadow(
       { ...settings, probe: "true" },
@@ -75,14 +78,32 @@ it("can verify authentication explicitly while ingestion remains disabled", asyn
   ).rejects.toThrow("401");
 });
 
+it("rejects ingestion responses in authentication-only mode", async () => {
+  for (const body of [
+    { enabled: false },
+    { enabled: true, completed: true, steps: 6, periodStart: "2026-09-23T00:00:00Z" },
+    { authenticated: true, ingestionRequested: true },
+    { authenticated: false, ingestionRequested: false },
+  ]) {
+    await expect(
+      triggerActionShadow(
+        { ...settings, probe: "true" },
+        vi.fn().mockResolvedValue(Response.json(body))
+      )
+    ).rejects.toThrow("authentication-only");
+  }
+});
+
 it("restricts temporary alias-session access to explicit rehearsals and one cookie", async () => {
-  const request = vi.fn().mockResolvedValue(Response.json({ enabled: false }));
+  const request = vi
+    .fn()
+    .mockResolvedValue(Response.json({ authenticated: true, ingestionRequested: false }));
   const previewCookie = "_vercel_jwt=synthetic.temporary.session";
   expect(await triggerActionShadow({ ...settings, probe: "true", previewCookie }, request)).toEqual(
-    { status: "authenticated_disabled" }
+    { status: "authenticated" }
   );
   expect(request).toHaveBeenCalledWith(
-    `${settings.origin}/api/cron/action-shadow`,
+    `${settings.origin}/api/cron/action-shadow?probe=auth`,
     expect.objectContaining({
       headers: { authorization: `Bearer ${settings.token}`, cookie: previewCookie },
       redirect: "error",

@@ -1,5 +1,11 @@
 # Staging scheduler deployment
 
+Current safety update: authentication probe mode in `scripts/action-shadow-scheduler.ts`
+now uses `?probe=auth` and accepts only the explicit non-ingesting authentication response,
+returning `status: authenticated`. The earlier `authenticated_disabled` outcomes below are
+historical. This prevents a later source opt-in from silently changing a probe into ingestion.
+The scheduler enablement remains false; its source update is being verified separately.
+
 Railway service `cadence-shadow-scheduler` was created in the existing `cadence-staging`
 environment. Service ID: `2307daa3-5146-4ca2-8852-caf114c139e4`. The service uses Railway's
 official function image `ghcr.io/railwayapp/function-bun:1.4.0`, runs hourly, has no public

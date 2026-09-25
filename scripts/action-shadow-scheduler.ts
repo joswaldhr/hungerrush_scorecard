@@ -25,20 +25,27 @@ export async function triggerActionShadow(
     (settings.probe !== "true" || !/^_vercel_jwt=[A-Za-z0-9._~-]+$/.test(settings.previewCookie))
   )
     throw new Error("Preview session is only permitted for an explicit rehearsal");
-  const response = await request(`${PREVIEW_ORIGIN}/api/cron/action-shadow`, {
-    method: "GET",
-    headers: {
-      authorization: `Bearer ${settings.token}`,
-      ...(settings.previewCookie ? { cookie: settings.previewCookie } : {}),
-    },
-    redirect: "error",
-    cache: "no-store",
-    signal: AbortSignal.timeout(260_000),
-  });
+  const probing = settings.probe === "true";
+  const response = await request(
+    `${PREVIEW_ORIGIN}/api/cron/action-shadow${probing ? "?probe=auth" : ""}`,
+    {
+      method: "GET",
+      headers: {
+        authorization: `Bearer ${settings.token}`,
+        ...(settings.previewCookie ? { cookie: settings.previewCookie } : {}),
+      },
+      redirect: "error",
+      cache: "no-store",
+      signal: AbortSignal.timeout(260_000),
+    }
+  );
   if (!response.ok) throw new Error(`Worker returned HTTP ${response.status}`);
   const body = await response.json();
-  if (body?.enabled === false && settings.probe === "true")
-    return { status: "authenticated_disabled" as const };
+  if (probing) {
+    if (body?.authenticated !== true || body?.ingestionRequested !== false)
+      throw new Error("Invalid authentication-only response");
+    return { status: "authenticated" as const };
+  }
   if (body?.enabled !== true) throw new Error("Worker is not enabled");
   if (body.busy === true) {
     if (typeof body.retryAt !== "string" || !Number.isFinite(Date.parse(body.retryAt)))
