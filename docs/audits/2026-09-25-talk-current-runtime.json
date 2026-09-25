@@ -1,0 +1,29 @@
+{
+  "observedAt": "2026-09-25T21:26:57.167Z",
+  "sourceReadOnly": true,
+  "modifiedSince": "2026-09-19",
+  "periodStart": "2026-09-20",
+  "periodEnd": "2026-09-26",
+  "resources": [
+    {
+      "resource": "calls",
+      "records": 8029,
+      "pages": 10,
+      "requests": 10,
+      "sha256": "604e5c0117ede7dbfa7791b865e1d3422d8f664aef5c0d2d62e25db27c1fab9b"
+    },
+    {
+      "resource": "legs",
+      "records": 16026,
+      "pages": 22,
+      "requests": 22,
+      "sha256": "32ed1c623ca958073c8610d5bdfa046117ee6c066fafa8047e607caac37faa1a"
+    }
+  ],
+  "requests": 32,
+  "elapsedMs": 195790,
+  "spacingMs": 6300,
+  "rateLimitRetries": 0,
+  "databaseWrites": 0,
+  "productionActivated": false
+}

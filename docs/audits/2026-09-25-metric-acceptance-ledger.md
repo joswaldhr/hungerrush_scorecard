@@ -11,6 +11,13 @@ Status abbreviations: PV = production values independently verified; D = definit
 B = source/attribution dependency. All rows still require applicable source coverage,
 automated reconciliation, target review, staging/UI/export and production checks.
 
+Talk candidate update, 22:00 UTC: 111 closed-week employee cases / 997 comparisons and
+4,982 independent current-week field comparisons have zero differences. Two current POS
+employee cases remain unavailable because of missing parent calls. These are candidate
+calculation checks, **not additional production-certified assignments**. Durable collection,
+joined-source coverage, outbound definitions and release gates remain open; see
+`2026-09-25-talk-rollout-plan.md`.
+
 | Metric key | Assignments | State | Finding / next acceptance requirement |
 |---|---:|---|---|
 | avg_call_duration_inbound | 2 | R | POS 55 rows match mean leg duration, with 2,012 exact leg IDs; define employee scope separately from whole-call duration |
