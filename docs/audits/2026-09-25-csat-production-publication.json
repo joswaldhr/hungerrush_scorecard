@@ -1,0 +1,31 @@
+{
+  "observedAt": "2026-09-25T20:39:42.938Z",
+  "mode": "read-only verification of one controlled production publication; not scheduler evidence",
+  "status": "completed",
+  "errorCount": 0,
+  "sourceRecords": 62,
+  "metricValues": 85,
+  "independentCases": 85,
+  "independentDifferences": 0,
+  "periodStart": "2026-09-20",
+  "periodEnd": "2026-09-26",
+  "durationMs": 133000,
+  "fetchMs": 125211,
+  "publishMs": 7744,
+  "requests": 104,
+  "retainedRevisions": [
+    {
+      "entity_type": "metric_value",
+      "count": 42
+    },
+    {
+      "entity_type": "normalized_fact",
+      "count": 42
+    },
+    {
+      "entity_type": "source_record",
+      "count": 62
+    }
+  ],
+  "earlierPeriodsUnchanged": true
+}
