@@ -2,7 +2,7 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-25 (07:55 UTC). **Core, metric-display and roster corrections are deployed. All four actual scheduled metric publications passed with exact reporting intervals and zero metric errors; no runs are stuck. The current-week request's later roster failure was corrected in PR25, but the corrected roster path has not yet run on the scheduler. The final one-time verification is complete.**
+Last updated: 2026-09-25 (17:02 UTC). **Core, metric-display and roster corrections are deployed. The new metric-accuracy investigation is underway: manager reports found, Central-time/cohort mismatches traced, and one closed-week CSAT sample numerically matched with an independent reference. New report contracts are not yet production-certified. All four earlier scheduled metric publications passed; corrected scheduled roster execution remains unverified.**
 
 ## Current ledger
 
@@ -66,14 +66,22 @@ manager-report discovery, independent event/leg reconciliation and publication g
 The user supplied manager identities privately as report-discovery starting points and
 does not know the report names. This expands the prior core-release scope into metric
 correctness; it does not certify the current meanings or activate shadow/v2/historical repair.
-The plan is recorded; the new comprehensive live investigation has not yet been executed.
+The user authorized execution. Live findings, the aggregate census and the 23-key /
+40-assignment acceptance ledger are now recorded in `2026-09-25-zendesk-live-findings.md`,
+`2026-09-25-metric-accuracy-census.json` and `2026-09-25-metric-acceptance-ledger.md`.
 The subsequent plan review added a 90-minute first execution checkpoint, independent
 source-population and calculation checks, evidence-specific historical qualification,
 independently releasable correction batches, and progress that does not count unavailable
 metrics as completed. Code review confirmed the existing reconciliation tool compares
 normalized facts to published values and defaults to 5% tolerance for non-count metrics;
-it cannot serve as the independent accuracy certificate. These are plan upgrades, not
-newly executed source investigations or production changes.
+it cannot serve as the independent accuracy certificate. A separate offline reference now
+calculates creation-cohort first reply and solved-date CSAT from minimal private snapshots,
+with no connector/normalizer imports or database/vendor writes. Ten focused tests,
+TypeScript, focused ESLint and formatting passed. Live GETs reproduced stored first-reply arithmetic but exposed a
+last-update filter excluding 133 prior-week created tickets in the incident sample. A
+separate solved-date census with the exact report groups matched one visible CSAT row;
+Central time gives 12 surveyed tickets where UTC gives 13. This is sample numeric parity,
+not full ticket-set/team/two-week qualification. No new production formulas are published.
 
 **Next priority: Friday, September 25 release handoff for Monday, September 28 use.**
 The user is unavailable Saturday and Sunday. Do not plan user participation on those days.
