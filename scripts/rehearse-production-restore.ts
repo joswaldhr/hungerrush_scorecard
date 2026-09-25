@@ -228,7 +228,12 @@ async function main() {
           original
         );
       }
-      assert.equal(upgraded.find((table) => table.table === "public.sync_revisions")?.count, 0);
+      // After the first production sync, revisions are part of the recovery
+      // snapshot too. Preserve their existing count rather than requiring empty.
+      assert.equal(
+        upgraded.find((table) => table.table === "public.sync_revisions")?.count,
+        baseline.find((table) => table.table === "public.sync_revisions")?.count ?? 0
+      );
     } finally {
       await local.end();
     }

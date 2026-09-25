@@ -76,14 +76,24 @@ export async function GET(request: Request) {
       // a day (on the week=0 leg, or on an un-parameterized manual trigger)
       // rather than redundantly on all 4 staggered legs.
       let rosterResult: { newCandidates: number; departedCandidates: number } | null = null;
+      let rosterError: string | undefined;
       if (syncResult.success && (weekOffset === undefined || weekOffset === 0)) {
-        const [mapping] = await db
-          .select({ id: rosterSourceTeamMappings.id })
-          .from(rosterSourceTeamMappings)
-          .where(eq(rosterSourceTeamMappings.dataSourceId, source.id))
-          .limit(1);
-        if (mapping) {
-          rosterResult = await discoverRosterCandidates(connector, source.id);
+        try {
+          const [mapping] = await db
+            .select({ id: rosterSourceTeamMappings.id })
+            .from(rosterSourceTeamMappings)
+            .where(eq(rosterSourceTeamMappings.dataSourceId, source.id))
+            .limit(1);
+          if (mapping) {
+            rosterResult = await discoverRosterCandidates(connector, source.id);
+          }
+        } catch (err) {
+          rosterError = (err instanceof Error && err.message) || "Unknown roster error";
+          logger.error("Cron roster discovery failed after metric publication", {
+            error: err,
+            dataSourceId: source.id,
+            syncRunId: syncResult.syncRunId,
+          });
         }
       }
 
@@ -93,6 +103,7 @@ export async function GET(request: Request) {
         sync: syncResult,
         valuesWritten: syncResult.valuesWritten,
         roster: rosterResult,
+        ...(rosterError ? { rosterError } : {}),
       });
     } catch (err) {
       logger.error("Cron sync failed for data source", { error: err, dataSourceId: source.id });
@@ -111,7 +122,8 @@ export async function GET(request: Request) {
   // and alert. Best-effort only: a failure here must never affect the
   // response this route returns to Vercel's cron caller.
   const success =
-    results.length > 0 && results.every((result) => "sync" in result && result.sync?.success);
+    results.length > 0 &&
+    results.every((result) => "sync" in result && result.sync?.success && !result.rosterError);
   if (success && env.SYNC_HEARTBEAT_URL) {
     try {
       await fetch(env.SYNC_HEARTBEAT_URL, { method: "GET", signal: AbortSignal.timeout(5000) });

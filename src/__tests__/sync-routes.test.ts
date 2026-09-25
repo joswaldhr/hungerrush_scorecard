@@ -3,11 +3,20 @@ const mocks = vi.hoisted(() => ({
   run: vi.fn(),
   limited: vi.fn(),
   fetch: vi.fn(),
+  roster: vi.fn(),
   sources: [] as unknown[],
 }));
 vi.mock("@/lib/db", () => ({
-  db: { select: () => ({ from: () => ({ where: async () => mocks.sources }) }) },
+  db: {
+    select: () => ({
+      from: () => ({
+        where: () =>
+          Object.assign(Promise.resolve(mocks.sources), { limit: async () => [{ id: "mapping" }] }),
+      }),
+    }),
+  },
 }));
+vi.mock("@/lib/domain/roster/reconcile", () => ({ discoverRosterCandidates: mocks.roster }));
 vi.mock("@/lib/auth", () => ({ auth: async () => ({ user: { email: "manager@test.invalid" } }) }));
 vi.mock("@/lib/auth/authorization", () => ({
   getEffectiveManagerContext: async () => ({ ctx: { organizationId: "org" } }),
@@ -29,15 +38,43 @@ beforeEach(() => {
   mocks.limited.mockResolvedValue(false);
   mocks.run.mockResolvedValue({ success: false, syncRunId: "run", valuesWritten: 0 });
   mocks.fetch.mockResolvedValue(new Response());
+  mocks.roster.mockResolvedValue({ newCandidates: 0, departedCandidates: 0, autoApproved: 0 });
   vi.stubGlobal("fetch", mocks.fetch);
 });
-const cron = () =>
+const cron = (week = 1) =>
   GET(
-    new Request("https://cadence.test/api/cron/sync?week=1", {
+    new Request(`https://cadence.test/api/cron/sync?week=${week}`, {
       headers: { authorization: "Bearer test" },
     })
   );
 describe("sync API failure reporting", () => {
+  it.each(["Roster conflict", ""])(
+    "preserves published metric results but withholds a healthy heartbeat on roster failure (%s)",
+    async (error) => {
+      mocks.run.mockResolvedValue({ success: true, syncRunId: "run", valuesWritten: 4 });
+      mocks.roster.mockRejectedValue(new Error(error));
+      const response = await cron(0);
+      expect(response.status).toBe(503);
+      expect(await response.json()).toMatchObject({
+        success: false,
+        results: [
+          {
+            sync: { success: true, syncRunId: "run" },
+            valuesWritten: 4,
+            roster: null,
+            rosterError: error || "Unknown roster error",
+          },
+        ],
+      });
+      expect(mocks.fetch).not.toHaveBeenCalled();
+    }
+  );
+  it("requires successful roster discovery on the current-week leg", async () => {
+    mocks.run.mockResolvedValue({ success: true, syncRunId: "run", valuesWritten: 4 });
+    expect((await cron(0)).status).toBe(200);
+    expect(mocks.roster).toHaveBeenCalledOnce();
+    expect(mocks.fetch).toHaveBeenCalledOnce();
+  });
   it.each(["disabled", "retired", "unknown"])(
     "refuses %s sources in cron and manual triggers",
     async (status) => {
