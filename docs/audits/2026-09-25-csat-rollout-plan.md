@@ -38,11 +38,10 @@ collection publishes no values. Keep the normal collector from writing CSAT for 
 owned by the replacement policy, including manual refresh paths.
 
 The complete two-team invocation is now qualified: 152 GETs, 146.427 seconds, 62 employees
-and 85 facts with zero independent or prior-observation differences. Before enabling
-recurring execution, qualify synthetic hosted publication. Proposed daily windows are 08, 10, 12 and 14 UTC for offsets 0–3.
+and 85 facts with zero independent or prior-observation differences. Synthetic hosted publication, history and actual CSV bytes are also verified. Production activation remains gated by the release preflight. Proposed daily windows are 08, 10, 12 and 14 UTC for offsets 0–3.
 Two-hour spacing accommodates the plan's hourly scheduling precision and the existing
 five-minute source cooldown; these windows are separate from the current 06:00–06:45
-configured sync slots. No new cron entries are enabled in this checkpoint. A failed cron
+configured sync slots. Four CSAT-only cron entries are now prepared in the release candidate; they become scheduled only on production deployment and remain no-ops without the explicit policy. A failed cron
 is not automatically retried by Vercel, so failure/freshness evidence and recovery remain
 part of the release gate.
 
