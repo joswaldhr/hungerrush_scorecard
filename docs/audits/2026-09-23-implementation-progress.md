@@ -59,6 +59,15 @@ target guarantees resolution of vendor attribution evidence.
 
 ## Release gate and next work
 
+**September 25 follow-on request: investigate and correct all POS/Menufy Zendesk metrics.**
+The user asked for a deep investigation and an accuracy plan after scheduled verification.
+See `2026-09-25-zendesk-metric-accuracy-plan.md` for the complete assigned-metric matrix,
+manager-report discovery, independent event/leg reconciliation and publication gates.
+The user supplied manager identities privately as report-discovery starting points and
+does not know the report names. This expands the prior core-release scope into metric
+correctness; it does not certify the current meanings or activate shadow/v2/historical repair.
+The plan is recorded; the new comprehensive live investigation has not yet been executed.
+
 **Next priority: Friday, September 25 release handoff for Monday, September 28 use.**
 The user is unavailable Saturday and Sunday. Do not plan user participation on those days.
 Freeze optional enhancements and prioritize release blockers and core workflow verification.
