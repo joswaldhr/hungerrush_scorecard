@@ -1,0 +1,65 @@
+{
+  "observedAt": "2026-09-25T18:05:39.344Z",
+  "periodStart": "2026-09-13",
+  "periodEnd": "2026-09-19",
+  "timeZone": "America/Chicago",
+  "channel": "email",
+  "reportStatus": "complete",
+  "metricCount": 3,
+  "rosterCoverage": {
+    "observedAt": "2026-09-25T18:02:57.792Z",
+    "httpStatus": 200,
+    "total": 99,
+    "unique": 99,
+    "returned": 99,
+    "offset": 0,
+    "complete": true,
+    "teams": [
+      {
+        "team": "menufy",
+        "activeCadence": 23,
+        "exactMatches": 23,
+        "nondeletedExactMatches": 23,
+        "ambiguous": 0
+      },
+      {
+        "team": "pos",
+        "activeCadence": 39,
+        "exactMatches": 39,
+        "nondeletedExactMatches": 39,
+        "ambiguous": 0
+      }
+    ]
+  },
+  "stateEvidence": {
+    "observedAt": "2026-09-25T18:04:12.234Z",
+    "periodStart": "2026-09-13",
+    "periodEnd": "2026-09-19",
+    "timeZone": "America/Chicago",
+    "pages": 6,
+    "complete": true,
+    "rows": 5773,
+    "ticketLinkedRows": 2763,
+    "distinctLinkedTickets": 309,
+    "uniqueExternalIds": 5007,
+    "missingExternalIds": 0,
+    "invalidIntervals": 0,
+    "platformCounts": {
+      "zendesk": 5681,
+      "zendesk_talk": 92
+    }
+  },
+  "segmentIdentity": {
+    "rows": 5773,
+    "uniqueCompositeSegments": 5773,
+    "externalIdAloneNotUnique": true
+  },
+  "arithmeticMatches": true,
+  "limitations": [
+    "One employee/channel/closed-week sample, not source-set qualification.",
+    "Solved-date metrics aggregate time from before the selected week; one-week state extraction is not the complete numerator.",
+    "Ticket viewing time is not proof of a human ticket update or resolution.",
+    "Current retired source and scheduled ingestion remain unchanged.",
+    "Exact report units and state exclusions still require validation."
+  ]
+}

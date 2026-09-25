@@ -2,7 +2,8 @@
 
 Investigation started September 25 at approximately 16:37 UTC. This is evidence of
 discovery and diagnostic implementation, **not a new production metric release or a
-claim that all metrics are accurate**. Production was read only. Vendor calls were GETs;
+claim that all metrics are accurate**. Production was read only. Zendesk calls were GETs;
+workforce discovery also requested one bounded analytical report from existing data.
 Explore reports were inspected without saving changes. Private identities, ticket IDs,
 report IDs, credentials and raw payloads remain outside tracked files.
 
@@ -272,3 +273,77 @@ A separate POS employee report uses leg-agent rows with average leg talk/duratio
 but average **whole-call** hold, plus leg-date/type/role/status and group filters. Another
 POS-manager-associated report uses first-call-agent rows. These are distinct contracts;
 Menufy's report semantics must not be applied to POS merely because labels are similar.
+
+## Second call week and workforce-source capability
+
+For September 6–12, all 26 named Menufy inbound rows also match the eight measures, for
+**56 row-week comparisons** across both weeks. The second padded extract used 27 call pages
+and 49 leg pages, retaining 9,538 calls / 19,031 legs; 865 calls match the report scope.
+An unsaved incident-employee decomposition returned eight accepted leg IDs and those exact
+eight IDs matched the independent reference. The decomposition/date edits were discarded.
+See `2026-09-25-menufy-call-parity.json`.
+
+Existing Assembled access returned HTTP 200. A complete deleted-inclusive roster read
+returned 99 unique people; all 23 Menufy and 39 POS current identities matched uniquely by
+exact email to nondeleted people. The earlier architecture note that much of this roster
+could not be found is superseded by this current census. The production connector remains
+retired; no identities, schedules or source configuration were changed.
+
+For one employee and one Central-time closed week, six complete cursor pages returned
+5,773 state segments, including 2,763 ticket-linked segments across 309 ticket IDs. A state
+external ID alone is not unique: repeated IDs span different times/tickets/statuses; all
+5,773 composite segment identities are unique. Blind deduplication by external ID would
+discard real segments. The corresponding Zendesk platform identity matches exactly.
+
+A bounded email-channel analytical report completed and returned its three solved-effort
+metrics. Its reported mean agrees with total divided by count, but that does not independently
+certify the underlying time or source set. According to the vendor's
+[handle-time methodology](https://support.assembled.com/hc/en-us/articles/21941584400909-Agent-average-handle-time),
+this tracks ticket viewing while in the ticket-work state and assigns accumulated time to
+the latest solve interval, including time spent before that interval. Viewing is not proof
+that the employee updated or solved the ticket. The one-week state extract therefore must
+not be treated as the full solved-ticket numerator. Units, exclusions, historical coverage
+and all assigned-employee results remain to be qualified.
+
+See `2026-09-25-workforce-source-capability.json` and the first execution checkpoint for the
+updated dependency matrix and forecast. Source access and identity coverage are now verified
+capabilities; accurate effort publication remains unfinished.
+
+## POS inbound parity and report-definition defect
+
+For September 13–19, all 55 named rows match eight independently calculated measures.
+The actual downloaded CSV contains 55 unique named rows and 11 columns. Counts match
+exactly; the four unrounded duration means match within 1e-9 seconds (maximum observed
+difference 1.78e-15 seconds). The screen truncates fractional seconds but the CSV retains
+numeric precision. This verifies the Explore export, not Cadence hosted export bytes.
+
+The tenant formula labeled **Abandoned calls - on-hold** actually counts distinct calls
+abandoned in IVR, queue or voicemail. It does not count abandoned-on-hold calls. Reproducing
+that formula establishes report parity only; it must not become the scorecard definition.
+The hold average repeats the whole-call hold value for each joined leg, so repeat legs
+reweight that average. Agent and supervisor legs contribute general durations, while
+built-in acceptance remains restricted to completed positive-talk agent legs.
+
+The 14 resolved group IDs reproduce the 55 rows; four historical selected group labels
+remain unresolved in the complete current/deleted group census. Exact source sets,
+second-week qualification, future numeric scope binding and target compatibility remain
+open. The two transfer metrics in this report were not compared. No report was saved.
+
+The full related-leg replay also passes both Menufy weeks: 56 named row-weeks across eight
+measures, retaining all fetched leg creation dates for selected parent calls.
+
+## Exact inbound leg sets and values
+
+Actual CSV bytes from unsaved leg-ID breakdowns now establish exact source-set parity
+for September 13–19. POS has 2,012 unique selected-agent legs: zero missing, extra or
+duplicate IDs, and all identity mappings and eight per-leg values match. Menufy has
+920 named-agent legs with the same checks passing. Its 990 unnamed legs are retained
+in the private export but excluded from employee comparisons, matching the original
+unnamed aggregate-row exclusion. No named rows are unrecognized. Second-week full
+source sets remain open; neither result approves a report defect or employee target.
+
+The tested POS diagnostic explicitly separates the report’s IVR/queue/voicemail formula
+from actual on-hold participation and exposes per-leg hold separately from whole-call
+hold weighted by legs. It replays all 55 reported employee rows exactly. Across the
+independent ticket and call references, 24 focused tests pass; TypeScript and focused
+ESLint pass. No production runtime imports these diagnostic references.
