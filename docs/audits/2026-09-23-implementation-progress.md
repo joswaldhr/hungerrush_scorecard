@@ -1733,3 +1733,29 @@ Both 55d477e CI runs 36081493636/36081489815 passed. Its Preview
 manual execution at 20:22 CDT with `status: disabled`. Enablement, credentials and schedule
 were unchanged. This validates the deployed disabled path; auth-only request boundaries
 were exercised by the 19 focused scheduler/route tests, not by granting another Preview session.
+
+## Read-only checkpoint health — September 24
+
+The shadow endpoint now accepts an authenticated `probe=health` that reads only checkpoint
+metadata for its explicitly selected, account-bound source. It never obtains a lease, creates
+a checkpoint, fetches vendor data or publishes metrics. Missing daily intervals are detected
+even when a later interval is complete; missing stream pairs, invalid/account-mismatched
+metadata and the 1,000-row inspection bound cannot return current health. Disabled and never
+started states remain separate. Unknown probe names return 400 instead of starting a batch.
+
+Three hours without eligible progress triggers attention, using the oldest unfinished day
+and honoring its persisted retry deadline. A newly closed day has its own progress window;
+an old completion timestamp does not immediately make the next day stalled. Re-observation
+keys are excluded from primary daily coverage. Responses retain only dates/counts/status and
+explicitly do not certify publication or human attribution.
+
+PostgreSQL tests compare all checkpoint rows before/after the health read, reject foreign
+organization/account requests and ignore separate observations. Route tests prove configured
+and disabled health reads need no vendor credential and never call the worker or lease. The
+runbook defines each health state and its limits. This is the monitoring read path, not an
+activated alert service or recurring ingestion. Full validation follows.
+
+Sixteen health cases, fifteen route cases and seven scheduler cases passed; TypeScript,
+full lint and formatting passed. The additional retry-order regression confirms that later
+missing days cannot bypass the oldest day's rate-limit deadline. No hosted source was enabled
+for these tests. CI and Preview deployment follow.

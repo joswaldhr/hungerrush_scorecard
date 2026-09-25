@@ -7,6 +7,7 @@ import { logger } from "@/lib/logger";
 import { zendeskGet } from "@/lib/connectors/zendesk-shared";
 import { assertZendeskAccountBinding } from "@/lib/connectors/zendesk-account-binding";
 import { nextActionShadowScope, runActionShadowBatch } from "@/lib/connectors/action-shadow-worker";
+import { readActionShadowHealth } from "@/lib/connectors/action-shadow-health";
 import {
   claimActionShadowLease,
   releaseActionShadowLease,
@@ -23,10 +24,16 @@ export async function GET(request: Request) {
   if (request.headers.get("authorization") !== `Bearer ${secret}`)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   // A credential rehearsal must never become ingestion if source settings change later.
-  if (new URL(request.url).searchParams.get("probe") === "auth")
+  const probe = new URL(request.url).searchParams.get("probe");
+  if (probe !== null && probe !== "auth" && probe !== "health")
+    return NextResponse.json({ error: "Unknown worker probe" }, { status: 400 });
+  if (probe === "auth")
     return NextResponse.json({ authenticated: true, ingestionRequested: false });
   if (!env.ACTION_SHADOW_SOURCE_ID) return NextResponse.json({ enabled: false });
-  if (!env.ZENDESK_SUBDOMAIN || !env.ZENDESK_EMAIL || !env.ZENDESK_API_KEY)
+  if (
+    !env.ZENDESK_SUBDOMAIN ||
+    (probe !== "health" && (!env.ZENDESK_EMAIL || !env.ZENDESK_API_KEY))
+  )
     return NextResponse.json(
       { error: "Shadow source credentials are not configured" },
       { status: 503 }
@@ -36,12 +43,22 @@ export async function GET(request: Request) {
       .select()
       .from(dataSources)
       .where(eq(dataSources.id, env.ACTION_SHADOW_SOURCE_ID));
-    if (!source || source.type !== "zendesk" || source.status !== "configured")
+    if (
+      !source ||
+      source.type !== "zendesk" ||
+      (probe !== "health" && source.status !== "configured")
+    )
       return NextResponse.json({ error: "Invalid shadow source configuration" }, { status: 503 });
     const accountReference = assertZendeskAccountBinding(
       source.configurationReference,
       env.ZENDESK_SUBDOMAIN
     );
+    if (probe === "health")
+      return NextResponse.json({
+        enabled: source.status === "configured",
+        ingestionRequested: false,
+        health: await readActionShadowHealth(source.organizationId, source.id, accountReference),
+      });
     const lease = await claimActionShadowLease(source.organizationId, source.id, accountReference);
     if (!lease.acquired)
       return NextResponse.json({ enabled: true, busy: true, retryAt: lease.retryAt });

@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   run: vi.fn(),
   claim: vi.fn(),
   release: vi.fn(),
+  health: vi.fn(),
   env: {
     CRON_SECRET: "fixture",
     ACTION_SHADOW_SECRET: undefined as string | undefined,
@@ -21,6 +22,7 @@ vi.mock("@/lib/connectors/action-shadow-lease", () => ({
   releaseActionShadowLease: mocks.release,
 }));
 vi.mock("@/lib/db", () => ({ db: { select: mocks.select } }));
+vi.mock("@/lib/connectors/action-shadow-health", () => ({ readActionShadowHealth: mocks.health }));
 vi.mock("@/lib/connectors/action-shadow-worker", () => ({
   nextActionShadowScope: mocks.next,
   runActionShadowBatch: mocks.run,
@@ -30,6 +32,8 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.env.ACTION_SHADOW_SOURCE_ID = undefined;
   mocks.env.ACTION_SHADOW_SECRET = undefined;
+  mocks.env.ZENDESK_EMAIL = "fixture@example.test";
+  mocks.env.ZENDESK_API_KEY = "fixture";
   mocks.claim.mockResolvedValue({ acquired: true, token: "fixture-token" });
   mocks.release.mockResolvedValue(undefined);
 });
@@ -60,6 +64,55 @@ it("authenticates an explicit probe without source work even when ingestion is c
   expect(mocks.claim).not.toHaveBeenCalled();
   expect(mocks.run).not.toHaveBeenCalled();
 });
+
+it("rejects unknown probes rather than starting ingestion", async () => {
+  mocks.env.ACTION_SHADOW_SOURCE_ID = "source";
+  const response = await GET(
+    new Request("https://test.invalid/api/cron/action-shadow?probe=typo", {
+      headers: { authorization: "Bearer fixture" },
+    })
+  );
+  expect(response.status).toBe(400);
+  expect(mocks.select).not.toHaveBeenCalled();
+  expect(mocks.run).not.toHaveBeenCalled();
+});
+
+it.each(["configured", "disabled"])(
+  "reads %s checkpoint health without vendor credentials, leases or ingestion",
+  async (status) => {
+    mocks.env.ACTION_SHADOW_SOURCE_ID = "source";
+    mocks.env.ZENDESK_EMAIL = "";
+    mocks.env.ZENDESK_API_KEY = "";
+    mocks.select.mockReturnValue({
+      from: () => ({
+        where: async () => [
+          {
+            id: "source",
+            organizationId: "org",
+            type: "zendesk",
+            status,
+            configurationReference: "zendesk-account:synthetic",
+          },
+        ],
+      }),
+    });
+    const healthStatus = status === "disabled" ? "disabled" : "pending";
+    mocks.health.mockResolvedValue({ status: healthStatus, publicationVerified: false });
+    const response = await GET(
+      new Request("https://test.invalid/api/cron/action-shadow?probe=health", {
+        headers: { authorization: "Bearer fixture" },
+      })
+    );
+    expect(await response.json()).toEqual({
+      enabled: status === "configured",
+      ingestionRequested: false,
+      health: { status: healthStatus, publicationVerified: false },
+    });
+    expect(mocks.health).toHaveBeenCalledWith("org", "source", "zendesk-account:synthetic");
+    expect(mocks.claim).not.toHaveBeenCalled();
+    expect(mocks.run).not.toHaveBeenCalled();
+  }
+);
 it.each(["disabled", "retired", "unknown"])(
   "refuses a %s shadow source before taking a lease",
   async (status) => {

@@ -59,6 +59,35 @@ means its running lease expired; a new sync can reclaim it through the transacti
 mechanism. Viewing the page does not modify the job. Disabled sources cannot start sync work,
 and a source disabled during a publishing fetch cannot commit that publication.
 
+### Read-only shadow checkpoint health
+
+An authenticated `GET /api/cron/action-shadow?probe=health` reads metadata for the explicitly
+selected source. It never acquires a lease, creates a cursor, fetches vendor data or publishes
+facts. The same Preview protection and dedicated shadow credential apply. Vendor email/API
+key are not needed for this read, but source ID and matching account subdomain must be configured.
+No source opt-in returns `enabled: false`; a selected disabled source reports disabled health.
+Unknown probe names return 400 before database work rather than accidentally invoking ingestion.
+
+Interpret `health.status`, not HTTP 200 alone:
+
+- `current`: both daily streams are complete from the first retained day through the latest
+  closed UTC day (with the two-minute source cutoff). This is not metric or attribution certification.
+- `pending`: collection is unfinished; inspect `oldestPendingDay` and `nextRetryAt`. The oldest
+  unfinished day owns retry timing. A newer missing day must not override that deadline.
+- `not_started`: there are no daily checkpoint rows. Do not label this as successful collection.
+- `attention`: a missing day, invalid/account-mismatched checkpoint, duplicate stream,
+  inventory above 1,000 checkpoint rows, or at least three hours without eligible progress.
+  Three hours represents three missed hourly opportunities, not a vendor-data SLA. Persisted
+  rate-limit deadlines and the newly closed-day grace period take precedence.
+- `disabled`: source synchronization is disabled. Retained observations are not deleted.
+
+The response contains dates/counts/status only. It excludes event payloads, continuation URLs,
+lease credentials and actor identities. Read-only re-observations use separate keys and do not
+satisfy the primary daily schedule. An external monitor still needs explicit configuration and
+delivery verification before claiming operational alerting is active; this endpoint alone does
+not enable recurring ingestion or alerts. Retention must preserve referenced evidence before
+purging anything; an inventory-limit alert is not authorization to delete old checkpoints.
+
 ## Migration and recovery checks
 
 `scripts/staging-rehearsal.ts` creates a disposable local database and rehearses upgrades and
