@@ -1688,3 +1688,22 @@ reports: `2026-09-24-retained-audit-evidence.json` and its `-replay.json` counte
 TypeScript and lint passed; full CI follows. Two audit documents also had legacy non-UTF-8
 dash bytes repaired without changing their meaning. The next separate fix addresses the
 observed Preview connection reset.
+
+## Account lookup reset recovery — September 24
+
+Preview runtime evidence tied the initial history-page 500 to ECONNRESET during the active
+user lookup (client digest 2312416058). Next's default uncaught-error logging also included
+Drizzle SQL and parameters. The subsequent retry and reload succeeded. This was a connection
+failure, not a missing account or permission denial.
+
+The two account lookup paths (current user and an administrator's view-as target) now retry
+one known transient connection failure with a fresh read. Missing/inactive accounts remain
+denied, non-transport database errors are not retried, and repeated failure throws a new
+generic error without SQL, parameters or nested driver causes. Diagnostics contain only
+fixed messages, attempt number and an allowlisted transport code. Writes are never replayed.
+
+Nine targeted cases verify recovered true/false admin flags, missing accounts, bounded
+repeated failure, database authorization/schema/constraint failures, cyclic causes and private
+error stripping. All 24 existing PostgreSQL authorization tests also passed, plus TypeScript
+and lint. Full CI and deployed read verification follow. This does not claim that all possible
+database connection failures elsewhere in the application have been eliminated.
