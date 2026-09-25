@@ -1,7 +1,7 @@
 # Metric acceptance ledger
 
 September 25 live investigation. Denominator: **23 assigned keys / 40 team assignments**.
-**Source-to-production arithmetic is verified for 3 of 40 assignments (CSAT)** across 62 employees and 85 current-week values. Full-contract certification remains **0 of 40** while target compatibility and genuine scheduled CSAT execution remain open.
+**Source-to-production arithmetic is verified for 4 of 40 assignments (CSAT and Menufy first reply)** across 62 employees and 108 current-week values. Full-contract certification remains **0 of 40** while target compatibility and genuine scheduled execution of the replacements remain open.
 That does not undo prior infrastructure/display validation. A sample match is not full
 qualification; disabled metrics are not counted as complete. Evidence and private snapshot
 locations are described in `2026-09-25-zendesk-live-findings.md` and the local investigation
@@ -18,7 +18,7 @@ automated reconciliation, target review, staging/UI/export and production checks
 | avg_handle_time | 1 | R | Current value is full-resolution elapsed business time. Workforce access and all 62 identities now verified; solved ticket-viewing effort report exists. Units, lifetime numerator, exclusions, source sets and release remain open |
 | avg_hold_time_inbound | 2 | R | Menufy report is MAX leg hold; POS repeats whole-call hold for each leg. Neither is employee mean leg hold; corrected denominator and targets remain open |
 | avg_hold_time_outbound | 2 | D | Verify leg basis, completed/unanswered inclusion and transfer attribution |
-| avg_response_time | 1 | R | All 23 active Menufy identities match independent creation-cohort arithmetic and exact sets in both weeks (46 cases). Prospective adapter, sample coverage and preservation tests pass; hosted release/targets/scheduler pending |
+| avg_response_time | 1 | PV | PR29 deployed; all 23 current-week values and exact source sets independently match. Original facts, unrelated values and earlier periods remain unchanged; 19 predecessor values retained. Current/history/CSV/PDF/PNG checks pass. Targets withheld; genuine scheduler execution unobserved |
 | avg_talk_time_inbound | 2 | R | POS 55 means match with exact source legs. Menufy report sums leg talk; scorecard average requires an explicit denominator |
 | avg_talk_time_outbound | 2 | D | Verify outbound report aggregation, zero policy and agent-leg attribution |
 | avoidable_worked_elevated_tickets | 2 | B | Team-specific fields differ; work attribution and history unresolved |

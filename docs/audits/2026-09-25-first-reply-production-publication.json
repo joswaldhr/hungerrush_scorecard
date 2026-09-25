@@ -1,0 +1,27 @@
+{
+  "observedAt": "2026-09-25T21:21:48.260Z",
+  "mode": "read-only verification of one controlled production first-reply publication; not scheduler evidence",
+  "status": "completed",
+  "errorCount": 0,
+  "sourceRecords": 23,
+  "metricValues": 23,
+  "independentCases": 23,
+  "independentDifferences": 0,
+  "periodStart": "2026-09-20",
+  "periodEnd": "2026-09-26",
+  "measuredTickets": 1135,
+  "missingMeasurements": 1488,
+  "zeroMeasurements": 481,
+  "durationMs": 72000,
+  "fetchMs": 64412,
+  "publishMs": 6689,
+  "requests": 72,
+  "retainedRevisions": [
+    {
+      "entity_type": "metric_value",
+      "count": 19
+    }
+  ],
+  "unrelatedValuesAndEarlierPeriodsUnchanged": true,
+  "legacySourceRecordsAndFactsUnchanged": true
+}

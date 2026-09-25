@@ -1,0 +1,26 @@
+{
+  "observedAt": "2026-09-25T21:21:28.594Z",
+  "environment": "hosted-synthetic-staging",
+  "productionDataExported": false,
+  "pdf": {
+    "bytes": 17614149,
+    "sha256": "360af3d7cffc22497b47e28718b0d3241d95b1832db99613b97c637619e46a16",
+    "pages": 1,
+    "paper": "A4",
+    "actualFileRenderedAndVisuallyInspected": true
+  },
+  "png": {
+    "bytes": 767787,
+    "sha256": "cdbe25c9e570e1272e7e3dada3941388ecd9d93549912c5ee356d1f5f11ae9f8",
+    "width": 2144,
+    "height": 2738,
+    "actualFileVisuallyInspected": true
+  },
+  "firstReplyDisplay": "0:00:40",
+  "columnsAligned": true,
+  "sourceContextAndSampleCountPreserved": true,
+  "clippingObserved": false,
+  "limits": [
+    "PDF remains a large raster capture without searchable text; size and accessibility improvement remain separate work."
+  ]
+}
