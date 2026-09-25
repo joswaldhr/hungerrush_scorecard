@@ -40,6 +40,11 @@ the PostgreSQL 18 binary directory and load DATABASE_URL privately. It restricts
 to the known production endpoint and restores only into a newly initialized local cluster.
 The live rehearsal and TypeScript check passed. Hosted schemas were not modified.
 
+Pass a new `docs/audits/*.json` report path as the first argument. Without an argument the
+script uses a timestamped report name. Existing reports are never overwritten. The later
+release-candidate restore is recorded separately in
+`2026-09-24-production-restore-release-candidate.json`; the original report remains intact.
+
 The binary package came from [EDB's official distribution](https://www.enterprisedb.com/download-postgresql-binaries),
 linked by [PostgreSQL Windows downloads](https://www.postgresql.org/download/windows/).
 Snapshot and custom-format behavior follows [pg_dump documentation](https://www.postgresql.org/docs/18/app-pgdump.html).

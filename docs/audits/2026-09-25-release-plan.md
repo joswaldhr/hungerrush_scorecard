@@ -1,0 +1,78 @@
+# Friday release handoff
+
+The user needs the site/app usable Monday, September 28 and is unavailable Saturday and
+Sunday. Friday, September 25 is the handoff target. Execution is authorized; routine
+checkpoint approval is not required. This is a delivery target, not a claim that unresolved
+metric semantics are verified or that deployment has occurred.
+
+## Release scope and acceptance
+
+- Microsoft sign-in succeeds; unknown/inactive users and out-of-scope records remain denied.
+- Manager and employee views load with the correct week and employee. History, navigation,
+  correction evidence and exports preserve that context.
+- Verified stored values remain usable. Tickets Updated/Resolved remain unavailable under
+  the user's human-only policy until source-bound human evidence is validated. Historical
+  target judgments remain withheld where historical configuration is unknown.
+- Core administration saves are authorized, atomic where required and report failures.
+- Publication remains atomic; failures preserve prior values and do not claim freshness.
+- Production migrations are compatible, a recent backup restores successfully, and the
+  previous production deployment is recorded before rollout.
+- Verify the deployed candidate with actual production sign-in/read workflows and source
+  status. Do not describe CI or Preview evidence as production acceptance.
+
+## Ordered remaining work
+
+1. Resolve the read-only production preflight findings and verify current environment
+   isolation/flags. Refresh backup and restore evidence close to deployment.
+2. Verify the exact candidate's CI and Preview, review migration compatibility, and establish
+   a brief controlled cutover that drains older workers before the new publisher runs.
+3. Apply compatible migrations explicitly, deploy, and exercise the production acceptance
+   checks. Preserve a rollback path and report any remaining limitation before handoff.
+4. Verify scheduled sync behavior as time permits before Friday handoff. Clearly distinguish
+   controlled execution from observed scheduled execution; neither certifies metric semantics.
+
+## Deferred from this release
+
+Optional styling and new features, historical data repair, version-2 metric publication,
+unreviewed human attribution, historical membership/target reconstruction and recurring
+shadow ingestion are deferred. Keep the shadow source/scheduler ingestion disabled. Retention
+and external alert delivery are prerequisites for enabling ongoing shadow operation.
+Portable off-machine recovery/provider PITR remains unproven and must not be implied by a
+successful local restore.
+
+## Current production preflight
+
+Read-only observation: `2026-09-24-production-release-schema-census.json`. Production remains
+at `ab062c33f70e2152b8786f6a8ade5a7e0ab96697`, deployment
+`dpl_n5978weiS8aDUPYswkWAMkmbw7JL` (READY). Recheck this before rollout.
+
+- PostgreSQL 18.6; zero duplicate visibility scopes.
+- All 11 recorded migration hashes match candidate files exactly. Migration 0009 is absent
+  from the journal, while its required NOT NULL columns, unique identity index and aggregation
+  column are present. The repository's legacy `phase1-apply-migration.ts` performs those
+  changes without recording a journal entry. This is consistent with a manual application,
+  not proof of its execution history. Do not re-run its destructive duplicate cleanup or
+  silently insert a journal entry. The restored-copy upgrade must verify the real state.
+- Newer candidate migrations are 0012–0014. A strict full-prefix match intentionally remains
+  false because of the missing historical journal entry.
+- Five old running rows remain; newest started September 10. Four completed runs occurred
+  in the last 24 hours, with no failed rows in that interval. Row age alone does not prove a
+  worker is absent. Do not erase evidence to make the check appear green.
+- One configured Zendesk source has no account reference. That reference is mandatory for
+  shadow ingestion; do not enable shadow operation or invent a binding for legacy evidence.
+
+The census contains aggregates and migration/schema facts only. It performs no database
+writes and never fetches vendor data. Its output is a new file on each invocation.
+
+The 01:53 UTC September 25 read-only backup restored all 32 tables / 28,878 rows with
+identical contents, then applied candidate migrations through 0014 without changing any
+existing application data. See `2026-09-24-production-restore-release-candidate.json`.
+The encrypted archive and private manifest remain outside Git; the disposable cluster,
+plaintext archives and local password were removed. This verifies the actual legacy state
+can upgrade without replaying 0009. It does not fix its journal or prove historical cleanup.
+Refresh again if source data changes or rollout is delayed materially.
+
+Production environment metadata at this checkpoint includes the existing database, SSO,
+cron and Zendesk keys; neither shadow opt-in nor shadow credential nor sync heartbeat URL
+is present. Metadata presence is not credential validation. Production environment entries
+were not changed. External sync alert delivery is not configured by this release check.

@@ -52,9 +52,19 @@ The dedicated token is saved only in this branch's Preview settings and the Rail
 scheduler, plus the audit-branch-restricted GitHub staging environment. Auth-only rehearsals
 passed; see the scheduler report for evidence and cleanup.
 
+On September 24 the user set Monday, September 28 as the required usable date and clarified
+that they do not work Saturday/Sunday. Friday, September 25 is therefore the handoff target.
+Prioritize the core release over further optional audit expansion; do not imply that this
+target guarantees resolution of vendor attribution evidence.
+
 ## Release gate and next work
 
-**Next priority: Zendesk completeness and metric semantics.** Hosted staging isolation,
+**Next priority: Friday, September 25 release handoff for Monday, September 28 use.**
+The user is unavailable Saturday and Sunday. Do not plan user participation on those days.
+Freeze optional enhancements and prioritize release blockers and core workflow verification.
+See `2026-09-25-release-plan.md` for acceptance checks and deferred work. Zendesk attribution
+research remains a metric-activation gate, not an excuse to expand the containment release.
+Hosted staging isolation,
 separate Entra sign-in, migrations through 0014, and synthetic null/zero UI checks are complete.
 Automatic Preview deployment is enabled for the audit branch. See the dated hosted reports
 and latest entries below; earlier isolation checkpoints are historical.

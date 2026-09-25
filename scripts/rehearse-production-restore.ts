@@ -63,6 +63,12 @@ async function inventory(
 
 async function main() {
   assert.equal(process.platform, "win32");
+  const reportPath = path.resolve(
+    process.argv[2] ??
+      `docs/audits/${new Date().toISOString().replaceAll(":", "-")}-production-restore-rehearsal.json`
+  );
+  assert.equal(path.dirname(reportPath), path.resolve("docs/audits"));
+  assert(reportPath.endsWith(".json"));
   const bin = path.resolve(process.env.RESTORE_PG_BIN ?? "");
   assert(process.env.RESTORE_PG_BIN, "Explicit PostgreSQL 18 binary directory required");
   const sourceUrl = new URL(process.env.DATABASE_URL ?? "");
@@ -248,10 +254,7 @@ async function main() {
       path.join(root, "manifest.json"),
       JSON.stringify({ ...report, tables: before }, null, 2)
     );
-    await writeFile(
-      "docs/audits/2026-09-24-production-restore-rehearsal.json",
-      `${JSON.stringify(report, null, 2)}\n`
-    );
+    await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, { flag: "wx" });
     console.log(JSON.stringify(report));
   } catch {
     throw new Error(

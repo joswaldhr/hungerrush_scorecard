@@ -1,0 +1,103 @@
+{
+  "observedAt": "2026-09-25T01:51:17.002Z",
+  "databaseWrites": 0,
+  "transactionReadOnly": true,
+  "serverVersion": 180006,
+  "migrations": {
+    "appliedCount": 11,
+    "matchesCandidatePrefix": false,
+    "pending": null,
+    "appliedEvidence": [
+      {
+        "tag": "0000_wet_jubilee",
+        "exactHashMatches": true,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0001_shallow_stature",
+        "exactHashMatches": true,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0002_aromatic_silver_fox",
+        "exactHashMatches": true,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0003_redundant_cargill",
+        "exactHashMatches": true,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0004_tidy_blob",
+        "exactHashMatches": true,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0005_absent_the_order",
+        "exactHashMatches": true,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0006_natural_nextwave",
+        "exactHashMatches": true,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0007_slow_bloodstorm",
+        "exactHashMatches": true,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0008_previous_golden_guardian",
+        "exactHashMatches": true,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0010_polite_dark_beast",
+        "exactHashMatches": true,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0011_illegal_golden_guardian",
+        "exactHashMatches": true,
+        "knownLineEndingHashMatches": true
+      }
+    ],
+    "missingJournalEntriesBeforeLatest": [
+      "0009_fact_identity"
+    ],
+    "newerCandidateEntries": [
+      "0012_cool_wasp",
+      "0013_visibility_scope_uniqueness",
+      "0014_roster_candidate_line"
+    ]
+  },
+  "visibility": {
+    "duplicate_scopes": 0
+  },
+  "workers": {
+    "running_rows": 5,
+    "recent_running_rows": 0,
+    "older_running_rows": 5,
+    "latest_running_started_at": "2026-09-10T16:19:59.328Z",
+    "completed_last_24h": 4,
+    "failed_last_24h": 0
+  },
+  "sources": {
+    "total": 2,
+    "configured_zendesk": 1,
+    "configured_zendesk_without_account_reference": 1,
+    "configured_zendesk_never_published": 0
+  },
+  "legacyMigration0009Schema": {
+    "fact_identity_columns_not_null": true,
+    "fact_identity_unique_index": true,
+    "team_aggregation_column": true
+  },
+  "limitations": [
+    "Point-in-time census; repeat immediately before migration and rollout.",
+    "A running row's age does not prove its worker has stopped; drain legacy workers separately.",
+    "This census does not verify deployment environment, recoverability, source semantics or metric correctness."
+  ]
+}
