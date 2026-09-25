@@ -18,6 +18,9 @@ import {
 import { runSync } from "@/lib/connectors/sync-engine";
 import type { Connector, IngestedRecord } from "@/lib/connectors/types";
 import { SOLVED_CSAT_CONTRACT } from "@/lib/domain/metrics/source-context";
+import { ZendeskConnector } from "@/lib/connectors/zendesk";
+import { buildSolvedCsatRecord } from "@/lib/connectors/zendesk-solved-csat-record";
+import type { fetchSolvedCsatCandidate } from "@/lib/connectors/zendesk-solved-csat";
 
 const org = randomUUID(),
   employee = randomUUID(),
@@ -477,6 +480,128 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
     } finally {
       release();
       await running;
+    }
+  });
+
+  it("replaces a legacy CSAT snapshot through the real normalizer, retains revisions and retracts to null", async () => {
+    const scoreId = randomUUID(),
+      responseId = randomUUID();
+    await db.insert(metricDefinitions).values([
+      {
+        id: scoreId,
+        organizationId: org,
+        key: "csat_score",
+        name: "Synthetic score",
+        sourceStrategy: "test",
+        calculationType: "average",
+        version: 2,
+      },
+      {
+        id: responseId,
+        organizationId: org,
+        key: "csat_response_rate",
+        name: "Synthetic response",
+        sourceStrategy: "test",
+        calculationType: "sum",
+        version: 2,
+      },
+    ]);
+    const snapshot: Awaited<ReturnType<typeof fetchSolvedCsatCandidate>> = {
+      tickets: (["good", "bad", "bad", "offered"] as const).map((score, i) => ({
+        id: i + 1,
+        assignee_id: 7,
+        group_id: 20,
+        brand_id: 30,
+        satisfaction_rating: { score },
+      })),
+      metrics: [1, 2, 3, 4].map((ticket_id) => ({ ticket_id, solved_at: "2026-07-07T12:00:00Z" })),
+      coverage: {
+        complete: true,
+        population: "all-solved-satisfaction-states",
+        requests: 2,
+        query: "synthetic",
+        observationStartedAt: "2026-07-12T07:00:00Z",
+        observationEndedAt: "2026-07-12T07:00:01Z",
+        timeZone: "America/Chicago",
+        periodStart: "2026-07-05",
+        periodEnd: "2026-07-11",
+        groupIds: [20],
+        brandIds: [30],
+        agentIds: [7],
+      },
+    };
+    const identity = {
+      agentId: 7,
+      externalId: "agent",
+      accountReference: "zendesk-account:synthetic",
+      subdomain: "synthetic",
+    };
+    const candidate = buildSolvedCsatRecord(snapshot, identity);
+    const normalize = new ZendeskConnector();
+    const publish = (record: IngestedRecord) => {
+      const replay = connector([record]);
+      replay.normalizeRecords = normalize.normalizeRecords.bind(normalize);
+      return runSync(replay, config);
+    };
+    const read = () =>
+      db
+        .select()
+        .from(metricValues)
+        .where(inArray(metricValues.metricDefinitionId, [scoreId, responseId]));
+    try {
+      expect(
+        (
+          await publish({
+            ...candidate,
+            payload: { csatScore: 99 },
+            sourceUpdatedAt: new Date("2026-07-12T06:00:00Z"),
+          })
+        ).success
+      ).toBe(true);
+      expect((await publish(candidate)).valuesWritten).toBe(2);
+      const stored = await read();
+      expect(stored.find((v) => v.metricDefinitionId === scoreId)).toMatchObject({
+        numericValue: 100 / 3,
+        calculationVersion: 2,
+        provenanceJson: {
+          sourceContract: SOLVED_CSAT_CONTRACT,
+          reportingTimeZone: "America/Chicago",
+        },
+      });
+      expect(stored.find((v) => v.metricDefinitionId === responseId)?.numericValue).toBe(75);
+      expect((stored[0]!.provenanceJson as Record<string, unknown>).sourceScopeFingerprint).toMatch(
+        /^[a-f0-9]{64}$/
+      );
+      const records = await db
+        .select()
+        .from(sourceRecords)
+        .where(eq(sourceRecords.externalRecordId, candidate.externalRecordId));
+      expect(records).toHaveLength(1);
+      const retained = await db
+        .select()
+        .from(syncRevisions)
+        .where(
+          eq(syncRevisions.entityId, stored.find((v) => v.metricDefinitionId === scoreId)!.id)
+        );
+      expect(
+        retained.some((r) => (r.snapshotJson as Record<string, unknown>).numeric_value === 99)
+      ).toBe(true);
+      expect((await publish(candidate)).valuesWritten).toBe(0);
+      snapshot.tickets = [];
+      snapshot.metrics = [];
+      snapshot.coverage.observationStartedAt = "2026-07-12T08:00:00Z";
+      snapshot.coverage.observationEndedAt = "2026-07-12T08:00:01Z";
+      expect((await publish(buildSolvedCsatRecord(snapshot, identity))).valuesWritten).toBe(2);
+      expect(
+        (await read()).every((v) => v.numericValue === null && v.qualityStatus === "missing")
+      ).toBe(true);
+    } finally {
+      await db
+        .delete(metricValues)
+        .where(inArray(metricValues.metricDefinitionId, [scoreId, responseId]));
+      await db
+        .delete(metricDefinitions)
+        .where(inArray(metricDefinitions.id, [scoreId, responseId]));
     }
   });
 });

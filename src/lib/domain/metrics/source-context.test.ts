@@ -25,6 +25,15 @@ it("does not compare legacy periods to a replacement cohort or changed timezone"
     false
   );
   expect(compatibleMetricSourceContexts({}, null)).toBe(true);
+  expect(
+    compatibleMetricSourceContexts(
+      { ...current, sourceScopeFingerprint: "a".repeat(64) },
+      { ...current, sourceScopeFingerprint: "b".repeat(64) }
+    )
+  ).toBe(false);
+  expect(() =>
+    sharedMetricSourceContext([{ ...current, sourceScopeFingerprint: "a".repeat(64) }, current])
+  ).toThrow(/incompatible/);
 });
 it("rejects incomplete or invalid context", () => {
   expect(() => readMetricSourceContext({ sourceContract: SOLVED_CSAT_CONTRACT })).toThrow();

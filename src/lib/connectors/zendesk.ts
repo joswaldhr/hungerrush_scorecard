@@ -18,6 +18,7 @@ import { logger } from "@/lib/logger";
 import { fetchCompleteSearch, type SearchExportPage } from "./zendesk-search";
 import { fetchCompleteTalkWeek, type TalkCall, type TalkPage } from "./zendesk-talk";
 import { averageEvidence, sourceIds } from "./source-evidence";
+import { normalizeSolvedCsatRecord } from "./zendesk-solved-csat-record";
 import { mapWithConcurrency, weekDates } from "@/lib/utils";
 
 // Real timing data (2026-09-10, see FOLLOWUPS.md) showed the per-employee
@@ -592,6 +593,13 @@ export class ZendeskConnector implements Connector {
     const facts: NormalizedFactInput[] = [];
 
     for (const { payload } of records) {
+      if ("sourceContract" in payload) {
+        // Explicit contracts must validate; never fall back to legacy CSAT parsing.
+        facts.push(
+          ...normalizeSolvedCsatRecord(payload, employeeId, teamId, periodStart, periodEnd)
+        );
+        continue;
+      }
       if ("ticketsResolved" in payload) {
         facts.push({
           employeeId,

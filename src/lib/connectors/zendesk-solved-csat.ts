@@ -63,7 +63,7 @@ function sourceScope(scope: Pick<SolvedCsatScope, "groupIds" | "brandIds">) {
 }
 
 /**
- * Candidate contract only; no publisher imports this module. Current assignee and
+ * Candidate contract; live collection is not enabled. Current assignee and
  * latest solved date intentionally match Support: Tickets, not event authorship.
  * The caller must use a completed collector snapshot, not a rated-only subset.
  */

@@ -1,11 +1,12 @@
 export const SOLVED_CSAT_CONTRACT = "zendesk-solved-current-assignee-csat-v1";
 export const INCOMPATIBLE_COMPARISON_REASON =
-  "Comparison unavailable because the source definition or reporting timezone changed.";
+  "Comparison unavailable because the source definition, scope or reporting timezone changed.";
 export const SOURCE_TARGET_REASON = "Targets have not been verified for this source definition.";
 
 export interface MetricSourceContext {
   sourceContract: string;
   reportingTimeZone: string;
+  sourceScopeFingerprint?: string;
 }
 
 /** Legacy observations have no explicit context. Never infer a new contract from a value. */
@@ -22,7 +23,19 @@ export function readMetricSourceContext(value: unknown): MetricSourceContext | n
   const reportingTimeZone = new Intl.DateTimeFormat("en", {
     timeZone: row.reportingTimeZone,
   }).resolvedOptions().timeZone;
-  return { sourceContract: row.sourceContract, reportingTimeZone };
+  if (
+    row.sourceScopeFingerprint !== undefined &&
+    (typeof row.sourceScopeFingerprint !== "string" ||
+      !/^[a-f0-9]{64}$/.test(row.sourceScopeFingerprint))
+  )
+    throw new Error("Invalid metric source scope");
+  return {
+    sourceContract: row.sourceContract,
+    reportingTimeZone,
+    ...(typeof row.sourceScopeFingerprint === "string"
+      ? { sourceScopeFingerprint: row.sourceScopeFingerprint }
+      : {}),
+  };
 }
 
 /** Fail publication rather than blend legacy and replacement definitions. */
@@ -34,7 +47,8 @@ export function sharedMetricSourceContext(values: unknown[]): MetricSourceContex
     contexts.some(
       (context) =>
         context?.sourceContract !== first?.sourceContract ||
-        context?.reportingTimeZone !== first?.reportingTimeZone
+        context?.reportingTimeZone !== first?.reportingTimeZone ||
+        context?.sourceScopeFingerprint !== first?.sourceScopeFingerprint
     )
   )
     throw new Error("Metric contributors use incompatible source contracts");
@@ -46,5 +60,9 @@ export function sharedMetricSourceContext(values: unknown[]): MetricSourceContex
 export function compatibleMetricSourceContexts(current: unknown, previous: unknown): boolean {
   const a = readMetricSourceContext(current),
     b = readMetricSourceContext(previous);
-  return a?.sourceContract === b?.sourceContract && a?.reportingTimeZone === b?.reportingTimeZone;
+  return (
+    a?.sourceContract === b?.sourceContract &&
+    a?.reportingTimeZone === b?.reportingTimeZone &&
+    a?.sourceScopeFingerprint === b?.sourceScopeFingerprint
+  );
 }

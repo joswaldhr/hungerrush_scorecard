@@ -2,7 +2,21 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-25 (19:20 UTC). **Core, metric-display and roster corrections are deployed. Both-week CSAT source-ticket sets match for Menufy and POS. Menufy inbound sets match 1,927 named legs across both weeks; POS matches 2,012 legs for one week. The replacement CSAT candidate passes 118 offline cases and one live closed-week collection: 4,357 report tickets match exactly. Source-context safeguards and a precision migration are implemented and tested locally; neither the migration nor replacement collector is active in production. Adapter, binding/cutover, hosted and release gates remain unfinished: 0/40 newly certified assignments. Human metrics, recurring shadow/v2 publication and historical repair remain disabled.**
+Last updated: 2026-09-25 (19:30 UTC). **Core, metric-display and roster corrections are deployed. Both-week CSAT source-ticket sets match for Menufy and POS. Menufy inbound sets match 1,927 named legs across both weeks; POS matches 2,012 legs for one week. The replacement CSAT candidate passes 118 offline cases and one live closed-week collection: 4,357 report tickets match exactly. Source-context/precision infrastructure passed full CI (623 tests / 72 files). The ingestion adapter passes 42 targeted tests and replays 46 facts exactly. Neither migration 0015 nor replacement collection is active in production. Binding/cutover, hosted and release gates remain unfinished: 0/40 newly certified assignments. Human metrics, recurring shadow/v2 publication and historical repair remain disabled.**
+
+## CSAT adapter checkpoint — September 25, 19:30 UTC
+
+Source-contract context now also includes a canonical account/agent/group/brand fingerprint.
+The adapter retains minimal source fields, numerator/denominator ticket sets and explicit
+nulls. Actual normalizer + PostgreSQL publication replaces a legacy score, keeps its revision,
+preserves a repeating fraction, skips an identical replay and retracts an empty correction.
+Forty-two targeted cases, TypeScript and focused ESLint pass. A private offline replay matches
+all 23 retained live cases / 46 facts / 4,357 cohort tickets, without source requests or DB writes.
+
+The previous context/precision increment passed CI 36179269877 / 36179265357 at `7572eb8`
+(623 tests / 72 files, migration, lint, TypeScript and build). Its local formatting issue was
+corrected. Current adapter CI follows. The production fetch path, source data and schema remain
+unchanged; see `2026-09-25-csat-release-candidate.md` for the remaining activation gates.
 
 ## CSAT publication safeguards — September 25, 19:20 UTC
 

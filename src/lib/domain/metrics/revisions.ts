@@ -14,6 +14,7 @@ const evidenceSchema = z.object({
   calculationVersion: z.number().int().nonnegative(),
   sourceContract: z.string().nullable().optional(),
   reportingTimeZone: z.string().nullable().optional(),
+  sourceScopeFingerprint: z.string().nullable().optional(),
 });
 
 /** Only metric evidence is exposed, never raw source payloads or snapshot JSON. */
@@ -49,7 +50,8 @@ export async function getStoredMetricRevisions(
         'observedAt', ${snapshot}->'data_freshness_at',
         'calculationVersion', ${snapshot}->'calculation_version',
         'sourceContract', ${snapshot}->'provenance_json'->'sourceContract',
-        'reportingTimeZone', ${snapshot}->'provenance_json'->'reportingTimeZone'
+        'reportingTimeZone', ${snapshot}->'provenance_json'->'reportingTimeZone',
+        'sourceScopeFingerprint', ${snapshot}->'provenance_json'->'sourceScopeFingerprint'
       )`,
       })
       .from(syncRevisions)
@@ -97,6 +99,7 @@ export async function getStoredMetricRevisions(
             ? readMetricSourceContext({
                 sourceContract: parsed.data.sourceContract ?? undefined,
                 reportingTimeZone: parsed.data.reportingTimeZone ?? undefined,
+                sourceScopeFingerprint: parsed.data.sourceScopeFingerprint ?? undefined,
               })
             : null;
         } catch {
@@ -107,6 +110,7 @@ export async function getStoredMetricRevisions(
               ...parsed.data,
               sourceContract: context?.sourceContract ?? null,
               reportingTimeZone: context?.reportingTimeZone ?? "UTC",
+              sourceScopeFingerprint: context?.sourceScopeFingerprint ?? null,
             }
           : null;
         return {

@@ -87,6 +87,34 @@ has not been changed. Widening cannot reconstruct precision lost in historical v
 For deployment, use the established fresh backup/restore gate and bounded lock/statement
 timeouts. Stop overlapping publications before the table rewrite. Application rollback
 can retain the widened compatible columns; do not narrow them and discard new precision.
-Any restored backup must account for intervening writes. Candidate adapter, account/team
+Any restored backup must account for intervening writes. Live account/team
 scope binding, effective-period cutover, scheduler runtime budget, hosted checks and
 production verification remain open.
+
+## Ingestion adapter qualification
+
+The candidate adapter now creates the same employee-period `csat_summary` record identity
+as the predecessor, retaining minimal source fields and explicit collection coverage.
+The actual Zendesk normalizer accepts only the recognized contract and recalculates both
+ratios from those source fields. Numerators, denominators and exact contributing ticket
+IDs are retained in fact evidence. Empty cohorts emit explicit nulls; offered-only cohorts
+emit a real zero response rate. Ticket bodies and subjects are omitted.
+
+An account/agent/group/brand fingerprint accompanies the contract/timezone. Changed scopes
+cannot be blended or compared merely because their contract name matches. Numeric account
+identities still require the live connector's qualified roster mapping and immutable
+team policy before collection activation; the fingerprint does not prove that policy.
+
+The real PostgreSQL publisher test replaces a legacy score using the actual normalizer,
+retains predecessor revisions, preserves the repeating fraction, publishes the response
+denominator, skips an identical replay and clears both values on an empty correction.
+Forty-two targeted tests pass across candidate, adapter, legacy evidence, source context,
+publication and revisions. TypeScript and focused ESLint pass. Offline adapter replay of
+the retained live snapshot matches 23 employee cases / 46 facts and all 4,357 cohort IDs.
+No new source requests or database writes were used for that private-data replay.
+
+Prior context/precision commit `7572eb8` passed both full CI runs 36179269877 and
+36179265357: 623 tests / 72 files, migration, lint, TypeScript and production build.
+The initial local full lint found one test-formatting issue; it was corrected before
+those successful CI runs. Adapter CI follows. The live fetch path still emits only
+legacy records; no candidate collection, production migration or release is activated.
