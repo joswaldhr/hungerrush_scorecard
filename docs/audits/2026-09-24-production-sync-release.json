@@ -1,0 +1,45 @@
+{
+  "observedAt": "2026-09-25T02:18:01.917Z",
+  "productionDeployment": "dpl_3Xnasc88uF51ckmZFk5aF2nv87fq",
+  "applicationCommit": "ef8cd6db12e9c3b077a425274a03771c5d48b771",
+  "status": "completed",
+  "started_at": "2026-09-25T02:14:07.909Z",
+  "completed_at": "2026-09-25T02:16:58.234Z",
+  "records_ingested": 186,
+  "records_normalized": 1110,
+  "error_count": 0,
+  "fetch_ms": 159518,
+  "publish_ms": 10059,
+  "values_written": 1110,
+  "week_offset": 0,
+  "sourcePeriods": [
+    {
+      "period_start": "2026-09-20",
+      "period_end": "2026-09-26",
+      "count": 186
+    }
+  ],
+  "valuePeriods": [
+    {
+      "period_start": "2026-09-20",
+      "period_end": "2026-09-26",
+      "count": 1110
+    }
+  ],
+  "retainedRevisions": [
+    {
+      "entity_type": "metric_value",
+      "count": 1098
+    },
+    {
+      "entity_type": "normalized_fact",
+      "count": 1098
+    },
+    {
+      "entity_type": "source_record",
+      "count": 186
+    }
+  ],
+  "errorTypes": [],
+  "scope": "One controlled current-week production sync; not historical repair, recurring schedule observation or attribution certification"
+}

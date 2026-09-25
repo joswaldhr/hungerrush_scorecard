@@ -2,25 +2,25 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-24 (02:09 UTC September 25). **Production migrations 0012–0014 applied with existing data preserved; application deployment pending.**
+Last updated: 2026-09-24 (02:18 UTC September 25). **Core release deployed to production; sign-in/read checks and a controlled current-week sync passed. Unverified attribution and historical target context remain unavailable.**
 
 ## Current ledger
 
 | Area | Status | Evidence / remaining work |
 |---|---|---|
 | Audit and metric contracts | Complete | Baseline at ab062c3; audit and contracts in this directory |
-| Reporting context and scope safeguards | Published to Preview | Navigation, organization and manager-scope regression tests; keyboard checks passed |
-| Atomic sync publication and freshness | Published to Preview | PostgreSQL rollback tests; untouched periods preserved; live hosted trigger still gated |
+| Reporting context and scope safeguards | Published to production | Navigation, organization and manager-scope regression tests; production current/previous week and history checks passed |
+| Atomic sync publication and freshness | Production controlled sync passed | 186 source records, 1,110 values, zero errors, 170 seconds; only current-week records/values published; scheduled execution still to observe |
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Passed | 552 tests across 64 files passed in PostgreSQL 18 CI run 36082934341 at 0aea6e8, including lint, TypeScript and production build |
+| Combined implementation validation | Passed | 552 tests across 64 files; candidate CI 36085132342/36085128949 and merged-production CI 36085309616 passed, including lint, TypeScript and production build |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database, core UI, worker authentication and bounded ingestion/recovery passed | Separate PostgreSQL 18.6 and Entra app; four fresh ingestion processes, expired-lease takeover and replay verified; source disabled after rehearsal; recurring scheduling remains open |
 | Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; retained full-week census reproduced one default lookup omission, resolved by inactive/deleted-inclusive diagnostic; historical eligibility, human provenance and independent parity remain open |
-| Production rollout / historical repair | Schema upgraded; application deployment pending; no historical repair | Fresh restore and candidate fetch checks passed; see 2026-09-25-release-plan.md |
+| Production rollout / historical repair | Core release deployed; no historical repair | PR22 merged at ef8cd6d; deployment dpl_3Xnasc88uF51ckmZFk5aF2nv87fq READY; see 2026-09-24-production-release.md |
 
 ## Git checkpoints
 
-Branch: `codex/audit-reliability-checkpoints` published to origin. Automatic Preview deployment was enabled after credential isolation and staging sign-in setup. Production was not deployed.
+Branch: `codex/audit-reliability-checkpoints` published to origin. Automatic Preview deployment was enabled after credential isolation and staging sign-in setup. PR22 merged into master as `ef8cd6d`; the core production release is deployed. The dated sections below retain their original historical status.
 
 - `ece704c`: audit, measured baseline, and metric contracts.
 - `f39d872`: organization/manager scope safeguards and isolated test configuration.
@@ -69,24 +69,28 @@ separate Entra sign-in, migrations through 0014, and synthetic null/zero UI chec
 Automatic Preview deployment is enabled for the audit branch. See the dated hosted reports
 and latest entries below; earlier isolation checkpoints are historical.
 
-Remaining production release gates:
+Remaining activation and operating checks:
 
 - Hosted worker authentication, controlled ingestion, fresh-process checkpoint resumption and
   simulated expired-lease takeover passed on September 24. Complete recurring scheduling,
   retention and operational monitoring before ongoing activation.
 - Complete Zendesk completeness work and review metric semantics before historical repair.
-- Refresh the validated September 24 production backup immediately before rollout and record
-  the deployment rollback reference. The encrypted snapshot restored successfully and both
-  pending migrations through 0014 preserved application data. Portable recovery/provider PITR remain open.
+- The core rollout used a fresh validated September 24 production backup and recorded the
+  previous deployment. Production migrations through 0014 preserved application data.
+  Refresh this evidence before a later rollout. Portable recovery/provider PITR remain open.
   Code rollback retains the additive revision table; data reversal requires reviewed snapshots.
 - Preserve reviewable staged results and a concrete rollback plan before production changes.
   The user authorized continued execution on September 24; routine checkpoint approval is
   no longer a gate. Missing access or unresolved business semantics still cannot be guessed.
+- Observe an actual scheduled execution of the deployed cron and complete hosted export-file
+  byte inspection when browser download access is available. Controlled production sync passed;
+  neither of those remaining checks is implied by that result.
 
 Stored reporting intervals, observation ordering, sync leases, and atomic reconciliation
 claims now have regression coverage. Remaining risks include historical targets/team context,
 independent source reconciliation, worst-case fetch budgets/resumability, revision retention,
-historical context reconstruction, and production rollout of visibility uniqueness. See the
+historical context reconstruction, and scheduled-run observation. Visibility uniqueness is
+now enforced in production. See the
 audit for the full backlog; these safeguards do not complete the entire overhaul.
 
 ## Repeatable local staging rehearsal
