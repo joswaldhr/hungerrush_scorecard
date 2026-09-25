@@ -59,8 +59,8 @@ export default async function RosterReviewPage() {
         <h1 className="text-xl font-semibold text-foreground">Roster Review</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           A stopgap for Rippling: diffs each connected source&apos;s configured groups against known
-          people and surfaces new hires and departures for review. Nothing here is auto-created or
-          auto-deactivated.
+          people. Small new-hire batches are approved automatically; larger batches appear here for
+          review. Departures always require review.
         </p>
       </header>
 
@@ -97,6 +97,7 @@ export default async function RosterReviewPage() {
                       <span>
                         {m.externalGroupLabel} ({m.externalGroupId}) →{" "}
                         {teamNameById.get(m.teamId) ?? "Unknown team"}
+                        {m.line ? ` · ${m.line}` : ""}
                       </span>
                       <form action={removeGroupMapping}>
                         <input type="hidden" name="mappingId" value={m.id} />
@@ -113,20 +114,23 @@ export default async function RosterReviewPage() {
                 <input type="hidden" name="dataSourceId" value={source.id} />
                 <input
                   name="externalGroupId"
+                  aria-label="External group or team ID"
                   placeholder="Group/team ID"
                   required
-                  className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+                  className="rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
                 />
                 <input
                   name="externalGroupLabel"
+                  aria-label="Group mapping label"
                   placeholder="Label"
                   required
-                  className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+                  className="rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
                 />
                 <select
                   name="teamId"
+                  aria-label="Mapped team"
                   required
-                  className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+                  className="rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
                 >
                   <option value="">Team...</option>
                   {allTeams.map((t) => (
@@ -166,15 +170,22 @@ export default async function RosterReviewPage() {
                     {c.suggestedTeamId
                       ? (teamNameById.get(c.suggestedTeamId) ?? "Unknown team")
                       : "None"}
+                    {c.suggestedLine ? ` · ${c.suggestedLine}` : ""}
                   </p>
+                  {c.suggestedLine && (
+                    <p className="text-xs text-muted-foreground">
+                      Changing the team clears the suggested line.
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <form action={approveNewCandidate} className="flex items-center gap-2">
                     <input type="hidden" name="candidateId" value={c.id} />
                     <select
                       name="teamId"
+                      aria-label={`Team for ${c.externalDisplayName ?? c.externalEmail ?? c.externalId}`}
                       defaultValue={c.suggestedTeamId ?? ""}
-                      className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+                      className="rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
                     >
                       <option value="">Unassigned</option>
                       {allTeams.map((t) => (
@@ -229,7 +240,7 @@ export default async function RosterReviewPage() {
                     <input type="hidden" name="candidateId" value={c.id} />
                     <button
                       type="submit"
-                      className="rounded-md bg-status-attention px-2.5 py-1 text-xs font-medium text-white hover:opacity-90"
+                      className="rounded-md bg-destructive px-2.5 py-1 text-xs font-medium text-destructive-foreground hover:bg-destructive/90"
                     >
                       Mark inactive
                     </button>

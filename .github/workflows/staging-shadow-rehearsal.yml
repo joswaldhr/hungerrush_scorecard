@@ -1,0 +1,66 @@
+name: Staging shadow identity rehearsal
+
+on:
+  push:
+    branches: [codex/audit-reliability-checkpoints]
+    paths:
+      - .github/workflows/staging-shadow-rehearsal.yml
+      - scripts/probe-shadow-oidc.mjs
+      - scripts/probe-shadow-oidc.test.mjs
+  workflow_dispatch:
+    inputs:
+      ingest:
+        description: Run one bounded shadow batch per process after authentication checks
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging-shadow-identity-rehearsal
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: github.repository == 'joswaldhr/hungerrush_scorecard' && github.ref == 'refs/heads/codex/audit-reliability-checkpoints'
+    runs-on: ubuntu-latest
+    environment: cadence-staging-shadow
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      max-parallel: 1
+      matrix:
+        process: [1, 2]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify rehearsal request boundaries
+        run: node --test scripts/probe-shadow-oidc.test.mjs
+      - name: Verify Preview identity and any explicitly requested shadow batch
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          ACTION_SHADOW_SECRET: ${{ secrets.ACTION_SHADOW_SECRET }}
+          CONTROLLED_SHADOW_INGEST: ${{ github.event_name == 'workflow_dispatch' && inputs.ingest == true }}
+        with:
+          script: |
+            try {
+              if (!process.env.ACTION_SHADOW_SECRET) throw new Error('Staging worker credential is missing');
+              const { rehearsePreviewProtection, runControlledShadowBatch } = await import(`${process.env.GITHUB_WORKSPACE}/scripts/probe-shadow-oidc.mjs`);
+              const getToken = async (audience) => {
+                const token = await core.getIDToken(audience);
+                core.setSecret(token);
+                return token;
+              };
+              const report = await rehearsePreviewProtection(getToken, fetch, process.env.ACTION_SHADOW_SECRET);
+              core.info(JSON.stringify(report));
+              if (process.env.CONTROLLED_SHADOW_INGEST === 'true') {
+                core.info(JSON.stringify(await runControlledShadowBatch(getToken, process.env.ACTION_SHADOW_SECRET)));
+              }
+            } catch {
+              core.setFailed('Isolated Preview rehearsal failed. Checkpoint state is retained; no credentials or vendor payloads are logged.');
+            }

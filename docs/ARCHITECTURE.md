@@ -15,7 +15,7 @@ There are no microservices. The codebase is organized by domain boundary inside 
 | Styling | Tailwind CSS v4, CSS custom properties | OKLCH color space, `@theme inline` integration |
 | Components | shadcn/ui (new-york style, RSC-enabled) | Radix primitives, class-variance-authority, tailwind-merge |
 | Icons | Lucide React | |
-| Database | PostgreSQL 17 | Local via Docker Compose; Railway-managed instance in production |
+| Database | PostgreSQL | Railway production and staging: 18.6 (verified September 24); CI: 18; existing local Docker Compose: 17 |
 | ORM | Drizzle ORM + drizzle-kit | Schema in `src/lib/db/schema.ts`, migrations + tracked meta in `drizzle/` |
 | Auth | Auth.js (next-auth v5 beta) | Microsoft Entra ID SSO in production; Credentials provider for dev only |
 | Validation | Zod v4 | Environment validation; POST route body validation is still ad hoc (see Known Gaps) |
@@ -332,3 +332,56 @@ Tracked in more detail in the session that produced this pass — summarized her
   - **Fixed for Zendesk**: 21 of the 24 verified individually against the live Zendesk API (real, active agent account, name matches the employee record) and corrected to `@hungerrush.com`.
   - **Left unresolved, flagged for James, not guessed at**: 3 people have no clean fix — Crismarie Gabison's `@hungerrush.com` address exists only as an end-user account (not an agent, so it would never match a ticket assignee), and Yuanting Zhou / Hyrum Estrada have no discoverable Zendesk account under any name search. Their `external_identities` rows are untouched.
   - **Assembled is a separate, deeper problem, not touched**: none of the 21 people just fixed for Zendesk could be found in Assembled under any domain or name — Assembled's `/people` list has only 79 people total across the whole HungerRush account, and it looks like it may not track most of this support roster at all. This isn't an email-domain typo like Zendesk's was; it may mean these people were never added to Assembled, or Assembled genuinely isn't scoped to this team. Needs a decision from James, not a blind fix — Assembled's 24 `@revention.onmicrosoft.com` rows are still exactly as they were.
+
+## September 23, 2026: reporting and authorization containment
+
+Scorecard navigation treats the requested period separately from the loaded snapshot. Values,
+status, and exports render only when that snapshot matches the selected period. The client cache
+is bounded and expires after one minute; focus forces a fresh authorized read. Server actions
+derive the prior week from normalized reporting input.
+
+Admin actions derive organization ownership from the authenticated administrator and validate
+related resource IDs. Roster approval is transactional and records its reviewer. Reconciliation
+team filters intersect authorized employee IDs; page and API reads use the shared reconciliation
+query service, including scoped aggregate counts. Future manager assignments do not grant access.
+
+See `docs/audits/2026-09-23-implementation-progress.md` for verification and remaining data
+publication work. This section describes the working implementation; deployment is separate.
+
+### Sync publication boundary — 2026-09-23
+
+`runSync` owns the complete fetch-then-publish operation. Network fetches finish before
+opening the transaction. Source records, facts, affected metric values, completed run
+checkpoint, and source last-success timestamp commit together. Callers must not compute
+values separately. Metric computation takes a source ID, run ID, and transaction connection;
+only affected employee-period groups are written, including unchanged contributors from
+that source. Contributor reads are filtered in PostgreSQL by exact employee/start/end groups,
+in batches of 500; a small correction no longer transfers the source's complete fact history.
+Freshness derives from source observations and is distinct from calculation
+time. Failed manual/cron runs return HTTP 503; cron sends its healthy heartbeat only when
+all configured sources succeed. This boundary does not establish vendor completeness or
+repair legacy null corrections or freshness. See the dated implementation progress report.
+
+Only a source with status `configured` can sync. Other statuses fail closed before vendor
+work; the publisher rechecks source organization, status and connector type under its source
+row lock. Disabling a source during a fetch prevents publication. Manual, cron and shadow
+triggers enforce the same enablement rule before starting work. This does not establish
+source-account credential binding or cancel an already-running shadow page request.
+
+### Correction evidence — 2026-09-23
+
+The publisher records predecessor snapshots in `sync_revisions` before replacing source
+records, facts, or metric values, in the same transaction. Apply migration 0012 before
+running this publisher. Null/omitted normalized facts can retract prior values, while
+zero remains numeric. Explicit reviewed replays can bypass payload hashing; scheduled
+and manual routes do not. Source-row publication locks preserve predecessor consistency;
+employee/period reattribution requires a separate reviewed repair. Revision organization
+ownership is derived through sync_runs -> data_sources. The stored-period page exposes the
+prior metric values in pages of 25 for its selected interval, using assigned-employee, employee
+organization, definition organization and source organization guards. Each older-page anchor
+must satisfy those same guards and match the selected interval. PostgreSQL timestamp precision
+and a UUID tie-breaker prevent skipped or repeated rows. It projects only
+metric evidence, validates its shape and never returns raw snapshots or source payloads.
+Null or malformed evidence remains unavailable; earlier corrections are not fabricated.
+The view discloses when older retained revisions exceed its bound. Details, limitations,
+validation, and rollout are in the dated implementation report.

@@ -10,9 +10,12 @@ import {
 import { eq, and, inArray } from "drizzle-orm";
 import type { ManagerContext } from "@/lib/auth/authorization";
 import { assertCanAccessEmployee } from "@/lib/auth/authorization";
+import { assertOrganizationResource } from "@/lib/auth/organization-scope";
 import { resolveTarget, evaluateStatus } from "./target-resolution";
 import { resolveVisibility } from "./visibility-resolution";
 import type { Direction, ResolvedTarget, ValueType } from "./types";
+import { isEffectiveOn, sevenDayPeriodEnd } from "./effective-dates";
+import { requiresTicketAttributionVerification, TICKET_ATTRIBUTION_QUALITY } from "./availability";
 
 export interface EmployeeMetricRow {
   definitionId: string;
@@ -31,6 +34,7 @@ export interface EmployeeMetricRow {
   qualityStatus: string;
   dataFreshnessAt: Date | null;
   calculationVersion: number;
+  targetContextStatus?: "current" | "historical_unverified";
 }
 
 export async function getEmployeeMetrics(
@@ -69,11 +73,29 @@ export async function getEmployeeMetricsBatch(
 
   const results = new Map<string, EmployeeMetricRow[]>();
   if (employeeIds.length === 0) return results;
+  // Effective target dates alone cannot reconstruct an employee's old team/line,
+  // or target edits made in place. Until publication preserves that context, do
+  // not turn today's configuration into a historical performance judgment.
+  const historicalTargetContext =
+    sevenDayPeriodEnd(periodStart) < new Date().toISOString().slice(0, 10);
 
-  const assignments = await db
+  const [, employeeRows] = await Promise.all([
+    assertOrganizationResource(ctx.organizationId, "team", teamId),
+    db
+      .select({ id: employees.id, line: employees.line })
+      .from(employees)
+      .where(
+        and(inArray(employees.id, employeeIds), eq(employees.organizationId, ctx.organizationId))
+      ),
+  ]);
+  if (employeeRows.length !== new Set(employeeIds).size)
+    throw new Error("Employee not found or not permitted");
+
+  const allAssignments = await db
     .select()
     .from(metricAssignments)
     .where(eq(metricAssignments.teamId, teamId));
+  const assignments = allAssignments.filter((assignment) => isEffectiveOn(assignment, periodStart));
 
   if (assignments.length === 0) {
     for (const employeeId of employeeIds) results.set(employeeId, []);
@@ -82,17 +104,15 @@ export async function getEmployeeMetricsBatch(
 
   const defIds = assignments.map((a) => a.metricDefinitionId);
 
-  const [definitions, currentValues, previousValues, targets, visibilityOverrides, employeeRows] =
+  const [definitions, currentValues, previousValues, targets, visibilityOverrides] =
     await Promise.all([
-      db.select().from(metricDefinitions).where(inArray(metricDefinitions.id, defIds)),
       db
         .select()
-        .from(metricValues)
+        .from(metricDefinitions)
         .where(
           and(
-            inArray(metricValues.employeeId, employeeIds),
-            inArray(metricValues.metricDefinitionId, defIds),
-            eq(metricValues.periodStart, periodStart)
+            inArray(metricDefinitions.id, defIds),
+            eq(metricDefinitions.organizationId, ctx.organizationId)
           )
         ),
       db
@@ -102,7 +122,19 @@ export async function getEmployeeMetricsBatch(
           and(
             inArray(metricValues.employeeId, employeeIds),
             inArray(metricValues.metricDefinitionId, defIds),
-            eq(metricValues.periodStart, previousPeriodStart)
+            eq(metricValues.periodStart, periodStart),
+            eq(metricValues.periodEnd, sevenDayPeriodEnd(periodStart))
+          )
+        ),
+      db
+        .select()
+        .from(metricValues)
+        .where(
+          and(
+            inArray(metricValues.employeeId, employeeIds),
+            inArray(metricValues.metricDefinitionId, defIds),
+            eq(metricValues.periodStart, previousPeriodStart),
+            eq(metricValues.periodEnd, sevenDayPeriodEnd(previousPeriodStart))
           )
         ),
       db.select().from(metricTargets).where(inArray(metricTargets.metricDefinitionId, defIds)),
@@ -110,10 +142,6 @@ export async function getEmployeeMetricsBatch(
         .select()
         .from(metricVisibilityOverrides)
         .where(inArray(metricVisibilityOverrides.metricDefinitionId, defIds)),
-      db
-        .select({ id: employees.id, line: employees.line })
-        .from(employees)
-        .where(inArray(employees.id, employeeIds)),
     ]);
 
   const defMap = new Map(definitions.map((d) => [d.id, d]));
@@ -144,7 +172,7 @@ export async function getEmployeeMetricsBatch(
     for (const defId of defIds) {
       const def = defMap.get(defId);
       const assign = assignMap.get(defId);
-      if (!def || !assign) continue;
+      if (!def || !assign || !isEffectiveOn(def, periodStart)) continue;
 
       const visCandidates = visibilityOverrides
         .filter((v) => v.metricDefinitionId === defId)
@@ -169,7 +197,7 @@ export async function getEmployeeMetricsBatch(
       const previous = previousMap.get(defId);
 
       const candidateTargets = targets
-        .filter((t) => t.metricDefinitionId === defId)
+        .filter((t) => t.metricDefinitionId === defId && isEffectiveOn(t, periodStart))
         .map((t) => ({
           targetValue: t.targetValue,
           warningValue: t.warningValue,
@@ -183,15 +211,13 @@ export async function getEmployeeMetricsBatch(
           line: t.line,
         }));
 
-      const resolvedTarget = resolveTarget(
-        candidateTargets,
-        employeeId,
-        null,
-        teamId,
-        employeeLine
-      );
+      const resolvedTarget = historicalTargetContext
+        ? null
+        : resolveTarget(candidateTargets, employeeId, null, teamId, employeeLine);
       const direction = def.direction as Direction;
       const valueType = def.valueType as ValueType;
+      const attributionUnavailable = requiresTicketAttributionVerification(def);
+      const currentValue = attributionUnavailable ? null : (current?.numericValue ?? null);
 
       rows.push({
         definitionId: defId,
@@ -203,13 +229,16 @@ export async function getEmployeeMetricsBatch(
         direction,
         displayOrder: assign.displayOrder,
         isPrimary: assign.isPrimary,
-        currentValue: current?.numericValue ?? null,
-        previousValue: previous?.numericValue ?? null,
+        currentValue,
+        previousValue: attributionUnavailable ? null : (previous?.numericValue ?? null),
         target: resolvedTarget,
-        status: evaluateStatus(current?.numericValue ?? null, resolvedTarget, direction),
-        qualityStatus: current?.qualityStatus ?? "missing",
+        status: evaluateStatus(currentValue, resolvedTarget, direction),
+        qualityStatus: attributionUnavailable
+          ? TICKET_ATTRIBUTION_QUALITY
+          : (current?.qualityStatus ?? "missing"),
         dataFreshnessAt: current?.dataFreshnessAt ?? null,
         calculationVersion: current?.calculationVersion ?? 0,
+        targetContextStatus: historicalTargetContext ? "historical_unverified" : "current",
       });
     }
 

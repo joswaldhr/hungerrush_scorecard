@@ -1,5 +1,6 @@
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
+import { SourceRetryLaterError } from "./source-retry";
 
 const MAX_RETRIES = 3;
 // A stalled connection with no timeout hangs the whole sync forever — nothing
@@ -33,23 +34,45 @@ export interface RequestStats {
   backoffWaitMs: number;
 }
 
-export async function zendeskGet<T>(pathOrUrl: string, stats?: RequestStats): Promise<T> {
+export async function zendeskGet<T>(
+  pathOrUrl: string,
+  stats?: RequestStats,
+  options?: { deferRateLimit?: boolean }
+): Promise<T> {
   const url = pathOrUrl.startsWith("http") ? pathOrUrl : `${baseUrl()}${pathOrUrl}`;
+  const parsed = new URL(url);
+  // Pagination links are vendor response data, not authorization to send the
+  // account credential to another host. Redirects must not widen this boundary.
+  if (
+    parsed.origin !== new URL(baseUrl()).origin ||
+    !parsed.pathname.startsWith("/api/v2/") ||
+    parsed.username ||
+    parsed.password ||
+    parsed.hash
+  ) {
+    throw new Error("Zendesk request rejected: URL is outside the configured API");
+  }
+  // Query strings can contain emails/actor IDs; resource paths can identify tickets.
+  const diagnosticPath = parsed.pathname.replace(/\/\d+(?=\/|\.|$)/g, "/[id]");
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     if (stats) stats.requests++;
     const res = await fetch(url, {
       headers: { Authorization: authHeader() },
+      redirect: "error",
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
 
     if (res.status === 429) {
+      const parsedRetryAfter = Number(res.headers.get("Retry-After") ?? "60");
+      const retryAfter =
+        Number.isFinite(parsedRetryAfter) && parsedRetryAfter > 0 ? parsedRetryAfter : 60;
+      if (options?.deferRateLimit) throw new SourceRetryLaterError(retryAfter * 1000);
       if (attempt === MAX_RETRIES) {
-        throw new Error(`Zendesk GET ${pathOrUrl} rate-limited after ${MAX_RETRIES} retries`);
+        throw new Error(`Zendesk GET ${diagnosticPath} rate-limited after ${MAX_RETRIES} retries`);
       }
-      const retryAfter = parseInt(res.headers.get("Retry-After") ?? "60", 10);
       const waitMs = Math.min(retryAfter, 120) * 1000;
-      logger.warn("Zendesk 429 rate limit", { path: pathOrUrl, retryAfter, attempt });
+      logger.warn("Zendesk 429 rate limit", { path: diagnosticPath, retryAfter, attempt });
       if (stats) {
         stats.retries429++;
         stats.backoffWaitMs += waitMs;
@@ -59,11 +82,11 @@ export async function zendeskGet<T>(pathOrUrl: string, stats?: RequestStats): Pr
     }
 
     if (!res.ok) {
-      throw new Error(`Zendesk GET ${pathOrUrl} failed: ${res.status} ${res.statusText}`);
+      throw new Error(`Zendesk GET ${diagnosticPath} failed: HTTP ${res.status}`);
     }
 
     return (await res.json()) as T;
   }
 
-  throw new Error(`Zendesk GET ${pathOrUrl} exhausted retries`);
+  throw new Error(`Zendesk GET ${diagnosticPath} exhausted retries`);
 }

@@ -3,13 +3,13 @@ import { getEffectiveManagerContext } from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
 import { dataSources } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
-import { runSync, recordComputeValuesTiming, ZendeskConnector } from "@/lib/connectors";
-import { computeMetricValuesFromFacts } from "@/lib/domain/metrics/compute-values";
+import { runSync, ZendeskConnector } from "@/lib/connectors";
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import { isSyncRateLimited } from "@/lib/rate-limit";
+import { z } from "zod";
 
-export async function POST(_request: Request) {
+export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -18,6 +18,21 @@ export async function POST(_request: Request) {
   const { ctx } = await getEffectiveManagerContext(session.user.email);
   if (!ctx) {
     return NextResponse.json({ error: "Not a manager" }, { status: 403 });
+  }
+
+  try {
+    const text = await request.text();
+    const parsed = z
+      .object({ dataSourceType: z.literal("zendesk").optional() })
+      .strict()
+      .safeParse(text ? JSON.parse(text) : {});
+    if (!parsed.success)
+      return NextResponse.json(
+        { error: "Invalid sync request; only Zendesk supports manual sync" },
+        { status: 400 }
+      );
+  } catch {
+    return NextResponse.json({ error: "Invalid sync request" }, { status: 400 });
   }
 
   try {
@@ -30,6 +45,9 @@ export async function POST(_request: Request) {
 
     if (!source) {
       return NextResponse.json({ error: "Zendesk data source not configured" }, { status: 404 });
+    }
+    if (source.status !== "configured") {
+      return NextResponse.json({ error: "Zendesk data source is not enabled" }, { status: 503 });
     }
 
     if (await isSyncRateLimited(source.id)) {
@@ -54,11 +72,10 @@ export async function POST(_request: Request) {
       { weekOffset: 0 }
     );
 
-    const computeStartedAt = Date.now();
-    const valuesWritten = await computeMetricValuesFromFacts(ctx.organizationId, "zendesk");
-    await recordComputeValuesTiming(result.syncRunId, Date.now() - computeStartedAt);
-
-    return NextResponse.json({ ...result, valuesWritten });
+    return NextResponse.json(
+      { ...result, ...(result.success ? {} : { error: "Sync failed; previous values preserved" }) },
+      { status: result.success ? 200 : 503 }
+    );
   } catch (err) {
     logger.error("Sync run failed", { error: err });
     return NextResponse.json({ error: "Sync failed" }, { status: 500 });

@@ -47,13 +47,10 @@ Live today: the sole SSO provider for production sign-in, via Auth.js (`src/lib/
 `next-auth/providers/microsoft-entra-id`). If its env vars are absent in production, the app
 refuses to start rather than booting with no working sign-in method.
 
-**Not actually live, despite a UI branch suggesting otherwise:** `data-health/page.tsx` has a
-conditional render for a data source of `type === "entra"` (showing "N employees checked" /
-"N flagged as disabled" counts, implying a daily account-status check feeding roster
-departure review). No such data source exists in the real database (verified: only `zendesk`
-and `assembled` rows exist), and no connector or sync logic for an `"entra"` type exists
-anywhere in `src/lib`. Treat this as dead/unfinished UI for a feature that was never actually
-built, not as a description of current behavior -- see `FOLLOWUPS.md`.
+No Entra roster connector is implemented. Data Health no longer displays the old placeholder
+"employees checked / flagged as disabled" counters. It labels source types without a shipped
+connector as unsupported and offers no sync action. Entra sign-in remains independent of
+roster synchronization.
 
 ## Assembled
 
@@ -61,6 +58,8 @@ built, not as a description of current behavior -- see `FOLLOWUPS.md`.
 metric definition still exists (unassigned from both pilot teams). If Assembled is
 revisited, start from `docs/ARCHITECTURE.md`'s connector status notes — the Agent State
 Mapping configuration issue that prevented meaningful data was never resolved.
+Data Health labels its retained source record as retired and preserves historical records.
+Manual sync requests for unsupported source types are rejected before fetching or publishing.
 
 ## Rippling
 

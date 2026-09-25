@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { users, teams, employees, managerAssignments, teamMemberships } from "@/lib/db/schema";
-import { eq, and, isNull, inArray } from "drizzle-orm";
+import { eq, and, isNull, inArray, or, lte, gt } from "drizzle-orm";
+import { logger } from "@/lib/logger";
 
 export const VIEW_AS_COOKIE = "cadence_view_as";
 
@@ -19,35 +20,89 @@ export interface ManagerContext {
 
 type UserRow = typeof users.$inferSelect;
 
+const RETRYABLE_READ_CODES = new Set(["ECONNRESET", "EPIPE", "CONNECTION_CLOSED", "08006"]);
+
+function transientReadCode(error: unknown): string | null {
+  const seen = new Set<unknown>();
+  let current = error;
+  while (current && typeof current === "object" && !seen.has(current) && seen.size < 10) {
+    seen.add(current);
+    const detail = current as { code?: unknown; cause?: unknown };
+    if (typeof detail.code === "string" && RETRYABLE_READ_CODES.has(detail.code))
+      return detail.code;
+    current = detail.cause;
+  }
+  return null;
+}
+
+// Only wraps the fresh, read-only account lookup. Never replay writes or return stale
+// permissions on failure. A reset can invalidate an idle pooled connection on Preview.
+async function readAccountAccess(read: () => PromiseLike<UserRow[]>): Promise<UserRow | null> {
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const [user] = await read();
+      return user ?? null;
+    } catch (error) {
+      const code = transientReadCode(error);
+      if (attempt === 1 && code) {
+        logger.warn("Retrying interrupted account lookup", { code, attempt });
+        continue;
+      }
+      // Next logs uncaught error properties, including Drizzle SQL/params/causes.
+      // Emit fixed diagnostic fields and throw a fresh error with no driver cause.
+      logger.error("Account lookup failed", { code: code ?? "unclassified", attempt });
+      throw new Error("Unable to verify account access. Please retry.");
+    }
+  }
+  throw new Error("Unable to verify account access. Please retry.");
+}
+
 const getActiveUserByEmail = cache(async function getActiveUserByEmail(
   email: string
 ): Promise<UserRow | null> {
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(and(eq(users.email, email), eq(users.status, "active")))
-    .limit(1);
-  return user ?? null;
+  return readAccountAccess(() =>
+    db
+      .select()
+      .from(users)
+      .where(and(eq(users.email, email), eq(users.status, "active")))
+      .limit(1)
+  );
 });
 
 async function buildManagerContext(user: UserRow): Promise<ManagerContext | null> {
+  const today = new Date().toISOString().slice(0, 10);
   const assignments = await db
     .select()
     .from(managerAssignments)
     .where(
-      and(eq(managerAssignments.managerUserId, user.id), isNull(managerAssignments.effectiveTo))
+      and(
+        eq(managerAssignments.managerUserId, user.id),
+        lte(managerAssignments.effectiveFrom, today),
+        or(isNull(managerAssignments.effectiveTo), gt(managerAssignments.effectiveTo, today))
+      )
     );
 
   if (assignments.length === 0) return null;
 
-  const teamIds = assignments.filter((a) => a.teamId !== null).map((a) => a.teamId!);
+  const assignedTeamIds = assignments.filter((a) => a.teamId !== null).map((a) => a.teamId!);
+  const scopedTeams = await db
+    .select({ id: teams.id })
+    .from(teams)
+    .where(and(eq(teams.organizationId, user.organizationId), inArray(teams.id, assignedTeamIds)));
+  const teamIds = scopedTeams.map((t) => t.id);
 
   let teamEmployeeIds: string[] = [];
   if (teamIds.length > 0) {
     const memberships = await db
       .select({ employeeId: teamMemberships.employeeId })
       .from(teamMemberships)
-      .where(and(inArray(teamMemberships.teamId, teamIds), isNull(teamMemberships.effectiveTo)));
+      .where(
+        and(
+          inArray(teamMemberships.teamId, teamIds),
+          lte(teamMemberships.effectiveFrom, today),
+          or(isNull(teamMemberships.effectiveTo), gt(teamMemberships.effectiveTo, today))
+        )
+      );
     teamEmployeeIds = memberships.map((m) => m.employeeId);
   }
 
@@ -55,7 +110,16 @@ async function buildManagerContext(user: UserRow): Promise<ManagerContext | null
     .filter((a) => a.employeeId !== null)
     .map((a) => a.employeeId!);
 
-  const allEmployeeIds = [...new Set([...teamEmployeeIds, ...directEmployeeIds])];
+  const scopedEmployees = await db
+    .select({ id: employees.id })
+    .from(employees)
+    .where(
+      and(
+        eq(employees.organizationId, user.organizationId),
+        inArray(employees.id, [...new Set([...teamEmployeeIds, ...directEmployeeIds])])
+      )
+    );
+  const allEmployeeIds = scopedEmployees.map((e) => e.id);
 
   return {
     userId: user.id,
@@ -69,6 +133,17 @@ export async function getManagerContext(email: string): Promise<ManagerContext |
   const user = await getActiveUserByEmail(email);
   if (!user) return null;
   return buildManagerContext(user);
+}
+
+export async function getUserJobTitle(email: string): Promise<string | null> {
+  const user = await getActiveUserByEmail(email);
+  if (!user) return null;
+  const [employee] = await db
+    .select({ jobTitle: employees.jobTitle })
+    .from(employees)
+    .where(and(eq(employees.email, user.email), eq(employees.organizationId, user.organizationId)))
+    .limit(1);
+  return employee?.jobTitle ?? null;
 }
 
 export const isPlatformAdmin = cache(async function isPlatformAdmin(
@@ -107,11 +182,13 @@ export const getEffectiveManagerContext = cache(async function getEffectiveManag
     return { ctx: null, isPlatformAdmin: true, viewingAs: null };
   }
 
-  const [targetUser] = await db
-    .select()
-    .from(users)
-    .where(and(eq(users.id, viewAsUserId), eq(users.status, "active")))
-    .limit(1);
+  const targetUser = await readAccountAccess(() =>
+    db
+      .select()
+      .from(users)
+      .where(and(eq(users.id, viewAsUserId), eq(users.status, "active")))
+      .limit(1)
+  );
   // A platform admin can only view as a manager within their own
   // organization -- being an admin doesn't mean being a super-admin across
   // every organization once more than one exists.
@@ -137,6 +214,7 @@ export interface ManagerOption {
 }
 
 export async function listManagersForViewAs(organizationId: string): Promise<ManagerOption[]> {
+  const today = new Date().toISOString().slice(0, 10);
   const rows = await db
     .select({
       userId: users.id,
@@ -149,7 +227,8 @@ export async function listManagersForViewAs(organizationId: string): Promise<Man
     .leftJoin(teams, eq(managerAssignments.teamId, teams.id))
     .where(
       and(
-        isNull(managerAssignments.effectiveTo),
+        lte(managerAssignments.effectiveFrom, today),
+        or(isNull(managerAssignments.effectiveTo), gt(managerAssignments.effectiveTo, today)),
         eq(users.status, "active"),
         eq(users.organizationId, organizationId)
       )
@@ -174,7 +253,12 @@ export async function listManagersForViewAs(organizationId: string): Promise<Man
 
 export const getAssignedTeams = cache(async function getAssignedTeams(ctx: ManagerContext) {
   if (ctx.assignedTeamIds.length === 0) return [];
-  return db.select().from(teams).where(inArray(teams.id, ctx.assignedTeamIds));
+  return db
+    .select()
+    .from(teams)
+    .where(
+      and(inArray(teams.id, ctx.assignedTeamIds), eq(teams.organizationId, ctx.organizationId))
+    );
 });
 
 /**
@@ -193,7 +277,10 @@ export async function getVisibleTeamsForManager(
     .filter((id): id is string => id !== null);
   const allIds = [...new Set([...ctx.assignedTeamIds, ...employeeTeamIds])];
   if (allIds.length === 0) return [];
-  return db.select().from(teams).where(inArray(teams.id, allIds));
+  return db
+    .select()
+    .from(teams)
+    .where(and(inArray(teams.id, allIds), eq(teams.organizationId, ctx.organizationId)));
 }
 
 export const getAssignedEmployees = cache(async function getAssignedEmployees(ctx: ManagerContext) {
@@ -202,7 +289,11 @@ export const getAssignedEmployees = cache(async function getAssignedEmployees(ct
     .select()
     .from(employees)
     .where(
-      and(inArray(employees.id, ctx.assignedEmployeeIds), eq(employees.employmentStatus, "active"))
+      and(
+        inArray(employees.id, ctx.assignedEmployeeIds),
+        eq(employees.employmentStatus, "active"),
+        eq(employees.organizationId, ctx.organizationId)
+      )
     );
 });
 

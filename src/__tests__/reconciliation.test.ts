@@ -2,6 +2,13 @@ import { describe, it, expect } from "vitest";
 import { compareValues, aggregateSourceValues } from "@/lib/domain/reconciliation/compare";
 
 describe("compareValues", () => {
+  it("requires exact count parity even inside a percentage tolerance", () => {
+    expect(compareValues(1000, 999, 5, "count").status).toBe("mismatch");
+    expect(compareValues(1000, 1000, 5, "count").status).toBe("match");
+    expect(compareValues(0, null, 5, "count").status).toBe("source_missing");
+    expect(compareValues(1000, 999, 5, "duration").status).toBe("match");
+  });
+
   it("returns match when values are within threshold", () => {
     const result = compareValues(100, 98, 5);
     expect(result.status).toBe("match");
@@ -101,6 +108,13 @@ describe("aggregateSourceValues", () => {
 
   it("returns last value for latest type", () => {
     expect(aggregateSourceValues([10, 20, 30], "latest")).toBe(30);
+  });
+
+  it("preserves latest null corrections while ignoring nulls in numeric aggregates", () => {
+    expect(aggregateSourceValues([12, null], "latest")).toBeNull();
+    expect(aggregateSourceValues([12, null], "average")).toBe(12);
+    expect(aggregateSourceValues([null], "sum")).toBeNull();
+    expect(aggregateSourceValues([0, null], "sum")).toBe(0);
   });
 
   it("handles single value", () => {

@@ -1,0 +1,246 @@
+{
+  "observedAt": "2026-09-24T20:25:58.681Z",
+  "day": "2026-09-13",
+  "inclusiveEndDay": "2026-09-19",
+  "intervalDays": 7,
+  "actorOffset": 4000,
+  "actorEnd": 6000,
+  "nextActorOffset": 6000,
+  "coversEntireInventory": false,
+  "mode": "GET-only actor diagnostic from retained local exports; no employee totals or publication",
+  "ticketEvents": 85066,
+  "callLegs": 17172,
+  "requestedActors": 10607,
+  "actorInventoryHash": "e3543cd09898ff082153b723234ee50e45c901f9c135978269045adf9536d4c5",
+  "ticketOrCallExportRequests": 0,
+  "batches": [
+    {
+      "batch": 41,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 42,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 43,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 44,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 45,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 46,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 47,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 48,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 49,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 50,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 51,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 52,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 53,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 54,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 55,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 56,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 57,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 58,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 59,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    },
+    {
+      "batch": 60,
+      "status": "complete",
+      "counts": {
+        "requested": 100,
+        "returned": 100,
+        "missing": 0,
+        "duplicate": 0,
+        "unexpected": 0
+      }
+    }
+  ],
+  "requests": {
+    "requests": 20,
+    "retries429": 0,
+    "backoffWaitMs": 0
+  },
+  "evaluatedBatchesComplete": true,
+  "defaultLookupComplete": false,
+  "historicalRoleAndHumanAttribution": "unverified"
+}

@@ -85,6 +85,27 @@
       "when": 1789641854280,
       "tag": "0011_illegal_golden_guardian",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1790192430964,
+      "tag": "0012_cool_wasp",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1790259652378,
+      "tag": "0013_visibility_scope_uniqueness",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1790262760710,
+      "tag": "0014_roster_candidate_line",
+      "breakpoints": true
     }
   ]
 }

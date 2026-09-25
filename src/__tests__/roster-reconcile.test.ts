@@ -2,7 +2,7 @@
 // test.env, which points DATABASE_URL at the docker-compose db by default).
 // Locally: `docker compose up -d && pnpm db:migrate` before `pnpm test`.
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { db } from "@/lib/db";
 import {
   organizations,
@@ -15,7 +15,7 @@ import {
   externalIdentities,
   teamMemberships,
 } from "@/lib/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, sql } from "drizzle-orm";
 import { discoverRosterCandidates } from "@/lib/domain/roster/reconcile";
 import type { Connector } from "@/lib/connectors";
 import type { DiscoveredRosterMember } from "@/lib/connectors/types";
@@ -359,5 +359,222 @@ describe("discoverRosterCandidates", () => {
       .where(eq(rosterCandidates.externalId, DEPARTED_EMAIL));
     expect(candidates).toHaveLength(1);
     expect(candidates[0]!.status).toBe("approved");
+  });
+
+  it("rolls back employee and identity creation when membership fails, retaining only a pending candidate", async () => {
+    const email = "atomic-rollback@test.cadence.internal";
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    await db.execute(
+      sql.raw(`CREATE OR REPLACE FUNCTION test_roster_membership_failure()
+      RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN
+      IF EXISTS (SELECT 1 FROM employees WHERE id=NEW.employee_id
+        AND email='atomic-rollback@test.cadence.internal') THEN
+        RAISE EXCEPTION 'Synthetic membership failure for atomic-rollback@test.cadence.internal';
+      END IF; RETURN NEW; END $$`)
+    );
+    await db.execute(
+      sql.raw(`CREATE TRIGGER test_roster_membership_failure
+      BEFORE INSERT ON team_memberships FOR EACH ROW EXECUTE FUNCTION test_roster_membership_failure()`)
+    );
+    try {
+      const result = await discoverRosterCandidates(
+        fakeConnector([
+          {
+            externalId: email,
+            externalEmail: email,
+            externalDisplayName: "Synthetic rollback",
+            teamId: TEAM_ID,
+          },
+        ]),
+        DATA_SOURCE_ID
+      );
+      expect(result.autoApproved).toBe(0);
+      expect(result.newCandidates).toBe(1);
+      expect(await db.select().from(employees).where(eq(employees.email, email))).toHaveLength(0);
+      expect(
+        await db.select().from(externalIdentities).where(eq(externalIdentities.externalId, email))
+      ).toHaveLength(0);
+      const candidates = await db
+        .select()
+        .from(rosterCandidates)
+        .where(eq(rosterCandidates.externalId, email));
+      expect(candidates).toHaveLength(1);
+      expect(candidates[0]!.status).toBe("pending");
+      expect(JSON.stringify(log.mock.calls)).not.toContain(email);
+      expect(JSON.stringify(log.mock.calls)).toContain("Database operation failed");
+    } finally {
+      await db.execute(
+        sql.raw("DROP TRIGGER IF EXISTS test_roster_membership_failure ON team_memberships")
+      );
+      await db.execute(sql.raw("DROP FUNCTION IF EXISTS test_roster_membership_failure()"));
+      log.mockRestore();
+    }
+  });
+
+  it("does not exclude a candidate because their email is a manager in a different organization", async () => {
+    const otherOrg = "99999999-0000-4000-8000-000000000110";
+    const otherUser = "99999999-0000-4000-8000-000000000111";
+    const email = "other-org-manager@test.cadence.internal";
+    await db.insert(organizations).values({ id: otherOrg, name: "Other synthetic org" });
+    await db.insert(users).values({
+      id: otherUser,
+      organizationId: otherOrg,
+      email,
+      displayName: "Other synthetic manager",
+    });
+    try {
+      const result = await discoverRosterCandidates(
+        fakeConnector([
+          {
+            externalId: email,
+            externalEmail: email,
+            externalDisplayName: "Synthetic hire",
+            teamId: TEAM_ID,
+          },
+        ]),
+        DATA_SOURCE_ID
+      );
+      expect(result.autoApproved).toBe(1);
+      const [employee] = await db.select().from(employees).where(eq(employees.email, email));
+      expect(employee!.organizationId).toBe(ORG_ID);
+    } finally {
+      await db.delete(users).where(eq(users.id, otherUser));
+      await db.delete(organizations).where(eq(organizations.id, otherOrg));
+    }
+  });
+
+  it("serializes simultaneous discoveries and keeps only one pending departure per identity", async () => {
+    const email = "concurrent-hire@test.cadence.internal";
+    const connector = fakeConnector([
+      {
+        externalId: email,
+        externalEmail: email,
+        externalDisplayName: "Concurrent synthetic hire",
+        teamId: TEAM_ID,
+      },
+    ]);
+    const results = await Promise.all([
+      discoverRosterCandidates(connector, DATA_SOURCE_ID),
+      discoverRosterCandidates(connector, DATA_SOURCE_ID),
+    ]);
+    expect(results.reduce((total, result) => total + result.autoApproved, 0)).toBe(1);
+    expect(await db.select().from(employees).where(eq(employees.email, email))).toHaveLength(1);
+    expect(
+      await db.select().from(rosterCandidates).where(eq(rosterCandidates.externalId, email))
+    ).toHaveLength(1);
+    await Promise.all([
+      discoverRosterCandidates(fakeConnector([]), DATA_SOURCE_ID),
+      discoverRosterCandidates(fakeConnector([]), DATA_SOURCE_ID),
+    ]);
+    const departures = await db
+      .select()
+      .from(rosterCandidates)
+      .where(
+        and(
+          eq(rosterCandidates.dataSourceId, DATA_SOURCE_ID),
+          eq(rosterCandidates.externalId, email),
+          eq(rosterCandidates.changeType, "departed"),
+          eq(rosterCandidates.status, "pending")
+        )
+      );
+    expect(departures).toHaveLength(1);
+  });
+
+  it("refuses stale mapping observations without creating a candidate", async () => {
+    const email = "stale-mapping@test.cadence.internal";
+    const connector = {
+      discoverRoster: async () => {
+        await db
+          .update(rosterSourceTeamMappings)
+          .set({ line: "changed-during-fetch" })
+          .where(eq(rosterSourceTeamMappings.dataSourceId, DATA_SOURCE_ID));
+        return [
+          {
+            externalId: email,
+            externalEmail: email,
+            externalDisplayName: "Stale synthetic hire",
+            teamId: TEAM_ID,
+          },
+        ];
+      },
+    } as unknown as Connector;
+    try {
+      await expect(discoverRosterCandidates(connector, DATA_SOURCE_ID)).rejects.toThrow(
+        "Roster mappings changed"
+      );
+      expect(
+        await db.select().from(rosterCandidates).where(eq(rosterCandidates.externalId, email))
+      ).toHaveLength(0);
+      expect(await db.select().from(employees).where(eq(employees.email, email))).toHaveLength(0);
+    } finally {
+      await db
+        .update(rosterSourceTeamMappings)
+        .set({ line: null })
+        .where(eq(rosterSourceTeamMappings.dataSourceId, DATA_SOURCE_ID));
+    }
+  });
+
+  it("preserves a configured line for automatic and pending candidates", async () => {
+    await db
+      .update(rosterSourceTeamMappings)
+      .set({ line: "restaurant" })
+      .where(eq(rosterSourceTeamMappings.dataSourceId, DATA_SOURCE_ID));
+    try {
+      const member = {
+        externalId: "line-hire@example.invalid",
+        externalEmail: "line-hire@example.invalid",
+        externalDisplayName: "Line synthetic hire",
+        teamId: TEAM_ID,
+        line: "restaurant",
+      };
+      const discoverRoster = vi.fn(async () => [member]);
+      const result = await discoverRosterCandidates(
+        { discoverRoster } as unknown as Connector,
+        DATA_SOURCE_ID
+      );
+      expect(result.autoApproved).toBe(1);
+      expect(discoverRoster.mock.calls[0]).toEqual([
+        { dataSourceId: DATA_SOURCE_ID, organizationId: ORG_ID },
+        [{ externalGroupId: "1", teamId: TEAM_ID, line: "restaurant" }],
+      ]);
+      const [employee] = await db
+        .select()
+        .from(employees)
+        .where(eq(employees.email, member.externalEmail));
+      expect(employee!.line).toBe("restaurant");
+      const [candidate] = await db
+        .select()
+        .from(rosterCandidates)
+        .where(eq(rosterCandidates.externalId, member.externalId));
+      expect(candidate!.suggestedLine).toBe("restaurant");
+      const bulk = Array.from({ length: 6 }, (_, i) => ({
+        ...member,
+        externalId: `line-bulk-${i}@example.invalid`,
+        externalEmail: `line-bulk-${i}@example.invalid`,
+      }));
+      expect(
+        (await discoverRosterCandidates(fakeConnector(bulk), DATA_SOURCE_ID)).newCandidates
+      ).toBe(6);
+      const pending = await db
+        .select()
+        .from(rosterCandidates)
+        .where(
+          inArray(
+            rosterCandidates.externalId,
+            bulk.map((m) => m.externalId)
+          )
+        );
+      expect(pending).toHaveLength(6);
+      expect(
+        pending.every(
+          (candidate) => candidate.status === "pending" && candidate.suggestedLine === "restaurant"
+        )
+      ).toBe(true);
+    } finally {
+      await db
+        .update(rosterSourceTeamMappings)
+        .set({ line: null })
+        .where(eq(rosterSourceTeamMappings.dataSourceId, DATA_SOURCE_ID));
+    }
   });
 });

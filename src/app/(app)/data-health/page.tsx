@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, AlertTriangle, XCircle, Clock, Database } from "lucide-react";
 import { SyncNowButton } from "./actions";
 import { AutoRefresh } from "./auto-refresh";
+import { sourceSupport } from "@/lib/connectors/source-support";
+import { syncRunHealth } from "@/lib/connectors/sync-run-health";
 
 function syncStatusIcon(status: string) {
   switch (status) {
@@ -19,6 +21,7 @@ function syncStatusIcon(status: string) {
     case "running":
       return <Clock className="h-4 w-4 text-status-watch" aria-hidden="true" />;
     case "failed":
+    case "lease_expired":
       return <XCircle className="h-4 w-4 text-status-attention" aria-hidden="true" />;
     default:
       return <AlertTriangle className="h-4 w-4 text-muted-foreground" aria-hidden="true" />;
@@ -28,19 +31,6 @@ function syncStatusIcon(status: string) {
 function sanitizeErrorMessage(message: string): string {
   if (message.length > 200) return message.slice(0, 200) + "...";
   return message;
-}
-
-function syncStatusLabel(status: string): string {
-  switch (status) {
-    case "completed":
-      return "Healthy";
-    case "running":
-      return "Syncing";
-    case "failed":
-      return "Failed";
-    default:
-      return "Unknown";
-  }
 }
 
 export default async function DataHealthPage() {
@@ -83,11 +73,21 @@ export default async function DataHealthPage() {
         ? await db.select().from(syncErrors).where(eq(syncErrors.syncRunId, latestRun.id)).limit(5)
         : [];
 
-      return { source, latestRun: latestRun ?? null, errors: errorList };
+      return {
+        source,
+        latestRun: latestRun ?? null,
+        errors: errorList,
+        health: syncRunHealth(latestRun ?? null, nowTs),
+      };
     })
   );
 
-  const anySyncing = sourceHealth.some((s) => s.latestRun?.status === "running");
+  const anySyncing = sourceHealth.some(
+    (s) =>
+      sourceSupport(s.source.type) === "supported" &&
+      s.source.status === "configured" &&
+      s.health.status === "running"
+  );
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -100,75 +100,102 @@ export default async function DataHealthPage() {
       </header>
 
       <div className="space-y-3">
-        {sourceHealth.map(({ source, latestRun, errors }) => (
-          <Card key={source.id}>
-            <CardContent className="py-4 px-5">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  {latestRun ? syncStatusIcon(latestRun.status) : syncStatusIcon("none")}
-                  <div>
-                    <h2 className="text-sm font-medium text-foreground">{source.displayName}</h2>
-                    <p className="text-xs text-muted-foreground">{source.type}</p>
+        {sourceHealth.map(({ source, latestRun, errors, health }) => {
+          const support = sourceSupport(source.type);
+          const enabled = source.status === "configured";
+          return (
+            <Card key={source.id}>
+              <CardContent className="py-4 px-5">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    {support === "supported" && enabled && latestRun ? (
+                      syncStatusIcon(health.status)
+                    ) : (
+                      <Database className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                    )}
+                    <div>
+                      <h2 className="text-sm font-medium text-foreground">{source.displayName}</h2>
+                      <p className="text-xs text-muted-foreground">{source.type}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge
+                      variant={
+                        support !== "supported" || !enabled
+                          ? "secondary"
+                          : health.status === "completed"
+                            ? "default"
+                            : ["failed", "lease_expired"].includes(health.status)
+                              ? "destructive"
+                              : "secondary"
+                      }
+                    >
+                      {support === "retired"
+                        ? "Retired"
+                        : support === "unsupported"
+                          ? "Not supported"
+                          : !enabled
+                            ? source.status === "disabled"
+                              ? "Disabled"
+                              : "Not enabled"
+                            : health.label}
+                    </Badge>
+                    {support === "supported" && enabled && (
+                      <SyncNowButton dataSourceType={source.type} />
+                    )}
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Badge
-                    variant={
-                      latestRun?.status === "completed"
-                        ? "default"
-                        : latestRun?.status === "failed"
-                          ? "destructive"
-                          : "secondary"
-                    }
-                  >
-                    {latestRun ? syncStatusLabel(latestRun.status) : "Never synced"}
-                  </Badge>
-                  {source.type !== "entra" && <SyncNowButton dataSourceType={source.type} />}
-                </div>
-              </div>
 
-              {latestRun && (
-                <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
-                  {source.type === "entra" ? (
-                    <>
-                      <span>{latestRun.recordsIngested} employees checked</span>
-                      <span>{latestRun.recordsNormalized} flagged as disabled</span>
-                    </>
+                {latestRun && (
+                  <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
+                    <span>{latestRun.recordsIngested} ingested</span>
+                    <span>{latestRun.recordsNormalized} normalized</span>
+                    {latestRun.recordsSkipped > 0 && (
+                      <span>{latestRun.recordsSkipped} skipped</span>
+                    )}
+                    {latestRun.errorCount > 0 && (
+                      <span className="text-status-attention">{latestRun.errorCount} errors</span>
+                    )}
+                  </div>
+                )}
+
+                <div className="mt-2">
+                  {support === "supported" && enabled ? (
+                    <DataFreshness
+                      freshnessAt={source.lastSuccessfulSyncAt?.toISOString() ?? null}
+                      now={nowTs}
+                    />
                   ) : (
-                    <>
-                      <span>{latestRun.recordsIngested} ingested</span>
-                      <span>{latestRun.recordsNormalized} normalized</span>
-                      {latestRun.recordsSkipped > 0 && (
-                        <span>{latestRun.recordsSkipped} skipped</span>
-                      )}
-                    </>
-                  )}
-                  {latestRun.errorCount > 0 && (
-                    <span className="text-status-attention">{latestRun.errorCount} errors</span>
-                  )}
-                </div>
-              )}
-
-              <div className="mt-2">
-                <DataFreshness
-                  freshnessAt={source.lastSuccessfulSyncAt?.toISOString() ?? null}
-                  now={nowTs}
-                />
-              </div>
-
-              {errors.length > 0 && (
-                <div className="mt-3 space-y-1">
-                  {errors.map((err) => (
-                    <p key={err.id} className="text-xs text-status-attention">
-                      {err.errorType}: {sanitizeErrorMessage(err.message)}
-                      {err.retryable && <span className="text-muted-foreground"> (retryable)</span>}
+                    <p className="text-xs text-muted-foreground">
+                      {support === "retired"
+                        ? "This integration is retired. Historical records are retained."
+                        : !enabled
+                          ? "Synchronization is disabled for this source. Stored values are retained."
+                          : "Synchronization is not available for this source."}
                     </p>
-                  ))}
+                  )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+
+                {support === "supported" && enabled && health.explanation && (
+                  <p className="mt-2 text-xs text-status-attention">{health.explanation}</p>
+                )}
+
+                {errors.length > 0 && (
+                  <div className="mt-3 space-y-1">
+                    {errors.map((err) => (
+                      <p key={err.id} className="text-xs text-status-attention">
+                        {err.errorType}: {sanitizeErrorMessage(err.message)}
+                        {err.retryable && (
+                          <span className="text-muted-foreground"> (retryable)</span>
+                        )}
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );

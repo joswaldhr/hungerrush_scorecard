@@ -1,0 +1,15 @@
+{
+  "observedAt": "2026-09-25T02:02:33.536Z",
+  "scope": "Candidate current-week fetch only, production read-only database and vendor GETs",
+  "databaseWrites": 0,
+  "weekOffset": 0,
+  "completed": true,
+  "elapsedMs": 159204,
+  "fetchBudgetMs": 240000,
+  "requests": 318,
+  "rateLimits": 5,
+  "recordCount": 186,
+  "identityCount": 62,
+  "failure": null,
+  "limitations": "One current-week local-process timing sample; excludes publication and hosted latency. Does not certify source semantics or worst-case execution time."
+}

@@ -322,6 +322,11 @@ RosterSourceTeamMapping
 - team_id
 - line — Menufy sub-line this group feeds (`restaurant` | `consumer`); null for POS
 
+Roster candidates also retain nullable `suggested_line` alongside `suggested_team_id`.
+Discovery preserves the configured line, including pending batches. Existing candidates
+remain null after migration 0014; no historical value is inferred. Approval retains the line
+only when accepting the suggested team, and clears it when choosing another team.
+
 RosterCandidate
 - id
 - data_source_id

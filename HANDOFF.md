@@ -1,3 +1,11 @@
+> Current September 23 overhaul status: see
+> [implementation progress and release checkpoint](docs/audits/2026-09-23-implementation-progress.md).
+> The older production-complete statements below describe earlier sessions. The current
+> audit branch is `codex/audit-reliability-checkpoints`. Hosted Preview uses a separate
+> Railway database, Entra registration, and branch-scoped secrets; its synthetic sign-in/UI
+> checks passed. Production rollout and historical repair remain gated. Follow the linked
+> ledger for current commits, validation, and remaining work; older sections are historical.
+
 # Session Handoff — 2026-09-15
 
 ## TL;DR

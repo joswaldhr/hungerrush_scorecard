@@ -4,27 +4,16 @@ import {
   getAssignedEmployees,
   getVisibleTeamsForManager,
 } from "@/lib/auth/authorization";
-import { db } from "@/lib/db";
-import { reconciliationRuns } from "@/lib/db/schema";
-import { eq, desc, and, or, inArray, isNull } from "drizzle-orm";
+import {
+  getScopedReconciliationRun,
+  getScopedReconciliationRuns,
+} from "@/lib/domain/reconciliation/queries";
 import { runReconciliation } from "@/lib/domain/reconciliation";
+import { ReconciliationRateLimitError } from "@/lib/domain/reconciliation/engine";
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import { isReconciliationRateLimited } from "@/lib/rate-limit";
-import { z } from "zod";
-
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-
-const reconciliationRunBodySchema = z.object({
-  teamId: z.string().min(1).optional(),
-  periodStart: z.string().regex(DATE_RE, "Invalid date format (expected YYYY-MM-DD)"),
-  periodEnd: z.string().regex(DATE_RE, "Invalid date format (expected YYYY-MM-DD)"),
-  thresholdPct: z
-    .number()
-    .min(0, "thresholdPct must be 0-100")
-    .max(100, "thresholdPct must be 0-100")
-    .optional(),
-});
+import { reconciliationRequestSchema } from "@/lib/domain/reconciliation/request";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -44,7 +33,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const parsed = reconciliationRunBodySchema.safeParse(json);
+  const parsed = reconciliationRequestSchema.safeParse(json);
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
     const message = issue ? `${issue.path.join(".")}: ${issue.message}` : "Invalid request body";
@@ -82,8 +71,30 @@ export async function POST(request: Request) {
       thresholdPct: body.thresholdPct,
     });
 
-    return NextResponse.json(result);
+    const visible = await getScopedReconciliationRun(ctx, result.runId);
+    if (!visible)
+      throw new Error("Completed reconciliation is not visible in the authorized scope");
+    const {
+      totalComparisons,
+      matchCount,
+      mismatchCount,
+      sourceMissingCount,
+      cadenceMissingCount,
+      unavailableCount,
+    } = visible.run;
+    return NextResponse.json({
+      runId: result.runId,
+      totalComparisons,
+      matchCount,
+      mismatchCount,
+      sourceMissingCount,
+      cadenceMissingCount,
+      unavailableCount,
+    });
   } catch (err) {
+    if (err instanceof ReconciliationRateLimitError) {
+      return NextResponse.json({ error: err.message }, { status: 429 });
+    }
     logger.error("Reconciliation run failed", { error: err });
     return NextResponse.json({ error: "Reconciliation failed" }, { status: 500 });
   }
@@ -101,31 +112,7 @@ export async function GET() {
   }
 
   try {
-    // organizationId alone isn't enough scoping -- this org has multiple
-    // managers, each with their own teams, and a run's aggregate counts
-    // (even without employee-level detail, which /results already scopes
-    // separately) shouldn't be visible across that boundary. A run counts
-    // as this manager's if it's scoped to one of their visible teams (not
-    // just ctx.assignedTeamIds -- a sub-manager's team access can come
-    // entirely from individual employee assignments), or if it's an
-    // org-wide run (no teamId) they personally triggered.
-    const assignedEmployees = await getAssignedEmployees(ctx);
-    const visibleTeams = await getVisibleTeamsForManager(ctx, assignedEmployees);
-    const visibleTeamIds = visibleTeams.map((t) => t.id);
-    const scopeCondition =
-      visibleTeamIds.length > 0
-        ? or(
-            inArray(reconciliationRuns.teamId, visibleTeamIds),
-            and(isNull(reconciliationRuns.teamId), eq(reconciliationRuns.triggeredBy, ctx.userId))
-          )
-        : and(isNull(reconciliationRuns.teamId), eq(reconciliationRuns.triggeredBy, ctx.userId));
-
-    const runs = await db
-      .select()
-      .from(reconciliationRuns)
-      .where(and(eq(reconciliationRuns.organizationId, ctx.organizationId), scopeCondition))
-      .orderBy(desc(reconciliationRuns.startedAt))
-      .limit(20);
+    const runs = await getScopedReconciliationRuns(ctx);
 
     return NextResponse.json({
       runs: runs.map((r) => ({
@@ -140,6 +127,7 @@ export async function GET() {
         mismatchCount: r.mismatchCount,
         sourceMissingCount: r.sourceMissingCount,
         cadenceMissingCount: r.cadenceMissingCount,
+        unavailableCount: r.unavailableCount,
         startedAt: r.startedAt.toISOString(),
         completedAt: r.completedAt?.toISOString() ?? null,
       })),

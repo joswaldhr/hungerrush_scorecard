@@ -1,46 +1,49 @@
 "use server";
 
 import { requireAdmin } from "@/lib/auth/authorization";
+import { assertOrganizationResource } from "@/lib/auth/organization-scope";
 import { db } from "@/lib/db";
 import { employees, teams, teamMemberships } from "@/lib/db/schema";
-import { eq, and, isNull } from "drizzle-orm";
+import { eq, and, isNull, lte, gt, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 export async function createEmployee(formData: FormData) {
-  await requireAdmin();
+  const { organizationId } = await requireAdmin();
 
   const displayName = (formData.get("displayName") as string)?.trim();
   const email = (formData.get("email") as string)?.trim() || null;
   const jobTitle = (formData.get("jobTitle") as string)?.trim() || null;
   const teamId = (formData.get("teamId") as string) || null;
-  const organizationId = formData.get("organizationId") as string;
 
   if (!displayName || !organizationId) return;
 
-  const [employee] = await db
-    .insert(employees)
-    .values({
-      organizationId,
-      displayName,
-      email,
-      jobTitle,
-      primaryTeamId: teamId,
-    })
-    .returning();
+  await db.transaction(async (tx) => {
+    if (teamId) await assertOrganizationResource(organizationId, "team", teamId, tx);
+    const [employee] = await tx
+      .insert(employees)
+      .values({
+        organizationId,
+        displayName,
+        email,
+        jobTitle,
+        primaryTeamId: teamId,
+      })
+      .returning();
 
-  if (teamId && employee) {
-    await db.insert(teamMemberships).values({
-      employeeId: employee.id,
-      teamId,
-      effectiveFrom: new Date().toISOString().split("T")[0]!,
-    });
-  }
+    if (teamId && employee) {
+      await tx.insert(teamMemberships).values({
+        employeeId: employee.id,
+        teamId,
+        effectiveFrom: new Date().toISOString().split("T")[0]!,
+      });
+    }
+  });
 
   revalidatePath("/admin/employees");
 }
 
 export async function updateEmployee(formData: FormData) {
-  await requireAdmin();
+  const { organizationId } = await requireAdmin();
 
   const employeeId = formData.get("employeeId") as string;
   const displayName = (formData.get("displayName") as string)?.trim();
@@ -49,18 +52,21 @@ export async function updateEmployee(formData: FormData) {
   const employmentStatus = formData.get("employmentStatus") as string;
 
   if (!employeeId || !displayName) return;
+  if (!["active", "inactive", "terminated"].includes(employmentStatus))
+    throw new Error("Invalid employment status");
+  await assertOrganizationResource(organizationId, "employee", employeeId);
 
   await db
     .update(employees)
     .set({ displayName, email, jobTitle, employmentStatus, updatedAt: new Date() })
-    .where(eq(employees.id, employeeId));
+    .where(and(eq(employees.id, employeeId), eq(employees.organizationId, organizationId)));
 
   revalidatePath(`/admin/employees/${employeeId}`);
   revalidatePath("/admin/employees");
 }
 
 export async function setEmployeeTeam(formData: FormData) {
-  await requireAdmin();
+  const { organizationId } = await requireAdmin();
 
   const employeeId = formData.get("employeeId") as string;
   const teamId = (formData.get("teamId") as string) || null;
@@ -68,20 +74,41 @@ export async function setEmployeeTeam(formData: FormData) {
 
   const today = new Date().toISOString().split("T")[0]!;
 
-  await db
-    .update(teamMemberships)
-    .set({ effectiveTo: today })
-    .where(and(eq(teamMemberships.employeeId, employeeId), isNull(teamMemberships.effectiveTo)));
+  await db.transaction(async (tx) => {
+    await assertOrganizationResource(organizationId, "employee", employeeId, tx);
+    if (teamId) await assertOrganizationResource(organizationId, "team", teamId, tx);
+    // Serialize team changes for the same employee before closing memberships.
+    const [current] = await tx
+      .select({ id: employees.id, primaryTeamId: employees.primaryTeamId })
+      .from(employees)
+      .where(and(eq(employees.id, employeeId), eq(employees.organizationId, organizationId)))
+      .for("update");
+    if (!current) throw new Error("Employee not found or not permitted");
+    if (current.primaryTeamId === teamId) return;
+    await tx
+      .update(teamMemberships)
+      .set({ effectiveTo: today })
+      .where(
+        and(
+          eq(teamMemberships.employeeId, employeeId),
+          lte(teamMemberships.effectiveFrom, today),
+          or(isNull(teamMemberships.effectiveTo), gt(teamMemberships.effectiveTo, today))
+        )
+      );
 
-  if (teamId) {
-    await db.insert(teamMemberships).values({
-      employeeId,
-      teamId,
-      effectiveFrom: today,
-    });
-  }
+    if (teamId) {
+      await tx.insert(teamMemberships).values({
+        employeeId,
+        teamId,
+        effectiveFrom: today,
+      });
+    }
 
-  await db.update(employees).set({ primaryTeamId: teamId }).where(eq(employees.id, employeeId));
+    await tx
+      .update(employees)
+      .set({ primaryTeamId: teamId, line: null, updatedAt: new Date() })
+      .where(and(eq(employees.id, employeeId), eq(employees.organizationId, organizationId)));
+  });
 
   revalidatePath(`/admin/employees/${employeeId}`);
   revalidatePath("/admin/employees");
@@ -89,10 +116,9 @@ export async function setEmployeeTeam(formData: FormData) {
 }
 
 export async function createTeam(formData: FormData) {
-  await requireAdmin();
+  const { organizationId } = await requireAdmin();
 
   const name = (formData.get("name") as string)?.trim();
-  const organizationId = formData.get("organizationId") as string;
   if (!name || !organizationId) return;
 
   const slug = name

@@ -1,4 +1,4 @@
-import type { CalculationType } from "@/lib/domain/metrics/types";
+import type { CalculationType, ValueType } from "@/lib/domain/metrics/types";
 
 export type ReconciliationStatus = "match" | "mismatch" | "source_missing" | "cadence_missing";
 
@@ -13,7 +13,8 @@ export interface ComparisonResult {
 export function compareValues(
   cadenceValue: number | null,
   sourceValue: number | null,
-  thresholdPct: number
+  thresholdPct: number,
+  valueType: ValueType = "numeric"
 ): ComparisonResult {
   if (cadenceValue === null && sourceValue === null) {
     return {
@@ -48,7 +49,13 @@ export function compareValues(
   const relativeDeltaPct =
     denominator > 0 ? (absoluteDelta / denominator) * 100 : cadenceValue === sourceValue ? 0 : 100;
 
-  const status: ReconciliationStatus = relativeDeltaPct <= thresholdPct ? "match" : "mismatch";
+  // Counts are exact: even one missing ticket/call must not disappear inside a
+  // percentage tolerance. Preserve configured tolerance for non-count metrics.
+  const status: ReconciliationStatus = (
+    valueType === "count" ? absoluteDelta === 0 : relativeDeltaPct <= thresholdPct
+  )
+    ? "match"
+    : "mismatch";
 
   return {
     cadenceValue,
@@ -60,9 +67,11 @@ export function compareValues(
 }
 
 export function aggregateSourceValues(
-  values: number[],
+  observations: (number | null)[],
   calculationType: CalculationType
 ): number | null {
+  if (calculationType === "latest") return observations[observations.length - 1] ?? null;
+  const values = observations.filter((value): value is number => value !== null);
   if (values.length === 0) return null;
 
   switch (calculationType) {
@@ -76,8 +85,6 @@ export function aggregateSourceValues(
       return Math.max(...values);
     case "count":
       return values.length;
-    case "latest":
-      return values[values.length - 1] ?? null;
     default:
       return values[values.length - 1] ?? null;
   }

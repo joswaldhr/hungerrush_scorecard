@@ -1,0 +1,2 @@
+DROP INDEX "metric_visibility_overrides_unique_idx";--> statement-breakpoint
+ALTER TABLE "metric_visibility_overrides" ADD CONSTRAINT "metric_visibility_overrides_unique_idx" UNIQUE NULLS NOT DISTINCT("scope","manager_user_id","target_employee_id","metric_definition_id","team_id","line");

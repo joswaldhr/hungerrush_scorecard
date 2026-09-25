@@ -23,7 +23,8 @@ docker compose up -d
 # Run database migrations
 pnpm db:migrate
 
-# Seed pilot data (POS Support + Menufy Support rosters)
+# Reset LOCAL fixture data (POS Support + Menufy Support rosters)
+# DATABASE_URL must point to loopback and database cadence or a name ending _test.
 pnpm db:seed
 
 # Start dev server
@@ -45,7 +46,7 @@ pnpm dev
 | `pnpm db:generate` | Generate new migration from schema changes |
 | `pnpm db:migrate` | Apply pending migrations |
 | `pnpm db:studio` | Open Drizzle Studio |
-| `pnpm db:seed` | Seed database with pilot roster data |
+| `pnpm db:seed` | Reset a local fixture database with pilot roster data; hosted URLs are refused |
 | `pnpm connectors:health` | Check connector API connectivity |
 
 ## Architecture

@@ -11,6 +11,7 @@ import {
   boolean,
   index,
   uniqueIndex,
+  unique,
 } from "drizzle-orm/pg-core";
 
 // ── People ──────────────────────────────────────────────────
@@ -291,14 +292,16 @@ export const metricVisibilityOverrides = pgTable(
     index("metric_visibility_overrides_manager_idx").on(table.managerUserId),
     index("metric_visibility_overrides_employee_idx").on(table.targetEmployeeId),
     index("metric_visibility_overrides_metric_def_idx").on(table.metricDefinitionId),
-    uniqueIndex("metric_visibility_overrides_unique_idx").on(
-      table.scope,
-      table.managerUserId,
-      table.targetEmployeeId,
-      table.metricDefinitionId,
-      table.teamId,
-      table.line
-    ),
+    unique("metric_visibility_overrides_unique_idx")
+      .on(
+        table.scope,
+        table.managerUserId,
+        table.targetEmployeeId,
+        table.metricDefinitionId,
+        table.teamId,
+        table.line
+      )
+      .nullsNotDistinct(),
   ]
 );
 
@@ -593,6 +596,7 @@ export const rosterCandidates = pgTable(
     changeType: text("change_type").notNull(),
     employeeId: uuid("employee_id").references(() => employees.id),
     suggestedTeamId: uuid("suggested_team_id").references(() => teams.id),
+    suggestedLine: text("suggested_line"),
     status: text("status").notNull().default("pending"),
     reviewedBy: uuid("reviewed_by").references(() => users.id),
     reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
@@ -829,5 +833,25 @@ export const reconciliationResults = pgTable(
     index("reconciliation_results_run_id_idx").on(table.reconciliationRunId),
     index("reconciliation_results_employee_id_idx").on(table.employeeId),
     index("reconciliation_results_metric_id_idx").on(table.metricDefinitionId),
+  ]
+);
+
+// Prior rows replaced by a sync publication. Written in the same transaction as
+// the correction; run -> data source defines organization ownership.
+export const syncRevisions = pgTable(
+  "sync_revisions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    syncRunId: uuid("sync_run_id")
+      .notNull()
+      .references(() => syncRuns.id),
+    entityType: text("entity_type").notNull(),
+    entityId: uuid("entity_id").notNull(),
+    snapshotJson: jsonb("snapshot_json").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("sync_revisions_run_idx").on(table.syncRunId),
+    index("sync_revisions_entity_idx").on(table.entityType, table.entityId),
   ]
 );

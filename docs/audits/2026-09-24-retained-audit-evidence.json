@@ -1,0 +1,50 @@
+{
+  "observedAt": "2026-09-25T01:09:51.807Z",
+  "day": "2026-09-13",
+  "inclusiveEndDay": "2026-09-19",
+  "mode": "Offline retained audit evidence; loopback writes and vendor GETs only",
+  "selection": "First, middle and last positive-actor candidate by event ID; not a representative attribution estimate",
+  "retainedTicketEvents": 85066,
+  "candidateEvents": 60284,
+  "capturedAudits": 3,
+  "captures": [
+    {
+      "parentChannel": "api",
+      "actorMatchesUpdater": false,
+      "candidateChildren": 1,
+      "childViaOverrides": 0,
+      "ruleLinkedChildren": 0,
+      "historicalEligibility": "unknown",
+      "humanActivityAttribution": "unknown",
+      "replayWithoutFetch": true
+    },
+    {
+      "parentChannel": "email",
+      "actorMatchesUpdater": true,
+      "candidateChildren": 14,
+      "childViaOverrides": 13,
+      "ruleLinkedChildren": 13,
+      "historicalEligibility": "unknown",
+      "humanActivityAttribution": "unknown",
+      "replayWithoutFetch": true
+    },
+    {
+      "parentChannel": "api",
+      "actorMatchesUpdater": true,
+      "candidateChildren": 1,
+      "childViaOverrides": 0,
+      "ruleLinkedChildren": 0,
+      "historicalEligibility": "unknown",
+      "humanActivityAttribution": "unknown",
+      "replayWithoutFetch": true
+    }
+  ],
+  "requests": {
+    "requests": 3,
+    "retries429": 0,
+    "backoffWaitMs": 0
+  },
+  "normalizedFacts": 0,
+  "sourcePublicationTimestamp": null,
+  "metricsPublished": false
+}

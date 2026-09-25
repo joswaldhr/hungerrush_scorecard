@@ -1,0 +1,26 @@
+{
+  "observedAt": "2026-09-24T13:40:14.072Z",
+  "readOnly": true,
+  "identities": {
+    "total": 97,
+    "active_employee": 62,
+    "verification_timestamp_present": 0,
+    "numeric_external_id": 0,
+    "email_external_id": 97,
+    "organization_mismatch": 0
+  },
+  "methods": [
+    {
+      "method": "email",
+      "count": 36
+    },
+    {
+      "method": "roster_discovery",
+      "count": 61
+    }
+  ],
+  "duplicates": {
+    "employee_source_pairs_with_multiple_identities": 0
+  },
+  "limitation": "Current Cadence mapping census only; does not verify Zendesk numeric IDs, historical eligibility, service accounts, or manual human action."
+}

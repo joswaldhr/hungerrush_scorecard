@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useId, useRef } from "react";
 import { toast } from "sonner";
 import {
   Download,
@@ -13,60 +13,23 @@ import {
   ClipboardList,
   ChevronDown,
 } from "lucide-react";
-import { formatMetricValue } from "@/lib/domain/metrics/types";
-import type { ValueType } from "@/lib/domain/metrics/types";
+import {
+  exportCsv,
+  exportDataDetails,
+  formatExportValue as formatVal,
+  formatExportTarget as formatTarget,
+  type ExportSnapshot,
+  type ScorecardMetric,
+} from "@/lib/domain/metrics/export-snapshot";
+import { freezeScorecardCapture } from "@/lib/scorecard-capture";
+import { getStatusLabel } from "./status-badge";
+export type { ScorecardMetric } from "@/lib/domain/metrics/export-snapshot";
 import { cn } from "@/lib/utils";
 
 export const SCORECARD_CAPTURE_ID = "scorecard-capture";
 
-export interface ScorecardMetric {
-  category: string | null;
-  name: string;
-  currentValue: number | null;
-  previousValue: number | null;
-  targetValue: number | null;
-  targetType: string | null;
-  targetMin: number | null;
-  targetMax: number | null;
-  status: string;
-  unit: string | null;
-  valueType: ValueType;
-}
-
-interface ScorecardExportProps {
-  employeeName: string;
-  periodLabel: string;
-  metrics: ScorecardMetric[];
-}
-
-function formatVal(value: number | null, unit: string | null, valueType: ValueType): string {
-  if (value === null) return "—";
-  return formatMetricValue(value, unit, valueType);
-}
-
-function formatTarget(m: ScorecardMetric): string {
-  if (m.targetType === "range") {
-    if (m.targetMin === null || m.targetMax === null) return "—";
-    return `${formatVal(m.targetMin, m.unit, m.valueType)}–${formatVal(m.targetMax, m.unit, m.valueType)}`;
-  }
-  return formatVal(m.targetValue, m.unit, m.valueType);
-}
-
 function statusLabel(status: string): string {
-  switch (status) {
-    case "on_target":
-      return "On Target";
-    case "warning":
-      return "Warning";
-    case "off_target":
-      return "Off Target";
-    case "no_target":
-      return "No Target";
-    case "no_data":
-      return "No Data";
-    default:
-      return status;
-  }
+  return getStatusLabel(status as Parameters<typeof getStatusLabel>[0]);
 }
 
 function fileDate(): string {
@@ -91,22 +54,51 @@ function triggerDownload(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-export function ScorecardExport({ employeeName, periodLabel, metrics }: ScorecardExportProps) {
+export function ScorecardExport({
+  employeeName,
+  periodLabel,
+  previousPeriodLabel,
+  metrics,
+}: ExportSnapshot) {
   const [open, setOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
 
-  const close = useCallback(() => setOpen(false), []);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const openAtEnd = useRef(false);
+  const menuId = useId();
+  const close = useCallback((restoreFocus = true) => {
+    setOpen(false);
+    if (restoreFocus) triggerRef.current?.focus();
+  }, []);
+  useEffect(() => {
+    if (!open) return;
+    const items = menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]');
+    items?.[openAtEnd.current ? items.length - 1 : 0]?.focus();
+    const outside = (event: MouseEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) close(false);
+    };
+    document.addEventListener("mousedown", outside);
+    return () => document.removeEventListener("mousedown", outside);
+  }, [open, close]);
 
   async function handlePdf() {
     const el = document.getElementById(SCORECARD_CAPTURE_ID);
     if (!el) return;
+    const frozen = freezeScorecardCapture(el, {
+      employeeName,
+      periodLabel,
+      previousPeriodLabel,
+      metrics,
+    });
     setExporting(true);
     close();
     try {
       const html2canvas = (await import("html2canvas-pro")).default;
       const { jsPDF } = await import("jspdf");
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true });
+      const canvas = await html2canvas(frozen.element, { scale: 2, useCORS: true });
       const imgData = canvas.toDataURL("image/png");
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
@@ -124,6 +116,7 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
       console.error("PDF export failed:", err);
       toast.error("Failed to generate PDF");
     } finally {
+      frozen.dispose();
       setExporting(false);
     }
   }
@@ -131,11 +124,17 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
   async function handlePng() {
     const el = document.getElementById(SCORECARD_CAPTURE_ID);
     if (!el) return;
+    const frozen = freezeScorecardCapture(el, {
+      employeeName,
+      periodLabel,
+      previousPeriodLabel,
+      metrics,
+    });
     setExporting(true);
     close();
     try {
       const html2canvas = (await import("html2canvas-pro")).default;
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true });
+      const canvas = await html2canvas(frozen.element, { scale: 2, useCORS: true });
       canvas.toBlob((blob) => {
         if (!blob) {
           toast.error("Failed to generate image");
@@ -148,24 +147,14 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
       console.error("PNG export failed:", err);
       toast.error("Failed to generate PNG");
     } finally {
+      frozen.dispose();
       setExporting(false);
     }
   }
 
   function handleCsv() {
     close();
-    const header = "Category,Metric,This Week,Last Week,Target,Status";
-    const rows = metrics.map((m) => {
-      const cat = m.category ?? "Other";
-      const curr = formatVal(m.currentValue, m.unit, m.valueType);
-      const prev = formatVal(m.previousValue, m.unit, m.valueType);
-      const target = formatTarget(m);
-      const status = statusLabel(m.status);
-      return [cat, m.name, curr, prev, target, status]
-        .map((v) => `"${v.replace(/"/g, '""')}"`)
-        .join(",");
-    });
-    const csv = [header, ...rows].join("\n");
+    const csv = exportCsv({ employeeName, periodLabel, previousPeriodLabel, metrics }, statusLabel);
     // Excel assumes the system codepage (not UTF-8) for a CSV with no BOM, so
     // the en/em dashes in target ranges and blank values ("75-128", "-")
     // render as mojibake ("â€"") without this -- confirmed live.
@@ -184,7 +173,7 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
       categories.set(cat, arr);
     }
 
-    let text = `Scorecard: ${employeeName}\nPeriod: ${periodLabel}\n`;
+    let text = `Scorecard: ${employeeName}\nPeriod: ${periodLabel} (UTC)\nComparison: ${previousPeriodLabel} (UTC)\n`;
     for (const [cat, catMetrics] of categories) {
       text += `\n${cat.toUpperCase()}\n`;
       for (const m of catMetrics) {
@@ -198,6 +187,7 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
     }
 
     try {
+      text += `\nData details\n${exportDataDetails(metrics)}`;
       await navigator.clipboard.writeText(text.trimEnd());
       toast.success("Scorecard copied to clipboard");
     } catch {
@@ -223,27 +213,47 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
   }
 
   const menuItems = [
-    { label: "Download as PDF", icon: FileText, action: handlePdf },
-    { label: "Download as PNG", icon: Image, action: handlePng },
-    { label: "Export to CSV", icon: Table2, action: handleCsv },
-    { label: "Copy as text", icon: ClipboardList, action: handleTextCopy },
+    { label: "Download as PDF", icon: FileText, action: "pdf" },
+    { label: "Download as PNG", icon: Image, action: "png" },
+    { label: "Export to CSV", icon: Table2, action: "csv" },
+    { label: "Copy as text", icon: ClipboardList, action: "text" },
     { label: "divider", icon: null, action: null },
     {
       label: linkCopied ? "Link copied!" : "Copy link",
       icon: linkCopied ? Check : Copy,
-      action: handleCopyLink,
+      action: "link",
     },
-    { label: "Print", icon: Printer, action: handlePrint },
+    { label: "Print", icon: Printer, action: "print" },
   ];
 
   return (
-    <div className="relative print:hidden">
+    <div
+      ref={rootRef}
+      className="relative print:hidden"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) close(false);
+      }}
+    >
       <button
+        ref={triggerRef}
         type="button"
-        onClick={() => setOpen(!open)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={open ? menuId : undefined}
+        onClick={() => {
+          openAtEnd.current = false;
+          setOpen(!open);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            openAtEnd.current = event.key === "ArrowUp";
+            setOpen(true);
+          }
+        }}
         disabled={exporting}
         className={cn(
-          "flex items-center gap-1.5 rounded-lg border border-border/80 bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted transition-colors",
+          "flex min-h-11 sm:min-h-0 items-center gap-1.5 rounded-lg border border-border/80 bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted transition-colors",
           exporting && "opacity-50 cursor-wait"
         )}
       >
@@ -253,28 +263,73 @@ export function ScorecardExport({ employeeName, periodLabel, metrics }: Scorecar
       </button>
 
       {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={close} />
-          <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-border/80 bg-card shadow-lg z-50 py-1">
-            {menuItems.map((item, i) => {
-              if (item.label === "divider") {
-                return <div key={i} className="my-1 border-t border-border/60" />;
-              }
-              const Icon = item.icon!;
-              return (
-                <button
-                  key={item.label}
-                  type="button"
-                  onClick={item.action!}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground hover:bg-muted transition-colors text-left"
-                >
-                  <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </>
+        <div
+          ref={menuRef}
+          id={menuId}
+          role="menu"
+          aria-label="Export scorecard"
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault();
+              close();
+              return;
+            }
+            const items = Array.from(
+              event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')
+            );
+            const current = items.indexOf(document.activeElement as HTMLButtonElement);
+            let next: number;
+            if (event.key === "ArrowDown") next = (current + 1) % items.length;
+            else if (event.key === "ArrowUp") next = (current - 1 + items.length) % items.length;
+            else if (event.key === "Home") next = 0;
+            else if (event.key === "End") next = items.length - 1;
+            else return;
+            event.preventDefault();
+            items[next]?.focus();
+          }}
+          className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1 w-48 rounded-lg border border-border/80 bg-card shadow-lg z-50 py-1"
+        >
+          {menuItems.map((item, i) => {
+            if (item.label === "divider") {
+              return <div key={i} role="separator" className="my-1 border-t border-border/60" />;
+            }
+            const Icon = item.icon!;
+            return (
+              <button
+                key={item.label}
+                type="button"
+                role="menuitem"
+                tabIndex={-1}
+                onClick={() => {
+                  switch (item.action) {
+                    case "pdf":
+                      void handlePdf();
+                      break;
+                    case "png":
+                      void handlePng();
+                      break;
+                    case "csv":
+                      handleCsv();
+                      break;
+                    case "text":
+                      void handleTextCopy();
+                      break;
+                    case "link":
+                      void handleCopyLink();
+                      break;
+                    case "print":
+                      handlePrint();
+                      break;
+                  }
+                }}
+                className="w-full min-h-11 sm:min-h-0 flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground hover:bg-muted transition-colors text-left"
+              >
+                <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
       )}
     </div>
   );

@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { syncRuns, reconciliationRuns } from "@/lib/db/schema";
-import { eq, and, gte } from "drizzle-orm";
+import { eq, and, gte, sql } from "drizzle-orm";
 
 const SYNC_COOLDOWN_MS = 5 * 60 * 1000;
 const RECONCILIATION_COOLDOWN_MS = 5 * 60 * 1000;
@@ -17,15 +17,20 @@ export async function isSyncRateLimited(dataSourceId: string): Promise<boolean> 
 }
 
 /** Refuses a new reconciliation run for an org that started one within the cooldown window. */
-export async function isReconciliationRateLimited(organizationId: string): Promise<boolean> {
-  const cutoff = new Date(Date.now() - RECONCILIATION_COOLDOWN_MS);
-  const [recent] = await db
+export async function isReconciliationRateLimited(
+  organizationId: string,
+  executor: Pick<typeof db, "select"> = db
+): Promise<boolean> {
+  const [recent] = await executor
     .select({ id: reconciliationRuns.id })
     .from(reconciliationRuns)
     .where(
       and(
         eq(reconciliationRuns.organizationId, organizationId),
-        gte(reconciliationRuns.startedAt, cutoff)
+        gte(
+          reconciliationRuns.startedAt,
+          sql`now() - (${RECONCILIATION_COOLDOWN_MS} * interval '1 millisecond')`
+        )
       )
     )
     .limit(1);

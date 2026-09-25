@@ -3,6 +3,7 @@
 import { auth } from "@/lib/auth";
 import { getEffectiveManagerContext, getAssignedEmployees } from "@/lib/auth/authorization";
 import { getEmployeeMetrics, type EmployeeMetricRow } from "@/lib/domain/metrics/queries";
+import { resolveReportingWeek, shiftWeekStart } from "@/lib/utils";
 
 // Re-runs just the metrics fetch for one employee/week -- called from the
 // client when the manager navigates to a week that isn't cached yet. Skips
@@ -12,8 +13,7 @@ import { getEmployeeMetrics, type EmployeeMetricRow } from "@/lib/domain/metrics
 // at metric assignments for a team the employee isn't actually on.
 export async function getWeekMetrics(
   employeeId: string,
-  periodStart: string,
-  previousPeriodStart: string
+  periodStart: string
 ): Promise<EmployeeMetricRow[]> {
   const session = await auth();
   if (!session?.user?.email) throw new Error("Not authenticated");
@@ -25,11 +25,13 @@ export async function getWeekMetrics(
   const employee = employees.find((e) => e.id === employeeId);
   if (!employee?.primaryTeamId) throw new Error("Employee not found or has no team");
 
+  const week = resolveReportingWeek(periodStart);
+
   return getEmployeeMetrics(
     ctx,
     employeeId,
     employee.primaryTeamId,
-    periodStart,
-    previousPeriodStart
+    week,
+    shiftWeekStart(week, -1)
   );
 }

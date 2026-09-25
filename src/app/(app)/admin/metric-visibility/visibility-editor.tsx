@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
+import { toast } from "sonner";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { setVisibilityOverride, getManagerScorecardCount } from "./actions";
+import { setVisibilityOverrides, getManagerScorecardCount } from "./actions";
 import {
   buildTeamLinePairs,
   isValidVisibilitySelection,
@@ -43,6 +44,7 @@ export function VisibilityEditor({
   menufyTeamId,
   posTeamId,
 }: VisibilityEditorProps) {
+  const formId = useId();
   const [metricDefinitionId, setMetricDefinitionId] = useState("");
   const [scope, setScope] = useState<Scope>("scorecard_override");
   const [targetEmployeeId, setTargetEmployeeId] = useState("");
@@ -51,6 +53,7 @@ export function VisibilityEditor({
   const [brandSecond, setBrandSecond] = useState<BrandSecond | "">("");
   const [hidden, setHidden] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [checkingScope, setCheckingScope] = useState(false);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [scorecardCount, setScorecardCount] = useState<number | null>(null);
@@ -75,8 +78,8 @@ export function VisibilityEditor({
     setSubmitting(true);
     try {
       const pairs = buildTeamLinePairs(brandTop, brandSecond, menufyTeamId, posTeamId);
-      for (const pair of pairs) {
-        await setVisibilityOverride({
+      await setVisibilityOverrides(
+        pairs.map((pair) => ({
           scope,
           managerUserId: scope === "manager_override" ? managerUserId : null,
           targetEmployeeId: scope === "scorecard_override" ? targetEmployeeId : null,
@@ -84,25 +87,35 @@ export function VisibilityEditor({
           teamId: pair.teamId,
           line: pair.line,
           hidden,
-        });
-      }
+        }))
+      );
+      setConfirmOpen(false);
+      toast.success("Visibility updated");
       setMetricDefinitionId("");
       setBrandTop("");
       setBrandSecond("");
       setTargetEmployeeId("");
       setManagerUserId("");
+    } catch {
+      toast.error("Could not confirm that visibility changes were saved. Refresh before retrying.");
     } finally {
       setSubmitting(false);
-      setConfirmOpen(false);
     }
   }
 
   async function handleSubmit() {
     if (!isValid) return;
     if (scope === "manager_override") {
-      const count = await getManagerScorecardCount(managerUserId);
-      setScorecardCount(count);
-      setConfirmOpen(true);
+      setCheckingScope(true);
+      try {
+        const count = await getManagerScorecardCount(managerUserId);
+        setScorecardCount(count);
+        setConfirmOpen(true);
+      } catch {
+        toast.error("Could not load the affected scorecards. Please retry.");
+      } finally {
+        setCheckingScope(false);
+      }
       return;
     }
     await commit();
@@ -111,13 +124,23 @@ export function VisibilityEditor({
   const selectedManager = managers.find((m) => m.userId === managerUserId);
 
   return (
-    <div className="space-y-4 rounded-lg border border-border p-4">
+    <fieldset
+      disabled={submitting || checkingScope}
+      aria-label="Metric visibility"
+      className="min-w-0 space-y-4 rounded-lg border border-border p-4"
+    >
       <div>
-        <label className="block text-xs font-medium text-muted-foreground mb-1">Metric</label>
+        <label
+          htmlFor={`${formId}-metric`}
+          className="block text-xs font-medium text-muted-foreground mb-1"
+        >
+          Metric
+        </label>
         <select
+          id={`${formId}-metric`}
           value={metricDefinitionId}
           onChange={(e) => setMetricDefinitionId(e.target.value)}
-          className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+          className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground"
         >
           <option value="">Select a metric...</option>
           {[...categories.entries()].map(([category, opts]) => (
@@ -133,8 +156,14 @@ export function VisibilityEditor({
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-muted-foreground mb-2">Scope</label>
-        <RadioGroup value={scope} onValueChange={(v) => setScope(v as Scope)}>
+        <p id={`${formId}-scope`} className="block text-xs font-medium text-muted-foreground mb-2">
+          Scope
+        </p>
+        <RadioGroup
+          aria-labelledby={`${formId}-scope`}
+          value={scope}
+          onValueChange={(v) => setScope(v as Scope)}
+        >
           <RadioGroupItem value="scorecard_override">This scorecard only</RadioGroupItem>
           <RadioGroupItem value="manager_override">All scorecards under a manager</RadioGroupItem>
           <RadioGroupItem value="global_default">Global default</RadioGroupItem>
@@ -143,11 +172,17 @@ export function VisibilityEditor({
 
       {scope === "scorecard_override" && (
         <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1">Employee</label>
+          <label
+            htmlFor={`${formId}-employee`}
+            className="block text-xs font-medium text-muted-foreground mb-1"
+          >
+            Employee
+          </label>
           <select
+            id={`${formId}-employee`}
             value={targetEmployeeId}
             onChange={(e) => setTargetEmployeeId(e.target.value)}
-            className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+            className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground"
           >
             <option value="">Select an employee...</option>
             {employeesList.map((e) => (
@@ -161,11 +196,17 @@ export function VisibilityEditor({
 
       {scope === "manager_override" && (
         <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1">Manager</label>
+          <label
+            htmlFor={`${formId}-manager`}
+            className="block text-xs font-medium text-muted-foreground mb-1"
+          >
+            Manager
+          </label>
           <select
+            id={`${formId}-manager`}
             value={managerUserId}
             onChange={(e) => setManagerUserId(e.target.value)}
-            className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+            className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground"
           >
             <option value="">Select a manager...</option>
             {managers.map((m) => (
@@ -178,8 +219,14 @@ export function VisibilityEditor({
       )}
 
       <div>
-        <label className="block text-xs font-medium text-muted-foreground mb-2">Brand</label>
-        <RadioGroup value={brandTop} onValueChange={(v) => setBrandTop(v as BrandTop)}>
+        <p id={`${formId}-brand`} className="block text-xs font-medium text-muted-foreground mb-2">
+          Brand
+        </p>
+        <RadioGroup
+          aria-labelledby={`${formId}-brand`}
+          value={brandTop}
+          onValueChange={(v) => setBrandTop(v as BrandTop)}
+        >
           <RadioGroupItem value="menufy">Menufy</RadioGroupItem>
           <RadioGroupItem value="pos">POS</RadioGroupItem>
           <RadioGroupItem value="both">Both</RadioGroupItem>
@@ -188,10 +235,14 @@ export function VisibilityEditor({
 
       {needsSecondTier && (
         <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-2">
+          <p id={`${formId}-line`} className="block text-xs font-medium text-muted-foreground mb-2">
             Menufy line
-          </label>
-          <RadioGroup value={brandSecond} onValueChange={(v) => setBrandSecond(v as BrandSecond)}>
+          </p>
+          <RadioGroup
+            aria-labelledby={`${formId}-line`}
+            value={brandSecond}
+            onValueChange={(v) => setBrandSecond(v as BrandSecond)}
+          >
             <RadioGroupItem value="restaurant">Restaurant</RadioGroupItem>
             <RadioGroupItem value="consumer">Consumer</RadioGroupItem>
             <RadioGroupItem value="both">Restaurant + Consumer</RadioGroupItem>
@@ -207,7 +258,7 @@ export function VisibilityEditor({
           type="checkbox"
           checked={hidden}
           onChange={(e) => setHidden(e.target.checked)}
-          className="h-4 w-4 rounded border-border"
+          className="h-4 w-4 rounded border-input"
         />
         Hide this row (uncheck to show it again)
       </label>
@@ -218,7 +269,7 @@ export function VisibilityEditor({
         onClick={handleSubmit}
         className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground hover:bg-accent/90 disabled:opacity-40"
       >
-        {submitting ? "Saving..." : "Save"}
+        {checkingScope ? "Checking scope..." : submitting ? "Saving..." : "Save"}
       </button>
 
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
@@ -251,6 +302,6 @@ export function VisibilityEditor({
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </fieldset>
   );
 }

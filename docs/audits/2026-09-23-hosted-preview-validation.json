@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-09-23T21:09:47.933484+00:00",
+  "deploymentId": "dpl_5eScpueKJ9dgHCZPogMQq2xsxpu8",
+  "releaseCommit": "eb119cfb5834dfbec01f6b2864daa9ad920d9900",
+  "environment": "preview",
+  "branch": "codex/audit-reliability-checkpoints",
+  "previewUrl": "https://hungerrush-scorecard-git-code-20e6ca-water-hungerrush-scorecard.vercel.app",
+  "entraClientId": "12229084-a38a-4d21-8987-e6743ef616ec",
+  "entraAudience": "HungerRush single tenant",
+  "microsoftSignIn": "passed",
+  "syntheticManagerPlatformAdmin": false,
+  "syntheticEmployeeId": "7f049815-8939-4498-aea5-bcc6fef44a08",
+  "currentWeek": "2026-09-20",
+  "previousWeek": "2026-09-13",
+  "zeroDisplay": "0.0",
+  "nullDisplay": "em dash / No Data",
+  "weekNavigation": "prior week loaded; comparison labels updated to Sep 6-12",
+  "adminAccess": "non-admin redirected from /admin to /one-on-ones",
+  "unauthenticatedHttp": "Vercel protection redirects to /sso-api",
+  "cronRuntimeAuthorization": "not verified: Vercel protection intercepted direct HTTP; browser navigation blocked by client",
+  "productionModified": false,
+  "followup": {
+    "commit": "eceade63e8b0c4cb028da6efa6053b06a13b9ec7",
+    "deployment": "dpl_6xM84u7neHJcZeQw2Y9y9of49bgK",
+    "state": "READY",
+    "browserChecks": [
+      "authenticated synthetic scorecard",
+      "Partial Data overall",
+      "confirmed zero 0.0",
+      "No Target on zero without target",
+      "No Data on missing metric"
+    ],
+    "productionUnchanged": true
+  }
+}

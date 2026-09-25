@@ -1,0 +1,12 @@
+{
+  "kind": "read-only Search Export reconciliation",
+  "query": "created:2026-09-22",
+  "pages": 25,
+  "complete": true,
+  "searchCountBefore": 2415,
+  "searchCountAfter": 2415,
+  "rows": 2415,
+  "uniqueIds": 2415,
+  "idSetSha256": "1c1b502adc502cdc0a90ee1de17a9520e671242b1be7b163712ae985361cd23e",
+  "totalsReconcile": true
+}

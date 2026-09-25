@@ -4,6 +4,69 @@ import { MetricIcon } from "@/components/metric-icon";
 import { Card } from "@/components/ui/card";
 import { formatMetricValue } from "@/lib/domain/metrics/types";
 import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
+import {
+  TICKET_ATTRIBUTION_QUALITY,
+  TICKET_ATTRIBUTION_REASON,
+  HISTORICAL_TARGET_REASON,
+} from "@/lib/domain/metrics/availability";
+
+const qualityLabels = new Map([
+  ["complete", "Complete"],
+  ["partial", "Partial"],
+  ["missing", "Missing"],
+  ["stale", "Stale"],
+  ["failed", "Failed"],
+  ["unsupported", "Unsupported"],
+  [TICKET_ATTRIBUTION_QUALITY, "Human attribution unverified"],
+]);
+const targetLabels = { employee: "Employee", role: "Role", team: "Team", org: "Organization" };
+
+function MetricDataDetails({ row }: { row: EmployeeMetricRow }) {
+  const observed = row.dataFreshnessAt ? new Date(row.dataFreshnessAt) : null;
+  const timestamp = observed && Number.isFinite(observed.getTime()) ? observed.toISOString() : null;
+  return (
+    <details
+      data-html2canvas-ignore="true"
+      className="mt-1 font-normal text-muted-foreground print:hidden"
+    >
+      <summary className="cursor-pointer text-[11px] hover:text-foreground">
+        Data details<span className="sr-only"> for {row.name}</span>
+      </summary>
+      <dl className="mt-2 space-y-1 text-[11px]">
+        <div>
+          <dt className="inline font-medium">Data quality: </dt>
+          <dd className="inline">{qualityLabels.get(row.qualityStatus) ?? "Not verified"}</dd>
+        </div>
+        <div>
+          <dt className="inline font-medium">Source observed: </dt>
+          <dd className="inline">
+            {timestamp ? (
+              <time dateTime={timestamp}>{timestamp.slice(0, 16).replace("T", " ")} UTC</time>
+            ) : (
+              "Not recorded"
+            )}
+          </dd>
+        </div>
+        <div>
+          <dt className="inline font-medium">Calculation version: </dt>
+          <dd className="inline">
+            {row.calculationVersion > 0 ? row.calculationVersion : "Not recorded"}
+          </dd>
+        </div>
+        <div>
+          <dt className="inline font-medium">Target from: </dt>
+          <dd className="inline">
+            {row.targetContextStatus === "historical_unverified"
+              ? HISTORICAL_TARGET_REASON
+              : row.target
+                ? targetLabels[row.target.source]
+                : "No target applied"}
+          </dd>
+        </div>
+      </dl>
+    </details>
+  );
+}
 
 function TargetCell({ row }: { row: EmployeeMetricRow }) {
   const { target } = row;
@@ -60,9 +123,22 @@ export function MetricCategoryTable({
           <tbody className="divide-y divide-border/60">
             {rows.map((row) => (
               <tr key={row.definitionId} className="hover:bg-muted/30 transition-colors">
-                <td className="py-2.5 px-4 font-semibold text-foreground">{row.name}</td>
+                <th scope="row" className="py-2.5 px-4 text-left font-semibold text-foreground">
+                  {row.name}
+                  <MetricDataDetails row={row} />
+                </th>
                 <td className="py-2.5 px-3 text-right font-bold text-foreground bg-[#009ca6]/[0.06]">
                   <MetricValue value={row.currentValue} unit={row.unit} valueType={row.valueType} />
+                  {row.qualityStatus === TICKET_ATTRIBUTION_QUALITY && (
+                    <p className="mt-1 max-w-44 text-[10px] font-normal text-muted-foreground">
+                      {TICKET_ATTRIBUTION_REASON}
+                    </p>
+                  )}
+                  {row.currentValue !== null && row.qualityStatus !== "complete" && (
+                    <p className="mt-1 text-[10px] font-normal text-muted-foreground">
+                      {qualityLabels.get(row.qualityStatus) ?? "Unverified"} data
+                    </p>
+                  )}
                 </td>
                 <td className="py-2.5 px-3 text-right text-muted-foreground">
                   <MetricValue

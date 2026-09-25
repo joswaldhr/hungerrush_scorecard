@@ -97,6 +97,7 @@ export function SidebarClient({
 
   return (
     <aside
+      data-sidebar
       className={cn(
         "flex h-screen flex-col bg-sidebar-background text-sidebar-foreground transition-[width] duration-200 shrink-0 border-r border-sidebar-border/40 select-none",
         collapsed ? "w-16" : "w-[var(--sidebar-width)]"
@@ -155,13 +156,16 @@ export function SidebarClient({
                   "flex items-center rounded-lg py-2.5 text-sm font-medium transition-all",
                   collapsed ? "justify-center px-0" : "gap-3.5 px-3.5",
                   active
-                    ? "bg-[#009ca6] text-white shadow-sm font-semibold"
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm font-semibold"
                     : "text-slate-300/80 hover:bg-sidebar-accent hover:text-white"
                 )}
               >
                 {Icon && (
                   <Icon
-                    className={cn("h-4.5 w-4.5 shrink-0", active ? "text-white" : "text-slate-400")}
+                    className={cn(
+                      "h-4.5 w-4.5 shrink-0",
+                      active ? "text-sidebar-primary-foreground" : "text-slate-400"
+                    )}
                   />
                 )}
                 {!collapsed && <span>{item.label}</span>}
@@ -174,7 +178,7 @@ export function SidebarClient({
         {secondaryNav.length > 0 && (
           <div className="pt-6 space-y-1">
             {!collapsed && (
-              <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400/60">
+              <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Operations
               </p>
             )}
@@ -191,7 +195,7 @@ export function SidebarClient({
                     "flex items-center rounded-lg py-2 text-sm font-medium transition-colors",
                     collapsed ? "justify-center px-0" : "gap-3.5 px-3.5",
                     active
-                      ? "bg-[#009ca6] text-white font-semibold"
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground font-semibold"
                       : "text-slate-400 hover:bg-sidebar-accent hover:text-slate-200"
                   )}
                 >
@@ -235,7 +239,7 @@ export function SidebarClient({
               collapsed ? "justify-center" : "gap-3"
             )}
           >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#009ca6] text-xs font-bold text-white shadow-xs">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-xs font-bold text-sidebar-primary-foreground shadow-xs">
               {user.name ? initials(user.name) : user.email ? user.email[0]!.toUpperCase() : "?"}
             </div>
             {!collapsed && (

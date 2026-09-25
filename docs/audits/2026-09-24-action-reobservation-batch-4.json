@@ -1,0 +1,44 @@
+{
+  "observedAt": "2026-09-24T13:58:31.084Z",
+  "day": "2026-09-23",
+  "localWritesOnly": true,
+  "resumedPages": {
+    "tickets": 11,
+    "legs": 4
+  },
+  "requests": 2,
+  "periodStart": "2026-09-23T00:00:00.000Z",
+  "periodEndExclusive": "2026-09-24T00:00:00.000Z",
+  "observationId": "58832261-1de7-4af8-9f37-a3e34a9ec4c1",
+  "completed": true,
+  "steps": 2,
+  "streams": {
+    "tickets": {
+      "status": "complete",
+      "pages": 13,
+      "notBefore": null
+    },
+    "legs": {
+      "status": "complete",
+      "pages": 4,
+      "notBefore": null
+    }
+  },
+  "ticketEvents": 11954,
+  "callLegs": 2532,
+  "normalizedFacts": 0,
+  "successfulSyncUnchanged": true,
+  "comparison": {
+    "status": "review_required",
+    "tickets": {
+      "added": 0,
+      "removed": 0,
+      "changed": 0
+    },
+    "legs": {
+      "added": 0,
+      "removed": 0,
+      "changed": 0
+    }
+  }
+}

@@ -14,6 +14,9 @@ import { externalIdentities, employees } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { zendeskGet, type RequestStats } from "./zendesk-shared";
 import { logger } from "@/lib/logger";
+import { fetchCompleteSearch, type SearchExportPage } from "./zendesk-search";
+import { fetchCompleteTalkWeek, type TalkCall, type TalkPage } from "./zendesk-talk";
+import { averageEvidence, sourceIds } from "./source-evidence";
 import { mapWithConcurrency, weekDates } from "@/lib/utils";
 
 // Real timing data (2026-09-10, see FOLLOWUPS.md) showed the per-employee
@@ -37,12 +40,6 @@ interface ZendeskTicket {
   tags: string[];
 }
 
-interface ZendeskSearchResponse {
-  results: ZendeskTicket[];
-  next_page: string | null;
-  count: number;
-}
-
 interface ZendeskTimeMetric {
   calendar: number;
   business: number;
@@ -59,6 +56,7 @@ interface ZendeskShowManyResponse {
 }
 
 interface ZendeskSatisfactionRating {
+  id: number;
   assignee_id: number | null;
   score: string;
 }
@@ -93,7 +91,7 @@ interface ZendeskShowManyUsersResponse {
   users: ZendeskUserDetail[];
 }
 
-interface ZendeskCall {
+interface ZendeskCall extends TalkCall {
   agent_id: number | null;
   direction: string;
   completion_status: string;
@@ -104,13 +102,8 @@ interface ZendeskCall {
   created_at: string;
 }
 
-interface ZendeskCallsResponse {
-  calls: ZendeskCall[];
-  next_page: string | null;
-  end_of_stream: boolean;
-}
-
 interface CallAggregate {
+  sourceEvidence: Record<string, unknown>;
   inboundOffered: number;
   inboundAccepted: number;
   inboundAbandonedOnHold: number;
@@ -130,35 +123,8 @@ function weekOf(weeksAgo: number): { periodStart: string; periodEnd: string } {
   return { periodStart, periodEnd };
 }
 
-// Zendesk's Search API hard-caps pagination at 1,000 total results --
-// requesting page 11 (results 1001-1100) returns a real 422 Unprocessable
-// Entity, confirmed against the live API (2026-09-15). A single employee
-// with unusually high ticket volume in one week hit this and, before this
-// fix, crashed the entire sync for every other employee too, since this
-// function's caller shares one try/catch across all employees. Stop before
-// requesting the page that would 422, and log what got truncated instead
-// of letting it throw. See FOLLOWUPS.md.
-const SEARCH_RESULT_CAP = 1000;
-
 async function searchAllPages(query: string): Promise<ZendeskTicket[]> {
-  const results: ZendeskTicket[] = [];
-  let path: string | null = `/search.json?query=${encodeURIComponent(query)}`;
-  while (path) {
-    const res: ZendeskSearchResponse = await zendeskGet<ZendeskSearchResponse>(path);
-    results.push(...res.results);
-    if (results.length >= SEARCH_RESULT_CAP) {
-      if (res.count > SEARCH_RESULT_CAP) {
-        logger.warn("Zendesk search result cap reached -- truncating instead of crashing", {
-          query,
-          realCount: res.count,
-          truncatedTo: results.length,
-        });
-      }
-      break;
-    }
-    path = res.next_page;
-  }
-  return results;
+  return fetchCompleteSearch(query, (path) => zendeskGet<SearchExportPage<ZendeskTicket>>(path));
 }
 
 async function fetchMetricSets(ticketIds: number[]): Promise<Map<number, ZendeskTicketMetricSet>> {
@@ -188,10 +154,18 @@ async function fetchRatings(
 
   let path: string | null =
     `/satisfaction_ratings.json?score=received&start_time=${startTime}&end_time=${endTime}`;
+  const visited = new Set<string>();
+  const ratingIds = new Set<number>();
   while (path) {
+    if (visited.has(path) || visited.size >= 100)
+      throw new Error("Zendesk ratings incomplete: pagination stalled or budget exhausted");
+    visited.add(path);
     const res: ZendeskSatisfactionRatingsResponse =
       await zendeskGet<ZendeskSatisfactionRatingsResponse>(path);
     for (const rating of res.satisfaction_ratings) {
+      if (!Number.isSafeInteger(rating.id) || rating.id <= 0 || ratingIds.has(rating.id))
+        throw new Error("Zendesk ratings incomplete: invalid or repeated rating ID");
+      ratingIds.add(rating.id);
       if (rating.assignee_id === null) continue;
       const list = byAssignee.get(rating.assignee_id) ?? [];
       list.push(rating);
@@ -202,44 +176,15 @@ async function fetchRatings(
   return byAssignee;
 }
 
-// The Talk incremental-calls endpoint is a forward cursor export (start_time
-// only, no end_time) rather than a bounded search -- so pages are consumed
-// until either Zendesk says end_of_stream or an entire page comes back past
-// the target week, with a hard page cap as a safety valve.
-//
-// Diagnostic instrumentation (2026-09-10): real production timing showed
-// every week's fetch phase (not just the in-progress one) taking 250-296s
-// against Vercel's 300s limit -- suspiciously close to what repeated
-// Zendesk 429 backoff cycles would produce, since Talk endpoints are
-// rate-limited to 10 req/min (confirmed via Zendesk's own docs) and a
-// direct real API call confirmed `end_of_stream` never actually appears in
-// the response (so that half of the break condition below has always been
-// dead). pages/stats are logged and returned so a real run's numbers can
-// confirm or rule this out before deciding on a fix -- see FOLLOWUPS.md.
 async function fetchCallsForWeek(
   periodStart: string,
   periodEnd: string
 ): Promise<{ calls: ZendeskCall[]; diagnostics: Record<string, unknown> }> {
-  const startTime = Math.floor(new Date(`${periodStart}T00:00:00Z`).getTime() / 1000);
-  const endTime = new Date(`${periodEnd}T23:59:59Z`).getTime();
-  const calls: ZendeskCall[] = [];
-  let path: string | null = `/channels/voice/stats/incremental/calls.json?start_time=${startTime}`;
-  let pages = 0;
   const stats: RequestStats = { requests: 0, retries429: 0, backoffWaitMs: 0 };
   const startedAt = Date.now();
-  while (path && pages < 50) {
-    const res: ZendeskCallsResponse = await zendeskGet<ZendeskCallsResponse>(path, stats);
-    pages++;
-    let allPastWindow = res.calls.length > 0;
-    for (const call of res.calls) {
-      if (new Date(call.created_at).getTime() <= endTime) {
-        calls.push(call);
-        allPastWindow = false;
-      }
-    }
-    if (res.end_of_stream || allPastWindow) break;
-    path = res.next_page;
-  }
+  const { calls, pages } = await fetchCompleteTalkWeek(periodStart, periodEnd, (path) =>
+    zendeskGet<TalkPage<ZendeskCall>>(path, stats)
+  );
   const diagnostics = {
     periodStart,
     periodEnd,
@@ -264,6 +209,17 @@ function aggregateCalls(calls: ZendeskCall[]): CallAggregate {
   const inboundConsult = inbound.filter((c) => c.consultation_time > 0);
 
   return {
+    sourceEvidence: {
+      contractVersion: 1,
+      attribution: "first_answering_agent_whole_call",
+      callIds: sourceIds(calls),
+      inboundTalk: averageEvidence(inbound.map((c) => c.talk_time)),
+      inboundHold: averageEvidence(inbound.map((c) => c.hold_time)),
+      inboundDuration: averageEvidence(inbound.map((c) => c.duration)),
+      inboundConsultation: averageEvidence(inboundConsult.map((c) => c.consultation_time)),
+      outboundTalk: averageEvidence(outbound.map((c) => c.talk_time)),
+      outboundHold: averageEvidence(outbound.map((c) => c.hold_time)),
+    },
     inboundOffered: inbound.length,
     inboundAccepted: inbound.filter((c) => c.completion_status === "completed").length,
     inboundAbandonedOnHold: inbound.filter((c) => c.completion_status === "abandoned_on_hold")
@@ -288,9 +244,10 @@ function businessMinutes(metric: ZendeskTimeMetric | null | undefined): number |
 }
 
 function averageOf(values: Array<number | null>): number | null {
-  const present = values.filter((v): v is number => v !== null);
-  if (present.length === 0) return null;
-  return Math.round((present.reduce((a, b) => a + b, 0) / present.length) * 10) / 10;
+  const evidence = averageEvidence(values);
+  return evidence.numerator === null
+    ? null
+    : Math.round((evidence.numerator / evidence.denominator) * 10) / 10;
 }
 
 // Elevation is tracked with two different tagging conventions in this Zendesk
@@ -339,7 +296,7 @@ export class ZendeskConnector implements Connector {
   }
 
   async resolveIdentities(
-    _config: ConnectorConfig,
+    config: ConnectorConfig,
     externalIds: string[]
   ): Promise<IdentityMatch[]> {
     const matches: IdentityMatch[] = [];
@@ -349,7 +306,12 @@ export class ZendeskConnector implements Connector {
       const [identity] = await db
         .select()
         .from(externalIdentities)
-        .where(eq(externalIdentities.externalId, email));
+        .where(
+          and(
+            eq(externalIdentities.externalId, email),
+            eq(externalIdentities.dataSourceId, config.dataSourceId)
+          )
+        );
       if (identity) {
         matches.push({
           externalId: email,
@@ -492,6 +454,26 @@ export class ZendeskConnector implements Connector {
         periodStart,
         periodEnd,
         payload: {
+          sourceEvidence: {
+            contractVersion: 1,
+            cohort: "current_assignee_last_updated_in_period",
+            ticketIds: sourceIds(tickets),
+            resolvedTicketIds: sourceIds(
+              tickets.filter((t) => t.status === "solved" || t.status === "closed")
+            ),
+            createdCohortIds: sourceIds(createdInPeriod),
+            backlogTicketIds: weekOffset === 0 ? sourceIds(perEmployeeOpen.get(email) ?? []) : null,
+            fullResolutionBusinessMinutes: averageEvidence(
+              createdInPeriod.map((t) =>
+                businessMinutes(metricSets.get(t.id)?.full_resolution_time_in_minutes)
+              )
+            ),
+            firstReplyBusinessMinutes: averageEvidence(
+              createdInPeriod.map((t) =>
+                businessMinutes(metricSets.get(t.id)?.reply_time_in_minutes)
+              )
+            ),
+          },
           ticketsResolved: resolvedCount,
           ticketsUpdated: tickets.length,
           avgHandleTimeMinutes,
@@ -524,6 +506,10 @@ export class ZendeskConnector implements Connector {
         periodStart,
         periodEnd,
         payload: {
+          sourceEvidence: callAgg?.sourceEvidence ?? {
+            contractVersion: 1,
+            identityResolved: false,
+          },
           inboundOffered: callAgg?.inboundOffered ?? null,
           inboundAccepted: callAgg?.inboundAccepted ?? null,
           inboundAbandonedOnHold: callAgg?.inboundAbandonedOnHold ?? null,
@@ -547,7 +533,17 @@ export class ZendeskConnector implements Connector {
         occurredAt: now,
         periodStart,
         periodEnd,
-        payload: { csatScore, totalRatings: rated.length },
+        payload: {
+          csatScore,
+          totalRatings: rated.length,
+          sourceEvidence: {
+            contractVersion: 1,
+            identityResolved: numericId !== null,
+            ratingIds: sourceIds(rated),
+            numerator: good,
+            denominator: rated.length,
+          },
+        },
         sourceUpdatedAt: now,
       });
     }
@@ -747,33 +743,86 @@ export class ZendeskConnector implements Connector {
     if (groupMappings.length === 0) return [];
 
     const members: DiscoveredRosterMember[] = [];
-    const seenExternalIds = new Set<string>();
+    const seenExternalIds = new Map<
+      string,
+      { userId: number; teamId: string; line: string | null }
+    >();
 
     for (const mapping of groupMappings) {
+      if (!/^\d+$/.test(mapping.externalGroupId))
+        throw new Error("Invalid roster group identifier");
       const userIds: number[] = [];
+      const visited = new Set<string>();
       let path: string | null = `/groups/${mapping.externalGroupId}/memberships.json`;
       while (path) {
+        if (visited.has(path) || visited.size >= 100)
+          throw new Error("Roster membership pagination did not complete");
+        visited.add(path);
         const res: ZendeskGroupMembershipsResponse =
           await zendeskGet<ZendeskGroupMembershipsResponse>(path);
+        if (
+          !Array.isArray(res.group_memberships) ||
+          res.group_memberships.some(
+            (member) =>
+              !Number.isSafeInteger(member.user_id) ||
+              member.user_id <= 0 ||
+              String(member.group_id) !== mapping.externalGroupId
+          ) ||
+          !(
+            res.next_page === null ||
+            (typeof res.next_page === "string" && res.next_page.length > 0)
+          )
+        )
+          throw new Error("Incomplete or invalid roster membership response");
         userIds.push(...res.group_memberships.map((m) => m.user_id));
         path = res.next_page;
       }
 
-      for (let i = 0; i < userIds.length; i += 100) {
-        const batch = userIds.slice(i, i + 100);
+      const uniqueUserIds = [...new Set(userIds)];
+      for (let i = 0; i < uniqueUserIds.length; i += 100) {
+        const batch = uniqueUserIds.slice(i, i + 100);
         if (batch.length === 0) continue;
         const res = await zendeskGet<ZendeskShowManyUsersResponse>(
           `/users/show_many.json?ids=${batch.join(",")}`
         );
+        if (
+          !Array.isArray(res.users) ||
+          res.users.length !== batch.length ||
+          new Set(res.users.map((user) => user.id)).size !== batch.length ||
+          res.users.some(
+            (user) =>
+              !batch.includes(user.id) ||
+              typeof user.active !== "boolean" ||
+              !(user.email === null || typeof user.email === "string") ||
+              typeof user.name !== "string"
+          )
+        )
+          throw new Error("Roster user lookup did not return every requested account");
         for (const user of res.users) {
           if (!user.active || !user.email) continue;
-          if (seenExternalIds.has(user.email)) continue;
-          seenExternalIds.add(user.email);
+          const key = user.email.trim().toLowerCase();
+          const previous = seenExternalIds.get(key);
+          if (previous) {
+            if (
+              previous.userId !== user.id ||
+              previous.teamId !== mapping.teamId ||
+              previous.line !== (mapping.line ?? null)
+            ) {
+              throw new Error("Roster identity has conflicting accounts or team mappings");
+            }
+            continue;
+          }
+          seenExternalIds.set(key, {
+            userId: user.id,
+            teamId: mapping.teamId,
+            line: mapping.line ?? null,
+          });
           members.push({
             externalId: user.email,
             externalEmail: user.email,
             externalDisplayName: user.name,
             teamId: mapping.teamId,
+            line: mapping.line ?? null,
           });
         }
       }

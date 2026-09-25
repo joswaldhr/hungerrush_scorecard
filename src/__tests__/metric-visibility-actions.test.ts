@@ -25,9 +25,11 @@ import {
   metricDefinitions,
   metricVisibilityOverrides,
 } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
+import { eq, and, inArray, sql } from "drizzle-orm";
 import {
   setVisibilityOverride,
+  setVisibilityOverrides,
   removeVisibilityOverride,
 } from "@/app/(app)/admin/metric-visibility/actions";
 
@@ -95,6 +97,42 @@ afterAll(async () => {
 });
 
 describe("setVisibilityOverride", () => {
+  it("serializes concurrent nullable-scope inserts into one rule", async () => {
+    mockAuth.mockResolvedValue({ user: { email: ADMIN_EMAIL } });
+    const input = {
+      scope: "global_default" as const,
+      managerUserId: null,
+      targetEmployeeId: null,
+      metricDefinitionId: METRIC_DEF_ID,
+      teamId: null,
+      line: "synthetic-concurrency",
+      hidden: true,
+    };
+    try {
+      await Promise.all([setVisibilityOverride(input), setVisibilityOverride(input)]);
+      const rows = await db
+        .select()
+        .from(metricVisibilityOverrides)
+        .where(
+          and(
+            eq(metricVisibilityOverrides.metricDefinitionId, METRIC_DEF_ID),
+            eq(metricVisibilityOverrides.line, input.line)
+          )
+        );
+      expect(rows).toHaveLength(1);
+      expect(rows[0]?.hiddenBy).toBe(ADMIN_USER_ID);
+    } finally {
+      await db
+        .delete(metricVisibilityOverrides)
+        .where(
+          and(
+            eq(metricVisibilityOverrides.metricDefinitionId, METRIC_DEF_ID),
+            eq(metricVisibilityOverrides.line, input.line)
+          )
+        );
+    }
+  });
+
   it("rejects a non-admin session without writing anything", async () => {
     mockAuth.mockResolvedValue({ user: { email: NON_ADMIN_EMAIL } });
 
@@ -191,4 +229,122 @@ describe("removeVisibilityOverride", () => {
       .where(eq(metricVisibilityOverrides.metricDefinitionId, METRIC_DEF_ID));
     expect(rows).toHaveLength(0);
   });
+});
+
+it("enforces nullable scope uniqueness for concurrent direct database writers", async () => {
+  const rule = {
+    scope: "global_default",
+    metricDefinitionId: METRIC_DEF_ID,
+    hidden: true,
+    hiddenBy: ADMIN_USER_ID,
+  };
+  const results = await Promise.allSettled([
+    db.insert(metricVisibilityOverrides).values(rule),
+    db.insert(metricVisibilityOverrides).values(rule),
+  ]);
+  expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+  const failure = results.find((result) => result.status === "rejected");
+  expect(failure).toMatchObject({ status: "rejected", reason: { cause: { code: "23505" } } });
+  await db.insert(metricVisibilityOverrides).values({ ...rule, line: "" });
+  const rows = await db
+    .select()
+    .from(metricVisibilityOverrides)
+    .where(eq(metricVisibilityOverrides.metricDefinitionId, METRIC_DEF_ID));
+  expect(rows).toHaveLength(2);
+  expect(rows.map((row) => row.line)).toEqual(expect.arrayContaining([null, ""]));
+});
+
+it("rejects duplicate, mixed and empty bulk selections without saving rules", async () => {
+  mockAuth.mockResolvedValue({ user: { email: ADMIN_EMAIL } });
+  const input = {
+    scope: "global_default" as const,
+    managerUserId: null,
+    targetEmployeeId: null,
+    metricDefinitionId: METRIC_DEF_ID,
+    teamId: TEAM_ID,
+    line: "bulk-validation",
+    hidden: true,
+  };
+  await expect(setVisibilityOverrides([])).rejects.toThrow();
+  await expect(setVisibilityOverrides([input, input])).rejects.toThrow("distinct rules");
+  await expect(
+    setVisibilityOverrides([input, { ...input, line: "other", hidden: false }])
+  ).rejects.toThrow("one selection");
+  await expect(
+    setVisibilityOverrides([input, { ...input, teamId: randomUUID() }])
+  ).rejects.toThrow();
+  expect(
+    await db
+      .select()
+      .from(metricVisibilityOverrides)
+      .where(
+        and(
+          eq(metricVisibilityOverrides.metricDefinitionId, METRIC_DEF_ID),
+          eq(metricVisibilityOverrides.line, "bulk-validation")
+        )
+      )
+  ).toHaveLength(0);
+});
+
+it("rolls back an earlier visibility update if a later rule fails, then retries atomically", async () => {
+  mockAuth.mockResolvedValue({ user: { email: ADMIN_EMAIL } });
+  const lines = ["atomic-restaurant", "atomic-consumer", "atomic-pos"];
+  const inputs = lines.map((line) => ({
+    scope: "global_default" as const,
+    managerUserId: null,
+    targetEmployeeId: null,
+    metricDefinitionId: METRIC_DEF_ID,
+    teamId: TEAM_ID,
+    line,
+    hidden: true,
+  }));
+  const filter = and(
+    eq(metricVisibilityOverrides.metricDefinitionId, METRIC_DEF_ID),
+    inArray(metricVisibilityOverrides.line, lines)
+  );
+  const fn = sql.identifier(`visibility_failure_${randomUUID().replaceAll("-", "")}`);
+  let functionInstalled = false,
+    triggerInstalled = false;
+  try {
+    await setVisibilityOverride({ ...inputs[0]!, hidden: false });
+    await db.execute(sql`create function ${fn}() returns trigger language plpgsql as $$
+      begin
+        if NEW.metric_definition_id = TG_ARGV[0]::uuid and NEW.line = 'atomic-consumer' then
+          raise exception 'Synthetic visibility save interruption';
+        end if;
+        return NEW;
+      end;
+    $$`);
+    functionInstalled = true;
+    // Constant local fixture UUID, never request or vendor data.
+    await db.execute(sql`create trigger ${fn} before insert on metric_visibility_overrides
+      for each row execute function ${fn}(${sql.raw(`'${METRIC_DEF_ID}'`)})`);
+    triggerInstalled = true;
+    let failure: unknown;
+    try {
+      await setVisibilityOverrides(inputs);
+    } catch (error) {
+      failure = error;
+    }
+    expect(failure).toBeInstanceOf(Error);
+    let cause = failure as Error;
+    while (cause.cause instanceof Error) cause = cause.cause;
+    expect(cause.message).toContain("Synthetic visibility save interruption");
+    const retained = await db.select().from(metricVisibilityOverrides).where(filter);
+    expect(retained).toHaveLength(1);
+    expect(retained[0]).toMatchObject({ line: lines[0], hidden: false });
+    await db.execute(sql`drop trigger ${fn} on metric_visibility_overrides`);
+    triggerInstalled = false;
+    await db.execute(sql`drop function ${fn}()`);
+    functionInstalled = false;
+    await setVisibilityOverrides(inputs);
+    const saved = await db.select().from(metricVisibilityOverrides).where(filter);
+    expect(saved).toHaveLength(3);
+    expect(saved.every((row) => row.hidden && row.hiddenBy === ADMIN_USER_ID)).toBe(true);
+    expect(new Set(saved.map((row) => row.hiddenAt.toISOString())).size).toBe(1);
+  } finally {
+    if (triggerInstalled) await db.execute(sql`drop trigger ${fn} on metric_visibility_overrides`);
+    if (functionInstalled) await db.execute(sql`drop function ${fn}()`);
+    await db.delete(metricVisibilityOverrides).where(filter);
+  }
 });

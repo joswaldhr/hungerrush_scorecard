@@ -1,3 +1,5 @@
+import { errorSummary } from "./error-summary";
+
 type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LogEntry {
@@ -9,19 +11,25 @@ interface LogEntry {
 function log(entry: LogEntry) {
   const timestamp = new Date().toISOString();
   const payload = { timestamp, ...entry };
+  // Never serialize enumerable driver fields (query, params, detail, or cause).
+  const serialized = JSON.stringify(payload, (key, value: unknown) =>
+    value instanceof Error || (key === "error" && value !== null && value !== undefined)
+      ? errorSummary(value)
+      : value
+  );
 
   switch (entry.level) {
     case "debug":
-      console.debug(JSON.stringify(payload));
+      console.debug(serialized);
       break;
     case "info":
-      console.info(JSON.stringify(payload));
+      console.info(serialized);
       break;
     case "warn":
-      console.warn(JSON.stringify(payload));
+      console.warn(serialized);
       break;
     case "error":
-      console.error(JSON.stringify(payload));
+      console.error(serialized);
       break;
   }
 }

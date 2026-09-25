@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-09-23T20:50:40.494Z",
+  "database": "railway",
+  "postgres": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+  "scope": "isolated Railway staging; synthetic data; no vendor calls; not Vercel runtime validation",
+  "railwayEnvironmentId": "4e86528b-7329-4d73-a651-9f0fb3d07755",
+  "tlsEncrypted": true,
+  "tlsCertificateValidation": "Railway self-signed certificate; sslmode=require",
+  "migration": "0011 -> 0012",
+  "migrationMs": 1273,
+  "preservedExistingValue": 42,
+  "correctedValue": null,
+  "priorMetricRevision": 42,
+  "correctionRevisions": 3,
+  "confirmedZero": 0,
+  "failedSyncPreservedValues": true,
+  "migrationRerunPreservedValues": true
+}

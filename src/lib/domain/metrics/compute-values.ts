@@ -1,7 +1,14 @@
 import { db } from "@/lib/db";
-import { normalizedFacts, metricDefinitions, employees, metricValues } from "@/lib/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import {
+  normalizedFacts,
+  metricDefinitions,
+  employees,
+  metricValues,
+  sourceRecords,
+} from "@/lib/db/schema";
+import { eq, and, sql, inArray, or } from "drizzle-orm";
 import { aggregateSourceValues } from "@/lib/domain/reconciliation/compare";
+import { captureSyncRevisions } from "@/lib/connectors/sync-revisions";
 import { chunk } from "@/lib/utils";
 import type { CalculationType } from "./types";
 
@@ -11,14 +18,25 @@ import type { CalculationType } from "./types";
 const WRITE_CHUNK_SIZE = 500;
 
 // Aggregates normalizedFacts (raw per-sync numbers) into metricValues (the
-// values manager-facing pages read) for every metric definition fed by the
+// values manager-facing pages read) only for records changed in this run from the
 // given source. Idempotent — re-running a sync updates existing rows rather
 // than duplicating them, via the (metricDefinitionId, employeeId, period) unique index.
 export async function computeMetricValuesFromFacts(
   organizationId: string,
-  sourceStrategy: string
+  sourceStrategy: string,
+  scope: { connection: typeof db; dataSourceId: string; syncRunId: string }
 ): Promise<number> {
-  const defs = await db
+  const connection = scope.connection;
+  const changedRecords = connection
+    .select({ id: sourceRecords.id })
+    .from(sourceRecords)
+    .where(
+      and(
+        eq(sourceRecords.dataSourceId, scope.dataSourceId),
+        eq(sourceRecords.syncRunId, scope.syncRunId)
+      )
+    );
+  const defs = await connection
     .select()
     .from(metricDefinitions)
     .where(
@@ -28,7 +46,7 @@ export async function computeMetricValuesFromFacts(
       )
     );
 
-  const employeeRows = await db
+  const employeeRows = await connection
     .select({ id: employees.id, teamId: employees.primaryTeamId })
     .from(employees)
     .where(eq(employees.organizationId, organizationId));
@@ -41,36 +59,85 @@ export async function computeMetricValuesFromFacts(
   const rows: (typeof metricValues.$inferInsert)[] = [];
 
   for (const def of defs) {
-    const facts = await db
-      .select()
+    const affectedFacts = await connection
+      .select({
+        employeeId: normalizedFacts.employeeId,
+        periodStart: normalizedFacts.periodStart,
+        periodEnd: normalizedFacts.periodEnd,
+      })
       .from(normalizedFacts)
       .where(
         and(
           eq(normalizedFacts.organizationId, organizationId),
-          eq(normalizedFacts.factType, def.key)
+          eq(normalizedFacts.factType, def.key),
+          eq(normalizedFacts.dataSourceId, scope.dataSourceId),
+          inArray(normalizedFacts.sourceRecordId, changedRecords)
         )
       );
+    if (affectedFacts.length === 0) continue;
+    const groupKey = (fact: (typeof affectedFacts)[number]) =>
+      `${fact.employeeId}|${fact.periodStart}|${fact.periodEnd}`;
+    const affectedGroups = new Map(affectedFacts.map((fact) => [groupKey(fact), fact]));
+    // Restrict the read in PostgreSQL, not after transferring all source history.
+    // Include unchanged contributors in each exact employee/interval group. Bound
+    // parameters per query even when an explicit replay touches many periods.
+    const facts: (typeof normalizedFacts.$inferSelect)[] = [];
+    for (const groups of chunk([...affectedGroups.values()], WRITE_CHUNK_SIZE)) {
+      const contributors = await connection
+        .select()
+        .from(normalizedFacts)
+        .where(
+          and(
+            eq(normalizedFacts.organizationId, organizationId),
+            eq(normalizedFacts.factType, def.key),
+            eq(normalizedFacts.dataSourceId, scope.dataSourceId),
+            or(
+              ...groups.map((group) =>
+                and(
+                  eq(normalizedFacts.employeeId, group.employeeId),
+                  eq(normalizedFacts.periodStart, group.periodStart),
+                  eq(normalizedFacts.periodEnd, group.periodEnd)
+                )
+              )
+            )
+          )
+        );
+      facts.push(...contributors);
+    }
+    facts.sort(
+      (a, b) =>
+        a.sourceObservedAt.getTime() - b.sourceObservedAt.getTime() || a.id.localeCompare(b.id)
+    );
 
     const groups = new Map<
       string,
-      { employeeId: string; periodStart: string; periodEnd: string; values: number[] }
+      {
+        employeeId: string;
+        periodStart: string;
+        periodEnd: string;
+        values: (number | null)[];
+        observed: Date[];
+        factIds: string[];
+      }
     >();
     for (const fact of facts) {
-      if (fact.numericValue === null) continue;
       const key = `${fact.employeeId}|${fact.periodStart}|${fact.periodEnd}`;
       const group = groups.get(key) ?? {
         employeeId: fact.employeeId,
         periodStart: fact.periodStart,
         periodEnd: fact.periodEnd,
         values: [],
+        observed: [],
+        factIds: [],
       };
       group.values.push(fact.numericValue);
+      group.observed.push(fact.sourceObservedAt);
+      group.factIds.push(fact.id);
       groups.set(key, group);
     }
 
     for (const group of groups.values()) {
       const value = aggregateSourceValues(group.values, def.calculationType as CalculationType);
-      if (value === null) continue;
 
       rows.push({
         metricDefinitionId: def.id,
@@ -78,17 +145,40 @@ export async function computeMetricValuesFromFacts(
         teamId: teamByEmployee.get(group.employeeId) ?? null,
         periodStart: group.periodStart,
         periodEnd: group.periodEnd,
-        numericValue: Math.round(value * 100) / 100,
-        calculationVersion: 1,
-        dataFreshnessAt: new Date(),
-        qualityStatus: "complete",
-        provenanceJson: { sourceStrategy },
+        numericValue: value === null ? null : Math.round(value * 100) / 100,
+        textValue: null,
+        calculationVersion: def.version,
+        calculatedAt: new Date(),
+        dataFreshnessAt: new Date(Math.min(...group.observed.map((date) => date.getTime()))),
+        qualityStatus:
+          value === null
+            ? "missing"
+            : group.values.some((value) => value === null)
+              ? "partial"
+              : "complete",
+        provenanceJson: {
+          sourceStrategy,
+          dataSourceId: scope.dataSourceId,
+          syncRunId: scope.syncRunId,
+          factIds: group.factIds,
+        },
       });
     }
   }
 
   for (const batch of chunk(rows, WRITE_CHUNK_SIZE)) {
-    await db
+    const condition = or(
+      ...batch.map((row) =>
+        and(
+          eq(metricValues.metricDefinitionId, row.metricDefinitionId),
+          eq(metricValues.employeeId, row.employeeId),
+          eq(metricValues.periodStart, row.periodStart),
+          eq(metricValues.periodEnd, row.periodEnd)
+        )
+      )
+    )!;
+    await captureSyncRevisions(connection, "metric_value", condition, scope.syncRunId);
+    await connection
       .insert(metricValues)
       .values(batch)
       .onConflictDoUpdate({
@@ -100,6 +190,9 @@ export async function computeMetricValuesFromFacts(
         ],
         set: {
           numericValue: sql`excluded.numeric_value`,
+          textValue: sql`excluded.text_value`,
+          calculatedAt: sql`excluded.calculated_at`,
+          calculationVersion: sql`excluded.calculation_version`,
           dataFreshnessAt: sql`excluded.data_freshness_at`,
           qualityStatus: sql`excluded.quality_status`,
           provenanceJson: sql`excluded.provenance_json`,

@@ -6,13 +6,12 @@ import {
   getVisibleTeamsForManager,
 } from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
+import { teams, metricDefinitions } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import {
-  reconciliationRuns,
-  reconciliationResults,
-  teams,
-  metricDefinitions,
-} from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+  getScopedReconciliationRun,
+  getScopedReconciliationRuns,
+} from "@/lib/domain/reconciliation/queries";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/empty-state";
@@ -28,6 +27,7 @@ function statusIcon(status: string) {
     case "source_missing":
       return <MinusCircle className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />;
     case "cadence_missing":
+    case "unverified_attribution":
       return <AlertTriangle className="h-3.5 w-3.5 text-status-watch" aria-hidden="true" />;
     default:
       return null;
@@ -51,12 +51,7 @@ export default async function ReconciliationPage() {
   const { ctx, isPlatformAdmin } = await getEffectiveManagerContext(session.user.email);
   if (!ctx) redirect(isPlatformAdmin ? "/admin" : "/");
 
-  const runs = await db
-    .select()
-    .from(reconciliationRuns)
-    .where(eq(reconciliationRuns.organizationId, ctx.organizationId))
-    .orderBy(desc(reconciliationRuns.startedAt))
-    .limit(10);
+  const runs = await getScopedReconciliationRuns(ctx, 10);
 
   const teamList = await db
     .select({ id: teams.id, name: teams.name })
@@ -75,6 +70,9 @@ export default async function ReconciliationPage() {
     id: string;
     metricKey: string;
     employeeId: string;
+    employeeName: string;
+    unavailableReason: string | null;
+    notes: string | null;
     cadenceValue: number | null;
     sourceValue: number | null;
     absoluteDelta: number | null;
@@ -84,15 +82,7 @@ export default async function ReconciliationPage() {
   }> = [];
 
   if (runs.length > 0) {
-    const assignedIds = new Set(ctx.assignedEmployeeIds);
-    const allResults = await db
-      .select()
-      .from(reconciliationResults)
-      .where(eq(reconciliationResults.reconciliationRunId, runs[0]!.id));
-    // A run may span employees outside this manager's own assignment (e.g. an
-    // org-wide run triggered by someone else) — never show another team's
-    // employee-level metric values just because the run itself is org-scoped.
-    latestResults = allResults.filter((r) => assignedIds.has(r.employeeId));
+    latestResults = (await getScopedReconciliationRun(ctx, runs[0]!.id))?.results ?? [];
   }
 
   // Not just ctx.assignedTeamIds -- a sub-manager's access can come entirely
@@ -107,7 +97,12 @@ export default async function ReconciliationPage() {
       <header>
         <h1 className="text-xl font-semibold text-foreground">Data Reconciliation</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Compare Cadence metric values against source system data
+          Compare Cadence metric values against stored source facts for your assigned employees
+          (counts require exact matches; other values use the configured tolerance)
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Matching stored values does not verify source completeness or human activity. Ticket
+          activity remains unavailable until human attribution is verified.
         </p>
       </header>
 
@@ -126,23 +121,26 @@ export default async function ReconciliationPage() {
             {runs.map((run) => (
               <Card key={run.id}>
                 <CardContent className="py-3 px-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="text-sm font-medium text-foreground">
                           {run.periodStart} &mdash; {run.periodEnd}
                         </span>
                         {statusBadge(run.status)}
                       </div>
                       {run.teamId && (
-                        <p className="text-xs text-muted-foreground mt-0.5">
+                        <p className="text-xs text-muted-foreground mt-0.5 break-words">
                           Team: {teamMap.get(run.teamId) ?? run.teamId}
                         </p>
                       )}
                     </div>
-                    <div className="text-right text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground sm:text-right">
                       <p>{run.totalComparisons} comparisons</p>
                       <p className="text-status-on-track">{run.matchCount} match</p>
+                      {run.unavailableCount > 0 && (
+                        <p>{run.unavailableCount} attribution unavailable</p>
+                      )}
                       {run.mismatchCount > 0 && (
                         <p className="text-status-attention">{run.mismatchCount} mismatch</p>
                       )}
@@ -170,6 +168,7 @@ export default async function ReconciliationPage() {
                   <thead>
                     <tr className="border-b text-left text-xs text-muted-foreground">
                       <th className="pb-2 pr-4">Status</th>
+                      <th className="pb-2 pr-4">Employee</th>
                       <th className="pb-2 pr-4">Metric</th>
                       <th className="pb-2 pr-4 text-right">Cadence</th>
                       <th className="pb-2 pr-4 text-right">Source</th>
@@ -183,9 +182,17 @@ export default async function ReconciliationPage() {
                         <td className="py-2 pr-4">
                           <div className="flex items-center gap-1.5">
                             {statusIcon(r.status)}
-                            <span className="text-xs">{r.status.replace(/_/g, " ")}</span>
+                            <span className="text-xs" title={r.unavailableReason ?? undefined}>
+                              {r.status === "unverified_attribution"
+                                ? "Attribution unavailable"
+                                : r.status.replace(/_/g, " ")}
+                            </span>
                           </div>
+                          {r.notes && !r.unavailableReason && (
+                            <p className="mt-1 max-w-64 text-xs text-muted-foreground">{r.notes}</p>
+                          )}
                         </td>
+                        <td className="py-2 pr-4">{r.employeeName}</td>
                         <td className="py-2 pr-4 font-medium">
                           {metricNameMap.get(r.metricKey) ?? r.metricKey.replace(/_/g, " ")}
                         </td>

@@ -1,17 +1,6 @@
-// compute-values.ts calls `db` directly (select for defs/employees/facts, insert
-// with onConflictDoUpdate) — it is not a pure function. This mock reproduces the
-// exact call sequence the current implementation makes:
-//   1. select defs        (metricDefinitions)
-//   2. select employees    (employees)
-//   3..N. select facts     (normalizedFacts, once per definition)
-//   then one insert(...).values([...]).onConflictDoUpdate(...) per write-chunk
-//   (all groups across all definitions batched into chunks of WRITE_CHUNK_SIZE —
-//   these tests all use far fewer rows than that, so every test below produces
-//   exactly one chunk/insert call, containing an array of every row).
-// If compute-values.ts's internal query structure changes, this mock's call-order
-// assumption must change with it — that coupling is the cost of testing
-// DB-orchestrating code without refactoring it into a pure function (out of
-// scope for this audit pass; see docs/audits/2026-09-01-metric-integrity-report.md).
+vi.mock("@/lib/connectors/sync-revisions", () => ({ captureSyncRevisions: vi.fn() }));
+// Focused formula fixtures use a mocked database. Real transaction and scope
+// guarantees are exercised by sync-publication.test.ts against PostgreSQL.
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   GOLDEN_EMPLOYEE,
@@ -37,8 +26,15 @@ vi.mock("@/lib/db/schema", () => ({
   metricDefinitions: {},
   employees: {},
   metricValues: {},
+  sourceRecords: {},
 }));
-vi.mock("drizzle-orm", () => ({ eq: vi.fn(), and: vi.fn(), sql: vi.fn() }));
+vi.mock("drizzle-orm", () => ({
+  eq: vi.fn(),
+  and: vi.fn(),
+  sql: vi.fn(),
+  inArray: vi.fn(),
+  or: vi.fn(),
+}));
 
 import { computeMetricValuesFromFacts } from "@/lib/domain/metrics/compute-values";
 
@@ -63,7 +59,7 @@ function setup(
   }>
 ): Setup {
   const insertedRows: Array<Record<string, unknown>> = [];
-  let selectCall = 0;
+  let selectCall = -1;
 
   mockDb.select.mockImplementation((_projection?: unknown) => ({
     from: () => ({
@@ -71,14 +67,22 @@ function setup(
         selectCall++;
         if (selectCall === 1) {
           // defs
-          return Promise.resolve([{ id: DEF_ID, key: "golden_metric", calculationType }]);
+          return Promise.resolve([
+            { id: DEF_ID, key: "golden_metric", calculationType, version: 1 },
+          ]);
         }
         if (selectCall === 2) {
           // employees
           return Promise.resolve([]);
         }
         // facts (one call per def; only one def here)
-        return Promise.resolve(facts);
+        return Promise.resolve(
+          facts.map((fact, i) => ({
+            ...fact,
+            id: String(i),
+            sourceObservedAt: new Date(`2026-09-0${i + 1}T00:00:00Z`),
+          }))
+        );
       },
     }),
   }));
@@ -101,7 +105,11 @@ beforeEach(() => {
 describe("computeMetricValuesFromFacts", () => {
   it("sums facts for a sum-type metric (golden dataset)", async () => {
     const { insertedRows } = setup("sum", GOLDEN_SUM_FACTS);
-    const written = await computeMetricValuesFromFacts(ORG_ID, "golden");
+    const written = await computeMetricValuesFromFacts(ORG_ID, "golden", {
+      connection: mockDb as never,
+      dataSourceId: "source",
+      syncRunId: "run",
+    });
 
     expect(written).toBe(1);
     expect(insertedRows).toHaveLength(1);
@@ -111,7 +119,11 @@ describe("computeMetricValuesFromFacts", () => {
 
   it("averages facts and skips null values rather than coercing to zero (golden dataset)", async () => {
     const { insertedRows } = setup("average", GOLDEN_AVERAGE_WITH_NULL_FACTS);
-    await computeMetricValuesFromFacts(ORG_ID, "golden");
+    await computeMetricValuesFromFacts(ORG_ID, "golden", {
+      connection: mockDb as never,
+      dataSourceId: "source",
+      syncRunId: "run",
+    });
 
     expect(insertedRows).toHaveLength(1);
     expect(insertedRows[0]!.numericValue).toBe(GOLDEN_AVERAGE_WITH_NULL_EXPECTED);
@@ -119,7 +131,11 @@ describe("computeMetricValuesFromFacts", () => {
 
   it("takes the last recorded value for a latest-type metric (golden dataset)", async () => {
     const { insertedRows } = setup("latest", GOLDEN_LATEST_FACTS);
-    await computeMetricValuesFromFacts(ORG_ID, "golden");
+    await computeMetricValuesFromFacts(ORG_ID, "golden", {
+      connection: mockDb as never,
+      dataSourceId: "source",
+      syncRunId: "run",
+    });
 
     expect(insertedRows).toHaveLength(1);
     expect(insertedRows[0]!.numericValue).toBe(GOLDEN_LATEST_EXPECTED);
@@ -127,7 +143,11 @@ describe("computeMetricValuesFromFacts", () => {
 
   it("never merges facts from different periods into one group (golden dataset)", async () => {
     const { insertedRows } = setup("sum", GOLDEN_TWO_PERIOD_FACTS);
-    await computeMetricValuesFromFacts(ORG_ID, "golden");
+    await computeMetricValuesFromFacts(ORG_ID, "golden", {
+      connection: mockDb as never,
+      dataSourceId: "source",
+      syncRunId: "run",
+    });
 
     expect(insertedRows).toHaveLength(2);
     const byPeriod = Object.fromEntries(
@@ -136,7 +156,7 @@ describe("computeMetricValuesFromFacts", () => {
     expect(byPeriod).toEqual(GOLDEN_TWO_PERIOD_EXPECTED);
   });
 
-  it("writes nothing when a fact group has no non-null values", async () => {
+  it("writes a missing value when a group has no non-null values", async () => {
     const { insertedRows } = setup("average", [
       {
         employeeId: GOLDEN_EMPLOYEE.bob,
@@ -145,10 +165,14 @@ describe("computeMetricValuesFromFacts", () => {
         numericValue: null,
       },
     ]);
-    const written = await computeMetricValuesFromFacts(ORG_ID, "golden");
+    const written = await computeMetricValuesFromFacts(ORG_ID, "golden", {
+      connection: mockDb as never,
+      dataSourceId: "source",
+      syncRunId: "run",
+    });
 
-    expect(written).toBe(0);
-    expect(insertedRows).toHaveLength(0);
+    expect(written).toBe(1);
+    expect(insertedRows[0]).toMatchObject({ numericValue: null, qualityStatus: "missing" });
   });
 
   it("rounds the stored value to 2 decimal places", async () => {
@@ -172,7 +196,11 @@ describe("computeMetricValuesFromFacts", () => {
         numericValue: 11,
       },
     ]);
-    await computeMetricValuesFromFacts(ORG_ID, "golden");
+    await computeMetricValuesFromFacts(ORG_ID, "golden", {
+      connection: mockDb as never,
+      dataSourceId: "source",
+      syncRunId: "run",
+    });
 
     // (10 + 11 + 11) / 3 = 10.666... -> rounded to 10.67
     expect(insertedRows[0]!.numericValue).toBe(10.67);
@@ -192,7 +220,33 @@ describe("computeMetricValuesFromFacts", () => {
       }),
     }));
 
-    await computeMetricValuesFromFacts(ORG_ID, "golden");
+    await computeMetricValuesFromFacts(ORG_ID, "golden", {
+      connection: mockDb as never,
+      dataSourceId: "source",
+      syncRunId: "run",
+    });
     expect(insertedConflictTargets).toHaveLength(1);
+  });
+  it("does not resurrect an older latest value after a null observation", async () => {
+    const { insertedRows } = setup("latest", [
+      {
+        employeeId: GOLDEN_EMPLOYEE.alice,
+        periodStart: GOLDEN_WEEK.w1.start,
+        periodEnd: GOLDEN_WEEK.w1.end,
+        numericValue: 12,
+      },
+      {
+        employeeId: GOLDEN_EMPLOYEE.alice,
+        periodStart: GOLDEN_WEEK.w1.start,
+        periodEnd: GOLDEN_WEEK.w1.end,
+        numericValue: null,
+      },
+    ]);
+    await computeMetricValuesFromFacts(ORG_ID, "golden", {
+      connection: mockDb as never,
+      dataSourceId: "source",
+      syncRunId: "run",
+    });
+    expect(insertedRows[0]).toMatchObject({ numericValue: null, qualityStatus: "missing" });
   });
 });

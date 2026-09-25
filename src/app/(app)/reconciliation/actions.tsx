@@ -55,7 +55,7 @@ export function ReconciliationActions({
     <Card>
       <CardContent className="py-4 px-5">
         <div className="flex flex-wrap items-end gap-4">
-          <div>
+          <div className="min-w-0 w-full sm:w-auto">
             <label
               htmlFor="team-select"
               className="block text-xs font-medium text-muted-foreground mb-1"
@@ -66,7 +66,7 @@ export function ReconciliationActions({
               id="team-select"
               value={selectedTeam}
               onChange={(e) => setSelectedTeam(e.target.value)}
-              className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground"
+              className="w-full max-w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground sm:w-auto"
             >
               <option value="">All employees</option>
               {availableTeams.map((t) => (

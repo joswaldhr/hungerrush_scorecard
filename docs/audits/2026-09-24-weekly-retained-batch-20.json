@@ -1,0 +1,34 @@
+{
+  "observedAt": "2026-09-24T20:19:52.661Z",
+  "day": "2026-09-13",
+  "inclusiveEndDay": "2026-09-19",
+  "intervalDays": 7,
+  "accountBindingMatched": true,
+  "localWritesOnly": true,
+  "resumedPages": {
+    "tickets": 68,
+    "legs": 32
+  },
+  "requests": 5,
+  "periodStart": "2026-09-13T00:00:00.000Z",
+  "periodEndExclusive": "2026-09-20T00:00:00.000Z",
+  "observationId": null,
+  "completed": false,
+  "steps": 5,
+  "streams": {
+    "tickets": {
+      "status": "pending",
+      "pages": 72,
+      "notBefore": "2026-09-24T20:20:01.484Z"
+    },
+    "legs": {
+      "status": "complete",
+      "pages": 32,
+      "notBefore": null
+    }
+  },
+  "ticketEvents": null,
+  "callLegs": 17172,
+  "normalizedFacts": 0,
+  "successfulSyncUnchanged": true
+}

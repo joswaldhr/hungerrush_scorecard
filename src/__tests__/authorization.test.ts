@@ -1,8 +1,10 @@
+// @vitest-environment node
 // Integration tests against a real Postgres database (see vitest.config.mts's
 // test.env, which points DATABASE_URL at the docker-compose db by default).
 // Locally: `docker compose up -d && pnpm db:migrate` before `pnpm test`.
 
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
+import { randomUUID } from "node:crypto";
 import { db } from "@/lib/db";
 import {
   organizations,
@@ -12,7 +14,7 @@ import {
   teamMemberships,
   managerAssignments,
 } from "@/lib/db/schema";
-import { inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
 let mockViewAsCookie: string | undefined;
 vi.mock("next/headers", () => ({
@@ -34,6 +36,7 @@ vi.mock("@/lib/auth", () => ({ auth: async () => null }));
 
 const {
   getManagerContext,
+  getUserJobTitle,
   getEffectiveManagerContext,
   isPlatformAdmin,
   assertCanAccessEmployee,
@@ -340,7 +343,59 @@ describe("assertCanAccessEmployee / assertCanAccessTeam", () => {
   });
 });
 
+it("does not use another organization's employee profile for a matching email", async () => {
+  const foreign = randomUUID();
+  const local = randomUUID();
+  try {
+    await db.insert(employees).values({
+      id: foreign,
+      organizationId: OTHER_ORG_ID,
+      displayName: "Synthetic foreign profile",
+      email: MANAGER_EMAIL,
+      jobTitle: "Foreign title",
+    });
+    expect(await getUserJobTitle(MANAGER_EMAIL)).toBeNull();
+    await db.insert(employees).values({
+      id: local,
+      organizationId: ORG_ID,
+      displayName: "Synthetic local profile",
+      email: MANAGER_EMAIL,
+      jobTitle: "Local title",
+    });
+    expect(await getUserJobTitle(MANAGER_EMAIL)).toBe("Local title");
+    expect(await getUserJobTitle("unknown@example.test")).toBeNull();
+  } finally {
+    await db.delete(employees).where(inArray(employees.id, [foreign, local]));
+  }
+});
+
 describe("listManagersForViewAs", () => {
+  it("uses inclusive starts and exclusive ends, including currently active finite assignments", async () => {
+    const [assignment] = await db
+      .insert(managerAssignments)
+      .values({
+        managerUserId: OUTSIDER_ID,
+        teamId: TEAM_ID,
+        assignmentType: "team",
+        effectiveFrom: "2999-01-01",
+      })
+      .returning();
+    try {
+      expect((await listManagersForViewAs(ORG_ID)).map((m) => m.userId)).not.toContain(OUTSIDER_ID);
+      await db
+        .update(managerAssignments)
+        .set({ effectiveFrom: "2020-01-01", effectiveTo: "2999-01-01" })
+        .where(eq(managerAssignments.id, assignment!.id));
+      expect((await listManagersForViewAs(ORG_ID)).map((m) => m.userId)).toContain(OUTSIDER_ID);
+      await db
+        .update(managerAssignments)
+        .set({ effectiveTo: new Date().toISOString().slice(0, 10) })
+        .where(eq(managerAssignments.id, assignment!.id));
+      expect((await listManagersForViewAs(ORG_ID)).map((m) => m.userId)).not.toContain(OUTSIDER_ID);
+    } finally {
+      await db.delete(managerAssignments).where(eq(managerAssignments.id, assignment!.id));
+    }
+  });
   it("includes active managers with a real assignment, not admins/outsiders/other orgs", async () => {
     const managers = await listManagersForViewAs(ORG_ID);
     const ids = managers.map((m) => m.userId);

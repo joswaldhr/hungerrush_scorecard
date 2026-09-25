@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
 import { cn, shiftWeekStart, weekBoundsForDate } from "@/lib/utils";
 
@@ -21,9 +21,13 @@ export function WeekNavigator({
 }: WeekNavigatorProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dateRef = useRef<HTMLInputElement>(null);
+  const pickerId = useId();
 
   useEffect(() => {
     if (!pickerOpen) return;
+    dateRef.current?.focus();
     function handleClick(e: MouseEvent) {
       if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
         setPickerOpen(false);
@@ -41,27 +45,25 @@ export function WeekNavigator({
       : `${weeksAgo} WEEKS AGO`;
 
   return (
-    <div className="flex flex-col items-end gap-1.5 print:hidden">
-      <div className="flex items-center gap-1 rounded-lg border border-border/80 bg-card p-1 shadow-2xs">
+    <div className="flex w-full min-w-0 max-w-full flex-col items-end gap-1.5 sm:w-auto print:hidden">
+      <div className="grid grid-cols-3 sm:flex w-full items-center gap-1 rounded-lg border border-border/80 bg-card p-1 shadow-2xs">
         <button
           type="button"
           aria-label="Previous week"
-          onClick={(e) => {
+          onClick={() => {
             onNavigate(shiftWeekStart(periodStart, -1));
-            // The data underneath changes on every click, which is already
-            // clear feedback -- a focus ring that lingers through repeated
-            // clicks (as a manager steps back through weeks) reads as stuck
-            // rather than helpful, so release it once the click is handled.
-            e.currentTarget.blur();
           }}
-          className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          className="flex h-11 w-full shrink-0 items-center justify-center rounded-md sm:h-7 sm:w-7 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
 
         <span
+          aria-live="polite"
+          aria-atomic="true"
+          aria-busy={isLoading}
           className={cn(
-            "min-w-[170px] text-center text-sm font-semibold text-foreground tabular-nums transition-opacity",
+            "col-span-3 order-first sm:order-none min-w-0 flex-1 sm:min-w-[170px] text-center text-sm font-semibold text-foreground tabular-nums transition-opacity",
             isLoading && "opacity-50"
           )}
         >
@@ -72,50 +74,68 @@ export function WeekNavigator({
           type="button"
           aria-label="Next week"
           disabled={isCurrent}
-          onClick={(e) => {
+          onClick={() => {
             onNavigate(shiftWeekStart(periodStart, 1));
-            e.currentTarget.blur();
           }}
-          className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+          className="flex h-11 w-full shrink-0 items-center justify-center rounded-md sm:h-7 sm:w-7 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
 
-        <div className="relative border-l border-border/70 pl-1">
+        <div
+          ref={popoverRef}
+          className="relative shrink-0 border-l border-border/70 pl-1"
+          onKeyDown={(event) => {
+            if (pickerOpen && event.key === "Escape") {
+              event.preventDefault();
+              setPickerOpen(false);
+              triggerRef.current?.focus();
+            }
+          }}
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) setPickerOpen(false);
+          }}
+        >
           <button
+            ref={triggerRef}
             type="button"
             aria-label="Jump to a week"
             aria-expanded={pickerOpen}
+            aria-controls={pickerOpen ? pickerId : undefined}
             onClick={() => setPickerOpen((o) => !o)}
-            className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            className="flex h-11 w-full items-center justify-center rounded-md sm:h-7 sm:w-7 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             <CalendarIcon className="h-3.5 w-3.5" />
           </button>
           {pickerOpen && (
             <div
-              ref={popoverRef}
+              id={pickerId}
+              role="group"
+              aria-label="Jump to a reporting week"
               className="absolute right-0 top-full mt-1.5 z-50 rounded-lg border border-border/80 bg-card p-2 shadow-lg"
             >
-              <label className="sr-only" htmlFor="week-navigator-date-picker">
+              <label className="sr-only" htmlFor={`${pickerId}-date`}>
                 Pick a date to jump to that reporting week
               </label>
               <input
-                id="week-navigator-date-picker"
+                ref={dateRef}
+                id={`${pickerId}-date`}
                 type="date"
                 defaultValue={periodStart}
                 onChange={(e) => {
                   if (!e.target.value) return;
                   onNavigate(weekBoundsForDate(e.target.value).periodStart);
                   setPickerOpen(false);
+                  triggerRef.current?.focus();
                 }}
-                className="rounded-md border border-border/80 bg-background px-2 py-1 text-xs text-foreground"
+                className="w-40 min-h-11 sm:min-h-0 rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
               />
             </div>
           )}
         </div>
       </div>
 
-      <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground">
+      <div className="flex max-w-full flex-wrap justify-end items-center gap-2 text-[11px] font-medium text-muted-foreground">
         <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold tracking-wide text-foreground/80">
           {contextLabel}
         </span>
