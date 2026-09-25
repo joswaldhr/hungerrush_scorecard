@@ -86,6 +86,19 @@ it("publishes only the metrics explicitly selected for a team", () => {
   );
   expect(normalized.map((f) => f.factType)).toEqual(["csat_score"]);
 });
+
+it("rejects an employee or team reassignment between fetch and publication", () => {
+  const record = buildSolvedCsatRecord(syntheticCsatSnapshot(), {
+    ...identity,
+    employeeContext: { employeeId: "employee", teamId: "team" },
+  });
+  expect(() =>
+    normalizeSolvedCsatRecord(record.payload, "different", "team", "2026-09-13", "2026-09-19")
+  ).toThrow(/assignment changed/);
+  expect(() =>
+    normalizeSolvedCsatRecord(record.payload, "employee", "different", "2026-09-13", "2026-09-19")
+  ).toThrow(/assignment changed/);
+});
 it("binds comparisons to canonical account, identity, group and brand scope", () => {
   const reordered = syntheticCsatSnapshot();
   reordered.coverage.groupIds = [21, 20];

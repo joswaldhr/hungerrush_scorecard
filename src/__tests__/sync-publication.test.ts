@@ -261,6 +261,27 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
       await db.execute(sql.raw(`DROP FUNCTION ${trigger}()`));
     }
   });
+
+  it("rejects a source account-binding change during collection", async () => {
+    const before = await values();
+    const interrupted = connector([record(999)]);
+    interrupted.fetchRecords = async () => {
+      await db
+        .update(dataSources)
+        .set({ configurationReference: "zendesk-account:changed" })
+        .where(eq(dataSources.id, source));
+      return { records: [record(999)], cursor: null, hasMore: false };
+    };
+    try {
+      expect((await runSync(interrupted, config)).success).toBe(false);
+      expect(await values()).toEqual(before);
+    } finally {
+      await db
+        .update(dataSources)
+        .set({ configurationReference: null })
+        .where(eq(dataSources.id, source));
+    }
+  });
   it("rejects a cross-organization source before creating a run", async () => {
     await expect(
       runSync(connector([]), { ...config, organizationId: randomUUID() })

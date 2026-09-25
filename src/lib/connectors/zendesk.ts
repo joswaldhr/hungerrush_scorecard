@@ -19,6 +19,8 @@ import { fetchCompleteSearch, type SearchExportPage } from "./zendesk-search";
 import { fetchCompleteTalkWeek, type TalkCall, type TalkPage } from "./zendesk-talk";
 import { averageEvidence, sourceIds } from "./source-evidence";
 import { normalizeSolvedCsatRecord } from "./zendesk-solved-csat-record";
+import { configuredCsatPolicy } from "./zendesk-csat-config";
+import { csatPolicyForPeriod } from "./zendesk-csat-policy";
 import { mapWithConcurrency, weekDates } from "@/lib/utils";
 
 // Real timing data (2026-09-10, see FOLLOWUPS.md) showed the per-employee
@@ -347,6 +349,7 @@ export class ZendeskConnector implements Connector {
     }
 
     const { periodStart, periodEnd } = weekOf(weekOffset);
+    const csatPolicy = csatPolicyForPeriod(configuredCsatPolicy(), config, periodStart);
     // Only active employees -- a departed employee's external_identities row
     // stays in the DB (roster departure never deletes it, just marks the
     // employee inactive and closes team_memberships), but there's no reason
@@ -356,7 +359,7 @@ export class ZendeskConnector implements Connector {
     // crashed the entire week's sync for every other employee too. See
     // FOLLOWUPS.md.
     const identities = await db
-      .select({ externalId: externalIdentities.externalId })
+      .select({ externalId: externalIdentities.externalId, teamId: employees.primaryTeamId })
       .from(externalIdentities)
       .innerJoin(employees, eq(externalIdentities.employeeId, employees.id))
       .where(
@@ -375,7 +378,11 @@ export class ZendeskConnector implements Connector {
     // to find out which one (or both) actually accounts for it, rather
     // than guessing a second time. See FOLLOWUPS.md.
     const ratingsStartedAt = Date.now();
-    const ratingsByAssignee = await fetchRatings(periodStart, periodEnd);
+    const csatOwned = (teamId: string | null | undefined) =>
+      csatPolicy?.teams.some((team) => team.teamId === teamId) ?? false;
+    const ratingsByAssignee = identities.some((identity) => !csatOwned(identity.teamId))
+      ? await fetchRatings(periodStart, periodEnd)
+      : new Map<number, ZendeskSatisfactionRating[]>();
     const ratingsMs = Date.now() - ratingsStartedAt;
 
     const { calls, diagnostics: callDiagnostics } = await fetchCallsForWeek(periodStart, periodEnd);
@@ -533,26 +540,27 @@ export class ZendeskConnector implements Connector {
         sourceUpdatedAt: now,
       });
 
-      records.push({
-        externalRecordType: "csat_summary",
-        externalRecordId: `csat-${email}-${periodStart}`,
-        employeeExternalId: email,
-        occurredAt: now,
-        periodStart,
-        periodEnd,
-        payload: {
-          csatScore,
-          totalRatings: rated.length,
-          sourceEvidence: {
-            contractVersion: 1,
-            identityResolved: numericId !== null,
-            ratingIds: sourceIds(rated),
-            numerator: good,
-            denominator: rated.length,
+      if (!csatOwned(identity.teamId))
+        records.push({
+          externalRecordType: "csat_summary",
+          externalRecordId: `csat-${email}-${periodStart}`,
+          employeeExternalId: email,
+          occurredAt: now,
+          periodStart,
+          periodEnd,
+          payload: {
+            csatScore,
+            totalRatings: rated.length,
+            sourceEvidence: {
+              contractVersion: 1,
+              identityResolved: numericId !== null,
+              ratingIds: sourceIds(rated),
+              numerator: good,
+              denominator: rated.length,
+            },
           },
-        },
-        sourceUpdatedAt: now,
-      });
+          sourceUpdatedAt: now,
+        });
     }
 
     const recordBuildMs = Date.now() - recordBuildStartedAt;

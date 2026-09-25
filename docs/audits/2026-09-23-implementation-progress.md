@@ -2,7 +2,28 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-25 (19:45 UTC). **Core, metric-display and roster corrections are deployed. Both-week CSAT source-ticket sets match for Menufy and POS. Menufy inbound sets match 1,927 named legs across both weeks; POS matches 2,012 legs for one week. The replacement CSAT candidate passes 118 offline cases, repeated Menufy source parity and live POS collection for all 39 active identities. Adapter CI passes 628 tests / 73 files. The staff census matches all 62 active employees; explicit policy and per-team selection are implemented. Neither migration 0015 nor replacement collection is active in production. Binding/cutover, hosted and release gates remain unfinished: 0/40 newly certified assignments. Human metrics, recurring shadow/v2 publication and historical repair remain disabled.**
+Last updated: 2026-09-25 (20:15 UTC). **Core, metric-display and roster corrections are deployed. Both-week CSAT source-ticket sets match for Menufy and POS. Menufy inbound sets match 1,927 named legs across both weeks; POS matches 2,012 legs for one week. The replacement CSAT candidate passes 118 offline cases, repeated Menufy source parity and live POS collection for all 39 active identities. Adapter CI passes 628 tests / 73 files. The staff census matches all 62 active employees; explicit policy and per-team selection are implemented. Neither migration 0015 nor replacement collection is active in production. Binding/cutover, hosted and release gates remain unfinished: 0/40 newly certified assignments. Human metrics, recurring shadow/v2 publication and historical repair remain disabled.**
+
+## Bounded CSAT invocation — September 25, 20:15 UTC
+
+The complete two-team read-only rehearsal finished in 146.427 seconds using 152 GETs:
+62 active employees, 85 normalized facts, and zero differences against independent
+calculations or retained prior observations. See `2026-09-25-combined-csat-runtime.json`.
+Policy/staff increment `d2809ca` passed both CI runs 36181714899 / 36181709051
+(634 tests / 75 files, migrations, lint, TypeScript and build).
+
+The dedicated one-week route now uses a global 240-request / 240-second fetch budget,
+strict account endpoint checks and no automatic retries. Legacy collection skips CSAT
+only for policy-owned teams and periods, including manual refreshes. Publication rejects
+employee/team changes during collection and source account-binding changes. Missing
+identities, ambiguous assignments, foreign organizations and partial fetches fail closed.
+Sixty-three targeted cases across nine files, TypeScript and focused ESLint pass.
+No policy or new cron schedule is configured. Production remains unchanged.
+
+Migration operators now include 0015 with bounded lock/statement waits. Exact backup
+restore comparison remains byte-representation strict; migration comparisons normalize
+only the widening numeric cast. Hosted migration/publication/export inspection and a
+fresh production restore rehearsal remain release gates, not completed checks.
 
 ## CSAT adapter checkpoint — September 25, 19:30 UTC
 

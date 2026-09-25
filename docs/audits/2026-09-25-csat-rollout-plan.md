@@ -37,8 +37,9 @@ deadline, leaving time for publication and failure reporting. A failed or incomp
 collection publishes no values. Keep the normal collector from writing CSAT for periods
 owned by the replacement policy, including manual refresh paths.
 
-Before enabling recurring execution, qualify the full two-team invocation and synthetic
-hosted publication. Proposed daily windows are 08, 10, 12 and 14 UTC for offsets 0–3.
+The complete two-team invocation is now qualified: 152 GETs, 146.427 seconds, 62 employees
+and 85 facts with zero independent or prior-observation differences. Before enabling
+recurring execution, qualify synthetic hosted publication. Proposed daily windows are 08, 10, 12 and 14 UTC for offsets 0–3.
 Two-hour spacing accommodates the plan's hourly scheduling precision and the existing
 five-minute source cooldown; these windows are separate from the current 06:00–06:45
 configured sync slots. No new cron entries are enabled in this checkpoint. A failed cron
@@ -61,7 +62,7 @@ References: [Vercel cron scheduling and limits](https://vercel.com/docs/cron-job
    periods under their existing definition. Do not activate historical repair. Freeze the
    new calculation version independently of later definition-row edits. Keep source-scope
    fingerprints and original revisions. Existing targets remain withheld until qualified.
-3. Finish and test the bounded collector plus consistent ownership gating in every legacy
+3. Implemented and locally tested: the bounded collector plus consistent ownership gating in every legacy
    entry point. Check deadlines, missing identities, source failures, concurrent attempts,
    null corrections, correct versions, and no fallback to legacy CSAT after cutover.
 4. Qualify a complete read-only invocation and hosted synthetic publication, including

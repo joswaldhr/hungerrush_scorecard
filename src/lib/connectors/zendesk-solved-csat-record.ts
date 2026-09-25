@@ -9,6 +9,9 @@ type Snapshot = Awaited<ReturnType<typeof fetchSolvedCsatCandidate>>;
 const id = z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
 const payloadSchema = z.object({
   sourceContract: z.literal(SOLVED_CSAT_CONTRACT),
+  employeeContext: z
+    .object({ employeeId: z.string().min(1), teamId: z.string().nullable() })
+    .optional(),
   metricKeys: z
     .array(z.enum(["csat_score", "csat_response_rate"]))
     .min(1)
@@ -65,7 +68,13 @@ function parseEvidence(payload: unknown, periodStart: string, periodEnd: string)
       })
     )
     .digest("hex");
-  return { evidence, result, sourceScopeFingerprint, metricKeys: parsed.data.metricKeys };
+  return {
+    evidence,
+    result,
+    sourceScopeFingerprint,
+    metricKeys: parsed.data.metricKeys,
+    employeeContext: parsed.data.employeeContext,
+  };
 }
 
 /** Ingestion adapter only. The live collector remains disconnected until release qualification. */
@@ -77,6 +86,7 @@ export function buildSolvedCsatRecord(
     agentId: number;
     externalId: string;
     metricKeys?: Array<"csat_score" | "csat_response_rate">;
+    employeeContext?: { employeeId: string; teamId: string | null };
   }
 ): IngestedRecord {
   const accountReference = assertZendeskAccountBinding(
@@ -109,6 +119,7 @@ export function buildSolvedCsatRecord(
   const ticketIds = new Set(tickets.map((t) => t.id));
   const payload = {
     sourceContract: SOLVED_CSAT_CONTRACT,
+    ...(identity.employeeContext ? { employeeContext: identity.employeeContext } : {}),
     metricKeys: identity.metricKeys ?? ["csat_score", "csat_response_rate"],
     sourceEvidence: {
       complete: true,
@@ -151,11 +162,16 @@ export function normalizeSolvedCsatRecord(
   periodStart: string,
   periodEnd: string
 ): NormalizedFactInput[] {
-  const { evidence, result, sourceScopeFingerprint, metricKeys } = parseEvidence(
+  const { evidence, result, sourceScopeFingerprint, metricKeys, employeeContext } = parseEvidence(
     payload,
     periodStart,
     periodEnd
   );
+  if (
+    employeeContext &&
+    (employeeContext.employeeId !== employeeId || employeeContext.teamId !== teamId)
+  )
+    throw new Error("CSAT employee or team assignment changed before publication");
   return (["score", "response"] as const)
     .filter((kind) => metricKeys.includes(kind === "score" ? "csat_score" : "csat_response_rate"))
     .map((kind) => ({

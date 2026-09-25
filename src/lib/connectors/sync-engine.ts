@@ -139,13 +139,14 @@ export async function runSync(
         // Serialize publication for this source so revision snapshots describe
         // the committed predecessor even when fetches overlap.
         const [publicationSource] = await tx.execute(
-          sql`select organization_id, status, type from ${dataSources} where id = ${config.dataSourceId} for update`
+          sql`select organization_id, status, type, configuration_reference from ${dataSources} where id = ${config.dataSourceId} for update`
         );
         if (
           !publicationSource ||
           publicationSource.organization_id !== config.organizationId ||
           publicationSource.status !== "configured" ||
-          publicationSource.type !== connector.sourceType
+          publicationSource.type !== connector.sourceType ||
+          publicationSource.configuration_reference !== source.configurationReference
         )
           throw new Error("Data source changed or disabled before publication");
         await renewSyncLease(syncRunId, tx);
