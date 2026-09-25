@@ -2,8 +2,10 @@
 
 September 25 update: PR24's metric-duration and display correction is deployed at
 86a0b10. The first actual scheduled current-week metric publication completed, but
-post-publication roster discovery returned HTTP 503. The bounded correction and
-remaining scheduled-week verification are tracked in
+post-publication roster discovery returned HTTP 503. PR25's bounded roster correction
+is deployed as 467c2fa / dpl_5MWPNsFU8DRv2zzKg7TgAi1noGE1. Three scheduled metric
+publications are verified; offset 3 and a scheduled execution of the corrected roster
+path remain unverified. Correction and remaining scheduled-week verification are tracked in
 `2026-09-25-scheduled-sync-verification.md`; the evidence below describes the original
 core rollout and remains historical.
 

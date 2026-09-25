@@ -30,7 +30,14 @@ Its database run was 07:11:51.277–07:15:18.534 UTC (207.256 seconds), with zer
 errors, 186 source records and 1,067 normalized/published values. Fetch/publication
 took 196,821/9,828 ms. All source/value intervals were September 13–19; predecessor
 revisions: 186 source, 1,057 fact, 1,057 metric. This is the normal scheduled rolling
-refresh, not a historical-repair activation. Offsets 2–3 remain unverified.
+refresh, not a historical-repair activation.
+
+Offset 2 also completed on the same pre-fix deployment: scheduler request
+07:19:28.165 UTC, 207,938 ms, HTTP 200. Its database run was
+07:19:28.689–07:22:55.770 UTC (207.081 seconds): 186 source records, 1,080
+normalized/published values, zero skips/errors. Fetch/publication took 197,010/9,468 ms.
+All intervals were September 6–12; predecessor revisions: 186 source, 1,066 fact,
+1,066 metric. Only offset 3 remains unverified at 07:24 UTC.
 No extra sync was triggered during this verification.
 
 ## Bounded correction
@@ -65,7 +72,22 @@ check. See `2026-09-25-production-restore-roster-fix.json`. No production migrat
 is required. Roll back application code to 86a0b10 / dpl_6ge4wS2wdDF3PSqWiyTgyXjjZ4vd
 if necessary, retaining current data and schema; that version still has the roster
 conflict. Do not restore the snapshot over newer scheduled publications.
-CI/rollout evidence will be appended after completion.
+
+## Correction deployment
+
+[PR25](https://github.com/joswaldhr/hungerrush_scorecard/pull/25) merged as
+467c2fa92723b4cc3277b8a4eae53412d8bd866c. Candidate CI 36106916272 and 36106921476
+passed all 581 tests / 66 files, PostgreSQL 18 migrations, TypeScript, lint and production
+build. The extra regression test ensures even an empty exception message keeps roster
+failure unhealthy. Production deployment dpl_5MWPNsFU8DRv2zzKg7TgAi1noGE1 is READY
+and owns the production alias as observed at 07:23 UTC. The sign-in entry and provider
+endpoint both returned HTTP 200. All four unchanged cron schedules are enabled on this
+deployment. Merged-master CI 36107218863 also passed.
+
+The same one-time verification was moved to 07:55 UTC (02:55 Central) for the final
+late-window check, without requiring user participation or creating an ongoing monitor.
+The follow-up must inspect project-wide production logs across deployment changes,
+correlate offset 3 with database evidence, record remaining limits, and pause itself.
 
 ## Remaining limits
 

@@ -2,7 +2,7 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-25 (07:15 UTC). **Core and metric-display fixes are deployed. The first actual scheduled metric publication passed, but its later roster discovery returned HTTP 503. A bounded roster fix is validated locally; other scheduled weeks and rollout verification remain in progress.**
+Last updated: 2026-09-25 (07:24 UTC). **Core, metric-display and roster corrections are deployed. Three actual scheduled metric publications passed. The current-week request's later roster failure was corrected in PR25; the corrected roster path has not yet run on the scheduler. Final scheduled offset 3 remains to be verified at the one-time 07:55 UTC follow-up.**
 
 ## Current ledger
 
@@ -10,17 +10,17 @@ Last updated: 2026-09-25 (07:15 UTC). **Core and metric-display fixes are deploy
 |---|---|---|
 | Audit and metric contracts | Complete | Baseline at ab062c3; audit and contracts in this directory |
 | Reporting context and scope safeguards | Published to production | Navigation, organization and manager-scope regression tests; production current/previous week and history checks passed |
-| Atomic sync publication and freshness | Scheduled metric publication passed; roster request failed | Actual scheduler at 06:09 UTC published 192 values with zero metric errors; subsequent overlapping-line roster discovery failed. See 2026-09-25-scheduled-sync-verification.md; offsets 1–3 still being observed |
+| Atomic sync publication and freshness | Three scheduled metric publications passed; roster correction deployed | Offsets 0/1/2 published 192/1,067/1,080 values with zero metric errors and exact reporting intervals. Offset 0 returned 503 after publication; PR25 corrects overlapping-line roster discovery. Offset 3 remains to observe; see 2026-09-25-scheduled-sync-verification.md |
 | Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Released metric correction passed; roster fix locally validated | PR24: 570 tests, master CI 36088295911. Roster fix: 580 tests / 66 files, lint and TypeScript; CI/rollout pending |
+| Combined implementation validation | Roster correction candidate and master CI passed | PR25: 581 tests / 66 files, PostgreSQL 18 migrations, lint, TypeScript and production build; candidate CI 36106916272/36106921476 and master CI 36107218863 passed |
 | Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
 | Hosted staging / production parity | Database, core UI, worker authentication and bounded ingestion/recovery passed | Separate PostgreSQL 18.6 and Entra app; four fresh ingestion processes, expired-lease takeover and replay verified; source disabled after rehearsal; recurring scheduling remains open |
 | Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; retained full-week census reproduced one default lookup omission, resolved by inactive/deleted-inclusive diagnostic; historical eligibility, human provenance and independent parity remain open |
-| Production rollout / historical repair | Core and metric-display correction deployed; no historical repair | PR24 merged at 86a0b10, deployment dpl_6ge4wS2wdDF3PSqWiyTgyXjjZ4vd READY; scheduled roster correction in progress |
+| Production rollout / historical repair | Core, metric-display and roster corrections deployed; no historical repair | PR25 merged at 467c2fa, production dpl_5MWPNsFU8DRv2zzKg7TgAi1noGE1 READY; fresh backup restored 33 tables / 32,796 rows exactly |
 
 ## Git checkpoints
 
-Branch: `codex/audit-reliability-checkpoints` published to origin. Automatic Preview deployment was enabled after credential isolation and staging sign-in setup. PR22 merged into master as `ef8cd6d`; the core production release is deployed. The dated sections below retain their original historical status.
+Branch: `codex/audit-reliability-checkpoints` published to origin. Automatic Preview deployment was enabled after credential isolation and staging sign-in setup. PR22/24/25 are merged; current application release is `467c2fa`. The dated sections below retain their original historical status.
 
 - `ece704c`: audit, measured baseline, and metric contracts.
 - `f39d872`: organization/manager scope safeguards and isolated test configuration.
