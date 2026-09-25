@@ -116,3 +116,17 @@ assignment until a later promotion. The official CLI implements rollback with an
 POST to `/v9/projects/{projectId}/rollback/{deploymentId}`. This action has not been invoked.
 References: [Vercel Instant Rollback](https://vercel.com/docs/instant-rollback) and
 [official CLI implementation](https://github.com/vercel/vercel/blob/main/packages/cli/src/commands/rollback/request-rollback.ts).
+
+## Production application verification — 02:18 UTC September 25
+
+PR22 merged as `ef8cd6db12e9c3b077a425274a03771c5d48b771`. Deployment
+`dpl_3Xnasc88uF51ckmZFk5aF2nv87fq` is READY and confirmed as the production-domain target.
+Candidate checks 36085132342/36085128949 and merged-master check 36085309616 passed.
+
+Production sign-in, manager view, Data Health, current/previous-week scorecards, stored-period
+history and the reconciliation read page loaded. Week navigation matched the URL; historical
+context and human-attribution warnings remained visible. A controlled current-week sync
+completed in 170 seconds with 186 records, 1,110 normalized facts/metric values and zero errors.
+All written records/values belong to September 20–26. Previous source/fact/value versions
+were retained. See `2026-09-24-production-sync-release.json` and
+`2026-09-24-production-release.md` for the result and remaining limitations.
