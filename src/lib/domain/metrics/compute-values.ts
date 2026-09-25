@@ -11,11 +11,8 @@ import { aggregateSourceValues } from "@/lib/domain/reconciliation/compare";
 import { captureSyncRevisions } from "@/lib/connectors/sync-revisions";
 import { chunk } from "@/lib/utils";
 import type { CalculationType } from "./types";
-import {
-  sharedMetricSourceContext,
-  SOLVED_CSAT_CONTRACT,
-  SOLVED_CSAT_CALCULATION_VERSION,
-} from "./source-context";
+import { sharedMetricSourceContext, completeSnapshotVersion } from "./source-context";
+import { selectFirstReplyContributors } from "./first-reply-contributors";
 
 // Rows per bulk upsert statement — see the same constant's comment in
 // sync-engine.ts. metricValues has fewer columns than normalizedFacts but
@@ -86,11 +83,20 @@ export async function computeMetricValuesFromFacts(
     // Restrict the read in PostgreSQL, not after transferring all source history.
     // Include unchanged contributors in each exact employee/interval group. Bound
     // parameters per query even when an explicit replay touches many periods.
-    const facts: (typeof normalizedFacts.$inferSelect)[] = [];
+    type Fact = typeof normalizedFacts.$inferSelect & {
+      recordType: string;
+      recordContract: unknown;
+    };
+    const facts: Fact[] = [];
     for (const groups of chunk([...affectedGroups.values()], WRITE_CHUNK_SIZE)) {
       const contributors = await connection
-        .select()
+        .select({
+          fact: normalizedFacts,
+          recordType: sourceRecords.externalRecordType,
+          recordContract: sql<string | null>`${sourceRecords.payloadJson}->>'sourceContract'`,
+        })
         .from(normalizedFacts)
+        .innerJoin(sourceRecords, eq(sourceRecords.id, normalizedFacts.sourceRecordId))
         .where(
           and(
             eq(normalizedFacts.organizationId, organizationId),
@@ -107,7 +113,13 @@ export async function computeMetricValuesFromFacts(
             )
           )
         );
-      facts.push(...contributors);
+      facts.push(
+        ...contributors.map((r) => ({
+          ...r.fact,
+          recordType: r.recordType,
+          recordContract: r.recordContract ?? undefined,
+        }))
+      );
     }
     facts.sort(
       (a, b) =>
@@ -124,6 +136,7 @@ export async function computeMetricValuesFromFacts(
         observed: Date[];
         factIds: string[];
         contexts: unknown[];
+        facts: Fact[];
       }
     >();
     for (const fact of facts) {
@@ -136,16 +149,24 @@ export async function computeMetricValuesFromFacts(
         observed: [],
         factIds: [],
         contexts: [],
+        facts: [],
       };
       group.values.push(fact.numericValue);
       group.observed.push(fact.sourceObservedAt);
       group.factIds.push(fact.id);
       group.contexts.push(fact.dimensionsJson);
+      group.facts.push(fact);
       groups.set(key, group);
     }
 
     for (const group of groups.values()) {
+      const { selected, supersededFactIds } = selectFirstReplyContributors(def.key, group.facts);
+      group.values = selected.map((f) => f.numericValue);
+      group.observed = selected.map((f) => f.sourceObservedAt);
+      group.factIds = selected.map((f) => f.id);
+      group.contexts = selected.map((f) => f.dimensionsJson);
       const sourceContext = sharedMetricSourceContext(group.contexts);
+      const snapshotVersion = completeSnapshotVersion(sourceContext?.sourceContract);
       const value = aggregateSourceValues(group.values, def.calculationType as CalculationType);
 
       rows.push({
@@ -155,16 +176,9 @@ export async function computeMetricValuesFromFacts(
         periodStart: group.periodStart,
         periodEnd: group.periodEnd,
         numericValue:
-          value === null
-            ? null
-            : sourceContext?.sourceContract === SOLVED_CSAT_CONTRACT
-              ? value
-              : Math.round(value * 100) / 100,
+          value === null ? null : snapshotVersion !== null ? value : Math.round(value * 100) / 100,
         textValue: null,
-        calculationVersion:
-          sourceContext?.sourceContract === SOLVED_CSAT_CONTRACT
-            ? SOLVED_CSAT_CALCULATION_VERSION
-            : def.version,
+        calculationVersion: snapshotVersion ?? def.version,
         calculatedAt: new Date(),
         dataFreshnessAt: new Date(Math.min(...group.observed.map((date) => date.getTime()))),
         qualityStatus:
@@ -178,6 +192,7 @@ export async function computeMetricValuesFromFacts(
           dataSourceId: scope.dataSourceId,
           syncRunId: scope.syncRunId,
           factIds: group.factIds,
+          ...(supersededFactIds.length ? { supersededFactIds } : {}),
           ...(sourceContext ?? {}),
         },
       });

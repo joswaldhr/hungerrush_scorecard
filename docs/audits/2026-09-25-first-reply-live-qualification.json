@@ -1,0 +1,44 @@
+{
+  "observedAt": "2026-09-25T20:50:43.761Z",
+  "mode": "read-only two-period native business first-reply candidate qualification",
+  "periods": [
+    {
+      "periodStart": "2026-09-13",
+      "periodEnd": "2026-09-19",
+      "employees": 23,
+      "paddedTickets": 5361,
+      "cohortTickets": 4023,
+      "measuredTickets": 1675,
+      "missingMeasurements": 2348,
+      "zeroMeasurements": 921,
+      "logicalRequests": 108,
+      "sha256": "fb8515eb6029b9ed820b1456192d30153b76b1ac63cf26eacbda5fe3ec7f7c1c"
+    },
+    {
+      "periodStart": "2026-09-20",
+      "periodEnd": "2026-09-26",
+      "employees": 23,
+      "paddedTickets": 3346,
+      "cohortTickets": 2614,
+      "measuredTickets": 1126,
+      "missingMeasurements": 1488,
+      "zeroMeasurements": 480,
+      "logicalRequests": 68,
+      "sha256": "7712bf3df4ccd9cfaf7373fccc6e699f1ba033b68bac7a6e49b2d4a44712724b"
+    }
+  ],
+  "requests": 180,
+  "elapsedMs": 180634,
+  "requestBudget": 240,
+  "elapsedBudgetMs": 240000,
+  "independentCases": 46,
+  "independentDifferences": 0,
+  "exactCohortAndMeasuredSetsMatch": true,
+  "productionActivated": false,
+  "databaseWrites": 0,
+  "limits": [
+    "Native Zendesk first public agent reply is not verified human authorship or active employee effort.",
+    "Independent raw-source calculation; no manager-specific business-hours mean report is yet qualified.",
+    "No target or production replacement is claimed."
+  ]
+}

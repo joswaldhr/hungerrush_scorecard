@@ -18,10 +18,13 @@ import {
 } from "@/lib/db/schema";
 import { runSync } from "@/lib/connectors/sync-engine";
 import type { Connector, IngestedRecord } from "@/lib/connectors/types";
-import { SOLVED_CSAT_CONTRACT } from "@/lib/domain/metrics/source-context";
+import { FIRST_REPLY_CONTRACT, SOLVED_CSAT_CONTRACT } from "@/lib/domain/metrics/source-context";
 import { ZendeskConnector } from "@/lib/connectors/zendesk";
 import { buildSolvedCsatRecord } from "@/lib/connectors/zendesk-solved-csat-record";
 import type { fetchSolvedCsatCandidate } from "@/lib/connectors/zendesk-solved-csat";
+
+import { buildFirstReplyRecord } from "@/lib/connectors/zendesk-first-reply-record";
+import type { fetchFirstReplyCandidate } from "@/lib/connectors/zendesk-first-reply";
 
 const org = randomUUID(),
   employee = randomUUID(),
@@ -660,6 +663,190 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
       await db
         .delete(metricDefinitions)
         .where(inArray(metricDefinitions.id, [scoreId, responseId]));
+    }
+  });
+  it("publishes first reply without replacing sibling facts, survives legacy refresh, and retains null corrections", async () => {
+    const replyId = randomUUID(),
+      backlogId = randomUUID();
+    const start = "2026-07-19",
+      end = "2026-07-25";
+    await db.insert(metricDefinitions).values([
+      {
+        id: replyId,
+        organizationId: org,
+        key: "avg_response_time",
+        name: "Response",
+        sourceStrategy: "test",
+        calculationType: "average",
+      },
+      {
+        id: backlogId,
+        organizationId: org,
+        key: "backlog_count",
+        name: "Backlog",
+        sourceStrategy: "test",
+        calculationType: "sum",
+      },
+    ]);
+    const normalize = new ZendeskConnector();
+    const publish = (records: IngestedRecord[]) => {
+      const c = connector(records);
+      c.normalizeRecords = normalize.normalizeRecords.bind(normalize);
+      return runSync(c, config);
+    };
+    const legacy: IngestedRecord = {
+      ...record(0, start),
+      externalRecordType: "agent_stats",
+      externalRecordId: "stats-agent-" + start,
+      periodEnd: end,
+      payload: { ticketsResolved: 0, avgResponseTimeMinutes: 999, backlogCount: 12 },
+    };
+    const snapshot: Awaited<ReturnType<typeof fetchFirstReplyCandidate>> = {
+      tickets: [1, 2, 3].map((id) => ({
+        id,
+        assignee_id: 7,
+        group_id: 20,
+        created_at: "2026-07-20T12:00:00Z",
+      })),
+      metrics: [0, 1, 1].map((business, i) => ({
+        ticket_id: i + 1,
+        reply_time_in_minutes: { business, calendar: business },
+      })),
+      coverage: {
+        complete: true,
+        population: "all-created-tickets",
+        requests: 2,
+        query: "synthetic",
+        periodStart: start,
+        periodEnd: end,
+        timeZone: "America/Chicago",
+        groupIds: [20],
+        brandIds: null,
+        agentIds: [7],
+        observationStartedAt: "2026-07-25T12:00:00Z",
+        observationEndedAt: "2026-07-25T12:00:01Z",
+      },
+    };
+    const identity = {
+      agentId: 7,
+      externalId: "agent",
+      accountReference: "zendesk-account:synthetic",
+      subdomain: "synthetic",
+      employeeContext: { employeeId: employee, teamId: team },
+    };
+    const read = () =>
+      db
+        .select()
+        .from(metricValues)
+        .where(inArray(metricValues.metricDefinitionId, [replyId, backlogId]));
+    try {
+      expect(
+        (
+          await publish([
+            legacy,
+            {
+              ...legacy,
+              externalRecordId: "stats-agent-2026-07-12",
+              periodStart: "2026-07-12",
+              periodEnd: "2026-07-18",
+            },
+          ])
+        ).success
+      ).toBe(true);
+      const before = await read();
+      const oldSources = await db
+        .select()
+        .from(sourceRecords)
+        .where(eq(sourceRecords.externalRecordId, legacy.externalRecordId));
+      const oldFacts = await db
+        .select()
+        .from(normalizedFacts)
+        .where(eq(normalizedFacts.sourceRecordId, oldSources[0]!.id));
+      const replacement = buildFirstReplyRecord(snapshot, identity);
+      expect((await publish([replacement])).valuesWritten).toBe(1);
+      const stored = await read();
+      const current = stored.find(
+        (v) => v.metricDefinitionId === replyId && v.periodStart === start
+      )!;
+      expect(current).toMatchObject({
+        numericValue: 2 / 3,
+        calculationVersion: 2,
+        qualityStatus: "complete",
+        provenanceJson: {
+          sourceContract: FIRST_REPLY_CONTRACT,
+          sampleCount: 3,
+          cohortCount: 3,
+          supersededFactIds: [oldFacts.find((f) => f.factType === "avg_response_time")!.id],
+        },
+      });
+      expect(stored.filter((v) => v.id !== current.id)).toEqual(
+        before.filter((v) => v.id !== current.id)
+      );
+      expect(
+        await db
+          .select()
+          .from(sourceRecords)
+          .where(eq(sourceRecords.externalRecordId, legacy.externalRecordId))
+      ).toEqual(oldSources);
+      expect(
+        await db
+          .select()
+          .from(normalizedFacts)
+          .where(eq(normalizedFacts.sourceRecordId, oldSources[0]!.id))
+      ).toEqual(oldFacts);
+      expect((await publish([replacement])).valuesWritten).toBe(0);
+      expect(
+        (
+          await publish([
+            {
+              ...legacy,
+              payload: { ...legacy.payload, avgResponseTimeMinutes: 888, backlogCount: 14 },
+            },
+          ])
+        ).success
+      ).toBe(true);
+      const refreshed = await read();
+      expect(refreshed.find((v) => v.id === current.id)).toMatchObject({
+        numericValue: 2 / 3,
+        dataFreshnessAt: current.dataFreshnessAt,
+      });
+      expect(
+        refreshed.find((v) => v.metricDefinitionId === backlogId && v.periodStart === start)
+          ?.numericValue
+      ).toBe(14);
+      await db.update(employees).set({ primaryTeamId: null }).where(eq(employees.id, employee));
+      try {
+        const moved = structuredClone(snapshot);
+        moved.metrics[1]!.reply_time_in_minutes!.business = 5;
+        expect((await publish([buildFirstReplyRecord(moved, identity)])).success).toBe(false);
+        expect(await read()).toEqual(refreshed);
+      } finally {
+        await db.update(employees).set({ primaryTeamId: team }).where(eq(employees.id, employee));
+      }
+      snapshot.metrics.forEach((m) => {
+        m.reply_time_in_minutes = null;
+      });
+      expect((await publish([buildFirstReplyRecord(snapshot, identity)])).valuesWritten).toBe(1);
+      expect((await read()).find((v) => v.id === current.id)).toMatchObject({
+        numericValue: null,
+        qualityStatus: "missing",
+        provenanceJson: { sampleCount: 0, cohortCount: 3 },
+      });
+      const retained = await db
+        .select()
+        .from(syncRevisions)
+        .where(eq(syncRevisions.entityId, current.id));
+      expect(
+        retained.some((r) => (r.snapshotJson as Record<string, unknown>).numeric_value === 999)
+      ).toBe(true);
+      expect(
+        retained.some((r) => (r.snapshotJson as Record<string, unknown>).numeric_value === 2 / 3)
+      ).toBe(true);
+    } finally {
+      await db
+        .delete(metricValues)
+        .where(inArray(metricValues.metricDefinitionId, [replyId, backlogId]));
+      await db.delete(metricDefinitions).where(inArray(metricDefinitions.id, [replyId, backlogId]));
     }
   });
 });

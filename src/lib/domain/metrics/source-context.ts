@@ -1,6 +1,13 @@
 export const SOLVED_CSAT_CONTRACT = "zendesk-solved-current-assignee-csat-v1";
 // Explicit replacement meaning, independent of later edits to the definition row.
 export const SOLVED_CSAT_CALCULATION_VERSION = 2;
+export const FIRST_REPLY_CONTRACT = "zendesk-created-current-assignee-first-reply-business-v1";
+export const FIRST_REPLY_CALCULATION_VERSION = 2;
+export function completeSnapshotVersion(contract: string | undefined): number | null {
+  if (contract === SOLVED_CSAT_CONTRACT) return SOLVED_CSAT_CALCULATION_VERSION;
+  if (contract === FIRST_REPLY_CONTRACT) return FIRST_REPLY_CALCULATION_VERSION;
+  return null;
+}
 export const INCOMPATIBLE_COMPARISON_REASON =
   "Comparison unavailable because the source definition, scope or reporting timezone changed.";
 export const SOURCE_TARGET_REASON = "Targets have not been verified for this source definition.";
@@ -9,6 +16,8 @@ export interface MetricSourceContext {
   sourceContract: string;
   reportingTimeZone: string;
   sourceScopeFingerprint?: string;
+  sampleCount?: number;
+  cohortCount?: number;
 }
 
 /** Legacy observations have no explicit context. Never infer a new contract from a value. */
@@ -31,9 +40,25 @@ export function readMetricSourceContext(value: unknown): MetricSourceContext | n
       !/^[a-f0-9]{64}$/.test(row.sourceScopeFingerprint))
   )
     throw new Error("Invalid metric source scope");
+  const counts: { sampleCount?: number; cohortCount?: number } = {};
+  if (
+    row.sourceContract === FIRST_REPLY_CONTRACT &&
+    (row.sampleCount !== undefined || row.cohortCount !== undefined)
+  ) {
+    if (
+      !Number.isSafeInteger(row.sampleCount) ||
+      !Number.isSafeInteger(row.cohortCount) ||
+      (row.sampleCount as number) < 0 ||
+      (row.cohortCount as number) < (row.sampleCount as number)
+    )
+      throw new Error("Invalid first-reply sample coverage");
+    counts.sampleCount = row.sampleCount as number;
+    counts.cohortCount = row.cohortCount as number;
+  }
   return {
     sourceContract: row.sourceContract,
     reportingTimeZone,
+    ...counts,
     ...(typeof row.sourceScopeFingerprint === "string"
       ? { sourceScopeFingerprint: row.sourceScopeFingerprint }
       : {}),
@@ -54,8 +79,8 @@ export function sharedMetricSourceContext(values: unknown[]): MetricSourceContex
     )
   )
     throw new Error("Metric contributors use incompatible source contracts");
-  if (first?.sourceContract === SOLVED_CSAT_CONTRACT && values.length !== 1)
-    throw new Error("Solved CSAT requires one complete employee-period snapshot");
+  if (completeSnapshotVersion(first?.sourceContract) !== null && values.length !== 1)
+    throw new Error("Metric requires one complete employee-period snapshot");
   return first;
 }
 

@@ -5,7 +5,7 @@ import { assertCanAccessEmployee, type ManagerContext } from "@/lib/auth/authori
 import { assertOrganizationResource } from "@/lib/auth/organization-scope";
 import { requiresTicketAttributionVerification, TICKET_ATTRIBUTION_QUALITY } from "./availability";
 import { readMetricSourceContext } from "./source-context";
-import { metricSourceDescription } from "./source-description";
+import { metricSourceDescription, metricSourceName } from "./source-description";
 
 export async function getStoredMetricHistory(
   ctx: ManagerContext,
@@ -60,6 +60,7 @@ export async function getStoredMetricHistory(
       const context = readMetricSourceContext(provenance);
       return {
         ...row,
+        name: metricSourceName(row.name, row.key, context),
         ...(requiresTicketAttributionVerification({ key: row.key, sourceStrategy })
           ? { numericValue: null, quality: TICKET_ATTRIBUTION_QUALITY }
           : {}),

@@ -19,6 +19,8 @@ import { fetchCompleteSearch, type SearchExportPage } from "./zendesk-search";
 import { fetchCompleteTalkWeek, type TalkCall, type TalkPage } from "./zendesk-talk";
 import { averageEvidence, sourceIds } from "./source-evidence";
 import { normalizeSolvedCsatRecord } from "./zendesk-solved-csat-record";
+import { normalizeFirstReplyRecord } from "./zendesk-first-reply-record";
+import { FIRST_REPLY_CONTRACT } from "@/lib/domain/metrics/source-context";
 import { configuredCsatPolicy } from "./zendesk-csat-config";
 import { csatPolicyForPeriod } from "./zendesk-csat-policy";
 import { mapWithConcurrency, weekDates } from "@/lib/utils";
@@ -604,7 +606,9 @@ export class ZendeskConnector implements Connector {
       if ("sourceContract" in payload) {
         // Explicit contracts must validate; never fall back to legacy CSAT parsing.
         facts.push(
-          ...normalizeSolvedCsatRecord(payload, employeeId, teamId, periodStart, periodEnd)
+          ...(payload.sourceContract === FIRST_REPLY_CONTRACT
+            ? normalizeFirstReplyRecord(payload, employeeId, teamId, periodStart, periodEnd)
+            : normalizeSolvedCsatRecord(payload, employeeId, teamId, periodStart, periodEnd))
         );
         continue;
       }
