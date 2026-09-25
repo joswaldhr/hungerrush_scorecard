@@ -4,7 +4,11 @@ Current safety update: authentication probe mode in `scripts/action-shadow-sched
 now uses `?probe=auth` and accepts only the explicit non-ingesting authentication response,
 returning `status: authenticated`. The earlier `authenticated_disabled` outcomes below are
 historical. This prevents a later source opt-in from silently changing a probe into ingestion.
-The scheduler enablement remains false; its source update is being verified separately.
+The scheduler enablement remains false. Railway deployment
+`db625af7-3349-4606-837f-66fa92ce919b` applied only this source-code change; its manual
+September 24 20:22 CDT run completed and logged `status: disabled`. No credential, service
+permission, source opt-in or schedule was changed. Existing hourly disabled invocations are
+visible in Railway; recurring authenticated ingestion remains inactive.
 
 Railway service `cadence-shadow-scheduler` was created in the existing `cadence-staging`
 environment. Service ID: `2307daa3-5146-4ca2-8852-caf114c139e4`. The service uses Railway's
