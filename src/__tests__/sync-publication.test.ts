@@ -4,6 +4,7 @@ import { eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   organizations,
+  teams,
   employees,
   dataSources,
   externalIdentities,
@@ -25,7 +26,8 @@ import type { fetchSolvedCsatCandidate } from "@/lib/connectors/zendesk-solved-c
 const org = randomUUID(),
   employee = randomUUID(),
   source = randomUUID(),
-  metric = randomUUID();
+  metric = randomUUID(),
+  team = randomUUID();
 const config = { organizationId: org, dataSourceId: source };
 const observation = new Date("2026-09-21T07:30:00Z");
 function record(value: number | null, week = "2026-09-20", id = "summary"): IngestedRecord {
@@ -71,8 +73,14 @@ async function values() {
 beforeAll(async () => {
   await db.insert(organizations).values({ id: org, name: "Publication test" });
   await db
-    .insert(employees)
-    .values({ id: employee, organizationId: org, displayName: "Test employee" });
+    .insert(teams)
+    .values({ id: team, organizationId: org, name: "Synthetic team", slug: "publication-test" });
+  await db.insert(employees).values({
+    id: employee,
+    organizationId: org,
+    displayName: "Test employee",
+    primaryTeamId: team,
+  });
   await db
     .insert(dataSources)
     .values({ id: source, organizationId: org, type: "test", displayName: "Test" });
@@ -107,6 +115,7 @@ afterAll(async () => {
   await db.delete(metricDefinitions).where(eq(metricDefinitions.id, metric));
   await db.delete(dataSources).where(eq(dataSources.id, source));
   await db.delete(employees).where(eq(employees.id, employee));
+  await db.delete(teams).where(eq(teams.id, team));
   await db.delete(organizations).where(eq(organizations.id, org));
 });
 describe.sequential("atomic metric publication (PostgreSQL)", () => {
@@ -556,6 +565,7 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
       externalId: "agent",
       accountReference: "zendesk-account:synthetic",
       subdomain: "synthetic",
+      employeeContext: { employeeId: employee, teamId: team },
     };
     const candidate = buildSolvedCsatRecord(snapshot, identity);
     const normalize = new ZendeskConnector();
@@ -608,6 +618,33 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
         retained.some((r) => (r.snapshotJson as Record<string, unknown>).numeric_value === 99)
       ).toBe(true);
       expect((await publish(candidate)).valuesWritten).toBe(0);
+      expect(
+        (
+          await publish({
+            ...candidate,
+            externalRecordId: `${candidate.externalRecordId}-unmapped`,
+            employeeExternalId: "removed-identity",
+          })
+        ).success
+      ).toBe(false);
+      expect(await read()).toEqual(stored);
+      // The actual publisher must supply the locked current team to the normalizer.
+      // A real reassignment after collection rejects the entire corrected batch.
+      await db.update(employees).set({ primaryTeamId: null }).where(eq(employees.id, employee));
+      try {
+        const movedSnapshot = {
+          ...snapshot,
+          coverage: {
+            ...snapshot.coverage,
+            observationStartedAt: "2026-07-12T07:30:00Z",
+            observationEndedAt: "2026-07-12T07:30:01Z",
+          },
+        };
+        expect((await publish(buildSolvedCsatRecord(movedSnapshot, identity))).success).toBe(false);
+        expect(await read()).toEqual(stored);
+      } finally {
+        await db.update(employees).set({ primaryTeamId: team }).where(eq(employees.id, employee));
+      }
       snapshot.tickets = [];
       snapshot.metrics = [];
       snapshot.coverage.observationStartedAt = "2026-07-12T08:00:00Z";

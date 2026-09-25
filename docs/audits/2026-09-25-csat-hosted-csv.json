@@ -1,0 +1,11 @@
+{
+  "observedAt": "2026-09-25T20:22:34.0102566Z",
+  "artifact": "hosted-synthetic-csv",
+  "bytes": 2309,
+  "sha256": "c3e50322cfbe83eb7b041b98f84f61dc8035392b05a7bbe022ed89fa53feca72",
+  "utf8Bom": true,
+  "metricRows": 6,
+  "renderedCsatValuesMatch": true,
+  "sourceContractAndTimezonePresent": true,
+  "humanMetricsUnavailable": true
+}

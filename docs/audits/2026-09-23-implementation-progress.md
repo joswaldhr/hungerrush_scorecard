@@ -2,7 +2,33 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-25 (20:15 UTC). **Core, metric-display and roster corrections are deployed. Both-week CSAT source-ticket sets match for Menufy and POS. Menufy inbound sets match 1,927 named legs across both weeks; POS matches 2,012 legs for one week. The replacement CSAT candidate passes 118 offline cases, repeated Menufy source parity and live POS collection for all 39 active identities. Adapter CI passes 628 tests / 73 files. The staff census matches all 62 active employees; explicit policy and per-team selection are implemented. Neither migration 0015 nor replacement collection is active in production. Binding/cutover, hosted and release gates remain unfinished: 0/40 newly certified assignments. Human metrics, recurring shadow/v2 publication and historical repair remain disabled.**
+Last updated: 2026-09-25 (20:22 UTC). **Core, metric-display and roster corrections are deployed. Both-week CSAT source-ticket sets match for Menufy and POS. Menufy inbound sets match 1,927 named legs across both weeks; POS matches 2,012 legs for one week. The replacement CSAT candidate passes 118 offline cases, repeated Menufy source parity and live POS collection for all 39 active identities. Adapter CI passes 628 tests / 73 files. The staff census matches all 62 active employees; explicit policy and per-team selection are implemented. Hosted staging is migrated through 0015 and synthetic CSAT publication passes. Neither migration 0015 nor replacement collection is active in production. Binding/cutover, hosted and release gates remain unfinished: 0/40 newly certified assignments. Human metrics, recurring shadow/v2 publication and historical repair remain disabled.**
+
+## Hosted CSAT qualification — September 25, 20:22 UTC
+
+Commit `0881ac0` passed CI 36184492751 / 36184488065: 647 tests / 79 files,
+PostgreSQL migrations, lint, TypeScript and build. Preview deployment
+`dpl_4ZHp9Zg8Czx8NoaW9jnWzQUL9f4a` is READY. Hosted staging upgraded through 0015,
+preserving all 21,262 rows across 32 application tables.
+
+The fresh read-only production backup at 20:15 UTC restored all 39,798 rows across 33
+tables with exact digests. Widening the restored copy through 0015 preserved application
+data. Production schema and configuration remain unchanged.
+
+The first synthetic attempt stopped at an outdated one-organization fixture guard; the
+script now selects the named synthetic organization and leaves the separate disabled shadow
+organization untouched. The next attempt exposed a real publisher integration defect:
+normalization always received a null team, so valid team-bound CSAT snapshots were rejected.
+The transaction rolled back. The fix resolves and locks active employee/team rows during
+publication; missing identities and changed teams reject the batch. The PostgreSQL regression
+now exercises a non-null team through the actual publisher, plus missing and reassigned
+identities. All 28 focused pipeline tests pass, including the extended 18 publication cases.
+
+The fixed hosted synthetic rehearsal passed replacement, precise 100/3 storage, version 2,
+legacy revision retention, zero-write identical replay, explicit null correction and final
+fixture restoration. Preview displays 33.3% / 75.0%, America/Chicago, version 2 and the
+unverified-target explanation. Hosted history also shows the corrected values and retained 99% legacy predecessor, precise-contract predecessors and null corrections. Actual hosted CSV bytes were downloaded and inspected: 2,309 bytes, UTF-8 BOM, six rows, correct displayed percentages/context and unavailable human counts. PDF/PNG byte verification remains separate. No vendor
+requests or production writes were used for the hosted publication rehearsal.
 
 ## Bounded CSAT invocation — September 25, 20:15 UTC
 
