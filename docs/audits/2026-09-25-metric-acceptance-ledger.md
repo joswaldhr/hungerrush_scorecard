@@ -23,13 +23,13 @@ automated reconciliation, target review, staging/UI/export and production checks
 | avg_talk_time_outbound | 2 | D | Verify outbound report aggregation, zero policy and agent-leg attribution |
 | avoidable_worked_elevated_tickets | 2 | B | Team-specific fields differ; work attribution and history unresolved |
 | backlog_count | 1 | R | Snapshot measure; compare matched observation time and exact status/group scope |
-| csat_response_rate | 1 | R | All 23 Menufy report rows match for two weeks; one exact ticket set matched; full set/release qualification pending |
-| csat_score | 2 | R | Menufy 46 row-week numeric matches; POS 64 exact good/bad matches after correcting the temporary date filter (saved Last Week report actually uses 30 days). Seven active identities across both teams have no eligible ratings/denominator. Full set/release qualification pending |
-| declined_calls | 1 | R | Menufy 56 row-weeks match distinct declined plus transfer-declined legs; full source sets pending |
+| csat_response_rate | 1 | R | Both weeks match all Menufy surveyed/rated ticket IDs. Candidate passes live full-cohort parity for one week; publisher and release qualification pending |
+| csat_score | 2 | R | Both-week full good/bad ticket sets match Menufy and POS. Candidate passes 118 offline cases and one live Menufy week. Publisher/version/target context and release remain open |
+| declined_calls | 1 | R | Menufy 56 row-weeks match distinct declined plus transfer-declined legs; both-week exact source sets pass; publisher and target context pending |
 | inbound_calls_abandoned_on_hold | 2 | R | Menufy 56 participation row-weeks match, not employee responsibility. POS on-hold label wrongly counts IVR/queue/voicemail abandonment; do not copy it |
 | inbound_calls_accepted | 2 | R | Menufy 56 row-weeks and POS 55 rows match completed positive-talk agent legs. POS exact source set matches; target/period and release gates remain |
 | inbound_calls_offered | 2 | R | Menufy 56 row-weeks match accepted + declined + missed legs; unreachable excluded. Full release gates remain |
-| missed_calls | 1 | R | Menufy 56 row-weeks match Central call-date missed-leg counts; full source sets and release pending |
+| missed_calls | 1 | R | Menufy 56 row-weeks match Central call-date missed-leg counts; both-week source sets pass; publisher and release pending |
 | outbound_calls | 2 | D | Outbound leg agent report found; exact count and filtering pending |
 | outbound_calls_completed | 2 | D | Verify accepted/completed semantics and repeat legs per call |
 | outbound_calls_non_answered | 2 | D | Failed whole calls alone do not define all unanswered employee attempts |

@@ -1,0 +1,51 @@
+{
+  "observedAt": "2026-09-25T18:59:33.065Z",
+  "mode": "read-only candidate; no production publication",
+  "offlineReplay": [
+    {
+      "team": "menufy",
+      "cases": 46,
+      "differences": 0,
+      "responseDenominatorQualified": true
+    },
+    {
+      "team": "pos",
+      "cases": 72,
+      "differences": 0,
+      "brandScoped": true,
+      "responseDenominatorQualified": false
+    }
+  ],
+  "liveCollector": {
+    "periodStart": "2026-09-13",
+    "periodEnd": "2026-09-19",
+    "timeZone": "America/Chicago",
+    "explicitAgentIds": 23,
+    "groups": 5,
+    "requests": 116,
+    "observationStartedAt": "2026-09-25T18:54:10.159Z",
+    "observationEndedAt": "2026-09-25T18:56:10.422Z",
+    "elapsedSeconds": 120.263,
+    "paddedTickets": 5764,
+    "metricSets": 5764,
+    "reportCohortTickets": 4357,
+    "candidateCohortTickets": 4357,
+    "missing": 0,
+    "extra": 0,
+    "agentCases": 23,
+    "ratingAndSurveySetDifferences": 0
+  },
+  "validation": {
+    "candidateTests": 8,
+    "independentReferenceTests": 24,
+    "typeScript": "passed",
+    "focusedEslint": "passed"
+  },
+  "limits": [
+    "Live candidate collector qualified for one Menufy closed week and its 23 report identities; active roster and POS live collection still require integration qualification.",
+    "Group-only collection exhausted the search ceiling; explicit employee scope is required.",
+    "A separate initial child-process attempt failed without retained output and supplies no successful collection evidence.",
+    "Sequential vendor observations are not an atomic snapshot.",
+    "Publisher/version/target context, hosted exports, fresh backup/restore and production verification remain open."
+  ]
+}

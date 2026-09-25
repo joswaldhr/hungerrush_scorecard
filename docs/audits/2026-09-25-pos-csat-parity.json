@@ -10,10 +10,7 @@
     "selectedBrandCount": 1,
     "selectedGroupCount": 20,
     "deletedSelectedGroups": 5,
-    "selectedRatingValues": [
-      "good",
-      "bad"
-    ]
+    "selectedRatingValues": ["good", "bad"]
   },
   "source": {
     "tickets": 226,
@@ -53,12 +50,36 @@
   "limits": [
     "Only good/bad report counts are compared, not an independently displayed POS score formula.",
     "Rated-only extraction cannot establish a surveyed denominator or CSAT response rate.",
-    "Full ticket-set parity, historical assignment, late updates, target versions and production rollout remain open."
+    "Both good/bad source-ticket sets match exactly; current-assignee contract versions, late changes, target context and production rollout remain open."
   ],
   "groupDiscovery": {
     "currentGroups": 134,
     "includingDeleted": 151,
     "nextLinkDroppedOriginalParameters": true,
     "correctedContinuationPreservedExcludeDeletedAndPageSize": true
-  }
+  },
+  "fullSourceSetExports": [
+    {
+      "periodStart": "2026-09-13",
+      "rows": 105,
+      "bytes": 8032,
+      "good": 101,
+      "bad": 4,
+      "missing": 0,
+      "extra": 0,
+      "duplicateTickets": 0,
+      "sha256": "7893002904b2324522298d919053b678e86db9ddb37383da6ddfd781269b9342"
+    },
+    {
+      "periodStart": "2026-09-06",
+      "rows": 98,
+      "bytes": 7506,
+      "good": 95,
+      "bad": 3,
+      "missing": 0,
+      "extra": 0,
+      "duplicateTickets": 0,
+      "sha256": "fc3daa27e8e7a9d396f0343307c31d749c80e45cab52753ed862105b5a430cd0"
+    }
+  ]
 }

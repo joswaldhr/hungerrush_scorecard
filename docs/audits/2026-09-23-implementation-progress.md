@@ -2,7 +2,7 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-25 (18:32 UTC). **Core, metric-display and roster corrections are deployed. The metric investigation matches 110 CSAT row-weeks, 56 Menufy inbound row-weeks and 55 POS inbound rows. First-week exact call-leg sets and eight per-leg values match: 920 Menufy and 2,012 POS. The POS report has a proven mislabeled abandonment formula. Workforce source access and all 62 current identity matches are verified. New contracts remain 0/40 production-certified; no formula/target/publication changed. Corrected scheduled roster execution and Cadence export bytes remain unverified.**
+Last updated: 2026-09-25 (18:59 UTC). **Core, metric-display and roster corrections are deployed. Both-week CSAT source-ticket sets match for Menufy and POS. Menufy inbound sets match 1,927 named legs across both weeks; POS matches 2,012 legs for one week. The replacement CSAT candidate passes 118 offline cases and one live closed-week collection: 4,357 report tickets match exactly. Candidate tests and independent references pass (32 tests). Integration, target/version context and production release remain unfinished: 0/40 newly certified assignments. Human metrics, recurring shadow/v2 publication and historical repair remain disabled.**
 
 ## Current ledger
 

@@ -347,3 +347,30 @@ from actual on-hold participation and exposes per-leg hold separately from whole
 hold weighted by legs. It replays all 55 reported employee rows exactly. Across the
 independent ticket and call references, 24 focused tests pass; TypeScript and focused
 ESLint pass. No production runtime imports these diagnostic references.
+
+## Completed closed-week source-set comparisons and CSAT candidate
+
+Both Menufy CSAT weeks now have exact good/bad/surveyed ticket-ID parity for every
+reported agent. Actual ticket-level CSVs contain 4,357 and 4,310 rows, with no duplicate
+tickets or unknown agent names. The corresponding surveyed populations are 1,823 and
+1,946 tickets. Both POS weeks also have exact good/bad source sets (105 and 98 rated
+tickets). POS remains a rated-only reference and does not certify a response denominator.
+All temporary date/detail edits were discarded; saved report views were verified again.
+
+The second Menufy inbound source export matches all 1,007 named legs, identities and
+eight per-leg values. Together, both Menufy weeks match 1,927 named legs; unnamed legs
+remain excluded consistently from employee comparisons.
+
+The new solved-CSAT candidate calculator independently reproduces all 46 Menufy and
+72 POS reference cases, including zero-activity cases. POS brand evidence was refreshed
+for all 226 retained source tickets and the candidate enforces that explicit brand scope.
+Eight candidate tests pass, in addition to the 24 independent-reference tests. Candidate
+collection is being qualified read-only and is not wired to the publisher. An initial
+group-only query hit the 100-page safety ceiling; explicit employee IDs now constrain
+the population while preserving every satisfaction state. See the candidate release note.
+
+The corrected live candidate completed 116 requests in 120.263 seconds, retaining 5,764
+tickets and every matching metric set for the padded employee-scoped population. The
+final local-date cohort matches all 4,357 report ticket IDs exactly. All 23 agent cases
+and their good/bad/surveyed source sets and unrounded ratios match the earlier independent
+reference. The candidate remains disconnected from publication. See the qualification JSON.

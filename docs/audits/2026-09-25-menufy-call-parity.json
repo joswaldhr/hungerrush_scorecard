@@ -39,7 +39,7 @@
     "missingDurationRows": 0
   },
   "limitations": [
-    "First-week named source-leg IDs and eight values match exactly; second-week full source-set comparison remains open.",
+    "Both closed-week named source-leg sets and eight values match exactly; future collection, late changes, target context and publication remain open.",
     "Report participation in abandoned calls does not establish employee responsibility.",
     "Report sum and maximum durations are not scorecard averages.",
     "POS report definitions differ and are not certified by this comparison.",
@@ -91,5 +91,19 @@
     "extra": 0,
     "identityMismatches": 0,
     "eightMeasureMatches": 920
+  },
+  "secondWeekSourceSetVerification": {
+    "periodStart": "2026-09-06",
+    "exportBytes": 506407,
+    "sha256": "781b8a0463c15eebeb62d9533b64f482f49393a77b399170419c8a2ab23b5c2f",
+    "allLegRows": 1912,
+    "namedLegRows": 1007,
+    "unnamedLegRowsExcluded": 905,
+    "expectedNamedLegs": 1007,
+    "duplicates": 0,
+    "missing": 0,
+    "extra": 0,
+    "identityMismatches": 0,
+    "eightMeasureMatches": 1007
   }
 }
