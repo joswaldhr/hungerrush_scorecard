@@ -1,0 +1,25 @@
+{
+  "observedAt": "2026-09-25T22:09:30.846545+00:00",
+  "periodStart": "2026-09-06",
+  "sourceReadOnly": true,
+  "rows": 1503,
+  "distinctCallIds": 1502,
+  "missingParents": 0,
+  "nonAnsweredRows": 291,
+  "nonAnsweredApiStatuses": {
+    "completed": 288,
+    "failed": 3
+  },
+  "completedApiStatuses": {
+    "completed": 1212
+  },
+  "nonAnsweredWholeCallTalk": {
+    "zero": 288,
+    "null": 3
+  },
+  "inferredClassificationDifferences": 0,
+  "classificationIsEmpiricalInference": true,
+  "populationScopeIndependentlyRebuilt": false,
+  "sha256": "b0d3367f21bb74d176f994284fb9e06ee00ba1612e139a21cedc27ab9914d951",
+  "productionActivated": false
+}

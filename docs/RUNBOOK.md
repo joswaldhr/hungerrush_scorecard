@@ -4,6 +4,10 @@ Current environment state and release blockers are owned by the
 [implementation ledger](audits/2026-09-23-implementation-progress.md). This runbook does not
 declare production ready or authorize bypassing those technical gates.
 
+Apply the [safety guardrail plan](SAFETY_GUARDRAILS.md) before source investigation or
+release work. Zendesk is read-only; report/dashboard editors are prohibited even for
+unsaved inspection because opening an editor caused a manager lock during the audit.
+
 ## Development checks
 
 Use an isolated PostgreSQL database. Test configuration never loads `.env`; local overrides

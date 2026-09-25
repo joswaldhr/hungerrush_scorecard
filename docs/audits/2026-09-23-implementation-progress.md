@@ -2,7 +2,46 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-25 (22:00 UTC). **Core, metric-display and roster corrections are deployed. CSAT and Menufy first reply are live with independent source-to-production verification: 108 current-week values across 62 employees, zero differences. This covers 4/40 assigned team metrics; full-contract certification remains 0/40 while target qualification and genuine replacement scheduler execution remain open. CI passes 670 tests / 86 files. Hosted current/history and actual CSV/PDF/PNG files are verified. Call, active-effort, backlog and human-attribution work remains; human metrics, action shadow/v2 publication and historical repair remain disabled.**
+Last updated: 2026-09-25 (23:52 UTC). **Core, metric-display and roster corrections are deployed. CSAT and Menufy first reply have independent source-to-production verification: 108 current-week values across 62 employees, zero differences. This covers 4/40 assigned team metrics; full-contract certification remains 0/40 while target qualification and genuine replacement scheduler execution remain open. PR31's inactive call candidate passed CI with 686 tests / 88 files. Subsequent outbound/store/worker changes are local candidates, not a production release. Call, active-effort, backlog and human-attribution work remains; human metrics, ticket-action shadow/action-v2 publication and historical repair remain disabled. The mandatory safety plan prohibits Zendesk mutations and report-editor sessions.**
+
+## Safety boundary and outbound qualification — September 25, 23:52 UTC
+
+The user explicitly requires no Zendesk changes and requested a safety guardrail plan.
+An audit report-editor session caused a manager's resource-lock warning despite no report
+save. All three report editors were exited and all five Explore tabs closed; the final
+tab inventory contained no Explore tabs. Do not reopen editors for inspection, temporary
+filters or export. Continue from retained data and bounded GET APIs. The manager's resumed
+access is not independently verified. See [the safety plan](../SAFETY_GUARDRAILS.md), linked
+from AGENTS.md, engineering rules, handoff and runbook. Routine checkpoint approval is not
+required; failing technical checks blocks the affected operation, not independent safe work.
+
+Retained-source reconstruction of Menufy outbound now matches both closed weeks exactly:
+2,896 employee-call rows, 11,584 field comparisons, zero missing/extra rows or value
+differences. The TypeScript candidate matches 44 employee-period cases / 220 comparisons.
+Of 598 report non-answered employee-call rows, 594 are API-completed with zero whole-call
+talk, and four API-failed with null talk. This is an account-observed mapping, not a universal
+Zendesk promise or proof of human customer answer. Source scope is linked-ticket group.
+
+POS visible daily counts match two closed weeks: 979 calls / 56 comparisons / zero differences.
+Its duration total includes customer legs and is not employee handling time. CSV/Excel export
+attempts returned no file; exact POS outbound employee-call sets remain unverified. Do not
+repeat report-editor inspection to close this gap. Aggregate evidence is retained in the
+September 25 outbound parity/source census JSON files; all identifiers/exports remain private.
+
+The newer 25,694-call observation contains all five parents missing from the earlier current
+read. This supersedes that specific join gap, not the dated observation or full current-week
+certification. Preserving `exclude_deleted=false` on every groups page produced 151 unique
+groups including 17 deleted groups; all six POS outbound scope labels now resolve. The
+earlier four unresolved POS inbound labels still need separate confirmation.
+
+Local candidate work adds durable Talk source/revision/cursor transactions, account-bound
+leases, compare-and-swap guards, persisted pacing/Retry-After and a bounded GET-only worker.
+Typecheck, targeted lint and all 27 focused checks pass: seven real PostgreSQL storage
+tests, ten cursor tests, six outbound tests and four GET-only/worker tests. It has no
+active route, production policy or schedule.
+Shared budgeting with existing Talk clients, complete joined coverage, full CI/build,
+hosted rehearsal and scoped publication gates remain before activation. No production
+configuration/data change or new live Zendesk request was made for this safety-plan update.
 
 ## Talk calculation qualification — September 25, 22:00 UTC
 
