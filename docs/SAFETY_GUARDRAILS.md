@@ -140,6 +140,10 @@ absolute backup paths before creation. Never print environment values to diagnos
   linked-ticket reader and joined observation gates have 18 affected passing tests
   (50 focused checks total, including eleven real PostgreSQL tests); their full CI and source-wide coordination
   remain required. No new Talk route, scheduler, production policy or metric publisher is active.
+- **Outbound publication candidate:** strict prospective team/key policy, minimized replay
+  evidence and explicit legacy-contribution replacement are implemented on the branch.
+  All 20 database publication tests and 23 targeted unit checks pass; source connection,
+  full CI and hosted/recovery release evidence remain. No live policy consumes this path.
 - **Next:** finish those candidate checks; qualify missing POS employee-level export
   evidence without opening report editors; implement explicit joined-coverage/publication
   gates; rehearse in staging; then perform a scoped release only when this plan's gates pass.

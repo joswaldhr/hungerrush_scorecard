@@ -3,9 +3,11 @@ export const SOLVED_CSAT_CONTRACT = "zendesk-solved-current-assignee-csat-v1";
 export const SOLVED_CSAT_CALCULATION_VERSION = 2;
 export const FIRST_REPLY_CONTRACT = "zendesk-created-current-assignee-first-reply-business-v1";
 export const FIRST_REPLY_CALCULATION_VERSION = 2;
+export const OUTBOUND_PARTICIPATION_CONTRACT = "zendesk-call-created-agent-leg-outbound-v1";
 export function completeSnapshotVersion(contract: string | undefined): number | null {
   if (contract === SOLVED_CSAT_CONTRACT) return SOLVED_CSAT_CALCULATION_VERSION;
   if (contract === FIRST_REPLY_CONTRACT) return FIRST_REPLY_CALCULATION_VERSION;
+  if (contract === OUTBOUND_PARTICIPATION_CONTRACT) return 2;
   return null;
 }
 export const INCOMPATIBLE_COMPARISON_REASON =
@@ -42,7 +44,7 @@ export function readMetricSourceContext(value: unknown): MetricSourceContext | n
     throw new Error("Invalid metric source scope");
   const counts: { sampleCount?: number; cohortCount?: number } = {};
   if (
-    row.sourceContract === FIRST_REPLY_CONTRACT &&
+    [FIRST_REPLY_CONTRACT, OUTBOUND_PARTICIPATION_CONTRACT].includes(row.sourceContract) &&
     (row.sampleCount !== undefined || row.cohortCount !== undefined)
   ) {
     if (
@@ -51,7 +53,7 @@ export function readMetricSourceContext(value: unknown): MetricSourceContext | n
       (row.sampleCount as number) < 0 ||
       (row.cohortCount as number) < (row.sampleCount as number)
     )
-      throw new Error("Invalid first-reply sample coverage");
+      throw new Error("Invalid metric sample coverage");
     counts.sampleCount = row.sampleCount as number;
     counts.cohortCount = row.cohortCount as number;
   }

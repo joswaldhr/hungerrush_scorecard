@@ -18,6 +18,19 @@ tracked on PR32 and in the implementation ledger.
 
 ## Implemented
 
+- A strict inactive policy separates inbound routing-group/line scope from outbound
+  current-linked-ticket scope. It requires explicit team keys, a Sunday cutover,
+  account/source/organization binding and bounded observation limits; no environment
+  variable or route consumes it yet.
+- The outbound record builder validates the full joined observation, then retains only
+  this employee's necessary call/leg/ticket replay fields. It strips unused line/routing
+  fields. Normalization recomputes values from raw evidence, verifies employee/team and
+  interval, preserves seconds/denominators, and emits only policy-selected keys.
+- Dedicated outbound snapshot facts explicitly supersede matching legacy `agent_stats`
+  contributions. They keep prior raw facts and values as revisions, resist later legacy
+  refreshes, and propagate null corrections. Source descriptions distinguish employee
+  legs, distinct calls, current ticket groups and unclassified outcomes. Comparisons and
+  targets retain the existing changed-contract safeguards.
 - An inactive outbound ticket reader collects the exact call-created cohort's linked
   ticket IDs in batches of at most 100. Missing, duplicate or foreign returned tickets
   reject the collection; null group/link values remain explicit. Only ID, group and
@@ -55,6 +68,14 @@ tracked on PR32 and in the implementation ledger.
 
 ## Validation
 
+Candidate `2b2e8b5` passed both full CI runs 36207684917/36207687477 and Preview.
+The subsequent policy/publication increment has 23 targeted unit checks and all 20 real
+PostgreSQL publication tests passing. The new database case checks exact 2/3-second
+precision, null retraction, idempotency, retained revisions, unchanged unrelated values
+and earlier periods, protection against later legacy overwrite, and rollback on team
+change. A test-only generic inference error was corrected; typecheck passes. Full CI
+for this newer increment is still required.
+
 Fifty focused checks pass: eleven real PostgreSQL storage tests, ten cursor tests,
 seven outbound tests, four transport/worker tests, seven observation-policy tests, six
 outbound joined-observation tests and five
@@ -89,13 +110,14 @@ See `2026-09-25-talk-store-capacity-rehearsal.json`.
 
 ## Remaining activation gates
 
-The worker is not connected to an HTTP route, cron or publisher. It does not replace the
+The worker is not connected to an HTTP route, cron or live publisher. It does not replace the
 legacy Talk fetcher. Coordinate or eliminate overlap with that fetcher before activation;
 the new account lease cannot rate-limit unrelated existing integrations automatically.
 Retained ticket-group scope observations and the new inactive ticket reader are not yet
-durable outbound publication evidence. Joined observation gates are now implemented;
-qualified policies, targets,
-publication ownership and hosted synthetic rehearsals remain implementation work.
+live outbound publication evidence. Joined observation gates, prospective policy and
+outbound publication ownership are now implemented on the branch. Database assignment/
+identity preflight, the dedicated source-to-publisher connection, source-wide collection
+coordination, target qualification and hosted synthetic rehearsals remain open.
 
 All five parents missing from the earlier current-week read are present in the newer
 retained call census; their update timestamps are after the earlier read. This is new

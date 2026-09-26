@@ -4,7 +4,11 @@ import {
   metricSourceName,
   unsupportedMetricReason,
 } from "./source-description";
-import { FIRST_REPLY_CONTRACT, SOLVED_CSAT_CONTRACT } from "./source-context";
+import {
+  FIRST_REPLY_CONTRACT,
+  SOLVED_CSAT_CONTRACT,
+  OUTBOUND_PARTICIPATION_CONTRACT,
+} from "./source-context";
 
 it("uses replacement semantics only for explicitly classified observations", () => {
   const context = { sourceContract: SOLVED_CSAT_CONTRACT, reportingTimeZone: "America/Chicago" };
@@ -13,6 +17,29 @@ it("uses replacement semantics only for explicitly classified observations", () 
   expect(unsupportedMetricReason("csat_response_rate", "zendesk", context)).toContain(
     "No offered or rated"
   );
+});
+
+it("distinguishes employee outbound legs from legacy whole calls and explains unavailable outcomes", () => {
+  const context = {
+    sourceContract: OUTBOUND_PARTICIPATION_CONTRACT,
+    reportingTimeZone: "America/Chicago",
+    sampleCount: 2,
+    cohortCount: 3,
+  };
+  expect(metricSourceDescription("avg_talk_time_outbound", "zendesk", context)).toContain(
+    "2 measured legs out of 3"
+  );
+  expect(metricSourceDescription("outbound_calls", "zendesk", context)).toContain("Distinct calls");
+  expect(metricSourceDescription("outbound_calls_completed", "zendesk", context)).toContain(
+    "does not prove a human"
+  );
+  expect(unsupportedMetricReason("outbound_calls_completed", "zendesk", context)).toContain(
+    "could not be classified"
+  );
+  expect(unsupportedMetricReason("avg_hold_time_outbound", "zendesk", context)).toContain(
+    "No reported employee-leg"
+  );
+  expect(metricSourceDescription("avg_talk_time_outbound", "zendesk")).toContain("whole-call");
 });
 
 it("does not imply employee handling effort or offered events from whole-ticket/call metrics", () => {

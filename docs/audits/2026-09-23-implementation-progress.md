@@ -2,6 +2,18 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+September 26, 01:28 UTC continuation: `2b2e8b5` passed both full CI runs
+36207684917/36207687477 and Preview. The next increment adds a strict, inactive
+team/key/cutover policy and replayable employee outbound records. Dedicated replacement
+facts supersede only legacy outbound contributions, preserving raw sibling evidence.
+The real PostgreSQL publication rehearsal verifies exact 2/3-second precision, null
+retraction, retained revisions, idempotency, unchanged earlier weeks/siblings, later
+legacy refresh protection and rollback on a changed team. All 20 publication tests and
+23 targeted policy/record/context tests pass; a test-only TypeScript inference error was
+fixed and typecheck passes. Full CI for this increment follows. The new contract also
+carries employee-leg sample descriptions and incompatible-comparison/target safeguards.
+No live route/configuration consumes the policy; production and Zendesk remain unchanged.
+
 September 26, 01:13 UTC continuation: PR32 candidate `fedf71c` passed CI 36206690857
 (713 tests / 92 files, PostgreSQL migrations, typecheck, lint and build) and Preview.
 The next inactive increment collects complete outbound linked-ticket metadata in bounded

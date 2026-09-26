@@ -20,7 +20,11 @@ import { fetchCompleteTalkWeek, type TalkCall, type TalkPage } from "./zendesk-t
 import { averageEvidence, sourceIds } from "./source-evidence";
 import { normalizeSolvedCsatRecord } from "./zendesk-solved-csat-record";
 import { normalizeFirstReplyRecord } from "./zendesk-first-reply-record";
-import { FIRST_REPLY_CONTRACT } from "@/lib/domain/metrics/source-context";
+import {
+  FIRST_REPLY_CONTRACT,
+  OUTBOUND_PARTICIPATION_CONTRACT,
+} from "@/lib/domain/metrics/source-context";
+import { normalizeOutboundRecord } from "./zendesk-outbound-record";
 import { configuredCsatPolicy } from "./zendesk-csat-config";
 import { csatPolicyForPeriod } from "./zendesk-csat-policy";
 import { mapWithConcurrency, weekDates } from "@/lib/utils";
@@ -608,7 +612,9 @@ export class ZendeskConnector implements Connector {
         facts.push(
           ...(payload.sourceContract === FIRST_REPLY_CONTRACT
             ? normalizeFirstReplyRecord(payload, employeeId, teamId, periodStart, periodEnd)
-            : normalizeSolvedCsatRecord(payload, employeeId, teamId, periodStart, periodEnd))
+            : payload.sourceContract === OUTBOUND_PARTICIPATION_CONTRACT
+              ? normalizeOutboundRecord(payload, employeeId, teamId, periodStart, periodEnd)
+              : normalizeSolvedCsatRecord(payload, employeeId, teamId, periodStart, periodEnd))
         );
         continue;
       }
