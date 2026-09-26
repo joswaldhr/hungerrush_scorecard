@@ -397,3 +397,105 @@ export async function commitTalkCollectionPage(
     };
   });
 }
+
+/** A consistent local read of independently collected streams, not an atomic vendor snapshot. */
+export async function readTalkCollectionSnapshot(scope: TalkStoreScope) {
+  if (!isZendeskAccountReference(scope.accountReference))
+    throw Error("Invalid Talk account binding");
+  return db.transaction(
+    async (tx) => {
+      await tx.execute(sql`select set_config('statement_timeout', '15000', true)`);
+      const [source] = await tx
+        .select()
+        .from(dataSources)
+        .where(
+          and(
+            eq(dataSources.id, scope.dataSourceId),
+            eq(dataSources.organizationId, scope.organizationId)
+          )
+        );
+      if (
+        !source ||
+        source.type !== "zendesk" ||
+        source.status !== "configured" ||
+        source.configurationReference !== scope.accountReference
+      )
+        throw Error("Talk snapshot source binding not permitted");
+      const rows = await tx
+        .select()
+        .from(sourceRecords)
+        .where(
+          and(
+            eq(sourceRecords.dataSourceId, scope.dataSourceId),
+            eq(sourceRecords.externalRecordType, CHECKPOINT),
+            inArray(sourceRecords.externalRecordId, ["calls", "legs"])
+          )
+        );
+      const streams = ["calls", "legs"] as const;
+      const states = streams.map((resource) => {
+        const row = rows.find((r) => r.externalRecordId === resource);
+        return row ? checkpoint(row.payloadJson, scope, resource) : null;
+      });
+      if (states.some((state) => state?.cursor.status !== "exhausted"))
+        return {
+          status: "collecting" as const,
+          snapshot: null,
+          joinedMetricCoverageCertified: false as const,
+        };
+      const [callsState, legsState] = states as [Checkpoint, Checkpoint];
+      if (callsState.bootstrapStart !== legsState.bootstrapStart)
+        throw Error("Talk stream bootstrap scope mismatch");
+      // A hard bound rejects over-capacity stores instead of silently truncating a population.
+      const records = await tx
+        .select()
+        .from(sourceRecords)
+        .where(
+          and(
+            eq(sourceRecords.dataSourceId, scope.dataSourceId),
+            eq(sourceRecords.externalRecordType, RECORD)
+          )
+        )
+        .limit(250001);
+      if (records.length > 250000)
+        throw Error("Talk retained population exceeds snapshot capacity");
+      const calls: z.infer<typeof outboundCallSchema>[] = [],
+        legs: z.infer<typeof talkParticipationLegSchema>[] = [];
+      for (const row of records) {
+        const resource = row.externalRecordId.startsWith("calls:")
+          ? "calls"
+          : row.externalRecordId.startsWith("legs:")
+            ? "legs"
+            : null;
+        if (!resource) throw Error("Unexpected Talk stored record key");
+        const schema = resource === "calls" ? outboundCallSchema : talkParticipationLegSchema;
+        const parsed = schema.safeParse(row.payloadJson);
+        if (
+          !parsed.success ||
+          row.externalRecordId !== `${resource}:${parsed.data.id}` ||
+          hash(parsed.data) !== row.payloadHash
+        )
+          throw Error("Invalid Talk stored record identity or digest");
+        if (resource === "calls") calls.push(parsed.data as z.infer<typeof outboundCallSchema>);
+        else legs.push(parsed.data as z.infer<typeof talkParticipationLegSchema>);
+      }
+      const callIds = new Set(calls.map((c) => c.id));
+      const missingParentCallIds = [
+        ...new Set(legs.filter((l) => !callIds.has(l.call_id)).map((l) => l.call_id)),
+      ].sort((a, b) => a - b);
+      return {
+        status: "ready_for_qualification" as const,
+        joinedMetricCoverageCertified: false as const,
+        snapshot: {
+          accountReference: scope.accountReference,
+          bootstrapStart: callsState.bootstrapStart,
+          callsState,
+          legsState,
+          calls,
+          legs,
+          missingParentCallIds,
+        },
+      };
+    },
+    { isolationLevel: "repeatable read", accessMode: "read only" }
+  );
+}

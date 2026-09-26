@@ -5,6 +5,11 @@ production route, environment policy, cron, source collection or metric publicat
 Zendesk report/dashboard editors remain closed. This increment used retained private
 source data and synthetic local database tests; it issued no new Zendesk requests.
 
+00:47 UTC follow-up: candidate `602ed29` passed CI runs 36205774133 and 36205776797:
+706 tests / 91 files, PostgreSQL 18 migrations, typecheck, lint and production build.
+Its Vercel Preview deployment completed. A subsequent snapshot-reader increment is
+under validation; the prior green result does not certify that newer candidate.
+
 ## Implemented
 
 - Outbound participation uses linked-ticket groups, explicit Central reporting dates,
@@ -27,10 +32,14 @@ source data and synthetic local database tests; it issued no new Zendesk request
   allowlist, explicit GET, rejected redirects, request timeout and invocation budget.
   Database lock/statement timeouts bound contention. Calls, legs and metrics have separate
   completeness states: exhausted exports do not certify a joined employee population.
+- A repeatable-read, read-only database snapshot returns no population while either
+  stream is pending, validates stored record IDs and digests, retains missing-parent
+  identities for qualification, and rejects over-capacity stores instead of truncating
+  their rows. It explicitly does not certify vendor snapshot atomicity or metric coverage.
 
 ## Validation
 
-Thirty focused checks pass: nine real PostgreSQL storage tests, ten cursor tests,
+Thirty-two focused checks pass: eleven real PostgreSQL storage tests, ten cursor tests,
 seven outbound tests and four transport/worker tests. The storage tests include a real
 PostgreSQL constraint failure on the final checkpoint update after page/revision writes:
 all writes roll back, the old checkpoint survives, and the page can be retried.
@@ -42,6 +51,13 @@ employee-period cases / 220 comparisons / zero differences**. Earlier independen
 reconstruction establishes 2,896 employee-call rows / 11,584 compared fields with no
 missing/extra rows or value differences. Evidence is aggregate-only; raw source, identities
 and downloads remain private. Full candidate CI/build is required before any production merge.
+
+The POS candidate also matches an independent Python reconstruction of retained raw
+calls, ticket groups and legs: **72 employee-period cases / 1,296 fields / zero differences**
+across two closed weeks, including exact employee-call/leg sets and duration denominators.
+This source reconstruction complements the independently observed 14 daily report totals;
+it does not claim an employee-level Explore export was obtained. See
+`2026-09-25-pos-outbound-candidate-replay.json`.
 
 ## Remaining activation gates
 

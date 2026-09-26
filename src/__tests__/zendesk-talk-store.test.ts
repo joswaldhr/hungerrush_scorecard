@@ -10,6 +10,7 @@ import {
   commitTalkCollectionPage,
   deferTalkRequests,
   releaseTalkCollection,
+  readTalkCollectionSnapshot,
   reserveTalkRequest,
   type TalkOwnedScope,
 } from "@/lib/connectors/zendesk-talk-store";
@@ -248,4 +249,79 @@ it("does not treat a corrupt checkpoint as an exhausted stream or restart over i
   const before = await records();
   await expect(beginTalkCollectionCycle(worker, "calls", start)).rejects.toThrow("Invalid stored");
   expect(await records()).toEqual(before);
+});
+it("keeps partial streams unavailable and retains unresolved joins in an exhausted snapshot", async () => {
+  const before = await records();
+  expect(await readTalkCollectionSnapshot(scope)).toMatchObject({
+    status: "collecting",
+    snapshot: null,
+  });
+  expect(await records()).toEqual(before);
+  const worker = await own();
+  const calls = await beginTalkCollectionCycle(worker, "calls", start);
+  const legs = await beginTalkCollectionCycle(worker, "legs", start);
+  await commitTalkCollectionPage(worker, "calls", calls.expectedHash, page([], 500));
+  expect((await readTalkCollectionSnapshot(scope)).snapshot).toBeNull();
+  const first = await commitTalkCollectionPage(worker, "legs", legs.expectedHash, {
+    legs: [
+      {
+        id: 1,
+        call_id: 99,
+        agent_id: 42,
+        type: "agent",
+        completion_status: "completed",
+        created_at: "2026-09-13T12:00:00Z",
+        updated_at: "2026-09-13T13:00:00Z",
+        talk_time: 10,
+        hold_time: 0,
+        duration: 20,
+        consultation_time: null,
+      },
+    ],
+    count: 1,
+    end_time: 500,
+    next_page: `${origin}/api/v2/channels/voice/stats/incremental/legs.json?start_time=500`,
+  });
+  await commitTalkCollectionPage(worker, "legs", first.expectedHash, {
+    legs: [],
+    count: 0,
+    end_time: 500,
+    next_page: null,
+  });
+  const snapshot = await readTalkCollectionSnapshot(scope);
+  expect(snapshot).toMatchObject({
+    status: "ready_for_qualification",
+    joinedMetricCoverageCertified: false,
+    snapshot: { missingParentCallIds: [99] },
+  });
+  const saved = await records();
+  await readTalkCollectionSnapshot(scope);
+  expect(await records()).toEqual(saved);
+  await expect(
+    readTalkCollectionSnapshot({ ...scope, organizationId: randomUUID() })
+  ).rejects.toThrow("not permitted");
+});
+it("rejects stored source corruption instead of serving an apparently complete snapshot", async () => {
+  const worker = await own();
+  const calls = await beginTalkCollectionCycle(worker, "calls", start),
+    legs = await beginTalkCollectionCycle(worker, "legs", start);
+  const first = await commitTalkCollectionPage(worker, "calls", calls.expectedHash, page());
+  await commitTalkCollectionPage(worker, "calls", first.expectedHash, page([], 500));
+  await commitTalkCollectionPage(worker, "legs", legs.expectedHash, {
+    legs: [],
+    count: 0,
+    end_time: 500,
+    next_page: null,
+  });
+  expect((await readTalkCollectionSnapshot(scope)).snapshot?.calls).toHaveLength(1);
+  await db
+    .update(sourceRecords)
+    .set({ payloadJson: sql`jsonb_set(payload_json,'{talk_time}','999'::jsonb)` })
+    .where(
+      and(
+        eq(sourceRecords.dataSourceId, dataSourceId),
+        eq(sourceRecords.externalRecordType, "zendesk_talk_collection_record_v1")
+      )
+    );
+  await expect(readTalkCollectionSnapshot(scope)).rejects.toThrow("digest");
 });

@@ -2,11 +2,13 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Latest continuation: September 26, 00:40 UTC (September 25 Central). The inactive outbound
-calculator and durable Talk store/worker are implemented with 30 focused checks passing,
-including a PostgreSQL failure after data writes that rolls the whole page back. The Menufy
-44-case retained replay still has zero differences. Full CI/build and all production
-activation gates remain open; no Zendesk or production changes were made. See
+Latest continuation: September 26, 00:47 UTC (September 25 Central). PR32 candidate
+`602ed29` passes CI 36205774133/36205776797: 706 tests / 91 files, PostgreSQL migrations,
+typecheck, lint and build; its Preview completed. The newer read-only snapshot increment
+has 32 focused checks passing, including eleven real PostgreSQL tests; its full CI is
+pending. Menufy 44-case replay and POS 72-case independent raw-source reconstruction both
+have zero differences. Exact POS employee sets from Explore remain unobserved. All
+production activation gates remain open; no Zendesk or production changes were made. See
 `2026-09-25-talk-collector-candidate.md`. The summary below is the preceding checkpoint.
 
 Last updated: 2026-09-25 (23:52 UTC). **Core, metric-display and roster corrections are deployed. CSAT and Menufy first reply have independent source-to-production verification: 108 current-week values across 62 employees, zero differences. This covers 4/40 assigned team metrics; full-contract certification remains 0/40 while target qualification and genuine replacement scheduler execution remain open. PR31's inactive call candidate passed CI with 686 tests / 88 files. Subsequent outbound/store/worker changes are local candidates, not a production release. Call, active-effort, backlog and human-attribution work remains; human metrics, ticket-action shadow/action-v2 publication and historical repair remain disabled. The mandatory safety plan prohibits Zendesk mutations and report-editor sessions.**

@@ -136,7 +136,7 @@ absolute backup paths before creation. Never print environment values to diagnos
   manager access and private data. `AGENTS.md`, engineering rules and handoff link here.
 - **Local candidate, not activated:** outbound calculator, durable Talk page/revision
   storage, account-bound lease/CAS checks, persistent pacing and GET-only bounded worker.
-  Typecheck, targeted lint and 30 focused tests (including nine real PostgreSQL tests)
+  Typecheck, targeted lint and 32 focused tests (including eleven real PostgreSQL tests)
   passed; full validation and source-wide coordination remain
   required. No new Talk route, scheduler, production policy or metric publisher is active.
 - **Next:** finish those candidate checks; qualify missing POS employee-level export
