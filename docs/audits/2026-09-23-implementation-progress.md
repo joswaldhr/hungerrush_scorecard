@@ -2,6 +2,14 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 26, 15:16 UTC:** the next PR32 increment coordinates legacy Talk reads
+with the durable collector's account lease, 6.3-second request reservations and persisted
+vendor backoff. All 28 focused checks pass, including two PostgreSQL cross-reader
+contention/backoff cases; typecheck and targeted lint pass. The isolated local test
+database recovered after the machine restart; no hosted database was used. Full CI
+for this increment follows. Zendesk received no requests or changes. Collection and
+publication routes remain absent; hosted/recovery/canary gates remain open.
+
 **September 26, 01:38 UTC (September 25 Central):** PR32 code candidate `20f0495`
 passes both CI runs 36208942784/36208944848: **749 tests / 99 files**, PostgreSQL
 migrations, typecheck, lint and production build. Preview completed. The formatting

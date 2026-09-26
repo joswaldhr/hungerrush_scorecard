@@ -19,6 +19,15 @@ vi.mock("@/lib/db", () => ({
 vi.mock("@/lib/logger", () => ({ logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() } }));
 const get = vi.hoisted(() => vi.fn());
 vi.mock("./zendesk-shared", () => ({ zendeskGet: get }));
+vi.mock("./zendesk-talk-legacy", async () => {
+  const { fetchCompleteTalkWeek } = await import("./zendesk-talk");
+  return {
+    fetchLegacyTalkWeek: async (_config: unknown, start: string, end: string) => ({
+      ...(await fetchCompleteTalkWeek(start, end, get)),
+      diagnostics: { sharedAccountBudget: true },
+    }),
+  };
+});
 import { ZendeskConnector } from "./zendesk";
 afterEach(() => {
   vi.useRealTimers();

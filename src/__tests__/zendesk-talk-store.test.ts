@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { randomUUID } from "node:crypto";
-import { afterAll, beforeAll, beforeEach, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, expect, it, vi } from "vitest";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { organizations, dataSources, sourceRecords } from "@/lib/db/schema";
@@ -14,6 +14,8 @@ import {
   reserveTalkRequest,
   type TalkOwnedScope,
 } from "@/lib/connectors/zendesk-talk-store";
+import { fetchCoordinatedTalkWeek } from "@/lib/connectors/zendesk-talk-legacy";
+import { runTalkCollectionBatch } from "@/lib/connectors/zendesk-talk-worker";
 
 const organizationId = randomUUID(),
   dataSourceId = randomUUID(),
@@ -85,6 +87,71 @@ it("serializes workers across data sources bound to the same account", async () 
     claimTalkCollection({ ...scope, dataSourceId: secondSourceId }),
   ]);
   expect(claims.filter((x) => x.acquired)).toHaveLength(1);
+});
+
+it("blocks the durable worker while a legacy fetch owns another source in the same account", async () => {
+  let started!: () => void, finish!: () => void;
+  const entered = new Promise<void>((resolve) => {
+    started = resolve;
+  });
+  const released = new Promise<void>((resolve) => {
+    finish = resolve;
+  });
+  const legacy = fetchCoordinatedTalkWeek(scope, "2026-09-20", "2026-09-26", async () => {
+    started();
+    await released;
+    return { rateLimited: false, page: { calls: [], count: 0, end_time: 500, next_page: null } };
+  });
+  await entered;
+  try {
+    const request = vi.fn();
+    expect(
+      await runTalkCollectionBatch({ ...scope, dataSourceId: secondSourceId }, start, request)
+    ).toMatchObject({ status: "busy", pages: 0 });
+    expect(request).not.toHaveBeenCalled();
+  } finally {
+    finish();
+  }
+  expect((await legacy).calls).toEqual([]);
+});
+
+it("blocks legacy reads behind a durable worker and carries its vendor delay across handoff", async () => {
+  let started!: () => void, finish!: () => void;
+  const entered = new Promise<void>((resolve) => {
+    started = resolve;
+  });
+  const released = new Promise<void>((resolve) => {
+    finish = resolve;
+  });
+  const worker = runTalkCollectionBatch(scope, start, async () => {
+    started();
+    await released;
+    return { rateLimited: true, retryAfterMs: 60000 };
+  });
+  await entered;
+  const request = vi.fn();
+  try {
+    await expect(
+      fetchCoordinatedTalkWeek(
+        { ...scope, dataSourceId: secondSourceId },
+        "2026-09-20",
+        "2026-09-26",
+        request
+      )
+    ).rejects.toThrow("already running");
+  } finally {
+    finish();
+  }
+  expect(await worker).toMatchObject({ status: "rate_limited", pages: 0 });
+  await expect(
+    fetchCoordinatedTalkWeek(
+      { ...scope, dataSourceId: secondSourceId },
+      "2026-09-20",
+      "2026-09-26",
+      request
+    )
+  ).rejects.toMatchObject({ name: "SourceRetryLaterError" });
+  expect(request).not.toHaveBeenCalled();
 });
 it("retains account-wide rate reservations and Retry-After across worker handoff", async () => {
   const worker = await own();

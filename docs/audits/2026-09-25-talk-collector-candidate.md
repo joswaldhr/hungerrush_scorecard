@@ -127,16 +127,17 @@ See `2026-09-25-talk-store-capacity-rehearsal.json`.
 
 ## Remaining activation gates
 
-The worker is not connected to an HTTP route, cron or live publisher. It does not replace the
-legacy Talk fetcher. Coordinate or eliminate overlap with that fetcher before activation;
-the new account lease cannot rate-limit unrelated existing integrations automatically.
+The worker is not connected to an HTTP route, cron or live publisher. The September 26
+candidate moves the legacy Talk fetcher onto the same account lease, request reservations
+and persisted vendor backoff. Twenty-eight focused checks pass, including real PostgreSQL
+contention in both directions and backoff across worker handoff. Full CI follows. This
+application-level coordination cannot rate-limit unrelated integrations automatically.
 Retained ticket-group scope observations and the new inactive ticket reader are not yet
 live outbound publication evidence. Joined observation gates, prospective policy and
 outbound publication ownership are now implemented on the branch, along with database
 assignment/identity preflight and the dedicated source-to-publisher connection.
-Source-wide collection coordination, target qualification and hosted synthetic rehearsals
-remain open. A live route/policy must not activate the new worker until overlap with the
-legacy Talk reader is eliminated or controlled by a shared source/request lease. Preserve
+Target qualification and hosted synthetic rehearsals remain open. A live route/policy
+must retain the shared legacy/durable source lease and request budget. Preserve
 each path's last good observation if a run is busy, partial or rate-limited.
 
 All five parents missing from the earlier current-week read are present in the newer

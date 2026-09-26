@@ -13,10 +13,11 @@ import type {
 import { db } from "@/lib/db";
 import { externalIdentities, employees } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
-import { zendeskGet, type RequestStats } from "./zendesk-shared";
+import { zendeskGet } from "./zendesk-shared";
 import { logger } from "@/lib/logger";
 import { fetchCompleteSearch, type SearchExportPage } from "./zendesk-search";
-import { fetchCompleteTalkWeek, type TalkCall, type TalkPage } from "./zendesk-talk";
+import type { TalkCall } from "./zendesk-talk";
+import { fetchLegacyTalkWeek } from "./zendesk-talk-legacy";
 import { averageEvidence, sourceIds } from "./source-evidence";
 import { normalizeSolvedCsatRecord } from "./zendesk-solved-csat-record";
 import { normalizeFirstReplyRecord } from "./zendesk-first-reply-record";
@@ -187,21 +188,21 @@ async function fetchRatings(
 }
 
 async function fetchCallsForWeek(
+  config: ConnectorConfig,
   periodStart: string,
   periodEnd: string
 ): Promise<{ calls: ZendeskCall[]; diagnostics: Record<string, unknown> }> {
-  const stats: RequestStats = { requests: 0, retries429: 0, backoffWaitMs: 0 };
-  const startedAt = Date.now();
-  const { calls, pages } = await fetchCompleteTalkWeek(periodStart, periodEnd, (path) =>
-    zendeskGet<TalkPage<ZendeskCall>>(path, stats)
-  );
+  const {
+    calls,
+    pages,
+    diagnostics: collection,
+  } = await fetchLegacyTalkWeek<ZendeskCall>(config, periodStart, periodEnd);
   const diagnostics = {
     periodStart,
     periodEnd,
     pages,
     callsCollected: calls.length,
-    ...stats,
-    totalMs: Date.now() - startedAt,
+    ...collection,
   };
   logger.info("Zendesk Talk calls fetch complete", diagnostics);
   return { calls, diagnostics };
@@ -391,7 +392,11 @@ export class ZendeskConnector implements Connector {
       : new Map<number, ZendeskSatisfactionRating[]>();
     const ratingsMs = Date.now() - ratingsStartedAt;
 
-    const { calls, diagnostics: callDiagnostics } = await fetchCallsForWeek(periodStart, periodEnd);
+    const { calls, diagnostics: callDiagnostics } = await fetchCallsForWeek(
+      config,
+      periodStart,
+      periodEnd
+    );
 
     const perEmployeeTickets = new Map<string, ZendeskTicket[]>();
     const perEmployeeOpen = new Map<string, ZendeskTicket[]>();
