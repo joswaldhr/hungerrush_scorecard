@@ -2,6 +2,14 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 26, 15:23 UTC:** shared-coordination candidate `b3e4e28` passed both CI
+runs 36251284835/36251287973: **756 tests / 100 files**, migrations, typecheck, lint
+and production build. The next increment adds independently disabled collection and
+outbound routes. Nine new policy/route tests plus five environment checks pass; typecheck,
+targeted lint and formatting pass. No schedule or hosted policy was enabled. Collection
+cannot publish metrics; partial/busy/rate-limited states stay explicit. Publication rejects
+mixed inbound policies and requires one prospective week. Hosted validation is next.
+
 **September 26, 15:16 UTC:** the next PR32 increment coordinates legacy Talk reads
 with the durable collector's account lease, 6.3-second request reservations and persisted
 vendor backoff. All 28 focused checks pass, including two PostgreSQL cross-reader

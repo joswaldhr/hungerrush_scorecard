@@ -136,9 +136,10 @@ absolute backup paths before creation. Never print environment values to diagnos
   manager access and private data. `AGENTS.md`, engineering rules and handoff link here.
 - **Local candidate, not activated:** outbound calculator, durable Talk page/revision
   storage, account-bound lease/CAS checks, persistent pacing and GET-only bounded worker.
-  Candidate `20f0495` passed full CI with 749 tests / 99 files and Preview, including
-  linked-ticket and joined-observation gates. Source-wide coordination remains required.
-  No new Talk route, scheduler, production policy or metric publisher is active.
+  Candidate `b3e4e28` passed full CI with 756 tests / 100 files, including shared
+  legacy/durable account coordination, linked-ticket and joined-observation gates.
+  The subsequent route candidate has separate disabled collection/publication policies.
+  No new Talk scheduler, production policy or metric publisher is active.
 - **Outbound publication candidate:** strict prospective team/key policy, minimized replay
   evidence and explicit legacy-contribution replacement are implemented on the branch.
   The inactive source connection and four PostgreSQL preflight cases are included in

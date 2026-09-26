@@ -13,6 +13,9 @@ const envSchema = z.object({
   ZENDESK_CSAT_POLICY: z.string().min(1).optional(),
   // Separate prospective first-reply collector; disabled until qualified.
   ZENDESK_FIRST_REPLY_POLICY: z.string().min(1).optional(),
+  // Independent opt-ins: retaining Talk evidence does not enable outbound publication.
+  ZENDESK_TALK_COLLECTION_POLICY: z.string().min(1).optional(),
+  ZENDESK_OUTBOUND_POLICY: z.string().min(1).optional(),
 
   // Assembled connector (optional)
   ASSEMBLED_API_KEY: z.string().min(1).optional(),

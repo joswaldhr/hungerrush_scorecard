@@ -108,7 +108,7 @@ const policySchema = z
 
 export type ZendeskTalkPolicy = z.infer<typeof policySchema>;
 
-/** Candidate configuration only: no environment variable, runtime connector or scheduler consumes it. */
+/** Strict source policy; runtime publication additionally rejects inbound configuration. */
 export function parseZendeskTalkPolicy(
   raw: string | undefined,
   configuredSubdomain: string

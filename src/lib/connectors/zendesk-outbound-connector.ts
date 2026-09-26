@@ -115,7 +115,7 @@ export async function loadOutboundEmployeeBindings(
   }));
 }
 
-/** Inactive one-week source connector. No route or configured environment invokes it yet. */
+/** One-week source connector; the outbound route requires its own explicit policy opt-in. */
 export function createOutboundConnector(policy: ZendeskTalkPolicy) {
   const connector = new ZendeskConnector();
   connector.fetchRecords = async (config, ctx) => {
