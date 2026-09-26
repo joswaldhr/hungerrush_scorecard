@@ -2,6 +2,22 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 26, 15:35 UTC — current:** candidate `9badca1` passes both full CI runs
+36252223074/36252225892: **766 tests / 103 files**, migrations, typecheck, lint and
+production build. Preview `dpl_6LWxZyB2g7qdvrutWsA8awFCjhh4` is READY. Actual corrected
+CSV bytes and rendered PDF passed inspection, including the human-attribution explanation.
+Current/history/revision views passed on the existing synthetic fixture; five category
+tables have identical measured column positions. PNG was inspected on preceding `3551502`.
+The new outbound hosted fixture remains unpublished pending the requested private staging
+credential recovery. No production or Zendesk changes were made. These results support the
+next hosted gate, not live call certification. Aggregate evidence:
+`2026-09-26-talk-route-and-export-verification.json`.
+
+Scheduler wording correction: Railway still launches the old container hourly. Visible
+recent executions, including September 26 15:02:07 UTC, log `status: disabled`; the saved
+function exits at that gate before requests. This is disabled work inside an active platform
+schedule, not a removed platform schedule. No invocation or setting change was made.
+
 **September 26, 15:31 UTC:** route candidate `3551502` passed CI
 36251599768/36251603372: **765 tests / 103 files**, migrations, typecheck, lint and
 build. Preview `dpl_FZs5oDGuKcxXokGnsbjhYNGwnAzH` is READY on that SHA. The existing
