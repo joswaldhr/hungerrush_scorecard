@@ -2,6 +2,13 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+Latest continuation: September 26, 00:40 UTC (September 25 Central). The inactive outbound
+calculator and durable Talk store/worker are implemented with 30 focused checks passing,
+including a PostgreSQL failure after data writes that rolls the whole page back. The Menufy
+44-case retained replay still has zero differences. Full CI/build and all production
+activation gates remain open; no Zendesk or production changes were made. See
+`2026-09-25-talk-collector-candidate.md`. The summary below is the preceding checkpoint.
+
 Last updated: 2026-09-25 (23:52 UTC). **Core, metric-display and roster corrections are deployed. CSAT and Menufy first reply have independent source-to-production verification: 108 current-week values across 62 employees, zero differences. This covers 4/40 assigned team metrics; full-contract certification remains 0/40 while target qualification and genuine replacement scheduler execution remain open. PR31's inactive call candidate passed CI with 686 tests / 88 files. Subsequent outbound/store/worker changes are local candidates, not a production release. Call, active-effort, backlog and human-attribution work remains; human metrics, ticket-action shadow/action-v2 publication and historical repair remain disabled. The mandatory safety plan prohibits Zendesk mutations and report-editor sessions.**
 
 ## Safety boundary and outbound qualification — September 25, 23:52 UTC
