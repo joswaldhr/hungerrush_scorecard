@@ -2,6 +2,22 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 26, 15:31 UTC:** route candidate `3551502` passed CI
+36251599768/36251603372: **765 tests / 103 files**, migrations, typecheck, lint and
+build. Preview `dpl_FZs5oDGuKcxXokGnsbjhYNGwnAzH` is READY on that SHA. The existing
+synthetic current-week page and actual downloaded CSV/PDF/PNG were inspected: periods,
+zero/missing distinction, CSAT percentages, first-reply `0:00:40`, source/sample context
+and aligned columns match. The browser download event timed out, but the actual files
+were present in Downloads. This resolves the earlier file-access limit for these exports;
+it does not certify the new outbound contract, whose hosted fixture is not yet published.
+Inspection found a blank CSV explanation for withheld human ticket metrics. The next
+small fix includes the existing attribution reason in CSV/text/captured data details;
+seven export checks pass. A strictly scoped synthetic outbound staging script is prepared
+and typechecked, not executed. The staging credential was lost from runtime memory after
+restart; Vercel sensitive settings do not return it and browser clipboard transfer is
+unavailable. Existing staging credential input was requested privately through local `.env`,
+not chat. No Zendesk API request/editor/mutation or production change occurred.
+
 **September 26, 15:23 UTC:** shared-coordination candidate `b3e4e28` passed both CI
 runs 36251284835/36251287973: **756 tests / 100 files**, migrations, typecheck, lint
 and production build. The next increment adds independently disabled collection and

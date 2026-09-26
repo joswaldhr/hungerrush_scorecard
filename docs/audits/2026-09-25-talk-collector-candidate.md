@@ -127,7 +127,9 @@ See `2026-09-25-talk-store-capacity-rehearsal.json`.
 
 ## Remaining activation gates
 
-The worker is not connected to an HTTP route, cron or live publisher. The September 26
+The September 26 route candidate adds separately disabled collection and outbound HTTP
+routes with no new schedule or deployed policy. CI for `3551502` passed 765 tests / 103
+files, migrations, typecheck, lint and build; its Preview is READY. The September 26
 candidate moves the legacy Talk fetcher onto the same account lease, request reservations
 and persisted vendor backoff. Twenty-eight focused checks pass, including real PostgreSQL
 contention in both directions and backoff across worker handoff. Full CI follows. This
@@ -147,3 +149,9 @@ observation evidence, not an atomic source snapshot or current-week certificatio
 Production verification remains 4/40 assigned metrics. Human ticket counts stay unavailable;
 ticket-action shadow ingestion/action-v2 publication and historical repair remain disabled.
 Follow [the safety plan](../SAFETY_GUARDRAILS.md) for backup, scoped release and rollback.
+
+Hosted export-file access is now available through the actual Downloads folder, even when
+the browser download-event bridge times out. CSV/PDF/PNG from the existing synthetic fixture
+were inspected September 26. New outbound fixture publication/current/history/revision/export
+checks remain separate. `scripts/staging-outbound-publication.ts` is prepared and typechecked
+but awaits recovery of the existing isolated staging credential into the local runtime.
