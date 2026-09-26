@@ -11,6 +11,14 @@ have zero differences. Exact POS employee sets from Explore remain unobserved. A
 production activation gates remain open; no Zendesk or production changes were made. See
 `2026-09-25-talk-collector-candidate.md`. The summary below is the preceding checkpoint.
 
+00:56 UTC continuation: `6f1f5e7` also passed both CI runs 36206208071/36206210445 and
+Preview. An isolated 15,000-record synthetic capacity rehearsal completed with exact
+population recovery and no missing parents in 4.429 seconds; no hosted writes or Zendesk
+requests occurred. The next candidate adds explicit observation age/span/bootstrap gates
+with five passing tests (37 focused checks total). Final full CI is pending. This is still
+inactive collection/calculation preparation; source-wide rate coordination, durable ticket
+metadata, publication integration, targets and hosted/recovery release checks remain open.
+
 Last updated: 2026-09-25 (23:52 UTC). **Core, metric-display and roster corrections are deployed. CSAT and Menufy first reply have independent source-to-production verification: 108 current-week values across 62 employees, zero differences. This covers 4/40 assigned team metrics; full-contract certification remains 0/40 while target qualification and genuine replacement scheduler execution remain open. PR31's inactive call candidate passed CI with 686 tests / 88 files. Subsequent outbound/store/worker changes are local candidates, not a production release. Call, active-effort, backlog and human-attribution work remains; human metrics, ticket-action shadow/action-v2 publication and historical repair remain disabled. The mandatory safety plan prohibits Zendesk mutations and report-editor sessions.**
 
 ## Safety boundary and outbound qualification — September 25, 23:52 UTC

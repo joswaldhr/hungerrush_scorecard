@@ -10,6 +10,12 @@ source data and synthetic local database tests; it issued no new Zendesk request
 Its Vercel Preview deployment completed. A subsequent snapshot-reader increment is
 under validation; the prior green result does not certify that newer candidate.
 
+00:56 UTC follow-up: `6f1f5e7` passed both CI runs 36206208071/36206210445 and Preview.
+The final observation-policy increment adds rejection of stale, widely separated,
+future, incomplete or out-of-bootstrap employee observations. Freshness/span limits must
+be explicit; no production default or schedule was enabled. The final full-CI result is
+tracked on PR32 and in the implementation ledger.
+
 ## Implemented
 
 - Outbound participation uses linked-ticket groups, explicit Central reporting dates,
@@ -39,8 +45,8 @@ under validation; the prior green result does not certify that newer candidate.
 
 ## Validation
 
-Thirty-two focused checks pass: eleven real PostgreSQL storage tests, ten cursor tests,
-seven outbound tests and four transport/worker tests. The storage tests include a real
+Thirty-seven focused checks pass: eleven real PostgreSQL storage tests, ten cursor tests,
+seven outbound tests, four transport/worker tests and five observation-policy tests. The storage tests include a real
 PostgreSQL constraint failure on the final checkpoint update after page/revision writes:
 all writes roll back, the old checkpoint survives, and the page can be retried.
 Other cases cover concurrent claims/responses, account changes, foreign organizations,
@@ -58,6 +64,13 @@ across two closed weeks, including exact employee-call/leg sets and duration den
 This source reconstruction complements the independently observed 14 daily report totals;
 it does not claim an employee-level Explore export was obtained. See
 `2026-09-25-pos-outbound-candidate-replay.json`.
+
+A separate local capacity rehearsal committed 5,000 synthetic calls and 10,000 legs in
+17 pages, including 1,000-record pages. It recovered the exact 15,000-record snapshot with
+zero missing parents. Page writes took 169–579 ms; total storage/read rehearsal was 4.429 s.
+This excludes vendor/network latency and does not predict hosted performance. It issued
+zero Zendesk requests and zero hosted writes; its isolated test rows were removed afterward.
+See `2026-09-25-talk-store-capacity-rehearsal.json`.
 
 ## Remaining activation gates
 
