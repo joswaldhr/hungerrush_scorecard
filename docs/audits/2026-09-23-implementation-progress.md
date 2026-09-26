@@ -2,7 +2,162 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Last updated: 2026-09-25 (22:00 UTC). **Core, metric-display and roster corrections are deployed. CSAT and Menufy first reply are live with independent source-to-production verification: 108 current-week values across 62 employees, zero differences. This covers 4/40 assigned team metrics; full-contract certification remains 0/40 while target qualification and genuine replacement scheduler execution remain open. CI passes 670 tests / 86 files. Hosted current/history and actual CSV/PDF/PNG files are verified. Call, active-effort, backlog and human-attribution work remains; human metrics, action shadow/v2 publication and historical repair remain disabled.**
+**September 26, 15:35 UTC — current:** candidate `9badca1` passes both full CI runs
+36252223074/36252225892: **766 tests / 103 files**, migrations, typecheck, lint and
+production build. Preview `dpl_6LWxZyB2g7qdvrutWsA8awFCjhh4` is READY. Actual corrected
+CSV bytes and rendered PDF passed inspection, including the human-attribution explanation.
+Current/history/revision views passed on the existing synthetic fixture; five category
+tables have identical measured column positions. PNG was inspected on preceding `3551502`.
+The new outbound hosted fixture remains unpublished pending the requested private staging
+credential recovery. No production or Zendesk changes were made. These results support the
+next hosted gate, not live call certification. Aggregate evidence:
+`2026-09-26-talk-route-and-export-verification.json`.
+
+Scheduler wording correction: Railway still launches the old container hourly. Visible
+recent executions, including September 26 15:02:07 UTC, log `status: disabled`; the saved
+function exits at that gate before requests. This is disabled work inside an active platform
+schedule, not a removed platform schedule. No invocation or setting change was made.
+
+**September 26, 15:31 UTC:** route candidate `3551502` passed CI
+36251599768/36251603372: **765 tests / 103 files**, migrations, typecheck, lint and
+build. Preview `dpl_FZs5oDGuKcxXokGnsbjhYNGwnAzH` is READY on that SHA. The existing
+synthetic current-week page and actual downloaded CSV/PDF/PNG were inspected: periods,
+zero/missing distinction, CSAT percentages, first-reply `0:00:40`, source/sample context
+and aligned columns match. The browser download event timed out, but the actual files
+were present in Downloads. This resolves the earlier file-access limit for these exports;
+it does not certify the new outbound contract, whose hosted fixture is not yet published.
+Inspection found a blank CSV explanation for withheld human ticket metrics. The next
+small fix includes the existing attribution reason in CSV/text/captured data details;
+seven export checks pass. A strictly scoped synthetic outbound staging script is prepared
+and typechecked, not executed. The staging credential was lost from runtime memory after
+restart; Vercel sensitive settings do not return it and browser clipboard transfer is
+unavailable. Existing staging credential input was requested privately through local `.env`,
+not chat. No Zendesk API request/editor/mutation or production change occurred.
+
+**September 26, 15:23 UTC:** shared-coordination candidate `b3e4e28` passed both CI
+runs 36251284835/36251287973: **756 tests / 100 files**, migrations, typecheck, lint
+and production build. The next increment adds independently disabled collection and
+outbound routes. Nine new policy/route tests plus five environment checks pass; typecheck,
+targeted lint and formatting pass. No schedule or hosted policy was enabled. Collection
+cannot publish metrics; partial/busy/rate-limited states stay explicit. Publication rejects
+mixed inbound policies and requires one prospective week. Hosted validation is next.
+
+**September 26, 15:16 UTC:** the next PR32 increment coordinates legacy Talk reads
+with the durable collector's account lease, 6.3-second request reservations and persisted
+vendor backoff. All 28 focused checks pass, including two PostgreSQL cross-reader
+contention/backoff cases; typecheck and targeted lint pass. The isolated local test
+database recovered after the machine restart; no hosted database was used. Full CI
+for this increment follows. Zendesk received no requests or changes. Collection and
+publication routes remain absent; hosted/recovery/canary gates remain open.
+
+**September 26, 01:38 UTC (September 25 Central):** PR32 code candidate `20f0495`
+passes both CI runs 36208942784/36208944848: **749 tests / 99 files**, PostgreSQL
+migrations, typecheck, lint and production build. Preview completed. The formatting
+failure below is resolved. The durable collector, joined-observation gates, scoped
+outbound policy, source preflight/connection, replay records and atomic replacement
+path are committed and pushed. No Zendesk source request, editor session or mutation,
+production write, merge, new route, environment policy or schedule occurred in this
+continuation. This is a validated branch candidate, not production call certification.
+See `2026-09-25-outbound-publication-candidate.json` for aggregate evidence. Next work
+is shared legacy/durable Talk coordination and hosted synthetic/recovery/canary gates;
+production verification remains the previously established 4/40 assignments.
+
+September 26, 01:35 UTC continuation: candidate `4b7a4e8` passed CI
+36208475191/36208478329 (741 tests / 97 files, migrations, typecheck, lint, build) and
+Preview. The next inactive outbound connector reads one durable call/leg snapshot,
+validates database source/team/key/unit/identity ownership, resolves numeric staff IDs
+and collects one shared linked-ticket census before building employee records. It rejects
+incomplete stores before a vendor request and stale observations after reads. Ten affected
+tests pass, including four PostgreSQL preflight tests, plus typecheck and targeted lint.
+The Support reader now declares GET explicitly. Full CI for `a7ac874` stopped on formatting
+in the new preflight test (the first formatter pass was not stable); a second formatting
+pass and check succeed, and full CI is being rerun. No live source requests,
+Zendesk edits, production writes, route, environment policy or schedule were added.
+**Next release gate:** coordinate the legacy and durable Talk readers, then perform hosted
+synthetic validation and fresh recovery/canary checks. Inbound publication, POS scope/export
+limits, target qualification and genuine scheduler evidence remain open.
+
+September 26, 01:28 UTC continuation: `2b2e8b5` passed both full CI runs
+36207684917/36207687477 and Preview. The next increment adds a strict, inactive
+team/key/cutover policy and replayable employee outbound records. Dedicated replacement
+facts supersede only legacy outbound contributions, preserving raw sibling evidence.
+The real PostgreSQL publication rehearsal verifies exact 2/3-second precision, null
+retraction, retained revisions, idempotency, unchanged earlier weeks/siblings, later
+legacy refresh protection and rollback on a changed team. All 20 publication tests and
+23 targeted policy/record/context tests pass; a test-only TypeScript inference error was
+fixed and typecheck passes. Full CI for this increment follows. The new contract also
+carries employee-leg sample descriptions and incompatible-comparison/target safeguards.
+No live route/configuration consumes the policy; production and Zendesk remain unchanged.
+
+September 26, 01:13 UTC continuation: PR32 candidate `fedf71c` passed CI 36206690857
+(713 tests / 92 files, PostgreSQL migrations, typecheck, lint and build) and Preview.
+The next inactive increment collects complete outbound linked-ticket metadata in bounded
+100-ticket batches, rejects missing/foreign/duplicate responses, and strips unrelated
+fields. Outbound qualification now binds metadata to the exact call-population digest,
+rechecks ticket identity/counts, and bounds the combined call/leg/ticket observation.
+Both observation paths reject future reporting periods and source records newer than
+their collection. Eighteen affected tests, typecheck and targeted lint pass (50 focused
+checks including the unchanged store/cursor/calculator/worker checks). Full CI follows.
+No live Zendesk request or production change occurred. Publication integration and the
+remaining release gates below are still open.
+
+Earlier continuation: September 26, 00:47 UTC (September 25 Central). PR32 candidate
+`602ed29` passes CI 36205774133/36205776797: 706 tests / 91 files, PostgreSQL migrations,
+typecheck, lint and build; its Preview completed. The newer read-only snapshot increment
+has 32 focused checks passing, including eleven real PostgreSQL tests; its full CI is
+pending. Menufy 44-case replay and POS 72-case independent raw-source reconstruction both
+have zero differences. Exact POS employee sets from Explore remain unobserved. All
+production activation gates remain open; no Zendesk or production changes were made. See
+`2026-09-25-talk-collector-candidate.md`. The summary below is the preceding checkpoint.
+
+00:56 UTC continuation: `6f1f5e7` also passed both CI runs 36206208071/36206210445 and
+Preview. An isolated 15,000-record synthetic capacity rehearsal completed with exact
+population recovery and no missing parents in 4.429 seconds; no hosted writes or Zendesk
+requests occurred. The next candidate adds explicit observation age/span/bootstrap gates
+with five passing tests (37 focused checks total). Final full CI is pending. This is still
+inactive collection/calculation preparation; source-wide rate coordination, durable ticket
+metadata, publication integration, targets and hosted/recovery release checks remain open.
+
+Last updated: 2026-09-25 (23:52 UTC). **Core, metric-display and roster corrections are deployed. CSAT and Menufy first reply have independent source-to-production verification: 108 current-week values across 62 employees, zero differences. This covers 4/40 assigned team metrics; full-contract certification remains 0/40 while target qualification and genuine replacement scheduler execution remain open. PR31's inactive call candidate passed CI with 686 tests / 88 files. Subsequent outbound/store/worker changes are local candidates, not a production release. Call, active-effort, backlog and human-attribution work remains; human metrics, ticket-action shadow/action-v2 publication and historical repair remain disabled. The mandatory safety plan prohibits Zendesk mutations and report-editor sessions.**
+
+## Safety boundary and outbound qualification — September 25, 23:52 UTC
+
+The user explicitly requires no Zendesk changes and requested a safety guardrail plan.
+An audit report-editor session caused a manager's resource-lock warning despite no report
+save. All three report editors were exited and all five Explore tabs closed; the final
+tab inventory contained no Explore tabs. Do not reopen editors for inspection, temporary
+filters or export. Continue from retained data and bounded GET APIs. The manager's resumed
+access is not independently verified. See [the safety plan](../SAFETY_GUARDRAILS.md), linked
+from AGENTS.md, engineering rules, handoff and runbook. Routine checkpoint approval is not
+required; failing technical checks blocks the affected operation, not independent safe work.
+
+Retained-source reconstruction of Menufy outbound now matches both closed weeks exactly:
+2,896 employee-call rows, 11,584 field comparisons, zero missing/extra rows or value
+differences. The TypeScript candidate matches 44 employee-period cases / 220 comparisons.
+Of 598 report non-answered employee-call rows, 594 are API-completed with zero whole-call
+talk, and four API-failed with null talk. This is an account-observed mapping, not a universal
+Zendesk promise or proof of human customer answer. Source scope is linked-ticket group.
+
+POS visible daily counts match two closed weeks: 979 calls / 56 comparisons / zero differences.
+Its duration total includes customer legs and is not employee handling time. CSV/Excel export
+attempts returned no file; exact POS outbound employee-call sets remain unverified. Do not
+repeat report-editor inspection to close this gap. Aggregate evidence is retained in the
+September 25 outbound parity/source census JSON files; all identifiers/exports remain private.
+
+The newer 25,694-call observation contains all five parents missing from the earlier current
+read. This supersedes that specific join gap, not the dated observation or full current-week
+certification. Preserving `exclude_deleted=false` on every groups page produced 151 unique
+groups including 17 deleted groups; all six POS outbound scope labels now resolve. The
+earlier four unresolved POS inbound labels still need separate confirmation.
+
+Local candidate work adds durable Talk source/revision/cursor transactions, account-bound
+leases, compare-and-swap guards, persisted pacing/Retry-After and a bounded GET-only worker.
+Typecheck, targeted lint and all 27 focused checks pass: seven real PostgreSQL storage
+tests, ten cursor tests, six outbound tests and four GET-only/worker tests. It has no
+active route, production policy or schedule.
+Shared budgeting with existing Talk clients, complete joined coverage, full CI/build,
+hosted rehearsal and scoped publication gates remain before activation. No production
+configuration/data change or new live Zendesk request was made for this safety-plan update.
 
 ## Talk calculation qualification — September 25, 22:00 UTC
 

@@ -1,5 +1,9 @@
 import { DURATION_FORMAT_LABEL, formatMetricValue, type ValueType } from "./types";
-import { HISTORICAL_TARGET_REASON } from "./availability";
+import {
+  HISTORICAL_TARGET_REASON,
+  TICKET_ATTRIBUTION_QUALITY,
+  TICKET_ATTRIBUTION_REASON,
+} from "./availability";
 import { SOURCE_TARGET_REASON } from "./source-context";
 
 export interface ScorecardMetric {
@@ -43,6 +47,12 @@ export function formatExportTarget(metric: ScorecardMetric) {
     return `${formatExportValue(metric.targetMin, metric.unit, metric.valueType)}–${formatExportValue(metric.targetMax, metric.unit, metric.valueType)}`;
   }
   return formatExportValue(metric.targetValue, metric.unit, metric.valueType);
+}
+
+function exportUnavailableReason(metric: ScorecardMetric) {
+  return metric.qualityStatus === TICKET_ATTRIBUTION_QUALITY
+    ? TICKET_ATTRIBUTION_REASON
+    : (metric.missingReason ?? "");
 }
 
 export function exportCsv(snapshot: ExportSnapshot, statusLabel: (status: string) => string) {
@@ -93,7 +103,7 @@ export function exportCsv(snapshot: ExportSnapshot, statusLabel: (status: string
             ? "Current profile"
             : "Not recorded",
       metric.sourceDescription ?? "",
-      metric.missingReason ?? "",
+      exportUnavailableReason(metric),
       metric.valueType === "duration" ? DURATION_FORMAT_LABEL : (metric.unit ?? ""),
       metric.reportingTimeZone ?? "UTC",
       metric.sourceContract ?? "Legacy / not recorded",
@@ -116,7 +126,7 @@ export function exportDataDetails(metrics: ScorecardMetric[]) {
   return metrics
     .map(
       (metric) =>
-        `${metric.name}: ${metric.qualityStatus}; observed ${metric.dataFreshnessAt ?? "unavailable"}; calculation v${metric.calculationVersion}; reporting timezone ${metric.reportingTimeZone ?? "UTC"}; source definition ${metric.sourceContract ?? "legacy / not recorded"}; target scope ${metric.targetSource ?? "none"}${metric.targetContextStatus === "historical_unverified" ? `; ${HISTORICAL_TARGET_REASON}` : metric.targetContextStatus === "source_unverified" ? `; ${SOURCE_TARGET_REASON}` : ""}${metric.sourceDescription ? `; ${metric.sourceDescription}` : ""}${metric.missingReason ? `; ${metric.missingReason}` : ""}${metric.comparisonUnavailableReason ? `; ${metric.comparisonUnavailableReason}` : ""}${metric.valueType === "duration" ? `; times ${DURATION_FORMAT_LABEL}` : ""}`
+        `${metric.name}: ${metric.qualityStatus}; observed ${metric.dataFreshnessAt ?? "unavailable"}; calculation v${metric.calculationVersion}; reporting timezone ${metric.reportingTimeZone ?? "UTC"}; source definition ${metric.sourceContract ?? "legacy / not recorded"}; target scope ${metric.targetSource ?? "none"}${metric.targetContextStatus === "historical_unverified" ? `; ${HISTORICAL_TARGET_REASON}` : metric.targetContextStatus === "source_unverified" ? `; ${SOURCE_TARGET_REASON}` : ""}${metric.sourceDescription ? `; ${metric.sourceDescription}` : ""}${exportUnavailableReason(metric) ? `; ${exportUnavailableReason(metric)}` : ""}${metric.comparisonUnavailableReason ? `; ${metric.comparisonUnavailableReason}` : ""}${metric.valueType === "duration" ? `; times ${DURATION_FORMAT_LABEL}` : ""}`
     )
     .join("\n");
 }

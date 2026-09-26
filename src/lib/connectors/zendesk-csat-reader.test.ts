@@ -18,7 +18,7 @@ it("confines authenticated requests to the configured account and selected read 
     await expect(reader.read(path)).rejects.toThrow(/allowlist/);
   expect(fetcher).not.toHaveBeenCalled();
   await expect(reader.read("/users.json")).resolves.toEqual({ complete: true });
-  expect(fetcher.mock.calls[0]![1]).toMatchObject({ redirect: "error" });
+  expect(fetcher.mock.calls[0]![1]).toMatchObject({ method: "GET", redirect: "error" });
 });
 it("bounds all collection requests and elapsed time without hidden retries", async () => {
   let now = 0;

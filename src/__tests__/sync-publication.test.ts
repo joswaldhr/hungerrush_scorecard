@@ -25,6 +25,9 @@ import type { fetchSolvedCsatCandidate } from "@/lib/connectors/zendesk-solved-c
 
 import { buildFirstReplyRecord } from "@/lib/connectors/zendesk-first-reply-record";
 import type { fetchFirstReplyCandidate } from "@/lib/connectors/zendesk-first-reply";
+import { buildOutboundRecord } from "@/lib/connectors/zendesk-outbound-record";
+import { outboundObservationFixture } from "./fixtures/outbound-observation";
+import { OUTBOUND_PARTICIPATION_CONTRACT } from "@/lib/domain/metrics/source-context";
 
 const org = randomUUID(),
   employee = randomUUID(),
@@ -665,6 +668,212 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
         .where(inArray(metricDefinitions.id, [scoreId, responseId]));
     }
   });
+  it("publishes scoped outbound snapshots atomically, preserves legacy siblings, and resists later legacy overwrites", async () => {
+    const countId = randomUUID(),
+      talkId = randomUUID(),
+      holdId = randomUUID(),
+      backlogId = randomUUID();
+    const definitionIds = [countId, talkId, holdId, backlogId];
+    await db.insert(metricDefinitions).values([
+      {
+        id: countId,
+        organizationId: org,
+        key: "outbound_calls",
+        name: "Outbound",
+        sourceStrategy: "test",
+        calculationType: "sum",
+      },
+      {
+        id: talkId,
+        organizationId: org,
+        key: "avg_talk_time_outbound",
+        name: "Talk",
+        sourceStrategy: "test",
+        calculationType: "average",
+      },
+      {
+        id: holdId,
+        organizationId: org,
+        key: "avg_hold_time_outbound",
+        name: "Hold",
+        sourceStrategy: "test",
+        calculationType: "average",
+      },
+      {
+        id: backlogId,
+        organizationId: org,
+        key: "backlog_count",
+        name: "Backlog",
+        sourceStrategy: "test",
+        calculationType: "sum",
+      },
+    ]);
+    const normalize = new ZendeskConnector();
+    const publish = (records: IngestedRecord[]) => {
+      const c = connector(records);
+      c.normalizeRecords = normalize.normalizeRecords.bind(normalize);
+      return runSync(c, config);
+    };
+    const f = outboundObservationFixture(config, employee, team);
+    f.policy.teams[0]!.outbound!.metricKeys = [
+      "outbound_calls",
+      "avg_talk_time_outbound",
+      "avg_hold_time_outbound",
+    ];
+    const replacement = () =>
+      buildOutboundRecord(
+        f.snapshot,
+        f.tickets,
+        f.policy,
+        f.config,
+        f.identity,
+        f.periodStart,
+        f.periodEnd,
+        f.now
+      );
+    const legacy: IngestedRecord = {
+      ...record(0),
+      externalRecordType: "agent_stats",
+      externalRecordId: "outbound-legacy-agent-2026-09-20",
+      payload: {
+        ticketsResolved: 0,
+        backlogCount: 12,
+        inboundOffered: 0,
+        outboundTotal: 99,
+        avgTalkTimeOutbound: 120,
+        avgHoldTimeOutbound: 120,
+      },
+    };
+    const read = () =>
+      db.select().from(metricValues).where(inArray(metricValues.metricDefinitionId, definitionIds));
+    try {
+      expect(
+        (
+          await publish([
+            legacy,
+            {
+              ...legacy,
+              externalRecordId: "outbound-legacy-agent-2026-09-13",
+              periodStart: "2026-09-13",
+              periodEnd: "2026-09-19",
+            },
+          ])
+        ).success
+      ).toBe(true);
+      const before = await read();
+      const oldSources = await db
+        .select()
+        .from(sourceRecords)
+        .where(eq(sourceRecords.externalRecordId, legacy.externalRecordId));
+      const oldFacts = await db
+        .select()
+        .from(normalizedFacts)
+        .where(eq(normalizedFacts.sourceRecordId, oldSources[0]!.id));
+      expect((await publish([replacement()])).valuesWritten).toBe(3);
+      const stored = await read();
+      const current = stored.filter(
+        (v) => v.periodStart === f.periodStart && v.metricDefinitionId !== backlogId
+      );
+      expect(current.find((v) => v.metricDefinitionId === countId)).toMatchObject({
+        numericValue: 2,
+        calculationVersion: 2,
+        provenanceJson: { sourceContract: OUTBOUND_PARTICIPATION_CONTRACT },
+      });
+      const talk = current.find((v) => v.metricDefinitionId === talkId)!;
+      expect(talk).toMatchObject({
+        numericValue: 2 / 3,
+        provenanceJson: {
+          sampleCount: 3,
+          cohortCount: 3,
+          supersededFactIds: [oldFacts.find((r) => r.factType === "avg_talk_time_outbound")!.id],
+        },
+      });
+      expect(current.find((v) => v.metricDefinitionId === holdId)).toMatchObject({
+        numericValue: null,
+        qualityStatus: "missing",
+      });
+      expect(stored.filter((v) => !current.some((c) => c.id === v.id))).toEqual(
+        before.filter((v) => !current.some((c) => c.id === v.id))
+      );
+      expect(
+        await db
+          .select()
+          .from(sourceRecords)
+          .where(eq(sourceRecords.externalRecordId, legacy.externalRecordId))
+      ).toEqual(oldSources);
+      expect(
+        await db
+          .select()
+          .from(normalizedFacts)
+          .where(eq(normalizedFacts.sourceRecordId, oldSources[0]!.id))
+      ).toEqual(oldFacts);
+      expect((await publish([replacement()])).valuesWritten).toBe(0);
+      expect(
+        (
+          await publish([
+            {
+              ...legacy,
+              payload: {
+                ...legacy.payload,
+                outboundTotal: 88,
+                avgTalkTimeOutbound: 60,
+                avgHoldTimeOutbound: 60,
+                backlogCount: 14,
+              },
+            },
+          ])
+        ).success
+      ).toBe(true);
+      const refreshed = await read();
+      expect(refreshed.find((v) => v.id === talk.id)).toMatchObject({
+        numericValue: 2 / 3,
+        dataFreshnessAt: talk.dataFreshnessAt,
+      });
+      expect(
+        refreshed.find((v) => v.metricDefinitionId === countId && v.periodStart === f.periodStart)
+          ?.numericValue
+      ).toBe(2);
+      expect(
+        refreshed.find((v) => v.metricDefinitionId === holdId && v.periodStart === f.periodStart)
+          ?.numericValue
+      ).toBeNull();
+      expect(
+        refreshed.find((v) => v.metricDefinitionId === backlogId && v.periodStart === f.periodStart)
+          ?.numericValue
+      ).toBe(14);
+      f.snapshot.legs[0]!.talk_time = 3;
+      await db.update(employees).set({ primaryTeamId: null }).where(eq(employees.id, employee));
+      try {
+        expect((await publish([replacement()])).success).toBe(false);
+        expect(await read()).toEqual(refreshed);
+      } finally {
+        await db.update(employees).set({ primaryTeamId: team }).where(eq(employees.id, employee));
+      }
+      f.snapshot.legs.forEach((leg) => {
+        leg.talk_time = null;
+      });
+      expect((await publish([replacement()])).valuesWritten).toBe(3);
+      expect((await read()).find((v) => v.id === talk.id)).toMatchObject({
+        numericValue: null,
+        qualityStatus: "missing",
+        provenanceJson: { sampleCount: 0, cohortCount: 3 },
+      });
+      const retained = await db
+        .select()
+        .from(syncRevisions)
+        .where(eq(syncRevisions.entityId, talk.id));
+      expect(
+        retained.some((r) => (r.snapshotJson as Record<string, unknown>).numeric_value === 120)
+      ).toBe(true);
+      expect(
+        retained.some((r) => (r.snapshotJson as Record<string, unknown>).numeric_value === 2 / 3)
+      ).toBe(true);
+    } finally {
+      await db.delete(metricValues).where(inArray(metricValues.metricDefinitionId, definitionIds));
+      await db.delete(metricDefinitions).where(inArray(metricDefinitions.id, definitionIds));
+    }
+  });
+
   it("publishes first reply without replacing sibling facts, survives legacy refresh, and retains null corrections", async () => {
     const replyId = randomUUID(),
       backlogId = randomUUID();

@@ -77,6 +77,7 @@ export function createBoundedCsatReader(
       let response: Response;
       try {
         response = await request(url, {
+          method: "GET",
           headers: { Authorization: authorization },
           redirect: "error",
           signal: AbortSignal.any([deadline, AbortSignal.timeout(30000)]),

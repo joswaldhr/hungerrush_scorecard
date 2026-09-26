@@ -1,0 +1,15 @@
+{
+  "observedAt": "2026-09-25T17:32:40.133832-05:00",
+  "team": "POS",
+  "reference": "Visible original saved report; CSV and Excel downloads returned no file",
+  "periodStart": "2026-09-06",
+  "periodEnd": "2026-09-19",
+  "dailyRows": 14,
+  "countComparisons": 56,
+  "countDifferences": 0,
+  "sourceCohortCalls": 979,
+  "unclassifiedCalls": 0,
+  "reportDurationIncludesCustomerLegs": true,
+  "exactEmployeeCallSetsVerified": false,
+  "productionActivated": false
+}

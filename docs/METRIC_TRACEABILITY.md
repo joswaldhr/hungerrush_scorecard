@@ -1,5 +1,31 @@
 # HungerRush Cadence — Metric Traceability
 
+## September 25 source-contract updates
+
+The older diagrams below describe legacy observations and contain historical line numbers.
+For explicitly classified replacement observations, these paths take precedence:
+
+- Solved-cohort CSAT: `zendesk-csat-connector.ts` → `zendesk-solved-csat-record.ts`
+  → atomic sync publication → stored source contract and reporting timezone.
+- Created-cohort first reply: `zendesk-first-reply-connector.ts` →
+  `zendesk-first-reply-record.ts` → `first-reply-contributors.ts` → atomic publication.
+  Reported business-time zeros are retained; native missing durations are excluded from
+  the measured denominator. Earlier zero-exclusion descriptions below are superseded.
+- **Outbound branch candidate, not activated:** `zendesk-talk-worker.ts` persists call/leg
+  records and checkpoints → `zendesk-talk-store.ts` reads a consistent snapshot →
+  `zendesk-outbound-connector.ts` validates assignments/identities and collects linked-ticket
+  metadata → `zendesk-outbound-observation.ts` checks matching population and freshness →
+  `zendesk-outbound-record.ts` retains employee replay evidence →
+  `outbound-contributors.ts` selects the dedicated replacement without deleting legacy facts.
+
+Outbound counts use distinct employee-participating calls; duration means use employee
+legs and native seconds with separate measured denominators. The stored contract is
+`zendesk-call-created-agent-leg-outbound-v1`. Current linked-ticket group scope is explicit;
+uncertain outcomes remain null, and incompatible targets/comparisons remain withheld.
+No route, live policy or schedule consumes this candidate yet. The
+[implementation ledger](audits/2026-09-23-implementation-progress.md) owns exact deployed
+state, qualification limits and remaining release gates.
+
 > September 24 audit branch: legacy Zendesk ticket totals still exist as stored evidence,
 > but `metrics/availability.ts` prevents unverified human activity from reaching manager
 > values, status, comparisons, history or exports. The source calculation below is not

@@ -1,0 +1,13 @@
+{
+  "observedAt": "2026-09-25T22:13:55.896Z",
+  "sourceReadOnly": true,
+  "purpose": "Add ticket linkage and call-type evidence absent from earlier minimal extracts; do not repeat call-leg collection.",
+  "requests": 27,
+  "pages": 27,
+  "records": 25694,
+  "elapsedMs": 164326,
+  "spacingMs": 6300,
+  "sha256": "f2e800b0f6e1007fdd86c07c311a5c991fd650304fd7a7ea19252a3d26abab0c",
+  "databaseWrites": 0,
+  "productionActivated": false
+}

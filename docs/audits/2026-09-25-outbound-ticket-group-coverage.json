@@ -1,0 +1,13 @@
+{
+  "observedAt": "2026-09-25T22:18:21.850Z",
+  "sourceReadOnly": true,
+  "requests": 34,
+  "requested": 3345,
+  "returned": 3345,
+  "missing": 0,
+  "complete": true,
+  "elapsedMs": 66998,
+  "sha256": "7e9eaa78c7e771c882264fbc15f57f760ff693d9840c2453f9c0a4e14eafd50d",
+  "databaseWrites": 0,
+  "productionActivated": false
+}

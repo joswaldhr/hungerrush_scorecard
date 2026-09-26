@@ -1,0 +1,24 @@
+{
+  "observedAt": "2026-09-26T00:50:40.886Z",
+  "environment": "isolated local PostgreSQL test database",
+  "synthetic": true,
+  "newZendeskRequests": 0,
+  "hostedWrites": 0,
+  "calls": 5000,
+  "legs": 10000,
+  "committedPages": 17,
+  "maxPageRecords": 1000,
+  "pageCommitMs": {
+    "min": 169,
+    "max": 579,
+    "mean": 282.06666666666666
+  },
+  "snapshotReadMs": 125,
+  "elapsedMs": 4429,
+  "missingParentCalls": 0,
+  "joinedMetricCoverageCertified": false,
+  "limitations": [
+    "Local database timings do not predict hosted database latency or vendor response time.",
+    "Does not test the 250000-record capacity limit or certify live source coverage."
+  ]
+}

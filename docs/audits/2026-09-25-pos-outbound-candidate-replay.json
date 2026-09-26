@@ -1,0 +1,18 @@
+{
+  "observedAt": "2026-09-26T00:43:40.122Z",
+  "team": "POS",
+  "sourceReadOnly": true,
+  "newSourceRequests": 0,
+  "employeePeriodCases": 72,
+  "fieldComparisons": 1296,
+  "differences": 0,
+  "independentReference": "Python reconstruction from full retained call/ticket-group/leg observations",
+  "periods": [
+    "2026-09-06",
+    "2026-09-13"
+  ],
+  "exactEmployeeCallSetsComparedToIndependentSourceReference": true,
+  "exactEmployeeCallSetsComparedToExploreReport": false,
+  "exploreEvidence": "14 daily rows / 979 calls / 56 count comparisons / zero differences; report duration includes customer legs",
+  "productionActivated": false
+}

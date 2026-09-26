@@ -1,0 +1,16 @@
+{
+  "observedAt": "2026-09-26T00:37:02.232Z",
+  "team": "Menufy",
+  "candidateContract": "zendesk-outbound-call-participation-candidate-v1",
+  "employeePeriodCases": 44,
+  "comparisons": 220,
+  "differences": 0,
+  "exactSetsCompared": [
+    "attemptedCallIds",
+    "completedCallIds",
+    "nonAnsweredCallIds"
+  ],
+  "talkSumCompared": true,
+  "unclassifiedCases": 0,
+  "productionActivated": false
+}
