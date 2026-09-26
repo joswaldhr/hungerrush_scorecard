@@ -1,5 +1,11 @@
 # Resumable Talk collector and outbound candidate
 
+**Latest validation — September 26, 01:38 UTC:** code candidate `20f0495` passes CI
+36208942784/36208944848 with 749 tests / 99 files, PostgreSQL migrations, typecheck,
+lint, build and Preview. The initial new-test formatting failure is fixed. The full
+source-connection/publication candidate is committed; activation gates remain below.
+This continuation made no Zendesk account requests or edits and no production changes.
+
 September 26, 00:40 UTC / September 25 Central. Branch implementation only; no new
 production route, environment policy, cron, source collection or metric publication.
 Zendesk report/dashboard editors remain closed. This increment used retained private

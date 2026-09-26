@@ -2,6 +2,18 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 26, 01:38 UTC (September 25 Central):** PR32 code candidate `20f0495`
+passes both CI runs 36208942784/36208944848: **749 tests / 99 files**, PostgreSQL
+migrations, typecheck, lint and production build. Preview completed. The formatting
+failure below is resolved. The durable collector, joined-observation gates, scoped
+outbound policy, source preflight/connection, replay records and atomic replacement
+path are committed and pushed. No Zendesk source request, editor session or mutation,
+production write, merge, new route, environment policy or schedule occurred in this
+continuation. This is a validated branch candidate, not production call certification.
+See `2026-09-25-outbound-publication-candidate.json` for aggregate evidence. Next work
+is shared legacy/durable Talk coordination and hosted synthetic/recovery/canary gates;
+production verification remains the previously established 4/40 assignments.
+
 September 26, 01:35 UTC continuation: candidate `4b7a4e8` passed CI
 36208475191/36208478329 (741 tests / 97 files, migrations, typecheck, lint, build) and
 Preview. The next inactive outbound connector reads one durable call/leg snapshot,

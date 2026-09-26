@@ -21,6 +21,20 @@ Before implementing a live connector, confirm:
 
 ## Zendesk
 
+The September 25 user instruction makes this investigation read-only: no account changes
+and no report/dashboard editor sessions. Follow [the safety guardrails](SAFETY_GUARDRAILS.md).
+Retained evidence and bounded documented GETs are the permitted source surfaces.
+
+The audit branch contains an inactive resumable Talk collector and dedicated outbound
+connector. Publication requires a complete joined observation, explicit source/team/key
+policy, numeric staff identity resolution and atomic retained revisions. Before activation,
+coordinate the legacy Talk reader with the new collector; their separate leases do not yet
+establish a shared request budget. The official
+[Talk incremental export reference](https://developer.zendesk.com/api-reference/voice/talk-api/incremental_exports/)
+specifies ten requests per minute across these endpoints and use of Retry-After on rate
+limiting. Exact candidate validation and unresolved scope/export evidence are owned by the
+[implementation ledger](audits/2026-09-23-implementation-progress.md).
+
 Expected role:
 Support/customer operational source.
 
