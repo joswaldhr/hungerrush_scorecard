@@ -18,6 +18,12 @@ tracked on PR32 and in the implementation ledger.
 
 ## Implemented
 
+- An inactive dedicated outbound connector validates database source/account/organization,
+  selected team assignments, native units/aggregation and active external identities before
+  requests. It reads a consistent durable call/leg snapshot, resolves staff IDs once and
+  shares one complete linked-ticket census across employees. Incomplete stores reject
+  before vendor access; freshness is rechecked after reads. No route or configuration
+  consumes this connector. Support transport declares GET explicitly.
 - A strict inactive policy separates inbound routing-group/line scope from outbound
   current-linked-ticket scope. It requires explicit team keys, a Sunday cutover,
   account/source/organization binding and bounded observation limits; no environment
@@ -68,6 +74,11 @@ tracked on PR32 and in the implementation ledger.
 
 ## Validation
 
+Candidate `4b7a4e8` passed both CI runs 36208475191/36208478329: **741 tests / 97 files**,
+migrations, typecheck, lint, production build and Preview. The next connector increment
+passes ten affected checks, including four PostgreSQL preflight cases and failures before
+vendor access, plus typecheck and targeted lint. Its full CI remains separate.
+
 Candidate `2b2e8b5` passed both full CI runs 36207684917/36207687477 and Preview.
 The subsequent policy/publication increment has 23 targeted unit checks and all 20 real
 PostgreSQL publication tests passing. The new database case checks exact 2/3-second
@@ -115,9 +126,12 @@ legacy Talk fetcher. Coordinate or eliminate overlap with that fetcher before ac
 the new account lease cannot rate-limit unrelated existing integrations automatically.
 Retained ticket-group scope observations and the new inactive ticket reader are not yet
 live outbound publication evidence. Joined observation gates, prospective policy and
-outbound publication ownership are now implemented on the branch. Database assignment/
-identity preflight, the dedicated source-to-publisher connection, source-wide collection
-coordination, target qualification and hosted synthetic rehearsals remain open.
+outbound publication ownership are now implemented on the branch, along with database
+assignment/identity preflight and the dedicated source-to-publisher connection.
+Source-wide collection coordination, target qualification and hosted synthetic rehearsals
+remain open. A live route/policy must not activate the new worker until overlap with the
+legacy Talk reader is eliminated or controlled by a shared source/request lease. Preserve
+each path's last good observation if a run is busy, partial or rate-limited.
 
 All five parents missing from the earlier current-week read are present in the newer
 retained call census; their update timestamps are after the earlier read. This is new

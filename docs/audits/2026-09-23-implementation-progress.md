@@ -2,6 +2,19 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+September 26, 01:35 UTC continuation: candidate `4b7a4e8` passed CI
+36208475191/36208478329 (741 tests / 97 files, migrations, typecheck, lint, build) and
+Preview. The next inactive outbound connector reads one durable call/leg snapshot,
+validates database source/team/key/unit/identity ownership, resolves numeric staff IDs
+and collects one shared linked-ticket census before building employee records. It rejects
+incomplete stores before a vendor request and stale observations after reads. Ten affected
+tests pass, including four PostgreSQL preflight tests, plus typecheck and targeted lint.
+The Support reader now declares GET explicitly. Full CI follows. No live source requests,
+Zendesk edits, production writes, route, environment policy or schedule were added.
+**Next release gate:** coordinate the legacy and durable Talk readers, then perform hosted
+synthetic validation and fresh recovery/canary checks. Inbound publication, POS scope/export
+limits, target qualification and genuine scheduler evidence remain open.
+
 September 26, 01:28 UTC continuation: `2b2e8b5` passed both full CI runs
 36207684917/36207687477 and Preview. The next increment adds a strict, inactive
 team/key/cutover policy and replayable employee outbound records. Dedicated replacement
