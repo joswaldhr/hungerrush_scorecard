@@ -9,7 +9,9 @@ validates database source/team/key/unit/identity ownership, resolves numeric sta
 and collects one shared linked-ticket census before building employee records. It rejects
 incomplete stores before a vendor request and stale observations after reads. Ten affected
 tests pass, including four PostgreSQL preflight tests, plus typecheck and targeted lint.
-The Support reader now declares GET explicitly. Full CI follows. No live source requests,
+The Support reader now declares GET explicitly. Full CI for `a7ac874` stopped on formatting
+in the new preflight test (the first formatter pass was not stable); a second formatting
+pass and check succeed, and full CI is being rerun. No live source requests,
 Zendesk edits, production writes, route, environment policy or schedule were added.
 **Next release gate:** coordinate the legacy and durable Talk readers, then perform hosted
 synthetic validation and fresh recovery/canary checks. Inbound publication, POS scope/export

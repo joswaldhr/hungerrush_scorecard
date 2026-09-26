@@ -44,37 +44,31 @@ beforeAll(async () => {
     .values(
       [team, otherTeam].map((id) => ({ id, organizationId: org, name: "Synthetic team", slug: id }))
     );
-  await db
-    .insert(employees)
-    .values({
-      id: employee,
-      organizationId: org,
-      primaryTeamId: team,
-      displayName: "Synthetic employee",
-    });
-  await db
-    .insert(dataSources)
-    .values({
-      id: source,
-      organizationId: org,
-      type: "zendesk",
-      displayName: "Synthetic source",
-      status: "configured",
-      configurationReference: "zendesk-account:synthetic",
-    });
+  await db.insert(employees).values({
+    id: employee,
+    organizationId: org,
+    primaryTeamId: team,
+    displayName: "Synthetic employee",
+  });
+  await db.insert(dataSources).values({
+    id: source,
+    organizationId: org,
+    type: "zendesk",
+    displayName: "Synthetic source",
+    status: "configured",
+    configurationReference: "zendesk-account:synthetic",
+  });
   await db.insert(externalIdentities).values(identity);
-  await db
-    .insert(metricDefinitions)
-    .values({
-      id: metric,
-      organizationId: org,
-      key: "outbound_calls",
-      name: "Outbound",
-      unit: "calls",
-      valueType: "count",
-      calculationType: "sum",
-      sourceStrategy: "zendesk",
-    });
+  await db.insert(metricDefinitions).values({
+    id: metric,
+    organizationId: org,
+    key: "outbound_calls",
+    name: "Outbound",
+    unit: "calls",
+    valueType: "count",
+    calculationType: "sum",
+    sourceStrategy: "zendesk",
+  });
   await db.insert(metricAssignments).values([
     { metricDefinitionId: metric, teamId: team },
     { metricDefinitionId: metric, teamId: otherTeam },
