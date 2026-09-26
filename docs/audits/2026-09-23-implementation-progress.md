@@ -2,7 +2,19 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-Latest continuation: September 26, 00:47 UTC (September 25 Central). PR32 candidate
+September 26, 01:13 UTC continuation: PR32 candidate `fedf71c` passed CI 36206690857
+(713 tests / 92 files, PostgreSQL migrations, typecheck, lint and build) and Preview.
+The next inactive increment collects complete outbound linked-ticket metadata in bounded
+100-ticket batches, rejects missing/foreign/duplicate responses, and strips unrelated
+fields. Outbound qualification now binds metadata to the exact call-population digest,
+rechecks ticket identity/counts, and bounds the combined call/leg/ticket observation.
+Both observation paths reject future reporting periods and source records newer than
+their collection. Eighteen affected tests, typecheck and targeted lint pass (50 focused
+checks including the unchanged store/cursor/calculator/worker checks). Full CI follows.
+No live Zendesk request or production change occurred. Publication integration and the
+remaining release gates below are still open.
+
+Earlier continuation: September 26, 00:47 UTC (September 25 Central). PR32 candidate
 `602ed29` passes CI 36205774133/36205776797: 706 tests / 91 files, PostgreSQL migrations,
 typecheck, lint and build; its Preview completed. The newer read-only snapshot increment
 has 32 focused checks passing, including eleven real PostgreSQL tests; its full CI is

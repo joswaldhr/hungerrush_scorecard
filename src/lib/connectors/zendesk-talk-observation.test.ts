@@ -138,3 +138,32 @@ it("rejects future observations and unbounded freshness policies", () => {
     )
   ).toThrow("limits");
 });
+
+it("does not publish a zero for a reporting period not yet observed", () => {
+  expect(() =>
+    prepareTalkParticipationObservation(
+      snapshot(),
+      accountReference,
+      { ...scope, periodStart: "2026-09-27", periodEnd: "2026-10-03" },
+      limits,
+      now
+    )
+  ).toThrow("not been observed");
+});
+
+it("rejects source records newer than the stream observation and invalid periods", () => {
+  const newer = snapshot();
+  newer.legs[0]!.updated_at = "2026-09-25T12:06:00Z";
+  expect(() =>
+    prepareTalkParticipationObservation(newer, accountReference, scope, limits, now)
+  ).toThrow("newer than");
+  expect(() =>
+    prepareTalkParticipationObservation(
+      snapshot(),
+      accountReference,
+      { ...scope, periodEnd: "2026-09-19" },
+      limits,
+      now
+    )
+  ).toThrow("interval");
+});

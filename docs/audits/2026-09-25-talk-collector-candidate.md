@@ -18,6 +18,16 @@ tracked on PR32 and in the implementation ledger.
 
 ## Implemented
 
+- An inactive outbound ticket reader collects the exact call-created cohort's linked
+  ticket IDs in batches of at most 100. Missing, duplicate or foreign returned tickets
+  reject the collection; null group/link values remain explicit. Only ID, group and
+  update time are retained. Five synthetic tests and typecheck pass. No live reads were
+  needed. This reader is not yet connected to durable publication evidence.
+- Outbound observation preparation binds metadata to the exact call-population digest,
+  rechecks ticket IDs/counts, and enforces account, date/timezone, joined observation age
+  and span. Both observation paths reject a reporting period not yet observed and source
+  updates newer than the corresponding read. Zero and missing durations remain distinct;
+  independent qualification and atomic vendor snapshots are never inferred.
 - Outbound participation uses linked-ticket groups, explicit Central reporting dates,
   numeric agent/supervisor legs and distinct employee-call IDs. Repeated legs retain
   their duration contributions. Null and zero remain separate; unresolved outcomes
@@ -45,8 +55,13 @@ tracked on PR32 and in the implementation ledger.
 
 ## Validation
 
-Thirty-seven focused checks pass: eleven real PostgreSQL storage tests, ten cursor tests,
-seven outbound tests, four transport/worker tests and five observation-policy tests. The storage tests include a real
+Fifty focused checks pass: eleven real PostgreSQL storage tests, ten cursor tests,
+seven outbound tests, four transport/worker tests, seven observation-policy tests, six
+outbound joined-observation tests and five
+linked-ticket reader tests. Candidate `fedf71c` passed CI 36206690857 with 713 tests / 92
+files, migrations, typecheck, lint and build, plus Preview. That result predates the 13
+new linked-ticket/joined-observation checks. All 18 affected tests, typecheck and targeted
+lint pass; full CI for the new increment follows. The storage tests include a real
 PostgreSQL constraint failure on the final checkpoint update after page/revision writes:
 all writes roll back, the old checkpoint survives, and the page can be retried.
 Other cases cover concurrent claims/responses, account changes, foreign organizations,
@@ -77,8 +92,9 @@ See `2026-09-25-talk-store-capacity-rehearsal.json`.
 The worker is not connected to an HTTP route, cron or publisher. It does not replace the
 legacy Talk fetcher. Coordinate or eliminate overlap with that fetcher before activation;
 the new account lease cannot rate-limit unrelated existing integrations automatically.
-Retained ticket-group scope observations are qualification inputs, not yet a durable
-outbound ticket-metadata collector. Join/freshness gating, qualified policies, targets,
+Retained ticket-group scope observations and the new inactive ticket reader are not yet
+durable outbound publication evidence. Joined observation gates are now implemented;
+qualified policies, targets,
 publication ownership and hosted synthetic rehearsals remain implementation work.
 
 All five parents missing from the earlier current-week read are present in the newer

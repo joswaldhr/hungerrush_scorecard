@@ -136,9 +136,10 @@ absolute backup paths before creation. Never print environment values to diagnos
   manager access and private data. `AGENTS.md`, engineering rules and handoff link here.
 - **Local candidate, not activated:** outbound calculator, durable Talk page/revision
   storage, account-bound lease/CAS checks, persistent pacing and GET-only bounded worker.
-  Typecheck, targeted lint and 37 focused tests (including eleven real PostgreSQL tests)
-  passed; full validation and source-wide coordination remain
-  required. No new Talk route, scheduler, production policy or metric publisher is active.
+  Candidate `fedf71c` passed full CI with 713 tests / 92 files and Preview. The newer
+  linked-ticket reader and joined observation gates have 18 affected passing tests
+  (50 focused checks total, including eleven real PostgreSQL tests); their full CI and source-wide coordination
+  remain required. No new Talk route, scheduler, production policy or metric publisher is active.
 - **Next:** finish those candidate checks; qualify missing POS employee-level export
   evidence without opening report editors; implement explicit joined-coverage/publication
   gates; rehearse in staging; then perform a scoped release only when this plan's gates pass.
