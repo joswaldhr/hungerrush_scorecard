@@ -2,6 +2,18 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 28, 19:10 UTC — backlog source population independently checked:**
+Read-only production/source diagnostics cover all 39 active POS backlog assignments.
+Fifty bounded Zendesk GETs in 45.5 seconds observed 620 distinct unsolved tickets;
+search and ticket details agree exactly. Independent Python performed 1,978 checks with
+zero differences. All 39 stored counts match their retained source-ID sets; 24 employee
+sets changed afterward and 15 remain identical. This is elapsed source change, not a
+proven arithmetic defect. Backlog uses all groups; applying the separate Talk filter
+would exclude 109 tickets and silently change the measure. No writes, sync triggers,
+Zendesk editors, policy changes or historical repair occurred. Fresh source observation
+is private; only aggregate evidence is committed. See the backlog source review/report.
+Production remains PR37; coverage remains 14/40 arithmetic and 0/40 fully certified.
+
 **September 28, 19:04 UTC — inbound candidate passes CI and hosted synthetic gates:**
 Draft PR38 contains candidate 81cd53f; both exact CI runs 36468809007/36468804262
 passed typecheck, lint, migrations, 818 tests / 108 files and production build. Isolated
