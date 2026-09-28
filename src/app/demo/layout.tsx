@@ -47,7 +47,7 @@ export default async function DemoLayout({ children }: { children: React.ReactNo
       <main
         id="main-content"
         tabIndex={-1}
-        className="min-w-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8"
+        className="relative min-w-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8"
       >
         <div className="mx-auto max-w-7xl space-y-6">{children}</div>
       </main>
