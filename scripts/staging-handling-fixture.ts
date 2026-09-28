@@ -1,6 +1,7 @@
 /** Explicit isolated Preview fixture; never runs as part of the normal build. */
 import assert from "node:assert/strict";
 import postgres from "postgres";
+let stage = "destination";
 
 async function main() {
   assert.equal(process.env.VERCEL_ENV, "preview");
@@ -20,18 +21,22 @@ async function main() {
   const sql = postgres(url.toString(), { max: 1, onnotice: () => {} });
   try {
     await sql.begin(async (tx) => {
-      const orgs = await tx`select id,name from organizations`;
+      stage = "synthetic_scope";
+      const orgs =
+        await tx`select id,name from organizations where name='Synthetic staging rehearsal'`;
       assert.equal(orgs.length, 1);
       assert.equal(orgs[0]!.name, "Synthetic staging rehearsal");
       const org = orgs[0]!.id;
-      const staff = await tx`select id,display_name,primary_team_id from employees`;
+      const staff =
+        await tx`select id,display_name,primary_team_id from employees where organization_id=${org}`;
       assert.equal(staff.length, 1);
       assert.equal(staff[0]!.display_name, "Synthetic employee");
       const employee = staff[0]!.id,
         team = staff[0]!.primary_team_id;
       assert(team);
-      const sources = await tx`select id,type from data_sources`;
+      const sources = await tx`select id,type from data_sources where organization_id=${org}`;
       assert(sources.length === 1 && sources[0]!.type === "staging");
+      stage = "definition";
       const definition = "f9280000-0928-4000-8000-000000000001";
       await tx`insert into metric_definitions (id,organization_id,key,name,category,unit,value_type,direction,source_strategy)
         values (${definition},${org},'avg_handle_time','Avg Handle Time (synthetic)','Staging handling','min','duration','lower_is_better','zendesk')
@@ -43,6 +48,7 @@ async function main() {
         key: "avg_handle_time",
         source_strategy: "zendesk",
       });
+      stage = "assignment_target";
       await tx`insert into metric_assignments (metric_definition_id,team_id,display_order,is_primary,effective_from)
         select ${definition},${team},30,true,'2026-09-01' where not exists
         (select 1 from metric_assignments where metric_definition_id=${definition} and team_id=${team})`;
@@ -53,6 +59,7 @@ async function main() {
         ["2026-09-27", "2026-10-03", 0],
         ["2026-09-20", "2026-09-26", 137.8],
       ] as const) {
+        stage = "values";
         await tx`insert into metric_values (metric_definition_id,employee_id,team_id,period_start,period_end,numeric_value,quality_status,calculation_version,data_freshness_at)
           values (${definition},${employee},${team},${start},${end},${value},'complete',999,'2026-09-28T18:00:00Z')
           on conflict (metric_definition_id,employee_id,period_start,period_end) do nothing`;
@@ -65,6 +72,7 @@ async function main() {
         await tx`select id from metric_values where metric_definition_id=${definition} and period_start='2026-09-27' and employee_id=${employee}`;
       const run = "f9280000-0928-4000-8000-000000000002",
         revision = "f9280000-0928-4000-8000-000000000003";
+      stage = "revisions";
       await tx`insert into sync_runs (id,data_source_id,status,metadata_json) values (${run},${sources[0]!.id},'completed','{"syntheticFixture":"handling-containment"}') on conflict (id) do nothing`;
       const [savedRun] =
         await tx`select data_source_id,metadata_json from sync_runs where id=${run}`;
@@ -101,7 +109,14 @@ async function main() {
     await sql.end();
   }
 }
-main().catch(() => {
-  console.error("Synthetic handling fixture failed; details withheld");
+main().catch((error: unknown) => {
+  const code =
+    error && typeof error === "object" && "code" in error ? String(error.code) : "unknown";
+  console.error(
+    JSON.stringify({
+      syntheticFixtureFailed: stage,
+      code: /^[A-Z0-9_]+$/.test(code) ? code : "unknown",
+    })
+  );
   process.exitCode = 1;
 });
