@@ -1,0 +1,86 @@
+{
+  "observedOn": "2026-09-28",
+  "source": "Read-only production run metadata and retained source summaries; no vendor requests",
+  "productionSha": "8a0c4bd8b26ac660b0cfd1a7e5dddd41a687debc",
+  "runs": [
+    {
+      "offset": 0,
+      "fetchMs": 85751,
+      "talkMs": 4576,
+      "talkPages": 3,
+      "ticketSearchMs": 59696,
+      "metricSetsMs": 17731,
+      "recordBuildMs": 3455
+    },
+    {
+      "offset": 1,
+      "fetchMs": 251975,
+      "talkMs": 25168,
+      "talkPages": 11,
+      "ticketSearchMs": 71551,
+      "metricSetsMs": 141426,
+      "recordBuildMs": 13540
+    },
+    {
+      "offset": 2,
+      "fetchMs": 179227,
+      "talkMs": 45681,
+      "talkPages": 20,
+      "ticketSearchMs": 46913,
+      "metricSetsMs": 82009,
+      "recordBuildMs": 3611
+    },
+    {
+      "offset": 3,
+      "fetchMs": 198312,
+      "talkMs": 70551,
+      "talkPages": 28,
+      "ticketSearchMs": 35620,
+      "metricSetsMs": 87625,
+      "recordBuildMs": 3587
+    }
+  ],
+  "cohorts": [
+    {
+      "periodStart": "2026-09-06",
+      "employeeSummaries": 62,
+      "updatedTickets": 5635,
+      "durationCohortTickets": 2372,
+      "previousDetailRequests": 57,
+      "candidateMaximumDetailRequests": 24
+    },
+    {
+      "periodStart": "2026-09-13",
+      "employeeSummaries": 62,
+      "updatedTickets": 5941,
+      "durationCohortTickets": 2365,
+      "previousDetailRequests": 60,
+      "candidateMaximumDetailRequests": 24
+    },
+    {
+      "periodStart": "2026-09-20",
+      "employeeSummaries": 62,
+      "updatedTickets": 8506,
+      "durationCohortTickets": 4644,
+      "previousDetailRequests": 86,
+      "candidateMaximumDetailRequests": 47
+    },
+    {
+      "periodStart": "2026-09-27",
+      "employeeSummaries": 62,
+      "updatedTickets": 1489,
+      "durationCohortTickets": 616,
+      "previousDetailRequests": 15,
+      "candidateMaximumDetailRequests": 7
+    }
+  ],
+  "fix": "Request details only for the already-consumed UTC creation cohort, deduplicated across employee searches. Preserve all updated-ticket counts, source evidence, legacy rounding and separate qualified metric policies.",
+  "validation": {
+    "beforeFix": "Three regression cases fail because excluded ticket details are requested",
+    "afterFix": "29 focused evidence/pagination checks, typecheck, targeted lint and formatting pass; full CI pending"
+  },
+  "limits": [
+    "Retained request counts, not a live candidate wall-clock measurement. Deduplication may reduce requests further.",
+    "Whole-job hosted runtime remains unverified. No additional source requests, production changes or Zendesk changes."
+  ]
+}

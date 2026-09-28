@@ -2,6 +2,19 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 28, 14:10 UTC — candidate runtime work:** read-only production phase
+diagnostics identify ticket-detail fetching as the largest phase in the slowest weekly
+run (141.426 seconds). Retained source summaries contain 8,506 updated tickets but only
+4,644 in the duration calculation's existing creation cohort. A narrow candidate now
+requests only that cohort's detail records, once per ID, preserving the full updated
+ticket evidence/counts, UTC boundaries, legacy rounding and separate qualified policies.
+For that retained week, the detail request ceiling falls from 86 to 47. Three synthetic
+regressions first reproduced unnecessary requests; all 29 focused evidence/pagination
+checks, typecheck, targeted lint and formatting now pass. Full CI follows. This is a request-count
+improvement, not yet a measured hosted runtime result or a production deployment.
+Aggregate evidence: `2026-09-28-legacy-sync-request-sizing.json`. The current-week CSAT
+recovery and 3 p.m. handoff/access dependencies below remain the active production state.
+
 **September 28, 13:57 UTC — current:** one controlled recovery using the exact deployed
 `8a0c4bd` code and unchanged qualified CSAT policy refreshed September 27–October 3:
 **62 source summaries / 85 values**, zero errors, 38 GET requests, 42.750-second fetch

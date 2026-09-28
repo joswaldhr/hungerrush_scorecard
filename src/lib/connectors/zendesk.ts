@@ -399,8 +399,10 @@ export class ZendeskConnector implements Connector {
     );
 
     const perEmployeeTickets = new Map<string, ZendeskTicket[]>();
+    const perEmployeeCreated = new Map<string, ZendeskTicket[]>();
     const perEmployeeOpen = new Map<string, ZendeskTicket[]>();
-    const allTicketIds: number[] = [];
+    const durationTicketIds = new Set<number>();
+    let allTicketIdsCount = 0;
 
     const ticketSearchStartedAt = Date.now();
     const ticketResults = await mapWithConcurrency(
@@ -421,13 +423,21 @@ export class ZendeskConnector implements Connector {
     );
     for (const { email, tickets, openTickets } of ticketResults) {
       perEmployeeTickets.set(email, tickets);
-      allTicketIds.push(...tickets.map((t) => t.id));
+      allTicketIdsCount += tickets.length;
+      const createdInPeriod = tickets.filter((ticket) => {
+        const created = new Date(ticket.created_at).toISOString().split("T")[0]!;
+        return created >= periodStart && created <= periodEnd;
+      });
+      perEmployeeCreated.set(email, createdInPeriod);
+      for (const ticket of createdInPeriod) durationTicketIds.add(ticket.id);
       if (openTickets !== null) perEmployeeOpen.set(email, openTickets);
     }
     const ticketSearchMs = Date.now() - ticketSearchStartedAt;
 
     const metricSetsStartedAt = Date.now();
-    const metricSets = await fetchMetricSets(allTicketIds);
+    // Only these tickets' duration fields are consumed below. Keep the full updated
+    // cohort for counts/evidence, but avoid detail requests for unused metric sets.
+    const metricSets = await fetchMetricSets([...durationTicketIds]);
     const metricSetsMs = Date.now() - metricSetsStartedAt;
     const now = new Date();
 
@@ -450,10 +460,7 @@ export class ZendeskConnector implements Connector {
         (t) => t.status === "solved" || t.status === "closed"
       ).length;
 
-      const createdInPeriod = tickets.filter((t) => {
-        const created = new Date(t.created_at).toISOString().split("T")[0]!;
-        return created >= periodStart && created <= periodEnd;
-      });
+      const createdInPeriod = perEmployeeCreated.get(email) ?? [];
       const avgHandleTimeMinutes = averageOf(
         createdInPeriod.map((t) =>
           businessMinutes(metricSets.get(t.id)?.full_resolution_time_in_minutes)
@@ -584,7 +591,8 @@ export class ZendeskConnector implements Connector {
       ticketSearchMs,
       metricSetsMs,
       recordBuildMs,
-      allTicketIdsCount: allTicketIds.length,
+      allTicketIdsCount,
+      durationTicketIdsCount: durationTicketIds.size,
     });
 
     return {
@@ -598,6 +606,8 @@ export class ZendeskConnector implements Connector {
         ticketSearchMs,
         metricSetsMs,
         recordBuildMs,
+        allTicketIdsCount,
+        durationTicketIdsCount: durationTicketIds.size,
       },
     };
   }
