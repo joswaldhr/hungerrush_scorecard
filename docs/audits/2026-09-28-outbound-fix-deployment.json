@@ -1,0 +1,17 @@
+{
+  "observedAt": "2026-09-28T16:11:32.369Z",
+  "productionCommit": "e95c3710353209f79b73201d6bd2a4d70e5b40b8",
+  "deploymentId": "dpl_GXbbnN2xNxFKeqq7uLTu7MCbHest",
+  "ready": true,
+  "aliasMatches": true,
+  "protectedTablesUnchanged": true,
+  "productionEnvironmentUnchanged": true,
+  "environmentEntries": 18,
+  "managerRead": {
+    "team": "Menufy",
+    "employeeLinks": 23,
+    "existingSession": true,
+    "adminRestored": true
+  },
+  "metricPoliciesActivated": false
+}
