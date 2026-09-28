@@ -57,3 +57,37 @@ and hosted visual/export verification are recorded as they complete below.
 Local authenticated inspection verifies 15 linked people, both teams/lines and the new
 sidebar. Production is unchanged. The separate PR39 last-week review release remains
 held until actual hosted export bytes are inspected. This demo is not metric certification.
+
+## Verified hosted candidate
+
+- App candidate `1798ab8d00a9aaaa5774cb03f651d6a2c3e4507f`, PR40 stacked on PR39.
+- Exact CI `36477916159` passed typecheck, lint, migrations, 840 tests / 109 files and
+  the production build. Local full suite and static checks also passed.
+- Isolated Preview `dpl_57WTtMQAhk5YAwrCngr2t5rBz8Xd` is READY, with the staging branch's
+  database/auth/vendor isolation and two explicit branch-only demo configuration entries.
+  Only the existing reviewer was allowlisted. No production environment entry changed.
+- Entry: `https://hungerrush-scorecard-git-code-20e6ca-water-hungerrush-scorecard.vercel.app/demo/one-on-ones`.
+- Authenticated hosted inspection opened all 15 scorecards: 330 metric rows, every
+  current/comparison/target cell populated, and every page shows 22/22 available with
+  persistent synthetic labeling. Names, team/line groups and links match the fixture.
+- Current-week check shows 22 values and exclusively neutral In Progress statuses.
+  Demo history offers six prior weeks; returning restores the explicit current week.
+  All seven category tables have identical column widths.
+- Light/dark roster and scorecard views inspected. At 390px, document/client width
+  agree at 375px, with contained horizontal table scrolling. Mobile navigation opens
+  as a labeled dialog; Escape closes it and restores focus to the expand control.
+- The active-handling illustration uses its own demo key, avoiding the legacy live-source
+  resolution-time caption. No live metric availability guard was loosened.
+- Actual download bytes remain unverified: the local browser CSV action produced no
+  downloadable file/event, consistent with the existing hosted export-inspection limit.
+  CSV/PDF/PNG must not be called presentation-verified solely from a success notification.
+- An exact-name, read-only lookup of existing presenter user/employee records found no
+  match; the presenter's sign-in email remains unknown. No account or role was invented.
+
+To rehearse, open the entry URL, choose a POS or Menufy employee, review last week, switch
+to this week's progress, then return to Last week before presenting comparisons. Every
+demo profile is populated; fictional targets illustrate different review statuses.
+Use on-screen review until actual downloaded-file checks pass. The separate production
+release stays held; Zendesk, source publication policies, schedules and assignments remain
+unchanged. Preview rollback is the prior `dpl_BfBrmQrvkEfL82ZWibVGkLXaoFgF` candidate;
+remove/disable only the two demo Preview entries if demo access needs to be withdrawn.
