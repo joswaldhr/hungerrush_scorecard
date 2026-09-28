@@ -169,8 +169,9 @@ async function main() {
         avgHoldTimeOutbound: 120,
       },
     };
-    stage = "legacy_baseline";
+    stage = "legacy_publication";
     assert((await publish([legacy])).success);
+    stage = "legacy_readback";
     assert.equal((await read()).find((r) => r.key === "outbound_calls")!.numeric_value, 99);
     stage = "candidate_publication";
     const result = await publish([record]);
@@ -243,11 +244,19 @@ async function main() {
 }
 main().catch((error: unknown) => {
   const summary = errorSummary(error);
+  const safeTypeError =
+    summary.name === "TypeError" &&
+    /^(?:[A-Za-z_$][\w$]* is not a function|Cannot read properties of (?:undefined|null) \(reading '[A-Za-z_$][\w$]*'\))$/.test(
+      summary.message
+    )
+      ? summary.message
+      : undefined;
   console.error(
     JSON.stringify({
       syntheticRehearsalFailure: stage,
       errorClass: summary.name,
       ...(summary.code ? { databaseCode: summary.code } : {}),
+      ...(safeTypeError ? { failureReason: safeTypeError } : {}),
     })
   );
   process.exitCode = 1;
