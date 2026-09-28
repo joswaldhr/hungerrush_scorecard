@@ -2,6 +2,46 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 28, 16:57 UTC — definitions inspected; outbound refresh contained; first-reply cron verified:**
+Brief, user-authorized inspection found the current Menufy offered formula includes
+unreachable legs; the inactive three-component candidate must not be published as that
+definition. Ticket reports count update events with filters that do not establish human
+activity; SUM talk/MAX hold are not averages. No Zendesk edits or saves were made, and
+all report/dashboard inspection tabs are closed. See `2026-09-28-report-definition-review.md`.
+
+PR34 merged to `0504979`; exact PR and master CI 36452365118 passed (796 tests / 105
+files). Its production deployment was READY, with only the two explicitly scoped new
+production policies added. A genuine first-reply scheduler execution at 16:43 UTC used
+`vercel-cron/1.0`, returned HTTP 200 in 47.47 seconds, and published 23 current-week
+values without errors. Vercel invocation details and the database run agree; see
+`2026-09-28-first-reply-scheduled-verification.json`. This replaces the earlier
+unobserved-scheduler statement for that family/current-week execution only.
+
+The controlled outbound request initially received the shared source cooldown's HTTP
+429 during that first-reply run. After the cooldown expired and a fresh baseline was
+captured, one controlled hosted refresh returned HTTP 503 after 128.9 seconds: a newly
+observed Menufy agent leg lacked its parent call. Both export streams were exhausted,
+which correctly did not bypass the join requirement. Zero metric values were written.
+All 115 earlier qualified outbound rows and seven protected table/scope checks remain
+unchanged. Source records/checkpoints remain retained for diagnosis.
+
+Following the release rollback procedure, both new production policies were removed
+and production restored to `e95c371` / `dpl_GXbbnN2xNxFKeqq7uLTu7MCbHest`. The alias
+and administrator page were verified. First-reply code and its successful stored values
+are retained. **Git master still contains PR34; the production alias is the explicit
+rollback target. Check Vercel rollback protection/promotion before the next release.**
+Do not reactivate outbound refresh until the new parent-gap behavior is qualified;
+no genuine outbound scheduled execution has been observed. See
+`2026-09-28-outbound-refresh-containment.json`. Arithmetic coverage remains 9/40
+assignments; full-contract certification remains 0/40. Human metrics, shadow/action-v2
+and historical repair remain disabled. A bounded GET-only overlap investigates the
+missing parent without publishing or altering Zendesk.
+At 16:58 UTC a single bounded calls GET returned that missing employee parent. This
+establishes later visibility, not the exact cause of its earlier absence. No production
+writes or reactivation followed. `2026-09-28-outbound-parent-overlap.json` records the
+aggregate result. Next work is a bounded calls follow-up after the legs observation,
+with the same strict join/freshness gates and independent qualification before release.
+
 **September 28, 16:25 UTC — Menufy outbound is published; automatic refresh under validation:**
 The controlled one-employee canary and subsequent 22-employee widening independently
 verified all 115 current-week outbound values, 93 predecessor revisions and unchanged

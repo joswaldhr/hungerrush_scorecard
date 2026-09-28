@@ -1,5 +1,13 @@
 # Menufy outbound prospective publication
 
+**16:57 UTC containment update:** PR34's automatic refresh passed CI and deployed, but
+its controlled live request rejected one new employee parent-call gap and wrote zero
+metrics. Both new production policies were removed and the alias restored to the PR33
+deployment below. All 115 qualified prior metric rows and seven protected checks remain
+unchanged. The durable source collection is retained; reactivation requires qualification
+of this live coverage gap. See `2026-09-28-outbound-refresh-containment.json` and the
+authoritative ledger. Git master contains PR34; production is explicitly rolled back.
+
 Application: `e95c3710353209f79b73201d6bd2a4d70e5b40b8` / PR33, production
 `dpl_GXbbnN2xNxFKeqq7uLTu7MCbHest`. The deployment is READY and owns the production
 alias; PR and master checks pass (788 tests / 104 files, migrations, typecheck, lint,

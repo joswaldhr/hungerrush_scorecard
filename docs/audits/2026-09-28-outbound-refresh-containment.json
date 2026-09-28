@@ -1,0 +1,44 @@
+{
+  "observedAt": "2026-09-28T16:57:19.047Z",
+  "candidateApplication": "050497942535b0ac2fa7f0546a8e61c6365b2f7a",
+  "candidateDeployment": "dpl_36p6CJcgmTYNrVd58S8B12RkYvsv",
+  "masterCi": 36452365118,
+  "masterCiConclusion": "success",
+  "controlledRequest": {
+    "status": 503,
+    "durationMs": 128945,
+    "scheduledExecution": false,
+    "valuesWritten": 0,
+    "reason": "Incomplete outbound parent-call coverage"
+  },
+  "priorCooldownRejection": {
+    "status": 429,
+    "newSyncRun": false,
+    "reason": "First-reply scheduled execution started within shared source cooldown"
+  },
+  "source": {
+    "bothStreamsExhausted": true,
+    "missingParentCalls": 9,
+    "missingAgentParentsAffectingMenufy": 1,
+    "affectedAgentLegCreatedAt": "2026-09-28T16:49:56Z",
+    "sourceGapCause": "Not yet established; do not infer deleted or excluded parent"
+  },
+  "containment": {
+    "removedProductionPolicies": [
+      "ZENDESK_TALK_COLLECTION_POLICY",
+      "ZENDESK_OUTBOUND_POLICY"
+    ],
+    "restoredApplication": "e95c3710353209f79b73201d6bd2a4d70e5b40b8",
+    "restoredDeployment": "dpl_GXbbnN2xNxFKeqq7uLTu7MCbHest",
+    "aliasVerified": true,
+    "administratorPageVerified": true,
+    "protectedTableChecks": 7,
+    "existingOutboundRowsUnchanged": 115,
+    "sourceCollectionRetained": true
+  },
+  "remaining": [
+    "Resolve and independently qualify live parent-call coverage before reactivation",
+    "Verify genuine outbound scheduled execution after qualification",
+    "Check rollback protection/promotion state before the next production release"
+  ]
+}
