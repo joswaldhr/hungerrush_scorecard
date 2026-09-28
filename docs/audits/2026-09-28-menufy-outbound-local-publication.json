@@ -1,0 +1,16 @@
+{
+  "observedAt": "2026-09-28T16:10:37.493Z",
+  "destination": "isolated-restored-production-copy",
+  "team": "Menufy",
+  "periodStart": "2026-09-27",
+  "periodEnd": "2026-10-03",
+  "employees": 23,
+  "valuesWritten": 115,
+  "independentStoredValueComparisons": 115,
+  "unexplainedDifferences": 0,
+  "replayWrites": 0,
+  "unrelatedAndHistoricalRowsUnchanged": true,
+  "sourceRequests": 0,
+  "productionWrites": false,
+  "durationMs": 1694
+}

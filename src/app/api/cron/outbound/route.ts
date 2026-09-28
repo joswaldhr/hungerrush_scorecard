@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { env } from "@/lib/env";
-import { configuredOutboundPolicy } from "@/lib/connectors/zendesk-talk-config";
+import {
+  configuredOutboundPolicy,
+  configuredTalkCollectionPolicy,
+} from "@/lib/connectors/zendesk-talk-config";
 import { talkPolicyForPeriod } from "@/lib/connectors/zendesk-talk-policy";
 import { createOutboundConnector } from "@/lib/connectors/zendesk-outbound-connector";
 import { runSync } from "@/lib/connectors/sync-engine";
@@ -41,7 +44,11 @@ export async function GET(request: Request) {
       });
     if (await isSyncRateLimited(config.dataSourceId))
       return NextResponse.json({ error: "Source is in its sync cooldown" }, { status: 429 });
-    const result = await runSync(createOutboundConnector(policy), config, { weekOffset: offset });
+    const collection = configuredTalkCollectionPolicy();
+    if (!collection) throw Error("Outbound refresh requires an explicit collection policy");
+    const result = await runSync(createOutboundConnector(policy, collection), config, {
+      weekOffset: offset,
+    });
     return NextResponse.json(
       { ...result, periodStart, periodEnd },
       { status: result.success ? 200 : 503 }

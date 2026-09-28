@@ -8,6 +8,16 @@ without losing newer data. No plan can guarantee zero failures.
 
 ## 1. Protect Zendesk and managers' work
 
+**September 28 user amendment:** the user explicitly permitted opening the managers'
+reports to inspect how metrics were built, with the instruction to close them and make
+no edits. This supersedes the editor-opening prohibition below only for that bounded
+inspection. Prefer viewer pages; if a definition requires its editor, inspect one report
+at a time, change no formulas, filters, attributes, settings or permissions, never save,
+and exit/close promptly. Stop and close immediately on a lock or disruption. Record the
+observed definitions and confirm all inspection tabs are closed afterward. This does not
+authorize any Zendesk mutation or unattended editor session. The incident below remains
+relevant to why the inspection must be short and controlled.
+
 **Zendesk is read-only for this work.** Do not create, edit, save, delete or reconfigure
 reports, dashboards, tickets, users, groups, fields, triggers, automations, permissions
 or account settings. Do not open Explore report/dashboard editors, including for

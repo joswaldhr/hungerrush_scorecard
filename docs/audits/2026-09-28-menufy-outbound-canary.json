@@ -1,0 +1,22 @@
+{
+  "observedAt": "2026-09-28T16:14:26.647Z",
+  "application": "e95c3710353209f79b73201d6bd2a4d70e5b40b8",
+  "execution": "controlled_retained_observation_canary",
+  "team": "Menufy",
+  "periodStart": "2026-09-27",
+  "periodEnd": "2026-10-03",
+  "employees": 1,
+  "valuesWritten": 5,
+  "verified": true,
+  "independentStoredValueComparisons": 5,
+  "unexplainedDifferences": 0,
+  "unrelatedRowsAndLegacyFactsUnchanged": true,
+  "predecessorValues": 5,
+  "predecessorRevisionsVerified": 5,
+  "vendorRequests": 0,
+  "durationMs": 12970,
+  "sourceObservationStartedAt": "2026-09-28T15:57:10.639Z",
+  "sourceObservationEndedAt": "2026-09-28T16:01:27.208Z",
+  "evidenceSha256": "1fbc16f831ee2b623bf1270afbba10a3ebf81e1d5f95575c774a25c82d0abf04",
+  "scheduledExecution": false
+}

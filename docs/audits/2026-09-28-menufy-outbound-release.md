@@ -1,0 +1,86 @@
+# Menufy outbound prospective publication
+
+Application: `e95c3710353209f79b73201d6bd2a4d70e5b40b8` / PR33, production
+`dpl_GXbbnN2xNxFKeqq7uLTu7MCbHest`. The deployment is READY and owns the production
+alias; PR and master checks pass (788 tests / 104 files, migrations, typecheck, lint,
+build). The existing-session Menufy view lists 23 employees; administrator view was restored.
+
+Scope: the five outbound call participation metrics for 23 active Menufy employees,
+September 27–October 3 only, America/Chicago call-created date, explicit current
+linked-ticket group scope. Source contract: `zendesk-call-created-agent-leg-outbound-v1`.
+Attempted/completed/non-answered count distinct employee-participated calls. Durations
+are agent/supervisor leg seconds, include measured zero, and retain per-field sample
+counts. No samples produces a verified null, not zero. Earlier periods, other teams,
+inbound/ticket/CSAT/first-reply metrics, employee assignments and targets are outside scope.
+Incompatible historical targets remain unavailable; this does not certify target comparisons.
+
+Real GET-only qualification retained 2,209 calls and 4,478 legs. Both streams exhausted;
+six missing parent calls affect two POS employees, so POS is excluded from this release.
+All 23 Menufy bindings pass the joined observation and source/assignment checks.
+An independent Python reconstruction of the full populations matched all 60 qualifying
+employee cases: 1,020 numeric/duration comparisons and 1,800 exact source-set comparisons,
+zero unexplained differences. Two blocked POS cases independently reproduced the missing
+parent condition. Earlier retained Menufy qualification covered two closed weeks (44
+employee-period cases, 220 reported fields). Those historical weeks will not be rewritten.
+
+The exact retained current Menufy observation passed the real publisher against an isolated
+restored production copy: 115 values match the independent reference, identical replay
+writes zero, and unrelated/historical values are unchanged. Hosted synthetic persistence,
+current/history/revisions, alignment and actual CSV/PDF/PNG bytes passed on this application.
+
+Recovery: `2026-09-28-outbound-fix-backup.json`, 15:51 UTC encrypted backup and verified
+33-table / 48,778-row restore. At 16:06 UTC the seven protected production tables still
+matched their pre-release checksums; all 18 production environment entries were unchanged.
+An initial postcheck used a different checksum serialization; rerunning the original UTC,
+order-independent algorithm matched every protected table. That diagnostic mismatch was
+not a data mutation. The restored copy was subsequently restarted for isolated qualification.
+
+Controlled publication procedure: revalidate the exact deployed SHA, current source and
+employee bindings, retained evidence hashes and observation age. Publish one employee's
+five values with the existing atomic sync engine and a labeled controlled-run diagnostic;
+compare stored values and provenance against the independent reference and verify unrelated
+row digests/revisions. Then widen to the remaining 22 Menufy employees (110 additional
+values) only if those checks pass. No Zendesk calls or changes occur during retained replay.
+Do not call this a scheduled execution. Preserve source observation timestamps.
+
+Rollback: stop the affected outbound publisher/schedule; retain original facts and
+`sync_revisions`. Restore only affected values from the immediately preceding revision,
+checking for newer writes and the exact recorded controlled run first. Do not restore the
+whole database or change employee assignments. The previous application `670fe22` remains
+compatible, but reverting code alone is not metric rollback. Source collection, private
+policy activation and genuine scheduled operation require separate evidence below.
+
+Controlled production publication passed at 16:14–16:15 UTC: the one-employee canary
+wrote five values and the remaining 22 employees wrote 110. All 115 independently match;
+93 predecessor values have verified revisions. Unrelated values, old source facts,
+assignments and targets are unchanged. Nina's actual current-week view and downloaded
+8,323-byte CSV retain the new source contract, Central timezone, verified zero call
+counts and explicit no-sample durations. Administrator view was restored.
+
+Automatic refresh candidate: the outbound route now requires matching collection and
+publication policies and refreshes Talk immediately before linked-ticket reads. Four
+daily week-offset jobs use 00:00–03:00 UTC, outside existing 06:00–22:00 jobs; periods
+before September 27 skip. This avoids separate collection/publication hourly windows
+exceeding the joined-observation limit. Bounded collection/support phases leave database
+time within the 300-second host limit. Incomplete streams never publish partial results.
+The local live-source rehearsal took 53.4 seconds / 15 GETs; all 23 Menufy cases independently
+match again (391 numeric/duration comparisons and 690 exact sets). The raw observations
+stay private. Full local checks pass: typecheck, lint and 796 tests / 105 files. Exact CI,
+fresh backup, deployment, private policy configuration and hosted controlled refresh
+remain required. Genuine scheduled execution cannot be claimed before it occurs.
+
+Refresh application candidate: `7a9984f`, PR34. Its fresh 16:28 UTC encrypted backup
+restored all 33 tables / 49,033 rows with matching digests through migration 0015;
+see `2026-09-28-outbound-refresh-backup.json`. The restored cluster stopped afterward;
+private recovery files are retained. No schema migration is required for this release.
+The exact previous application/alias is `e95c371` / `dpl_GXbbnN2xNxFKeqq7uLTu7MCbHest`.
+Private activation adds only the production collection and outbound policy keys, bound
+to the existing Zendesk source and Menufy team, bootstrap September 26 UTC, prospective
+cutover September 27. The previous values of both keys are absent. Every other production
+environment entry must retain its identity/update metadata, and Preview stays disabled.
+If refresh fails, disable those two policies and revert the scheduled code to the previous
+application; retain qualified values with their actual observation time. A source-gap failure
+must not be addressed by weakening the joins or replacing unknowns with zero.
+
+Human ticket metrics, shadow ingestion,
+action-v2 publication and historical repair remain disabled. Zendesk remains GET-only.

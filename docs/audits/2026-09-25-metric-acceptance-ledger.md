@@ -31,23 +31,28 @@ or unverified attribution is an incomplete result. Certification is bounded to d
 periods, source observations and deployed definitions; it is not a guarantee that external
 services can never fail. Future failures must be detected rather than silently misreported.
 
-**Current evidence:** 4/40 assignments have independently verified production arithmetic;
+**Current evidence, September 28 16:15 UTC:** 9/40 assignments have independently verified production arithmetic;
 full-contract certification remains 0/40 in this ledger. This is a qualification count,
 not a claim that every remaining value is wrong or an estimate of engineering effort.
 The September 28 controlled CSAT recovery independently matched 85/85 values/cohorts;
 its scheduled HTTP 429 cause remains open. PR32 deployed the call infrastructure with
-new policies absent, so call qualification below does not increase production completion.
+new policies absent. PR33 corrected the outbound replacement guard, and a controlled
+Menufy canary plus widening published five additional assignments / 115 current-week
+values for all 23 employees. Independent values match exactly and 93 predecessor
+revisions were verified. Automatic source refresh and genuine scheduler execution are
+not yet certified; POS remains excluded because of employee parent-call gaps.
 
 Execution order: finish the call publication rehearsal and source gates; perform a scoped,
 independently reconciled activation; resolve verified-human ticket activity and the handle/
 elevated/backlog definitions; qualify targets and scheduled operation for each family.
 Continue independent source/implementation work while external prerequisites are missing.
-The staging connection credential remains absent from local configuration as of September
-28, 15:19 UTC; this blocks its hosted publication rehearsal, not unrelated investigation.
+The hosted staging rehearsal passed using its credential inside its existing Preview
+build environment, without extracting it; that blocker is resolved.
 No Zendesk report editor or mutation is permitted to close an evidence gap.
 
 The dated September 25 baseline below is retained. Row updates for outbound reference
-checks reflect later evidence; they do not claim production activation.
+checks reflect later evidence. Menufy outbound production activation above supersedes
+the older outbound rows' unactivated state; POS remains a candidate.
 
 ## September 25 baseline and subsequent family evidence
 

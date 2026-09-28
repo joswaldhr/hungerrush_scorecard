@@ -4,9 +4,10 @@ Read `CLAUDE.md`, `docs/SAFETY_GUARDRAILS.md`, and the current checkpoint at the
 `docs/audits/2026-09-23-implementation-progress.md` before continuing this project.
 
 - Zendesk is read-only under the user's September 25 instruction. Do not change its
-  reports, dashboards, tickets, configuration or permissions. Do not open report or
-  dashboard editors even for unsaved inspection: audit editor sessions locked a manager
-  out. Use retained downloads and bounded, allowlisted GET APIs.
+  reports, dashboards, tickets, configuration or permissions. The September 28 user
+  amendment permits brief report-definition inspection with no edits and prompt closure;
+  follow its one-report-at-a-time controls in Safety Guardrails. Otherwise avoid editors:
+  audit editor sessions locked a manager out. Prefer retained downloads and bounded GETs.
 - Keep tests and synthetic fixtures isolated from production. A merge to `master`
   deploys production; pass the documented technical release gates first.
 - Keep unverified human ticket metrics unavailable and ticket-action shadow ingestion,

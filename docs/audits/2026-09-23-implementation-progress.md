@@ -2,6 +2,48 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 28, 16:25 UTC — Menufy outbound is published; automatic refresh under validation:**
+The controlled one-employee canary and subsequent 22-employee widening independently
+verified all 115 current-week outbound values, 93 predecessor revisions and unchanged
+unrelated/historical values, legacy facts, assignments and targets. Nina's live view and
+actual 8,323-byte CSV carry the correct source contract, Central timezone and zero/no-sample
+distinction; admin view was restored. Production arithmetic coverage is now 9/40 team
+assignments, not full-contract certification. POS parent gaps and target/scheduler gates remain.
+
+The next candidate performs bounded Talk collection and outbound publication within one
+invocation, avoiding hourly scheduler jitter violating the joined observation span.
+Its local real-source rehearsal took 53.4 seconds / 15 GETs; all 23 cases independently
+match 391 value/duration fields and 690 exact sets. Typecheck, lint and all 796 tests /
+105 files pass. Source/metric policies are still absent in production; code CI, fresh
+backup, deployment/configuration and hosted controlled refresh follow before activation.
+
+The user has now explicitly permitted brief inspection of existing Zendesk reports,
+requiring no edits and prompt closure. The amendment at the top of Safety Guardrails
+supersedes the earlier editor-opening prohibition only for this controlled inspection.
+No formulas, filters, report/dashboard configuration or permissions may be changed.
+
+**September 28, 16:11 UTC — outbound production code verified; Menufy activation qualified:**
+PR33 merged to `e95c3710353209f79b73201d6bd2a4d70e5b40b8`. Production deployment
+`dpl_GXbbnN2xNxFKeqq7uLTu7MCbHest` is READY and owns the alias; master CI 36447710683
+passed. All seven protected production table checksums and all 18 environment metadata
+entries match the release baseline. Menufy manager View-as lists 23 employees and admin
+view was restored. See `2026-09-28-outbound-fix-deployment.json`.
+
+The bounded real-source collector retained 2,209 calls and 4,478 legs in the isolated
+restored copy, with no production metric writes. Both streams exhausted, but six missing
+parent calls affect two POS employee cases. All 23 Menufy and 37/39 POS cases qualified;
+independent Python reconstruction matched 1,020 numeric/duration fields and 1,800 exact
+source sets without unexplained differences. The two POS failures were independently
+reproduced and remain excluded. See `2026-09-28-outbound-current-reconciliation.json`.
+
+The current Menufy retained observation also passed isolated real-data publication: 115
+stored values match, identical replay writes zero, and unrelated/historical rows remain
+unchanged. `2026-09-28-menufy-outbound-release.md` records the prospective current-week
+controlled canary, widening, recovery and remaining scheduler/target gates. Production
+publication has not yet occurred. The private recovery cluster was restarted for these
+isolated checks and is still in use; recovery files remain retained. Zendesk is GET-only;
+human ticket metrics/shadow/action-v2/historical repair remain disabled.
+
 **September 28, 15:54 UTC — PR33 qualified for code release:** final application candidate
 `d3f57ec` passed both CI runs 36446226518/36446232635 (788 tests / 104 files, migrations,
 typecheck, lint and build). The full local run exposed a second old fixture carrying the

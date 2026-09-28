@@ -2,6 +2,7 @@
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   policy: vi.fn(),
+  collection: vi.fn(),
   run: vi.fn(),
   limited: vi.fn(),
   factory: vi.fn(() => ({ sourceType: "zendesk" })),
@@ -10,6 +11,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/lib/env", () => ({ env: mocks.env }));
 vi.mock("@/lib/connectors/zendesk-talk-config", () => ({
   configuredOutboundPolicy: mocks.policy,
+  configuredTalkCollectionPolicy: mocks.collection,
 }));
 vi.mock("@/lib/connectors/zendesk-outbound-connector", () => ({
   createOutboundConnector: mocks.factory,
@@ -36,6 +38,7 @@ beforeEach(() => {
   vi.setSystemTime(new Date("2026-09-25T12:00:00Z"));
   mocks.env.CRON_SECRET = "synthetic-secret";
   mocks.policy.mockReturnValue(policy);
+  mocks.collection.mockReturnValue({ scope: { dataSourceId: "source", organizationId: "org" } });
   mocks.limited.mockResolvedValue(false);
   mocks.run.mockResolvedValue({ success: true, syncRunId: "run", valuesWritten: 3 });
 });
@@ -69,9 +72,17 @@ it("does no work when disabled or before the prospective cutover", async () => {
   });
   expect(mocks.run).not.toHaveBeenCalled();
   expect(mocks.limited).not.toHaveBeenCalled();
+  expect(mocks.collection).not.toHaveBeenCalled();
+});
+it("requires source collection before enabling recurring publication", async () => {
+  mocks.collection.mockReturnValue(null);
+  expect((await invoke()).status).toBe(503);
+  expect(mocks.factory).not.toHaveBeenCalled();
+  expect(mocks.run).not.toHaveBeenCalled();
 });
 it("publishes one policy-bound source/week and reports failed publication as failure", async () => {
   expect((await invoke()).status).toBe(200);
+  expect(mocks.factory).toHaveBeenCalledWith(policy, mocks.collection.mock.results[0]!.value);
   expect(mocks.run).toHaveBeenCalledWith(
     expect.anything(),
     { dataSourceId: "source", organizationId: "org" },

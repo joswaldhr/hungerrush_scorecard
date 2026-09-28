@@ -17,6 +17,8 @@ import { createBoundedCsatReader } from "./zendesk-csat-reader";
 import { readTalkCollectionSnapshot } from "./zendesk-talk-store";
 import { talkPolicyForPeriod, type ZendeskTalkPolicy } from "./zendesk-talk-policy";
 import { collectOutboundRecords } from "./zendesk-outbound-collection";
+import { createTalkExportReader, runTalkCollectionBatch } from "./zendesk-talk-worker";
+import type { parseTalkCollectionPolicy } from "./zendesk-talk-config";
 import type { ConnectorConfig } from "./types";
 
 /** Validate source, team, assignment semantics and current identity ownership before any GET. */
@@ -116,7 +118,17 @@ export async function loadOutboundEmployeeBindings(
 }
 
 /** One-week source connector; the outbound route requires its own explicit policy opt-in. */
-export function createOutboundConnector(policy: ZendeskTalkPolicy) {
+export function createOutboundConnector(
+  policy: ZendeskTalkPolicy,
+  collection?: NonNullable<ReturnType<typeof parseTalkCollectionPolicy>>
+) {
+  if (
+    collection &&
+    (collection.scope.organizationId !== policy.organizationId ||
+      collection.scope.dataSourceId !== policy.dataSourceId ||
+      collection.scope.accountReference !== policy.accountReference)
+  )
+    throw Error("Outbound collection and publication policies must own the same source");
   const connector = new ZendeskConnector();
   connector.fetchRecords = async (config, ctx) => {
     if (ctx.cursor === null || !/^\d+$/.test(ctx.cursor) || Number(ctx.cursor) >= MAX_WEEKS_BACK)
@@ -128,17 +140,42 @@ export function createOutboundConnector(policy: ZendeskTalkPolicy) {
       periodStart,
       env.ZENDESK_SUBDOMAIN ?? ""
     );
+    // Refresh in the same invocation: separate hourly cron windows can exceed the
+    // joined-observation span limit. Leave time for Support reads and atomic writes.
+    const collected = collection
+      ? await runTalkCollectionBatch(
+          collection.scope,
+          collection.bootstrapStart,
+          createTalkExportReader(
+            {
+              subdomain: env.ZENDESK_SUBDOMAIN ?? "",
+              email: env.ZENDESK_EMAIL ?? "",
+              apiKey: env.ZENDESK_API_KEY ?? "",
+            },
+            policy.accountReference
+          ),
+          { maxPages: 22, maxDurationMs: 150000 }
+        )
+      : null;
+    if (
+      collected &&
+      (collected.status !== "collected" || !collected.callsExhausted || !collected.legsExhausted)
+    )
+      throw Error("Outbound Talk collection incomplete; retained checkpoints can resume");
     const stored = await readTalkCollectionSnapshot({
       ...config,
       accountReference: policy.accountReference,
     });
     if (stored.status !== "ready_for_qualification" || stored.snapshot === null)
       throw Error("Outbound source streams are still collecting");
-    const reader = createBoundedCsatReader({
-      subdomain: env.ZENDESK_SUBDOMAIN ?? "",
-      email: env.ZENDESK_EMAIL ?? "",
-      apiKey: env.ZENDESK_API_KEY ?? "",
-    });
+    const reader = createBoundedCsatReader(
+      {
+        subdomain: env.ZENDESK_SUBDOMAIN ?? "",
+        email: env.ZENDESK_EMAIL ?? "",
+        apiKey: env.ZENDESK_API_KEY ?? "",
+      },
+      { elapsedMs: 90000, requestBudget: 80 }
+    );
     const result = await collectOutboundRecords(
       stored.snapshot,
       policy,
@@ -152,7 +189,11 @@ export function createOutboundConnector(policy: ZendeskTalkPolicy) {
       records: result.records,
       cursor: null,
       hasMore: false,
-      diagnostics: { ...result.diagnostics, ...reader.stats() },
+      diagnostics: {
+        ...result.diagnostics,
+        ...reader.stats(),
+        ...(collected ? { talkCollection: collected } : {}),
+      },
     };
   };
   return connector;
