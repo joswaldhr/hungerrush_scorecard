@@ -2,6 +2,26 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 28, 14:42 UTC — production code release authorized:** the user explicitly
+requested merging PR32 and deploying Vercel. This is a code-only release with new Talk
+collection/outbound policies absent, not activation of the unqualified metric contracts.
+The active legacy fetch path passed a bounded real-source qualification: offset 1 took
+166.260 seconds (233 GETs), offset 3 took 251.725 seconds (212 GETs), including shared
+Talk pacing and the reduced detail cohort. Database coordination occurred only in a
+separate restored local copy; metric rows were unchanged and that local server stopped.
+This is measured local source-fetch runtime, not yet a hosted or scheduled execution.
+
+The 14:33 UTC fresh encrypted backup restored all 33 tables / 48,778 rows with matching
+digests through migration 0015. The first backup launcher attempt failed before source
+access because Windows PowerShell was missing from its child PATH; the corrected attempt
+passed. The long diagnostic tool response timed out, but the single child continued;
+its completed aggregate report and exit code 0 were verified without repeating source work.
+See `2026-09-28-code-release-manifest.md`, `2026-09-28-code-release-backup.json` and
+`2026-09-28-code-release-runtime.json`. Exact application candidate `e6510cc` passed both
+CI runs 36434706285/36434695487; this documentation commit receives final CI before merge.
+Rollback remains `8a0c4bd` / `dpl_69LgEzQCG6k9LCfdBWsnhKbb4AuQ`. No merge is yet claimed.
+Staging outbound and source/canary gates remain prerequisites for later feature activation.
+
 **September 28, 14:15 UTC — current:** request-reduction candidate `e03d5bc` passed
 both full CI runs 36434160353/36434167568: **782 tests / 103 files**, PostgreSQL
 migrations, typecheck, lint and production build. Preview

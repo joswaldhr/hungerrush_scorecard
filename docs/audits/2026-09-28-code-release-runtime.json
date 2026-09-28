@@ -1,0 +1,72 @@
+{
+  "observedAt": "2026-09-28T14:41:23.923Z",
+  "candidate": "e6510cc709b0bde4aabdfd4c4735831c5f658d5e",
+  "status": "passed",
+  "backupSha256": "02a6350244a69939e67d9b0f8c371a89d72fb42e2f14a0d0ecdc7eed02f73078",
+  "mode": "Real bounded Zendesk GETs with coordination writes only in isolated restored local database; no production publication",
+  "runs": [
+    {
+      "offset": 1,
+      "elapsedMs": 166260,
+      "requests": 233,
+      "records": 124,
+      "diagnostics": {
+        "callsFetch": {
+          "periodStart": "2026-09-20",
+          "periodEnd": "2026-09-26",
+          "pages": 11,
+          "callsCollected": 8248,
+          "requests": 11,
+          "pacingWaitMs": 30008,
+          "totalMs": 63429,
+          "sharedAccountBudget": true
+        },
+        "identityCount": 62,
+        "ratingsMs": 0,
+        "ticketSearchMs": 51307,
+        "metricSetsMs": 47360,
+        "recordBuildMs": 4109,
+        "allTicketIdsCount": 8461,
+        "durationTicketIdsCount": 4608
+      }
+    },
+    {
+      "offset": 3,
+      "elapsedMs": 251725,
+      "requests": 212,
+      "records": 186,
+      "diagnostics": {
+        "callsFetch": {
+          "periodStart": "2026-09-06",
+          "periodEnd": "2026-09-12",
+          "pages": 30,
+          "callsCollected": 8613,
+          "requests": 30,
+          "pacingWaitMs": 94023,
+          "totalMs": 183468,
+          "sharedAccountBudget": true
+        },
+        "identityCount": 62,
+        "ratingsMs": 692,
+        "ticketSearchMs": 35162,
+        "metricSetsMs": 28202,
+        "recordBuildMs": 4176,
+        "allTicketIdsCount": 5635,
+        "durationTicketIdsCount": 2372
+      }
+    }
+  ],
+  "requests": 445,
+  "endpoints": {
+    "/api/v2/channels/voice/stats/incremental/calls.json": 41,
+    "/api/v2/search/export.json": 207,
+    "/api/v2/tickets/show_many.json": 71,
+    "/api/v2/users/search.json": 124,
+    "/api/v2/satisfaction_ratings.json": 2
+  },
+  "metricRowsUnchanged": true,
+  "limits": [
+    "Local runtime against real source; hosted invocation latency and genuine scheduler execution remain post-deployment observations.",
+    "New outbound publisher and durable collector remain disabled; this does not certify their source contracts."
+  ]
+}
