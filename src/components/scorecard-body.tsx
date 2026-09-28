@@ -297,6 +297,9 @@ export function ScorecardBody({
             aria-label="Review period and data availability"
             className="rounded-xl border border-primary/20 bg-primary/[0.045] px-4 py-3"
           >
+            <p className="hidden font-semibold print:block">
+              {formatWeekRangeLong(presentation.periodStart, presentation.periodEnd)}
+            </p>
             <p className="text-sm font-medium text-foreground">
               {inProgress
                 ? "This week · In progress"
