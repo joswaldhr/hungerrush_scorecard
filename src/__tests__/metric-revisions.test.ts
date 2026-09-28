@@ -102,7 +102,10 @@ afterAll(async () => {
   await db.delete(organizations).where(inArray(organizations.id, [org, foreignOrg]));
 });
 
-it("preserves stored ticket revisions while withholding unverified human counts", async () => {
+it.each([
+  ["tickets_updated", "unverified_attribution"],
+  ["avg_handle_time", "unsupported"],
+])("preserves stored %s revisions while withholding unverified values", async (key, quality) => {
   const [inserted] = await db
     .insert(syncRevisions)
     .values(revision({ ...snapshot(), numeric_value: 8765 }))
@@ -110,12 +113,12 @@ it("preserves stored ticket revisions while withholding unverified human counts"
   try {
     await db
       .update(metricDefinitions)
-      .set({ key: "tickets_updated", sourceStrategy: "zendesk" })
+      .set({ key, sourceStrategy: "zendesk" })
       .where(eq(metricDefinitions.id, definition));
     const result = await getStoredMetricRevisions(ctx, employee, start, end);
     expect(result.rows.find((row) => row.id === inserted!.id)?.evidence).toMatchObject({
       numericValue: null,
-      quality: "unverified_attribution",
+      quality,
     });
     const [stored] = await db
       .select()

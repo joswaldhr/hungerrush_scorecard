@@ -152,6 +152,48 @@ it("applies withholding to the manager results API", async () => {
   ).toBeNull();
   expect(JSON.stringify(body)).not.toContain("918273");
 });
+it("does not certify matching resolution times as verified handling performance", async () => {
+  await db
+    .update(metricDefinitions)
+    .set({ key: "avg_handle_time" })
+    .where(eq(metricDefinitions.id, metrics[2]!));
+  try {
+    const response = await GET(
+      new Request(`https://test.invalid/api/reconciliation/results?runId=${runId}`)
+    );
+    const body = await response.json();
+    expect(body.run).toMatchObject({ matchCount: 0, unavailableCount: 3 });
+    expect(
+      body.results.find((r: { metricKey: string }) => r.metricKey === "test_count")
+    ).toMatchObject({
+      cadenceValue: null,
+      sourceValue: null,
+      absoluteDelta: null,
+      relativeDeltaPct: null,
+      notes: null,
+      status: "unsupported",
+      unavailableReason:
+        "Active handling time is unavailable; the current source measures full resolution time.",
+    });
+    expect((await getScopedReconciliationRuns(ctx))[0]).toMatchObject({
+      matchCount: 0,
+      unavailableCount: 3,
+    });
+    const stored = await db
+      .select()
+      .from(reconciliationResults)
+      .where(eq(reconciliationResults.metricDefinitionId, metrics[2]!));
+    expect(stored.find((r) => r.employeeId === employee)).toMatchObject({
+      cadenceValue: 5,
+      status: "match",
+    });
+  } finally {
+    await db
+      .update(metricDefinitions)
+      .set({ key: "test_count" })
+      .where(eq(metricDefinitions.id, metrics[2]!));
+  }
+});
 it.each(["running", "failed"])(
   "withholds legacy partial comparison rows from a %s run",
   async (status) => {

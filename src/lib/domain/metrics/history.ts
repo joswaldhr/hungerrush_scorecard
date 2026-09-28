@@ -3,7 +3,7 @@ import { metricValues, metricDefinitions } from "@/lib/db/schema";
 import { and, desc, eq } from "drizzle-orm";
 import { assertCanAccessEmployee, type ManagerContext } from "@/lib/auth/authorization";
 import { assertOrganizationResource } from "@/lib/auth/organization-scope";
-import { requiresTicketAttributionVerification, TICKET_ATTRIBUTION_QUALITY } from "./availability";
+import { metricReadRestriction } from "./availability";
 import { readMetricSourceContext } from "./source-context";
 import { metricSourceDescription, metricSourceName } from "./source-description";
 
@@ -58,12 +58,12 @@ export async function getStoredMetricHistory(
     selected,
     rows: rows.map(({ sourceStrategy, provenance, ...row }) => {
       const context = readMetricSourceContext(provenance);
+      const restriction = metricReadRestriction({ key: row.key, sourceStrategy });
       return {
         ...row,
         name: metricSourceName(row.name, row.key, context),
-        ...(requiresTicketAttributionVerification({ key: row.key, sourceStrategy })
-          ? { numericValue: null, quality: TICKET_ATTRIBUTION_QUALITY }
-          : {}),
+        ...(restriction ? { numericValue: null, quality: restriction.quality } : {}),
+        unavailableReason: restriction?.reason ?? null,
         sourceContract: context?.sourceContract ?? null,
         reportingTimeZone: context?.reportingTimeZone ?? "UTC",
         sourceDescription: metricSourceDescription(row.key, sourceStrategy, context),
