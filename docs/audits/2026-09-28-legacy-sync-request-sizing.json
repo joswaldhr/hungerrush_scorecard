@@ -77,7 +77,16 @@
   "fix": "Request details only for the already-consumed UTC creation cohort, deduplicated across employee searches. Preserve all updated-ticket counts, source evidence, legacy rounding and separate qualified metric policies.",
   "validation": {
     "beforeFix": "Three regression cases fail because excluded ticket details are requested",
-    "afterFix": "29 focused evidence/pagination checks, typecheck, targeted lint and formatting pass; full CI pending"
+    "afterFix": "29 focused evidence/pagination checks, typecheck, targeted lint and formatting pass; both full CI runs pass 782 tests / 103 files, PostgreSQL migrations and production build",
+    "candidateSha": "e03d5bc279ddda648ce0ce634f3c98f6b7144c35",
+    "ciRuns": [
+      36434160353,
+      36434167568
+    ],
+    "preview": {
+      "id": "dpl_6SyQ1aqYSJ1JAcXSLJRQmqkizCYh",
+      "state": "READY"
+    }
   },
   "limits": [
     "Retained request counts, not a live candidate wall-clock measurement. Deduplication may reduce requests further.",

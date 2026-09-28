@@ -2,6 +2,20 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 28, 14:15 UTC — current:** request-reduction candidate `e03d5bc` passed
+both full CI runs 36434160353/36434167568: **782 tests / 103 files**, PostgreSQL
+migrations, typecheck, lint and production build. Preview
+`dpl_6SyQ1aqYSJ1JAcXSLJRQmqkizCYh` is READY on that exact SHA. It remains in draft
+PR32; no application deployment or new metric policy changed in production.
+
+The production post-recovery scorecard shows the new 13:56 UTC CSAT observation and
+explicit empty-survey reasons, as well as the in-progress-week and human-attribution
+notices. Administrator View-as was exited and its temporary tab closed. This remains
+a display check through an existing administrator session, not the receiving manager's
+own sign-in. The [Monday handoff](2026-09-28-manager-handoff.md) records usable behavior
+and the remaining access, staging and metric gates. Boss email and private staging
+credential input remain pending; no routine approval is required.
+
 **September 28, 14:10 UTC — candidate runtime work:** read-only production phase
 diagnostics identify ticket-detail fetching as the largest phase in the slowest weekly
 run (141.426 seconds). Retained source summaries contain 8,506 updated tickets but only
