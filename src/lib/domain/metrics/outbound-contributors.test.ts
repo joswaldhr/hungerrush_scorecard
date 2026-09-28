@@ -5,7 +5,7 @@ import { OUTBOUND_PARTICIPATION_CONTRACT, FIRST_REPLY_CONTRACT } from "./source-
 const legacy = {
   id: "old",
   dimensionsJson: null,
-  recordType: "agent_stats",
+  recordType: "call_stats",
   recordContract: undefined,
 };
 const current = {
