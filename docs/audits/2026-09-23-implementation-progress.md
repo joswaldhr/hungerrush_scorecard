@@ -2,6 +2,27 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 28, 18:31 UTC — handling-time false judgment contained in production:**
+PR37 merged to `ed6b2df5e6127b606af99c99aa3d8726dc1d342d`; production deployment
+`dpl_DBWaKeHfuutr8i3qeyAawQUCSUJ6` owns the canonical alias. Exact candidate `73b44c8`
+passed CI 36465036664/36465027903 (804 tests / 105 files, type/lint/migrations/build).
+The fresh encrypted backup restored 33 tables / 63,563 rows with exact digests.
+Hosted synthetic zero/nonzero/history/revision and actual CSV/PDF checks pass.
+Production manager reads show 39 employees and explicit unavailable handling time,
+with no current/prior numeric value, target or misleading On Track judgment. The
+actual 10,394-byte CSV matches and preserves all 18 unrelated metric rows. Seven
+protected table digests and all 18 production environment entries are unchanged.
+Stored observations/revisions are preserved; no source calls/publication occurred.
+The earlier full-resolution source is not active handling effort. This containment
+does not increase reporting completion: arithmetic remains 14/40 and certification
+0/40. Genuine scheduled recovery, source definitions/coverage and compatible targets
+remain required. The paid hosting choice is still pending; no billing change was made.
+Current user-supplied AGENTS instructions prohibit all Zendesk report/dashboard editors,
+superseding the earlier bounded inspection allowance. Read-only GET/retained evidence only.
+Manager impersonation was exited and both validation tabs closed. See the handling
+release manifest and hosted/production-export reports. Master CI 36465474076 also
+passed; the exact candidate gates had already passed before merge.
+
 **September 28, 18:08 UTC — visual refresh live; POS outbound publication verified:**
 PR36 and its contained UI PR35 merged to `390dae9154a2bff75da374580a21330462baf964`.
 Final candidate `ea96e21` passed CI 36461746114/36461753911; master CI 36462126005

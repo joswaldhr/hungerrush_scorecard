@@ -8,7 +8,11 @@ without losing newer data. No plan can guarantee zero failures.
 
 ## 1. Protect Zendesk and managers' work
 
-**September 28 user amendment:** the user explicitly permitted opening the managers'
+**Current September 28 boundary:** the latest user-supplied `AGENTS.md` instructions
+prohibit report/dashboard editors even for unsaved inspection. That instruction supersedes
+the earlier allowance described below. Use retained downloads and bounded allowlisted GET APIs.
+
+**Earlier September 28 user amendment (superseded):** the user explicitly permitted opening the managers'
 reports to inspect how metrics were built, with the instruction to close them and make
 no edits. This supersedes the editor-opening prohibition below only for that bounded
 inspection. Prefer viewer pages; if a definition requires its editor, inspect one report

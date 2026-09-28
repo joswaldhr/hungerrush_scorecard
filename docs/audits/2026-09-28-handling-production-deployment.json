@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-09-28T18:32:06.813Z",
+  "commit": "ed6b2df5e6127b606af99c99aa3d8726dc1d342d",
+  "deploymentId": "dpl_DBWaKeHfuutr8i3qeyAawQUCSUJ6",
+  "productionAliasVerified": true,
+  "target": "production",
+  "protectedTablesUnchanged": 7,
+  "environmentEntriesUnchanged": 18,
+  "collectorAndOutboundPoliciesAbsent": true,
+  "administratorRead": true,
+  "managerEmployeeCount": 39,
+  "handlingCurrentComparisonTargetUnavailable": true,
+  "handlingNoFalseOnTrackStatus": true,
+  "unavailableReasonVisible": true,
+  "managerViewExited": true,
+  "validationTabsClosed": true,
+  "productionDataWrites": false,
+  "sourceCalls": false,
+  "scheduledExecutionClaimed": false
+}
