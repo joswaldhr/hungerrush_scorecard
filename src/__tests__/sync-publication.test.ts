@@ -672,8 +672,8 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
     const countId = randomUUID(),
       talkId = randomUUID(),
       holdId = randomUUID(),
-      backlogId = randomUUID();
-    const definitionIds = [countId, talkId, holdId, backlogId];
+      inboundId = randomUUID();
+    const definitionIds = [countId, talkId, holdId, inboundId];
     await db.insert(metricDefinitions).values([
       {
         id: countId,
@@ -700,10 +700,10 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
         calculationType: "average",
       },
       {
-        id: backlogId,
+        id: inboundId,
         organizationId: org,
-        key: "backlog_count",
-        name: "Backlog",
+        key: "inbound_calls_offered",
+        name: "Inbound",
         sourceStrategy: "test",
         calculationType: "sum",
       },
@@ -733,12 +733,10 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
       );
     const legacy: IngestedRecord = {
       ...record(0),
-      externalRecordType: "agent_stats",
-      externalRecordId: "outbound-legacy-agent-2026-09-20",
+      externalRecordType: "call_stats",
+      externalRecordId: "outbound-legacy-call-2026-09-20",
       payload: {
-        ticketsResolved: 0,
-        backlogCount: 12,
-        inboundOffered: 0,
+        inboundOffered: 12,
         outboundTotal: 99,
         avgTalkTimeOutbound: 120,
         avgHoldTimeOutbound: 120,
@@ -753,7 +751,7 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
             legacy,
             {
               ...legacy,
-              externalRecordId: "outbound-legacy-agent-2026-09-13",
+              externalRecordId: "outbound-legacy-call-2026-09-13",
               periodStart: "2026-09-13",
               periodEnd: "2026-09-19",
             },
@@ -772,7 +770,7 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
       expect((await publish([replacement()])).valuesWritten).toBe(3);
       const stored = await read();
       const current = stored.filter(
-        (v) => v.periodStart === f.periodStart && v.metricDefinitionId !== backlogId
+        (v) => v.periodStart === f.periodStart && v.metricDefinitionId !== inboundId
       );
       expect(current.find((v) => v.metricDefinitionId === countId)).toMatchObject({
         numericValue: 2,
@@ -818,7 +816,7 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
                 outboundTotal: 88,
                 avgTalkTimeOutbound: 60,
                 avgHoldTimeOutbound: 60,
-                backlogCount: 14,
+                inboundOffered: 14,
               },
             },
           ])
@@ -838,7 +836,7 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
           ?.numericValue
       ).toBeNull();
       expect(
-        refreshed.find((v) => v.metricDefinitionId === backlogId && v.periodStart === f.periodStart)
+        refreshed.find((v) => v.metricDefinitionId === inboundId && v.periodStart === f.periodStart)
           ?.numericValue
       ).toBe(14);
       f.snapshot.legs[0]!.talk_time = 3;

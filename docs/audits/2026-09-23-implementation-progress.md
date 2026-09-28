@@ -2,6 +2,26 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 28, 15:43 UTC — outbound activation defect reproduced and corrected locally:**
+the staging credential dependency was resolved by executing the scoped synthetic rehearsal
+inside a Preview build using its existing branch credential, without extracting any secret.
+The project-wide build command and production configuration were unchanged. A read-only
+inspection confirmed the staged schema/read adapter and no active run. The initial fixture
+lacked the legacy call discriminator; correcting it exposed a genuine publisher defect:
+replacement selection accepted `agent_stats`, while the live connector emits `call_stats`.
+A read-only production aggregate found all 2,018 outbound facts since September 6 linked
+to `call_stats`. The synthetic candidate transaction correctly rolled back on that mismatch.
+
+The replacement guard now accepts only the actual legacy call type and still rejects unknown
+or explicitly conflicting contracts. The PostgreSQL regression now uses call records and an
+inbound sibling; it first failed with the production-shaped fixture, then passed after the
+fix. All 26 focused tests pass, including retained legacy facts/revisions, fractional seconds,
+null corrections, unrelated periods/siblings and protection against later legacy overwrites.
+Full checks and a corrected hosted rehearsal follow before any production change. Failed
+rehearsals affected synthetic staging only; no vendor requests or production metric writes
+were made. A timed-out local test tool reset its session; process absence was checked before
+rerunning the isolated test suite through a tracked shell session.
+
 **September 28, 15:19 UTC — acceptance clarified:** the user explicitly requires 100%
 accuracy and reporting across all assigned metrics. The metric acceptance ledger now
 defines completion per employee/period/key: verified meaning and attribution, complete
