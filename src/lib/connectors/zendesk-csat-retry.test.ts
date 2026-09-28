@@ -1,0 +1,120 @@
+// @vitest-environment node
+import { beforeEach, expect, it, vi } from "vitest";
+import { createBoundedCsatReader } from "./zendesk-csat-reader";
+
+const clock = vi.hoisted(() => ({ now: 0, waits: [] as number[], extraDelay: 0 }));
+vi.mock("node:timers/promises", () => ({
+  setTimeout: async (ms: number) => {
+    clock.waits.push(ms);
+    clock.now += ms + clock.extraDelay;
+  },
+}));
+beforeEach(() => {
+  clock.now = 0;
+  clock.waits = [];
+  clock.extraDelay = 0;
+});
+const credentials = { subdomain: "synthetic", email: "fixture@example.test", apiKey: "fixture" };
+const limited = (header: string | null) =>
+  new Response("private source body", {
+    status: 429,
+    headers: header === null ? {} : { "Retry-After": header },
+  });
+function setup(responses: Response[], options: Parameters<typeof createBoundedCsatReader>[1] = {}) {
+  const fetcher = vi.fn<typeof fetch>(async () => {
+    const response = responses.shift();
+    if (!response) throw new Error("Unexpected extra request");
+    return response;
+  });
+  return {
+    fetcher,
+    reader: createBoundedCsatReader(credentials, {
+      fetch: fetcher,
+      now: () => clock.now,
+      spacingMs: 0,
+      elapsedMs: 120_000,
+      maxRateLimitRetries: 1,
+      ...options,
+    }),
+  };
+}
+
+it("honors Retry-After and repeats only the same allowlisted GET, retaining budgets", async () => {
+  const { fetcher, reader } = setup([limited("1"), Response.json({ tickets: [] })]);
+  await expect(reader.read("/search/export.json?query=type:ticket")).resolves.toEqual({
+    tickets: [],
+  });
+  expect(clock.waits).toEqual([1000]);
+  expect(fetcher).toHaveBeenCalledTimes(2);
+  expect(fetcher.mock.calls[1]![0].toString()).toBe(fetcher.mock.calls[0]![0].toString());
+  expect(fetcher.mock.calls[1]![1]).toMatchObject({ method: "GET", redirect: "error" });
+  expect(reader.stats()).toMatchObject({ requests: 2, rateLimitRetries: 1, backoffWaitMs: 1000 });
+});
+
+it("allows only one retry across all endpoints and pages, not one retry per request", async () => {
+  const { fetcher, reader } = setup([limited("1"), Response.json({ users: [] }), limited("1")]);
+  await reader.read("/users.json");
+  await expect(reader.read("/search/export.json")).rejects.toThrow(/HTTP 429/);
+  expect(fetcher).toHaveBeenCalledTimes(3);
+  expect(clock.waits).toEqual([1000]);
+});
+
+it("uses HTTP-date delays without exposing headers, query identifiers or response bodies", async () => {
+  clock.now = Date.parse("2026-09-28T08:34:00Z");
+  const { reader } = setup([limited("Mon, 28 Sep 2026 08:34:01 GMT"), limited("1")]);
+  await expect(
+    reader.read("/search/export.json?query=assignee:private@example.test")
+  ).rejects.toThrow(
+    "CSAT source request failed: HTTP 429; endpoint=search/export; retryAfterMs=1000"
+  );
+  expect(clock.waits).toEqual([1000]);
+});
+
+it.each([null, "unknown-private-header", "61", "99999999999999999999999"])(
+  "does not guess or shorten an unknown/excessive vendor delay: %s",
+  async (header) => {
+    const { fetcher, reader } = setup([limited(header)]);
+    await expect(reader.read("/users.json")).rejects.toThrow(/HTTP 429/);
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(clock.waits).toEqual([]);
+  }
+);
+
+it.each([{ requestBudget: 1 }, { elapsedMs: 31_000 }, { maxRateLimitRetries: 0 as const }])(
+  "does not retry without request/time allowance or explicit opt-in: %j",
+  async (options) => {
+    const { fetcher, reader } = setup([limited("1")], options);
+    await expect(reader.read("/users.json")).rejects.toThrow(/HTTP 429/);
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(clock.waits).toEqual([]);
+  }
+);
+
+it("includes the retry in the collection-wide request limit", async () => {
+  const { fetcher, reader } = setup([limited("0"), Response.json({})], { requestBudget: 2 });
+  await reader.read("/users.json");
+  await expect(reader.read("/users.json")).rejects.toThrow(/request budget/);
+  expect(fetcher).toHaveBeenCalledTimes(2);
+});
+
+it("never issues a retry after an unexpectedly delayed wait exhausts the deadline", async () => {
+  clock.extraDelay = 120_000;
+  const { fetcher, reader } = setup([limited("1")]);
+  await expect(reader.read("/users.json")).rejects.toThrow(/elapsed-time budget/);
+  expect(fetcher).toHaveBeenCalledTimes(1);
+});
+
+it("retains pacing when the vendor allows an immediate retry", async () => {
+  const { reader } = setup([limited("0"), Response.json({})], { spacingMs: 650 });
+  await reader.read("/users.json");
+  expect(clock.waits).toEqual([650]);
+});
+
+it("does not retry other HTTP failures", async () => {
+  const { fetcher, reader } = setup([
+    new Response(null, { status: 503, headers: { "Retry-After": "1" } }),
+  ]);
+  await expect(reader.read("/users.json")).rejects.toThrow(/HTTP 503/);
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  expect(clock.waits).toEqual([]);
+});
