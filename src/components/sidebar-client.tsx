@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useId } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
+import * as Dialog from "@radix-ui/react-dialog";
 import {
   Users,
   Calendar,
@@ -16,7 +17,9 @@ import {
   PanelLeftOpen,
   Sun,
   Moon,
-  ChevronDown,
+  ChevronUp,
+  ChevronRight,
+  X,
 } from "lucide-react";
 import { cn, initials } from "@/lib/utils";
 
@@ -28,23 +31,23 @@ const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
   Scale,
   ShieldCheck,
 };
-
 interface NavItem {
   label: string;
   href: string;
   iconName: string;
 }
-
 interface SidebarClientProps {
   user: { name?: string | null; email?: string | null; jobTitle?: string | null } | null;
   primaryNav: NavItem[];
   secondaryNav: NavItem[];
   signOutAction: () => Promise<void>;
+  brandHref?: string;
   brandLogo: React.ReactNode;
   brandIcon: React.ReactNode;
 }
-
 const STORAGE_KEY = "sidebar-collapsed";
+const focusStyle =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300 focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-background";
 
 export function SidebarClient({
   user,
@@ -53,39 +56,67 @@ export function SidebarClient({
   signOutAction,
   brandLogo,
   brandIcon,
+  brandHref = "/",
 }: SidebarClientProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [mobile, setMobile] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
+  const accountTrigger = useRef<HTMLButtonElement>(null);
+  const signOutRef = useRef<HTMLButtonElement>(null);
+  const expandRef = useRef<HTMLButtonElement>(null);
+  const accountId = useId();
   const { resolvedTheme, setTheme } = useTheme();
 
   useEffect(() => {
-    const narrow = window.matchMedia("(max-width: 1279px)").matches;
-    let initialCollapsed = narrow;
+    const narrow = window.matchMedia("(max-width: 1279px)");
+    const phone = window.matchMedia("(max-width: 767px)");
+    let initialCollapsed = narrow.matches;
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored !== null) initialCollapsed = stored === "true";
     } catch {}
-
-    // Set hydrated and initial state
-    requestAnimationFrame(() => {
+    const frame = requestAnimationFrame(() => {
       setCollapsed(initialCollapsed);
+      setMobile(phone.matches);
       setHydrated(true);
     });
+    const onNarrow = (e: MediaQueryListEvent) => {
+      if (e.matches) setCollapsed(true);
+    };
+    const onPhone = (e: MediaQueryListEvent) => {
+      setMobile(e.matches);
+      setMobileOpen(false);
+      setUserMenuOpen(false);
+    };
+    narrow.addEventListener("change", onNarrow);
+    phone.addEventListener("change", onPhone);
+    return () => {
+      cancelAnimationFrame(frame);
+      narrow.removeEventListener("change", onNarrow);
+      phone.removeEventListener("change", onPhone);
+    };
   }, []);
 
   useEffect(() => {
-    if (!hydrated) return;
-    const mq = window.matchMedia("(max-width: 1279px)");
-    const handler = (e: MediaQueryListEvent) => {
-      if (e.matches) setCollapsed(true);
+    if (!userMenuOpen) return;
+    signOutRef.current?.focus();
+    const dismiss = (event: PointerEvent) => {
+      if (!accountRef.current?.contains(event.target as Node)) setUserMenuOpen(false);
     };
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, [hydrated]);
+    document.addEventListener("pointerdown", dismiss);
+    return () => document.removeEventListener("pointerdown", dismiss);
+  }, [userMenuOpen]);
 
   function toggle() {
+    setUserMenuOpen(false);
+    if (mobile) {
+      setMobileOpen(true);
+      return;
+    }
     const next = !collapsed;
     setCollapsed(next);
     try {
@@ -93,192 +124,286 @@ export function SidebarClient({
     } catch {}
   }
 
-  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  // Only the most specific supplied destination is active (e.g. Employees, not Admin too).
+  const activeHref = [...primaryNav, ...secondaryNav]
+    .filter(({ href }) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`)))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
+  const employeeContext = /^\/(?:demo\/)?one-on-ones\/[^/]+(?:\/history)?\/?$/.test(pathname)
+    ? pathname.endsWith("/history")
+      ? "Stored reporting periods"
+      : "Employee scorecard"
+    : null;
+  const dark = hydrated && resolvedTheme === "dark";
 
-  return (
-    <aside
-      data-sidebar
-      className={cn(
-        "flex h-screen flex-col bg-sidebar-background text-sidebar-foreground transition-[width] duration-200 shrink-0 border-r border-sidebar-border/40 select-none",
-        collapsed ? "w-16" : "w-[var(--sidebar-width)]"
-      )}
-    >
-      {/* Brand */}
-      <div
-        className={cn(
-          "flex items-center pt-6 pb-6",
-          collapsed ? "flex-col gap-2 px-3" : "justify-between px-5"
-        )}
-      >
-        <Link href="/" className={cn("flex items-center gap-3 group")}>
-          {collapsed ? (
-            brandIcon
-          ) : (
-            <div className="flex flex-col gap-1.5">
-              {brandLogo}
-              <span className="block text-[11px] font-semibold tracking-wider text-teal-300 pl-0.5">
-                CADENCE
+  function navigation(items: NavItem[], compact: boolean, primary = false) {
+    return items.map((item) => {
+      const active = activeHref === item.href;
+      const Icon = ICON_MAP[item.iconName];
+      return (
+        <Link
+          key={item.href}
+          href={item.href}
+          aria-current={active ? "page" : undefined}
+          aria-label={item.label}
+          title={compact ? item.label : undefined}
+          onClick={() => {
+            setMobileOpen(false);
+            setUserMenuOpen(false);
+          }}
+          className={cn(
+            "group flex min-h-11 items-center rounded-xl border text-sm transition-colors",
+            focusStyle,
+            compact ? "justify-center px-0" : "gap-3 px-3",
+            active
+              ? "border-teal-300/25 bg-teal-300/10 text-white"
+              : "border-transparent text-slate-300 hover:bg-white/5 hover:text-white"
+          )}
+        >
+          {Icon && (
+            <Icon
+              className={cn(
+                "h-5 w-5 shrink-0",
+                active ? "text-teal-300" : "text-slate-400 group-hover:text-slate-200"
+              )}
+            />
+          )}
+          {!compact && (
+            <>
+              <span className="min-w-0 flex-1 py-2.5">
+                <span className={cn("block", active && "font-semibold")}>{item.label}</span>
+                {primary && item.href.endsWith("/one-on-ones") && (
+                  <span className="mt-0.5 block text-xs font-normal text-slate-300">
+                    Choose an employee
+                  </span>
+                )}
               </span>
-            </div>
+              {active && <ChevronRight className="h-3.5 w-3.5 shrink-0 text-teal-300" />}
+            </>
           )}
         </Link>
+      );
+    });
+  }
 
-        <button
-          onClick={toggle}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          title={collapsed ? "Expand sidebar" : undefined}
-          className="flex shrink-0 items-center justify-center rounded-md p-1.5 text-slate-400 hover:bg-sidebar-accent hover:text-white transition-colors"
-        >
-          {collapsed ? (
-            <PanelLeftOpen className="h-4 w-4" />
-          ) : (
-            <PanelLeftClose className="h-4 w-4" />
-          )}
-        </button>
-      </div>
-
-      {/* Navigation scrolls independently; account controls stay at the bottom. */}
-      <nav className="px-3 space-y-1 overflow-y-auto" aria-label="Main navigation">
-        <div className="space-y-1.5">
-          {primaryNav.map((item) => {
-            const active = isActive(item.href);
-            const Icon = ICON_MAP[item.iconName];
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                aria-label={item.label}
-                title={collapsed ? item.label : undefined}
-                className={cn(
-                  "flex items-center rounded-lg py-2.5 text-sm font-medium transition-all",
-                  collapsed ? "justify-center px-0" : "gap-3.5 px-3.5",
-                  active
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm font-semibold"
-                    : "text-slate-300/80 hover:bg-sidebar-accent hover:text-white"
-                )}
-              >
-                {Icon && (
-                  <Icon
-                    className={cn(
-                      "h-4.5 w-4.5 shrink-0",
-                      active ? "text-sidebar-primary-foreground" : "text-slate-400"
-                    )}
-                  />
-                )}
-                {!collapsed && <span>{item.label}</span>}
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* Secondary / Admin nav if present */}
-        {secondaryNav.length > 0 && (
-          <div className="pt-6 space-y-1">
-            {!collapsed && (
-              <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Operations
-              </p>
-            )}
-            {secondaryNav.map((item) => {
-              const active = isActive(item.href);
-              const Icon = ICON_MAP[item.iconName];
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  aria-current={active ? "page" : undefined}
-                  aria-label={item.label}
-                  title={collapsed ? item.label : undefined}
-                  className={cn(
-                    "flex items-center rounded-lg py-2 text-sm font-medium transition-colors",
-                    collapsed ? "justify-center px-0" : "gap-3.5 px-3.5",
-                    active
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground font-semibold"
-                      : "text-slate-400 hover:bg-sidebar-accent hover:text-slate-200"
-                  )}
-                >
-                  {Icon && <Icon className="h-4 w-4 shrink-0" />}
-                  {!collapsed && <span>{item.label}</span>}
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </nav>
-
-      {/* Theme toggle */}
-      <div className="mt-auto px-3 py-3 border-t border-sidebar-border/50">
-        <button
-          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-          aria-label={
-            hydrated && resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"
-          }
-          title={collapsed ? "Toggle theme" : undefined}
+  function contents(compact: boolean, drawer = false) {
+    return (
+      <>
+        <div
           className={cn(
-            "flex items-center rounded-md p-1.5 text-slate-400 hover:bg-sidebar-accent hover:text-white transition-colors",
-            collapsed ? "w-full justify-center" : ""
+            "flex border-b border-white/10",
+            compact
+              ? "flex-col items-center gap-4 px-2 py-5"
+              : "items-start justify-between gap-2 px-5 py-6"
           )}
         >
-          {hydrated && resolvedTheme === "dark" ? (
-            <Sun className="h-4 w-4" />
-          ) : (
-            <Moon className="h-4 w-4" />
-          )}
-        </button>
-      </div>
-
-      {/* User profile card */}
-      {user && (
-        <div className="border-t border-sidebar-border/70 p-3 relative">
+          <Link
+            href={brandHref}
+            aria-label="Cadence — 1:1s"
+            onClick={() => setMobileOpen(false)}
+            className={cn("rounded-md", focusStyle)}
+          >
+            {compact ? (
+              brandIcon
+            ) : (
+              <div className="flex flex-col items-start gap-3">
+                {brandLogo}
+                <span className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-200">
+                  Cadence
+                </span>
+              </div>
+            )}
+          </Link>
           <button
-            aria-label="Account menu"
-            aria-expanded={userMenuOpen}
-            onClick={() => setUserMenuOpen(!userMenuOpen)}
+            ref={drawer ? undefined : expandRef}
+            type="button"
+            onClick={drawer ? () => setMobileOpen(false) : toggle}
+            aria-label={
+              drawer ? "Close navigation" : compact ? "Expand sidebar" : "Collapse sidebar"
+            }
+            aria-expanded={drawer || !compact}
+            title={drawer ? "Close navigation" : compact ? "Expand sidebar" : "Collapse sidebar"}
             className={cn(
-              "w-full flex items-center rounded-lg p-1.5 text-left transition-colors hover:bg-sidebar-accent/80",
-              collapsed ? "justify-center" : "gap-3"
+              "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-300 hover:bg-white/10 hover:text-white",
+              focusStyle
             )}
           >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-xs font-bold text-sidebar-primary-foreground shadow-xs">
-              {user.name ? initials(user.name) : user.email ? user.email[0]!.toUpperCase() : "?"}
+            {drawer ? (
+              <X className="h-4 w-4" />
+            ) : compact ? (
+              <PanelLeftOpen className="h-4 w-4" />
+            ) : (
+              <PanelLeftClose className="h-4 w-4" />
+            )}
+          </button>
+        </div>
+        <nav
+          className="min-h-0 flex-1 space-y-7 overflow-y-auto px-2 py-5"
+          aria-label="Main navigation"
+        >
+          <div className="space-y-2">
+            {!compact && (
+              <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                Workspace
+              </p>
+            )}
+            {navigation(primaryNav, compact, true)}
+            {!compact && employeeContext && (
+              <div className="ml-5 border-l border-teal-300/25 py-2 pl-4 text-xs leading-relaxed text-slate-300">
+                <span className="mb-1 block text-[10px] uppercase tracking-wider text-slate-400">
+                  You are viewing
+                </span>
+                {employeeContext}
+              </div>
+            )}
+          </div>
+          {secondaryNav.length > 0 && (
+            <div className="space-y-1">
+              {!compact && (
+                <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                  Administration
+                </p>
+              )}
+              {navigation(secondaryNav, compact)}
             </div>
-            {!collapsed && (
+          )}
+        </nav>
+        <div className="shrink-0 border-t border-white/10 bg-black/10 p-2">
+          <button
+            type="button"
+            onClick={() => setTheme(dark ? "light" : "dark")}
+            aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+            title={compact ? (dark ? "Switch to light mode" : "Switch to dark mode") : undefined}
+            className={cn(
+              "flex min-h-11 w-full items-center rounded-lg text-xs text-slate-300 hover:bg-white/5 hover:text-white",
+              focusStyle,
+              compact ? "justify-center" : "gap-3 px-3"
+            )}
+          >
+            {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {!compact && (
               <>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-white truncate">
-                    {user.name ?? user.email ?? "User"}
-                  </div>
-                  {user.jobTitle && (
-                    <div className="text-[11px] text-slate-400 truncate">{user.jobTitle}</div>
-                  )}
-                </div>
-                <ChevronDown
-                  className={cn(
-                    "h-4 w-4 text-slate-400 transition-transform",
-                    userMenuOpen && "rotate-180"
-                  )}
-                />
+                <span className="flex-1 text-left">Appearance</span>
+                <span className="text-slate-400">{dark ? "Dark" : "Light"}</span>
               </>
             )}
           </button>
-
-          {userMenuOpen && (
-            <div className="absolute bottom-full left-3 right-3 mb-2 rounded-lg bg-slate-900 border border-slate-700 p-1.5 shadow-xl z-50">
-              <div className="px-2 py-1 text-xs text-slate-400 truncate">{user.email}</div>
-              <form action={signOutAction}>
-                <button
-                  type="submit"
-                  className="w-full flex items-center gap-2 rounded px-2 py-1.5 text-xs text-rose-400 hover:bg-slate-800 transition-colors"
+          {user && (!mobileOpen || drawer) && (
+            <div
+              ref={accountRef}
+              className="relative mt-1"
+              onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) setUserMenuOpen(false);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Escape" && userMenuOpen) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setUserMenuOpen(false);
+                  accountTrigger.current?.focus();
+                }
+              }}
+            >
+              <button
+                ref={accountTrigger}
+                type="button"
+                aria-label="Account menu"
+                aria-expanded={userMenuOpen}
+                aria-controls={accountId}
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className={cn(
+                  "flex min-h-12 w-full items-center rounded-xl p-2 text-left hover:bg-white/5",
+                  focusStyle,
+                  compact ? "justify-center" : "gap-3"
+                )}
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-teal-200/20 bg-teal-300/10 text-xs font-semibold text-teal-200">
+                  {user.name
+                    ? initials(user.name)
+                    : user.email
+                      ? user.email[0]!.toUpperCase()
+                      : "?"}
+                </span>
+                {!compact && (
+                  <>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium text-white">
+                        {user.name ?? user.email ?? "User"}
+                      </span>
+                      <span className="mt-0.5 block truncate text-[11px] text-slate-400">
+                        {user.jobTitle || "Account"}
+                      </span>
+                    </span>
+                    <ChevronUp
+                      className={cn("h-4 w-4 text-slate-400", userMenuOpen && "rotate-180")}
+                    />
+                  </>
+                )}
+              </button>
+              {userMenuOpen && (
+                <div
+                  id={accountId}
+                  className={cn(
+                    "absolute bottom-full left-0 z-50 mb-2 rounded-xl border border-slate-600 bg-slate-900 p-2 shadow-xl",
+                    compact ? "w-60" : "w-full"
+                  )}
                 >
-                  <LogOut className="h-3.5 w-3.5" />
-                  Sign out
-                </button>
-              </form>
+                  <p className="break-words px-2 py-2 text-xs leading-relaxed text-slate-300">
+                    {user.email}
+                  </p>
+                  <form action={signOutAction}>
+                    <button
+                      ref={signOutRef}
+                      type="submit"
+                      className={cn(
+                        "flex min-h-11 w-full items-center gap-2 rounded-lg px-2 text-sm text-rose-300 hover:bg-white/5",
+                        focusStyle
+                      )}
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sign out
+                    </button>
+                  </form>
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
-    </aside>
+      </>
+    );
+  }
+
+  return (
+    <Dialog.Root
+      open={mobileOpen}
+      onOpenChange={(open) => {
+        setMobileOpen(open);
+        setUserMenuOpen(false);
+      }}
+    >
+      <aside
+        data-sidebar
+        aria-label="Cadence sidebar"
+        className={cn(
+          "flex h-dvh shrink-0 flex-col border-r border-white/10 bg-sidebar-background text-sidebar-foreground motion-safe:transition-[width] motion-safe:duration-200 print:hidden",
+          mobile || collapsed ? "w-16" : "w-[var(--sidebar-width)]"
+        )}
+      >
+        {contents(mobile || collapsed)}
+      </aside>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-sm" />
+        <Dialog.Content
+          aria-describedby={undefined}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            expandRef.current?.focus();
+          }}
+          className="fixed inset-y-0 left-0 z-50 flex h-dvh w-72 max-w-[calc(100vw-3rem)] flex-col bg-sidebar-background text-sidebar-foreground shadow-2xl outline-none"
+        >
+          <Dialog.Title className="sr-only">Cadence navigation</Dialog.Title>
+          {contents(false, true)}
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
