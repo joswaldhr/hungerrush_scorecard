@@ -48,7 +48,51 @@ are included in the first UI release.
 
 ## Validation
 
-In progress. The reused checkout contained an ignored private recovery script included
+Candidate `3bfc9df37070db21d22a0cc17349769cb01514b2`, PR41, passes exact CI
+`36487847138`: 866 tests / 109 files, TypeScript, lint and production build. Local
+checks pass as well. Prior-week comparisons now require complete quality for both
+observations; the integration query carries the prior observation's actual quality.
+
+The reused checkout contained an ignored private recovery script included
 by the broad TypeScript glob; exclude private backups/nested worktrees from application
 typechecking. The dependency directory is an existing shared junction; invoke the
 installed tools directly instead of letting pnpm try to replace that junction.
+
+## Separate Preview and remaining release gates
+
+Main Preview `dpl_5hvg7HpvnPKgoYeJsrbJU55KrPHU` is READY at the exact candidate SHA.
+Its separate branch alias ends `git-code-6aedad-water-hungerrush-scorecard.vercel.app`.
+The frozen demo remains READY at its recorded deployment and original alias.
+
+Two initial builds failed the explicit database isolation guard before the application
+build. Inheriting an existing deployment did not retain its old branch's sensitive
+environment overrides. Record these as prevented unsafe builds, not successful checks.
+The resolved Preview uses an explicit main-branch-only synthetic staging database
+override, independent auth/session and cron secrets, and blank vendor credentials and
+source publication policies. No existing demo or production variable was changed.
+Sensitive values stay out of this record.
+
+Anonymous main Preview navigation reaches Microsoft sign-in. Authenticated checks are
+pending a separate single-tenant Microsoft registration, prepared as “HungerRush Cadence
+Main Preview” with only this Preview's callback. The browser tool requires action-time
+confirmation for new persistent authentication access; that question is pending. Existing
+demo authentication remains unchanged. A placeholder deliberately prevents accidental
+use of the existing application's credential. Do not claim hosted manager or export
+checks have passed on this candidate yet.
+
+After authentication setup: verify the combined synthetic UI and actual export bytes,
+then obtain a fresh encrypted backup/restore and pass production rollout/smoke gates.
+No merge to master or production upgrade has occurred.
+
+## Fresh reporting health and independent recovery work
+
+The read-only September 28 census observed 12 completed and two failed runs in the last
+24 hours, with no running or stale workers. Failures were a CSAT 429 and an outbound
+source-coverage rejection. Later successful controlled jobs do not prove scheduler
+recovery. Aggregate reports retain intervals, quality and observation evidence; hosted
+invocation correlation remains incomplete.
+
+PR42 (`codex/csat-bounded-recovery`) separately adds one vendor-directed bounded CSAT
+retry. Its default remains disabled for other users of the shared transport. It changes
+no formulas, policies, schedules or historical rows; the original collection deadline
+and request budget remain. See `2026-09-28-csat-bounded-recovery.md` in that branch.

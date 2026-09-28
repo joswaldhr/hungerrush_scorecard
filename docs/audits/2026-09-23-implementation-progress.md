@@ -1,5 +1,16 @@
 # Audit implementation — current checkpoint
 
+**September 28 — isolated main Preview READY; release remains gated:** PR41 app SHA
+`3bfc9df` passes exact CI `36487847138` (866 tests / 109 files and build). Separate
+Preview `dpl_5hvg7HpvnPKgoYeJsrbJU55KrPHU` passes the database isolation build guard.
+Two earlier attempts correctly stopped at that guard; explicit branch-only settings
+resolved inheritance of unrelated Preview defaults. Anonymous sign-in renders; creating
+separate Microsoft Preview access awaits the browser tool's required confirmation.
+Authenticated hosted/export checks and fresh backup/production release remain pending.
+Demo deployment, alias, access and fixture values remain unchanged. The latest read-only
+census found 12 completed/two failed runs and no stuck workers. CSAT bounded recovery
+is a separate PR42; neither that change nor PR41 is deployed to production.
+
 **September 28 — main application completion work resumed:** User authorized completing
 and upgrading the main app with Adam's demo frozen. Main branch
 `codex/main-operational-upgrade` starts from production `ed6b2df` in the idle managed
