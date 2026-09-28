@@ -130,10 +130,19 @@ export function SidebarClient({
     .sort((a, b) => b.href.length - a.href.length)[0]?.href;
   const employeeContext = /^\/(?:demo\/)?one-on-ones\/[^/]+(?:\/history)?\/?$/.test(pathname)
     ? pathname.endsWith("/history")
-      ? "Stored reporting periods"
+      ? pathname.startsWith("/demo/")
+        ? "Demo reporting weeks"
+        : "Stored reporting periods"
       : "Employee scorecard"
     : null;
   const dark = hydrated && resolvedTheme === "dark";
+
+  function labelStyle(compact: boolean) {
+    return cn(
+      "overflow-hidden whitespace-nowrap motion-safe:transition-opacity motion-safe:duration-150",
+      compact ? "invisible opacity-0" : "visible opacity-100"
+    );
+  }
 
   function navigation(items: NavItem[], compact: boolean, primary = false) {
     return items.map((item) => {
@@ -151,35 +160,38 @@ export function SidebarClient({
             setUserMenuOpen(false);
           }}
           className={cn(
-            "group flex min-h-11 items-center rounded-xl border text-sm transition-colors",
+            "group flex items-center overflow-hidden rounded-xl border text-sm transition-colors",
             focusStyle,
-            compact ? "justify-center px-0" : "gap-3 px-3",
+            primary ? "h-16" : "h-11",
             active
               ? "border-teal-300/25 bg-teal-300/10 text-white"
               : "border-transparent text-slate-300 hover:bg-white/5 hover:text-white"
           )}
         >
-          {Icon && (
-            <Icon
-              className={cn(
-                "h-5 w-5 shrink-0",
-                active ? "text-teal-300" : "text-slate-400 group-hover:text-slate-200"
-              )}
-            />
-          )}
-          {!compact && (
-            <>
-              <span className="min-w-0 flex-1 py-2.5">
-                <span className={cn("block", active && "font-semibold")}>{item.label}</span>
-                {primary && item.href.endsWith("/one-on-ones") && (
-                  <span className="mt-0.5 block text-xs font-normal text-slate-300">
-                    Choose an employee
-                  </span>
+          <span className="flex w-[46px] shrink-0 items-center justify-center" aria-hidden="true">
+            {Icon && (
+              <Icon
+                className={cn(
+                  "h-5 w-5",
+                  active ? "text-teal-300" : "text-slate-400 group-hover:text-slate-200"
                 )}
-              </span>
-              {active && <ChevronRight className="h-3.5 w-3.5 shrink-0 text-teal-300" />}
-            </>
-          )}
+              />
+            )}
+          </span>
+          <span
+            aria-hidden={compact}
+            className={cn("flex min-w-0 flex-1 items-center gap-2 pr-3", labelStyle(compact))}
+          >
+            <span className="min-w-0 flex-1">
+              <span className={cn("block truncate", active && "font-semibold")}>{item.label}</span>
+              {primary && item.href.endsWith("/one-on-ones") && (
+                <span className="mt-0.5 block truncate text-xs font-normal text-slate-300">
+                  Choose an employee
+                </span>
+              )}
+            </span>
+            {active && <ChevronRight className="h-3.5 w-3.5 shrink-0 text-teal-300" />}
+          </span>
         </Link>
       );
     });
@@ -188,67 +200,81 @@ export function SidebarClient({
   function contents(compact: boolean, drawer = false) {
     return (
       <>
-        <div
-          className={cn(
-            "flex border-b border-white/10",
-            compact
-              ? "flex-col items-center gap-4 px-2 py-5"
-              : "items-start justify-between gap-2 px-5 py-6"
-          )}
-        >
+        <div className="h-32 shrink-0 overflow-hidden border-b border-white/10">
           <Link
             href={brandHref}
             aria-label="Cadence — 1:1s"
             onClick={() => setMobileOpen(false)}
-            className={cn("rounded-md", focusStyle)}
+            className={cn("flex h-16 items-center rounded-md", focusStyle)}
           >
-            {compact ? (
-              brandIcon
-            ) : (
-              <div className="flex flex-col items-start gap-3">
-                {brandLogo}
-                <span className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-200">
-                  Cadence
-                </span>
-              </div>
-            )}
+            <span className="flex w-16 shrink-0 items-center justify-center" aria-hidden="true">
+              {brandIcon}
+            </span>
+            <span aria-hidden={compact} className={cn("pr-4", labelStyle(compact))}>
+              {brandLogo}
+            </span>
           </Link>
-          <button
-            ref={drawer ? undefined : expandRef}
-            type="button"
-            onClick={drawer ? () => setMobileOpen(false) : toggle}
-            aria-label={
-              drawer ? "Close navigation" : compact ? "Expand sidebar" : "Collapse sidebar"
-            }
-            aria-expanded={drawer || !compact}
-            title={drawer ? "Close navigation" : compact ? "Expand sidebar" : "Collapse sidebar"}
-            className={cn(
-              "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-300 hover:bg-white/10 hover:text-white",
-              focusStyle
-            )}
-          >
-            {drawer ? (
-              <X className="h-4 w-4" />
-            ) : compact ? (
-              <PanelLeftOpen className="h-4 w-4" />
-            ) : (
-              <PanelLeftClose className="h-4 w-4" />
-            )}
-          </button>
+          <div className="flex h-12 items-center">
+            <span className="flex w-16 shrink-0 items-center justify-center">
+              <button
+                ref={drawer ? undefined : expandRef}
+                type="button"
+                onClick={drawer ? () => setMobileOpen(false) : toggle}
+                aria-label={
+                  drawer ? "Close navigation" : compact ? "Expand sidebar" : "Collapse sidebar"
+                }
+                aria-expanded={drawer || !compact}
+                title={
+                  drawer ? "Close navigation" : compact ? "Expand sidebar" : "Collapse sidebar"
+                }
+                className={cn(
+                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-300 hover:bg-white/10 hover:text-white",
+                  focusStyle
+                )}
+              >
+                {drawer ? (
+                  <X className="h-4 w-4" />
+                ) : compact ? (
+                  <PanelLeftOpen className="h-4 w-4" />
+                ) : (
+                  <PanelLeftClose className="h-4 w-4" />
+                )}
+              </button>
+            </span>
+            <span
+              aria-hidden={compact}
+              className={cn(
+                "text-xs font-semibold uppercase tracking-[0.22em] text-teal-200",
+                labelStyle(compact)
+              )}
+            >
+              Cadence
+            </span>
+          </div>
         </div>
         <nav
-          className="min-h-0 flex-1 space-y-7 overflow-y-auto px-2 py-5"
+          className="min-h-0 flex-1 space-y-7 overflow-x-hidden overflow-y-auto px-2 py-5"
           aria-label="Main navigation"
         >
           <div className="space-y-2">
-            {!compact && (
-              <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-                Workspace
-              </p>
-            )}
+            <p
+              aria-hidden={compact}
+              className={cn(
+                "h-4 pl-12 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400",
+                labelStyle(compact)
+              )}
+            >
+              Workspace
+            </p>
             {navigation(primaryNav, compact, true)}
-            {!compact && employeeContext && (
-              <div className="ml-5 border-l border-teal-300/25 py-2 pl-4 text-xs leading-relaxed text-slate-300">
+            {employeeContext && (
+              <div
+                aria-hidden={compact}
+                className={cn(
+                  "h-14 pl-12 py-2 text-xs leading-relaxed text-slate-300",
+                  labelStyle(compact)
+                )}
+              >
                 <span className="mb-1 block text-[10px] uppercase tracking-wider text-slate-400">
                   You are viewing
                 </span>
@@ -258,11 +284,15 @@ export function SidebarClient({
           </div>
           {secondaryNav.length > 0 && (
             <div className="space-y-1">
-              {!compact && (
-                <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-                  Administration
-                </p>
-              )}
+              <p
+                aria-hidden={compact}
+                className={cn(
+                  "mb-2 h-4 pl-12 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400",
+                  labelStyle(compact)
+                )}
+              >
+                Administration
+              </p>
               {navigation(secondaryNav, compact)}
             </div>
           )}
@@ -274,18 +304,20 @@ export function SidebarClient({
             aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
             title={compact ? (dark ? "Switch to light mode" : "Switch to dark mode") : undefined}
             className={cn(
-              "flex min-h-11 w-full items-center rounded-lg text-xs text-slate-300 hover:bg-white/5 hover:text-white",
-              focusStyle,
-              compact ? "justify-center" : "gap-3 px-3"
+              "flex h-11 w-full items-center overflow-hidden rounded-lg text-xs text-slate-300 hover:bg-white/5 hover:text-white",
+              focusStyle
             )}
           >
-            {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            {!compact && (
-              <>
-                <span className="flex-1 text-left">Appearance</span>
-                <span className="text-slate-400">{dark ? "Dark" : "Light"}</span>
-              </>
-            )}
+            <span className="flex w-12 shrink-0 items-center justify-center" aria-hidden="true">
+              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </span>
+            <span
+              aria-hidden={compact}
+              className={cn("flex min-w-0 flex-1 items-center gap-2 pr-3", labelStyle(compact))}
+            >
+              <span className="flex-1 text-left">Appearance</span>
+              <span className="text-slate-400">{dark ? "Dark" : "Light"}</span>
+            </span>
           </button>
           {user && (!mobileOpen || drawer) && (
             <div
@@ -311,33 +343,35 @@ export function SidebarClient({
                 aria-controls={accountId}
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 className={cn(
-                  "flex min-h-12 w-full items-center rounded-xl p-2 text-left hover:bg-white/5",
-                  focusStyle,
-                  compact ? "justify-center" : "gap-3"
+                  "flex h-12 w-full items-center overflow-hidden rounded-xl text-left hover:bg-white/5",
+                  focusStyle
                 )}
               >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-teal-200/20 bg-teal-300/10 text-xs font-semibold text-teal-200">
-                  {user.name
-                    ? initials(user.name)
-                    : user.email
-                      ? user.email[0]!.toUpperCase()
-                      : "?"}
+                <span className="flex w-12 shrink-0 items-center justify-center" aria-hidden="true">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-teal-200/20 bg-teal-300/10 text-xs font-semibold text-teal-200">
+                    {user.name
+                      ? initials(user.name)
+                      : user.email
+                        ? user.email[0]!.toUpperCase()
+                        : "?"}
+                  </span>
                 </span>
-                {!compact && (
-                  <>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-white">
-                        {user.name ?? user.email ?? "User"}
-                      </span>
-                      <span className="mt-0.5 block truncate text-[11px] text-slate-400">
-                        {user.jobTitle || "Account"}
-                      </span>
+                <span
+                  aria-hidden={compact}
+                  className={cn("flex min-w-0 flex-1 items-center gap-2 pr-3", labelStyle(compact))}
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-white">
+                      {user.name ?? user.email ?? "User"}
                     </span>
-                    <ChevronUp
-                      className={cn("h-4 w-4 text-slate-400", userMenuOpen && "rotate-180")}
-                    />
-                  </>
-                )}
+                    <span className="mt-0.5 block truncate text-[11px] text-slate-400">
+                      {user.jobTitle || "Account"}
+                    </span>
+                  </span>
+                  <ChevronUp
+                    className={cn("h-4 w-4 shrink-0 text-slate-400", userMenuOpen && "rotate-180")}
+                  />
+                </span>
               </button>
               {userMenuOpen && (
                 <div
