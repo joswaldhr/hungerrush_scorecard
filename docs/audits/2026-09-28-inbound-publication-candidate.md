@@ -50,3 +50,10 @@ qualify the complete source cohort under that scope and retained closed periods;
 hosted synthetic exports and current/history/revisions; fresh recovery backup; one scoped
 canary with independent stored-value comparison; then verify real scheduled operation.
 Production arithmetic remains 14/40 assignments, full-contract certification 0/40.
+
+Exact candidate `81cd53f` passed both CI runs 36468809007/36468804262 (818 tests /
+108 files, typecheck/lint/migrations/build). The guarded nine-value hosted synthetic
+publication, current/stored/revision UI and actual CSV/PDF/PNG files pass. See the
+inbound hosted publication and export JSON reports. These close technical rehearsal
+gates only; source-definition/coverage, fresh production recovery, canary and scheduling
+remain. PR38 stays draft and no production activation has occurred.

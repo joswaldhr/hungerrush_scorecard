@@ -2,6 +2,21 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 28, 19:04 UTC — inbound candidate passes CI and hosted synthetic gates:**
+Draft PR38 contains candidate 81cd53f; both exact CI runs 36468809007/36468804262
+passed typecheck, lint, migrations, 818 tests / 108 files and production build. Isolated
+Preview dpl_7HDkAKfo9Q8BfVEYwe47j2cpJYfv is READY on that SHA and owns the branch alias.
+Its guarded synthetic publication matches all nine values, identical replay writes zero,
+null corrections and predecessor revisions remain, and unrelated/history values match.
+Hosted scorecard/stored-history/revision views pass. Actual CSV (13,261 bytes), PDF
+(1,729,633 bytes) and PNG (2,518,030 bytes) were inspected; the PDF/PNG decoded pixels
+are identical. The CSV download event timed out, but the actual saved file was independently
+found and verified. This is synthetic/candidate evidence, not production activation.
+The exact current report filters remain unverified; the user has been asked specifically
+for the leg-completion selections while independent safe work continues. No Zendesk request
+or editor session occurred. Production remains PR37, arithmetic 14/40, certification 0/40;
+new call policies and human-action features remain disabled. Paid hosting decision pending.
+
 **September 28, 18:55 UTC — inbound publication candidate remains inactive:**
 The branch now includes strict employee-scoped inbound evidence records, normalization,
 atomic legacy-contribution replacement and date/formula provenance through revisions.

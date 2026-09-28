@@ -1,0 +1,29 @@
+{
+  "observedAt": "2026-09-28T18:58:23.535Z",
+  "environment": "isolated-preview-synthetic-staging",
+  "vendorRequests": 0,
+  "productionAccess": false,
+  "values": 9,
+  "expected": {
+    "inbound_calls_offered": 4,
+    "inbound_calls_accepted": 2,
+    "inbound_calls_abandoned_on_hold": 1,
+    "missed_calls": 1,
+    "declined_calls": 0,
+    "avg_talk_time_inbound": 0.6666666666666666,
+    "avg_hold_time_inbound": null,
+    "avg_call_duration_inbound": 10,
+    "avg_consultation_time_inbound": null
+  },
+  "sampleCount": 3,
+  "cohortCount": 3,
+  "unrelatedAndEarlierValuesUnchanged": true,
+  "legacyRevisionPreserved": true,
+  "nullCorrection": true,
+  "identicalReplayWrites": 0,
+  "finalFixtureRestored": true,
+  "hostedUiAndExportVerified": false,
+  "realSourceCollectionAndRouteInvocationVerified": false,
+  "candidateSha": "81cd53f1be98911b7e52f4db37a8baf5d3871f45",
+  "deploymentId": "dpl_7HDkAKfo9Q8BfVEYwe47j2cpJYfv"
+}
