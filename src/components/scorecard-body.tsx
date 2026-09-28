@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { StatusBadge, getStatusLabel } from "@/components/status-badge";
 import { MetricCategoryTable } from "@/components/metric-category-table";
@@ -8,11 +9,13 @@ import { ScorecardExport, SCORECARD_CAPTURE_ID } from "@/components/scorecard-ex
 import type { ScorecardMetric } from "@/components/scorecard-export";
 import { WeekNavigator } from "@/components/week-navigator";
 import { formatCategoryLabel } from "@/lib/domain/metrics/category-labels";
-import { deriveOverallStatus, isReportingPeriodInProgress } from "@/lib/domain/metrics/status";
+import {
+  scorecardPresentation,
+  type ScorecardRow,
+} from "@/lib/domain/metrics/scorecard-presentation";
 import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
 import {
   initials,
-  shiftWeekStart,
   weekBoundsForDate,
   resolveReportingWeek,
   weeksAgoFor,
@@ -50,12 +53,10 @@ export function ScorecardBody({
   const [error, setError] = useState<string | null>(null);
   const cacheRef = useRef(new Map<string, { rows: EmployeeMetricRow[]; loadedAt: number }>());
   const requestRef = useRef(0);
-  const selectedPeriodRef = useRef(initialPeriodStart);
 
   const fetchWeek = useCallback(
     async (ps: string, force = false) => {
       const request = ++requestRef.current;
-      selectedPeriodRef.current = ps;
       setPeriodStart(ps);
       setError(null);
       const cached = cacheRef.current.get(ps);
@@ -100,7 +101,9 @@ export function ScorecardBody({
       void fetchWeek(resolveReportingWeek(params.get("week")));
     }
     function onFocus() {
-      void fetchWeek(selectedPeriodRef.current, true);
+      // An unpinned entry follows last week after rollover; explicit links stay fixed.
+      const params = new URLSearchParams(window.location.search);
+      void fetchWeek(resolveReportingWeek(params.get("week")), true);
     }
     window.addEventListener("popstate", onPopState);
     window.addEventListener("focus", onFocus);
@@ -122,57 +125,50 @@ export function ScorecardBody({
   );
 
   const ready = !loading && !error && snapshot.periodStart === periodStart;
-  const displayRows = snapshot.rows;
-
+  const presentation = scorecardPresentation(snapshot.periodStart, snapshot.rows);
+  const displayRows = presentation.rows;
   const periodEnd = weekBoundsForDate(periodStart).periodEnd;
-  const previousPeriodStart = shiftWeekStart(periodStart, -1);
-  const previousPeriodEnd = shiftWeekStart(periodEnd, -1);
   const weeksAgo = weeksAgoFor(periodStart);
+  const { overallStatus, previousPeriodStart, previousPeriodEnd } = presentation;
+  const inProgress = presentation.mode === "progress";
+  const offTargetNames = displayRows
+    .filter((r) => r.displayStatus === "off_target")
+    .map((r) => r.name);
 
-  const overallStatus = deriveOverallStatus(displayRows, { periodStart, periodEnd });
-  const inProgress = isReportingPeriodInProgress(periodStart, periodEnd);
-  const offTargetNames = useMemo(
-    () => displayRows.filter((r) => r.status.status === "off_target").map((r) => r.name),
-    [displayRows]
-  );
-
-  const categories = useMemo(() => {
-    const map = new Map<string | null, EmployeeMetricRow[]>();
+  const categories = (() => {
+    const map = new Map<string | null, ScorecardRow[]>();
     for (const row of displayRows) {
       const forCategory = map.get(row.category) ?? [];
       forCategory.push(row);
       map.set(row.category, forCategory);
     }
     return map;
-  }, [displayRows]);
+  })();
 
-  const scorecardMetrics: ScorecardMetric[] = useMemo(
-    () =>
-      displayRows.map((r) => ({
-        category: r.category,
-        name: r.name,
-        currentValue: r.currentValue,
-        previousValue: r.previousValue,
-        targetValue: r.target?.targetValue ?? null,
-        targetType: r.target?.targetType ?? null,
-        targetMin: r.target?.targetMin ?? null,
-        targetMax: r.target?.targetMax ?? null,
-        status: r.status.status,
-        unit: r.unit,
-        valueType: r.valueType,
-        qualityStatus: r.qualityStatus,
-        dataFreshnessAt: r.dataFreshnessAt ? new Date(r.dataFreshnessAt).toISOString() : null,
-        calculationVersion: r.calculationVersion,
-        targetSource: r.target?.source ?? null,
-        targetContextStatus: r.targetContextStatus,
-        sourceDescription: r.sourceDescription,
-        missingReason: r.missingReason,
-        sourceContract: r.sourceContract,
-        reportingTimeZone: r.reportingTimeZone,
-        comparisonUnavailableReason: r.comparisonUnavailableReason,
-      })),
-    [displayRows]
-  );
+  const scorecardMetrics: ScorecardMetric[] = displayRows.map((r) => ({
+    key: r.key,
+    category: r.category,
+    name: r.name,
+    currentValue: r.currentValue,
+    previousValue: r.previousValue,
+    targetValue: r.target?.targetValue ?? null,
+    targetType: r.target?.targetType ?? null,
+    targetMin: r.target?.targetMin ?? null,
+    targetMax: r.target?.targetMax ?? null,
+    status: r.displayStatus,
+    unit: r.unit,
+    valueType: r.valueType,
+    qualityStatus: r.qualityStatus,
+    dataFreshnessAt: r.dataFreshnessAt ? new Date(r.dataFreshnessAt).toISOString() : null,
+    calculationVersion: r.calculationVersion,
+    targetSource: r.target?.source ?? null,
+    targetContextStatus: r.targetContextStatus,
+    sourceDescription: r.sourceDescription,
+    missingReason: r.missingReason,
+    sourceContract: r.sourceContract,
+    reportingTimeZone: r.reportingTimeZone,
+    comparisonUnavailableReason: r.comparisonUnavailableReason,
+  }));
 
   return (
     <>
@@ -221,9 +217,9 @@ export function ScorecardBody({
         </div>
         <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border/80 bg-muted/25 px-5 py-4 sm:px-6 print:hidden">
           <div>
-            <p className="text-sm font-semibold text-foreground">Weekly scorecard</p>
+            <p className="text-sm font-semibold text-foreground">Choose a reporting week</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Choose a reporting week or export this view.
+              Last week for your 1:1. This week for progress.
             </p>
           </div>
           <div className="flex w-full min-w-0 flex-col items-start gap-2 sm:w-auto sm:flex-row sm:items-center">
@@ -231,8 +227,11 @@ export function ScorecardBody({
               <ScorecardExport
                 key={periodStart}
                 employeeName={employeeName}
-                periodLabel={`${formatWeekRangeLong(periodStart, periodEnd)}${inProgress ? " — In progress; targets cover the full week" : ""}`}
-                previousPeriodLabel={formatWeekRangeLong(previousPeriodStart, previousPeriodEnd)}
+                periodStart={presentation.periodStart}
+                periodEnd={presentation.periodEnd}
+                mode={presentation.mode}
+                periodLabel={presentation.periodLabel}
+                previousPeriodLabel={presentation.previousPeriodLabel}
                 metrics={scorecardMetrics}
               />
             )}
@@ -267,6 +266,48 @@ export function ScorecardBody({
           <p className="sr-only" role="status">
             Loaded {formatWeekRangeLong(periodStart, periodEnd)}
           </p>
+          <section
+            aria-label="Review period and data availability"
+            className="rounded-xl border border-primary/20 bg-primary/[0.045] px-5 py-5 sm:px-6"
+          >
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+                  {inProgress
+                    ? "This week · In progress"
+                    : weeksAgo === 1
+                      ? "1:1 review · Last week"
+                      : "1:1 review · Historical review"}
+                </p>
+                <h2 className="mt-1 text-xl font-bold tracking-tight sm:text-2xl">
+                  {formatWeekRangeLong(periodStart, periodEnd)}
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Compared with {presentation.previousPeriodLabel}
+                </p>
+              </div>
+              <Link
+                href={`/one-on-ones/${employeeId}/history?${new URLSearchParams({ returnWeek: presentation.periodStart })}`}
+                className="text-xs font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground print:hidden"
+                data-html2canvas-ignore="true"
+              >
+                Stored reporting periods
+              </Link>
+            </div>
+            <p className="mt-4 text-sm font-medium">{presentation.availability}</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              Reported values do not imply certified accuracy. Source observations and definitions
+              are in Data details.
+              {presentation.qualityWarnings > 0 &&
+                ` ${presentation.qualityWarnings} metric${presentation.qualityWarnings === 1 ? " has" : "s have"} data quality warnings.`}
+            </p>
+            {presentation.reported === 0 && displayRows.length > 0 && (
+              <p className="mt-3 text-sm text-muted-foreground">
+                No values are available for this reporting week. Use the arrows or calendar to
+                review an older week.
+              </p>
+            )}
+          </section>
           {displayRows.some((row) => row.valueType === "duration") && (
             <p className="rounded-lg border border-border/80 bg-card px-4 py-3 text-xs leading-relaxed text-muted-foreground">
               Times use {DURATION_FORMAT_LABEL}. {DURATION_CLOCK_NOTE}
@@ -274,8 +315,8 @@ export function ScorecardBody({
           )}
           {inProgress && (
             <p className="border-l-2 border-primary/50 pl-3 text-xs leading-relaxed text-muted-foreground">
-              This week is in progress. Targets cover the full week; individual comparisons are
-              provisional.
+              This week is in progress. Targets cover the full week. Values are shown for progress,
+              without performance judgments against an unfinished week.
             </p>
           )}
           {displayRows.some((row) => row.targetContextStatus === "historical_unverified") && (
@@ -293,6 +334,7 @@ export function ScorecardBody({
               rows={categoryRows}
               currentLabel={formatWeekRangeShort(periodStart, periodEnd)}
               previousLabel={formatWeekRangeShort(previousPeriodStart, previousPeriodEnd)}
+              currentHeading={inProgress ? "This week so far" : "Review week"}
             />
           ))}
         </div>

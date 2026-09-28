@@ -2,11 +2,16 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   exportCsv,
   exportDataDetails,
+  scorecardFilename,
+  scorecardShareUrl,
   type ExportSnapshot,
 } from "@/lib/domain/metrics/export-snapshot";
 import { freezeScorecardCapture } from "@/lib/scorecard-capture";
 
 const snapshot: ExportSnapshot = {
+  periodStart: "2026-09-13",
+  periodEnd: "2026-09-19",
+  mode: "review",
   employeeName: "Synthetic employee",
   periodLabel: "Sep 13 – Sep 19, 2026",
   previousPeriodLabel: "Sep 6 – Sep 12, 2026",
@@ -34,6 +39,34 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 describe("scorecard export context", () => {
+  it("names each file for its selected dates and pins shared links to the loaded week", () => {
+    expect(scorecardFilename(snapshot, "metrics", "csv")).toBe(
+      "synthetic-employee-metrics-2026-09-13_2026-09-19.csv"
+    );
+    expect(scorecardFilename(snapshot, "scorecard", "pdf")).toContain("2026-09-13_2026-09-19.pdf");
+    expect(scorecardFilename(snapshot, "scorecard", "png")).toContain("2026-09-13_2026-09-19.png");
+    expect(scorecardShareUrl("https://example.test/one-on-ones/person", snapshot.periodStart)).toBe(
+      "https://example.test/one-on-ones/person?week=2026-09-13"
+    );
+    expect(
+      scorecardShareUrl(
+        "https://example.test/one-on-ones/person?week=2026-09-27",
+        snapshot.periodStart
+      )
+    ).toContain("week=2026-09-13");
+  });
+  it("preserves snapshot labeling and neutral progress statuses in the existing CSV layout", () => {
+    const metrics = snapshot.metrics.map((metric) => ({
+      ...metric,
+      key: "backlog_count",
+      status: "in_progress",
+    }));
+    const csv = exportCsv({ ...snapshot, mode: "progress", metrics }, (status) => status);
+    expect(csv.split("\n")[0]?.split(",")).toHaveLength(20);
+    expect(csv).toContain('"in_progress"');
+    expect(csv).toContain("Observed snapshot");
+    expect(exportDataDetails(metrics)).toContain("Observed snapshot");
+  });
   it("explains withheld human ticket metrics in CSV and text when no connector reason exists", () => {
     const metrics = snapshot.metrics.map((metric) => ({
       ...metric,

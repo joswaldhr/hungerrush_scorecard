@@ -97,6 +97,50 @@ afterEach(async () => {
 });
 
 describe("scorecard period snapshot", () => {
+  it("switches review/progress shortcuts and preserves the selected week in history links", async () => {
+    fetchMetrics.mockResolvedValue(rows(0));
+    await click("Last week · Review");
+    expect(window.location.search).toBe("?week=2026-09-13");
+    expect(
+      container.querySelector('[aria-label="Last week · Review"]')?.getAttribute("aria-pressed")
+    ).toBe("true");
+    expect(container.textContent).toContain("1 of 1 metrics have reported values");
+    expect(container.querySelector('a[href*="history"]')?.getAttribute("href")).toContain(
+      "returnWeek=2026-09-13"
+    );
+    await click("This week · In progress");
+    expect(window.location.search).toBe("?week=2026-09-20");
+    expect(
+      container
+        .querySelector('[aria-label="This week · In progress"]')
+        ?.getAttribute("aria-pressed")
+    ).toBe("true");
+    expect(container.querySelector('[aria-label="Next week"]')).toHaveProperty("disabled", true);
+    expect(container.querySelector("[data-export]")?.textContent).toContain("In progress");
+  });
+
+  it("keeps an empty last week selected instead of substituting another period", async () => {
+    fetchMetrics.mockResolvedValue(
+      rows(0).map((row) => ({ ...row, currentValue: null, qualityStatus: "missing" }))
+    );
+    await click("Last week · Review");
+    expect(container.textContent).toContain("0 of 1 metrics have reported values");
+    expect(container.textContent).toContain("No values are available for this reporting week");
+    expect(window.location.search).toBe("?week=2026-09-13");
+    expect(fetchMetrics).toHaveBeenCalledTimes(1);
+  });
+
+  it("refreshes the default after Sunday rollover while explicit links remain pinned", async () => {
+    fetchMetrics.mockResolvedValue(rows(82));
+    vi.setSystemTime(new Date("2026-09-28T12:00:00Z"));
+    await act(async () => window.dispatchEvent(new Event("focus")));
+    expect(fetchMetrics).toHaveBeenLastCalledWith("person", "2026-09-20");
+    await click("This week · In progress");
+    vi.setSystemTime(new Date("2026-10-05T12:00:00Z"));
+    await act(async () => window.dispatchEvent(new Event("focus")));
+    expect(fetchMetrics).toHaveBeenLastCalledWith("person", "2026-09-27");
+    expect(container.querySelector("[data-export]")?.textContent).not.toContain("In progress");
+  });
   it("hides prior rows and exports until the requested week resolves", async () => {
     const pending = deferred();
     fetchMetrics.mockReturnValue(pending.promise);
@@ -109,14 +153,14 @@ describe("scorecard period snapshot", () => {
     expect(container.querySelector("[data-export]")?.textContent).toContain("Sep 13");
   });
 
-  it("restores the current week when Back removes the query parameter", async () => {
+  it("restores last week when Back removes the query parameter", async () => {
     fetchMetrics.mockResolvedValue(rows(115));
     await click("Previous week");
     await act(async () => {
       window.history.replaceState(null, "", "/one-on-ones/person");
       window.dispatchEvent(new PopStateEvent("popstate"));
     });
-    expect(container.querySelector("[data-metrics]")?.textContent).toContain("Sep 20–26: 66");
+    expect(container.querySelector("[data-metrics]")?.textContent).toContain("Sep 13–19: 115");
   });
 
   it("ignores a slower earlier request after rapid navigation", async () => {
@@ -158,10 +202,22 @@ describe("scorecard period snapshot", () => {
 });
 
 describe("reporting-week boundary", () => {
+  it.each([
+    ["2026-09-28T12:00:00Z", "2026-09-20"],
+    ["2026-09-26T23:59:59Z", "2026-09-13"],
+    ["2026-09-27T00:00:00Z", "2026-09-20"],
+    ["2026-10-01T12:00:00Z", "2026-09-20"],
+    ["2027-01-01T12:00:00Z", "2026-12-20"],
+    ["2026-11-01T06:00:00Z", "2026-10-25"],
+  ])("uses last week at %s without changing calendar boundaries", (now, expected) => {
+    vi.setSystemTime(new Date(now));
+    expect(resolveReportingWeek(null)).toBe(expected);
+  });
   it("normalizes valid dates and rejects impossible, absent, or future input", () => {
     expect(resolveReportingWeek("2026-09-15")).toBe("2026-09-13");
+    expect(resolveReportingWeek("2026-09-23")).toBe("2026-09-20");
     for (const value of [null, "", "2026-02-30", "2026-99-99", "2027-01-01"]) {
-      expect(resolveReportingWeek(value)).toBe("2026-09-20");
+      expect(resolveReportingWeek(value)).toBe("2026-09-13");
     }
   });
 });

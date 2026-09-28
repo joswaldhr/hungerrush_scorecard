@@ -1,4 +1,9 @@
 {
+  "git": {
+    "deploymentEnabled": {
+      "codex/last-week-review": false
+    }
+  },
   "crons": [
     {
       "path": "/api/cron/outbound?week=0",

@@ -1,5 +1,12 @@
 # Audit implementation — current checkpoint
 
+**September 28 — last-week review candidate:** A focused branch based on production
+implements the approved default previous-week review, explicit current-week progress
+mode, availability summary, interval filenames, fixed-week share links and history
+return context. Typecheck and 820 tests / 106 files pass; release gates remain pending.
+No metric definitions, calculations, eligibility, source policies or production data
+changed. PR38 remains separate and inactive. See the review-week release record.
+
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
 **September 28, 18:08 UTC — visual refresh live; POS outbound publication verified:**

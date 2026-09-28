@@ -449,6 +449,9 @@ describe("getEmployeeMetricsBatch", () => {
           const csv = exportCsv(
             {
               employeeName: "Synthetic",
+              periodStart: PERIOD_START,
+              periodEnd: "2026-09-20",
+              mode: "review",
               periodLabel: PERIOD_START,
               previousPeriodLabel: PREVIOUS_PERIOD_START,
               metrics: [

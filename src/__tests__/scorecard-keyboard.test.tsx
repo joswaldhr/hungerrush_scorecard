@@ -54,6 +54,9 @@ it("supports export menu arrow keys, Home/End and Escape focus return", async ()
     root.render(
       <ScorecardExport
         employeeName="Synthetic"
+        periodStart="2026-09-13"
+        periodEnd="2026-09-19"
+        mode="review"
         periodLabel="Sep 13–19, 2026"
         previousPeriodLabel="Sep 6–12, 2026"
         metrics={[]}
@@ -90,6 +93,9 @@ it("closes the export menu when focus moves outside without stealing focus", asy
       <>
         <ScorecardExport
           employeeName="Synthetic"
+          periodStart="2026-09-13"
+          periodEnd="2026-09-19"
+          mode="review"
           periodLabel="Current"
           previousPeriodLabel="Previous"
           metrics={[]}
