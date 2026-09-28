@@ -41,6 +41,12 @@ establishes later visibility, not the exact cause of its earlier absence. No pro
 writes or reactivation followed. `2026-09-28-outbound-parent-overlap.json` records the
 aggregate result. Next work is a bounded calls follow-up after the legs observation,
 with the same strict join/freshness gates and independent qualification before release.
+The returned parent was last updated at 16:57:50, after the prior calls read ended at
+16:52:18. A same-invocation retry cannot be assumed to bridge that delay within the
+300-second host limit. Recovery must support a later bounded collection cycle, retain
+the last good published values, and still reject unresolved joins; do not add a long
+wait or silently omit the leg. All 18 original production environment metadata entries
+match the pre-activation baseline. The isolated PostgreSQL test service was stopped.
 
 **September 28, 16:25 UTC — Menufy outbound is published; automatic refresh under validation:**
 The controlled one-employee canary and subsequent 22-employee widening independently
