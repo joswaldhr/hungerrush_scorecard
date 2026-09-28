@@ -24,6 +24,9 @@ it("does not convert counts, percentages or unknown duration units", () => {
 
 it("exports values and targets using the same declared duration format", () => {
   const snapshot: ExportSnapshot = {
+    periodStart: "2026-09-13",
+    periodEnd: "2026-09-19",
+    mode: "review",
     employeeName: "Synthetic",
     periodLabel: "Current",
     previousPeriodLabel: "Previous",

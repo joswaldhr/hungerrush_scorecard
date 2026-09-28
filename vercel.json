@@ -1,4 +1,12 @@
 {
+  "git": {
+    "deploymentEnabled": {
+      "codex/main-operational-upgrade": false,
+      "codex/last-week-review": false,
+      "codex/presentation-demo": false,
+      "codex/sidebar-navigation": false
+    }
+  },
   "crons": [
     {
       "path": "/api/cron/outbound?week=0",
