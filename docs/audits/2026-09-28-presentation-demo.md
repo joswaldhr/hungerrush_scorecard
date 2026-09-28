@@ -34,8 +34,8 @@ illustrations, not claims that production sources support those measures.
 - Demo sign-in goes to `/demo/one-on-ones`; callback handling returns only local constants.
 - Persistent demo labeling appears in the workspace, captured/printed scorecard,
   export period and every metric's source definition. Exported figures are synthetic.
-- Adam's exact sign-in email remains required before an allowlist entry can be added.
-  No guessed email, password or expanded production permissions.
+- The user supplied Adam's exact work email; his normalized address is now allowlisted
+  only in the isolated Preview. No password or production permission was provisioned.
 - Generic branch Preview inheritance is unsafe. Automatic deployments for this branch
   are disabled. Use only the documented isolated staging environment and exact candidate.
 
@@ -81,8 +81,36 @@ held until actual hosted export bytes are inspected. This demo is not metric cer
 - Actual download bytes remain unverified: the local browser CSV action produced no
   downloadable file/event, consistent with the existing hosted export-inspection limit.
   CSV/PDF/PNG must not be called presentation-verified solely from a success notification.
-- An exact-name, read-only lookup of existing presenter user/employee records found no
-  match; the presenter's sign-in email remains unknown. No account or role was invented.
+- An earlier exact-name, read-only lookup of existing presenter user/employee records
+  found no match. The subsequent user-confirmed email supplies demo access directly;
+  no production account or role was invented.
+
+## Final sidebar and presenter handoff
+
+Final app candidate `d34ed60236f8a045e29d666f5887c6a991382862` passes exact CI
+`36479595298` and is READY on isolated Preview `dpl_FF7RuE6mwtK7ENZUSbfQTpgNFCte`.
+The stable staging alias serves this build with both authorized demo users configured.
+The previous candidate above records the unchanged fixture checks; this final change
+stabilizes the sidebar's geometry and branding. Its 64px icon rail, 128px header and
+reserved label/context space prevent controls moving when labels disappear.
+
+Hosted keyboard collapse/expand measurements match exactly: toggle center `(32,88)`,
+first navigation icon `(32,204)`, appearance icon `(32,1106)` and avatar `(32,1156)`
+at the inspected desktop viewport. Header height remains 128px in both states.
+Local sidebar tests, typecheck and focused lint pass; final exact CI passes the full
+840-test / 109-file suite and build.
+
+A seven-day shareable link on this staging alias lets the presenter reach Microsoft
+sign-in without a Vercel team account. It expires October 5, 2026 at 20:27:50 UTC.
+The private link is delivered directly to the user and is not committed. A fresh
+unauthenticated HTTP check on the final deployment follows the share-cookie redirect
+to the application's login page (200), displays Microsoft sign-in and exposes no demo
+employee content. Application authentication and the exact email allowlist still apply.
+Adam's own first Microsoft/MFA session has not been observed. No message was sent to him.
+
+Only Preview configuration changed. Production remains PR37 / `ed6b2df`; the separate
+PR39 export-byte release gate remains held. For sidebar rollback, the previous demo
+build is `dpl_57WTtMQAhk5YAwrCngr2t5rBz8Xd`; revoke the alias share link separately if needed.
 
 To rehearse, open the entry URL, choose a POS or Menufy employee, review last week, switch
 to this week's progress, then return to Last week before presenting comparisons. Every

@@ -5,14 +5,18 @@ UI agent's sidebar upgrade is integrated locally. A separate authenticated `/dem
 workspace contains 15 invented full-name employees (8 POS, 7 Menufy) and 22 complete
 synthetic metrics each, with prior-week comparisons, sample targets and current-week
 neutral progress. Exact allowlisting and a production-deployment denial protect entry;
-the demo does not read, seed or change live data. App candidate `1798ab8` passes exact
-CI 36477916159 (840 tests / 109 files and build) and is READY on isolated Preview
-`dpl_57WTtMQAhk5YAwrCngr2t5rBz8Xd`, PR40 stacked on PR39. All 15 hosted profiles show
+the demo does not read, seed or change live data. Final app candidate `d34ed60` passes exact
+CI 36479595298 (840 tests / 109 files and build) and is READY on isolated Preview
+`dpl_FF7RuE6mwtK7ENZUSbfQTpgNFCte`, PR40 stacked on PR39. All 15 hosted profiles show
 22/22 values and populated comparisons/targets (330 rows total). Neutral current-week
 status, history return, aligned columns, light/dark and mobile drawer checks pass.
 Actual downloaded-file bytes remain unverified; production release stays held.
-Adam's exact work email is still needed for his entry; no access was guessed or
-provisioned for him. See `2026-09-28-presentation-demo.md`. PR38 remains separate/inactive.
+Adam's user-confirmed work email is now allowlisted for the demo only. A seven-day
+staging share link reaches Microsoft sign-in without requiring Vercel membership;
+anonymous requests still cannot see demo profiles. Adam's own login remains unobserved.
+The sidebar's toggle, navigation, theme and avatar centers now stay identical across
+collapse/expand, verified on the final hosted build. See `2026-09-28-presentation-demo.md`.
+PR38 remains separate/inactive; no production account, role or deployment changed.
 
 **September 28 — last-week review candidate:** A focused branch based on production
 implements the approved default previous-week review, explicit current-week progress
@@ -27,7 +31,7 @@ tables, empty current-week progress, history return and narrow layout are verifi
 Fresh backup/restore matches 33 tables / 63,633 rows. Actual hosted export-file bytes
 remain unavailable from the current browser integration despite success notifications;
 production merge is held at that required gate. Production remains PR37 / `ed6b2df`.
-Adam's demo account setup also awaits his exact work email; no access was granted.
+The later demo checkpoint above supersedes the earlier pending presenter-email state.
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
