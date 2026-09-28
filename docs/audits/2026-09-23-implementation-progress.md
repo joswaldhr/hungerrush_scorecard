@@ -2,6 +2,21 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 28, 18:55 UTC — inbound publication candidate remains inactive:**
+The branch now includes strict employee-scoped inbound evidence records, normalization,
+atomic legacy-contribution replacement and date/formula provenance through revisions.
+Every policy must explicitly select the date basis, offered subtotal and leg-status filter;
+no route, scheduler or production policy activates it. Retained 17:51 source evidence
+independently matches 480 values across 62 employees / 16 team-key assignments, with
+6,412 numeric/source-set comparisons and zero differences. These candidate calculations
+explicitly assume all completion statuses and do not establish the current saved report
+filters. Menufy report SUM/MAX durations are not silently relabeled as Cadence averages.
+Local typecheck and the full isolated PostgreSQL suite pass: 818 tests / 108 files.
+Final lint/CI/build and hosted checks are recorded as they complete.
+Production remains PR37 / ed6b2df, with arithmetic coverage 14/40 and certification 0/40.
+No Zendesk requests, editor sessions or production writes occurred in this increment.
+See [inbound candidate evidence](2026-09-28-inbound-publication-candidate.md).
+
 **September 28, 18:31 UTC — handling-time false judgment contained in production:**
 PR37 merged to `ed6b2df5e6127b606af99c99aa3d8726dc1d342d`; production deployment
 `dpl_DBWaKeHfuutr8i3qeyAawQUCSUJ6` owns the canonical alias. Exact candidate `73b44c8`

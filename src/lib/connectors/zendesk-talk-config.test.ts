@@ -61,7 +61,10 @@ it("keeps collection and publication independent and rejects mixed metric famili
     teams: policy.teams.map((t) => ({
       ...t,
       inbound: {
+        scopeMeaning: "current-parent-call-group-and-number",
         dateBasis: "call-created",
+        offeredDefinition: "accepted-declined-missed",
+        legCompletionStatuses: null,
         groupIds: [7],
         phoneNumbers: null,
         metricKeys: ["missed_calls"],

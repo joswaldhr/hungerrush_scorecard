@@ -17,7 +17,10 @@ const input = () => ({
     {
       teamId: "00000000-0000-4000-8000-000000000003",
       inbound: {
+        scopeMeaning: "current-parent-call-group-and-number",
         dateBasis: "call-created",
+        offeredDefinition: "accepted-declined-missed-unreachable",
+        legCompletionStatuses: null,
         groupIds: [7],
         phoneNumbers: null,
         metricKeys: ["inbound_calls_accepted"],
@@ -121,4 +124,20 @@ it("requires explicit bounded observation limits and rejects unknown policy fiel
     expect(() => parse({ ...input(), ...changes })).toThrow();
   expect(() => parseZendeskTalkPolicy("not json", "synthetic")).toThrow("JSON");
   expect(() => talkPolicyForPeriod(parse(input()), config, "2026-09-21")).toThrow("Sunday");
+});
+it("refuses guessed inbound offered or completion-status filters", () => {
+  for (const changes of [
+    { offeredDefinition: undefined },
+    { scopeMeaning: undefined },
+    { legCompletionStatuses: undefined },
+    { legCompletionStatuses: [] },
+    { legCompletionStatuses: ["completed", "completed"] },
+    { legCompletionStatuses: ["unknown"] },
+  ])
+    expect(() =>
+      parse({
+        ...input(),
+        teams: [{ ...input().teams[0], inbound: { ...input().teams[0]!.inbound, ...changes } }],
+      })
+    ).toThrow();
 });

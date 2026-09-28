@@ -14,6 +14,7 @@ import type { CalculationType } from "./types";
 import { sharedMetricSourceContext, completeSnapshotVersion } from "./source-context";
 import { selectFirstReplyContributors } from "./first-reply-contributors";
 import { selectOutboundContributors } from "./outbound-contributors";
+import { selectInboundContributors } from "./inbound-contributors";
 
 // Rows per bulk upsert statement — see the same constant's comment in
 // sync-engine.ts. metricValues has fewer columns than normalizedFacts but
@@ -163,8 +164,13 @@ export async function computeMetricValuesFromFacts(
     for (const group of groups.values()) {
       const firstReply = selectFirstReplyContributors(def.key, group.facts);
       const outbound = selectOutboundContributors(def.key, firstReply.selected);
-      const selected = outbound.selected;
-      const supersededFactIds = [...firstReply.supersededFactIds, ...outbound.supersededFactIds];
+      const inbound = selectInboundContributors(def.key, outbound.selected);
+      const selected = inbound.selected;
+      const supersededFactIds = [
+        ...firstReply.supersededFactIds,
+        ...outbound.supersededFactIds,
+        ...inbound.supersededFactIds,
+      ];
       group.values = selected.map((f) => f.numericValue);
       group.observed = selected.map((f) => f.sourceObservedAt);
       group.factIds = selected.map((f) => f.id);

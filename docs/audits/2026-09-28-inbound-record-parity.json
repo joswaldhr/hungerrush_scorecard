@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-09-28T18:46:43.035895+00:00",
+  "periodStart": "2026-09-27",
+  "periodEnd": "2026-10-03",
+  "employeeCases": 62,
+  "teamMetricAssignments": 16,
+  "metricValues": 480,
+  "fieldAndSourceSetComparisons": 6412,
+  "differences": 0,
+  "independentImplementation": "Python; no application imports",
+  "sourceRequests": 0,
+  "productionWrites": 0,
+  "managerReportScopeQualified": false,
+  "productionActivated": false,
+  "limitations": [
+    "Current candidate explicitly uses all leg completion statuses; exact saved report filter selections remain unverified.",
+    "Arithmetic and source-set parity under retained candidate scopes are not independent certification of business scope.",
+    "No scheduler or publication activation is established by this calculation replay."
+  ]
+}

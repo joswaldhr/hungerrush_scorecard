@@ -5,9 +5,35 @@ import {
   compatibleMetricSourceContexts,
   SOLVED_CSAT_CONTRACT,
   OUTBOUND_PARTICIPATION_CONTRACT,
+  INBOUND_PARTICIPATION_CONTRACT,
   completeSnapshotVersion,
 } from "./source-context";
 const current = { sourceContract: SOLVED_CSAT_CONTRACT, reportingTimeZone: "America/Chicago" };
+it("requires explicit inbound date/offered meaning and never compares a changed formula", () => {
+  const inbound = {
+    sourceContract: INBOUND_PARTICIPATION_CONTRACT,
+    reportingTimeZone: "America/Chicago",
+    dateBasis: "call-created",
+    offeredDefinition: "accepted-declined-missed-unreachable",
+    sampleCount: 0,
+    cohortCount: 2,
+  };
+  expect(readMetricSourceContext(inbound)).toEqual(inbound);
+  expect(completeSnapshotVersion(inbound.sourceContract)).toBe(2);
+  expect(() => readMetricSourceContext({ ...inbound, offeredDefinition: undefined })).toThrow(
+    "inbound source definition"
+  );
+  expect(() => sharedMetricSourceContext([inbound, inbound])).toThrow("one complete");
+  expect(compatibleMetricSourceContexts(inbound, { ...inbound, dateBasis: "leg-created" })).toBe(
+    false
+  );
+  expect(
+    compatibleMetricSourceContexts(inbound, {
+      ...inbound,
+      offeredDefinition: "accepted-declined-missed",
+    })
+  ).toBe(false);
+});
 it("retains explicit source context while leaving legacy observations unclassified", () => {
   expect(readMetricSourceContext({ factIds: ["synthetic"] })).toBeNull();
   expect(sharedMetricSourceContext([current])).toEqual(current);

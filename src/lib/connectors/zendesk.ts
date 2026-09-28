@@ -24,8 +24,10 @@ import { normalizeFirstReplyRecord } from "./zendesk-first-reply-record";
 import {
   FIRST_REPLY_CONTRACT,
   OUTBOUND_PARTICIPATION_CONTRACT,
+  INBOUND_PARTICIPATION_CONTRACT,
 } from "@/lib/domain/metrics/source-context";
 import { normalizeOutboundRecord } from "./zendesk-outbound-record";
+import { normalizeInboundRecord } from "./zendesk-inbound-record";
 import { configuredCsatPolicy } from "./zendesk-csat-config";
 import { csatPolicyForPeriod } from "./zendesk-csat-policy";
 import { mapWithConcurrency, weekDates } from "@/lib/utils";
@@ -629,7 +631,9 @@ export class ZendeskConnector implements Connector {
             ? normalizeFirstReplyRecord(payload, employeeId, teamId, periodStart, periodEnd)
             : payload.sourceContract === OUTBOUND_PARTICIPATION_CONTRACT
               ? normalizeOutboundRecord(payload, employeeId, teamId, periodStart, periodEnd)
-              : normalizeSolvedCsatRecord(payload, employeeId, teamId, periodStart, periodEnd))
+              : payload.sourceContract === INBOUND_PARTICIPATION_CONTRACT
+                ? normalizeInboundRecord(payload, employeeId, teamId, periodStart, periodEnd)
+                : normalizeSolvedCsatRecord(payload, employeeId, teamId, periodStart, periodEnd))
         );
         continue;
       }
