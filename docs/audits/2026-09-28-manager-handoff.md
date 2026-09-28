@@ -3,6 +3,12 @@
 Target: September 28, 2026, before **3:00 p.m. America/Chicago** (20:00 UTC).
 This is a readiness record, not a claim that every assigned metric is certified.
 
+**14:51 UTC update:** PR32 is merged and production is READY on `670fe22` /
+`dpl_EFzonruTEMUEzGazCkJFbU7YvVo1`. Master CI passed. Both manager views, current/previous
+scorecards, history and actual production CSV bytes passed post-deployment checks.
+Protected metric data, employee assignments, targets and environment settings are unchanged.
+New metric publishers remain disabled; the activation/access requirements below still apply.
+
 ## Using the live app
 
 Open [Cadence](https://hungerrush-scorecard.vercel.app/one-on-ones) and sign in with
@@ -16,7 +22,7 @@ uses the loaded employee and reporting period; stored reporting periods remain a
 
 ## Verified as of the morning checkpoint
 
-- Production remains on `8a0c4bd` with the READY deployment recorded in the implementation ledger.
+- The morning baseline was `8a0c4bd`; the deployment update above supersedes that application version.
 - Existing administrator View-as paths list 23 Menufy and 39 POS employees.
 - Current/previous scorecards load, five category tables align, duration labels are
   consistent, and current-week results carry the in-progress notice.
@@ -32,7 +38,7 @@ uses the loaded employee and reporting period; stored reporting periods remain a
 | Requirement | State and next action |
 |---|---|
 | Receiving manager's account | Work email requested; verify the existing active account and assigned scope when supplied. Administrator View-as does not prove their own sign-in. |
-| New call-metric release | Draft PR32 is inactive. Hosted outbound rehearsal requires recovery of the existing staging database credential; runtime, source and production release gates still apply. |
+| New call-metric activation | PR32 code is deployed with the new publishers disabled. Hosted outbound rehearsal requires recovery of the existing staging database credential; source and scoped-publication gates still apply. |
 | All assigned metrics accurate | Not complete. Human Tickets Updated/Resolved remain unavailable under the approved attribution policy. Other unqualified metrics retain the limitations in the metric acceptance ledger. |
 | Recurring current-week CSAT rate limit | Today's recovery succeeded; the cause of the intermittent scheduled HTTP 429 remains unresolved. Do not describe the controlled recovery as scheduler certification. |
 | First-reply freshness | Existing schedule includes current and previous weeks before the handoff deadline. Only actual observed executions can establish Monday success; no extra invocation is planned merely to create evidence. |

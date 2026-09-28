@@ -2,6 +2,33 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 28, 14:51 UTC — production deployed:** PR32 merged at 14:46 UTC to
+`670fe2275ee257da687e8b8b414bf4b438c291b2`. Vercel deployment
+`dpl_EFzonruTEMUEzGazCkJFbU7YvVo1` is READY and owns the production alias. Final PR
+CI 36438030253/36438038841 and master CI 36438460311 passed, including 782 tests /
+103 files and production builds. No migration or environment change was required.
+
+Read-only before/after checksums match across employees, manager/team/metric assignments,
+targets, 13,898 metric values and 13,929 normalized facts. All 18 production environment
+entries retain their identities/update metadata; new Talk/outbound policies remain absent.
+Both new scheduler routes reject unauthenticated requests with HTTP 401. No production
+sync was invoked to manufacture post-release evidence.
+
+The deployed app passed existing-session manager View-as checks: Menufy 23 employee links,
+POS 39, current/previous scorecards, stored history, duration and human-attribution notices.
+The actual production CSV (6,892 bytes) includes both withheld-attribution explanations,
+the loaded September 20–26 period and H:MM:SS units. An initial checker incorrectly expected
+ISO dates; inspection confirmed the correct human-readable period already rendered by the
+app. No product change was needed. The administrator session was restored and temporary
+production tab closed. Raw exports remain local and are not committed. See
+`2026-09-28-code-production-deployment.json`.
+
+This completes the user's merge/Vercel deployment request. New metric activation and
+full-contract certification remain separate: hosted outbound fixtures still need the
+private staging credential, missing source/target evidence remains open, and the receiving
+manager's own sign-in awaits their identity. Human ticket metrics/shadow/action-v2/historical
+repair remain disabled. Scheduled behavior on this code has not yet been observed.
+
 **September 28, 14:42 UTC — production code release authorized:** the user explicitly
 requested merging PR32 and deploying Vercel. This is a code-only release with new Talk
 collection/outbound policies absent, not activation of the unqualified metric contracts.
