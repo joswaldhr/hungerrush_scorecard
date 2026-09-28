@@ -155,3 +155,48 @@ export function exportDataDetails(metrics: ScorecardMetric[]) {
     )
     .join("\n");
 }
+
+/** Human-readable export notes. Detailed provenance stays in CSV and the app. */
+export function exportReviewNotes(metrics: ScorecardMetric[]) {
+  const timezones = [...new Set(metrics.map((metric) => metric.reportingTimeZone ?? "UTC"))];
+  const observations = metrics
+    .map((metric) => (metric.dataFreshnessAt ? new Date(metric.dataFreshnessAt) : null))
+    .filter((date): date is Date => date !== null && Number.isFinite(date.getTime()))
+    .map((date) => date.toISOString())
+    .sort();
+  const stamp = (date: string) => `${date.slice(0, 16).replace("T", " ")} UTC`;
+  const first = observations[0];
+  const last = observations.at(-1);
+  const notes = [
+    `Reporting ${timezones.length === 1 ? "timezone" : "timezones"}: ${timezones.join(", ") || "not recorded"}.`,
+    first && last
+      ? `Source observations: ${stamp(first)}${first === last ? "" : ` to ${stamp(last)}`}.${observations.length < metrics.length ? " Some observation times are not recorded." : ""}`
+      : "Source observation times are not recorded.",
+  ];
+  // Group repeated caveats rather than repeating the entire audit record per row.
+  const warnings = new Map<string, string[]>();
+  for (const metric of metrics) {
+    const reasons = [
+      exportUnavailableReason(metric),
+      metric.comparisonUnavailableReason,
+      metric.targetContextStatus === "historical_unverified"
+        ? HISTORICAL_TARGET_REASON
+        : metric.targetContextStatus === "source_unverified"
+          ? SOURCE_TARGET_REASON
+          : null,
+      metric.qualityStatus !== "complete" && !exportUnavailableReason(metric)
+        ? `${metric.qualityStatus === "partial" ? "Partial" : metric.qualityStatus === "stale" ? "Stale" : "Unverified"} data.`
+        : null,
+    ];
+    for (const reason of new Set(reasons.filter((value): value is string => Boolean(value)))) {
+      const names = warnings.get(reason) ?? [];
+      if (!names.includes(metric.name)) names.push(metric.name);
+      warnings.set(reason, names);
+    }
+  }
+  for (const [reason, names] of warnings) notes.push(`${names.join(", ")}: ${reason}`);
+  notes.push(
+    "Metric definitions and individual source details are available in Cadence and the CSV export."
+  );
+  return notes.join("\n");
+}

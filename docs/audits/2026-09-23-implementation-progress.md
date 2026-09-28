@@ -4,7 +4,12 @@
 demo notices. Workspace/scorecard banners, manager suffix and account subtitle are
 removed; Reporting weeks and export dates use ordinary labels. Sample provenance is
 retained in metric details. No access, fixture values, production or vendor changes.
-Candidate verification and isolated Preview deployment are in progress.
+Candidate `c20a875` passes exact CI `36481385244` and hosted Preview inspection on
+`dpl_pqZbynr4frNYD1opv2pAanJJvMC9`. The user supplied actual earlier PDF/PNG exports;
+inspection confirms the verbose audit appendix. A follow-up now replaces it in visual
+exports and copied text with concise source notes and grouped material warnings. The
+CSV retains its full provenance and column layout. 29 focused tests and static checks
+pass; final hosted output inspection and a presentation-readiness review follow.
 
 **September 28 — presentation demo and navigation candidate:** The requested parallel
 UI agent's sidebar upgrade is integrated locally. A separate authenticated `/demo`

@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import {
   exportCsv,
-  exportDataDetails,
+  exportReviewNotes,
   scorecardFilename,
   scorecardShareUrl,
   formatExportValue as formatVal,
@@ -168,7 +168,7 @@ export function ScorecardExport({
       categories.set(cat, arr);
     }
 
-    let text = `Scorecard: ${employeeName}\nPeriod: ${periodLabel}\nComparison: ${previousPeriodLabel}\nReporting timezones are listed in data details.\n`;
+    let text = `Scorecard: ${employeeName}\nPeriod: ${periodLabel}\nComparison: ${previousPeriodLabel}\n`;
     for (const [cat, catMetrics] of categories) {
       text += `\n${cat.toUpperCase()}\n`;
       for (const m of catMetrics) {
@@ -182,7 +182,7 @@ export function ScorecardExport({
     }
 
     try {
-      text += `\nData details\n${exportDataDetails(metrics)}`;
+      text += `\n${exportReviewNotes(metrics)}`;
       await navigator.clipboard.writeText(text.trimEnd());
       toast.success("Scorecard copied to clipboard");
     } catch {

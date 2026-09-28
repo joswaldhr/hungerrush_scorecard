@@ -96,6 +96,9 @@ goes to that employee's scorecard below.
 Exports preserve the loaded dates, progress/review status and source context. Filenames use
 the reporting interval; copied links pin the selected week. Stored-history round trips
 preserve that selection without changing the stored interval browser's behavior.
+PDF, PNG and copied text use concise timezone/observation notes and grouped material
+caveats. Full per-metric source records belong in Data details and the detailed CSV,
+not a repeated audit appendix beneath the visual scorecard.
 
 **Architecture note on periods:** metric values are stored one row per calendar week
 (Sunday--Saturday). A "Last N Weeks" selector that requested a multi-week span here would ask for
@@ -196,8 +199,9 @@ docs/DATA_MODEL.md's MetricTarget/MetricVisibilityOverride entries.
 The `/demo/one-on-ones` workspace illustrates the manager journey with 15 fictional
 employees across POS and Menufy. It uses the real scorecard UI with a separate synthetic
 provider: 22 populated metrics, sample targets, prior-week comparisons and current-week
-progress. People, values, observations and targets are explicitly labeled as fictional,
-including exports. Demonstrated handling time, first-contact resolution and adherence
+progress. At the user's request, presentation views omit repeated demo banners and
+suffixes. Sample provenance remains in Data details and CSV source metadata.
+Demonstrated handling time, first-contact resolution and adherence
 do not imply those integrations or accuracy certifications exist in production.
 
 Normal sign-in and an explicit email allowlist are required. The workspace cannot run

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   exportCsv,
   exportDataDetails,
+  exportReviewNotes,
   scorecardFilename,
   scorecardShareUrl,
   type ExportSnapshot,
@@ -135,7 +136,7 @@ describe("scorecard export context", () => {
     const csv = exportCsv({ ...snapshot, employeeName: '=HYPERLINK("example")' }, (value) => value);
     expect(csv).toContain('"\'=HYPERLINK(""example"")"');
   });
-  it("freezes capture content before navigation and includes identity and data details", () => {
+  it("freezes capture content before navigation and includes identity and concise source notes", () => {
     const live = document.createElement("div");
     live.id = "scorecard-capture";
     live.textContent = "Original week: 0";
@@ -146,9 +147,52 @@ describe("scorecard export context", () => {
     expect(frozen.element.textContent).not.toContain("Different week");
     expect(frozen.element.textContent).toContain(snapshot.employeeName);
     expect(frozen.element.textContent).toContain(snapshot.periodLabel);
-    expect(frozen.element.textContent).toContain("observed 2026-09-20T07:00:00.000Z");
+    expect(frozen.element.textContent).toContain("Source observations: 2026-09-20 07:00 UTC");
+    expect(frozen.element.textContent).not.toContain("calculation v1");
     expect(document.querySelectorAll("#scorecard-capture")).toHaveLength(1);
     frozen.dispose();
     expect(frozen.element.isConnected).toBe(false);
+  });
+  it("keeps a complete export footer compact instead of appending per-metric audit metadata", () => {
+    const metrics = Array.from({ length: 22 }, (_, i) => ({
+      ...snapshot.metrics[0]!,
+      name: `Metric ${i}`,
+      sourceContract: "synthetic-contract-v1",
+      sourceDescription: "Long technical source definition.",
+    }));
+    const notes = exportReviewNotes(metrics);
+    expect(notes.split("\n")).toHaveLength(3);
+    expect(notes).not.toMatch(/Metric 0|synthetic-contract|technical source|calculation/);
+    expect(notes).toContain("CSV export");
+    expect(exportCsv({ ...snapshot, metrics }, () => "No Target")).toContain(
+      "synthetic-contract-v1"
+    );
+  });
+  it("groups repeated caveats while preserving attribution, target, comparison and partial-data warnings", () => {
+    const metrics = ["Resolved", "Updated"].map((name) => ({
+      ...snapshot.metrics[0]!,
+      name,
+      currentValue: null,
+      qualityStatus: "unverified_attribution",
+      targetContextStatus: "historical_unverified" as const,
+      comparisonUnavailableReason: "Definitions changed; comparison unavailable.",
+    }));
+    const notes = exportReviewNotes([
+      ...metrics,
+      {
+        ...snapshot.metrics[0]!,
+        name: "Calls",
+        qualityStatus: "partial",
+        dataFreshnessAt: null,
+      },
+    ]);
+    expect(notes).toContain("Resolved, Updated: Human activity attribution has not been verified.");
+    expect(notes).toContain("Resolved, Updated: Historical target context has not been verified.");
+    expect(notes).toContain("Resolved, Updated: Definitions changed; comparison unavailable.");
+    expect(notes).toContain("Calls: Partial data.");
+    expect(notes).toContain("Some observation times are not recorded.");
+    expect(exportReviewNotes([{ ...snapshot.metrics[0]!, dataFreshnessAt: "invalid" }])).toContain(
+      "Source observation times are not recorded."
+    );
   });
 });

@@ -9,7 +9,18 @@ Sample-data provenance remains in the optional metric details/source metadata;
 this is still an isolated fictional workspace, not production metric certification.
 The auth allowlist, production denial, fixture values and source policies are unchanged.
 Earlier references below to persistent banners describe the superseded presentation.
-Candidate validation and hosted deployment evidence will be recorded after verification.
+Candidate `c20a875` passes exact CI `36481385244`, including all 840 tests and build,
+and is READY on isolated Preview `dpl_pqZbynr4frNYD1opv2pAanJJvMC9`. Hosted scorecard
+and history inspection confirms the removed banners/suffix and ordinary history labels.
+
+The user then supplied actual PDF/PNG exports, making the former source-file inspection
+gap concrete for that earlier build. Both contain the repeated full audit appendix.
+The follow-up removes that appendix from PDF/PNG and copied text, using concise timezone
+and observation notes plus grouped material caveats. Detailed source metadata remains in
+the unchanged 20-column CSV and app disclosures. A complete 22-metric scorecard has three
+footer lines. Attribution, missing, partial, historical-target and changed-definition
+warnings are retained. Focused export/navigation/keyboard tests: 29 pass; typecheck and
+lint pass. Final hosted export inspection is pending on this follow-up candidate.
 
 ## Scope
 
