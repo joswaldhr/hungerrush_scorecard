@@ -19,6 +19,15 @@ vi.mock("@/lib/db", () => ({
 vi.mock("@/lib/logger", () => ({ logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() } }));
 const get = vi.hoisted(() => vi.fn());
 vi.mock("./zendesk-shared", () => ({ zendeskGet: get }));
+vi.mock("./zendesk-talk-legacy", async () => {
+  const { fetchCompleteTalkWeek } = await import("./zendesk-talk");
+  return {
+    fetchLegacyTalkWeek: async (_config: unknown, start: string, end: string) => ({
+      ...(await fetchCompleteTalkWeek(start, end, get)),
+      diagnostics: { sharedAccountBudget: true },
+    }),
+  };
+});
 import { ZendeskConnector } from "./zendesk";
 afterEach(() => {
   vi.useRealTimers();
@@ -148,6 +157,88 @@ it("distinguishes missing samples from confirmed zero", () => {
   expect(averageEvidence([null, 0])).toEqual({ numerator: 0, denominator: 1 });
   expect(() => averageEvidence([NaN])).toThrow("Invalid numeric");
 });
+
+it.each([0, 2, 101])(
+  "fetches only the %i duration-cohort tickets while retaining all updated-ticket evidence",
+  async (cohortSize) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-28T12:00:00Z"));
+    const ticket = (id: number, created_at: string) => ({
+      id,
+      status: "solved",
+      assignee_id: 7,
+      created_at,
+      updated_at: "2026-09-26T12:00:00Z",
+      tags: [],
+    });
+    const cohort = Array.from({ length: cohortSize }, (_, i) =>
+      ticket(i + 1, i === 0 ? "2026-09-20T00:00:00Z" : "2026-09-26T23:59:59.999Z")
+    );
+    const excluded = [
+      ticket(1001, "2026-09-19T23:59:59.999Z"),
+      ticket(1002, "2026-09-27T00:00:00Z"),
+    ];
+    const requested: number[][] = [];
+    get.mockImplementation(async (path: string) => {
+      if (path.startsWith("/satisfaction_ratings"))
+        return { satisfaction_ratings: [], next_page: null };
+      if (path.startsWith("/channels/voice"))
+        return { calls: [], count: 0, end_time: 1, next_page: null };
+      if (path.startsWith("/search/export"))
+        return {
+          results: [...cohort, ...excluded],
+          meta: { has_more: false },
+          links: { next: null },
+        };
+      if (path.startsWith("/tickets/show_many")) {
+        const ids = new URL(path, "https://synthetic.test").searchParams
+          .get("ids")!
+          .split(",")
+          .map(Number);
+        requested.push(ids);
+        return {
+          metric_sets: ids.map((id) => ({
+            ticket_id: id,
+            full_resolution_time_in_minutes: { calendar: 99, business: id === 1 ? 0 : null },
+            reply_time_in_minutes: { calendar: 99, business: id === 1 ? 0 : 2 },
+          })),
+        };
+      }
+      if (path.startsWith("/users/search")) return { users: [{ id: 7, email }] };
+      throw Error("Unexpected fixture endpoint");
+    });
+    const result = await new ZendeskConnector().fetchRecords(
+      { dataSourceId: "source", organizationId: "org" },
+      { dataSourceId: "source", organizationId: "org", syncRunId: "run", cursor: "1" }
+    );
+    expect(requested.flat()).toEqual(cohort.map((t) => t.id));
+    expect(requested).toHaveLength(Math.ceil(cohortSize / 100));
+    expect(requested.every((batch) => batch.length <= 100)).toBe(true);
+    expect(
+      result.records.find((r) => r.externalRecordType === "agent_stats")!.payload
+    ).toMatchObject({
+      ticketsResolved: cohortSize + 2,
+      ticketsUpdated: cohortSize + 2,
+      backlogCount: null,
+      avgHandleTimeMinutes: cohortSize ? 0 : null,
+      avgResponseTimeMinutes: cohortSize
+        ? Math.round((((cohortSize - 1) * 2) / cohortSize) * 10) / 10
+        : null,
+      sourceEvidence: {
+        ticketIds: [...cohort, ...excluded].map((t) => t.id),
+        createdCohortIds: cohort.map((t) => t.id),
+        fullResolutionBusinessMinutes: {
+          numerator: cohortSize ? 0 : null,
+          denominator: cohortSize ? 1 : 0,
+        },
+        firstReplyBusinessMinutes: {
+          numerator: cohortSize ? (cohortSize - 1) * 2 : null,
+          denominator: cohortSize,
+        },
+      },
+    });
+  }
+);
 
 it("leaves prospective CSAT to its dedicated collector while preserving legacy earlier periods", async () => {
   vi.useFakeTimers();

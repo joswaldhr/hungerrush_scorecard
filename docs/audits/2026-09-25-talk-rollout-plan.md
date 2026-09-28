@@ -1,5 +1,12 @@
 # Talk participation correction — qualification checkpoint
 
+September 25, 23:52 UTC amendment: the [safety guardrail plan](../SAFETY_GUARDRAILS.md)
+prohibits Zendesk writes and report/dashboard editor sessions. Source discovery below
+must now use retained evidence and bounded GET APIs. Newer outbound qualification and
+local durable-collector work are recorded in the implementation ledger; the 22:00
+checkpoint below remains dated evidence, not current implementation status. No call
+producer/publication policy has been activated.
+
 September 25, 22:00 UTC. Candidate code only; no call policy, scheduled collector,
 production publication, target change or historical repair has been activated.
 Production verification remains **4/40 assignments**, from CSAT and first reply.

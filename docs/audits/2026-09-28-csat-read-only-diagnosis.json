@@ -1,0 +1,23 @@
+{
+  "observedAt": "2026-09-28T13:41:32.728Z",
+  "startedAt": "2026-09-28T13:40:42.477Z",
+  "mode": "One controlled read-only current-week diagnosis; no sync invocation or metric publication",
+  "periodStart": "2026-09-27",
+  "periodEnd": "2026-10-03",
+  "reportingTimeZone": "America/Chicago",
+  "publicationWrites": 0,
+  "retries": 0,
+  "status": "complete",
+  "employeeRecords": 62,
+  "independentCases": 85,
+  "independentDifferences": 0,
+  "requests": 38,
+  "elapsedMs": 50252,
+  "requestBudget": 240,
+  "elapsedBudgetMs": 240000,
+  "endpointRequests": {
+    "/api/v2/users.json": 4,
+    "/api/v2/search/export.json": 17,
+    "/api/v2/tickets/show_many.json": 17
+  }
+}

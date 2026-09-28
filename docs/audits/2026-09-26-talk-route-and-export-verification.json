@@ -1,0 +1,95 @@
+{
+  "observedAt": "2026-09-26T15:35:03Z",
+  "scope": "branch candidate and existing hosted synthetic fixture; no production release",
+  "codeCandidate": "9badca18905d723faee60f396297768dcef3475a",
+  "pullRequest": 32,
+  "ci": {
+    "runs": [
+      36252223074,
+      36252225892
+    ],
+    "result": "passed",
+    "tests": 766,
+    "files": 103,
+    "postgresMigrations": "passed",
+    "typecheck": "passed",
+    "lintAndFormatting": "passed",
+    "productionBuild": "passed"
+  },
+  "preview": {
+    "deploymentId": "dpl_6LWxZyB2g7qdvrutWsA8awFCjhh4",
+    "state": "READY",
+    "branch": "codex/audit-reliability-checkpoints",
+    "currentPeriod": "2026-09-20/2026-09-26",
+    "priorPeriod": "2026-09-13/2026-09-19",
+    "currentHistoryAndRevisions": "passed on existing synthetic fixture",
+    "fiveCategoryColumnPositionsIdentical": true,
+    "humanTicketValuesRemainUnavailable": true,
+    "newOutboundFixturePublished": false
+  },
+  "exports": {
+    "source": "actual browser downloads retained locally, not committed",
+    "csv": {
+      "candidate": "9badca1",
+      "rows": 7,
+      "columns": 20,
+      "bytes": 3743,
+      "utf8Bom": true,
+      "sha256": "048c813364d62d8c8c1e31a180bea529eae2ad1e889a96d94139c370631aaedd",
+      "expectedPeriodValuesUnitsAndNulls": "passed",
+      "humanAttributionReason": "present for both withheld metrics after correction"
+    },
+    "pdf": {
+      "candidate": "9badca1",
+      "pages": 1,
+      "bytes": 16929165,
+      "sha256": "21078a3411345320827fb1b03687878c7e53ed270512966dac85b42f5ddc187e",
+      "imageBased": true,
+      "visualInspection": "passed; aligned columns, unclipped context and corrected attribution details",
+      "limitation": "large raster PDF; multi-page print optimization remains separate"
+    },
+    "png": {
+      "candidate": "3551502",
+      "bytes": 769506,
+      "visualInspection": "passed before attribution-detail correction; latest corrected capture inspected through PDF"
+    },
+    "browserDownloadCallback": "timed out; actual saved file bytes inspected instead",
+    "clipboard": "not inspected",
+    "newOutboundContract": "not yet exercised"
+  },
+  "controls": {
+    "legacyAndDurableTalkShareLeaseAndPacing": true,
+    "crossSourceContentionAndBackoff": "PostgreSQL tests passed",
+    "collectionAndPublicationOptInsIndependent": true,
+    "newPoliciesConfigured": false,
+    "newSchedulesAdded": false,
+    "collectionCannotPublishMetrics": true,
+    "partialBusyAndRateLimitedDistinguished": true,
+    "outboundRequiresOneProspectiveWeek": true
+  },
+  "existingRailwayScheduler": {
+    "platformSchedule": "hourly container launches continue",
+    "functionResult": "disabled",
+    "latestVisibleResultAt": "2026-09-26T15:02:07Z",
+    "invocationTriggered": false,
+    "settingsChanged": false,
+    "ingestionOrPublicationCertified": false
+  },
+  "actions": {
+    "zendeskApiRequests": 0,
+    "zendeskEditorSessions": 0,
+    "zendeskMutations": 0,
+    "productionWrites": 0,
+    "productionMerges": 0
+  },
+  "remainingReleaseGates": [
+    "Recover existing staging connection privately; prepared synthetic outbound rehearsal has not run",
+    "New outbound current/history/revision/export and hosted route validation",
+    "Worst-case legacy and durable collector runtime qualification",
+    "Fresh encrypted backup, verified restore and scoped rollback manifest",
+    "Controlled canary and independent production comparison",
+    "Genuine new publisher scheduler evidence",
+    "POS inbound scope and exact outbound employee report evidence",
+    "Target qualification; no full-contract certification"
+  ]
+}

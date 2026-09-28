@@ -76,12 +76,56 @@ describe("Zendesk Talk complete weekly cohort", () => {
     await expect(fetchWeek(get, 1)).rejects.toThrow("page budget exhausted");
   });
 
-  it("rejects a repeated nonempty cursor", async () => {
+  it("confirms a terminal cursor that first returns new records", async () => {
+    const get = vi
+      .fn()
+      .mockResolvedValueOnce(page([call(1)]))
+      .mockResolvedValueOnce(page([call(2)]))
+      .mockResolvedValueOnce(page([call(2)]));
+    expect(await fetchWeek(get)).toEqual({ calls: [call(1), call(2)], pages: 3 });
+    expect(get.mock.calls.map(([path]) => path)).toEqual([
+      "/channels/voice/stats/incremental/calls.json?start_time=1789257600",
+      "/next",
+      "/next",
+    ]);
+  });
+
+  it("accepts a confirmed correction at the terminal cursor", async () => {
+    const corrected = { ...call(1), updated_at: "2026-09-23T00:00:00Z", talk_time: 120 };
+    const get = vi
+      .fn()
+      .mockResolvedValueOnce(page([call(1)]))
+      .mockResolvedValueOnce(page([corrected]))
+      .mockResolvedValueOnce(page([corrected]));
+    expect(await fetchWeek(get)).toEqual({ calls: [corrected], pages: 3 });
+  });
+
+  it("rejects a terminal cursor that keeps changing", async () => {
+    const get = vi
+      .fn()
+      .mockResolvedValueOnce(page([call(1)]))
+      .mockResolvedValueOnce(page([call(2)]))
+      .mockResolvedValueOnce(page([call(3)]));
+    await expect(fetchWeek(get)).rejects.toThrow("stalled pagination");
+    expect(get).toHaveBeenCalledTimes(3);
+  });
+
+  it("rejects a longer cursor cycle before requesting an older page again", async () => {
+    const first = "/channels/voice/stats/incremental/calls.json?start_time=1789257600";
+    const get = vi
+      .fn()
+      .mockResolvedValueOnce(page([call(1)]))
+      .mockResolvedValueOnce(page([call(2)], first));
+    await expect(fetchWeek(get)).rejects.toThrow("stalled pagination");
+    expect(get).toHaveBeenCalledTimes(2);
+  });
+
+  it("requires room in the page budget for terminal confirmation", async () => {
     const get = vi
       .fn()
       .mockResolvedValueOnce(page([call(1)]))
       .mockResolvedValueOnce(page([call(2)]));
-    await expect(fetchWeek(get)).rejects.toThrow("stalled pagination");
+    await expect(fetchWeek(get, 2)).rejects.toThrow("page budget exhausted");
     expect(get).toHaveBeenCalledTimes(2);
   });
 
@@ -101,6 +145,20 @@ describe("Zendesk Talk complete weekly cohort", () => {
     await expect(
       fetchWeek(async () => page([call(1), { ...call(1), agent_id: 99 }]))
     ).rejects.toThrow("conflicting versions");
+  });
+
+  it("rejects conflicting older versions even after a newer version was seen", async () => {
+    const older = call(1);
+    const newer = { ...older, updated_at: "2026-09-23T00:00:00Z", talk_time: 120 };
+    const conflictingOlder = { ...older, talk_time: 999 };
+    const get = vi
+      .fn()
+      .mockResolvedValueOnce(page([older], "/two"))
+      .mockResolvedValueOnce(page([newer], "/three"))
+      .mockResolvedValueOnce(page([conflictingOlder], "/four"))
+      .mockResolvedValueOnce(page([]));
+    await expect(fetchWeek(get)).rejects.toThrow("conflicting versions");
+    expect(get).toHaveBeenCalledTimes(3);
   });
 
   it.each([

@@ -12,6 +12,9 @@ const call = {
   call_group_id: 10,
   phone_number: null,
   completion_status: "completed" as const,
+  ticket_id: 100,
+  talk_time: 60,
+  voicemail: false,
 };
 const path = (n: number) =>
   `${origin}/api/v2/channels/voice/stats/incremental/calls.json?start_time=${n}`;

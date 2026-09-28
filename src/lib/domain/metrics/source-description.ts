@@ -1,5 +1,6 @@
 import {
   FIRST_REPLY_CONTRACT,
+  OUTBOUND_PARTICIPATION_CONTRACT,
   SOLVED_CSAT_CONTRACT,
   type MetricSourceContext,
 } from "./source-context";
@@ -16,6 +17,22 @@ export function metricSourceDescription(
   sourceStrategy: string | null,
   context?: MetricSourceContext | null
 ) {
+  if (context?.sourceContract === OUTBOUND_PARTICIPATION_CONTRACT) {
+    const cohort = `Outbound calls created in this period (${context.reportingTimeZone}), scoped by their linked ticket's current group and attributed through this employee's agent/supervisor call legs.`;
+    if (key === "outbound_calls")
+      return `${cohort} Distinct calls with employee participation; repeated legs count once.`;
+    if (key === "outbound_calls_completed")
+      return `${cohort} Calls with completed status and positive whole-call talk. Connection does not prove a human customer answered.`;
+    if (key === "outbound_calls_non_answered")
+      return `${cohort} Account-qualified non-answered classification includes completed zero-talk non-voicemail calls and failed calls without positive talk. Unclassified outcomes remain unavailable.`;
+    if (key === "avg_talk_time_outbound" || key === "avg_hold_time_outbound") {
+      const sample =
+        context.sampleCount === undefined
+          ? ""
+          : ` ${context.sampleCount} measured legs out of ${context.cohortCount}.`;
+      return `${cohort} Mean employee-leg ${key === "avg_talk_time_outbound" ? "talk" : "hold"} time, stored in seconds. Repeated legs and reported zeros are included; missing durations are excluded.${sample}`;
+    }
+  }
   if (key === "avg_response_time" && context?.sourceContract === FIRST_REPLY_CONTRACT) {
     const sample =
       context.sampleCount === undefined
@@ -101,6 +118,12 @@ export function unsupportedMetricReason(
   context?: MetricSourceContext | null
 ) {
   if (sourceStrategy !== "zendesk") return null;
+  if (context?.sourceContract === OUTBOUND_PARTICIPATION_CONTRACT) {
+    if (key === "outbound_calls_completed" || key === "outbound_calls_non_answered")
+      return "One or more outbound call outcomes could not be classified from the source evidence.";
+    if (key === "avg_talk_time_outbound" || key === "avg_hold_time_outbound")
+      return "No reported employee-leg durations in the outbound call cohort.";
+  }
   if (key === "avg_response_time" && context?.sourceContract === FIRST_REPLY_CONTRACT)
     return "No reported first-reply business durations in the created-ticket cohort.";
   if (context?.sourceContract === SOLVED_CSAT_CONTRACT) {

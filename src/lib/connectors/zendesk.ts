@@ -13,14 +13,19 @@ import type {
 import { db } from "@/lib/db";
 import { externalIdentities, employees } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
-import { zendeskGet, type RequestStats } from "./zendesk-shared";
+import { zendeskGet } from "./zendesk-shared";
 import { logger } from "@/lib/logger";
 import { fetchCompleteSearch, type SearchExportPage } from "./zendesk-search";
-import { fetchCompleteTalkWeek, type TalkCall, type TalkPage } from "./zendesk-talk";
+import type { TalkCall } from "./zendesk-talk";
+import { fetchLegacyTalkWeek } from "./zendesk-talk-legacy";
 import { averageEvidence, sourceIds } from "./source-evidence";
 import { normalizeSolvedCsatRecord } from "./zendesk-solved-csat-record";
 import { normalizeFirstReplyRecord } from "./zendesk-first-reply-record";
-import { FIRST_REPLY_CONTRACT } from "@/lib/domain/metrics/source-context";
+import {
+  FIRST_REPLY_CONTRACT,
+  OUTBOUND_PARTICIPATION_CONTRACT,
+} from "@/lib/domain/metrics/source-context";
+import { normalizeOutboundRecord } from "./zendesk-outbound-record";
 import { configuredCsatPolicy } from "./zendesk-csat-config";
 import { csatPolicyForPeriod } from "./zendesk-csat-policy";
 import { mapWithConcurrency, weekDates } from "@/lib/utils";
@@ -183,21 +188,21 @@ async function fetchRatings(
 }
 
 async function fetchCallsForWeek(
+  config: ConnectorConfig,
   periodStart: string,
   periodEnd: string
 ): Promise<{ calls: ZendeskCall[]; diagnostics: Record<string, unknown> }> {
-  const stats: RequestStats = { requests: 0, retries429: 0, backoffWaitMs: 0 };
-  const startedAt = Date.now();
-  const { calls, pages } = await fetchCompleteTalkWeek(periodStart, periodEnd, (path) =>
-    zendeskGet<TalkPage<ZendeskCall>>(path, stats)
-  );
+  const {
+    calls,
+    pages,
+    diagnostics: collection,
+  } = await fetchLegacyTalkWeek<ZendeskCall>(config, periodStart, periodEnd);
   const diagnostics = {
     periodStart,
     periodEnd,
     pages,
     callsCollected: calls.length,
-    ...stats,
-    totalMs: Date.now() - startedAt,
+    ...collection,
   };
   logger.info("Zendesk Talk calls fetch complete", diagnostics);
   return { calls, diagnostics };
@@ -387,11 +392,17 @@ export class ZendeskConnector implements Connector {
       : new Map<number, ZendeskSatisfactionRating[]>();
     const ratingsMs = Date.now() - ratingsStartedAt;
 
-    const { calls, diagnostics: callDiagnostics } = await fetchCallsForWeek(periodStart, periodEnd);
+    const { calls, diagnostics: callDiagnostics } = await fetchCallsForWeek(
+      config,
+      periodStart,
+      periodEnd
+    );
 
     const perEmployeeTickets = new Map<string, ZendeskTicket[]>();
+    const perEmployeeCreated = new Map<string, ZendeskTicket[]>();
     const perEmployeeOpen = new Map<string, ZendeskTicket[]>();
-    const allTicketIds: number[] = [];
+    const durationTicketIds = new Set<number>();
+    let allTicketIdsCount = 0;
 
     const ticketSearchStartedAt = Date.now();
     const ticketResults = await mapWithConcurrency(
@@ -412,13 +423,21 @@ export class ZendeskConnector implements Connector {
     );
     for (const { email, tickets, openTickets } of ticketResults) {
       perEmployeeTickets.set(email, tickets);
-      allTicketIds.push(...tickets.map((t) => t.id));
+      allTicketIdsCount += tickets.length;
+      const createdInPeriod = tickets.filter((ticket) => {
+        const created = new Date(ticket.created_at).toISOString().split("T")[0]!;
+        return created >= periodStart && created <= periodEnd;
+      });
+      perEmployeeCreated.set(email, createdInPeriod);
+      for (const ticket of createdInPeriod) durationTicketIds.add(ticket.id);
       if (openTickets !== null) perEmployeeOpen.set(email, openTickets);
     }
     const ticketSearchMs = Date.now() - ticketSearchStartedAt;
 
     const metricSetsStartedAt = Date.now();
-    const metricSets = await fetchMetricSets(allTicketIds);
+    // Only these tickets' duration fields are consumed below. Keep the full updated
+    // cohort for counts/evidence, but avoid detail requests for unused metric sets.
+    const metricSets = await fetchMetricSets([...durationTicketIds]);
     const metricSetsMs = Date.now() - metricSetsStartedAt;
     const now = new Date();
 
@@ -441,10 +460,7 @@ export class ZendeskConnector implements Connector {
         (t) => t.status === "solved" || t.status === "closed"
       ).length;
 
-      const createdInPeriod = tickets.filter((t) => {
-        const created = new Date(t.created_at).toISOString().split("T")[0]!;
-        return created >= periodStart && created <= periodEnd;
-      });
+      const createdInPeriod = perEmployeeCreated.get(email) ?? [];
       const avgHandleTimeMinutes = averageOf(
         createdInPeriod.map((t) =>
           businessMinutes(metricSets.get(t.id)?.full_resolution_time_in_minutes)
@@ -575,7 +591,8 @@ export class ZendeskConnector implements Connector {
       ticketSearchMs,
       metricSetsMs,
       recordBuildMs,
-      allTicketIdsCount: allTicketIds.length,
+      allTicketIdsCount,
+      durationTicketIdsCount: durationTicketIds.size,
     });
 
     return {
@@ -589,6 +606,8 @@ export class ZendeskConnector implements Connector {
         ticketSearchMs,
         metricSetsMs,
         recordBuildMs,
+        allTicketIdsCount,
+        durationTicketIdsCount: durationTicketIds.size,
       },
     };
   }
@@ -608,7 +627,9 @@ export class ZendeskConnector implements Connector {
         facts.push(
           ...(payload.sourceContract === FIRST_REPLY_CONTRACT
             ? normalizeFirstReplyRecord(payload, employeeId, teamId, periodStart, periodEnd)
-            : normalizeSolvedCsatRecord(payload, employeeId, teamId, periodStart, periodEnd))
+            : payload.sourceContract === OUTBOUND_PARTICIPATION_CONTRACT
+              ? normalizeOutboundRecord(payload, employeeId, teamId, periodStart, periodEnd)
+              : normalizeSolvedCsatRecord(payload, employeeId, teamId, periodStart, periodEnd))
         );
         continue;
       }

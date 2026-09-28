@@ -1,5 +1,11 @@
 # Staging scheduler deployment
 
+September 26 observation corrects earlier wording that Railway scheduling was disabled:
+the platform still launches the existing container hourly. Its visible recent executions,
+including 15:02:07 UTC September 26, log `status: disabled`. The saved function exits at
+that gate before HTTP requests. Shadow ingestion remains disabled; the platform schedule
+has not been removed. This read-only check did not trigger another run or change settings.
+
 Current safety update: authentication probe mode in `scripts/action-shadow-scheduler.ts`
 now uses `?probe=auth` and accepts only the explicit non-ingesting authentication response,
 returning `status: authenticated`. The earlier `authenticated_disabled` outcomes below are

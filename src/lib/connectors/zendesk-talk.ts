@@ -31,6 +31,8 @@ export async function fetchCompleteTalkWeek<T extends TalkCall>(
   let path: string = `/channels/voice/stats/incremental/${resource}.json?start_time=${start / 1000}`;
   const visited = new Set<string>();
   const latest = new Map<number, T>();
+  const versions = new Map<string, T>();
+  let confirmingBoundary = false;
   let previousEndTime: number | undefined;
   const complete = (pages: number) => ({
     calls: [...latest.values()].filter((call) => {
@@ -40,7 +42,8 @@ export async function fetchCompleteTalkWeek<T extends TalkCall>(
     pages,
   });
   for (let pages = 1; pages <= pageBudget; pages++) {
-    if (visited.has(path)) throw new Error("Zendesk Talk incomplete: stalled pagination");
+    if (visited.has(path) && !confirmingBoundary)
+      throw new Error("Zendesk Talk incomplete: stalled pagination");
     visited.add(path);
     const page = await getPage(path);
     if (!Number.isInteger(page.count) || page.count < 0 || page.count !== page.calls.length) {
@@ -65,31 +68,43 @@ export async function fetchCompleteTalkWeek<T extends TalkCall>(
       ) {
         throw new Error("Zendesk Talk incomplete: invalid call identity or timestamps");
       }
+      // Check every observed version, including an older version that arrives after
+      // a correction. Comparing only against latest would hide that ambiguity.
+      const versionKey = `${call.id}:${updated}`;
+      const knownVersion = versions.get(versionKey);
+      if (knownVersion) {
+        const keys = new Set([...Object.keys(knownVersion), ...Object.keys(call)]);
+        if (
+          [...keys].some(
+            (key) =>
+              JSON.stringify(knownVersion[key as keyof T]) !== JSON.stringify(call[key as keyof T])
+          )
+        )
+          throw new Error("Zendesk Talk incomplete: conflicting versions of a call");
+      } else {
+        versions.set(versionKey, call);
+      }
       const previous = latest.get(call.id);
       if (!previous || updated > Date.parse(previous.updated_at)) {
         identicalBoundary = false;
         latest.set(call.id, call);
-      } else if (updated === Date.parse(previous.updated_at)) {
-        // Ignore identical boundary repeats, but do not guess between conflicting
-        // versions when the vendor timestamp cannot order them.
-        const keys = new Set([...Object.keys(previous), ...Object.keys(call)]);
-        if (
-          [...keys].some(
-            (key) =>
-              JSON.stringify(previous[key as keyof T]) !== JSON.stringify(call[key as keyof T])
-          )
-        ) {
-          throw new Error("Zendesk Talk incomplete: conflicting versions of a call");
-        }
-      } else {
+      } else if (updated < Date.parse(previous.updated_at)) {
         identicalBoundary = false;
       }
     }
     if (identicalBoundary && page.next_page === path && page.end_time === previousEndTime) {
       return complete(pages);
     }
+    // A new terminal cursor may first return new calls or corrected versions.
+    // Permit one confirming read, still charged against the page/request budget.
+    // That read must prove exhaustion; repeated changes and older-page cycles fail.
+    if (confirmingBoundary)
+      throw new Error("Zendesk Talk incomplete: stalled pagination or changing terminal boundary");
     previousEndTime = page.end_time;
     if (!page.next_page) throw new Error("Zendesk Talk incomplete: missing continuation");
+    confirmingBoundary = page.next_page === path;
+    if (visited.has(page.next_page) && !confirmingBoundary)
+      throw new Error("Zendesk Talk incomplete: stalled pagination");
     path = page.next_page;
   }
   throw new Error("Zendesk Talk incomplete: page budget exhausted");

@@ -1,13 +1,11 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
-import {
-  talkParticipationCallSchema,
-  talkParticipationLegSchema,
-} from "./zendesk-talk-participation";
+import { talkParticipationLegSchema } from "./zendesk-talk-participation";
+import { outboundCallSchema } from "./zendesk-outbound";
 
 type Resource = "calls" | "legs";
-type RecordValue =
-  z.infer<typeof talkParticipationCallSchema> | z.infer<typeof talkParticipationLegSchema>;
+export type TalkRecordValue =
+  z.infer<typeof outboundCallSchema> | z.infer<typeof talkParticipationLegSchema>;
 export interface TalkCursor {
   version: 1;
   origin: string;
@@ -78,7 +76,7 @@ export function initialTalkCursor(
 export function advanceTalkCursor(
   before: TalkCursor,
   response: unknown,
-  storedLatest: RecordValue[],
+  storedLatest: TalkRecordValue[],
   storedVersions: TalkStoredVersion[]
 ) {
   const initial = initialTalkCursor(before.origin, before.resource, before.initialStartTime);
@@ -109,15 +107,14 @@ export function advanceTalkCursor(
     .safeParse(response);
   if (!envelope.success) throw new Error("Invalid Talk export envelope");
   const page = envelope.data;
-  const schema =
-    before.resource === "calls" ? talkParticipationCallSchema : talkParticipationLegSchema;
+  const schema = before.resource === "calls" ? outboundCallSchema : talkParticipationLegSchema;
   const parsed = z.array(schema).safeParse(page[before.resource]);
   if (!parsed.success || parsed.data.length !== page.count || page.end_time < before.watermark)
     throw new Error("Invalid Talk export count, records or watermark");
   const continuation =
     page.next_page === null ? null : sourcePath(before.origin, before.resource, page.next_page);
   if (page.count > 0 && continuation === null) throw new Error("Missing Talk continuation");
-  const latest = new Map<number, RecordValue>();
+  const latest = new Map<number, TalkRecordValue>();
   const versions = new Map<string, string>();
   for (const version of storedVersions) {
     const versionKey = `${version.id}:${version.updatedAt}`;
@@ -135,8 +132,8 @@ export function advanceTalkCursor(
       throw new Error("Conflicting stored Talk version");
     versions.set(key(row), digest(row));
   }
-  const changed = new Map<number, RecordValue>();
-  const revisions = new Map<string, { record: RecordValue; digest: string }>();
+  const changed = new Map<number, TalkRecordValue>();
+  const revisions = new Map<string, { record: TalkRecordValue; digest: string }>();
   let identicalBoundary = before.pages > 0;
   for (const row of parsed.data) {
     if (Date.parse(row.updated_at) < Date.parse(row.created_at))

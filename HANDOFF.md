@@ -1,5 +1,7 @@
 > Current September 23 overhaul status: see
 > [implementation progress and release checkpoint](docs/audits/2026-09-23-implementation-progress.md).
+> Mandatory operating boundaries: [safety guardrail plan](docs/SAFETY_GUARDRAILS.md).
+> Zendesk is read-only; do not open report/dashboard editors, including for unsaved inspection.
 > The older production-complete statements below describe earlier sessions. The current
 > audit branch is `codex/audit-reliability-checkpoints`. Hosted Preview uses a separate
 > Railway database, Entra registration, and branch-scoped secrets; its synthetic sign-in/UI

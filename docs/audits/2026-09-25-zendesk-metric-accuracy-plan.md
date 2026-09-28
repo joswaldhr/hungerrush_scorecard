@@ -1,5 +1,10 @@
 # Zendesk metric accuracy investigation and delivery plan
 
+September 25 safety amendment: follow [the safety guardrail plan](../SAFETY_GUARDRAILS.md).
+Zendesk must remain unchanged. Earlier instructions below to inspect report configuration
+do not permit opening report/dashboard editors or making unsaved UI changes. Reuse retained
+exports and bounded GET APIs; record unavailable evidence instead of locking managers out.
+
 Prepared September 25, 2026 in response to the request to investigate every POS and
 Menufy metric and make the reporting accurate. This is the next metric-correctness
 workstream. The earlier core release and scheduled-sync verification do not certify

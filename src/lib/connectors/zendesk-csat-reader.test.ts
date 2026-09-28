@@ -18,7 +18,7 @@ it("confines authenticated requests to the configured account and selected read 
     await expect(reader.read(path)).rejects.toThrow(/allowlist/);
   expect(fetcher).not.toHaveBeenCalled();
   await expect(reader.read("/users.json")).resolves.toEqual({ complete: true });
-  expect(fetcher.mock.calls[0]![1]).toMatchObject({ redirect: "error" });
+  expect(fetcher.mock.calls[0]![1]).toMatchObject({ method: "GET", redirect: "error" });
 });
 it("bounds all collection requests and elapsed time without hidden retries", async () => {
   let now = 0;
@@ -40,4 +40,52 @@ it("bounds all collection requests and elapsed time without hidden retries", asy
     createBoundedCsatReader(credentials, { fetch: limited }).read("/users.json")
   ).rejects.toThrow(/HTTP 429/);
   expect(limited).toHaveBeenCalledTimes(1);
+});
+
+it.each([
+  ["60", "60000"],
+  ["0", "0"],
+  ["Mon, 28 Sep 2026 08:35:00 GMT", "60000"],
+  [null, "unavailable"],
+  ["private-untrusted-header", "unavailable"],
+  ["99999999999999999999999999", "unavailable"],
+  ["Mon, 28 Sep 2026 08:33:00 GMT", "unavailable"],
+])(
+  "retains safe 429 endpoint/delay diagnostics without another request (%s)",
+  async (header, expected) => {
+    const fetcher = vi.fn(
+      async () =>
+        new Response("private-response-body", {
+          status: 429,
+          headers: header === null ? {} : { "Retry-After": header },
+        })
+    );
+    const reader = createBoundedCsatReader(credentials, {
+      fetch: fetcher,
+      now: () => Date.parse("2026-09-28T08:34:00Z"),
+      spacingMs: 0,
+    });
+    const error = await reader
+      .read("/search/export.json?query=assignee:private@example.invalid")
+      .catch((error: unknown) => error);
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toBe(
+      `CSAT source request failed: HTTP 429; endpoint=search/export; retryAfterMs=${expected}`
+    );
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(reader.stats().requests).toBe(1);
+  }
+);
+
+it("identifies a non-rate-limit failure without leaking its request or response", async () => {
+  const fetcher = vi.fn(
+    async () =>
+      new Response("private-response-body", { status: 503, headers: { "Retry-After": "60" } })
+  );
+  await expect(
+    createBoundedCsatReader(credentials, { fetch: fetcher }).read(
+      "/tickets/show_many.json?ids=123&include=metric_sets"
+    )
+  ).rejects.toThrow("CSAT source request failed: HTTP 503; endpoint=tickets/show_many");
+  expect(fetcher).toHaveBeenCalledTimes(1);
 });

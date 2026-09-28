@@ -34,6 +34,18 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 describe("scorecard export context", () => {
+  it("explains withheld human ticket metrics in CSV and text when no connector reason exists", () => {
+    const metrics = snapshot.metrics.map((metric) => ({
+      ...metric,
+      currentValue: null,
+      qualityStatus: "unverified_attribution",
+      missingReason: null,
+    }));
+    const reason = "Human activity attribution has not been verified.";
+    expect(exportCsv({ ...snapshot, metrics }, () => "No Data")).toContain(`"${reason}"`);
+    expect(exportDataDetails(metrics)).toContain(reason);
+    expect(exportDataDetails(snapshot.metrics)).not.toContain(reason);
+  });
   it("exports per-metric timezone and changed-definition context without labeling all periods UTC", () => {
     const metrics = snapshot.metrics.map((metric) => ({
       ...metric,

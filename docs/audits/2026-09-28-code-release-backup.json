@@ -1,0 +1,18 @@
+{
+  "observedAt": "2026-09-28T14:33:45.364Z",
+  "sourceReadOnly": true,
+  "plaintextRetainedInRestrictedRecoveryDirectory": true,
+  "dumpFormat": "PostgreSQL custom",
+  "plaintextBytes": 4463923,
+  "sha256": "02a6350244a69939e67d9b0f8c371a89d72fb42e2f14a0d0ecdc7eed02f73078",
+  "encryption": "Windows DPAPI CurrentUser",
+  "encryptedRoundTrip": true,
+  "restored": true,
+  "tableCount": 33,
+  "rowCount": 48778,
+  "allTableDigestsMatch": true,
+  "restoredCopyMigrationsThrough": "0015_metric_numeric_precision",
+  "existingApplicationDataUnchangedAfterMigration": true,
+  "globalsAndOriginalOwnershipRestored": false,
+  "limitation": "Recovery requires this Windows user profile; not a portable disaster-recovery copy or provider PITR."
+}

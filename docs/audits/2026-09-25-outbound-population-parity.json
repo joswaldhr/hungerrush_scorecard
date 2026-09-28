@@ -1,0 +1,38 @@
+{
+  "observedAt": "2026-09-25T17:29:18.699679-05:00",
+  "team": "Menufy",
+  "sourceReadOnly": true,
+  "scope": "Call-created Central date, six explicit linked-ticket groups, agent and supervisor participation",
+  "independentImplementation": "Python raw-source grouping; not candidate TypeScript output",
+  "results": [
+    {
+      "periodStart": "2026-09-13",
+      "periodEnd": "2026-09-19",
+      "reportRows": 1393,
+      "uniqueReportEmployeeCalls": 1393,
+      "sourceCohortCalls": 1393,
+      "rebuiltEmployeeCalls": 1393,
+      "unknownAgentNames": 0,
+      "missingEmployeeCalls": 0,
+      "extraEmployeeCalls": 0,
+      "comparedFields": 5572,
+      "valueDifferenceRows": 0,
+      "reportSha256": "0cb1a6762c38d6b3e3c46799e092fe90ed3f527acc532369b4f11b76964e9427"
+    },
+    {
+      "periodStart": "2026-09-06",
+      "periodEnd": "2026-09-12",
+      "reportRows": 1503,
+      "uniqueReportEmployeeCalls": 1503,
+      "sourceCohortCalls": 1502,
+      "rebuiltEmployeeCalls": 1503,
+      "unknownAgentNames": 0,
+      "missingEmployeeCalls": 0,
+      "extraEmployeeCalls": 0,
+      "comparedFields": 6012,
+      "valueDifferenceRows": 0,
+      "reportSha256": "b0d3367f21bb74d176f994284fb9e06ee00ba1612e139a21cedc27ab9914d951"
+    }
+  ],
+  "productionActivated": false
+}

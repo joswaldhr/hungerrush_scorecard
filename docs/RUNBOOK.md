@@ -4,6 +4,10 @@ Current environment state and release blockers are owned by the
 [implementation ledger](audits/2026-09-23-implementation-progress.md). This runbook does not
 declare production ready or authorize bypassing those technical gates.
 
+Apply the [safety guardrail plan](SAFETY_GUARDRAILS.md) before source investigation or
+release work. Zendesk is read-only; report/dashboard editors are prohibited even for
+unsaved inspection because opening an editor caused a manager lock during the audit.
+
 ## Development checks
 
 Use an isolated PostgreSQL database. Test configuration never loads `.env`; local overrides
@@ -23,6 +27,31 @@ behavioral test. Never point integration tests, fixture resets or rehearsal writ
 shared `.env` database.
 
 ## Preview and scheduler
+
+### Talk collection and outbound candidate
+
+Both new paths default to disabled and have no entries in `vercel.json`. They require
+the environment's scheduler bearer credential. Configure them only after the relevant
+release checks; a route's existence is not activation or metric certification.
+
+- `ZENDESK_TALK_COLLECTION_POLICY` is private strict JSON with `schemaVersion: 1`,
+  `organizationId`, `dataSourceId`, `accountReference` and fixed UTC `bootstrapDate`
+  (`YYYY-MM-DD`). `/api/cron/talk-collect` accepts no query parameters and executes
+  one bounded resumable batch. It only retains source records/checkpoints. HTTP 202
+  means partial; 409 means another account reader holds the lease; 429 includes
+  persisted retry delay. HTTP 200 with exhausted streams still does not certify joined
+  metric coverage. Legacy and durable Talk readers share the account lease/request budget.
+- `ZENDESK_OUTBOUND_POLICY` independently uses the strict schema in
+  `src/lib/connectors/zendesk-talk-policy.ts`, requiring all teams to have `inbound: null`
+  and explicit outbound scopes/keys. `/api/cron/outbound?week=0` accepts exactly one
+  offset 0–3, honors the prospective cutover and source cooldown, reads qualified stored
+  calls/legs, and fetches bounded linked-ticket metadata before atomic publication.
+  A collection policy alone never enables this publisher. No policy overrides the
+  source-binding, observation, identity, assignment or transaction validation gates.
+
+Keep both policies unset during default Preview deployments. Synthetic rehearsal scripts
+must reject vendor credentials, verify the exact isolated database, and publish only
+synthetic records. Do not populate real credentials merely to test disabled route behavior.
 
 The audit branch is `codex/audit-reliability-checkpoints`; `master` deploys production.
 Preview uses its separate Railway database and Entra sign-in registration. Check the exact

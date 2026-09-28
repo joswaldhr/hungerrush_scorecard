@@ -1,0 +1,52 @@
+{
+  "observedAt": "2026-09-26T01:38:17Z",
+  "scope": "branch candidate; synthetic local and CI verification only",
+  "codeCandidate": "20f0495d9b1717b2b11c3f078fff70104a5e406b",
+  "pullRequest": 32,
+  "ciRuns": [36208942784, 36208944848],
+  "ci": {
+    "result": "passed",
+    "tests": 749,
+    "files": 99,
+    "postgresMigrations": "passed",
+    "typecheck": "passed",
+    "lintAndFormatting": "passed",
+    "productionBuild": "passed"
+  },
+  "previewDeployment": "completed; new hosted synthetic behavior not yet inspected",
+  "postgresPublicationRehearsal": {
+    "exactFractionalSeconds": true,
+    "reportedZeroAndMissingDistinct": true,
+    "nullCorrectionsRetractPreviousValue": true,
+    "legacyRefreshCannotOverwriteReplacement": true,
+    "earlierPeriodsAndSiblingValuesPreserved": true,
+    "legacySourceRecordsAndFactsPreserved": true,
+    "predecessorValuesRetainedAsRevisions": true,
+    "idempotentReplay": true,
+    "changedTeamRollsBackPublication": true
+  },
+  "sourcePreflight": {
+    "sourceAccountOrganizationBinding": true,
+    "teamMetricUnitAggregationValidation": true,
+    "activeEmployeeIdentityValidation": true,
+    "incompleteStoreRejectedBeforeVendorRead": true,
+    "freshnessRecheckedAfterMetadataReads": true
+  },
+  "liveActionsThisContinuation": {
+    "zendeskAccountApiRequests": 0,
+    "zendeskEditorSessions": 0,
+    "zendeskMutations": 0,
+    "productionWrites": 0,
+    "productionMerges": 0,
+    "newRoutesOrSchedules": 0
+  },
+  "remainingReleaseGates": [
+    "Shared coordination with legacy Talk collection before activation",
+    "Hosted synthetic current/history/revision and actual export-file inspection for the new contract",
+    "Fresh backup and verified restore plus scoped rollback manifest",
+    "Scoped controlled publication and independent production comparison",
+    "Genuine scheduler execution evidence",
+    "POS unresolved inbound scope and exact outbound employee report evidence",
+    "Target qualification; no full-contract certification claimed"
+  ]
+}
