@@ -1,5 +1,24 @@
 # Audit implementation — current checkpoint
 
+**September 28 — presentation upgrade and file delivery:** User authorized the first
+recommended presentation pass. Final app candidate `f17821c` integrates configured headline
+metrics, conservative signed comparisons, reduced repeated period framing, presentation
+text sizes/category jumps and preserved print dates. All quality/availability warnings
+and underlying rows remain. Native same-origin file attachments replace failing blob
+downloads, with session/origin/type/size checks and no persistence or data reads.
+Fifty-nine combined focused tests and local static checks pass. Exact final CI
+`36484866012` passes all 872 tests / 111 files and build. Isolated Preview
+`dpl_6zgVGDyR2tW1JMVmbmv7hTm4fTYR` is READY at the exact app SHA and stable staging
+alias. Hosted PDF, PNG and CSV actually saved on the preceding `0109468` candidate:
+828,518, 1,267,645 and 10,910 bytes respectively. PDF/PNG decoded pixels match exactly;
+CSV retains all 22 rows, 20 columns and selected dates. The final two-class layout fix
+contains accessible labels within the main scroller; at 1920x1080 document height is
+1080 and category keyboard navigation moves focus/main scroll without outer scrolling.
+Earlier download-byte limitations below are superseded for this demo candidate.
+Production remains unchanged and requires its separate release gates; no production
+merge is implied. The presenter share link reaches Microsoft sign-in; Adam's own
+first login remains unobserved. PDF pagination remains a later improvement.
+
 **September 28 — presentation copy cleanup:** The user requested removing repeated
 demo notices. Workspace/scorecard banners, manager suffix and account subtitle are
 removed; Reporting weeks and export dates use ordinary labels. Sample provenance is

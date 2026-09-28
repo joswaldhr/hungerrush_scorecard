@@ -1,5 +1,32 @@
 # Presentation demo and navigation upgrade
 
+## Upgraded presentation and verified download delivery
+
+`0109468` passes exact CI `36484057126`: 872 tests / 111 files and build. Isolated
+Preview `dpl_E7t2XnTQDkJWnnTD9Ru3CxPqkoZ2` serves the combined headline metrics,
+safe deltas, reversible presentation view and authenticated attachment delivery.
+Native browser downloads actually saved all three formats in Downloads. Inspected:
+PDF 828,518 bytes, PNG 1,267,645 bytes, CSV 10,910 bytes. PDF and PNG contain exactly
+the same decoded 2512×6390 image. All 22 rows and a concise three-line footer render;
+no audit dump or repeated demo banners remain. The CSV retains 22 rows / 20 columns,
+populated current values, correct selected dates and detailed source metadata.
+The prior browser-export byte limitation is resolved for this demo candidate.
+
+At 1366×768 the three headlines are visible; at 1920×1080 all seven table widths match.
+Light/dark and the reversible presentation controls are inspected. Current-week cards
+and all 22 rows remain In Progress with no weekly deltas. A final scroll-containment
+fix `f17821c` addresses absolutely positioned screen-reader labels escaping the main
+scroller. Exact final CI `36484866012` passes all 872 tests / 111 files and build.
+Final isolated Preview `dpl_6zgVGDyR2tW1JMVmbmv7hTm4fTYR` is READY and owns the stable
+staging alias at app SHA `f17821c51acb053ee23988209feaa097def02e3a`. At 1920x1080,
+document and viewport heights both equal 1080; category keyboard navigation focuses
+the selected section and scrolls only the main region (outer scroll stays zero).
+The prior combined Preview `dpl_E7t2XnTQDkJWnnTD9Ru3CxPqkoZ2` remains a rollback
+candidate. The share-link check reaches Microsoft sign-in without exposing profiles;
+the presenter's own first sign-in remains unobserved. No source policies,
+production data or Zendesk actions changed. The separate production release still needs
+its own current backup/release review; this demo verification is not a production merge.
+
 ## Presentation copy cleanup — September 28 follow-up
 
 At the user's request, the repeated workspace banner, scorecard DEMO banner,

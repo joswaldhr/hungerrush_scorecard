@@ -26,12 +26,33 @@ caveats; detailed provenance remains in CSV and optional app disclosures.
 | Review period | Last week Sep 20–26 compares Sep 13–19; current week remains neutral progress | No certification claim for either period |
 | Navigation | Fixed control positions across collapse/expand; history offers six weeks and preserves returnWeek | History is generated scenarios, not retained vendor revisions |
 | Presentation copy | No repeated workspace/scorecard banners, manager Demo suffix or sidebar demo subtitle | Sample provenance intentionally stays in detailed source metadata |
-| Exports | User-provided earlier PDF/PNG inspected; audit appendix confirmed and code corrected; regression tests preserve material caveats. The user also reproduced false download success, prompting an explicit persistent Save file dialog | Fresh downloaded output inspection and reliable browser save still require verification; a success toast was not proof |
+| Exports | Native HTTP attachment delivery succeeds for PDF, PNG and CSV on `0109468`. Actual saved files inspected: 828,518-byte PDF, 1,267,645-byte PNG and 10,910-byte CSV. PDF/PNG decoded pixels match exactly; all 22 CSV rows retain 20 columns and selected dates. Three-line footer replaces the audit dump | PDF remains a long single page; standard pagination is a later upgrade. Files over 3.5 MB require preview saving or CSV |
 | Safety | Exact Microsoft email allowlist, separate Preview, production denial and pure fixtures remain | Production release remains separately held |
 
 ## Prioritized upgrades
 
-These are recommendations for later implementation, not features already delivered.
+The user subsequently authorized the first presentation pass. Candidate `0109468`
+implements priorities 1 below: reduced repeated review framing, three configured
+headline metrics, guarded neutral week-over-week differences and a reversible larger
+presentation view with category navigation. Print retains the selected dates.
+Exact CI `36484057126` passes 872 tests / 111 files and build; hosted 1366×768 and
+1920×1080 checks confirm three headlines, seven aligned tables and 22 retained rows.
+Current-week cards and all 22 rows are neutral In Progress, with no weekly delta.
+Both themes and category controls were inspected. A browser check found an existing
+outer-scroll overflow from absolutely positioned accessible labels; the final follow-up
+positions both app/demo main scrollers to contain them and prevent blank page scrolling.
+Final app candidate `f17821c` passes exact CI `36484866012` (872 tests / 111 files and
+build) and is READY on `dpl_6zgVGDyR2tW1JMVmbmv7hTm4fTYR`. Final 1920x1080 inspection
+confirms document height equals viewport height, no horizontal overflow, and keyboard
+category navigation focuses the selected section with outer scroll remaining zero.
+The headline selection never hides unavailable metrics in favor of available ones.
+Current-week, unknown-source, incompatible, partial and snapshot comparisons are withheld.
+The download relay and prepared-file dialog accompany this pass. Fifty-nine focused
+tests and local static checks pass. Deltas use unrounded source values before display
+rounding, so subtracting two rounded percentage labels may differ by 0.1 percentage
+points. Keep this calculation basis explicit when evolving the explanatory UI.
+
+The priority 2/3 items remain recommendations for later implementation.
 Use the same shared components for demo and live views; never let presentation fixtures
 loosen real-source availability or historical-target rules.
 
@@ -62,8 +83,8 @@ animations, decorative charts, a new dashboard or more sidebar destinations.
    resolved versus 66 previously, and a 72.1% first-contact figure versus a 75% sample
    target; those are fictional scenario values, not a live-source claim.
 4. Briefly switch to this week to show provisional progress, then restore last week.
-5. Open a prior reporting week and return; finish with the clean scorecard export once
-   its fresh files have been inspected. Keep an inspected local PDF as a presentation
+5. Open a prior reporting week and return; finish with Export, select a file format,
+   then choose Save file in the prepared-file dialog. Keep an inspected local PDF as a presentation
    fallback. Do not showcase unverified production metrics as completed capabilities.
 
 Do not start a broad visual rewrite immediately before a presentation. Ship changes
