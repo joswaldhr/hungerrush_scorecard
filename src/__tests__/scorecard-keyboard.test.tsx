@@ -111,3 +111,61 @@ it("closes the export menu when focus moves outside without stealing focus", asy
   expect(container.querySelector('[role="menu"]')).toBeNull();
   expect(document.activeElement).toBe(next);
 });
+
+it("keeps a prepared download available for an explicit save without claiming it was saved", async () => {
+  const createDescriptor = Object.getOwnPropertyDescriptor(URL, "createObjectURL");
+  const revokeDescriptor = Object.getOwnPropertyDescriptor(URL, "revokeObjectURL");
+  const create = vi.fn(() => "blob:https://example.test/prepared-export");
+  const revoke = vi.fn();
+  Object.defineProperty(URL, "createObjectURL", { configurable: true, value: create });
+  Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: revoke });
+  try {
+    await act(async () =>
+      root.render(
+        <ScorecardExport
+          employeeName="Synthetic"
+          periodStart="2026-09-13"
+          periodEnd="2026-09-19"
+          mode="review"
+          periodLabel="Sep 13–19, 2026"
+          previousPeriodLabel="Sep 6–12, 2026"
+          metrics={[]}
+        />
+      )
+    );
+    await act(async () =>
+      container.querySelector<HTMLButtonElement>('[aria-haspopup="menu"]')!.click()
+    );
+    const csv = [...container.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')].find(
+      (el) => el.textContent === "Export to CSV"
+    )!;
+    await act(async () => csv.click());
+    expect(create).toHaveBeenCalledTimes(1);
+    const dialog = document.querySelector('[role="dialog"]')!;
+    const save = dialog.querySelector<HTMLAnchorElement>("a[download]")!;
+    expect(save.download).toBe("synthetic-metrics-2026-09-13_2026-09-19.csv");
+    expect(save.href).toBe("blob:https://example.test/prepared-export");
+    expect(dialog.textContent).toContain("Your export is ready");
+    expect(dialog.textContent).not.toContain("downloaded");
+    expect(revoke).not.toHaveBeenCalled();
+    // Prevent jsdom navigation; exercise the user's explicit save gesture.
+    save.addEventListener("click", (event) => event.preventDefault());
+    await act(async () => save.click());
+    expect(dialog.textContent).toContain("Download requested");
+    expect(revoke).not.toHaveBeenCalled();
+    vi.useFakeTimers();
+    await act(async () =>
+      [...dialog.querySelectorAll("button")].find((el) => el.textContent === "Close")!.click()
+    );
+    expect(document.querySelector('[role="dialog"]')).toBeNull();
+    expect(revoke).not.toHaveBeenCalled();
+    await act(async () => vi.advanceTimersByTime(60_000));
+    expect(revoke).toHaveBeenCalledWith(save.href);
+  } finally {
+    vi.useRealTimers();
+    if (createDescriptor) Object.defineProperty(URL, "createObjectURL", createDescriptor);
+    else Reflect.deleteProperty(URL, "createObjectURL");
+    if (revokeDescriptor) Object.defineProperty(URL, "revokeObjectURL", revokeDescriptor);
+    else Reflect.deleteProperty(URL, "revokeObjectURL");
+  }
+});

@@ -20,7 +20,23 @@ and observation notes plus grouped material caveats. Detailed source metadata re
 the unchanged 20-column CSV and app disclosures. A complete 22-metric scorecard has three
 footer lines. Attribution, missing, partial, historical-target and changed-definition
 warnings are retained. Focused export/navigation/keyboard tests: 29 pass; typecheck and
-lint pass. Final hosted export inspection is pending on this follow-up candidate.
+lint pass. Final app candidate `17b992165db3363c3544f592862fed0f039e07a1` passes exact
+CI `36481956742` and is READY on isolated Preview `dpl_Gdeb4dTiN2eDLc5jfMZzFsQXoDNA`.
+The stable alias and existing presenter share link continue to serve the candidate.
+The hosted scorecard still has 22 rows, no repeated demo labels, and ordinary manager
+and Reporting weeks text. Actual fresh export bytes remain pending: automated PDF
+download yields no downloadable event/file, so a user-assisted re-download was requested.
+Earlier user-supplied bytes establish the old defect, not the corrected output.
+The presentation review and prioritized reusable improvements are recorded in
+`2026-09-28-demo-readiness-and-upgrades.md`. No production deployment or vendor action.
+
+The user subsequently confirmed the same false-success download behavior manually.
+This is now an actual usability defect, not merely an automation evidence gap.
+The follow-up prepares a persistent file with an explicit Save file gesture, a PDF/PNG
+preview link, and a truthful requested/not-confirmed message. It replaces automatic
+blob-link clicks and delays URL revocation until after the dialog closes. PNG generation
+now awaits the blob before ending its loading state. Fifteen focused export/keyboard
+tests pass, including persistence, close cleanup and no false saved-file claim.
 
 ## Scope
 

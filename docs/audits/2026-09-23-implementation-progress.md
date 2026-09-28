@@ -9,7 +9,15 @@ Candidate `c20a875` passes exact CI `36481385244` and hosted Preview inspection 
 inspection confirms the verbose audit appendix. A follow-up now replaces it in visual
 exports and copied text with concise source notes and grouped material warnings. The
 CSV retains its full provenance and column layout. 29 focused tests and static checks
-pass; final hosted output inspection and a presentation-readiness review follow.
+pass. Final `17b9921` passes exact CI `36481956742` and is READY on isolated Preview
+`dpl_Gdeb4dTiN2eDLc5jfMZzFsQXoDNA`. Fresh downloaded output inspection still requires
+the user-assisted re-download: automated browser downloads do not save files. The
+presentation assessment and ordered upgrades are recorded in
+`2026-09-28-demo-readiness-and-upgrades.md`; production release remains held.
+The user confirmed manual downloads also reported success without a file. A follow-up
+replaces automatic clicks with a persistent prepared-file dialog and explicit Save file
+gesture, PDF/PNG preview and truthful requested status; blob URLs survive dialog closure
+briefly to avoid a download race. Hosted file-saving verification is still required.
 
 **September 28 — presentation demo and navigation candidate:** The requested parallel
 UI agent's sidebar upgrade is integrated locally. A separate authenticated `/demo`
