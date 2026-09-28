@@ -5,6 +5,7 @@ import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import * as schema from "../src/lib/db/schema";
 import type { Connector, IngestedRecord } from "../src/lib/connectors/types";
+import { errorSummary } from "../src/lib/error-summary";
 
 let stage = "configuration";
 async function main() {
@@ -66,6 +67,28 @@ async function main() {
     const identities =
       await sql`select external_id from external_identities where data_source_id=${source} and employee_id=${employee}`;
     assert.equal(identities.length, 1);
+    if (process.argv.includes("--inspect")) {
+      stage = "read_only_inspection";
+      await sql.begin("read only", async (tx) => {
+        const columns = await tx`select table_name,column_name from information_schema.columns
+          where table_schema='public' and table_name in ('data_sources','sync_runs','sync_errors')
+          order by table_name,ordinal_position`;
+        const runs = await tx`select status,count(*)::int as count from sync_runs
+          where data_source_id=${source} group by status order by status`;
+        const values = await tx`select d.key,count(*)::int as count from metric_values v
+          join metric_definitions d on d.id=v.metric_definition_id
+          where v.employee_id=${employee} and d.key in ('outbound_calls','outbound_calls_completed',
+          'outbound_calls_non_answered','avg_talk_time_outbound','avg_hold_time_outbound')
+          group by d.key order by d.key`;
+        console.log(JSON.stringify({ syntheticInspection: true, columns, runs, values }));
+      });
+      // Exercise the same read adapter as publication, without creating a run.
+      stage = "read_adapter_inspection";
+      const { db } = await import("../src/lib/db");
+      await db.select().from(schema.dataSources);
+      console.log(JSON.stringify({ syntheticReadAdapter: "passed", writes: 0 }));
+      return;
+    }
     const { outboundObservationFixture } =
       await import("../src/__tests__/fixtures/outbound-observation");
     const { buildOutboundRecord } = await import("../src/lib/connectors/zendesk-outbound-record");
@@ -136,9 +159,10 @@ async function main() {
     const record = replacement();
     const legacy: IngestedRecord = {
       ...record,
-      externalRecordType: "agent_stats",
+      externalRecordType: "call_stats",
       externalRecordId: "outbound-rehearsal-legacy-2026-09-20",
       payload: {
+        inboundOffered: null,
         outboundTotal: 99,
         outboundCompleted: 98,
         outboundNonAnswered: 1,
@@ -146,8 +170,17 @@ async function main() {
         avgHoldTimeOutbound: 120,
       },
     };
-    stage = "legacy_baseline";
+    const legacyFacts = normalizer.normalizeRecords(
+      [{ sourceRecordId: "synthetic-preflight", payload: legacy.payload }],
+      employee,
+      team,
+      f.periodStart,
+      f.periodEnd
+    );
+    assert.equal(legacyFacts.length, outboundTalkKeys.length);
+    stage = "legacy_publication";
     assert((await publish([legacy])).success);
+    stage = "legacy_readback";
     assert.equal((await read()).find((r) => r.key === "outbound_calls")!.numeric_value, 99);
     stage = "candidate_publication";
     const result = await publish([record]);
@@ -218,7 +251,22 @@ async function main() {
     delete globalDb._cadenceDb;
   }
 }
-main().catch(() => {
-  console.error(`Synthetic outbound rehearsal failed at ${stage}; no private values logged`);
+main().catch((error: unknown) => {
+  const summary = errorSummary(error);
+  const safeTypeError =
+    summary.name === "TypeError" &&
+    /^(?:[A-Za-z_$][\w$]* is not a function|Cannot read properties of (?:undefined|null) \(reading '[A-Za-z_$][\w$]*'\))$/.test(
+      summary.message
+    )
+      ? summary.message
+      : undefined;
+  console.error(
+    JSON.stringify({
+      syntheticRehearsalFailure: stage,
+      errorClass: summary.name,
+      ...(summary.code ? { databaseCode: summary.code } : {}),
+      ...(safeTypeError ? { failureReason: safeTypeError } : {}),
+    })
+  );
   process.exitCode = 1;
 });

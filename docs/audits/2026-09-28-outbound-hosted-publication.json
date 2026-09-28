@@ -1,0 +1,64 @@
+{
+  "observedAt": "2026-09-28T15:46:52.429Z",
+  "environment": "vercel-preview-build-against-hosted-synthetic-staging",
+  "vendorRequests": 0,
+  "productionAccess": false,
+  "values": 5,
+  "expected": {
+    "outbound_calls": 2,
+    "outbound_calls_completed": 1,
+    "outbound_calls_non_answered": 1,
+    "avg_talk_time_outbound": 0.6666666666666666,
+    "avg_hold_time_outbound": null
+  },
+  "sampleCount": 3,
+  "cohortCount": 3,
+  "unrelatedAndEarlierValuesUnchanged": true,
+  "legacyRevisionPreserved": true,
+  "nullCorrection": true,
+  "identicalReplayWrites": 0,
+  "finalFixtureRestored": true,
+  "hostedUiAndExportVerified": true,
+  "realSourceCollectionAndRouteInvocationVerified": false,
+  "scriptOriginalEnvironmentLabel": "local-candidate-against-hosted-synthetic-staging",
+  "applicationCandidate": "991d32b80dcb43e090ab06ea2375864529cf9432",
+  "deploymentId": "dpl_6CpdEa66vP5ZFVEyvKhtDGBwi4hh",
+  "deploymentReady": true,
+  "credentialExtracted": false,
+  "sharedProjectBuildCommandUnchanged": true,
+  "productionPoliciesChanged": false,
+  "initialFixtureFailure": "Legacy fixture omitted inboundOffered discriminator",
+  "publicationDefect": "Legacy guard expected agent_stats instead of actual call_stats",
+  "productionReadOnlyCensus": {
+    "periodStartAtLeast": "2026-09-06",
+    "outboundFacts": 2018,
+    "recordType": "call_stats"
+  },
+  "ui": {
+    "deploymentId": "dpl_4EePMZJELQypFF5gFY13KXNCV1sN",
+    "sha": "d3f57ec9023521801f750b73204faa0b73bce960",
+    "period": "2026-09-20/2026-09-26",
+    "values": [
+      "2",
+      "1",
+      "1",
+      "0:00:01",
+      "—"
+    ],
+    "tablesWithMatchingColumns": 6,
+    "columnPositions": [
+      273,
+      575,
+      745,
+      915,
+      1066
+    ],
+    "csvBytes": 6860,
+    "pdfBytes": 24801647,
+    "pngBytes": 1351009,
+    "pdfPages": 1,
+    "sourceContractAndSampleContextPresent": true,
+    "missingHoldNotZero": true,
+    "historyAndRevisionsChecked": true
+  }
+}

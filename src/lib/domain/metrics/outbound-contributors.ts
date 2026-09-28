@@ -32,7 +32,7 @@ export function selectOutboundContributors<T extends Contributor>(key: string, f
   if (
     legacy.some(
       (f) =>
-        f.recordType !== "agent_stats" ||
+        f.recordType !== "call_stats" ||
         f.recordContract !== undefined ||
         readMetricSourceContext(f.dimensionsJson) !== null
     )

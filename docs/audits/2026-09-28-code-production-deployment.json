@@ -1,0 +1,80 @@
+{
+  "observedAt": "2026-09-28T14:48:10.116Z",
+  "pullRequest": 32,
+  "mergeCommit": "670fe2275ee257da687e8b8b414bf4b438c291b2",
+  "deploymentId": "dpl_EFzonruTEMUEzGazCkJFbU7YvVo1",
+  "productionAlias": "hungerrush-scorecard.vercel.app",
+  "deploymentState": "READY",
+  "protectedDataUnchanged": true,
+  "protectedTables": [
+    {
+      "table": "employees",
+      "rows": 97
+    },
+    {
+      "table": "manager_assignments",
+      "rows": 23
+    },
+    {
+      "table": "metric_assignments",
+      "rows": 40
+    },
+    {
+      "table": "metric_targets",
+      "rows": 29
+    },
+    {
+      "table": "metric_values",
+      "rows": 13898
+    },
+    {
+      "table": "normalized_facts",
+      "rows": 13929
+    },
+    {
+      "table": "team_memberships",
+      "rows": 101
+    }
+  ],
+  "productionEnvironmentMetadataUnchanged": true,
+  "newPoliciesConfigured": false,
+  "unauthenticatedRoutes": [
+    {
+      "path": "/api/cron/talk-collect",
+      "status": 401
+    },
+    {
+      "path": "/api/cron/outbound?week=0",
+      "status": 401
+    }
+  ],
+  "browser": {
+    "session": "Existing administrator View-as; not fresh manager sign-in",
+    "menufyEmployeeLinks": 23,
+    "posEmployeeLinks": 39,
+    "currentAndPreviousScorecard": "passed",
+    "storedHistory": "passed",
+    "durationLegend": "passed",
+    "humanAttributionNotice": "passed",
+    "administratorSessionRestored": true
+  },
+  "productionCsv": {
+    "actualDownloadedBytes": 6892,
+    "utf8Bom": true,
+    "withheldAttributionExplanations": 2,
+    "hasLoadedPeriod": true,
+    "hasTimeUnitLabel": true
+  },
+  "limits": [
+    "New metric publishers remain disabled pending their separate activation gates.",
+    "No extra production sync was triggered; genuine post-deployment scheduler evidence remains unobserved.",
+    "Fresh sign-in as the receiving manager remains unverified.",
+    "PDF/PNG are covered by prior synthetic Preview checks, not fresh production downloads."
+  ],
+  "masterCi": {
+    "run": 36438460311,
+    "status": "success",
+    "tests": 782,
+    "files": 103
+  }
+}
