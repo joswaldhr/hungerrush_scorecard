@@ -2,6 +2,29 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 28, 13:30 UTC — current:** read-only production inspection confirms the
+READY production alias still targets `8a0c4bd` / `dpl_69LgEzQCG6k9LCfdBWsnhKbb4AuQ`.
+Four Monday regular weekly runs completed with zero metric errors and the expected
+September 27–October 3, September 20–26, September 13–19 and September 6–12 intervals.
+The longest was 259.367 seconds; candidate worst-case runtime remains unqualified.
+The 08:34 UTC current-week qualified CSAT run failed on **HTTP 429**, with zero records
+published. The later previous-week qualified run completed. No running rows remained
+at 13:26 UTC. This is database evidence, not yet scheduler-user-agent/HTTP corroboration.
+No manual retry, source request, production write, policy or Zendesk change was made.
+Aggregate evidence: `2026-09-28-production-sync-diagnostics.json`.
+
+Local Talk pagination checks reproduced rejection of a valid new/corrected terminal
+boundary and acceptance of conflicting older versions after a newer version. The reader
+now permits one budgeted terminal confirmation and checks every observed version;
+changing terminal pages, cycles and partial populations still fail closed. All 41 focused
+checks pass; a test fixture excess-property type error was fixed and typecheck, targeted
+lint and formatting pass. Full candidate CI follows. The retained 27-page, 25,694-call
+census took 164.224 seconds, almost entirely its 163.8-second request pacing floor;
+it is not an end-to-end candidate or oldest-week runtime test. Hosted outbound publication
+is still blocked on private staging credential recovery (`STAGING_DATABASE_URL` absent).
+Next: corroborate and diagnose the live CSAT rate limit, complete candidate checks and
+hosted/recovery/runtime gates. The new Talk/outbound policies remain inactive.
+
 **September 26, 15:35 UTC — current:** candidate `9badca1` passes both full CI runs
 36252223074/36252225892: **766 tests / 103 files**, migrations, typecheck, lint and
 production build. Preview `dpl_6LWxZyB2g7qdvrutWsA8awFCjhh4` is READY. Actual corrected

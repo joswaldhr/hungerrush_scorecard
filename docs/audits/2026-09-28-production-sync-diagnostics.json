@@ -1,0 +1,152 @@
+{
+  "observedAt": "2026-09-28T13:26:29.616Z",
+  "readOnly": true,
+  "productionDeployment": "dpl_69LgEzQCG6k9LCfdBWsnhKbb4AuQ",
+  "productionSha": "8a0c4bd8b26ac660b0cfd1a7e5dddd41a687debc",
+  "scope": "Read-only persisted run evidence; scheduler identity and HTTP outcomes not yet corroborated",
+  "runs": [
+    {
+      "status": "completed",
+      "started_at": "2026-09-28T06:09:59.317Z",
+      "completed_at": "2026-09-28T06:11:34.721Z",
+      "elapsed_seconds": "95.403994",
+      "records_ingested": 82,
+      "records_normalized": 633,
+      "error_count": 0,
+      "fetch_ms": 85751,
+      "publish_ms": 9044,
+      "week_offset": 0,
+      "sourcePeriods": [
+        {
+          "period_start": "2026-09-27",
+          "period_end": "2026-10-03",
+          "records": 82
+        }
+      ],
+      "errorTypes": []
+    },
+    {
+      "status": "completed",
+      "started_at": "2026-09-28T07:11:51.158Z",
+      "completed_at": "2026-09-28T07:16:10.525Z",
+      "elapsed_seconds": "259.366534",
+      "records_ingested": 48,
+      "records_normalized": 334,
+      "error_count": 0,
+      "fetch_ms": 251975,
+      "publish_ms": 6792,
+      "week_offset": 1,
+      "sourcePeriods": [
+        {
+          "period_start": "2026-09-20",
+          "period_end": "2026-09-26",
+          "records": 48
+        }
+      ],
+      "errorTypes": []
+    },
+    {
+      "status": "completed",
+      "started_at": "2026-09-28T07:19:28.687Z",
+      "completed_at": "2026-09-28T07:22:34.585Z",
+      "elapsed_seconds": "185.897918",
+      "records_ingested": 5,
+      "records_normalized": 30,
+      "error_count": 0,
+      "fetch_ms": 179227,
+      "publish_ms": 6069,
+      "week_offset": 2,
+      "sourcePeriods": [
+        {
+          "period_start": "2026-09-13",
+          "period_end": "2026-09-19",
+          "records": 5
+        }
+      ],
+      "errorTypes": []
+    },
+    {
+      "status": "completed",
+      "started_at": "2026-09-28T07:28:00.256Z",
+      "completed_at": "2026-09-28T07:31:26.807Z",
+      "elapsed_seconds": "206.550254",
+      "records_ingested": 1,
+      "records_normalized": 6,
+      "error_count": 0,
+      "fetch_ms": 198312,
+      "publish_ms": 7503,
+      "week_offset": 3,
+      "sourcePeriods": [
+        {
+          "period_start": "2026-09-06",
+          "period_end": "2026-09-12",
+          "records": 1
+        }
+      ],
+      "errorTypes": []
+    },
+    {
+      "status": "failed",
+      "started_at": "2026-09-28T08:34:31.971Z",
+      "completed_at": "2026-09-28T08:34:56.058Z",
+      "elapsed_seconds": "24.086083",
+      "records_ingested": 0,
+      "records_normalized": 0,
+      "error_count": 1,
+      "fetch_ms": 23359,
+      "publish_ms": 130,
+      "week_offset": 0,
+      "sourcePeriods": [],
+      "errorTypes": [
+        {
+          "error_type": "fetch_fatal",
+          "errors": 1
+        }
+      ]
+    },
+    {
+      "status": "completed",
+      "started_at": "2026-09-28T10:19:51.924Z",
+      "completed_at": "2026-09-28T10:22:57.411Z",
+      "elapsed_seconds": "185.486878",
+      "records_ingested": 62,
+      "records_normalized": 85,
+      "error_count": 0,
+      "fetch_ms": 177858,
+      "publish_ms": 6978,
+      "week_offset": 1,
+      "sourcePeriods": [
+        {
+          "period_start": "2026-09-20",
+          "period_end": "2026-09-26",
+          "records": 62
+        }
+      ],
+      "errorTypes": []
+    }
+  ],
+  "running": [
+    {
+      "count": 0,
+      "oldest": null
+    }
+  ],
+  "failureClassification": {
+    "currentWeekQualifiedCsat": "HTTP 429 rate limit",
+    "partialPublication": false,
+    "retryTriggered": false
+  },
+  "runtimeQualification": {
+    "retainedTalkCensus": {
+      "observedAt": "2026-09-25T22:13:55.896Z",
+      "modifiedSince": "2026-09-05",
+      "pages": 27,
+      "calls": 25694,
+      "elapsedMs": 164224,
+      "minimumPacingMs": 163800
+    },
+    "legacyCandidateEndToEnd": "unverified",
+    "longestObservedProductionRunSeconds": 259.366534,
+    "note": "Retained census and current production use different source cohorts and code paths; these are not a candidate runtime benchmark."
+  }
+}
