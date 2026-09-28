@@ -97,6 +97,25 @@ afterEach(async () => {
 });
 
 describe("scorecard period snapshot", () => {
+  it("switches presentation readability without changing the loaded week, rows or export snapshot", async () => {
+    const beforeUrl = window.location.href;
+    const beforeRows = container.querySelector("[data-metrics]")?.textContent;
+    const beforeExport = container.querySelector("[data-export]")?.textContent;
+    const toggle = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Presentation view"
+    )!;
+    await act(async () => toggle.click());
+    expect(toggle.getAttribute("aria-pressed")).toBe("true");
+    expect(container.querySelector('[data-presentation-view="true"]')).not.toBeNull();
+    expect(container.querySelector("[data-metrics]")?.textContent).toBe(beforeRows);
+    expect(container.querySelector("[data-export]")?.textContent).toBe(beforeExport);
+    expect(container.textContent).toContain("Reported values do not imply certified accuracy");
+    expect(window.location.href).toBe(beforeUrl);
+    expect(fetchMetrics).not.toHaveBeenCalled();
+    await act(async () => toggle.click());
+    expect(toggle.getAttribute("aria-pressed")).toBe("false");
+  });
+
   it("switches review/progress shortcuts and preserves the selected week in history links", async () => {
     fetchMetrics.mockResolvedValue(rows(0));
     await click("Last week · Review");

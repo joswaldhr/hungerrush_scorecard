@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
+import { ScorecardHighlights } from "@/components/scorecard-highlights";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { StatusBadge, getStatusLabel } from "@/components/status-badge";
 import { MetricCategoryTable } from "@/components/metric-category-table";
@@ -15,6 +16,7 @@ import {
 } from "@/lib/domain/metrics/scorecard-presentation";
 import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
 import {
+  cn,
   initials,
   weekBoundsForDate,
   resolveReportingWeek,
@@ -51,6 +53,8 @@ export function ScorecardBody({
   loadWeekAction = getWeekMetrics,
   basePath = "/one-on-ones",
 }: ScorecardBodyProps) {
+  const [presentationMode, setPresentationMode] = useState(false);
+  const categoryPrefix = useId();
   const [periodStart, setPeriodStart] = useState(initialPeriodStart);
   const [snapshot, setSnapshot] = useState({ periodStart: initialPeriodStart, rows: initialRows });
   const [loading, setLoading] = useState(false);
@@ -219,12 +223,24 @@ export function ScorecardBody({
             </div>
           </div>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border/80 bg-muted/25 px-5 py-4 sm:px-6 print:hidden">
-          <div>
-            <p className="text-sm font-semibold text-foreground">Choose a reporting week</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Last week for your 1:1. This week for progress.
-            </p>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/80 bg-muted/25 px-5 py-3 sm:px-6 print:hidden">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              aria-pressed={presentationMode}
+              onClick={() => setPresentationMode((value) => !value)}
+              className="min-h-11 rounded-lg border border-border bg-card px-3 text-sm font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              Presentation view
+            </button>
+            {ready && (
+              <Link
+                href={`${basePath}/${employeeId}/history?${new URLSearchParams({ returnWeek: presentation.periodStart })}`}
+                className="text-sm font-medium text-foreground underline underline-offset-4"
+              >
+                {basePath === "/demo/one-on-ones" ? "Reporting weeks" : "Stored reporting periods"}
+              </Link>
+            )}
           </div>
           <div className="flex w-full min-w-0 flex-col items-start gap-2 sm:w-auto sm:flex-row sm:items-center">
             {ready && (
@@ -266,39 +282,32 @@ export function ScorecardBody({
           Loading {formatWeekRangeLong(periodStart, periodEnd)}…
         </div>
       ) : (
-        <div id={SCORECARD_CAPTURE_ID} className="space-y-5">
+        <div
+          id={SCORECARD_CAPTURE_ID}
+          data-presentation-view={presentationMode}
+          className={cn(
+            "space-y-4",
+            presentationMode && "[&_.text-xs]:text-sm [&_.text-muted-foreground]:text-foreground/80"
+          )}
+        >
           <p className="sr-only" role="status">
             Loaded {formatWeekRangeLong(periodStart, periodEnd)}
           </p>
           <section
             aria-label="Review period and data availability"
-            className="rounded-xl border border-primary/20 bg-primary/[0.045] px-5 py-5 sm:px-6"
+            className="rounded-xl border border-primary/20 bg-primary/[0.045] px-4 py-3"
           >
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-                  {inProgress
-                    ? "This week · In progress"
-                    : weeksAgo === 1
-                      ? "1:1 review · Last week"
-                      : "1:1 review · Historical review"}
-                </p>
-                <h2 className="mt-1 text-xl font-bold tracking-tight sm:text-2xl">
-                  {formatWeekRangeLong(periodStart, periodEnd)}
-                </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Compared with {presentation.previousPeriodLabel}
-                </p>
-              </div>
-              <Link
-                href={`${basePath}/${employeeId}/history?${new URLSearchParams({ returnWeek: presentation.periodStart })}`}
-                className="text-xs font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground print:hidden"
-                data-html2canvas-ignore="true"
-              >
-                {basePath === "/demo/one-on-ones" ? "Reporting weeks" : "Stored reporting periods"}
-              </Link>
-            </div>
-            <p className="mt-4 text-sm font-medium">{presentation.availability}</p>
+            <p className="text-sm font-medium text-foreground">
+              {inProgress
+                ? "This week · In progress"
+                : weeksAgo === 1
+                  ? "1:1 review · Last week"
+                  : "1:1 review · Historical review"}{" "}
+              <span className="font-normal">
+                · Compared with {presentation.previousPeriodLabel}
+              </span>
+            </p>
+            <p className="mt-1 text-sm font-medium">{presentation.availability}</p>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
               Reported values do not imply certified accuracy. Source observations and definitions
               are in Data details.
@@ -312,6 +321,34 @@ export function ScorecardBody({
               </p>
             )}
           </section>
+          <ScorecardHighlights
+            rows={displayRows}
+            inProgress={inProgress}
+            previousLabel={formatWeekRangeShort(previousPeriodStart, previousPeriodEnd)}
+          />
+          {presentationMode && categories.size > 1 && (
+            <nav
+              aria-label="Metric categories"
+              data-html2canvas-ignore="true"
+              className="flex flex-wrap gap-2 print:hidden"
+            >
+              {Array.from(categories.keys()).map((category, index) => (
+                <a
+                  key={category ?? "uncategorized"}
+                  href={`#${categoryPrefix}-category-${index}`}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    const section = document.getElementById(`${categoryPrefix}-category-${index}`);
+                    section?.scrollIntoView({ block: "start" });
+                    section?.focus({ preventScroll: true });
+                  }}
+                  className="min-h-11 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  {formatCategoryLabel(category)}
+                </a>
+              ))}
+            </nav>
+          )}
           {displayRows.some((row) => row.valueType === "duration") && (
             <p className="rounded-lg border border-border/80 bg-card px-4 py-3 text-xs leading-relaxed text-muted-foreground">
               Times use {DURATION_FORMAT_LABEL}. {DURATION_CLOCK_NOTE}
@@ -330,16 +367,24 @@ export function ScorecardBody({
             </p>
           )}
           {displayRows.length === 0 && <p>No metrics assigned for this scorecard.</p>}
-          {Array.from(categories.entries()).map(([category, categoryRows]) => (
-            <MetricCategoryTable
+          {Array.from(categories.entries()).map(([category, categoryRows], index) => (
+            <section
               key={category ?? "uncategorized"}
-              category={category}
-              title={formatCategoryLabel(category)}
-              rows={categoryRows}
-              currentLabel={formatWeekRangeShort(periodStart, periodEnd)}
-              previousLabel={formatWeekRangeShort(previousPeriodStart, previousPeriodEnd)}
-              currentHeading={inProgress ? "This week so far" : "Review week"}
-            />
+              id={`${categoryPrefix}-category-${index}`}
+              tabIndex={-1}
+              className="scroll-mt-4 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <MetricCategoryTable
+                presentationMode={presentationMode}
+                inProgress={inProgress}
+                category={category}
+                title={formatCategoryLabel(category)}
+                rows={categoryRows}
+                currentLabel={formatWeekRangeShort(periodStart, periodEnd)}
+                previousLabel={formatWeekRangeShort(previousPeriodStart, previousPeriodEnd)}
+                currentHeading={inProgress ? "This week so far" : "Review week"}
+              />
+            </section>
           ))}
         </div>
       )}
