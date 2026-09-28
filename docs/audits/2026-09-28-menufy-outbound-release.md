@@ -69,5 +69,18 @@ stay private. Full local checks pass: typecheck, lint and 796 tests / 105 files.
 fresh backup, deployment, private policy configuration and hosted controlled refresh
 remain required. Genuine scheduled execution cannot be claimed before it occurs.
 
+Refresh application candidate: `7a9984f`, PR34. Its fresh 16:28 UTC encrypted backup
+restored all 33 tables / 49,033 rows with matching digests through migration 0015;
+see `2026-09-28-outbound-refresh-backup.json`. The restored cluster stopped afterward;
+private recovery files are retained. No schema migration is required for this release.
+The exact previous application/alias is `e95c371` / `dpl_GXbbnN2xNxFKeqq7uLTu7MCbHest`.
+Private activation adds only the production collection and outbound policy keys, bound
+to the existing Zendesk source and Menufy team, bootstrap September 26 UTC, prospective
+cutover September 27. The previous values of both keys are absent. Every other production
+environment entry must retain its identity/update metadata, and Preview stays disabled.
+If refresh fails, disable those two policies and revert the scheduled code to the previous
+application; retain qualified values with their actual observation time. A source-gap failure
+must not be addressed by weakening the joins or replacing unknowns with zero.
+
 Human ticket metrics, shadow ingestion,
 action-v2 publication and historical repair remain disabled. Zendesk remains GET-only.
