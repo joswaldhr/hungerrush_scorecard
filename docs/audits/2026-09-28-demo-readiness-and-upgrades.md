@@ -26,7 +26,7 @@ caveats; detailed provenance remains in CSV and optional app disclosures.
 | Review period | Last week Sep 20–26 compares Sep 13–19; current week remains neutral progress | No certification claim for either period |
 | Navigation | Fixed control positions across collapse/expand; history offers six weeks and preserves returnWeek | History is generated scenarios, not retained vendor revisions |
 | Presentation copy | No repeated workspace/scorecard banners, manager Demo suffix or sidebar demo subtitle | Sample provenance intentionally stays in detailed source metadata |
-| Exports | User-provided earlier PDF/PNG inspected; audit appendix confirmed and code corrected; regression tests preserve material caveats | Fresh downloaded output inspection pending; automated browser download does not save a file |
+| Exports | User-provided earlier PDF/PNG inspected; audit appendix confirmed and code corrected; regression tests preserve material caveats. The user also reproduced false download success, prompting an explicit persistent Save file dialog | Fresh downloaded output inspection and reliable browser save still require verification; a success toast was not proof |
 | Safety | Exact Microsoft email allowlist, separate Preview, production denial and pure fixtures remain | Production release remains separately held |
 
 ## Prioritized upgrades

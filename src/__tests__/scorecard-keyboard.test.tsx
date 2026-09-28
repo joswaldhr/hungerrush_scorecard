@@ -3,11 +3,14 @@ import { createRoot, type Root } from "react-dom/client";
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
 import { WeekNavigator } from "@/components/week-navigator";
 import { ScorecardExport } from "@/components/scorecard-export";
+const { downloadFile } = vi.hoisted(() => ({ downloadFile: vi.fn() }));
+vi.mock("@/lib/export-download", () => ({ requestExportDownload: downloadFile }));
 
 let root: Root;
 let container: HTMLDivElement;
 beforeEach(() => {
   Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
+  downloadFile.mockReset();
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
@@ -142,15 +145,19 @@ it("keeps a prepared download available for an explicit save without claiming it
     await act(async () => csv.click());
     expect(create).toHaveBeenCalledTimes(1);
     const dialog = document.querySelector('[role="dialog"]')!;
-    const save = dialog.querySelector<HTMLAnchorElement>("a[download]")!;
-    expect(save.download).toBe("synthetic-metrics-2026-09-13_2026-09-19.csv");
-    expect(save.href).toBe("blob:https://example.test/prepared-export");
+    const save = [...dialog.querySelectorAll("button")].find(
+      (el) => el.textContent === "Save file"
+    )!;
+    expect(dialog.textContent).toContain("synthetic-metrics-2026-09-13_2026-09-19.csv");
     expect(dialog.textContent).toContain("Your export is ready");
     expect(dialog.textContent).not.toContain("downloaded");
     expect(revoke).not.toHaveBeenCalled();
-    // Prevent jsdom navigation; exercise the user's explicit save gesture.
-    save.addEventListener("click", (event) => event.preventDefault());
+    expect(downloadFile).not.toHaveBeenCalled();
     await act(async () => save.click());
+    expect(downloadFile).toHaveBeenCalledWith(
+      expect.any(Blob),
+      "synthetic-metrics-2026-09-13_2026-09-19.csv"
+    );
     expect(dialog.textContent).toContain("Download requested");
     expect(revoke).not.toHaveBeenCalled();
     vi.useFakeTimers();
@@ -160,7 +167,7 @@ it("keeps a prepared download available for an explicit save without claiming it
     expect(document.querySelector('[role="dialog"]')).toBeNull();
     expect(revoke).not.toHaveBeenCalled();
     await act(async () => vi.advanceTimersByTime(60_000));
-    expect(revoke).toHaveBeenCalledWith(save.href);
+    expect(revoke).toHaveBeenCalledWith("blob:https://example.test/prepared-export");
   } finally {
     vi.useRealTimers();
     if (createDescriptor) Object.defineProperty(URL, "createObjectURL", createDescriptor);

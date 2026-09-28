@@ -28,6 +28,7 @@ import { getStatusLabel } from "./status-badge";
 export type { ScorecardMetric } from "@/lib/domain/metrics/export-snapshot";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { requestExportDownload } from "@/lib/export-download";
 
 export const SCORECARD_CAPTURE_ID = "scorecard-capture";
 
@@ -56,9 +57,12 @@ export function ScorecardExport({
   const [open, setOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const [prepared, setPrepared] = useState<{ url: string; filename: string; size: number } | null>(
-    null
-  );
+  const [prepared, setPrepared] = useState<{
+    url: string;
+    filename: string;
+    size: number;
+    blob: Blob;
+  } | null>(null);
   const [downloadRequested, setDownloadRequested] = useState(false);
 
   useEffect(() => {
@@ -72,7 +76,7 @@ export function ScorecardExport({
 
   function prepareFile(blob: Blob, filename: string) {
     setDownloadRequested(false);
-    setPrepared({ url: URL.createObjectURL(blob), filename, size: blob.size });
+    setPrepared({ url: URL.createObjectURL(blob), filename, size: blob.size, blob });
   }
 
   const rootRef = useRef<HTMLDivElement>(null);
@@ -357,14 +361,22 @@ export function ScorecardExport({
                 {(prepared.size / 1024 / 1024).toFixed(2)} MB
               </p>
               <div className="mt-5 flex flex-wrap items-center gap-3">
-                <a
-                  href={prepared.url}
-                  download={prepared.filename}
-                  onClick={() => setDownloadRequested(true)}
+                <button
+                  type="button"
+                  onClick={() => {
+                    try {
+                      requestExportDownload(prepared.blob, prepared.filename);
+                      setDownloadRequested(true);
+                    } catch (error) {
+                      toast.error(
+                        error instanceof Error ? error.message : "Unable to start download."
+                      );
+                    }
+                  }}
                   className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground focus-visible:outline-2 focus-visible:outline-ring"
                 >
                   Save file
-                </a>
+                </button>
                 {!prepared.filename.endsWith(".csv") && (
                   <a
                     href={prepared.url}

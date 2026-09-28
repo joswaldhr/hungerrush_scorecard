@@ -38,6 +38,18 @@ blob-link clicks and delays URL revocation until after the dialog closes. PNG ge
 now awaits the blob before ending its loading state. Fifteen focused export/keyboard
 tests pass, including persistence, close cleanup and no false saved-file claim.
 
+`dec47a8` passes exact CI `36482927139` and isolated Preview
+`dpl_CyYEtauKwNm3MhM3GJfiYGyjAme5`. Hosted preparation now exposes a persistent
+0.63 MB PDF, but this embedded browser still does not save a direct blob link.
+The next fix relays the already-prepared file through a native same-origin POST and
+HTTP attachment response. It requires a session and exact request origin, bounds the
+actual body and file (3.5 MB file limit), validates filename/type/signature, and sends
+private/no-store/nosniff headers. It does not read employee data, write a database,
+persist files or log payloads. Full CSV source fields stay intact. Thirteen route tests
+cover exact PDF/PNG/CSV bytes, auth/origin, malformed files and actual-stream limits;
+28 combined export/keyboard/route tests and static checks pass. Hosted verification
+remains required before asserting successful saving.
+
 ## Scope
 
 The September 28 request expands Adam's demo to 15 believable fictional employees:

@@ -99,6 +99,9 @@ preserve that selection without changing the stored interval browser's behavior.
 PDF, PNG and copied text use concise timezone/observation notes and grouped material
 caveats. Full per-metric source records belong in Data details and the detailed CSV,
 not a repeated audit appendix beneath the visual scorecard.
+File exports prepare a persistent Save file dialog, with PDF/PNG previews. The app
+reports file readiness or a download request, never a confirmed local save it cannot
+observe. Prepared URLs are retained briefly after dismissal for browser handoff.
 
 **Architecture note on periods:** metric values are stored one row per calendar week
 (Sunday--Saturday). A "Last N Weeks" selector that requested a multi-week span here would ask for
