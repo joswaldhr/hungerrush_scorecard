@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ScorecardBody } from "@/components/scorecard-body";
 import { requireDemoAccess } from "@/lib/demo/authorization";
-import { demoEmployees, demoTeams, demoRows, DEMO_LABEL } from "@/lib/demo/fixtures";
+import { demoEmployees, demoTeams, demoRows } from "@/lib/demo/fixtures";
 import { resolveReportingWeek } from "@/lib/utils";
 import { getDemoWeekMetrics } from "./actions";
 
@@ -32,12 +32,11 @@ export default async function DemoScorecardPage({
         employeeName={employee.displayName}
         employeeJobTitle={employee.jobTitle}
         teamName={demoTeams.find((team) => team.id === employee.primaryTeamId)!.name}
-        managerName="Adam Seow · Demo"
+        managerName="Adam Seow"
         initialPeriodStart={periodStart}
         initialRows={demoRows(id, periodStart)}
         loadWeekAction={getDemoWeekMetrics}
         basePath="/demo/one-on-ones"
-        demoLabel={DEMO_LABEL}
       />
     </>
   );

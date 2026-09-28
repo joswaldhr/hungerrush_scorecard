@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { demoEmployees, demoRows, DEMO_LABEL } from "./fixtures";
+import { demoEmployees, demoRows } from "./fixtures";
 import { canAccessDemo } from "./access";
 import { loginDestination } from "./login-destination";
 import { scorecardPresentation } from "@/lib/domain/metrics/scorecard-presentation";
@@ -29,7 +29,7 @@ describe("isolated presentation demo", () => {
           expect(row.target).not.toBeNull();
           expect(row.qualityStatus).toBe("complete");
           expect(row.sourceContract).toBe("cadence-fictional-demo-v1");
-          expect(row.sourceDescription).toContain("DEMO");
+          expect(row.sourceDescription).toContain("Sample data:");
           expect(row.dataFreshnessAt!.getTime()).toBeLessThanOrEqual(now.getTime());
           if (row.valueType === "percentage") expect(row.currentValue).toBeLessThanOrEqual(100);
           if (row.valueType === "count") expect(Number.isInteger(row.currentValue)).toBe(true);
@@ -55,7 +55,6 @@ describe("isolated presentation demo", () => {
     expect(first.some((row) => row.currentValue === 0)).toBe(true);
     expect(first.some((row) => row.currentValue !== row.previousValue)).toBe(true);
     expect(first).not.toEqual(demoRows("demo-02", "2026-09-20", now));
-    expect(DEMO_LABEL).toContain("Not live reporting");
   });
   it("rejects live employee IDs and malformed or future weeks", () => {
     expect(() => demoRows("40000000-0000-4000-8000-00000000000d", "2026-09-20", now)).toThrow();

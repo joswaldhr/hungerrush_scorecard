@@ -5,7 +5,6 @@ import { evaluateStatus } from "@/lib/domain/metrics/target-resolution";
 import { shiftWeekStart, weekBoundsForDate } from "@/lib/utils";
 
 // Hand-authored fictional identities. No employee or vendor records are imported.
-export const DEMO_LABEL = "DEMO · Fictional people and simulated metrics · Not live reporting";
 export const demoTeams = [
   { id: "demo-pos", name: "HungerRush POS Support" },
   { id: "demo-menufy", name: "Menufy Support" },
@@ -372,7 +371,7 @@ export function demoRows(
         qualityStatus: "complete",
         dataFreshnessAt: observation,
         calculationVersion: 1,
-        sourceDescription: `DEMO: ${description}${sample} Values, observation times and fixed illustrative targets are synthetic; not evidence of production coverage or accuracy.`,
+        sourceDescription: `${description}${sample} Sample data: values, observation times and fixed illustrative targets are synthetic; not evidence of production coverage or accuracy.`,
         sourceContract: "cadence-fictional-demo-v1",
         reportingTimeZone: "UTC",
         missingReason: null,

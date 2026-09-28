@@ -1,5 +1,11 @@
 # Audit implementation — current checkpoint
 
+**September 28 — presentation copy cleanup:** The user requested removing repeated
+demo notices. Workspace/scorecard banners, manager suffix and account subtitle are
+removed; Reporting weeks and export dates use ordinary labels. Sample provenance is
+retained in metric details. No access, fixture values, production or vendor changes.
+Candidate verification and isolated Preview deployment are in progress.
+
 **September 28 — presentation demo and navigation candidate:** The requested parallel
 UI agent's sidebar upgrade is integrated locally. A separate authenticated `/demo`
 workspace contains 15 invented full-name employees (8 POS, 7 Menufy) and 22 complete

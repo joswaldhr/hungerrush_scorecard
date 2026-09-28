@@ -131,7 +131,7 @@ export function SidebarClient({
   const employeeContext = /^\/(?:demo\/)?one-on-ones\/[^/]+(?:\/history)?\/?$/.test(pathname)
     ? pathname.endsWith("/history")
       ? pathname.startsWith("/demo/")
-        ? "Demo reporting weeks"
+        ? "Reporting weeks"
         : "Stored reporting periods"
       : "Employee scorecard"
     : null;

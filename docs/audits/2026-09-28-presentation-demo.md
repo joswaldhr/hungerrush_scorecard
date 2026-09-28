@@ -1,5 +1,16 @@
 # Presentation demo and navigation upgrade
 
+## Presentation copy cleanup — September 28 follow-up
+
+At the user's request, the repeated workspace banner, scorecard DEMO banner,
+manager-name suffix and account subtitle are removed. History is labeled Reporting
+weeks, and the export period uses the ordinary selected dates without a demo prefix.
+Sample-data provenance remains in the optional metric details/source metadata;
+this is still an isolated fictional workspace, not production metric certification.
+The auth allowlist, production denial, fixture values and source policies are unchanged.
+Earlier references below to persistent banners describe the superseded presentation.
+Candidate validation and hosted deployment evidence will be recorded after verification.
+
 ## Scope
 
 The September 28 request expands Adam's demo to 15 believable fictional employees:

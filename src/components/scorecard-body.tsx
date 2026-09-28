@@ -36,7 +36,6 @@ interface ScorecardBodyProps {
   initialRows: EmployeeMetricRow[];
   loadWeekAction?: (employeeId: string, periodStart: string) => Promise<EmployeeMetricRow[]>;
   basePath?: "/one-on-ones" | "/demo/one-on-ones";
-  demoLabel?: string;
 }
 
 const CACHE_TTL_MS = 60_000;
@@ -51,7 +50,6 @@ export function ScorecardBody({
   initialRows,
   loadWeekAction = getWeekMetrics,
   basePath = "/one-on-ones",
-  demoLabel,
 }: ScorecardBodyProps) {
   const [periodStart, setPeriodStart] = useState(initialPeriodStart);
   const [snapshot, setSnapshot] = useState({ periodStart: initialPeriodStart, rows: initialRows });
@@ -236,7 +234,7 @@ export function ScorecardBody({
                 periodStart={presentation.periodStart}
                 periodEnd={presentation.periodEnd}
                 mode={presentation.mode}
-                periodLabel={[demoLabel, presentation.periodLabel].filter(Boolean).join(" · ")}
+                periodLabel={presentation.periodLabel}
                 previousPeriodLabel={presentation.previousPeriodLabel}
                 metrics={scorecardMetrics}
               />
@@ -269,11 +267,6 @@ export function ScorecardBody({
         </div>
       ) : (
         <div id={SCORECARD_CAPTURE_ID} className="space-y-5">
-          {demoLabel && (
-            <p className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm font-semibold">
-              {demoLabel}
-            </p>
-          )}
           <p className="sr-only" role="status">
             Loaded {formatWeekRangeLong(periodStart, periodEnd)}
           </p>
@@ -302,7 +295,7 @@ export function ScorecardBody({
                 className="text-xs font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground print:hidden"
                 data-html2canvas-ignore="true"
               >
-                {demoLabel ? "Demo reporting weeks" : "Stored reporting periods"}
+                {basePath === "/demo/one-on-ones" ? "Reporting weeks" : "Stored reporting periods"}
               </Link>
             </div>
             <p className="mt-4 text-sm font-medium">{presentation.availability}</p>

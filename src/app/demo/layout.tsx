@@ -20,7 +20,7 @@ export default async function DemoLayout({ children }: { children: React.ReactNo
         user={{
           name: user.name ?? "Presenter",
           email: user.email ?? "",
-          jobTitle: "Demo workspace",
+          jobTitle: "",
         }}
         primaryNav={[{ label: "1:1s", href: "/demo/one-on-ones", iconName: "Users" }]}
         secondaryNav={[]}
@@ -49,19 +49,7 @@ export default async function DemoLayout({ children }: { children: React.ReactNo
         tabIndex={-1}
         className="min-w-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8"
       >
-        <div className="mx-auto max-w-7xl space-y-6">
-          <aside
-            aria-label="Demo workspace"
-            className="rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm"
-          >
-            <strong>Presentation demo</strong>
-            <span className="text-muted-foreground">
-              {" "}
-              · 15 fictional employees · Simulated values and targets · No live data
-            </span>
-          </aside>
-          {children}
-        </div>
+        <div className="mx-auto max-w-7xl space-y-6">{children}</div>
       </main>
     </div>
   );

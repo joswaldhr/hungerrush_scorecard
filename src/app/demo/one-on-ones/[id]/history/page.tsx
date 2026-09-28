@@ -32,10 +32,9 @@ export default async function DemoHistoryPage({
         ← Back to {employee.displayName}
       </Link>
       <header>
-        <h1 className="text-2xl font-bold">Demo reporting weeks</h1>
+        <h1 className="text-2xl font-bold">Reporting weeks</h1>
         <p className="mt-2 text-muted-foreground">
-          Six recent fictional weeks for {employee.displayName}. These are repeatable demonstration
-          scenarios, not stored source records or revisions.
+          Review the past six weeks for {employee.displayName}.
         </p>
       </header>
       <ul className="divide-y divide-border rounded-xl border bg-card">
