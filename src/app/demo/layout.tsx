@@ -35,7 +35,14 @@ export default async function DemoLayout({ children }: { children: React.ReactNo
             className="h-6 w-auto max-w-40"
           />
         }
-        brandIcon={<span className="font-bold">C</span>}
+        brandIcon={
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src="/hungerrush-mark-reversed.png"
+            alt="HungerRush"
+            className="h-7 w-7 shrink-0 object-contain"
+          />
+        }
       />
       <main
         id="main-content"

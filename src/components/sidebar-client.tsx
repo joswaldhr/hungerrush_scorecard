@@ -205,12 +205,24 @@ export function SidebarClient({
             href={brandHref}
             aria-label="Cadence — 1:1s"
             onClick={() => setMobileOpen(false)}
-            className={cn("flex h-16 items-center rounded-md", focusStyle)}
+            className={cn("relative flex h-16 items-center overflow-hidden rounded-md", focusStyle)}
           >
-            <span className="flex w-16 shrink-0 items-center justify-center" aria-hidden="true">
+            <span
+              className={cn(
+                "flex w-16 shrink-0 items-center justify-center motion-safe:transition-opacity motion-safe:duration-150",
+                compact ? "opacity-100" : "opacity-0"
+              )}
+              aria-hidden="true"
+            >
               {brandIcon}
             </span>
-            <span aria-hidden={compact} className={cn("pr-4", labelStyle(compact))}>
+            <span
+              aria-hidden={compact}
+              className={cn(
+                "absolute inset-y-0 left-[18px] flex items-center pr-4",
+                labelStyle(compact)
+              )}
+            >
               {brandLogo}
             </span>
           </Link>
