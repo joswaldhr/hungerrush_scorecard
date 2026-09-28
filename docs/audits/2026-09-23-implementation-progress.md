@@ -2,7 +2,41 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-**September 28, 13:35 UTC — current:** Talk candidate `ed5b6f0` passes both full CI
+**September 28, 13:57 UTC — current:** one controlled recovery using the exact deployed
+`8a0c4bd` code and unchanged qualified CSAT policy refreshed September 27–October 3:
+**62 source summaries / 85 values**, zero errors, 38 GET requests, 42.750-second fetch
+and 9.382-second publication. Independent post-publication verification matches all 85
+values/cohorts; all 13,813 protected metric rows (other families and earlier periods) retain
+their before/after digest. Predecessor evidence retains 62 source, 85 fact and 85 value
+revisions. This is a controlled recovery, **not scheduled-run certification or a fix for
+recurring quota exhaustion**. No source definition, application deployment, environment
+setting, employee/team assignment, target, Zendesk object or new call policy changed.
+See `2026-09-28-csat-controlled-recovery.json` and the pre-execution recovery manifest.
+
+The 13:49 UTC fresh encrypted backup restored 33 tables / 48,545 rows with matching
+digests and migration compatibility through 0015. Private recovery files were retained;
+no cleanup deletion was attempted. Before the recovery, one separate bounded GET-only
+current-week diagnosis completed 38 requests / 50.252 seconds and matched all 85 cases;
+the retained previous-week publication also independently matched all 85 values.
+
+Candidate `435b26b` passes both full CI runs 36429624934/36429618637: **779 tests /
+103 files**, migrations, typecheck, lint and production build. Preview
+`dpl_A1Tk6uShPiN3yfsK8zC9tJLGrKg2` is READY on that exact SHA. Those pagination and
+diagnostic fixes are pushed in draft PR32; they are not deployed to production.
+
+**Today's user deadline: 3:00 p.m. Central, September 28.** The live administrator
+session and existing manager views were checked: Menufy lists 23 employees, POS lists
+39; the reported scorecard loads current and previous weeks, H:MM:SS labels and explicit
+unverified ticket explanations. Five tables share identical measured column positions.
+This administrator View-as check is not a fresh sign-in as either manager or the boss;
+the boss's work email was requested for that access check. The staging credential remains
+absent and has been requested through ignored local `.env`, never chat. Hosted outbound
+publication, runtime qualification, missing source semantics and release gates remain open.
+Human ticket counts/shadow/action-v2/historical repair remain disabled. Next priorities:
+boss-specific access, durable current call qualification and hosted outbound rehearsal once
+the staging connection is restored; do not present the app as 100% metrically certified.
+
+**September 28, 13:35 UTC:** Talk candidate `ed5b6f0` passes both full CI
 runs 36428970154/36428964410 (migrations, typecheck, lint, tests and production build).
 Preview `dpl_DATHv5w1CC4Q7b2gijyc1v4VnHgu` is READY on that exact SHA. A further
 bounded diagnostic fix records only the allowlisted Support endpoint category and parsed

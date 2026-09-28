@@ -1,0 +1,35 @@
+{
+  "observedAt": "2026-09-28T13:57:03.998Z",
+  "mode": "One controlled recovery of an existing qualified current-week CSAT policy; not scheduled evidence",
+  "applicationSha": "8a0c4bd8b26ac660b0cfd1a7e5dddd41a687debc",
+  "productionDeployment": "dpl_69LgEzQCG6k9LCfdBWsnhKbb4AuQ",
+  "policyUnchanged": true,
+  "newCallPoliciesEnabled": false,
+  "periodStart": "2026-09-27",
+  "periodEnd": "2026-10-03",
+  "backupSha256": "f7682ce9d8b380cc29094f80415bbc539ffa829e90d9c4682ae4d270ea835c61",
+  "status": "completed",
+  "errorCount": 0,
+  "sourceRecords": 62,
+  "valuesWritten": 85,
+  "independentCases": 85,
+  "independentDifferences": 0,
+  "fetchMs": 42750,
+  "publishMs": 9382,
+  "requests": 38,
+  "retainedRevisions": [
+    {
+      "entity_type": "metric_value",
+      "count": 85
+    },
+    {
+      "entity_type": "normalized_fact",
+      "count": 85
+    },
+    {
+      "entity_type": "source_record",
+      "count": 62
+    }
+  ],
+  "unrelatedValuesAndEarlierPeriodsUnchanged": true
+}
