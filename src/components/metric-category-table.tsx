@@ -4,6 +4,10 @@ import { MetricIcon } from "@/components/metric-icon";
 import { Card } from "@/components/ui/card";
 import { formatMetricValue } from "@/lib/domain/metrics/types";
 import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
+import {
+  snapshotObservation,
+  type ScorecardRow,
+} from "@/lib/domain/metrics/scorecard-presentation";
 import { SOURCE_TARGET_REASON } from "@/lib/domain/metrics/source-context";
 import {
   TICKET_ATTRIBUTION_QUALITY,
@@ -108,9 +112,10 @@ function TargetCell({ row }: { row: EmployeeMetricRow }) {
 interface MetricCategoryTableProps {
   category: string | null;
   title: string;
-  rows: EmployeeMetricRow[];
+  rows: (EmployeeMetricRow & Partial<Pick<ScorecardRow, "displayStatus">>)[];
   currentLabel: string;
   previousLabel: string;
+  currentHeading?: string;
 }
 
 export function MetricCategoryTable({
@@ -119,6 +124,7 @@ export function MetricCategoryTable({
   rows,
   currentLabel,
   previousLabel,
+  currentHeading = "Review week",
 }: MetricCategoryTableProps) {
   return (
     <Card className="overflow-hidden shadow-xs print:break-inside-avoid">
@@ -141,10 +147,12 @@ export function MetricCategoryTable({
                 Metric
               </th>
               <th scope="col" className="px-4 py-3 text-right text-primary bg-primary/[0.06]">
-                {currentLabel}
+                <span className="block">{currentHeading}</span>
+                <span className="mt-1 block font-normal">{currentLabel}</span>
               </th>
               <th scope="col" className="px-4 py-3 text-right">
-                {previousLabel}
+                <span className="block">Week before</span>
+                <span className="mt-1 block font-normal">{previousLabel}</span>
               </th>
               <th scope="col" className="px-4 py-3 text-right">
                 Target
@@ -162,6 +170,11 @@ export function MetricCategoryTable({
                   className="px-5 py-4 align-top text-left font-semibold text-foreground"
                 >
                   {row.name}
+                  {row.key === "backlog_count" && (
+                    <p className="mt-1 text-xs font-normal text-muted-foreground">
+                      {snapshotObservation(row.key, row.dataFreshnessAt)}
+                    </p>
+                  )}
                   {row.key === "avg_handle_time" && row.sourceDescription && (
                     <p className="mt-1 max-w-56 text-xs font-normal text-muted-foreground">
                       Source measures full resolution time, not active handling time.
@@ -199,7 +212,7 @@ export function MetricCategoryTable({
                 </td>
                 <td className="px-4 py-4 align-top text-right">
                   <div className="flex justify-end">
-                    <StatusBadge status={row.status.status} />
+                    <StatusBadge status={row.displayStatus ?? row.status.status} />
                   </div>
                 </td>
               </tr>

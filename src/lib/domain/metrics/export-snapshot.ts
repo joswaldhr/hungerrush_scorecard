@@ -5,8 +5,10 @@ import {
   TICKET_ATTRIBUTION_REASON,
 } from "./availability";
 import { SOURCE_TARGET_REASON } from "./source-context";
+import { snapshotObservation, type ScorecardMode } from "./scorecard-presentation";
 
 export interface ScorecardMetric {
+  key?: string;
   category: string | null;
   name: string;
   currentValue: number | null;
@@ -32,9 +34,30 @@ export interface ScorecardMetric {
 
 export interface ExportSnapshot {
   employeeName: string;
+  periodStart: string;
+  periodEnd: string;
+  mode: ScorecardMode;
   periodLabel: string;
   previousPeriodLabel: string;
   metrics: ScorecardMetric[];
+}
+
+export function scorecardFilename(
+  snapshot: Pick<ExportSnapshot, "employeeName" | "periodStart" | "periodEnd">,
+  kind: "scorecard" | "metrics",
+  extension: "pdf" | "png" | "csv"
+) {
+  const name = snapshot.employeeName
+    .replace(/[^a-zA-Z0-9]/g, "-")
+    .replace(/-+/g, "-")
+    .toLowerCase();
+  return `${name}-${kind}-${snapshot.periodStart}_${snapshot.periodEnd}.${extension}`;
+}
+
+export function scorecardShareUrl(href: string, periodStart: string) {
+  const url = new URL(href);
+  url.searchParams.set("week", periodStart);
+  return url.toString();
 }
 
 export function formatExportValue(value: number | null, unit: string | null, type: ValueType) {
@@ -102,7 +125,9 @@ export function exportCsv(snapshot: ExportSnapshot, statusLabel: (status: string
           : metric.targetContextStatus === "current"
             ? "Current profile"
             : "Not recorded",
-      metric.sourceDescription ?? "",
+      [metric.sourceDescription, snapshotObservation(metric.key ?? "", metric.dataFreshnessAt)]
+        .filter(Boolean)
+        .join("; "),
       exportUnavailableReason(metric),
       metric.valueType === "duration" ? DURATION_FORMAT_LABEL : (metric.unit ?? ""),
       metric.reportingTimeZone ?? "UTC",
@@ -126,7 +151,7 @@ export function exportDataDetails(metrics: ScorecardMetric[]) {
   return metrics
     .map(
       (metric) =>
-        `${metric.name}: ${metric.qualityStatus}; observed ${metric.dataFreshnessAt ?? "unavailable"}; calculation v${metric.calculationVersion}; reporting timezone ${metric.reportingTimeZone ?? "UTC"}; source definition ${metric.sourceContract ?? "legacy / not recorded"}; target scope ${metric.targetSource ?? "none"}${metric.targetContextStatus === "historical_unverified" ? `; ${HISTORICAL_TARGET_REASON}` : metric.targetContextStatus === "source_unverified" ? `; ${SOURCE_TARGET_REASON}` : ""}${metric.sourceDescription ? `; ${metric.sourceDescription}` : ""}${exportUnavailableReason(metric) ? `; ${exportUnavailableReason(metric)}` : ""}${metric.comparisonUnavailableReason ? `; ${metric.comparisonUnavailableReason}` : ""}${metric.valueType === "duration" ? `; times ${DURATION_FORMAT_LABEL}` : ""}`
+        `${metric.name}: ${metric.qualityStatus}; observed ${metric.dataFreshnessAt ?? "unavailable"}; calculation v${metric.calculationVersion}; reporting timezone ${metric.reportingTimeZone ?? "UTC"}; source definition ${metric.sourceContract ?? "legacy / not recorded"}; target scope ${metric.targetSource ?? "none"}${metric.targetContextStatus === "historical_unverified" ? `; ${HISTORICAL_TARGET_REASON}` : metric.targetContextStatus === "source_unverified" ? `; ${SOURCE_TARGET_REASON}` : ""}${metric.sourceDescription ? `; ${metric.sourceDescription}` : ""}${snapshotObservation(metric.key ?? "", metric.dataFreshnessAt) ? `; ${snapshotObservation(metric.key ?? "", metric.dataFreshnessAt)}` : ""}${exportUnavailableReason(metric) ? `; ${exportUnavailableReason(metric)}` : ""}${metric.comparisonUnavailableReason ? `; ${metric.comparisonUnavailableReason}` : ""}${metric.valueType === "duration" ? `; times ${DURATION_FORMAT_LABEL}` : ""}`
     )
     .join("\n");
 }

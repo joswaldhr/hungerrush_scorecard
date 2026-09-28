@@ -16,6 +16,8 @@ import {
 import {
   exportCsv,
   exportDataDetails,
+  scorecardFilename,
+  scorecardShareUrl,
   formatExportValue as formatVal,
   formatExportTarget as formatTarget,
   type ExportSnapshot,
@@ -32,17 +34,6 @@ function statusLabel(status: string): string {
   return getStatusLabel(status as Parameters<typeof getStatusLabel>[0]);
 }
 
-function fileDate(): string {
-  return new Date().toISOString().split("T")[0]!;
-}
-
-function safeName(name: string): string {
-  return name
-    .replace(/[^a-zA-Z0-9]/g, "-")
-    .replace(/-+/g, "-")
-    .toLowerCase();
-}
-
 function triggerDownload(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -56,10 +47,22 @@ function triggerDownload(blob: Blob, filename: string) {
 
 export function ScorecardExport({
   employeeName,
+  periodStart,
+  periodEnd,
+  mode,
   periodLabel,
   previousPeriodLabel,
   metrics,
 }: ExportSnapshot) {
+  const snapshot: ExportSnapshot = {
+    employeeName,
+    periodStart,
+    periodEnd,
+    mode,
+    periodLabel,
+    previousPeriodLabel,
+    metrics,
+  };
   const [open, setOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -87,12 +90,7 @@ export function ScorecardExport({
   async function handlePdf() {
     const el = document.getElementById(SCORECARD_CAPTURE_ID);
     if (!el) return;
-    const frozen = freezeScorecardCapture(el, {
-      employeeName,
-      periodLabel,
-      previousPeriodLabel,
-      metrics,
-    });
+    const frozen = freezeScorecardCapture(el, snapshot);
     setExporting(true);
     close();
     try {
@@ -112,7 +110,7 @@ export function ScorecardExport({
       });
       // PNG uses lossless compression; keep every captured pixel and text edge.
       pdf.addImage(imgData, "PNG", 0, 10, pdfWidth, pdfHeight, undefined, "FAST");
-      pdf.save(`${safeName(employeeName)}-scorecard-${fileDate()}.pdf`);
+      pdf.save(scorecardFilename(snapshot, "scorecard", "pdf"));
       toast.success("PDF downloaded");
     } catch (err) {
       console.error("PDF export failed:", err);
@@ -126,12 +124,7 @@ export function ScorecardExport({
   async function handlePng() {
     const el = document.getElementById(SCORECARD_CAPTURE_ID);
     if (!el) return;
-    const frozen = freezeScorecardCapture(el, {
-      employeeName,
-      periodLabel,
-      previousPeriodLabel,
-      metrics,
-    });
+    const frozen = freezeScorecardCapture(el, snapshot);
     setExporting(true);
     close();
     try {
@@ -142,7 +135,7 @@ export function ScorecardExport({
           toast.error("Failed to generate image");
           return;
         }
-        triggerDownload(blob, `${safeName(employeeName)}-scorecard-${fileDate()}.png`);
+        triggerDownload(blob, scorecardFilename(snapshot, "scorecard", "png"));
         toast.success("PNG downloaded");
       }, "image/png");
     } catch (err) {
@@ -156,12 +149,12 @@ export function ScorecardExport({
 
   function handleCsv() {
     close();
-    const csv = exportCsv({ employeeName, periodLabel, previousPeriodLabel, metrics }, statusLabel);
+    const csv = exportCsv(snapshot, statusLabel);
     // Excel assumes the system codepage (not UTF-8) for a CSV with no BOM, so
     // the en/em dashes in target ranges and blank values ("75-128", "-")
     // render as mojibake ("â€"") without this -- confirmed live.
     const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
-    triggerDownload(blob, `${safeName(employeeName)}-metrics-${fileDate()}.csv`);
+    triggerDownload(blob, scorecardFilename(snapshot, "metrics", "csv"));
     toast.success("CSV downloaded");
   }
 
@@ -200,7 +193,7 @@ export function ScorecardExport({
   async function handleCopyLink() {
     close();
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(scorecardShareUrl(window.location.href, periodStart));
       setLinkCopied(true);
       toast.success("Link copied");
       setTimeout(() => setLinkCopied(false), 2000);

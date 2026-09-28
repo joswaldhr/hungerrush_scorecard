@@ -1,5 +1,20 @@
 # Audit implementation — current checkpoint
 
+**September 28 — last-week review candidate:** A focused branch based on production
+implements the approved default previous-week review, explicit current-week progress
+mode, availability summary, interval filenames, fixed-week share links and history
+return context. Typecheck and 820 tests / 106 files pass; release gates remain pending.
+No metric definitions, calculations, eligibility, source policies or production data
+changed. PR38 remains separate and inactive. See the review-week release record.
+
+PR39 candidate `db599ed` now passes exact CI 36474330989 and is READY on isolated
+Preview `dpl_BfBrmQrvkEfL82ZWibVGkLXaoFgF`. Default/comparison dates, eight aligned
+tables, empty current-week progress, history return and narrow layout are verified.
+Fresh backup/restore matches 33 tables / 63,633 rows. Actual hosted export-file bytes
+remain unavailable from the current browser integration despite success notifications;
+production merge is held at that required gate. Production remains PR37 / `ed6b2df`.
+Adam's demo account setup also awaits his exact work email; no access was granted.
+
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
 **September 28, 18:08 UTC — visual refresh live; POS outbound publication verified:**

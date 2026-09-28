@@ -1,5 +1,13 @@
 # HungerRush Cadence --- Product Specification v0.3
 
+**September 28 review-week decision:** Fresh employee scorecards open the previous
+Sunday–Saturday reporting week, compared with the week before. Explicit week links
+remain authoritative. Last week is the primary 1:1 review; this week is a secondary
+progress view with eligible full-week targets but no on/off-target performance judgments.
+Missing last-week data never silently selects an older interval. Availability counts
+describe reported values, not certified accuracy. Historical target/source restrictions,
+UTC navigation boundaries and per-metric reporting timezones remain in force.
+
 **Revision note (2026-09-22):** James decided to cut Team, leaving 1:1s as the sole core
 experience. Team's page, route, and dedicated components (`TeamRosterTable`, `TeamFilters`)
 were deleted outright, not hidden — recoverable from git history if this is revisited. Home's
@@ -77,13 +85,17 @@ goes to that employee's scorecard below.
 
 **Information hierarchy:**
 1. Identity header --- name, role, team, manager, overall status
-2. Period selector --- this week through 3 weeks ago (single calendar weeks only --- see
-   Architecture note on periods, below)
+2. Review period --- last week by default, compared with the preceding week; shortcuts
+   for last week and this week, plus arrows/calendar for older individual weeks
 3. Metric categories --- one table per `metricDefinitions.category` actually assigned to this
-   employee's team (e.g. Ticket/Case Work, Inbound Call, Outbound Call), each row showing this
-   week, last week, target, status, and a trend sparkline
-4. A category renders only if it has at least one assigned metric with real data --- never a
-   placeholder row for an unbuilt metric
+   employee's team (e.g. Ticket/Case Work, Inbound Call, Outbound Call), each row showing the
+   selected week, preceding week, eligible target and status
+4. Availability summary and explicit missing/quality reasons retain assigned metrics even
+   when values are unavailable. Backlog is labeled with its actual observation timestamp.
+
+Exports preserve the loaded dates, progress/review status and source context. Filenames use
+the reporting interval; copied links pin the selected week. Stored-history round trips
+preserve that selection without changing the stored interval browser's behavior.
 
 **Architecture note on periods:** metric values are stored one row per calendar week
 (Sunday--Saturday). A "Last N Weeks" selector that requested a multi-week span here would ask for
