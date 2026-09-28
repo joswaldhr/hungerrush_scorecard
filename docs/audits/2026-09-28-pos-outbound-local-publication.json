@@ -1,0 +1,16 @@
+{
+  "observedAt": "2026-09-28T17:53:24.665Z",
+  "destination": "isolated-restored-production-copy",
+  "team": "POS",
+  "periodStart": "2026-09-27",
+  "periodEnd": "2026-10-03",
+  "employees": 39,
+  "valuesWritten": 195,
+  "independentStoredValueComparisons": 195,
+  "unexplainedDifferences": 0,
+  "replayWrites": 0,
+  "unrelatedAndHistoricalRowsUnchanged": true,
+  "sourceRequests": 0,
+  "productionWrites": false,
+  "durationMs": 1016
+}

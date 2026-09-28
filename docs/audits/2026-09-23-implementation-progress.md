@@ -2,6 +2,31 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 28, 17:56 UTC — combined UI hosted checks pass; final PDF size fix under CI:**
+The user-requested UI agent's work is integrated into PR36 on the existing isolated
+Preview. Combined `08b95e0` passed both exact CI runs 36460314540/36460319508 (802 tests,
+typecheck/lint/migrations/build). Hosted synthetic current/stored/revision views, loading
+and keyboard controls, six aligned tables and 390px mobile containment pass. Actual CSV
+matches all 12 values/periods/contracts; PDF/PNG were rendered and inspected. A measured
+29 MB PDF prompted lossless compression; actual local export is 97.5% smaller with
+identical decoded pixels. `e13d42a` adds only that exporter adjustment; exact final CI
+and actual hosted compressed PDF verification follow. No production deployment yet.
+
+A fresh 17:51 UTC bounded GET-only call/leg/identity observation independently qualifies
+all 62 employee cases (1,054 fields / 1,860 exact sets / zero differences). Five parent
+gaps are outside every eligible employee's agent/supervisor legs; none were dropped from
+an eligible employee calculation. The isolated POS publication rehearsal matches all
+195 values, identical replay writes zero and unrelated/history rows remain unchanged.
+This does not activate POS. The versioned inbound formula separately matches 5,146
+retained-data field/set comparisons across 62 cases, without source reads/publication.
+
+The 17:46 UTC fresh encrypted backup restored 33 tables / 63,132 rows with exact digests
+through migration 0015. The old separate qualification copy was subsequently restarted
+for POS rehearsal; it contains private data and is not a fixture/test database. Production
+remains on `e95c371` and both new policies are absent. The paid hosting decision remains
+pending; no billing change has occurred. Production arithmetic remains 9/40 and full
+certification 0/40. The release manifest and aggregate evidence record the remaining gates.
+
 **September 28, 17:43 UTC — delayed-parent recovery qualified locally; UI work in parallel:**
 The automatic recovery candidate preserves the leg observation belonging to a recorded
 parent-coverage failure and performs a later calls-only read within the original freshness
