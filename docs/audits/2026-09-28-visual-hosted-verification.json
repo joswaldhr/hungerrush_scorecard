@@ -1,0 +1,48 @@
+{
+  "observedAt": "2026-09-28T17:49:34.687351+00:00",
+  "candidateSha": "08b95e040116e7af359fa2d906a4312a52c06a03",
+  "deploymentId": "dpl_6LbkrHhAJeR5CHGy3fi9NTAaYMDL",
+  "environment": "parent-verified isolated branch Preview",
+  "syntheticOnly": true,
+  "databaseWrites": false,
+  "zendeskAccess": false,
+  "checks": {
+    "currentWeekMissingValuesPreserved": true,
+    "periodLoadingHidesRowsAndExports": true,
+    "selectedWeekRowCount": 12,
+    "csvExactValueDifferences": 0,
+    "csvPeriodAndContractParity": true,
+    "categoryTablesAligned": 6,
+    "keyboardExportEscape": true,
+    "keyboardCalendarEscapeFocusRestored": true,
+    "storedPeriodsSeparate": 2,
+    "retainedPredecessorValuesVisible": true,
+    "pdfRenderedAndInspected": true,
+    "pngInspected": true,
+    "mobileViewportWidth": 390,
+    "mobileDocumentWidth": 375,
+    "mobileTableRegionWidth": 258,
+    "mobileTableScrollWidth": 680,
+    "keyboardFocusableTableRegions": 6,
+    "viewportReset": true
+  },
+  "downloads": {
+    "csv": {
+      "bytes": 6860,
+      "sha256": "c6f595772aba5cea0e8c1dc49e57e3c261461bb49d499ac6e61a6a7da76273e6"
+    },
+    "pdf": {
+      "bytes": 28976447,
+      "sha256": "9dcfa7afc0667f6faba586945746af7f678aba7a7cd03e910e7de183bf007ea4"
+    },
+    "png": {
+      "bytes": 1406109,
+      "sha256": "ce721c34111d7c0f6625be52bcda58410b9d3320a430c925eed7c36f15299748"
+    }
+  },
+  "limitations": [
+    "Raster PDF is 28.98MB; file-size/performance optimization remains separate.",
+    "Native browser print dialog was not exercised; generated PDF was verified.",
+    "Source metric certification remains a separate workstream."
+  ]
+}

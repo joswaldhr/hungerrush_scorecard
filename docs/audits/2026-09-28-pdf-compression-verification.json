@@ -1,0 +1,30 @@
+{
+  "commit": "4bc05469f4358e6d1559fcb1af6c884a2ab16b8a",
+  "localActualComponentDownload": {
+    "beforeBytes": 16010109,
+    "afterBytes": 394562,
+    "dimensions": [
+      2018,
+      2644
+    ],
+    "decodedPixelsEqual": true,
+    "decodedPixelsSha256": "10ec434e4733b7942e26c5bd90a9bb4a4ebf01eaeb90534280339e01bf7265a0",
+    "allRowsAndAppendixVisuallyInspected": true
+  },
+  "offlineHostedImageRepack": {
+    "beforeBytes": 28976447,
+    "afterBytes": 955294,
+    "dimensions": [
+      1988,
+      4858
+    ],
+    "decodedPixelsEqual": true,
+    "decodedPixelsSha256": "9188ac54684bd42b07f38295af9e05b9af92f25b4b6930f216cae2e7e50a589f",
+    "allRowsAndAppendixVisuallyInspected": true
+  },
+  "actualHostedCompressedDownload": "pending combined Preview",
+  "focusedExportKeyboardTestsPassed": 10,
+  "typecheck": "passed with documented ignored-backup exclusion",
+  "focusedEslint": "passed",
+  "gitDiffCheck": "passed"
+}

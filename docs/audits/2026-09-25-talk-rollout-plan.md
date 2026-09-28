@@ -1,5 +1,12 @@
 # Talk participation correction — qualification checkpoint
 
+**September 28 supersession:** the user permitted brief no-edit definition inspection.
+The current Menufy inbound report's offered formula includes unreachable legs, unlike
+the three-component subtotal described below. Earlier retained comparisons apply only
+to their exact report/filter populations; no report-version change is established.
+See [the definition review](2026-09-28-report-definition-review.md). Inbound publication
+remains inactive. The implementation ledger owns subsequent outbound activation.
+
 September 25, 23:52 UTC amendment: the [safety guardrail plan](../SAFETY_GUARDRAILS.md)
 prohibits Zendesk writes and report/dashboard editor sessions. Source discovery below
 must now use retained evidence and bounded GET APIs. Newer outbound qualification and

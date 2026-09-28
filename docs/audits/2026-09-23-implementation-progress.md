@@ -2,6 +2,100 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 28, 17:56 UTC — combined UI hosted checks pass; final PDF size fix under CI:**
+The user-requested UI agent's work is integrated into PR36 on the existing isolated
+Preview. Combined `08b95e0` passed both exact CI runs 36460314540/36460319508 (802 tests,
+typecheck/lint/migrations/build). Hosted synthetic current/stored/revision views, loading
+and keyboard controls, six aligned tables and 390px mobile containment pass. Actual CSV
+matches all 12 values/periods/contracts; PDF/PNG were rendered and inspected. A measured
+29 MB PDF prompted lossless compression; actual local export is 97.5% smaller with
+identical decoded pixels. `e13d42a` adds only that exporter adjustment; exact final CI
+and actual hosted compressed PDF verification follow. No production deployment yet.
+
+A fresh 17:51 UTC bounded GET-only call/leg/identity observation independently qualifies
+all 62 employee cases (1,054 fields / 1,860 exact sets / zero differences). Five parent
+gaps are outside every eligible employee's agent/supervisor legs; none were dropped from
+an eligible employee calculation. The isolated POS publication rehearsal matches all
+195 values, identical replay writes zero and unrelated/history rows remain unchanged.
+This does not activate POS. The versioned inbound formula separately matches 5,146
+retained-data field/set comparisons across 62 cases, without source reads/publication.
+
+The 17:46 UTC fresh encrypted backup restored 33 tables / 63,132 rows with exact digests
+through migration 0015. The old separate qualification copy was subsequently restarted
+for POS rehearsal; it contains private data and is not a fixture/test database. Production
+remains on `e95c371` and both new policies are absent. The paid hosting decision remains
+pending; no billing change has occurred. Production arithmetic remains 9/40 and full
+certification 0/40. The release manifest and aggregate evidence record the remaining gates.
+
+**September 28, 17:43 UTC — delayed-parent recovery qualified locally; UI work in parallel:**
+The automatic recovery candidate preserves the leg observation belonging to a recorded
+parent-coverage failure and performs a later calls-only read within the original freshness
+window. Replaying the actual failed namespaces in the isolated restored copy qualified all
+23 Menufy employees in 13.5 seconds / nine GETs; independent comparison matched 391 fields
+and 690 exact source sets. A subsequent retained-source qualification covers all 62 Menufy
+and POS employees: 1,054 fields and 1,860 exact sets, zero unexplained differences and no
+missing parent calls. No production metric/source writes occurred. These results do not
+activate POS or increase the 9/40 production arithmetic count or 0/40 full certification.
+
+Typecheck/lint and the full 802-test / 105-file isolated suite pass; exact final CI/build,
+fresh release recovery and hosted gates remain. The inactive inbound candidate now supports
+an explicitly versioned offered formula including unreachable legs, retaining the earlier
+three-component replay definition. No inbound publication or target changes are included.
+See `2026-09-28-outbound-parent-recovery.md` and its aggregate evidence.
+
+The current Hobby schedule cannot guarantee recovery within the joined observation window.
+A paid Pro upgrade decision is pending; no billing or scheduler change has been made.
+Production remains on the explicit rollback alias and both new policies remain absent.
+The user explicitly requested a parallel UI agent; it is working on a separate visual
+branch with synthetic fixtures and no vendor/production writes. Initial light/dark/mobile,
+column alignment and existing interaction tests pass; this is not a deployed UI claim.
+
+**September 28, 16:57 UTC — definitions inspected; outbound refresh contained; first-reply cron verified:**
+Brief, user-authorized inspection found the current Menufy offered formula includes
+unreachable legs; the inactive three-component candidate must not be published as that
+definition. Ticket reports count update events with filters that do not establish human
+activity; SUM talk/MAX hold are not averages. No Zendesk edits or saves were made, and
+all report/dashboard inspection tabs are closed. See `2026-09-28-report-definition-review.md`.
+
+PR34 merged to `0504979`; exact PR and master CI 36452365118 passed (796 tests / 105
+files). Its production deployment was READY, with only the two explicitly scoped new
+production policies added. A genuine first-reply scheduler execution at 16:43 UTC used
+`vercel-cron/1.0`, returned HTTP 200 in 47.47 seconds, and published 23 current-week
+values without errors. Vercel invocation details and the database run agree; see
+`2026-09-28-first-reply-scheduled-verification.json`. This replaces the earlier
+unobserved-scheduler statement for that family/current-week execution only.
+
+The controlled outbound request initially received the shared source cooldown's HTTP
+429 during that first-reply run. After the cooldown expired and a fresh baseline was
+captured, one controlled hosted refresh returned HTTP 503 after 128.9 seconds: a newly
+observed Menufy agent leg lacked its parent call. Both export streams were exhausted,
+which correctly did not bypass the join requirement. Zero metric values were written.
+All 115 earlier qualified outbound rows and seven protected table/scope checks remain
+unchanged. Source records/checkpoints remain retained for diagnosis.
+
+Following the release rollback procedure, both new production policies were removed
+and production restored to `e95c371` / `dpl_GXbbnN2xNxFKeqq7uLTu7MCbHest`. The alias
+and administrator page were verified. First-reply code and its successful stored values
+are retained. **Git master still contains PR34; the production alias is the explicit
+rollback target. Check Vercel rollback protection/promotion before the next release.**
+Do not reactivate outbound refresh until the new parent-gap behavior is qualified;
+no genuine outbound scheduled execution has been observed. See
+`2026-09-28-outbound-refresh-containment.json`. Arithmetic coverage remains 9/40
+assignments; full-contract certification remains 0/40. Human metrics, shadow/action-v2
+and historical repair remain disabled. A bounded GET-only overlap investigates the
+missing parent without publishing or altering Zendesk.
+At 16:58 UTC a single bounded calls GET returned that missing employee parent. This
+establishes later visibility, not the exact cause of its earlier absence. No production
+writes or reactivation followed. `2026-09-28-outbound-parent-overlap.json` records the
+aggregate result. Next work is a bounded calls follow-up after the legs observation,
+with the same strict join/freshness gates and independent qualification before release.
+The returned parent was last updated at 16:57:50, after the prior calls read ended at
+16:52:18. A same-invocation retry cannot be assumed to bridge that delay within the
+300-second host limit. Recovery must support a later bounded collection cycle, retain
+the last good published values, and still reject unresolved joins; do not add a long
+wait or silently omit the leg. All 18 original production environment metadata entries
+match the pre-activation baseline. The isolated PostgreSQL test service was stopped.
+
 **September 28, 16:25 UTC — Menufy outbound is published; automatic refresh under validation:**
 The controlled one-employee canary and subsequent 22-employee widening independently
 verified all 115 current-week outbound values, 93 predecessor revisions and unchanged

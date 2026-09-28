@@ -123,3 +123,25 @@ it("performs no fetch for busy or deferred workers and releases a failed worker"
   await expect(runTalkCollectionBatch(scope, 100, read)).rejects.toThrow("fetch failed");
   expect(store.releaseTalkCollection).toHaveBeenCalledTimes(2);
 });
+
+it("recovers calls without starting, reading or marking a leg observation fresh", async () => {
+  const read = vi.fn().mockResolvedValue({ rateLimited: false, page: {} });
+  const result = await runTalkCollectionBatch(scope, 100, read, { mode: "calls-only" });
+  expect(result).toMatchObject({ status: "collected", pages: 1, callsExhausted: true });
+  expect("legsExhausted" in result && result.legsExhausted).toBeUndefined();
+  expect("joinedMetricCoverageCertified" in result && result.joinedMetricCoverageCertified).toBe(
+    false
+  );
+  expect(vi.mocked(store.beginTalkCollectionCycle).mock.calls.every((c) => c[1] === "calls")).toBe(
+    true
+  );
+  expect(vi.mocked(store.commitTalkCollectionPage).mock.calls.map((c) => c[1])).toEqual(["calls"]);
+  expect(read.mock.calls.every((c) => new URL(c[0]).pathname.endsWith("/calls.json"))).toBe(true);
+});
+
+it("rejects an invalid recovery mode before claiming the source", async () => {
+  await expect(
+    runTalkCollectionBatch(scope, 100, vi.fn(), { mode: "invalid" as "both" })
+  ).rejects.toThrow("Invalid Talk worker budget");
+  expect(store.claimTalkCollection).not.toHaveBeenCalled();
+});

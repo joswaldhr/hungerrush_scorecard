@@ -20,6 +20,7 @@ import { collectOutboundRecords } from "./zendesk-outbound-collection";
 import { createTalkExportReader, runTalkCollectionBatch } from "./zendesk-talk-worker";
 import type { parseTalkCollectionPolicy } from "./zendesk-talk-config";
 import type { ConnectorConfig } from "./types";
+import { planOutboundRecovery } from "./zendesk-outbound-recovery";
 
 /** Validate source, team, assignment semantics and current identity ownership before any GET. */
 export async function loadOutboundEmployeeBindings(
@@ -140,6 +141,9 @@ export function createOutboundConnector(
       periodStart,
       env.ZENDESK_SUBDOMAIN ?? ""
     );
+    const recovery = collection
+      ? await planOutboundRecovery(policy, periodStart, periodEnd, Number(ctx.cursor))
+      : { mode: "both" as const };
     // Refresh in the same invocation: separate hourly cron windows can exceed the
     // joined-observation span limit. Leave time for Support reads and atomic writes.
     const collected = collection
@@ -154,12 +158,18 @@ export function createOutboundConnector(
             },
             policy.accountReference
           ),
-          { maxPages: 22, maxDurationMs: 150000 }
+          {
+            maxPages: 22,
+            maxDurationMs: 150000,
+            ...(recovery.mode === "calls-only" ? { mode: recovery.mode } : {}),
+          }
         )
       : null;
     if (
       collected &&
-      (collected.status !== "collected" || !collected.callsExhausted || !collected.legsExhausted)
+      (collected.status !== "collected" ||
+        !collected.callsExhausted ||
+        (recovery.mode === "both" && !collected.legsExhausted))
     )
       throw Error("Outbound Talk collection incomplete; retained checkpoints can resume");
     const stored = await readTalkCollectionSnapshot({
@@ -168,6 +178,11 @@ export function createOutboundConnector(
     });
     if (stored.status !== "ready_for_qualification" || stored.snapshot === null)
       throw Error("Outbound source streams are still collecting");
+    if (
+      recovery.mode === "calls-only" &&
+      JSON.stringify(stored.snapshot.legsState) !== JSON.stringify(recovery.legsState)
+    )
+      throw Error("Outbound leg observation changed during parent recovery");
     const reader = createBoundedCsatReader(
       {
         subdomain: env.ZENDESK_SUBDOMAIN ?? "",
@@ -193,6 +208,7 @@ export function createOutboundConnector(
         ...result.diagnostics,
         ...reader.stats(),
         ...(collected ? { talkCollection: collected } : {}),
+        collectionMode: collected ? recovery.mode : "retained",
       },
     };
   };

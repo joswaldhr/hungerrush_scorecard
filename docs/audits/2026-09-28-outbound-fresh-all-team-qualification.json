@@ -1,0 +1,49 @@
+{
+  "observedAt": "2026-09-28T17:51:31.943Z",
+  "teams": [
+    "Menufy",
+    "POS"
+  ],
+  "employees": 62,
+  "sourceMethods": [
+    "GET"
+  ],
+  "requests": 11,
+  "elapsedMs": 29051,
+  "diagnostics": {
+    "family": "outbound_call_participation",
+    "periodStart": "2026-09-27",
+    "periodEnd": "2026-10-03",
+    "reportingTimeZone": "America/Chicago",
+    "policyFingerprint": "dad4950d880ae71530478bb59e0efba13cc3ccd2ad3dd7a5bf85f2ca85e16fe5",
+    "activeEmployees": 62,
+    "staffPages": 4,
+    "sourceCalls": 2455,
+    "sourceLegs": 4961,
+    "linkedTickets": 273,
+    "ticketRequests": 3,
+    "sourceIsAtomicSnapshot": false,
+    "requests": 7,
+    "elapsedMs": 9114,
+    "requestBudget": 80,
+    "elapsedBudgetMs": 90000,
+    "talkCollection": {
+      "status": "collected",
+      "pages": 4,
+      "changedRecords": 576,
+      "revisions": 576,
+      "elapsedMs": 19240,
+      "callsExhausted": true,
+      "legsExhausted": true,
+      "joinedMetricCoverageCertified": false
+    },
+    "collectionMode": "both"
+  },
+  "sourceCalls": 2455,
+  "sourceLegs": 4961,
+  "missingParentCalls": 5,
+  "localMetricValuesUnchanged": true,
+  "productionWrites": false,
+  "missingParentLegsForEligibleEmployees": 0,
+  "coverageLimit": "Five missing parents belong to no agent/supervisor leg for the 62 eligible employee identities; per-employee joins independently qualify."
+}

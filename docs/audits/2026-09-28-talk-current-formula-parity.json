@@ -1,0 +1,15 @@
+{
+  "observedAt": "2026-09-28T17:47:42.339233+00:00",
+  "sourceReadOnly": true,
+  "independentImplementation": "Python, no candidate imports",
+  "employeeCases": 62,
+  "calculatedCases": 62,
+  "unavailableCases": 0,
+  "fieldComparisons": 5146,
+  "differences": 0,
+  "unavailableReason": null,
+  "sourcePopulationIndependentlyCertified": false,
+  "atomicSnapshot": false,
+  "sourceGetRequests": 0,
+  "productionActivated": false
+}

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/empty-state";
 import { SortControl } from "@/components/sort-control";
-import { ChevronRight, Search, Users } from "lucide-react";
+import { ArrowUpRight, Search, Users } from "lucide-react";
 import { cn, initials } from "@/lib/utils";
 
 export interface PickerEmployee {
@@ -71,7 +71,7 @@ function GroupHeading({
       <span className="text-xs font-medium text-muted-foreground shrink-0">
         {count} {count === 1 ? "employee" : "employees"}
       </span>
-      <div className="h-px flex-1 bg-border" />
+      <div className="h-px flex-1 bg-border" aria-hidden="true" />
     </div>
   );
 }
@@ -120,7 +120,7 @@ export function OneOnOnesPicker({ teams, employees }: OneOnOnesPickerProps) {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+      <div className="flex flex-col gap-3 rounded-xl border border-border/80 bg-card p-3 shadow-xs sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <Search
             className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
@@ -132,13 +132,16 @@ export function OneOnOnesPicker({ teams, employees }: OneOnOnesPickerProps) {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search employees..."
             aria-label="Search employees"
-            className="w-full rounded-lg border border-input bg-card py-2 pl-9 pr-3 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring shadow-2xs"
+            className="w-full rounded-lg border border-transparent bg-muted/65 py-3 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
 
         <SortControl label="Sort" value={sortDir} options={SORT_OPTIONS} onChange={setSortDir} />
       </div>
 
+      <p role="status" className="sr-only">
+        {filtered.length} of {employees.length} employees shown
+      </p>
       {needsMappingReview && (
         <p className="text-sm text-muted-foreground">
           Some employees need a team or line assignment review. They remain available below.
@@ -149,7 +152,7 @@ export function OneOnOnesPicker({ teams, employees }: OneOnOnesPickerProps) {
       ) : (
         displayGroups.map((team) => {
           const teamEmps = team.emps;
-          const showTeamHeading = displayGroups.length > 1 || team.id === null;
+          const showTeamHeading = true;
 
           return (
             <div key={team.id ?? "unassigned"} className="space-y-6">
@@ -167,29 +170,32 @@ export function OneOnOnesPicker({ teams, employees }: OneOnOnesPickerProps) {
                         level={showTeamHeading ? "h3" : "h2"}
                       />
                     )}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                       {group.emps.map((emp) => (
                         <Link
                           key={emp.id}
                           href={`/one-on-ones/${emp.id}`}
-                          className="flex items-center gap-3 rounded-lg border border-border/70 bg-card px-3.5 py-3 shadow-2xs hover:border-[#009ca6]/50 hover:bg-muted/40 transition-colors group"
+                          className="group flex min-h-24 items-center gap-4 rounded-xl border border-border/80 bg-card p-5 shadow-xs transition-colors hover:border-primary/50 hover:bg-primary/[0.035] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                         >
-                          <Avatar className="h-10 w-10 ring-1 ring-border shrink-0">
-                            <AvatarFallback className="text-xs font-bold bg-slate-100 dark:bg-slate-800 text-foreground">
+                          <Avatar className="h-12 w-12 shrink-0 rounded-xl">
+                            <AvatarFallback className="rounded-xl bg-primary/10 text-sm font-bold text-primary">
                               {initials(emp.displayName)}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground group-hover:text-[#009ca6] transition-colors truncate">
+                            <p className="truncate text-sm font-semibold text-foreground transition-colors group-hover:text-primary">
                               {emp.displayName}
                             </p>
                             {emp.jobTitle && (
-                              <p className="text-xs text-muted-foreground truncate">
+                              <p className="mt-1 truncate text-xs text-muted-foreground">
                                 {emp.jobTitle}
                               </p>
                             )}
                           </div>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <ArrowUpRight
+                            aria-hidden="true"
+                            className="h-4 w-4 shrink-0 text-muted-foreground/70 transition-colors group-hover:text-primary"
+                          />
                         </Link>
                       ))}
                     </div>

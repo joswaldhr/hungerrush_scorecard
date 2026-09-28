@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, beforeEach, expect, it, vi } from "vitest";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { organizations, dataSources, sourceRecords } from "@/lib/db/schema";
+import { organizations, dataSources, sourceRecords, syncRuns, syncErrors } from "@/lib/db/schema";
 import {
   beginTalkCollectionCycle,
   claimTalkCollection,
@@ -16,6 +16,9 @@ import {
 } from "@/lib/connectors/zendesk-talk-store";
 import { fetchCoordinatedTalkWeek } from "@/lib/connectors/zendesk-talk-legacy";
 import { runTalkCollectionBatch } from "@/lib/connectors/zendesk-talk-worker";
+import { calculateOutboundParticipation } from "@/lib/connectors/zendesk-outbound";
+import { planOutboundRecovery } from "@/lib/connectors/zendesk-outbound-recovery";
+import { outboundObservationFixture } from "./fixtures/outbound-observation";
 
 const organizationId = randomUUID(),
   dataSourceId = randomUUID(),
@@ -392,3 +395,117 @@ it("rejects stored source corruption instead of serving an apparently complete s
     );
   await expect(readTalkCollectionSnapshot(scope)).rejects.toThrow("digest");
 });
+
+it("recovers a later parent across invocations without discarding or refreshing the saved legs", async () => {
+  const worker = await own();
+  const calls = await beginTalkCollectionCycle(worker, "calls", start);
+  const legs = await beginTalkCollectionCycle(worker, "legs", start);
+  await commitTalkCollectionPage(worker, "calls", calls.expectedHash, page([], 500));
+  const leg = {
+    id: 1,
+    call_id: 99,
+    agent_id: 42,
+    type: "agent",
+    completion_status: "completed",
+    created_at: "2026-09-13T12:00:00Z",
+    updated_at: "2026-09-13T13:00:00Z",
+    talk_time: 10,
+    hold_time: 0,
+    duration: 20,
+    consultation_time: null,
+  };
+  const first = await commitTalkCollectionPage(worker, "legs", legs.expectedHash, {
+    legs: [leg],
+    count: 1,
+    end_time: 500,
+    next_page: `${origin}/api/v2/channels/voice/stats/incremental/legs.json?start_time=500`,
+  });
+  await commitTalkCollectionPage(worker, "legs", first.expectedHash, {
+    legs: [],
+    count: 0,
+    end_time: 500,
+    next_page: null,
+  });
+  await releaseTalkCollection(worker);
+  const before = (await readTalkCollectionSnapshot(scope)).snapshot!;
+  const metricScope = {
+    periodStart: "2026-09-13",
+    periodEnd: "2026-09-19",
+    timeZone: "America/Chicago",
+    agentId: 42,
+    ticketGroupIds: [7],
+  };
+  expect(() => calculateOutboundParticipation(before.calls, [], before.legs, metricScope)).toThrow(
+    "parent-call coverage"
+  );
+  const policy = {
+    ...outboundObservationFixture({ organizationId, dataSourceId }).policy,
+    accountReference,
+    observationLimits: { maxAgeMs: 26 * 3600000, maxSpanMs: 3600000 },
+  };
+  const plan = (offset = 2, now = new Date()) =>
+    planOutboundRecovery(policy, metricScope.periodStart, metricScope.periodEnd, offset, now);
+  expect(await plan()).toEqual({ mode: "both" });
+  const failedId = randomUUID(),
+    successId = randomUUID();
+  try {
+    await db.insert(syncRuns).values({
+      id: failedId,
+      dataSourceId,
+      status: "failed",
+      startedAt: new Date(Date.parse(before.legsState.observationStartedAt) - 100),
+      completedAt: new Date(Date.parse(before.legsState.lastPageAt!) + 100),
+      metadataJson: { weekOffset: 2 },
+    });
+    await db.insert(syncErrors).values({
+      syncRunId: failedId,
+      errorType: "fetch_fatal",
+      message: "Incomplete outbound parent-call coverage",
+    });
+    expect(await plan()).toEqual({ mode: "calls-only", legsState: before.legsState });
+    expect(await plan(1)).toEqual({ mode: "both" });
+    expect(
+      await plan(2, new Date(Date.parse(before.legsState.observationStartedAt) + 3600000))
+    ).toEqual({ mode: "both" });
+    await db.insert(syncRuns).values({
+      id: successId,
+      dataSourceId,
+      status: "completed",
+      metadataJson: { weekOffset: 2, fetch: { family: "outbound_call_participation" } },
+    });
+    expect(await plan()).toEqual({ mode: "both" });
+  } finally {
+    await db.delete(syncErrors).where(eq(syncErrors.syncRunId, failedId));
+    await db.delete(syncRuns).where(inArray(syncRuns.id, [failedId, successId]));
+  }
+  const read = vi
+    .fn()
+    .mockResolvedValueOnce({
+      rateLimited: false,
+      page: page([call(99, "2026-09-13T13:08:00Z")], 600),
+    })
+    .mockResolvedValueOnce({ rateLimited: false, page: page([], 600) });
+  expect(
+    await runTalkCollectionBatch(scope, start, read, { mode: "calls-only", maxPages: 2 })
+  ).toMatchObject({ status: "collected", callsExhausted: true, legsExhausted: undefined });
+  const recovered = (await readTalkCollectionSnapshot(scope)).snapshot!;
+  expect(recovered.legsState).toEqual(before.legsState);
+  expect(recovered.legs).toEqual(before.legs);
+  expect(recovered.missingParentCallIds).toEqual([]);
+  expect(recovered.callsState.cycle).toBe(2);
+  expect(
+    calculateOutboundParticipation(
+      recovered.calls,
+      [{ id: 100, group_id: 7 }],
+      recovered.legs,
+      metricScope
+    )
+  ).toMatchObject({
+    attempted: 1,
+    completed: 1,
+    talk: { sumSeconds: 10, sampleCount: 1, meanSeconds: 10 },
+  });
+  expect(read.mock.calls.every(([url]) => new URL(url).pathname.endsWith("/calls.json"))).toBe(
+    true
+  );
+}, 20000);

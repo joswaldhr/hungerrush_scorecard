@@ -41,6 +41,17 @@ Menufy canary plus widening published five additional assignments / 115 current-
 values for all 23 employees. Independent values match exactly and 93 predecessor
 revisions were verified. Automatic source refresh and genuine scheduler execution are
 not yet certified; POS remains excluded because of employee parent-call gaps.
+At 16:43 UTC the genuine first-reply scheduler published 23 current-week values
+successfully (HTTP 200, 47.47-second function duration, `vercel-cron/1.0`, matching
+database run). The separate outbound refresh subsequently rejected a new parent-call
+gap without changing metrics; its activation was rolled back. These observations do
+not increase the arithmetic denominator or remove remaining full-contract gates.
+At 17:40 UTC the delayed-parent recovery candidate qualified all 62 Menufy/POS employees
+from retained calls/legs with fresh bounded identity and ticket reads. Independent current-week
+comparison matched 1,054 fields and 1,860 exact source sets with no differences and no
+missing parents. This resolves the parent gap for that observation, not the general scheduler
+or POS production gates. Production remains rolled back with the new policies absent;
+see `2026-09-28-outbound-parent-recovery.md`.
 
 Execution order: finish the call publication rehearsal and source gates; perform a scoped,
 independently reconciled activation; resolve verified-human ticket activity and the handle/
@@ -48,7 +59,8 @@ elevated/backlog definitions; qualify targets and scheduled operation for each f
 Continue independent source/implementation work while external prerequisites are missing.
 The hosted staging rehearsal passed using its credential inside its existing Preview
 build environment, without extracting it; that blocker is resolved.
-No Zendesk report editor or mutation is permitted to close an evidence gap.
+The September 28 user amendment permits brief no-edit report-definition inspection
+with prompt closure. Zendesk mutations remain prohibited.
 
 The dated September 25 baseline below is retained. Row updates for outbound reference
 checks reflect later evidence. Menufy outbound production activation above supersedes
@@ -81,7 +93,7 @@ joined-source coverage, outbound definitions and release gates remain open; see
 | avg_handle_time | 1 | R | Current value is full-resolution elapsed business time. Workforce access and all 62 identities now verified; solved ticket-viewing effort report exists. Units, lifetime numerator, exclusions, source sets and release remain open |
 | avg_hold_time_inbound | 2 | R | Menufy report is MAX leg hold; POS repeats whole-call hold for each leg. Neither is employee mean leg hold; corrected denominator and targets remain open |
 | avg_hold_time_outbound | 2 | R | Retained independent employee-leg reconstruction passes; separate measured denominator and zeros/nulls implemented. Hosted publication, compatible targets and production/scheduler gates remain |
-| avg_response_time | 1 | PV | PR29 deployed; all 23 current-week values and exact source sets independently match. Original facts, unrelated values and earlier periods remain unchanged; 19 predecessor values retained. Current/history/CSV/PDF/PNG checks pass. Targets withheld; genuine scheduler execution unobserved |
+| avg_response_time | 1 | PV | PR29 deployed; all 23 qualification values and exact source sets independently match. Current/history/CSV/PDF/PNG checks pass. September 28 current-week cron independently observed in hosting logs and database: 23 values, HTTP 200, zero errors. Compatible targets remain withheld |
 | avg_talk_time_inbound | 2 | R | POS 55 means match with exact source legs. Menufy report sums leg talk; scorecard average requires an explicit denominator |
 | avg_talk_time_outbound | 2 | R | Menufy 44 employee-period cases / 220 comparisons and POS 72 cases / 1,296 fields match independent reconstruction. Report whole-call/customer-leg duration is not employee leg talk. Activation and target gates remain |
 | avoidable_worked_elevated_tickets | 2 | B | Team-specific fields differ; work attribution and history unresolved |
@@ -91,7 +103,7 @@ joined-source coverage, outbound definitions and release gates remain open; see
 | declined_calls | 1 | R | Menufy 56 row-weeks match distinct declined plus transfer-declined legs; both-week exact source sets pass; publisher and target context pending |
 | inbound_calls_abandoned_on_hold | 2 | R | Menufy 56 participation row-weeks match, not employee responsibility. POS on-hold label wrongly counts IVR/queue/voicemail abandonment; do not copy it |
 | inbound_calls_accepted | 2 | R | Menufy 56 row-weeks and POS 55 rows match completed positive-talk agent legs. POS exact source set matches; target/period and release gates remain |
-| inbound_calls_offered | 2 | R | Menufy 56 row-weeks match accepted + declined + missed legs; unreachable excluded. Full release gates remain |
+| inbound_calls_offered | 2 | R | Earlier 56 row-weeks matched a three-component subtotal. September 28 inspection found the current Menufy saved formula also includes unreachable legs; exact scope/version reconciliation is required before publication. See the report definition review |
 | missed_calls | 1 | R | Menufy 56 row-weeks match Central call-date missed-leg counts; both-week source sets pass; publisher and release pending |
 | outbound_calls | 2 | R | Exact employee-participating call sets match retained independent references; POS aggregate report matches 14 days / 979 calls / 56 count checks. POS employee Explore export remains unavailable; hosted and production gates remain |
 | outbound_calls_completed | 2 | R | Distinct participating calls, repeated legs and explicit completion classification implemented and independently replayed. Candidate source sets match; no production publisher activated |

@@ -106,10 +106,12 @@ export function ScorecardExport({
       const pdfHeight = (imgHeight * pdfWidth) / imgWidth;
       const pdf = new jsPDF({
         orientation: "portrait",
+        compress: true,
         unit: "mm",
         format: [pdfWidth, Math.max(pdfHeight + 20, 297)],
       });
-      pdf.addImage(imgData, "PNG", 0, 10, pdfWidth, pdfHeight);
+      // PNG uses lossless compression; keep every captured pixel and text edge.
+      pdf.addImage(imgData, "PNG", 0, 10, pdfWidth, pdfHeight, undefined, "FAST");
       pdf.save(`${safeName(employeeName)}-scorecard-${fileDate()}.pdf`);
       toast.success("PDF downloaded");
     } catch (err) {
