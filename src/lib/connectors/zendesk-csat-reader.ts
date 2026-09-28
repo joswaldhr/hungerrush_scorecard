@@ -86,7 +86,28 @@ export function createBoundedCsatReader(
         checkTime();
         throw new Error("CSAT source request failed");
       }
-      if (!response.ok) throw new Error(`CSAT source request failed: HTTP ${response.status}`);
+      if (!response.ok) {
+        // Failed fetches do not return collection stats. Preserve only this bounded
+        // endpoint category and a parsed delay in the sync error, never the URL,
+        // query (employee/ticket IDs), response body or raw vendor header.
+        const endpoint = url.pathname.slice("/api/v2/".length, -".json".length);
+        let delay = "";
+        if (response.status === 429) {
+          const header = response.headers.get("retry-after")?.trim();
+          const retryAfterMs = header
+            ? /^\d+$/.test(header)
+              ? Number(header) * 1000
+              : Date.parse(header) - now()
+            : NaN;
+          delay =
+            Number.isSafeInteger(retryAfterMs) && retryAfterMs >= 0
+              ? `; retryAfterMs=${retryAfterMs}`
+              : "; retryAfterMs=unavailable";
+        }
+        throw new Error(
+          `CSAT source request failed: HTTP ${response.status}; endpoint=${endpoint}${delay}`
+        );
+      }
       try {
         const result: unknown = await response.json();
         checkTime();

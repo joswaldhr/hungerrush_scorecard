@@ -2,7 +2,25 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
-**September 28, 13:30 UTC — current:** read-only production inspection confirms the
+**September 28, 13:35 UTC — current:** Talk candidate `ed5b6f0` passes both full CI
+runs 36428970154/36428964410 (migrations, typecheck, lint, tests and production build).
+Preview `dpl_DATHv5w1CC4Q7b2gijyc1v4VnHgu` is READY on that exact SHA. A further
+bounded diagnostic fix records only the allowlisted Support endpoint category and parsed
+Retry-After delay in failed sync errors; no request URLs, employee/ticket queries, raw
+headers or response bodies are logged. Eighteen focused reader/collection checks,
+typecheck, targeted lint and formatting pass; full CI follows for this increment.
+This changes neither retries nor CSAT/first-reply/outbound calculation policies.
+
+The production read-only history shows the current-week qualified CSAT refresh failed
+with HTTP 429 on September 26 and 28, with a successful September 27 refresh between them.
+The current error record cannot identify the endpoint or vendor delay. Vercel's Hobby
+log selector only permits the last hour, so these older invocations cannot currently be
+corroborated through the available UI; no upgrade or extra invocation was made. The cause
+of the account/endpoint quota exhaustion and its recovery remain unverified. Source guidance:
+[Zendesk rate limits](https://developer.zendesk.com/api-reference/introduction/rate-limits/).
+The staging credential dependency and runtime/recovery/canary gates below remain open.
+
+**September 28, 13:30 UTC:** read-only production inspection confirms the
 READY production alias still targets `8a0c4bd` / `dpl_69LgEzQCG6k9LCfdBWsnhKbb4AuQ`.
 Four Monday regular weekly runs completed with zero metric errors and the expected
 September 27–October 3, September 20–26, September 13–19 and September 6–12 intervals.
@@ -25,7 +43,7 @@ is still blocked on private staging credential recovery (`STAGING_DATABASE_URL` 
 Next: corroborate and diagnose the live CSAT rate limit, complete candidate checks and
 hosted/recovery/runtime gates. The new Talk/outbound policies remain inactive.
 
-**September 26, 15:35 UTC — current:** candidate `9badca1` passes both full CI runs
+**September 26, 15:35 UTC:** candidate `9badca1` passes both full CI runs
 36252223074/36252225892: **766 tests / 103 files**, migrations, typecheck, lint and
 production build. Preview `dpl_6LWxZyB2g7qdvrutWsA8awFCjhh4` is READY. Actual corrected
 CSV bytes and rendered PDF passed inspection, including the human-attribution explanation.

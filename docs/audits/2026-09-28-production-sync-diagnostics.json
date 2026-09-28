@@ -148,5 +148,31 @@
     "legacyCandidateEndToEnd": "unverified",
     "longestObservedProductionRunSeconds": 259.366534,
     "note": "Retained census and current production use different source cohorts and code paths; these are not a candidate runtime benchmark."
+  },
+  "logVerification": {
+    "checkedAt": "2026-09-28T13:32:07.021Z",
+    "status": "unverified",
+    "reason": "The Hobby log time-range selector offers only the last hour; the failed run predates that window. No plan change or additional sync was made."
+  },
+  "recentQualifiedCsat": {
+    "currentWeek": [
+      {
+        "day": "2026-09-26",
+        "status": "failed",
+        "reason": "HTTP 429"
+      },
+      {
+        "day": "2026-09-27",
+        "status": "completed",
+        "requests": 24
+      },
+      {
+        "day": "2026-09-28",
+        "status": "failed",
+        "reason": "HTTP 429"
+      }
+    ],
+    "retryAfterAndEndpoint": "not retained by current failure diagnostics",
+    "rootCause": "Which endpoint/account limit was reached is not established"
   }
 }
