@@ -159,9 +159,10 @@ async function main() {
     const record = replacement();
     const legacy: IngestedRecord = {
       ...record,
-      externalRecordType: "agent_stats",
+      externalRecordType: "call_stats",
       externalRecordId: "outbound-rehearsal-legacy-2026-09-20",
       payload: {
+        inboundOffered: null,
         outboundTotal: 99,
         outboundCompleted: 98,
         outboundNonAnswered: 1,
@@ -169,6 +170,14 @@ async function main() {
         avgHoldTimeOutbound: 120,
       },
     };
+    const legacyFacts = normalizer.normalizeRecords(
+      [{ sourceRecordId: "synthetic-preflight", payload: legacy.payload }],
+      employee,
+      team,
+      f.periodStart,
+      f.periodEnd
+    );
+    assert.equal(legacyFacts.length, outboundTalkKeys.length);
     stage = "legacy_publication";
     assert((await publish([legacy])).success);
     stage = "legacy_readback";
