@@ -1,0 +1,16 @@
+{
+  "observedAt": "2026-09-28T18:02:32.351Z",
+  "deploymentId": "dpl_DvfxY6H3bNESQvQByoHMQvgVemJN",
+  "sha": "390dae9154a2bff75da374580a21330462baf964",
+  "protectedTables": 7,
+  "changedTables": [],
+  "configurationUnchanged": true,
+  "masterCi": 36462126005,
+  "masterCiPassed": true,
+  "productionAdminReadVerified": true,
+  "posManagerEmployeeCount": 39,
+  "outboundRoute": {
+    "httpStatus": 200,
+    "enabled": false
+  }
+}

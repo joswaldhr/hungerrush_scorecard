@@ -1,0 +1,22 @@
+{
+  "observedAt": "2026-09-28T18:04:16.259Z",
+  "application": "390dae9154a2bff75da374580a21330462baf964",
+  "execution": "controlled_retained_observation_canary",
+  "team": "POS",
+  "periodStart": "2026-09-27",
+  "periodEnd": "2026-10-03",
+  "employees": 1,
+  "valuesWritten": 5,
+  "verified": true,
+  "independentStoredValueComparisons": 5,
+  "unexplainedDifferences": 0,
+  "unrelatedRowsAndLegacyFactsUnchanged": true,
+  "predecessorValues": 5,
+  "predecessorRevisionsVerified": 5,
+  "vendorRequests": 0,
+  "durationMs": 14909,
+  "sourceObservationStartedAt": "2026-09-28T17:51:03.130Z",
+  "sourceObservationEndedAt": "2026-09-28T17:51:30.068Z",
+  "evidenceSha256": "10ffd4d507ce942b14d68e573ffaa1921515ee9fc46543165d17945e45c36e07",
+  "scheduledExecution": false
+}

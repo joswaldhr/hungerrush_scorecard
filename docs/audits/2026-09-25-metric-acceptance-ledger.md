@@ -31,9 +31,14 @@ or unverified attribution is an incomplete result. Certification is bounded to d
 periods, source observations and deployed definitions; it is not a guarantee that external
 services can never fail. Future failures must be detected rather than silently misreported.
 
-**Current evidence, September 28 16:15 UTC:** 9/40 assignments have independently verified production arithmetic;
+**Current evidence, September 28 18:08 UTC:** 14/40 assignments have independently verified production arithmetic;
 full-contract certification remains 0/40 in this ledger. This is a qualification count,
 not a claim that every remaining value is wrong or an estimate of engineering effort.
+The September 28 POS canary and widening independently match all 195 current-week
+outbound values across 39 employees, adding five assignments. All 143 predecessor
+revisions and unchanged unrelated/history rows are verified; live scorecard/CSV parity
+passes. No automatic collector policy is active. See the POS outbound release report.
+The earlier Menufy/current-source observations below remain dated evidence.
 The September 28 controlled CSAT recovery independently matched 85/85 values/cohorts;
 its scheduled HTTP 429 cause remains open. PR32 deployed the call infrastructure with
 new policies absent. PR33 corrected the outbound replacement guard, and a controlled

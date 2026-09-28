@@ -1,0 +1,14 @@
+{
+  "observedAt": "2026-09-28T18:07:14.181735+00:00",
+  "environment": "production",
+  "application": "390dae9154a2bff75da374580a21330462baf964",
+  "managerScopedEmployeeCount": 39,
+  "verifiedCanaryMetricValues": 5,
+  "displayDurationAndZeroParity": true,
+  "csvBytes": 10275,
+  "csvSha256": "4bde63f8cb2ba5b2371636ffcd9bae8a61b617a5d50bac668bd2c11b9d94a401",
+  "unexplainedDifferences": 0,
+  "verifiedSourceContract": "zendesk-call-created-agent-leg-outbound-v1",
+  "historicalComparisonWithheld": true,
+  "unverifiedTargetsWithheld": true
+}
