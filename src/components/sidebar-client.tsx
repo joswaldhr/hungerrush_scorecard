@@ -116,7 +116,7 @@ export function SidebarClient({
           ) : (
             <div className="flex flex-col gap-1.5">
               {brandLogo}
-              <span className="block text-[11px] font-semibold tracking-wider text-[#108574] pl-0.5">
+              <span className="block text-[11px] font-semibold tracking-wider text-teal-300 pl-0.5">
                 CADENCE
               </span>
             </div>
@@ -137,10 +137,7 @@ export function SidebarClient({
         </button>
       </div>
 
-      {/* Primary nav -- sized to content, not flex-1: with only "1:1s" plus a
-          handful of admin items, stretching this to fill the viewport left a
-          large dead gap above the footer. overflow-y-auto is kept as a safety
-          net in case a future nav list grows past the viewport height. */}
+      {/* Navigation scrolls independently; account controls stay at the bottom. */}
       <nav className="px-3 space-y-1 overflow-y-auto" aria-label="Main navigation">
         <div className="space-y-1.5">
           {primaryNav.map((item) => {
@@ -151,6 +148,7 @@ export function SidebarClient({
                 key={item.href}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
+                aria-label={item.label}
                 title={collapsed ? item.label : undefined}
                 className={cn(
                   "flex items-center rounded-lg py-2.5 text-sm font-medium transition-all",
@@ -190,6 +188,7 @@ export function SidebarClient({
                   key={item.href}
                   href={item.href}
                   aria-current={active ? "page" : undefined}
+                  aria-label={item.label}
                   title={collapsed ? item.label : undefined}
                   className={cn(
                     "flex items-center rounded-lg py-2 text-sm font-medium transition-colors",
@@ -209,7 +208,7 @@ export function SidebarClient({
       </nav>
 
       {/* Theme toggle */}
-      <div className="px-3 py-2 border-t border-sidebar-border/50">
+      <div className="mt-auto px-3 py-3 border-t border-sidebar-border/50">
         <button
           onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
           aria-label={
@@ -233,6 +232,8 @@ export function SidebarClient({
       {user && (
         <div className="border-t border-sidebar-border/70 p-3 relative">
           <button
+            aria-label="Account menu"
+            aria-expanded={userMenuOpen}
             onClick={() => setUserMenuOpen(!userMenuOpen)}
             className={cn(
               "w-full flex items-center rounded-lg p-1.5 text-left transition-colors hover:bg-sidebar-accent/80",

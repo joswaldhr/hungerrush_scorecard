@@ -30,10 +30,10 @@ function MetricDataDetails({ row }: { row: EmployeeMetricRow }) {
       data-html2canvas-ignore="true"
       className="mt-1 font-normal text-muted-foreground print:hidden"
     >
-      <summary className="cursor-pointer text-[11px] hover:text-foreground">
+      <summary className="cursor-pointer text-xs hover:text-foreground">
         Data details<span className="sr-only"> for {row.name}</span>
       </summary>
-      <dl className="mt-2 space-y-1 text-[11px]">
+      <dl className="mt-2 space-y-2 rounded-lg bg-muted/65 p-3 text-xs leading-relaxed">
         <div>
           <dt className="inline font-medium">Reporting timezone: </dt>
           <dd className="inline">{row.reportingTimeZone ?? "UTC"}</dd>
@@ -121,72 +121,83 @@ export function MetricCategoryTable({
   previousLabel,
 }: MetricCategoryTableProps) {
   return (
-    <Card className="overflow-hidden print:break-inside-avoid">
-      <div className="flex items-center gap-2 border-b border-border/80 px-5 py-3 print:py-1 bg-slate-50/50 dark:bg-slate-900/50">
-        <MetricIcon category={category} className="h-6 w-6" />
-        <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{title}</h2>
+    <Card className="overflow-hidden shadow-xs print:break-inside-avoid">
+      <div className="flex items-center gap-3 border-b border-border/80 bg-card px-5 py-4 print:py-1">
+        <MetricIcon category={category} className="h-8 w-8 rounded-lg" />
+        <h2 className="text-sm font-semibold tracking-tight text-foreground">{title}</h2>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] table-fixed text-xs print:min-w-0">
+      <div className="overflow-x-auto" role="region" aria-label={`${title} metrics`} tabIndex={0}>
+        <table className="w-full min-w-[680px] table-fixed text-[13px] print:min-w-0">
           <colgroup>
-            <col className="w-[32%]" />
+            <col className="w-[30%]" />
             <col className="w-[18%]" />
             <col className="w-[18%]" />
             <col className="w-[16%]" />
-            <col className="w-[16%]" />
+            <col className="w-[18%]" />
           </colgroup>
           <thead>
-            <tr className="border-b border-border/80 bg-slate-50/30 dark:bg-slate-900/30 text-left font-semibold text-muted-foreground">
-              <th className="py-2 px-4">Metric</th>
-              <th className="py-2 px-3 text-right text-foreground bg-[#009ca6]/[0.06]">
+            <tr className="border-b border-border/80 bg-muted/45 text-left text-xs font-medium text-muted-foreground">
+              <th scope="col" className="px-5 py-3">
+                Metric
+              </th>
+              <th scope="col" className="px-4 py-3 text-right text-primary bg-primary/[0.06]">
                 {currentLabel}
               </th>
-              <th className="py-2 px-3 text-right">{previousLabel}</th>
-              <th className="py-2 px-3 text-right">Target</th>
-              <th className="py-2 px-3 text-right">Status</th>
+              <th scope="col" className="px-4 py-3 text-right">
+                {previousLabel}
+              </th>
+              <th scope="col" className="px-4 py-3 text-right">
+                Target
+              </th>
+              <th scope="col" className="px-4 py-3 text-right">
+                Status
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60">
             {rows.map((row) => (
               <tr key={row.definitionId} className="hover:bg-muted/30 transition-colors">
-                <th scope="row" className="py-2.5 px-4 text-left font-semibold text-foreground">
+                <th
+                  scope="row"
+                  className="px-5 py-4 align-top text-left font-semibold text-foreground"
+                >
                   {row.name}
                   {row.key === "avg_handle_time" && row.sourceDescription && (
-                    <p className="mt-1 max-w-56 text-[10px] font-normal text-muted-foreground">
+                    <p className="mt-1 max-w-56 text-xs font-normal text-muted-foreground">
                       Source measures full resolution time, not active handling time.
                     </p>
                   )}
                   <MetricDataDetails row={row} />
                 </th>
-                <td className="py-2.5 px-3 text-right font-bold text-foreground bg-[#009ca6]/[0.06]">
+                <td className="px-4 py-4 align-top text-right font-semibold tabular-nums text-foreground bg-primary/[0.045]">
                   <MetricValue value={row.currentValue} unit={row.unit} valueType={row.valueType} />
                   {row.qualityStatus === TICKET_ATTRIBUTION_QUALITY && (
-                    <p className="mt-1 max-w-44 text-[10px] font-normal text-muted-foreground">
+                    <p className="mt-1 ml-auto max-w-52 text-xs font-normal text-muted-foreground">
                       {TICKET_ATTRIBUTION_REASON}
                     </p>
                   )}
                   {row.currentValue === null && row.missingReason && (
-                    <p className="mt-1 max-w-44 text-[10px] font-normal text-muted-foreground">
+                    <p className="mt-1 ml-auto max-w-52 text-xs font-normal text-muted-foreground">
                       {row.missingReason}
                     </p>
                   )}
                   {row.currentValue !== null && row.qualityStatus !== "complete" && (
-                    <p className="mt-1 text-[10px] font-normal text-muted-foreground">
+                    <p className="mt-1 text-xs font-normal text-muted-foreground">
                       {qualityLabels.get(row.qualityStatus) ?? "Unverified"} data
                     </p>
                   )}
                 </td>
-                <td className="py-2.5 px-3 text-right text-muted-foreground">
+                <td className="px-4 py-4 align-top text-right tabular-nums text-muted-foreground">
                   <MetricValue
                     value={row.previousValue}
                     unit={row.unit}
                     valueType={row.valueType}
                   />
                 </td>
-                <td className="py-2.5 px-3 text-right text-muted-foreground">
+                <td className="px-4 py-4 align-top text-right tabular-nums text-muted-foreground">
                   <TargetCell row={row} />
                 </td>
-                <td className="py-2.5 px-3 text-right">
+                <td className="px-4 py-4 align-top text-right">
                   <div className="flex justify-end">
                     <StatusBadge status={row.status.status} />
                   </div>
