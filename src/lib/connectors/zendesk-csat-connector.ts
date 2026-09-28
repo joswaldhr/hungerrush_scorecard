@@ -117,11 +117,14 @@ export function createCsatConnector(policy: ZendeskCsatPolicy) {
       throw new Error("Invalid CSAT week offset");
     const { periodStart, periodEnd } = weekDates(offset);
     const bindings = await loadCsatEmployeeBindings(policy, config, periodStart);
-    const reader = createBoundedCsatReader({
-      subdomain: env.ZENDESK_SUBDOMAIN ?? "",
-      email: env.ZENDESK_EMAIL ?? "",
-      apiKey: env.ZENDESK_API_KEY ?? "",
-    });
+    const reader = createBoundedCsatReader(
+      {
+        subdomain: env.ZENDESK_SUBDOMAIN ?? "",
+        email: env.ZENDESK_EMAIL ?? "",
+        apiKey: env.ZENDESK_API_KEY ?? "",
+      },
+      { maxRateLimitRetries: 1 }
+    );
     const result = await collectCsatRecords(policy, periodStart, periodEnd, bindings, reader.read);
     return {
       records: result.records,

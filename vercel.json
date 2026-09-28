@@ -1,4 +1,9 @@
 {
+  "git": {
+    "deploymentEnabled": {
+      "codex/csat-bounded-recovery": false
+    }
+  },
   "crons": [
     {
       "path": "/api/cron/outbound?week=0",
