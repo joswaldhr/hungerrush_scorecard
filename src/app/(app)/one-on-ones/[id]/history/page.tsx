@@ -11,10 +11,6 @@ import {
   type ValueType,
 } from "@/lib/domain/metrics/types";
 import { formatWeekRangeLong } from "@/lib/utils";
-import {
-  TICKET_ATTRIBUTION_QUALITY,
-  TICKET_ATTRIBUTION_REASON,
-} from "@/lib/domain/metrics/availability";
 
 export default async function StoredPeriodsPage({
   params,
@@ -64,8 +60,8 @@ export default async function StoredPeriodsPage({
       <p className="text-sm text-muted-foreground">
         Each interval shows its stored values separately, including older reporting calendars.
         Overlapping intervals are not added together. Historical targets and employee context have
-        not been verified for these snapshots. Unverified human ticket activity is unavailable;
-        original stored evidence is preserved.
+        not been verified for these snapshots. Unverified human ticket activity and active handling
+        time are unavailable; original stored evidence is preserved.
       </p>
       {history.selected ? (
         <>
@@ -132,11 +128,7 @@ export default async function StoredPeriodsPage({
                         ? "—"
                         : formatMetricValue(row.numericValue, row.unit, row.valueType as ValueType)}
                     </td>
-                    <td className="p-3">
-                      {row.quality === TICKET_ATTRIBUTION_QUALITY
-                        ? TICKET_ATTRIBUTION_REASON
-                        : row.quality}
-                    </td>
+                    <td className="p-3">{row.unavailableReason ?? row.quality}</td>
                     <td className="p-3">{row.observedAt?.toISOString() ?? "Unavailable"}</td>
                     <td className="p-3">{row.calculationVersion}</td>
                   </tr>
@@ -191,11 +183,7 @@ export default async function StoredPeriodsPage({
                                     row.valueType as ValueType
                                   )}
                             </td>
-                            <td className="p-3">
-                              {row.evidence.quality === TICKET_ATTRIBUTION_QUALITY
-                                ? TICKET_ATTRIBUTION_REASON
-                                : row.evidence.quality}
-                            </td>
+                            <td className="p-3">{row.unavailableReason ?? row.evidence.quality}</td>
                             <td className="p-3">{row.evidence.observedAt ?? "Unavailable"}</td>
                             <td className="p-3">
                               {row.evidence.calculationVersion}

@@ -15,7 +15,7 @@ import { resolveTarget, evaluateStatus } from "./target-resolution";
 import { resolveVisibility } from "./visibility-resolution";
 import type { Direction, ResolvedTarget, ValueType } from "./types";
 import { isEffectiveOn, sevenDayPeriodEnd } from "./effective-dates";
-import { requiresTicketAttributionVerification, TICKET_ATTRIBUTION_QUALITY } from "./availability";
+import { metricReadRestriction } from "./availability";
 import {
   metricSourceDescription,
   metricSourceName,
@@ -231,17 +231,19 @@ export async function getEmployeeMetricsBatch(
           line: t.line,
         }));
 
+      const restriction = metricReadRestriction(def);
       const resolvedTarget =
-        historicalTargetContext || sourceContext !== null
+        historicalTargetContext || sourceContext !== null || restriction?.withholdTarget
           ? null
           : resolveTarget(candidateTargets, employeeId, null, teamId, employeeLine);
       const direction = def.direction as Direction;
       const valueType = def.valueType as ValueType;
-      const attributionUnavailable = requiresTicketAttributionVerification(def);
-      const currentValue = attributionUnavailable ? null : (current?.numericValue ?? null);
+      const currentValue = restriction ? null : (current?.numericValue ?? null);
       const missingReason =
         currentValue === null
-          ? unsupportedMetricReason(def.key, def.sourceStrategy, sourceContext)
+          ? restriction?.withholdTarget
+            ? restriction.reason
+            : unsupportedMetricReason(def.key, def.sourceStrategy, sourceContext)
           : null;
 
       rows.push({
@@ -256,21 +258,22 @@ export async function getEmployeeMetricsBatch(
         isPrimary: assign.isPrimary,
         currentValue,
         previousValue:
-          attributionUnavailable || !comparisonCompatible ? null : (previous?.numericValue ?? null),
+          restriction || !comparisonCompatible ? null : (previous?.numericValue ?? null),
         target: resolvedTarget,
         status: evaluateStatus(currentValue, resolvedTarget, direction),
-        qualityStatus: attributionUnavailable
-          ? TICKET_ATTRIBUTION_QUALITY
+        qualityStatus: restriction
+          ? restriction.quality
           : missingReason && sourceContext === null
             ? "unsupported"
             : (current?.qualityStatus ?? "missing"),
         dataFreshnessAt: current?.dataFreshnessAt ?? null,
         calculationVersion: current?.calculationVersion ?? 0,
-        targetContextStatus: sourceContext
-          ? "source_unverified"
-          : historicalTargetContext
-            ? "historical_unverified"
-            : "current",
+        targetContextStatus:
+          sourceContext || restriction?.withholdTarget
+            ? "source_unverified"
+            : historicalTargetContext
+              ? "historical_unverified"
+              : "current",
         sourceDescription: metricSourceDescription(def.key, def.sourceStrategy, sourceContext),
         sourceContract: sourceContext?.sourceContract ?? null,
         reportingTimeZone: sourceContext?.reportingTimeZone ?? "UTC",

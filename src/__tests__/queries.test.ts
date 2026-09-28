@@ -30,6 +30,8 @@ import {
 } from "@/lib/domain/metrics/source-context";
 import { getEmployeeMetricsBatch } from "@/lib/domain/metrics/queries";
 import { getStoredMetricHistory } from "@/lib/domain/metrics/history";
+import { HANDLE_TIME_REASON } from "@/lib/domain/metrics/availability";
+import { exportCsv } from "@/lib/domain/metrics/export-snapshot";
 import type { ManagerContext } from "@/lib/auth/authorization";
 
 // queries.ts imports assertCanAccessEmployee from authorization.ts, which
@@ -389,7 +391,7 @@ describe("getEmployeeMetricsBatch", () => {
       vi.setSystemTime(new Date("2026-09-16T12:00:00Z"));
     }
   });
-  it("withholds unverified Zendesk ticket activity from current, comparison and history without rewriting storage", async () => {
+  it("withholds unverified Zendesk activity and handling time from reads and exports without rewriting storage", async () => {
     const [previous] = await db
       .insert(metricValues)
       .values({
@@ -404,7 +406,8 @@ describe("getEmployeeMetricsBatch", () => {
       })
       .returning();
     try {
-      for (const key of ["tickets_updated", "tickets_resolved"]) {
+      for (const key of ["tickets_updated", "tickets_resolved", "avg_handle_time"]) {
+        const quality = key === "avg_handle_time" ? "unsupported" : "unverified_attribution";
         await db
           .update(metricDefinitions)
           .set({ key, sourceStrategy: "zendesk" })
@@ -421,7 +424,7 @@ describe("getEmployeeMetricsBatch", () => {
         ).toMatchObject({
           currentValue: null,
           previousValue: null,
-          qualityStatus: "unverified_attribution",
+          qualityStatus: quality,
           status: { status: "no_data" },
         });
         const history = await getStoredMetricHistory(
@@ -431,8 +434,76 @@ describe("getEmployeeMetricsBatch", () => {
         );
         expect(history.rows.find((row) => row.id === previous!.id)).toMatchObject({
           numericValue: null,
-          quality: "unverified_attribution",
+          quality,
         });
+        if (key === "avg_handle_time") {
+          const row = batch.get(RESTAURANT_EMP_ID)!.find((r) => r.definitionId === RANGE_DEF_ID)!;
+          expect(row).toMatchObject({
+            target: null,
+            targetContextStatus: "source_unverified",
+            missingReason: HANDLE_TIME_REASON,
+          });
+          expect(history.rows.find((r) => r.id === previous!.id)?.unavailableReason).toBe(
+            HANDLE_TIME_REASON
+          );
+          const csv = exportCsv(
+            {
+              employeeName: "Synthetic",
+              periodLabel: PERIOD_START,
+              previousPeriodLabel: PREVIOUS_PERIOD_START,
+              metrics: [
+                {
+                  ...row,
+                  status: row.status.status,
+                  dataFreshnessAt: row.dataFreshnessAt?.toISOString() ?? null,
+                  targetValue: null,
+                  targetType: null,
+                  targetMin: null,
+                  targetMax: null,
+                  targetSource: null,
+                },
+              ],
+            },
+            (status) => status
+          );
+          expect(csv).toContain('"—","—","—","no_data","unsupported"');
+          expect(csv).toContain(HANDLE_TIME_REASON);
+          // Zero cannot become an On Track result for an incompatible source either.
+          await db
+            .update(metricValues)
+            .set({ numericValue: 0 })
+            .where(
+              and(
+                eq(metricValues.employeeId, RESTAURANT_EMP_ID),
+                eq(metricValues.metricDefinitionId, RANGE_DEF_ID),
+                eq(metricValues.periodStart, PERIOD_START)
+              )
+            );
+          const zero = await getEmployeeMetricsBatch(
+            ctxFor([RESTAURANT_EMP_ID]),
+            [RESTAURANT_EMP_ID],
+            MENUFY_TEAM_ID,
+            PERIOD_START,
+            PREVIOUS_PERIOD_START
+          );
+          expect(
+            zero.get(RESTAURANT_EMP_ID)?.find((r) => r.definitionId === RANGE_DEF_ID)
+          ).toMatchObject({
+            currentValue: null,
+            target: null,
+            status: { status: "no_data" },
+          });
+          await db
+            .update(metricValues)
+            .set({ numericValue: 15 })
+            .where(
+              and(
+                eq(metricValues.employeeId, RESTAURANT_EMP_ID),
+                eq(metricValues.metricDefinitionId, RANGE_DEF_ID),
+                eq(metricValues.periodStart, PERIOD_START)
+              )
+            );
+        }
       }
       const [stored] = await db
         .select()
@@ -457,6 +528,16 @@ describe("getEmployeeMetricsBatch", () => {
           ?.currentValue
       ).toBe(15);
     } finally {
+      await db
+        .update(metricValues)
+        .set({ numericValue: 15 })
+        .where(
+          and(
+            eq(metricValues.employeeId, RESTAURANT_EMP_ID),
+            eq(metricValues.metricDefinitionId, RANGE_DEF_ID),
+            eq(metricValues.periodStart, PERIOD_START)
+          )
+        );
       await db
         .update(metricDefinitions)
         .set({ key: "test_range_metric", sourceStrategy: null })

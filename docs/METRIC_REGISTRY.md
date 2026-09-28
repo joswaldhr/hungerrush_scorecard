@@ -21,6 +21,10 @@ This is a reference document, not application code. It exists so that "what does
 
 ## Live metrics (5)
 
+September 28 read policy: legacy Zendesk `avg_handle_time` is unavailable, including its
+comparison and target judgment, because full-resolution time is not active handling time.
+Storage is preserved. The table below describes the legacy configuration, not certification.
+
 | Field | Tickets Resolved | Avg Handle Time | CSAT Score | Backlog | Avg Response Time |
 |---|---|---|---|---|---|
 | Key | `tickets_resolved` | `avg_handle_time` | `csat_score` | `backlog_count` | `avg_response_time` |

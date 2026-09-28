@@ -1,0 +1,23 @@
+{
+  "observedAt": "2026-09-28T17:58:46.775796+00:00",
+  "candidateSha": "ea96e216c70800e5882535aab64a90a3c502752e",
+  "deploymentId": "dpl_7USTAvD484JVVQ3Ku4K5tiYaWmbj",
+  "environment": "parent-verified isolated branch Preview",
+  "syntheticOnly": true,
+  "databaseWrites": false,
+  "zendeskAccess": false,
+  "actualBrowserDownload": true,
+  "pdfBytes": 955294,
+  "pdfSha256": "92d4ba633d62ca921ecae7f45f44a78d9288b8945e78b3ea8b282702d56d568e",
+  "pages": 1,
+  "imageDimensions": [
+    1988,
+    4858
+  ],
+  "decodedPixelsSha256": "9188ac54684bd42b07f38295af9e05b9af92f25b4b6930f216cae2e7e50a589f",
+  "baselinePdfBytes": 28976447,
+  "decodedPixelsMatchPreviouslyInspectedHostedPdf": true,
+  "allTwelveRowsAndSourceAppendixRenderedAndVisuallyInspected": true,
+  "clippingObserved": false,
+  "reductionPercent": 96.7
+}

@@ -2,6 +2,35 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 28, 18:08 UTC — visual refresh live; POS outbound publication verified:**
+PR36 and its contained UI PR35 merged to `390dae9154a2bff75da374580a21330462baf964`.
+Final candidate `ea96e21` passed CI 36461746114/36461753911; master CI 36462126005
+also passed. The final hosted PDF is 955,294 bytes rather than 28,976,447, with
+identical decoded pixels and all 12 synthetic rows/source appendix inspected.
+Fresh 17:58 encrypted backup restored 33 tables / 63,132 rows with exact digests.
+The production build was READY but the earlier rollback had retained the old alias;
+explicit promotion succeeded. `dpl_DvfxY6H3bNESQvQByoHMQvgVemJN` now owns production.
+Administrator and POS manager reads verified the refreshed UI and all 39 employees.
+All seven protected data checks and 18 environment entries were unchanged by release;
+the outbound route returns HTTP 200, `enabled:false`. Both new policies remain absent.
+
+The separate POS canary and widening then published five current-week outbound metrics
+for all 39 employees: 195 independently matching values, zero differences, 143 retained
+predecessor revisions, unchanged unrelated/history metrics, legacy facts and assignments.
+The scoped live canary view and actual 10,275-byte CSV match all five results, time units,
+Central timezone and withheld incompatible comparisons/targets. These are controlled
+executions, not scheduler evidence. See the POS release manifest and production reports.
+Production arithmetic coverage increases to **14/40 assignments**; full-contract
+certification remains **0/40**. Reliable scheduling and remaining source/target contracts
+are unresolved; the paid hosting question remains pending and no billing changed.
+
+The live check also reproduced a remaining false performance judgment: legacy Zendesk
+`avg_handle_time` stores full-resolution business time but can display numeric zero and
+an On Track handling-time status. Its explanatory caption does not resolve the semantic
+mismatch. Next focused correction contains that misleading read/status/export while the
+actual handling-effort source is qualified. Do not rewrite retained source/history values
+or change qualified CSAT/first-reply or the approved human-only ticket policy incidentally.
+
 **September 28, 17:56 UTC — combined UI hosted checks pass; final PDF size fix under CI:**
 The user-requested UI agent's work is integrated into PR36 on the existing isolated
 Preview. Combined `08b95e0` passed both exact CI runs 36460314540/36460319508 (802 tests,

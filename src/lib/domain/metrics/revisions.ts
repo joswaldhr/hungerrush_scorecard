@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { dataSources, metricDefinitions, syncRevisions, syncRuns } from "@/lib/db/schema";
 import { assertCanAccessEmployee, type ManagerContext } from "@/lib/auth/authorization";
 import { assertOrganizationResource } from "@/lib/auth/organization-scope";
-import { requiresTicketAttributionVerification, TICKET_ATTRIBUTION_QUALITY } from "./availability";
+import { metricReadRestriction } from "./availability";
 import { readMetricSourceContext } from "./source-context";
 import { metricSourceName } from "./source-description";
 
@@ -94,6 +94,7 @@ export async function getStoredMetricRevisions(
       .slice(0, 25)
       .map(({ evidence, key, sourceStrategy, cursorAt: _cursorAt, ...row }) => {
         const parsed = evidenceSchema.safeParse(evidence);
+        const restriction = metricReadRestriction({ key, sourceStrategy });
         let context;
         try {
           context = parsed.success
@@ -104,7 +105,7 @@ export async function getStoredMetricRevisions(
               })
             : null;
         } catch {
-          return { ...row, evidence: null };
+          return { ...row, evidence: null, unavailableReason: restriction?.reason ?? null };
         }
         const safeEvidence = parsed.success
           ? {
@@ -117,9 +118,10 @@ export async function getStoredMetricRevisions(
         return {
           ...row,
           name: metricSourceName(row.name, key, context),
+          unavailableReason: restriction?.reason ?? null,
           evidence: safeEvidence
-            ? requiresTicketAttributionVerification({ key, sourceStrategy })
-              ? { ...safeEvidence, numericValue: null, quality: TICKET_ATTRIBUTION_QUALITY }
+            ? restriction
+              ? { ...safeEvidence, numericValue: null, quality: restriction.quality }
               : safeEvidence
             : null,
         };

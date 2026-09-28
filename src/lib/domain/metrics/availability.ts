@@ -16,3 +16,19 @@ export function requiresTicketAttributionVerification(definition: {
 export const TICKET_ATTRIBUTION_QUALITY = "unverified_attribution";
 export const TICKET_ATTRIBUTION_REASON = "Human activity attribution has not been verified.";
 export const HISTORICAL_TARGET_REASON = "Historical target context has not been verified.";
+
+export const HANDLE_TIME_REASON =
+  "Active handling time is unavailable; the current source measures full resolution time.";
+
+/** Read containment only: preserve the stored observation and its revisions. */
+export function metricReadRestriction(definition: { key: string; sourceStrategy: string | null }) {
+  if (requiresTicketAttributionVerification(definition))
+    return {
+      quality: TICKET_ATTRIBUTION_QUALITY,
+      reason: TICKET_ATTRIBUTION_REASON,
+      withholdTarget: false,
+    };
+  if (definition.sourceStrategy === "zendesk" && definition.key === "avg_handle_time")
+    return { quality: "unsupported", reason: HANDLE_TIME_REASON, withholdTarget: true };
+  return null;
+}

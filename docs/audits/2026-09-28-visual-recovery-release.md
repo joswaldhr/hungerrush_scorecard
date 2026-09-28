@@ -1,5 +1,14 @@
 # Scorecard visual refresh and inactive parent recovery release
 
+Released: PR36 merged to `390dae9`. Final head `ea96e21` passed CI 36461746114 and
+36461753911; master CI 36462126005 passed. Actual final hosted PDF: 955,294 bytes,
+identical decoded pixels, all 12 rows and source appendix inspected. Fresh 17:58 backup
+restored all 33 tables / 63,132 rows with exact digests. Production required explicit
+promotion after the earlier rollback; `dpl_DvfxY6H3bNESQvQByoHMQvgVemJN` owns the alias.
+Admin/POS manager reads pass, 39 employees visible; seven protected data checks and all
+18 environment entries unchanged. Outbound disabled-route check: HTTP 200, enabled false.
+See the final hosted PDF, final backup and visual production deployment JSON reports.
+
 Application candidate: `e13d42a`, PR36, adding lossless PDF compression to the
 previously verified combined candidate `08b95e0`. Final exact CI remains required.
 UI commit `fe34493` was separately reviewed in PR35 and integrated into the existing

@@ -9,9 +9,8 @@ import type { ManagerContext } from "@/lib/auth/authorization";
 import { and, desc, eq, exists, inArray, or, getTableColumns } from "drizzle-orm";
 import { z } from "zod";
 import {
-  requiresTicketAttributionVerification,
+  metricReadRestriction,
   TICKET_ATTRIBUTION_QUALITY,
-  TICKET_ATTRIBUTION_REASON,
 } from "@/lib/domain/metrics/availability";
 
 function visibleRun(ctx: ManagerContext) {
@@ -48,7 +47,9 @@ function scopedCounts(results: { status: string }[]) {
     mismatchCount: results.filter((r) => r.status === "mismatch").length,
     sourceMissingCount: results.filter((r) => r.status === "source_missing").length,
     cadenceMissingCount: results.filter((r) => r.status === "cadence_missing").length,
-    unavailableCount: results.filter((r) => r.status === TICKET_ATTRIBUTION_QUALITY).length,
+    unavailableCount: results.filter(
+      (r) => r.status === TICKET_ATTRIBUTION_QUALITY || r.status === "unsupported"
+    ).length,
   };
 }
 
@@ -76,7 +77,8 @@ async function scopedResults(ctx: ManagerContext, runIds: string[]) {
       )
     );
   return rows.map(({ sourceStrategy, definitionKey, ...result }) => {
-    if (requiresTicketAttributionVerification({ key: definitionKey, sourceStrategy }))
+    const restriction = metricReadRestriction({ key: definitionKey, sourceStrategy });
+    if (restriction)
       return {
         ...result,
         cadenceValue: null,
@@ -84,8 +86,8 @@ async function scopedResults(ctx: ManagerContext, runIds: string[]) {
         absoluteDelta: null,
         relativeDeltaPct: null,
         notes: null,
-        status: TICKET_ATTRIBUTION_QUALITY,
-        unavailableReason: TICKET_ATTRIBUTION_REASON,
+        status: restriction.quality,
+        unavailableReason: restriction.reason,
       };
     return { ...result, unavailableReason: null };
   });

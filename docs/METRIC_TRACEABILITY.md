@@ -68,6 +68,13 @@ Zendesk ticket status (solved/closed count, updated in period)
 
 ## Avg Handle Time
 
+September 28 containment: the legacy source below measures full-resolution elapsed business
+time, not active employee handling. Manager current/comparison/history/revision readers withhold
+its numeric values, target and performance judgment, with an explicit unavailable reason in
+exports. Reconciliation cannot label matching legacy resolution values as verified handling.
+Original stored values and revisions remain intact. A qualified handling-effort source is still
+required; this containment does not complete metric reporting.
+
 ```
 Zendesk full_resolution_time_in_minutes.business, tickets created in period
   → zendesk.ts:168-172 businessMinutes() excludes business===0 && calendar>0 as unmeasured
