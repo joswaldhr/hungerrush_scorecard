@@ -2,6 +2,22 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 28, 15:54 UTC — PR33 qualified for code release:** final application candidate
+`d3f57ec` passed both CI runs 36446226518/36446232635 (788 tests / 104 files, migrations,
+typecheck, lint and build). The full local run exposed a second old fixture carrying the
+same incorrect record type; it was corrected before final CI. Hosted synthetic publication
+passed all five outbound values, fractional precision, replay, null correction and retained
+revisions. Current/stored-period views and actual CSV/PDF/PNG bytes match; all six category
+tables share column positions. See `2026-09-28-outbound-hosted-publication.json`.
+
+The existing Preview secret was consumed only inside its build environment, resolving the
+credential-retrieval blocker without extracting it. The shared build command is unchanged.
+The 15:51 UTC fresh encrypted backup restored 33 tables / 48,778 rows with matching digests;
+the recovery cluster stopped and private files remain retained. The release manifest records
+rollback to `670fe22` / `dpl_EFzonruTEMUEzGazCkJFbU7YvVo1`. Production deployment and
+metric activation are not yet claimed. Live joined-source qualification and controlled
+publication remain the next activation gates; human metrics and Zendesk restrictions remain.
+
 **September 28, 15:43 UTC — outbound activation defect reproduced and corrected locally:**
 the staging credential dependency was resolved by executing the scoped synthetic rehearsal
 inside a Preview build using its existing branch credential, without extracting any secret.
