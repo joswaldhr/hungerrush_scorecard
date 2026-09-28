@@ -2,6 +2,19 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 28, 15:19 UTC — acceptance clarified:** the user explicitly requires 100%
+accuracy and reporting across all assigned metrics. The metric acceptance ledger now
+defines completion per employee/period/key: verified meaning and attribution, complete
+source populations, independent reconciliation, actual publication/display/export parity,
+compatible targets and genuine scheduled operation. Disabled/unavailable metrics caused
+by unresolved defects do not count as complete; legitimate verified no-sample results
+must be distinguished from missing evidence. The denominator remains 23 keys / 40 team
+assignments, with 4 assignments' production arithmetic verified and no claim of full-contract
+certification. Updated outbound rows reflect retained reference checks already completed,
+not new source reads or activation. The staging credential is still absent; no Zendesk or
+production changes were made in this acceptance update. Deployment readiness does not
+meet the user's full metric requirement, and completion by the deadline is not established.
+
 **September 28, 14:51 UTC — production deployed:** PR32 merged at 14:46 UTC to
 `670fe2275ee257da687e8b8b414bf4b438c291b2`. Vercel deployment
 `dpl_EFzonruTEMUEzGazCkJFbU7YvVo1` is READY and owns the production alias. Final PR
