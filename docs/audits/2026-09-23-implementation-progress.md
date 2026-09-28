@@ -1,5 +1,15 @@
 # Audit implementation — current checkpoint
 
+**September 28 — presentation demo and navigation candidate:** The requested parallel
+UI agent's sidebar upgrade is integrated locally. A separate authenticated `/demo`
+workspace contains 15 invented full-name employees (8 POS, 7 Menufy) and 22 complete
+synthetic metrics each, with prior-week comparisons, sample targets and current-week
+neutral progress. Exact allowlisting and a production-deployment denial protect entry;
+no live data is read, seeded or changed. Local authenticated roster/scorecard inspection,
+typecheck and 840 tests / 109 files pass. Hosted release and actual export checks are
+pending. Adam's exact work email is still needed for his entry; no access was guessed
+or provisioned. See `2026-09-28-presentation-demo.md`. PR38 remains separate/inactive.
+
 **September 28 — last-week review candidate:** A focused branch based on production
 implements the approved default previous-week review, explicit current-week progress
 mode, availability summary, interval filenames, fixed-week share links and history

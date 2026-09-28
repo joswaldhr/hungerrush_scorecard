@@ -34,6 +34,9 @@ interface ScorecardBodyProps {
   managerName: string | null;
   initialPeriodStart: string;
   initialRows: EmployeeMetricRow[];
+  loadWeekAction?: (employeeId: string, periodStart: string) => Promise<EmployeeMetricRow[]>;
+  basePath?: "/one-on-ones" | "/demo/one-on-ones";
+  demoLabel?: string;
 }
 
 const CACHE_TTL_MS = 60_000;
@@ -46,6 +49,9 @@ export function ScorecardBody({
   managerName,
   initialPeriodStart,
   initialRows,
+  loadWeekAction = getWeekMetrics,
+  basePath = "/one-on-ones",
+  demoLabel,
 }: ScorecardBodyProps) {
   const [periodStart, setPeriodStart] = useState(initialPeriodStart);
   const [snapshot, setSnapshot] = useState({ periodStart: initialPeriodStart, rows: initialRows });
@@ -67,7 +73,7 @@ export function ScorecardBody({
       }
       setLoading(true);
       try {
-        const rows = await getWeekMetrics(employeeId, ps);
+        const rows = await loadWeekAction(employeeId, ps);
         // A slow response may never replace a more recently requested period.
         if (request !== requestRef.current) return;
         if (cacheRef.current.size >= 8) cacheRef.current.clear();
@@ -81,7 +87,7 @@ export function ScorecardBody({
         if (request === requestRef.current) setLoading(false);
       }
     },
-    [employeeId]
+    [employeeId, loadWeekAction]
   );
 
   // Seed the cache from the server snapshot; invalidate pending work on unmount.
@@ -230,7 +236,7 @@ export function ScorecardBody({
                 periodStart={presentation.periodStart}
                 periodEnd={presentation.periodEnd}
                 mode={presentation.mode}
-                periodLabel={presentation.periodLabel}
+                periodLabel={[demoLabel, presentation.periodLabel].filter(Boolean).join(" · ")}
                 previousPeriodLabel={presentation.previousPeriodLabel}
                 metrics={scorecardMetrics}
               />
@@ -263,6 +269,11 @@ export function ScorecardBody({
         </div>
       ) : (
         <div id={SCORECARD_CAPTURE_ID} className="space-y-5">
+          {demoLabel && (
+            <p className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm font-semibold">
+              {demoLabel}
+            </p>
+          )}
           <p className="sr-only" role="status">
             Loaded {formatWeekRangeLong(periodStart, periodEnd)}
           </p>
@@ -287,11 +298,11 @@ export function ScorecardBody({
                 </p>
               </div>
               <Link
-                href={`/one-on-ones/${employeeId}/history?${new URLSearchParams({ returnWeek: presentation.periodStart })}`}
+                href={`${basePath}/${employeeId}/history?${new URLSearchParams({ returnWeek: presentation.periodStart })}`}
                 className="text-xs font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground print:hidden"
                 data-html2canvas-ignore="true"
               >
-                Stored reporting periods
+                {demoLabel ? "Demo reporting weeks" : "Stored reporting periods"}
               </Link>
             </div>
             <p className="mt-4 text-sm font-medium">{presentation.availability}</p>

@@ -191,6 +191,20 @@ docs/DATA_MODEL.md's MetricTarget/MetricVisibilityOverride entries.
 - **Assembled** --- evaluated and dropped. Connector code removed. `schedule_adherence` metric definition still exists (unassigned). Residual `ASSEMBLED_API_KEY` env var reference in `env.ts`.
 - **Rippling** --- no connector built. A "Open Rippling" link-out exists on the 1:1 page via `RIPPLING_MANAGER_URL`. Residual env var reference in `env.ts`.
 
+### Presentation workspace (isolated Preview only)
+
+The `/demo/one-on-ones` workspace illustrates the manager journey with 15 fictional
+employees across POS and Menufy. It uses the real scorecard UI with a separate synthetic
+provider: 22 populated metrics, sample targets, prior-week comparisons and current-week
+progress. People, values, observations and targets are explicitly labeled as fictional,
+including exports. Demonstrated handling time, first-contact resolution and adherence
+do not imply those integrations or accuracy certifications exist in production.
+
+Normal sign-in and an explicit email allowlist are required. The workspace cannot run
+on a production Vercel deployment; it never queries or seeds the live roster/metrics.
+Demo reporting-week links are scenarios, not stored vendor evidence or revision history.
+See the [demo release record](audits/2026-09-28-presentation-demo.md).
+
 ### What Ships
 
 - One core screen (1:1s, including its employee picker) working from normalized Cadence-owned data
