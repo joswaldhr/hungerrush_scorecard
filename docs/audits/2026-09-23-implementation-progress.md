@@ -2,6 +2,29 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 28, 17:43 UTC — delayed-parent recovery qualified locally; UI work in parallel:**
+The automatic recovery candidate preserves the leg observation belonging to a recorded
+parent-coverage failure and performs a later calls-only read within the original freshness
+window. Replaying the actual failed namespaces in the isolated restored copy qualified all
+23 Menufy employees in 13.5 seconds / nine GETs; independent comparison matched 391 fields
+and 690 exact source sets. A subsequent retained-source qualification covers all 62 Menufy
+and POS employees: 1,054 fields and 1,860 exact sets, zero unexplained differences and no
+missing parent calls. No production metric/source writes occurred. These results do not
+activate POS or increase the 9/40 production arithmetic count or 0/40 full certification.
+
+Typecheck/lint and the full 802-test / 105-file isolated suite pass; exact final CI/build,
+fresh release recovery and hosted gates remain. The inactive inbound candidate now supports
+an explicitly versioned offered formula including unreachable legs, retaining the earlier
+three-component replay definition. No inbound publication or target changes are included.
+See `2026-09-28-outbound-parent-recovery.md` and its aggregate evidence.
+
+The current Hobby schedule cannot guarantee recovery within the joined observation window.
+A paid Pro upgrade decision is pending; no billing or scheduler change has been made.
+Production remains on the explicit rollback alias and both new policies remain absent.
+The user explicitly requested a parallel UI agent; it is working on a separate visual
+branch with synthetic fixtures and no vendor/production writes. Initial light/dark/mobile,
+column alignment and existing interaction tests pass; this is not a deployed UI claim.
+
 **September 28, 16:57 UTC — definitions inspected; outbound refresh contained; first-reply cron verified:**
 Brief, user-authorized inspection found the current Menufy offered formula includes
 unreachable legs; the inactive three-component candidate must not be published as that

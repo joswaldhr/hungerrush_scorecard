@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   reader: vi.fn(),
   support: vi.fn(),
   collect: vi.fn(),
+  recovery: vi.fn(),
 }));
 vi.mock("@/lib/env", () => ({
   env: { ZENDESK_SUBDOMAIN: "synthetic", ZENDESK_EMAIL: "synthetic", ZENDESK_API_KEY: "synthetic" },
@@ -37,6 +38,9 @@ vi.mock("@/lib/connectors/zendesk-talk-worker", () => ({
 vi.mock("@/lib/connectors/zendesk-csat-reader", () => ({ createBoundedCsatReader: mocks.support }));
 vi.mock("@/lib/connectors/zendesk-outbound-collection", () => ({
   collectOutboundRecords: mocks.collect,
+}));
+vi.mock("@/lib/connectors/zendesk-outbound-recovery", () => ({
+  planOutboundRecovery: mocks.recovery,
 }));
 import { createOutboundConnector } from "@/lib/connectors/zendesk-outbound-connector";
 const f = outboundObservationFixture();
@@ -95,6 +99,7 @@ beforeEach(() => {
   mocks.snapshot.mockResolvedValue({ status: "ready_for_qualification", snapshot: f.snapshot });
   mocks.support.mockReturnValue({ read: vi.fn(), stats: () => ({ requests: 2 }) });
   mocks.collect.mockResolvedValue({ records: [], diagnostics: { activeEmployees: 1 } });
+  mocks.recovery.mockResolvedValue({ mode: "both" });
 });
 afterEach(() => vi.useRealTimers());
 
@@ -148,4 +153,26 @@ it("rejects invalid employee bindings before consuming Talk quota", async () => 
   mocks.where.mockReset().mockResolvedValueOnce([]);
   await expect(invoke()).rejects.toThrow("source is unavailable");
   expect(mocks.batch).not.toHaveBeenCalled();
+});
+
+it("uses a qualified later calls-only attempt and rejects a concurrently changed leg observation", async () => {
+  mocks.recovery.mockResolvedValue({ mode: "calls-only", legsState: f.snapshot.legsState });
+  mocks.batch.mockResolvedValue({ status: "collected", callsExhausted: true });
+  await invoke();
+  expect(mocks.batch).toHaveBeenCalledWith(collection.scope, collection.bootstrapStart, undefined, {
+    maxPages: 22,
+    maxDurationMs: 150000,
+    mode: "calls-only",
+  });
+  expect(mocks.collect).toHaveBeenCalledOnce();
+});
+
+it("withholds publication if another collector replaced the held legs", async () => {
+  mocks.recovery.mockResolvedValue({
+    mode: "calls-only",
+    legsState: { ...f.snapshot.legsState, cycle: 0 },
+  });
+  mocks.batch.mockResolvedValue({ status: "collected", callsExhausted: true });
+  await expect(invoke()).rejects.toThrow("leg observation changed");
+  expect(mocks.collect).not.toHaveBeenCalled();
 });

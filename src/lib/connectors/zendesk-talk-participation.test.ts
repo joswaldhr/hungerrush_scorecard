@@ -101,6 +101,38 @@ describe("Talk participation qualification candidate", () => {
     expect(calculateTalkParticipation([], [], scope).inbound.durations.talk.meanSeconds).toBeNull();
   });
 
+  it("selects the current four-component offered formula without changing earlier replay meaning", () => {
+    const calls = [call(1), call(2, { call_group_id: 99 })];
+    const legs = [
+      leg(1),
+      leg(2, { completion_status: "agent_missed", talk_time: 0 }),
+      leg(3, { completion_status: "agent_declined", talk_time: 0 }),
+      leg(4, { completion_status: "agent_unreachable", talk_time: 0 }),
+      leg(5, { talk_time: 0 }),
+      leg(6, { type: "supervisor", completion_status: "agent_unreachable", talk_time: 0 }),
+      leg(7, { call_id: 2, completion_status: "agent_unreachable", talk_time: 0 }),
+    ];
+    const previous = calculateTalkParticipation(calls, legs, scope);
+    const current = calculateTalkParticipation(calls, legs, {
+      ...scope,
+      offeredDefinition: "accepted-declined-missed-unreachable",
+    });
+    expect(previous.contract).toBe("zendesk-talk-participation-candidate-v1");
+    expect(previous.inbound.reportOfferedLegIds).toEqual([1, 2, 3]);
+    expect(current.contract).toBe("zendesk-talk-participation-candidate-v2");
+    expect(current.offeredDefinition).toBe("accepted-declined-missed-unreachable");
+    expect(current.inbound.reportOfferedLegIds).toEqual([1, 2, 3, 4]);
+    expect(current.inbound.otherAgentLegIds).toEqual([5]);
+    expect(current.inbound.durations).toEqual(previous.inbound.durations);
+    expect(current.inbound.acceptedLegIds).toEqual(previous.inbound.acceptedLegIds);
+    expect(() =>
+      calculateTalkParticipation(calls, legs, {
+        ...scope,
+        offeredDefinition: "all-legs" as "accepted-declined-missed",
+      })
+    ).toThrow("Invalid Talk participation evidence");
+  });
+
   it("keeps Central call-date and leg-date cohorts distinct at the week boundary", () => {
     const calls = [call(1, { created_at: "2026-09-13T04:59:59Z" })];
     const legs = [leg(1, { created_at: "2026-09-13T05:00:00Z" })];

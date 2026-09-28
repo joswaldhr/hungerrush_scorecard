@@ -46,6 +46,12 @@ successfully (HTTP 200, 47.47-second function duration, `vercel-cron/1.0`, match
 database run). The separate outbound refresh subsequently rejected a new parent-call
 gap without changing metrics; its activation was rolled back. These observations do
 not increase the arithmetic denominator or remove remaining full-contract gates.
+At 17:40 UTC the delayed-parent recovery candidate qualified all 62 Menufy/POS employees
+from retained calls/legs with fresh bounded identity and ticket reads. Independent current-week
+comparison matched 1,054 fields and 1,860 exact source sets with no differences and no
+missing parents. This resolves the parent gap for that observation, not the general scheduler
+or POS production gates. Production remains rolled back with the new policies absent;
+see `2026-09-28-outbound-parent-recovery.md`.
 
 Execution order: finish the call publication rehearsal and source gates; perform a scoped,
 independently reconciled activation; resolve verified-human ticket activity and the handle/

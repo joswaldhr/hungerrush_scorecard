@@ -75,17 +75,19 @@ export async function runTalkCollectionBatch(
   scope: TalkStoreScope,
   bootstrapStart: number,
   read: ReturnType<typeof createTalkExportReader>,
-  options: { maxPages?: number; maxDurationMs?: number } = {}
+  options: { maxPages?: number; maxDurationMs?: number; mode?: "both" | "calls-only" } = {}
 ) {
   const maxPages = options.maxPages ?? 32,
-    maxDurationMs = options.maxDurationMs ?? 240000;
+    maxDurationMs = options.maxDurationMs ?? 240000,
+    mode = options.mode ?? "both";
   if (
     !Number.isInteger(maxPages) ||
     maxPages < 1 ||
     maxPages > 36 ||
     !Number.isInteger(maxDurationMs) ||
     maxDurationMs < 35000 ||
-    maxDurationMs > 240000
+    maxDurationMs > 240000 ||
+    !["both", "calls-only"].includes(mode)
   )
     throw Error("Invalid Talk worker budget");
   const started = Date.now(),
@@ -99,17 +101,21 @@ export async function runTalkCollectionBatch(
   try {
     const states = {
       calls: await beginTalkCollectionCycle(owned, "calls", bootstrapStart),
-      legs: await beginTalkCollectionCycle(owned, "legs", bootstrapStart),
+      // A delayed parent can arrive in a later invocation. Recover calls without
+      // advancing the retained leg observation or repeatedly introducing new gaps.
+      // The caller must still qualify the joined snapshot and its observation span.
+      legs: mode === "both" ? await beginTalkCollectionCycle(owned, "legs", bootstrapStart) : null,
     };
     while (pages < maxPages && Date.now() - started < maxDurationMs - 35000) {
       if (
         states.calls.state.cursor.status === "exhausted" &&
-        states.legs.state.cursor.status === "exhausted"
+        (states.legs === null || states.legs.state.cursor.status === "exhausted")
       )
         break;
       // Alternate streams so a long calls bootstrap cannot starve leg collection.
       for (const resource of ["calls", "legs"] as const) {
-        if (states[resource].state.cursor.status === "exhausted") continue;
+        const current = states[resource];
+        if (current === null || current.state.cursor.status === "exhausted") continue;
         if (pages >= maxPages || Date.now() - started >= maxDurationMs - 35000) break;
         let reservation = await reserveTalkRequest(owned);
         while (!reservation.reserved) {
@@ -128,7 +134,7 @@ export async function runTalkCollectionBatch(
           reservation = await reserveTalkRequest(owned);
         }
         const response = await read(
-          states[resource].state.cursor.path,
+          current.state.cursor.path,
           AbortSignal.any([deadline, AbortSignal.timeout(30000)])
         );
         if (response.rateLimited) {
@@ -144,7 +150,7 @@ export async function runTalkCollectionBatch(
         const result = await commitTalkCollectionPage(
           owned,
           resource,
-          states[resource].expectedHash,
+          current.expectedHash,
           response.page
         );
         states[resource] = result;
@@ -160,7 +166,9 @@ export async function runTalkCollectionBatch(
       revisions,
       elapsedMs: Date.now() - started,
       callsExhausted: states.calls.state.cursor.status === "exhausted",
-      legsExhausted: states.legs.state.cursor.status === "exhausted",
+      // Undefined means this invocation did not inspect or refresh the leg stream.
+      legsExhausted:
+        states.legs?.state.cursor.status === "exhausted" ? true : states.legs ? false : undefined,
       joinedMetricCoverageCertified: false as const,
     };
   } finally {

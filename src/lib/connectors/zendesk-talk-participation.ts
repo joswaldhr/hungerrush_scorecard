@@ -50,6 +50,11 @@ const scopeSchema = z.object({
   agentId: id,
   groupIds: z.array(id).min(1),
   phoneNumbers: z.array(z.string().min(1)).min(1).nullable(),
+  // Omission retains the earlier candidate for replay. A publisher must select
+  // the qualified report definition explicitly rather than infer it from a team.
+  offeredDefinition: z
+    .enum(["accepted-declined-missed", "accepted-declined-missed-unreachable"])
+    .optional(),
 });
 export type TalkParticipationScope = z.infer<typeof scopeSchema>;
 
@@ -147,7 +152,13 @@ export function calculateTalkParticipation(
     const declined = agentLegs.filter((leg) =>
       ["agent_declined", "agent_transfer_declined"].includes(leg.completion_status)
     );
-    const reportOffered = [...accepted, ...missed, ...declined];
+    const unreachable = agentLegs.filter((leg) => leg.completion_status === "agent_unreachable");
+    const reportOffered = [
+      ...accepted,
+      ...missed,
+      ...declined,
+      ...(scope.offeredDefinition === "accepted-declined-missed-unreachable" ? unreachable : []),
+    ];
     const offeredIds = new Set(reportOffered.map((leg) => leg.id));
     // Matches the inspected POS leg-duration denominator. Menufy SUM/MAX report
     // fields are comparisons only; they are not renamed as averages.
@@ -165,12 +176,8 @@ export function calculateTalkParticipation(
       acceptedLegIds: sorted(accepted.map((leg) => leg.id)),
       missedLegIds: sorted(missed.map((leg) => leg.id)),
       declinedLegIds: sorted(declined.map((leg) => leg.id)),
-      unreachableLegIds: sorted(
-        agentLegs
-          .filter((leg) => leg.completion_status === "agent_unreachable")
-          .map((leg) => leg.id)
-      ),
-      // This is the report's subtotal, NOT every offer/attempt in routing data.
+      unreachableLegIds: sorted(unreachable.map((leg) => leg.id)),
+      // This is the explicitly selected report subtotal, not every routing attempt.
       reportOfferedLegIds: sorted(offeredIds),
       otherAgentLegIds: sorted(
         agentLegs.filter((leg) => !offeredIds.has(leg.id)).map((leg) => leg.id)
@@ -193,7 +200,11 @@ export function calculateTalkParticipation(
     };
   };
   return {
-    contract: "zendesk-talk-participation-candidate-v1" as const,
+    contract:
+      scope.offeredDefinition === "accepted-declined-missed-unreachable"
+        ? ("zendesk-talk-participation-candidate-v2" as const)
+        : ("zendesk-talk-participation-candidate-v1" as const),
+    offeredDefinition: scope.offeredDefinition ?? "accepted-declined-missed",
     dateBasis: scope.dateBasis,
     inbound: summarize("inbound"),
     outbound: summarize("outbound"),

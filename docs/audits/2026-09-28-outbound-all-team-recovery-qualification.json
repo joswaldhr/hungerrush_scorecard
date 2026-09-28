@@ -1,0 +1,37 @@
+{
+  "observedAt": "2026-09-28T17:40:51.407Z",
+  "teams": [
+    "Menufy",
+    "POS"
+  ],
+  "employees": 62,
+  "sourceMethods": [
+    "GET"
+  ],
+  "requests": 7,
+  "elapsedMs": 10391,
+  "diagnostics": {
+    "family": "outbound_call_participation",
+    "periodStart": "2026-09-27",
+    "periodEnd": "2026-10-03",
+    "reportingTimeZone": "America/Chicago",
+    "policyFingerprint": "dad4950d880ae71530478bb59e0efba13cc3ccd2ad3dd7a5bf85f2ca85e16fe5",
+    "activeEmployees": 62,
+    "staffPages": 4,
+    "sourceCalls": 2425,
+    "sourceLegs": 4693,
+    "linkedTickets": 271,
+    "ticketRequests": 3,
+    "sourceIsAtomicSnapshot": false,
+    "requests": 7,
+    "elapsedMs": 9583,
+    "requestBudget": 80,
+    "elapsedBudgetMs": 90000,
+    "collectionMode": "both"
+  },
+  "sourceCalls": 2425,
+  "sourceLegs": 4693,
+  "missingParentCalls": 0,
+  "localMetricValuesUnchanged": true,
+  "productionWrites": false
+}
