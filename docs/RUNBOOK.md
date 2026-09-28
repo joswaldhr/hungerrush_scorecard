@@ -30,7 +30,9 @@ shared `.env` database.
 
 ### Talk collection and outbound candidate
 
-Both new paths default to disabled and have no entries in `vercel.json`. They require
+Both new paths default to disabled. Outbound refresh has four daily entries in
+`vercel.json` at 00:00–03:00 UTC, one for each week offset; intervals before the explicit
+cutover skip without source access. They require
 the environment's scheduler bearer credential. Configure them only after the relevant
 release checks; a route's existence is not activation or metric certification.
 
@@ -48,6 +50,18 @@ release checks; a route's existence is not activation or metric certification.
   calls/legs, and fetches bounded linked-ticket metadata before atomic publication.
   A collection policy alone never enables this publisher. No policy overrides the
   source-binding, observation, identity, assignment or transaction validation gates.
+
+The recurring outbound route requires both policies to identify the same source. It
+refreshes both Talk streams inside the same invocation before reading the retained
+snapshot and linked ticket metadata. This avoids exceeding the one-hour joined
+observation limit when separately scheduled jobs land in different hourly windows.
+Talk collection is bounded to 22 pages / 150 seconds; Support reads to 80 requests /
+90 seconds, leaving a margin within the 300-second function for database publication.
+Incomplete, busy or rate-limited collection retains checkpoints and fails publication;
+the previous metric values keep their original freshness timestamps. No partial source
+population is labeled complete. Source account leases/pacing also coordinate legacy Talk.
+The hosting plan permits daily jobs with hourly precision; these four offsets are four
+distinct daily jobs, not an hourly polling schedule. See the [Vercel scheduling limits](https://vercel.com/docs/cron-jobs/usage-and-pricing).
 
 Keep both policies unset during default Preview deployments. Synthetic rehearsal scripts
 must reject vendor credentials, verify the exact isolated database, and publish only

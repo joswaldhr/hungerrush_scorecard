@@ -2,6 +2,26 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 28, 16:25 UTC — Menufy outbound is published; automatic refresh under validation:**
+The controlled one-employee canary and subsequent 22-employee widening independently
+verified all 115 current-week outbound values, 93 predecessor revisions and unchanged
+unrelated/historical values, legacy facts, assignments and targets. Nina's live view and
+actual 8,323-byte CSV carry the correct source contract, Central timezone and zero/no-sample
+distinction; admin view was restored. Production arithmetic coverage is now 9/40 team
+assignments, not full-contract certification. POS parent gaps and target/scheduler gates remain.
+
+The next candidate performs bounded Talk collection and outbound publication within one
+invocation, avoiding hourly scheduler jitter violating the joined observation span.
+Its local real-source rehearsal took 53.4 seconds / 15 GETs; all 23 cases independently
+match 391 value/duration fields and 690 exact sets. Typecheck, lint and all 796 tests /
+105 files pass. Source/metric policies are still absent in production; code CI, fresh
+backup, deployment/configuration and hosted controlled refresh follow before activation.
+
+The user has now explicitly permitted brief inspection of existing Zendesk reports,
+requiring no edits and prompt closure. The amendment at the top of Safety Guardrails
+supersedes the earlier editor-opening prohibition only for this controlled inspection.
+No formulas, filters, report/dashboard configuration or permissions may be changed.
+
 **September 28, 16:11 UTC — outbound production code verified; Menufy activation qualified:**
 PR33 merged to `e95c3710353209f79b73201d6bd2a4d70e5b40b8`. Production deployment
 `dpl_GXbbnN2xNxFKeqq7uLTu7MCbHest` is READY and owns the alias; master CI 36447710683

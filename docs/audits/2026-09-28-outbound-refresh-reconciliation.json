@@ -1,0 +1,17 @@
+{
+  "observedAt": "2026-09-28T16:25:09.891Z",
+  "reference": "Independent Python reconstruction from full retained current call, leg and ticket populations; compared with production normalizer",
+  "periodStart": "2026-09-27",
+  "periodEnd": "2026-10-03",
+  "timeZone": "America/Chicago",
+  "employeeCases": 23,
+  "qualified": 23,
+  "blocked": 0,
+  "comparedNumericAndDurationFields": 391,
+  "exactSetComparisons": 690,
+  "unexplainedDifferences": 0,
+  "zeroCases": 12,
+  "nonzeroCases": 11,
+  "vendorRequests": 0,
+  "productionWrites": false
+}

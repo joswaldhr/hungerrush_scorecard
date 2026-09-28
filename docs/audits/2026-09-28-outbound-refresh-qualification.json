@@ -1,0 +1,43 @@
+{
+  "observedAt": "2026-09-28T16:22:09.319Z",
+  "team": "Menufy",
+  "employees": 23,
+  "sourceMethods": [
+    "GET"
+  ],
+  "requests": 15,
+  "elapsedMs": 53365,
+  "diagnostics": {
+    "family": "outbound_call_participation",
+    "periodStart": "2026-09-27",
+    "periodEnd": "2026-10-03",
+    "reportingTimeZone": "America/Chicago",
+    "policyFingerprint": "c8fcb2af82be9a2b314ceffee4d830747607912051289f47ba57bd3dc5cbfe88",
+    "activeEmployees": 23,
+    "staffPages": 4,
+    "sourceCalls": 2256,
+    "sourceLegs": 4567,
+    "linkedTickets": 236,
+    "ticketRequests": 3,
+    "sourceIsAtomicSnapshot": false,
+    "requests": 7,
+    "elapsedMs": 7961,
+    "requestBudget": 80,
+    "elapsedBudgetMs": 90000,
+    "talkCollection": {
+      "status": "collected",
+      "pages": 8,
+      "changedRecords": 277,
+      "revisions": 277,
+      "elapsedMs": 44730,
+      "callsExhausted": true,
+      "legsExhausted": true,
+      "joinedMetricCoverageCertified": false
+    }
+  },
+  "sourceCalls": 2256,
+  "sourceLegs": 4567,
+  "missingParentCalls": 5,
+  "localMetricValuesUnchanged": true,
+  "productionWrites": false
+}

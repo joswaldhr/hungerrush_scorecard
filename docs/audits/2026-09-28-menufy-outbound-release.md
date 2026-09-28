@@ -50,5 +50,24 @@ whole database or change employee assignments. The previous application `670fe22
 compatible, but reverting code alone is not metric rollback. Source collection, private
 policy activation and genuine scheduled operation require separate evidence below.
 
-Status: controlled production publication pending. Human ticket metrics, shadow ingestion,
+Controlled production publication passed at 16:14–16:15 UTC: the one-employee canary
+wrote five values and the remaining 22 employees wrote 110. All 115 independently match;
+93 predecessor values have verified revisions. Unrelated values, old source facts,
+assignments and targets are unchanged. Nina's actual current-week view and downloaded
+8,323-byte CSV retain the new source contract, Central timezone, verified zero call
+counts and explicit no-sample durations. Administrator view was restored.
+
+Automatic refresh candidate: the outbound route now requires matching collection and
+publication policies and refreshes Talk immediately before linked-ticket reads. Four
+daily week-offset jobs use 00:00–03:00 UTC, outside existing 06:00–22:00 jobs; periods
+before September 27 skip. This avoids separate collection/publication hourly windows
+exceeding the joined-observation limit. Bounded collection/support phases leave database
+time within the 300-second host limit. Incomplete streams never publish partial results.
+The local live-source rehearsal took 53.4 seconds / 15 GETs; all 23 Menufy cases independently
+match again (391 numeric/duration comparisons and 690 exact sets). The raw observations
+stay private. Full local checks pass: typecheck, lint and 796 tests / 105 files. Exact CI,
+fresh backup, deployment, private policy configuration and hosted controlled refresh
+remain required. Genuine scheduled execution cannot be claimed before it occurs.
+
+Human ticket metrics, shadow ingestion,
 action-v2 publication and historical repair remain disabled. Zendesk remains GET-only.
