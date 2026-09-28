@@ -3,8 +3,15 @@ import { env } from "@/lib/env";
 import { LoginForm } from "./login-form";
 import { SSOButton } from "./sso-button";
 import { Card, CardContent } from "@/components/ui/card";
+import { loginDestination } from "@/lib/demo/login-destination";
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ destination?: string | string[]; callbackUrl?: string | string[] }>;
+}) {
+  const query = await searchParams;
+  const destination = loginDestination(query.destination, query.callbackUrl);
   const entraConfigured = Boolean(
     env.AUTH_MICROSOFT_ENTRA_ID_ID && env.AUTH_MICROSOFT_ENTRA_ID_SECRET
   );
@@ -12,7 +19,7 @@ export default function LoginPage() {
 
   async function handleSSO() {
     "use server";
-    await signIn("microsoft-entra-id", { redirectTo: "/" });
+    await signIn("microsoft-entra-id", { redirectTo: destination });
   }
 
   return (
@@ -54,7 +61,7 @@ export default function LoginPage() {
                   </span>
                 </div>
               )}
-              <LoginForm />
+              <LoginForm destination={destination} />
             </div>
           )}
         </CardContent>

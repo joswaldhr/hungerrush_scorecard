@@ -1,7 +1,9 @@
 {
   "git": {
     "deploymentEnabled": {
-      "codex/last-week-review": false
+      "codex/last-week-review": false,
+      "codex/presentation-demo": false,
+      "codex/sidebar-navigation": false
     }
   },
   "crons": [

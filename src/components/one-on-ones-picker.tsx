@@ -17,6 +17,7 @@ export interface PickerEmployee {
 }
 
 interface OneOnOnesPickerProps {
+  basePath?: "/one-on-ones" | "/demo/one-on-ones";
   teams: Array<{ id: string; name: string }>;
   employees: PickerEmployee[];
 }
@@ -82,7 +83,11 @@ const SORT_OPTIONS = [
   { value: "desc" as const, label: "Z–A" },
 ];
 
-export function OneOnOnesPicker({ teams, employees }: OneOnOnesPickerProps) {
+export function OneOnOnesPicker({
+  teams,
+  employees,
+  basePath = "/one-on-ones",
+}: OneOnOnesPickerProps) {
   const [query, setQuery] = useState("");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
@@ -174,7 +179,7 @@ export function OneOnOnesPicker({ teams, employees }: OneOnOnesPickerProps) {
                       {group.emps.map((emp) => (
                         <Link
                           key={emp.id}
-                          href={`/one-on-ones/${emp.id}`}
+                          href={`${basePath}/${emp.id}`}
                           className="group flex min-h-24 items-center gap-4 rounded-xl border border-border/80 bg-card p-5 shadow-xs transition-colors hover:border-primary/50 hover:bg-primary/[0.035] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                         >
                           <Avatar className="h-12 w-12 shrink-0 rounded-xl">

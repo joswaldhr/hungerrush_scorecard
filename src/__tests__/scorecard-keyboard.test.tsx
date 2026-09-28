@@ -3,11 +3,14 @@ import { createRoot, type Root } from "react-dom/client";
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
 import { WeekNavigator } from "@/components/week-navigator";
 import { ScorecardExport } from "@/components/scorecard-export";
+const { downloadFile } = vi.hoisted(() => ({ downloadFile: vi.fn() }));
+vi.mock("@/lib/export-download", () => ({ requestExportDownload: downloadFile }));
 
 let root: Root;
 let container: HTMLDivElement;
 beforeEach(() => {
   Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
+  downloadFile.mockReset();
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
@@ -110,4 +113,66 @@ it("closes the export menu when focus moves outside without stealing focus", asy
   await act(async () => next.focus());
   expect(container.querySelector('[role="menu"]')).toBeNull();
   expect(document.activeElement).toBe(next);
+});
+
+it("keeps a prepared download available for an explicit save without claiming it was saved", async () => {
+  const createDescriptor = Object.getOwnPropertyDescriptor(URL, "createObjectURL");
+  const revokeDescriptor = Object.getOwnPropertyDescriptor(URL, "revokeObjectURL");
+  const create = vi.fn(() => "blob:https://example.test/prepared-export");
+  const revoke = vi.fn();
+  Object.defineProperty(URL, "createObjectURL", { configurable: true, value: create });
+  Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: revoke });
+  try {
+    await act(async () =>
+      root.render(
+        <ScorecardExport
+          employeeName="Synthetic"
+          periodStart="2026-09-13"
+          periodEnd="2026-09-19"
+          mode="review"
+          periodLabel="Sep 13–19, 2026"
+          previousPeriodLabel="Sep 6–12, 2026"
+          metrics={[]}
+        />
+      )
+    );
+    await act(async () =>
+      container.querySelector<HTMLButtonElement>('[aria-haspopup="menu"]')!.click()
+    );
+    const csv = [...container.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')].find(
+      (el) => el.textContent === "Export to CSV"
+    )!;
+    await act(async () => csv.click());
+    expect(create).toHaveBeenCalledTimes(1);
+    const dialog = document.querySelector('[role="dialog"]')!;
+    const save = [...dialog.querySelectorAll("button")].find(
+      (el) => el.textContent === "Save file"
+    )!;
+    expect(dialog.textContent).toContain("synthetic-metrics-2026-09-13_2026-09-19.csv");
+    expect(dialog.textContent).toContain("Your export is ready");
+    expect(dialog.textContent).not.toContain("downloaded");
+    expect(revoke).not.toHaveBeenCalled();
+    expect(downloadFile).not.toHaveBeenCalled();
+    await act(async () => save.click());
+    expect(downloadFile).toHaveBeenCalledWith(
+      expect.any(Blob),
+      "synthetic-metrics-2026-09-13_2026-09-19.csv"
+    );
+    expect(dialog.textContent).toContain("Download requested");
+    expect(revoke).not.toHaveBeenCalled();
+    vi.useFakeTimers();
+    await act(async () =>
+      [...dialog.querySelectorAll("button")].find((el) => el.textContent === "Close")!.click()
+    );
+    expect(document.querySelector('[role="dialog"]')).toBeNull();
+    expect(revoke).not.toHaveBeenCalled();
+    await act(async () => vi.advanceTimersByTime(60_000));
+    expect(revoke).toHaveBeenCalledWith("blob:https://example.test/prepared-export");
+  } finally {
+    vi.useRealTimers();
+    if (createDescriptor) Object.defineProperty(URL, "createObjectURL", createDescriptor);
+    else Reflect.deleteProperty(URL, "createObjectURL");
+    if (revokeDescriptor) Object.defineProperty(URL, "revokeObjectURL", revokeDescriptor);
+    else Reflect.deleteProperty(URL, "revokeObjectURL");
+  }
 });

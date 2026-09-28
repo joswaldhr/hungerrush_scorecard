@@ -7,7 +7,7 @@ import { DEV_USERS } from "@/lib/auth/dev-users";
 import { initials } from "@/lib/utils";
 import { toast } from "sonner";
 
-export function LoginForm() {
+export function LoginForm({ destination = "/" }: { destination?: "/" | "/demo/one-on-ones" }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -16,7 +16,7 @@ export function LoginForm() {
     try {
       const result = await signIn("credentials", {
         email,
-        callbackUrl: "/",
+        callbackUrl: destination,
         redirect: false,
       });
       if (result?.error) {

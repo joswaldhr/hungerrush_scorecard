@@ -96,6 +96,12 @@ goes to that employee's scorecard below.
 Exports preserve the loaded dates, progress/review status and source context. Filenames use
 the reporting interval; copied links pin the selected week. Stored-history round trips
 preserve that selection without changing the stored interval browser's behavior.
+PDF, PNG and copied text use concise timezone/observation notes and grouped material
+caveats. Full per-metric source records belong in Data details and the detailed CSV,
+not a repeated audit appendix beneath the visual scorecard.
+File exports prepare a persistent Save file dialog, with PDF/PNG previews. The app
+reports file readiness or a download request, never a confirmed local save it cannot
+observe. Prepared URLs are retained briefly after dismissal for browser handoff.
 
 **Architecture note on periods:** metric values are stored one row per calendar week
 (Sunday--Saturday). A "Last N Weeks" selector that requested a multi-week span here would ask for
@@ -190,6 +196,21 @@ docs/DATA_MODEL.md's MetricTarget/MetricVisibilityOverride entries.
   assumed from generic documentation.
 - **Assembled** --- evaluated and dropped. Connector code removed. `schedule_adherence` metric definition still exists (unassigned). Residual `ASSEMBLED_API_KEY` env var reference in `env.ts`.
 - **Rippling** --- no connector built. A "Open Rippling" link-out exists on the 1:1 page via `RIPPLING_MANAGER_URL`. Residual env var reference in `env.ts`.
+
+### Presentation workspace (isolated Preview only)
+
+The `/demo/one-on-ones` workspace illustrates the manager journey with 15 fictional
+employees across POS and Menufy. It uses the real scorecard UI with a separate synthetic
+provider: 22 populated metrics, sample targets, prior-week comparisons and current-week
+progress. At the user's request, presentation views omit repeated demo banners and
+suffixes. Sample provenance remains in Data details and CSV source metadata.
+Demonstrated handling time, first-contact resolution and adherence
+do not imply those integrations or accuracy certifications exist in production.
+
+Normal sign-in and an explicit email allowlist are required. The workspace cannot run
+on a production Vercel deployment; it never queries or seeds the live roster/metrics.
+Demo reporting-week links are scenarios, not stored vendor evidence or revision history.
+See the [demo release record](audits/2026-09-28-presentation-demo.md).
 
 ### What Ships
 
