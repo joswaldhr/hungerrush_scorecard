@@ -68,5 +68,6 @@ it("keeps an ordinary single-team roster flat without a mapping warning", async 
   );
   expect(container.querySelectorAll("a")).toHaveLength(1);
   expect(container.textContent).not.toContain("assignment review");
-  expect(container.querySelector("h2, h3")).toBeNull();
+  expect(container.querySelector("h2")?.textContent).toBe("Synthetic team");
+  expect(container.querySelector("h3")).toBeNull();
 });

@@ -129,3 +129,19 @@ Approved mockups are visual references for:
 - overall visual direction
 
 They are not permission to hard-code sample names, metrics, values, or layouts that conflict with responsive or configurable requirements.
+
+## September 28, 2026 visual refresh
+
+The current product entry is 1:1s; Team/Home references above are historical. The
+picker uses a restrained navy/teal introduction, a dedicated search/sort toolbar,
+visible team and line headings and larger employee tiles. Counts describe only the
+server-authorized employee list; they are not performance summaries.
+
+Scorecards separate employee identity from reporting controls. Category headers use
+readable sentence case, tables use 13px text, tabular numerals and a subtle current-week
+column emphasis. All categories share fixed 30/18/18/16/18 column proportions. Source,
+missing-data and duration explanations retain their existing meaning and visibility.
+Narrow screens contain horizontal scrolling within keyboard-focusable named table
+regions. Print uses one full-width category column to keep the five metric columns
+readable. No rankings, derived summary measures or new meeting-management features
+are introduced. Account controls sit at the foot of the navy navigation rail.

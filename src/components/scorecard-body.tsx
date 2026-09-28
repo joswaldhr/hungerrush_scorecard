@@ -176,43 +176,56 @@ export function ScorecardBody({
 
   return (
     <>
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex min-w-0 max-w-full items-start gap-3 sm:gap-4">
-          <Avatar className="h-10 w-10 sm:h-16 sm:w-16 print:h-10 print:w-10 ring-2 ring-border shadow-xs shrink-0">
-            <AvatarFallback className="text-base font-bold bg-slate-100 dark:bg-slate-800 text-foreground">
-              {initials(employeeName)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 break-words">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <h1 className="text-2xl sm:text-[28px] font-bold text-foreground tracking-tight break-words max-w-full">
-                {employeeName}
-              </h1>
-              {ready && <StatusBadge status={overallStatus} showDot />}
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {employeeJobTitle ?? "Support Specialist"} • {teamName}
-              {managerName ? ` • Manager: ${managerName}` : ""}
-            </p>
-            {ready && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Overall status:{" "}
-                <span className="font-semibold text-foreground">
-                  {getStatusLabel(overallStatus)}
-                </span>
-                {offTargetNames.length > 0 && (
-                  <>
-                    {" "}
-                    | {offTargetNames.length} metric{offTargetNames.length === 1 ? "" : "s"} outside
-                    target: {offTargetNames.join(", ")}
-                  </>
-                )}
+      <header className="rounded-2xl border border-border/80 bg-card shadow-xs">
+        <div className="rounded-t-2xl border-t-4 border-primary p-5 sm:p-6">
+          <div className="flex min-w-0 max-w-full items-start gap-3 sm:gap-4">
+            <Avatar className="h-12 w-12 sm:h-16 sm:w-16 print:h-10 print:w-10 rounded-2xl shrink-0">
+              <AvatarFallback className="rounded-2xl bg-primary/10 text-xl font-semibold text-primary">
+                {initials(employeeName)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 break-words">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <h1 className="text-2xl sm:text-[28px] font-bold text-foreground tracking-tight break-words max-w-full">
+                  {employeeName}
+                </h1>
+                {ready && <StatusBadge status={overallStatus} showDot />}
+              </div>
+              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                {employeeJobTitle ?? "Support Specialist"} • {teamName}
+                {managerName ? ` • Manager: ${managerName}` : ""}
               </p>
-            )}
+              {ready && (
+                <p
+                  className={
+                    offTargetNames.length > 0
+                      ? "mt-2 text-xs leading-relaxed text-muted-foreground"
+                      : "sr-only"
+                  }
+                >
+                  Overall status:{" "}
+                  <span className="font-semibold text-foreground">
+                    {getStatusLabel(overallStatus)}
+                  </span>
+                  {offTargetNames.length > 0 && (
+                    <>
+                      {" "}
+                      | {offTargetNames.length} metric{offTargetNames.length === 1 ? "" : "s"}{" "}
+                      outside target: {offTargetNames.join(", ")}
+                    </>
+                  )}
+                </p>
+              )}
+            </div>
           </div>
         </div>
-
-        <div className="flex w-full min-w-0 flex-col items-start gap-2 sm:w-auto sm:items-end">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border/80 bg-muted/25 px-5 py-4 sm:px-6 print:hidden">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Weekly scorecard</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Choose a reporting week or export this view.
+            </p>
+          </div>
           <div className="flex w-full min-w-0 flex-col items-start gap-2 sm:w-auto sm:flex-row sm:items-center">
             {ready && (
               <ScorecardExport
@@ -250,17 +263,17 @@ export function ScorecardBody({
           Loading {formatWeekRangeLong(periodStart, periodEnd)}…
         </div>
       ) : (
-        <div id={SCORECARD_CAPTURE_ID} className="space-y-6">
+        <div id={SCORECARD_CAPTURE_ID} className="space-y-5">
           <p className="sr-only" role="status">
             Loaded {formatWeekRangeLong(periodStart, periodEnd)}
           </p>
           {displayRows.some((row) => row.valueType === "duration") && (
-            <p className="text-xs text-muted-foreground">
+            <p className="rounded-lg border border-border/80 bg-card px-4 py-3 text-xs leading-relaxed text-muted-foreground">
               Times use {DURATION_FORMAT_LABEL}. {DURATION_CLOCK_NOTE}
             </p>
           )}
           {inProgress && (
-            <p className="text-xs text-muted-foreground">
+            <p className="border-l-2 border-primary/50 pl-3 text-xs leading-relaxed text-muted-foreground">
               This week is in progress. Targets cover the full week; individual comparisons are
               provisional.
             </p>

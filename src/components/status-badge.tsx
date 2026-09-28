@@ -61,7 +61,7 @@ const statusConfig: Record<Status, { label: string; className: string; dotClass:
   // interchangeable neutral badges.
   no_data: {
     label: "No Data",
-    className: "bg-transparent text-muted-foreground/70 border-dashed border-border font-medium",
+    className: "bg-transparent text-muted-foreground border-dashed border-border font-medium",
     dotClass: "bg-muted-foreground/40",
   },
   in_progress: {
