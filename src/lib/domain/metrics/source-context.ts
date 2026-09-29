@@ -4,10 +4,12 @@ export const SOLVED_CSAT_CALCULATION_VERSION = 2;
 export const FIRST_REPLY_CONTRACT = "zendesk-created-current-assignee-first-reply-business-v1";
 export const FIRST_REPLY_CALCULATION_VERSION = 2;
 export const OUTBOUND_PARTICIPATION_CONTRACT = "zendesk-call-created-agent-leg-outbound-v1";
+export const INBOUND_PARTICIPATION_CONTRACT = "zendesk-scoped-agent-leg-inbound-v1";
 export function completeSnapshotVersion(contract: string | undefined): number | null {
   if (contract === SOLVED_CSAT_CONTRACT) return SOLVED_CSAT_CALCULATION_VERSION;
   if (contract === FIRST_REPLY_CONTRACT) return FIRST_REPLY_CALCULATION_VERSION;
   if (contract === OUTBOUND_PARTICIPATION_CONTRACT) return 2;
+  if (contract === INBOUND_PARTICIPATION_CONTRACT) return 2;
   return null;
 }
 export const INCOMPATIBLE_COMPARISON_REASON =
@@ -20,6 +22,8 @@ export interface MetricSourceContext {
   sourceScopeFingerprint?: string;
   sampleCount?: number;
   cohortCount?: number;
+  dateBasis?: "call-created" | "leg-created";
+  offeredDefinition?: "accepted-declined-missed" | "accepted-declined-missed-unreachable";
 }
 
 /** Legacy observations have no explicit context. Never infer a new contract from a value. */
@@ -44,7 +48,11 @@ export function readMetricSourceContext(value: unknown): MetricSourceContext | n
     throw new Error("Invalid metric source scope");
   const counts: { sampleCount?: number; cohortCount?: number } = {};
   if (
-    [FIRST_REPLY_CONTRACT, OUTBOUND_PARTICIPATION_CONTRACT].includes(row.sourceContract) &&
+    [
+      FIRST_REPLY_CONTRACT,
+      OUTBOUND_PARTICIPATION_CONTRACT,
+      INBOUND_PARTICIPATION_CONTRACT,
+    ].includes(row.sourceContract) &&
     (row.sampleCount !== undefined || row.cohortCount !== undefined)
   ) {
     if (
@@ -57,10 +65,22 @@ export function readMetricSourceContext(value: unknown): MetricSourceContext | n
     counts.sampleCount = row.sampleCount as number;
     counts.cohortCount = row.cohortCount as number;
   }
+  const inbound: Pick<MetricSourceContext, "dateBasis" | "offeredDefinition"> = {};
+  if (row.sourceContract === INBOUND_PARTICIPATION_CONTRACT) {
+    if (
+      (row.dateBasis !== "call-created" && row.dateBasis !== "leg-created") ||
+      (row.offeredDefinition !== "accepted-declined-missed" &&
+        row.offeredDefinition !== "accepted-declined-missed-unreachable")
+    )
+      throw Error("Invalid inbound source definition");
+    inbound.dateBasis = row.dateBasis;
+    inbound.offeredDefinition = row.offeredDefinition;
+  }
   return {
     sourceContract: row.sourceContract,
     reportingTimeZone,
     ...counts,
+    ...inbound,
     ...(typeof row.sourceScopeFingerprint === "string"
       ? { sourceScopeFingerprint: row.sourceScopeFingerprint }
       : {}),
@@ -77,7 +97,9 @@ export function sharedMetricSourceContext(values: unknown[]): MetricSourceContex
       (context) =>
         context?.sourceContract !== first?.sourceContract ||
         context?.reportingTimeZone !== first?.reportingTimeZone ||
-        context?.sourceScopeFingerprint !== first?.sourceScopeFingerprint
+        context?.sourceScopeFingerprint !== first?.sourceScopeFingerprint ||
+        context?.dateBasis !== first?.dateBasis ||
+        context?.offeredDefinition !== first?.offeredDefinition
     )
   )
     throw new Error("Metric contributors use incompatible source contracts");
@@ -92,6 +114,8 @@ export function compatibleMetricSourceContexts(current: unknown, previous: unkno
   return (
     a?.sourceContract === b?.sourceContract &&
     a?.reportingTimeZone === b?.reportingTimeZone &&
-    a?.sourceScopeFingerprint === b?.sourceScopeFingerprint
+    a?.sourceScopeFingerprint === b?.sourceScopeFingerprint &&
+    a?.dateBasis === b?.dateBasis &&
+    a?.offeredDefinition === b?.offeredDefinition
   );
 }

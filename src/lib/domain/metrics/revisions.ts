@@ -16,6 +16,8 @@ const evidenceSchema = z.object({
   sourceContract: z.string().nullable().optional(),
   reportingTimeZone: z.string().nullable().optional(),
   sourceScopeFingerprint: z.string().nullable().optional(),
+  dateBasis: z.string().nullable().optional(),
+  offeredDefinition: z.string().nullable().optional(),
 });
 
 /** Only metric evidence is exposed, never raw source payloads or snapshot JSON. */
@@ -52,7 +54,9 @@ export async function getStoredMetricRevisions(
         'calculationVersion', ${snapshot}->'calculation_version',
         'sourceContract', ${snapshot}->'provenance_json'->'sourceContract',
         'reportingTimeZone', ${snapshot}->'provenance_json'->'reportingTimeZone',
-        'sourceScopeFingerprint', ${snapshot}->'provenance_json'->'sourceScopeFingerprint'
+        'sourceScopeFingerprint', ${snapshot}->'provenance_json'->'sourceScopeFingerprint',
+        'dateBasis', ${snapshot}->'provenance_json'->'dateBasis',
+        'offeredDefinition', ${snapshot}->'provenance_json'->'offeredDefinition'
       )`,
       })
       .from(syncRevisions)
@@ -102,6 +106,8 @@ export async function getStoredMetricRevisions(
                 sourceContract: parsed.data.sourceContract ?? undefined,
                 reportingTimeZone: parsed.data.reportingTimeZone ?? undefined,
                 sourceScopeFingerprint: parsed.data.sourceScopeFingerprint ?? undefined,
+                dateBasis: parsed.data.dateBasis ?? undefined,
+                offeredDefinition: parsed.data.offeredDefinition ?? undefined,
               })
             : null;
         } catch {

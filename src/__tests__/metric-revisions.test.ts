@@ -102,6 +102,35 @@ afterAll(async () => {
   await db.delete(organizations).where(inArray(organizations.id, [org, foreignOrg]));
 });
 
+it("retains explicit inbound definition context through stored revision projection", async () => {
+  const [inserted] = await db
+    .insert(syncRevisions)
+    .values(
+      revision({
+        ...snapshot(),
+        provenance_json: {
+          sourceContract: "zendesk-scoped-agent-leg-inbound-v1",
+          reportingTimeZone: "America/Chicago",
+          dateBasis: "leg-created",
+          offeredDefinition: "accepted-declined-missed",
+          sourceScopeFingerprint: "b".repeat(64),
+        },
+      })
+    )
+    .returning();
+  try {
+    const result = await getStoredMetricRevisions(ctx, employee, start, end);
+    expect(result.rows.find((r) => r.id === inserted!.id)?.evidence).toMatchObject({
+      numericValue: 0,
+      dateBasis: "leg-created",
+      offeredDefinition: "accepted-declined-missed",
+      sourceContract: "zendesk-scoped-agent-leg-inbound-v1",
+    });
+  } finally {
+    await db.delete(syncRevisions).where(eq(syncRevisions.id, inserted!.id));
+  }
+});
+
 it.each([
   ["tickets_updated", "unverified_attribution"],
   ["avg_handle_time", "unsupported"],

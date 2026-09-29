@@ -1,0 +1,30 @@
+{
+  "observedAt": "2026-09-28T19:09:54.699113+00:00",
+  "sourceObservationStartedAt": "2026-09-28T19:07:51.409Z",
+  "sourceObservationEndedAt": "2026-09-28T19:08:36.928Z",
+  "employees": 39,
+  "tickets": 620,
+  "sourceRequests": 50,
+  "sourceElapsedMs": 45522,
+  "referenceImplementation": "Python; no application imports",
+  "checks": 1978,
+  "sourceSetOrArithmeticDifferences": 0,
+  "storedCountsMatchingTheirRetainedSourceSets": 39,
+  "employeesWithUnchangedSetsSinceStoredObservation": 15,
+  "employeesWithSubsequentSourceChanges": 24,
+  "statusCounts": {
+    "open": 268,
+    "pending": 85,
+    "hold": 267
+  },
+  "ticketsOutsideRetainedTalkPosGroupScope": 109,
+  "productionWrites": 0,
+  "zendeskWrites": 0,
+  "productionReportingCoverageIncreased": false,
+  "limitations": [
+    "Backlog counts current assigned unsolved tickets across all groups; Talk group scope is diagnostic comparison only and is not applied to backlog.",
+    "Per-employee observations span a bounded read window, not an atomic account-wide snapshot.",
+    "A later source change is not a defect in an earlier retained snapshot. Current results are not published.",
+    "Two closed-week snapshot histories and target/freshness/scheduler contracts remain unqualified."
+  ]
+}

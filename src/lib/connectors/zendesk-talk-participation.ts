@@ -42,7 +42,7 @@ export const talkParticipationLegSchema = z.object({
 });
 export type ParticipationCall = z.infer<typeof talkParticipationCallSchema>;
 export type ParticipationLeg = z.infer<typeof talkParticipationLegSchema>;
-const scopeSchema = z.object({
+export const talkParticipationScopeSchema = z.object({
   periodStart: z.iso.date(),
   periodEnd: z.iso.date(),
   timeZone: z.string().min(1),
@@ -50,13 +50,18 @@ const scopeSchema = z.object({
   agentId: id,
   groupIds: z.array(id).min(1),
   phoneNumbers: z.array(z.string().min(1)).min(1).nullable(),
+  legCompletionStatuses: z
+    .array(talkParticipationLegSchema.shape.completion_status)
+    .min(1)
+    .nullable()
+    .optional(),
   // Omission retains the earlier candidate for replay. A publisher must select
   // the qualified report definition explicitly rather than infer it from a team.
   offeredDefinition: z
     .enum(["accepted-declined-missed", "accepted-declined-missed-unreachable"])
     .optional(),
 });
-export type TalkParticipationScope = z.infer<typeof scopeSchema>;
+export type TalkParticipationScope = z.infer<typeof talkParticipationScopeSchema>;
 
 const sorted = (ids: Iterable<number>) => [...new Set(ids)].sort((a, b) => a - b);
 
@@ -88,7 +93,7 @@ export function calculateTalkParticipation(
   legs: ParticipationLeg[],
   input: TalkParticipationScope
 ) {
-  const parsedScope = scopeSchema.safeParse(input);
+  const parsedScope = talkParticipationScopeSchema.safeParse(input);
   const parsedCalls = z.array(talkParticipationCallSchema).safeParse(calls);
   const parsedLegs = z.array(talkParticipationLegSchema).safeParse(legs);
   if (!parsedScope.success || !parsedCalls.success || !parsedLegs.success)
@@ -98,7 +103,10 @@ export function calculateTalkParticipation(
     scope.periodStart > scope.periodEnd ||
     Date.parse(scope.periodEnd) - Date.parse(scope.periodStart) > 31 * 86400000 ||
     new Set(scope.groupIds).size !== scope.groupIds.length ||
-    (scope.phoneNumbers !== null && new Set(scope.phoneNumbers).size !== scope.phoneNumbers.length)
+    (scope.phoneNumbers !== null &&
+      new Set(scope.phoneNumbers).size !== scope.phoneNumbers.length) ||
+    (scope.legCompletionStatuses &&
+      new Set(scope.legCompletionStatuses).size !== scope.legCompletionStatuses.length)
   )
     throw new Error("Invalid Talk participation scope");
   const formatter = new Intl.DateTimeFormat("en-CA", {
@@ -128,6 +136,8 @@ export function calculateTalkParticipation(
     if (Date.parse(leg.updated_at) < Date.parse(leg.created_at))
       throw new Error("Invalid Talk leg chronology");
     if (leg.agent_id !== scope.agentId || !["agent", "supervisor"].includes(leg.type)) continue;
+    if (scope.legCompletionStatuses && !scope.legCompletionStatuses.includes(leg.completion_status))
+      continue;
     if (scope.dateBasis === "leg-created" && !inPeriod(leg.created_at)) continue;
     const parent = byCall.get(leg.call_id);
     if (!parent) throw new Error("Incomplete Talk participation parent-call coverage");

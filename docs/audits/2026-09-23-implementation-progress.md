@@ -2,6 +2,69 @@
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
+**September 28, 19:10 UTC — backlog source population independently checked:**
+Read-only production/source diagnostics cover all 39 active POS backlog assignments.
+Fifty bounded Zendesk GETs in 45.5 seconds observed 620 distinct unsolved tickets;
+search and ticket details agree exactly. Independent Python performed 1,978 checks with
+zero differences. All 39 stored counts match their retained source-ID sets; 24 employee
+sets changed afterward and 15 remain identical. This is elapsed source change, not a
+proven arithmetic defect. Backlog uses all groups; applying the separate Talk filter
+would exclude 109 tickets and silently change the measure. No writes, sync triggers,
+Zendesk editors, policy changes or historical repair occurred. Fresh source observation
+is private; only aggregate evidence is committed. See the backlog source review/report.
+Production remains PR37; coverage remains 14/40 arithmetic and 0/40 fully certified.
+
+**September 28, 19:04 UTC — inbound candidate passes CI and hosted synthetic gates:**
+Draft PR38 contains candidate 81cd53f; both exact CI runs 36468809007/36468804262
+passed typecheck, lint, migrations, 818 tests / 108 files and production build. Isolated
+Preview dpl_7HDkAKfo9Q8BfVEYwe47j2cpJYfv is READY on that SHA and owns the branch alias.
+Its guarded synthetic publication matches all nine values, identical replay writes zero,
+null corrections and predecessor revisions remain, and unrelated/history values match.
+Hosted scorecard/stored-history/revision views pass. Actual CSV (13,261 bytes), PDF
+(1,729,633 bytes) and PNG (2,518,030 bytes) were inspected; the PDF/PNG decoded pixels
+are identical. The CSV download event timed out, but the actual saved file was independently
+found and verified. This is synthetic/candidate evidence, not production activation.
+The exact current report filters remain unverified; the user has been asked specifically
+for the leg-completion selections while independent safe work continues. No Zendesk request
+or editor session occurred. Production remains PR37, arithmetic 14/40, certification 0/40;
+new call policies and human-action features remain disabled. Paid hosting decision pending.
+
+**September 28, 18:55 UTC — inbound publication candidate remains inactive:**
+The branch now includes strict employee-scoped inbound evidence records, normalization,
+atomic legacy-contribution replacement and date/formula provenance through revisions.
+Every policy must explicitly select the date basis, offered subtotal and leg-status filter;
+no route, scheduler or production policy activates it. Retained 17:51 source evidence
+independently matches 480 values across 62 employees / 16 team-key assignments, with
+6,412 numeric/source-set comparisons and zero differences. These candidate calculations
+explicitly assume all completion statuses and do not establish the current saved report
+filters. Menufy report SUM/MAX durations are not silently relabeled as Cadence averages.
+Local typecheck and the full isolated PostgreSQL suite pass: 818 tests / 108 files.
+Final lint/CI/build and hosted checks are recorded as they complete.
+Production remains PR37 / ed6b2df, with arithmetic coverage 14/40 and certification 0/40.
+No Zendesk requests, editor sessions or production writes occurred in this increment.
+See [inbound candidate evidence](2026-09-28-inbound-publication-candidate.md).
+
+**September 28, 18:31 UTC — handling-time false judgment contained in production:**
+PR37 merged to `ed6b2df5e6127b606af99c99aa3d8726dc1d342d`; production deployment
+`dpl_DBWaKeHfuutr8i3qeyAawQUCSUJ6` owns the canonical alias. Exact candidate `73b44c8`
+passed CI 36465036664/36465027903 (804 tests / 105 files, type/lint/migrations/build).
+The fresh encrypted backup restored 33 tables / 63,563 rows with exact digests.
+Hosted synthetic zero/nonzero/history/revision and actual CSV/PDF checks pass.
+Production manager reads show 39 employees and explicit unavailable handling time,
+with no current/prior numeric value, target or misleading On Track judgment. The
+actual 10,394-byte CSV matches and preserves all 18 unrelated metric rows. Seven
+protected table digests and all 18 production environment entries are unchanged.
+Stored observations/revisions are preserved; no source calls/publication occurred.
+The earlier full-resolution source is not active handling effort. This containment
+does not increase reporting completion: arithmetic remains 14/40 and certification
+0/40. Genuine scheduled recovery, source definitions/coverage and compatible targets
+remain required. The paid hosting choice is still pending; no billing change was made.
+Current user-supplied AGENTS instructions prohibit all Zendesk report/dashboard editors,
+superseding the earlier bounded inspection allowance. Read-only GET/retained evidence only.
+Manager impersonation was exited and both validation tabs closed. See the handling
+release manifest and hosted/production-export reports. Master CI 36465474076 also
+passed; the exact candidate gates had already passed before merge.
+
 **September 28, 18:08 UTC — visual refresh live; POS outbound publication verified:**
 PR36 and its contained UI PR35 merged to `390dae9154a2bff75da374580a21330462baf964`.
 Final candidate `ea96e21` passed CI 36461746114/36461753911; master CI 36462126005

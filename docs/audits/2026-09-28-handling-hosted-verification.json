@@ -1,0 +1,43 @@
+{
+  "observedAt": "2026-09-28T18:28:42.198Z",
+  "candidateSha": "73b44c899e7002ec07c19b1b15f14854db6adf3e",
+  "deploymentId": "dpl_A4Yq5FQ6fwaqPtghox4d79TMEAZw",
+  "syntheticOnly": true,
+  "fixture": {
+    "definitions": 1,
+    "values": 2,
+    "revisions": 1,
+    "productionAccess": false,
+    "vendorAccess": false
+  },
+  "checks": {
+    "currentZeroUnavailable": true,
+    "comparisonWithheld": true,
+    "targetWithheld": true,
+    "noFalsePerformanceStatus": true,
+    "storedNonzeroUnavailable": true,
+    "retainedRevisionUnavailable": true,
+    "reasonVisible": true,
+    "actualCsvMatches": true,
+    "actualPdfRenderedAndInspected": true
+  },
+  "downloads": {
+    "csv": {
+      "bytes": 5364,
+      "sha256": "41f1af10ff51097c5a1d812204cb00b306effbb085422e5ae59db27fe1a2320b"
+    },
+    "pdf": {
+      "bytes": 783885,
+      "pages": 1,
+      "sha256": "f8b34564719f718aeedbe0d1b680a4205f721735fc0bc187ad34a0d0b143be0b"
+    }
+  },
+  "ciRuns": [
+    36465036664,
+    36465027903
+  ],
+  "tests": 804,
+  "files": 105,
+  "firstFixtureAttempt": "Stopped by fixture guard; no production access. Scoped retry uses the existing named synthetic organization; passed.",
+  "sharedProjectBuildCommandUnchanged": true
+}

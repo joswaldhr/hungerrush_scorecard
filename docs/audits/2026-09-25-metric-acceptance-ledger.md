@@ -64,12 +64,13 @@ elevated/backlog definitions; qualify targets and scheduled operation for each f
 Continue independent source/implementation work while external prerequisites are missing.
 The hosted staging rehearsal passed using its credential inside its existing Preview
 build environment, without extracting it; that blocker is resolved.
-The September 28 user amendment permits brief no-edit report-definition inspection
-with prompt closure. Zendesk mutations remain prohibited.
+The latest user-supplied AGENTS instructions prohibit report/dashboard editors, including
+unsaved inspection, superseding the earlier allowance. Retained downloads and bounded
+allowlisted GET APIs remain available. Zendesk mutations remain prohibited.
 
 The dated September 25 baseline below is retained. Row updates for outbound reference
-checks reflect later evidence. Menufy outbound production activation above supersedes
-the older outbound rows' unactivated state; POS remains a candidate.
+checks reflect later evidence. Menufy and POS outbound publications above supersede
+the older outbound rows' unactivated state. Automatic outbound refresh remains inactive.
 
 ## September 25 baseline and subsequent family evidence
 

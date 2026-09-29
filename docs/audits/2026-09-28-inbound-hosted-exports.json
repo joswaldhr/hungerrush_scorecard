@@ -1,0 +1,35 @@
+{
+  "observedAt": "2026-09-28T19:03:39.961Z",
+  "candidateSha": "81cd53f1be98911b7e52f4db37a8baf5d3871f45",
+  "deploymentId": "dpl_7HDkAKfo9Q8BfVEYwe47j2cpJYfv",
+  "environment": "isolated synthetic Preview",
+  "productionAccess": false,
+  "sourceRequests": 0,
+  "metricRows": 9,
+  "periodStart": "2026-09-20",
+  "periodEnd": "2026-09-26",
+  "scorecardValuesMatch": true,
+  "nativeSecondsAndMeasuredDenominators": true,
+  "targetsWithheld": true,
+  "csv": {
+    "bytes": 13261,
+    "valuesAndContextMatch": true,
+    "downloadEventTimedOut": true,
+    "savedFileIndependentlyInspected": true
+  },
+  "pdf": {
+    "bytes": 1729633,
+    "pages": 1,
+    "decodedPixelsIdenticalToPng": true
+  },
+  "png": {
+    "bytes": 2518030,
+    "width": 1988,
+    "height": 7856,
+    "visualInspectionPassed": true
+  },
+  "historicalAndRevisionUiVerified": true,
+  "managerReportScopeQualified": false,
+  "productionActivated": false,
+  "revisionUiContext": "Prior values, null corrections, calculation versions and reporting timezone verified; date/formula projection additionally covered by PostgreSQL tests"
+}

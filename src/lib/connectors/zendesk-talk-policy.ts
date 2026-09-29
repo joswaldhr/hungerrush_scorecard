@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { assertZendeskAccountBinding } from "./zendesk-account-binding";
 import type { ConnectorConfig } from "./types";
+import { talkParticipationLegSchema } from "./zendesk-talk-participation";
 
 export const inboundTalkKeys = [
   "inbound_calls_offered",
@@ -61,7 +62,17 @@ const policySchema = z
             teamId: z.uuid(),
             inbound: z
               .object({
+                scopeMeaning: z.literal("current-parent-call-group-and-number"),
                 dateBasis: z.enum(["call-created", "leg-created"]),
+                offeredDefinition: z.enum([
+                  "accepted-declined-missed",
+                  "accepted-declined-missed-unreachable",
+                ]),
+                legCompletionStatuses: z
+                  .array(talkParticipationLegSchema.shape.completion_status)
+                  .min(1)
+                  .refine((values) => new Set(values).size === values.length)
+                  .nullable(),
                 groupIds: identifiers,
                 phoneNumbers: z
                   .array(

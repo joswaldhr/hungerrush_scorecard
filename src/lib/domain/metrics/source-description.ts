@@ -1,5 +1,6 @@
 import {
   FIRST_REPLY_CONTRACT,
+  INBOUND_PARTICIPATION_CONTRACT,
   OUTBOUND_PARTICIPATION_CONTRACT,
   SOLVED_CSAT_CONTRACT,
   type MetricSourceContext,
@@ -17,6 +18,26 @@ export function metricSourceDescription(
   sourceStrategy: string | null,
   context?: MetricSourceContext | null
 ) {
+  if (context?.sourceContract === INBOUND_PARTICIPATION_CONTRACT) {
+    const cohort = `Inbound employee-leg participation by ${context.dateBasis === "call-created" ? "call creation" : "leg creation"} date (${context.reportingTimeZone}), within the explicitly configured current parent-call groups, phone lines and leg-status filters.`;
+    if (key === "inbound_calls_offered")
+      return `${cohort} Distinct accepted, declined (including transfer-declined), missed${context.offeredDefinition === "accepted-declined-missed-unreachable" ? " and unreachable" : ""} agent legs. This selected subtotal is not every routing attempt.`;
+    if (key === "inbound_calls_accepted")
+      return `${cohort} Distinct completed agent legs with positive reported talk time; repeated legs remain separate.`;
+    if (key === "missed_calls") return `${cohort} Distinct agent legs explicitly marked missed.`;
+    if (key === "declined_calls")
+      return `${cohort} Distinct agent legs marked declined or transfer-declined.`;
+    if (key === "inbound_calls_abandoned_on_hold")
+      return `${cohort} Distinct participating calls ending abandoned on hold. This does not establish employee responsibility; queue, IVR and voicemail abandonment are excluded.`;
+    const duration = new Map([
+      ["avg_talk_time_inbound", "talk"],
+      ["avg_hold_time_inbound", "hold"],
+      ["avg_call_duration_inbound", "duration"],
+      ["avg_consultation_time_inbound", "consultation"],
+    ]).get(key);
+    if (duration)
+      return `${cohort} Mean agent/supervisor leg ${duration} time, stored in seconds, excluding unreachable legs. Reported zeros count; missing durations do not.${context.sampleCount === undefined ? "" : ` ${context.sampleCount} measured legs out of ${context.cohortCount}.`}`;
+  }
   if (context?.sourceContract === OUTBOUND_PARTICIPATION_CONTRACT) {
     const cohort = `Outbound calls created in this period (${context.reportingTimeZone}), scoped by their linked ticket's current group and attributed through this employee's agent/supervisor call legs.`;
     if (key === "outbound_calls")
@@ -118,6 +139,10 @@ export function unsupportedMetricReason(
   context?: MetricSourceContext | null
 ) {
   if (sourceStrategy !== "zendesk") return null;
+  if (context?.sourceContract === INBOUND_PARTICIPATION_CONTRACT)
+    return key.startsWith("avg_")
+      ? "No reported employee-leg durations in the inbound participation cohort."
+      : null;
   if (context?.sourceContract === OUTBOUND_PARTICIPATION_CONTRACT) {
     if (key === "outbound_calls_completed" || key === "outbound_calls_non_answered")
       return "One or more outbound call outcomes could not be classified from the source evidence.";
