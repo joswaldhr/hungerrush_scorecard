@@ -1,5 +1,17 @@
 # Audit implementation — current checkpoint
 
+**September 29 — Menufy code/report comparison and diagnostic correction:** Traced the
+21 Menufy assigned keys (23 employees in retained inventory) across legacy, first-reply,
+CSAT and Talk paths. The candidate already supports four-component offered calls, but
+the independent report comparator only counted three. It now explicitly selects and
+labels either definition, retains exact offered/unreachable IDs, preserves legacy callers,
+and rejects unknown definitions. SUM/MAX duration meaning is unchanged. This offline
+checker has no production imports or publisher changes. All 23 targeted tests, typecheck,
+scoped lint and formatting pass. `2026-09-29-reporting-requirements.md` records the family
+trace and gaps. Full saved report filters/current use, human provenance, closed-period
+coverage, targets and scheduled readiness remain open. No source access, production or
+demo change occurred; this does not increase metric certification counts.
+
 **September 29 — user narrows active delivery to Barbara/Menufy:** Assembled is parked;
 new POS qualification and optional upgrades are outside the immediate phase. Existing
 source/production behavior and overall requirements remain preserved. The execution plan

@@ -60,9 +60,65 @@ describe("independent inbound report reference", () => {
       declined: 2,
       missed: 1,
       offered: 5,
+      offeredDefinition: "accepted-declined-missed",
+      offeredLegIds: [1, 2, 3, 4, 5],
+      unreachableLegIds: [6],
       participatingCallIds: [1],
       acceptedLegIds: [1, 2],
     });
+  });
+  it("includes unreachable agent attempts only for the explicit four-component report", () => {
+    const calls = [
+      call(1),
+      call(2, { call_group_id: 21 }),
+      call(3, { phone_number: "other-line" }),
+      call(4, { created_at: "2026-09-20T05:00:00Z" }),
+      call(5, { direction: "outbound" }),
+    ];
+    const legs = [
+      leg(1, { talk_time: 30, hold_time: 8 }),
+      leg(2, { completion_status: "agent_declined", talk_time: 0 }),
+      leg(3, { completion_status: "agent_transfer_declined", talk_time: 0 }),
+      leg(4, { completion_status: "agent_missed", talk_time: 0 }),
+      leg(5, { completion_status: "agent_unreachable", talk_time: 0 }),
+      leg(6, { completion_status: "agent_unreachable", talk_time: 0 }),
+      leg(7, { type: "supervisor", completion_status: "agent_unreachable", talk_time: 0 }),
+      leg(8, { agent_id: 11, completion_status: "agent_unreachable" }),
+      ...[2, 3, 4, 5].map((id) =>
+        leg(10 + id, { call_id: id, completion_status: "agent_unreachable" })
+      ),
+    ];
+    const previous = referenceInboundCalls(calls, legs, scope);
+    const current = referenceInboundCalls(calls, legs, {
+      ...scope,
+      offeredDefinition: "accepted-declined-missed-unreachable",
+    });
+    expect(previous.offeredLegIds).toEqual([1, 2, 3, 4]);
+    expect(current).toMatchObject({
+      offeredDefinition: "accepted-declined-missed-unreachable",
+      accepted: 1,
+      declined: 2,
+      missed: 1,
+      unreachable: 2,
+      offered: 6,
+      offeredLegIds: [1, 2, 3, 4, 5, 6],
+      unreachableLegIds: [5, 6],
+      participatingCallIds: [1],
+      talkSeconds: 30,
+      maxHoldSeconds: 8,
+    });
+    // Changing the count definition must not change the SUM/MAX report population.
+    expect(current.selectedLegIds).toEqual(previous.selectedLegIds);
+    expect(current.talkSeconds).toBe(previous.talkSeconds);
+    expect(current.maxHoldSeconds).toBe(previous.maxHoldSeconds);
+  });
+  it("rejects unknown report definitions instead of silently using the older subtotal", () => {
+    expect(() =>
+      referenceInboundCalls([], [], {
+        ...scope,
+        offeredDefinition: "all-attempts" as CallReferenceScope["offeredDefinition"],
+      })
+    ).toThrow("Invalid call reference offered definition");
   });
   it("uses call creation in Central time, groups and lines", () => {
     const calls = [

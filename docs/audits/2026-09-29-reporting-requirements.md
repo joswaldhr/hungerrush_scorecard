@@ -1,5 +1,47 @@
 # Core 1:1 reporting requirements and source qualification
 
+## Active Menufy comparison — September 29
+
+Assembled is parked under the latest user instruction. From the retained assignment
+inventory below, Menufy's immediate scope is **21 assigned metric keys / 23 employees**:
+four ticket/elevated keys, three response/quality keys, nine inbound keys and five outbound
+keys. POS's 19 assignments remain in the overall 40-assignment inventory, outside this
+phase. This is a scope count, not 21 certified formulas or proof that Barbara's complete
+manual pack contains no additional columns. No fresh production census was run for this
+comparison. Historical eligibility must be evaluated for each reporting interval.
+
+| Menufy family | Code/evidence trace | Current gap and next concrete check |
+|---|---|---|
+| Tickets resolved/updated (2) | `zendesk.ts` legacy normalization; `domain/metrics/availability.ts` withholds both; retained ticket report groups update events by updater | Report update events are not distinct human-worked tickets. Keep unavailable until source-bound human attribution is established; full report group filters remain unknown. |
+| Worked elevated/avoidable (2) | `zendesk.ts` tag recognition and legacy normalization; retained report field evidence | Tag presence and current ticket flags do not establish employee work at event time. Establish Menufy classification/attribution before using report totals. |
+| First reply (1) | `zendesk-first-reply.ts`, its policy/record/connector, and `first-reply-contributors.ts` | Explicit created-date/current-assignee business-time contract exists. Finish closed-week/target/readiness evidence; do not replace with resolution time or agent effort. |
+| CSAT score/response rate (2) | `zendesk-solved-csat.ts`, CSAT policy/record/connector; retained parity/recovery evidence | Preserve solved-date/current-assignee populations and separate denominators. Reuse independent arithmetic evidence and close current operational/target gates. |
+| Inbound counts and durations (9) | `zendesk-talk-participation.ts` candidate, `zendesk-call-reference.ts` independent report comparator; September 25 parity and September 28 definition review | Candidate has explicit three/four-component offered variants. Independent comparator previously only supported three; corrected below. Full saved filters and version still need evidence. Report SUM talk/MAX hold remain distinct from candidate averages. No inbound production publisher was activated. |
+| Outbound counts and durations (5) | `zendesk-outbound.ts` and record/observation/connector; `outbound-contributors.ts`; retained Menufy release evidence | Current-week controlled values were independently matched. Close actual scheduled readiness and closed-week provenance; never extend that evidence to earlier weeks implicitly. |
+
+Paths above are under `src/lib/connectors` except explicitly named domain files. Shared
+publication uses `domain/metrics/compute-values.ts`; its normalized-fact aggregation is
+not an independent source comparison. `configuredOutboundPolicy()` explicitly rejects
+inbound policy entries. This pass did not alter either publisher or source policy.
+
+### Independent report checker correction
+
+`referenceInboundCalls` now accepts an explicit offered definition, returns the selected
+definition plus unreachable/offered leg IDs and counts, and rejects unknown definitions.
+Omitting it retains the earlier three-component result for historical diagnostic callers.
+The newer four-component option includes only eligible unreachable agent legs after the
+existing employee, call-date/timezone, direction, group and line filters. Multiple attempts
+on one call remain distinct legs. SUM talk and MAX hold populations stay unchanged.
+
+This is diagnostic code, imported only by its tests in tracked source; it neither publishes
+metrics nor proves the saved report's exact current filter scope. Synthetic regression
+checks cover repeated attempts, supervisor/other-agent exclusion from offered, group/line/
+date/direction exclusion, legacy compatibility and invalid definitions. All 23 tests across
+reference, participation and observation pass; TypeScript, scoped ESLint and formatting pass.
+The initial pnpm runner refused the shared node_modules junction before running tests;
+existing Node package entrypoints were used without reinstalling or removing dependencies.
+No environment file, production DB or vendor API was accessed by these tests.
+
 September 29. Working inventory reconstructed from production assignments and retained
 manager-report evidence. This is not a claim that both managers have confirmed their entire
 manual workflow. Cadence remains a standalone scorecard app; Rippling explains the export

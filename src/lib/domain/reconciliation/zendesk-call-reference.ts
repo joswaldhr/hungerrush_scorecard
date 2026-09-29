@@ -25,10 +25,14 @@ export interface CallReferenceScope {
   groupIds: number[] | null;
   phoneNumbers: string[] | null;
   agentId: number;
+  /** Omission preserves the September 25 retained comparison; never infer from team. */
+  offeredDefinition?: "accepted-declined-missed" | "accepted-declined-missed-unreachable";
 }
 
 /**
- * Matches the inspected inbound Explore report, not an approved scorecard contract.
+ * Reconstructs the explicitly selected inbound report subtotal, not an approved
+ * scorecard contract. Earlier retained reports and the September 28 inspection
+ * differ on unreachable legs; the output identifies which definition was used.
  * Caller must prove the call population AND all related legs are complete. A joined
  * abandoned call describes participation, not responsibility for the abandonment.
  */
@@ -37,6 +41,12 @@ export function referenceInboundCalls(
   legs: ReferenceLeg[],
   scope: CallReferenceScope
 ) {
+  const offeredDefinition = scope.offeredDefinition ?? "accepted-declined-missed";
+  if (
+    offeredDefinition !== "accepted-declined-missed" &&
+    offeredDefinition !== "accepted-declined-missed-unreachable"
+  )
+    throw new Error("Invalid call reference offered definition");
   for (const day of [scope.startDay, scope.endDay]) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new Error("Invalid call reference day");
     const date = new Date(`${day}T00:00:00Z`);
@@ -88,7 +98,8 @@ export function referenceInboundCalls(
   const seen = new Set<number>();
   const accepted: number[] = [],
     missed: number[] = [],
-    declined: number[] = [];
+    declined: number[] = [],
+    unreachable: number[] = [];
   const participating = new Set<number>(),
     abandoned = new Set<number>();
   const selected: number[] = [];
@@ -104,7 +115,7 @@ export function referenceInboundCalls(
     if (!Number.isSafeInteger(leg.call_id) || leg.call_id <= 0)
       throw new Error("Invalid leg call ID");
     // The report groups by leg agent for all measures. Only its built-in
-    // accepted/missed/declined metrics also restrict Leg type = Agent.
+    // accepted/missed/declined/unreachable metrics also restrict Leg type = Agent.
     if (leg.agent_id !== scope.agentId) continue;
     if (!byCall.has(leg.call_id)) throw new Error("Incomplete call join for agent legs");
     if (!cohort.has(leg.call_id)) continue;
@@ -141,6 +152,8 @@ export function referenceInboundCalls(
       ["agent_declined", "agent_transfer_declined"].includes(leg.completion_status)
     )
       declined.push(leg.id);
+    if (leg.type === "agent" && leg.completion_status === "agent_unreachable")
+      unreachable.push(leg.id);
     if (byCall.get(leg.call_id)!.completion_status === "abandoned_on_hold")
       abandoned.add(leg.call_id);
     if (leg.talk_time === null) missingTalk++;
@@ -152,17 +165,27 @@ export function referenceInboundCalls(
     else maxHoldSeconds = Math.max(maxHoldSeconds ?? 0, leg.hold_time);
   }
   const sorted = (values: Iterable<number>) => [...values].sort((a, b) => a - b);
+  const offered = sorted([
+    ...accepted,
+    ...missed,
+    ...declined,
+    ...(offeredDefinition === "accepted-declined-missed-unreachable" ? unreachable : []),
+  ]);
   return {
+    offeredDefinition,
     selectedLegIds: sorted(selected),
     acceptedLegIds: sorted(accepted),
     declinedLegIds: sorted(declined),
     missedLegIds: sorted(missed),
+    unreachableLegIds: sorted(unreachable),
+    offeredLegIds: offered,
     participatingCallIds: sorted(participating),
     abandonedParticipatingCallIds: sorted(abandoned),
     accepted: accepted.length,
     missed: missed.length,
     declined: declined.length,
-    offered: accepted.length + missed.length + declined.length,
+    unreachable: unreachable.length,
+    offered: offered.length,
     talkSeconds: measuredTalk ? talkSeconds : null,
     maxHoldSeconds,
     missingTalk,
