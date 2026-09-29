@@ -7,6 +7,7 @@ be distinguished: an audit-branch fix is not automatically a production fix.
 |---|---|
 | [CLAUDE.md](../CLAUDE.md) | Concise engineering rules and change discipline |
 | [PRODUCT.md](PRODUCT.md) | Product purpose, supported manager journey and explicit scope decisions |
+| [PRODUCT_ROADMAP.md](PRODUCT_ROADMAP.md) | Proposed growth from two-manager 1:1 preparation to broader recurring reviews, with acceptance milestones; not shipped status |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Module boundaries, active data flows and integration structure |
 | [DATA_MODEL.md](DATA_MODEL.md), [schema](../src/lib/db/schema.ts) | Data relationships and executable schema/invariants |
 | [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) | Shared UI tokens, components and interaction conventions |

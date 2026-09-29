@@ -1,5 +1,14 @@
 # Audit implementation — current checkpoint
 
+**September 29 — product growth mapped:** The user defined the core promise as having
+metrics ready for meetings instead of rebuilding them, starting with two managers and
+expanding later. `PRODUCT_ROADMAP.md` records staged acceptance: dependable pilot 1:1s,
+configurable manager onboarding, recurring team/report packs, optional meeting continuity,
+then broader approved coverage. `PRODUCT.md` now states that direction and removes stale
+wording implying a current team-comparison screen. Proposed features do not change the
+present UI scope, metric policies, demo or infrastructure. This documentation does not
+increase qualification counts or close outstanding main-app release gates.
+
 **September 29 — company-hosting proposal; CSAT code deployed:** The user requested a
 path away from Vercel/Railway to company infrastructure. `docs/INFRASTRUCTURE_MIGRATION.md`
 records a provisional Azure/container design plus a physical-server alternative, exact

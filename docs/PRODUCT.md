@@ -1,5 +1,14 @@
 # HungerRush Cadence --- Product Specification v0.3
 
+**September 29 growth direction:** Cadence should become the place managers find trusted
+metrics already prepared for their recurring reviews. Start by eliminating manual metric
+assembly for the two pilot managers' 1:1s, then make manager onboarding configurable and
+expand into proven recurring reporting needs. The [product roadmap](PRODUCT_ROADMAP.md)
+defines proposed stages and acceptance measures. Team reviews, meeting notes/actions,
+leadership views and new integrations are future candidates, not additions to today's
+shipped scope. Release and metric qualification status remain owned by the implementation
+ledger; historical scope descriptions below are not certification evidence.
+
 **September 28 review-week decision:** Fresh employee scorecards open the previous
 Sunday–Saturday reporting week, compared with the week before. Explicit week links
 remain authoritative. Last week is the primary 1:1 review; this week is a secondary
@@ -26,8 +35,9 @@ entirely; team/roster membership now comes from Zendesk groups only. See
 
 ## What Cadence Is
 
-Cadence is a manager intelligence application that turns Zendesk support data into a clear
-team comparison view and a simple, accurate 1:1 scorecard for each direct report.
+Cadence is a manager metrics workspace that prepares trusted reporting for recurring
+conversations. Its initial experience turns Zendesk support data into a clear 1:1
+scorecard for each authorized direct report.
 
 Support managers currently prepare for recurring performance conversations by manually pulling
 information from Zendesk and other tools. This takes time, produces inconsistent results, and
@@ -54,8 +64,8 @@ same way a primary manager's is — see docs/ARCHITECTURE.md's Authorization Mod
 
 ### Success Criteria
 
-A pilot manager can open Cadence, compare everyone on their team, and pull up an accurate,
-easy-to-read metrics scorecard for one direct report before a 1:1 --- without manually
+A pilot manager can open Cadence, select an assigned employee, and pull up an accurate,
+easy-to-read metrics scorecard before a 1:1 --- without manually
 gathering the same information from Zendesk by hand. The product must demonstrate actual
 reduction in manager preparation time.
 
