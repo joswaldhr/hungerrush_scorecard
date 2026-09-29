@@ -1,5 +1,16 @@
 # Audit implementation — current checkpoint
 
+**September 29 — comprehensive cross-source plan:** The user requested a broad Assembled
+instance/metric audit, Zendesk accuracy completion and coordinated agents. Three planning
+reviews informed `2026-09-29-cross-source-execution-plan.md`: full accessible-instance catalog,
+manager-required packs, source-specific contracts, independent all-employee reconciliation,
+one coordinated live collector, family-sized releases and actual meeting-readiness proof.
+Planning used retained evidence and public vendor documentation only; no additional tenant
+requests or production changes occurred. PR43's prior diagnostic CI `36593699297` passed.
+CLAUDE/SAFETY now reflect latest AGENTS's complete Zendesk editor prohibition, superseding
+their stale September 28 allowance. Execution audit and metric qualification remain open;
+the plan does not increase certification counts or activate sources.
+
 **September 29 — core reporting inventory and Assembled requalification:** Fresh read-only
 production inventory confirms 23 assigned keys / 40 team assignments. The existing Assembled
 key works; no key replacement is needed. Nine bounded GETs across census and follow-up

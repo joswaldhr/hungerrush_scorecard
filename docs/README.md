@@ -18,6 +18,7 @@ be distinguished: an audit-branch fix is not automatically a production fix.
 | [Implementation ledger](audits/2026-09-23-implementation-progress.md) | Active audit branch, accepted process, completed checks and remaining release gates |
 | [Contract audit](audits/2026-09-23-metric-contracts.md) | September 23 inventory and observed/proposed contract differences |
 | [Core reporting requirements](audits/2026-09-29-reporting-requirements.md) | Current 1:1 inventory, proposed workforce measures and qualification sequence |
+| [Cross-source execution plan](audits/2026-09-29-cross-source-execution-plan.md) | Assembled instance audit, Zendesk completion work, agent coordination and end-to-end acceptance |
 | [Action contract](audits/2026-09-23-action-metric-v2-contract.md) | Approved human-only policy and version-2 shadow evidence/activation requirements |
 
 The [application audit](audits/2026-09-23-application-audit.md) is the historical baseline
