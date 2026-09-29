@@ -1,5 +1,14 @@
 # Audit implementation — current checkpoint
 
+**September 29 — coordinated completion plan prepared:** The user's requested Assembled
+instance audit, Zendesk completion plan and agent workstreams are recorded in PR43's
+`docs/audits/2026-09-29-cross-source-execution-plan.md` on `codex/assembled-qualification`.
+Three planning agents reviewed source scope and acceptance. One designated live collector
+coordinates all vendor access; other agents use retained evidence and isolated tests. Plan
+requires complete manager packs, exact source reconciliation, family-sized gated releases,
+real scheduled readiness and two actual weekly review cycles. No additional tenant requests
+or production changes occurred for planning; current qualification counts remain unchanged.
+
 **September 29 — fresh Assembled qualification in separate branch:**
 `codex/assembled-qualification` preserves separation from PR41 and Adam's frozen demo.
 Read-only production inventory remains 23 assigned keys / 40 team assignments. The current
