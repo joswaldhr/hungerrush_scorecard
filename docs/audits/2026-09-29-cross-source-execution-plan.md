@@ -6,6 +6,82 @@ combines their recommendations under the latest user safeguards. Planning used r
 evidence and official vendor documentation; no additional tenant requests or mutations were
 performed for this plan. It is an execution plan, not a completed instance audit.
 
+## September 29 delivery controls after instance discovery
+
+The [authenticated instance audit](2026-09-29-assembled-instance-audit.md) now supplies
+the observed catalog and settings. Stop broad discovery unless a required metric has
+a specific unanswered source question. The remaining objective is the complete last-week
+review, not the number of reports inspected, documents written, tests passed or PRs opened.
+
+Use this plan as the sequence, the reporting-requirements matrix as the scope, and the
+metric acceptance ledger as the evidence/status record. The implementation ledger owns
+release checkpoints. Do not create competing completion trackers in separate branches.
+Resolve branch-specific checkpoint differences when integrating; never treat a candidate
+branch's status as production status.
+
+### Execution order and exit evidence
+
+| Stage | Concrete deliverable | Exit evidence |
+|---|---|---|
+| 1. Freeze pilot scope and baseline | Two manager packs, every required column/target/export, 62-person eligibility and historical identity map; exact deployed/candidate states | Each requirement has an owner, definition, source route or explicit blocking decision. Preserve all 40 existing assignments in the denominator. |
+| 2. Close feasibility questions | Verified-human ticket action provenance; Assembled actual-state/clock-in prerequisites and effort lifetime coverage; deleted identity; inbound meaning; historical target and closed-week evidence | Each question receives a supported answer or a precise upstream evidence gap and resolution path. Do not repeatedly explore unrelated reports. |
+| 3. Finish one metric family end to end | Contract, source coverage, independent reference calculation, inactive implementation, isolated validation and release evidence | Exact source sets and counts agree; sums/denominators agree before rounding with explicit numeric tolerance; no unexplained employee-period discrepancy. |
+| 4. Prove the full previous-week pack | All eligible employees, two closed weeks plus current progress; historical period identity preserved | Required values or verified no-sample outcomes present, correct comparisons/targets, actual exported bytes agree, no manual reconstruction. |
+| 5. Prove operation and pilot use | Genuine scheduled updates and failure recovery, manager access, two weekly meeting cycles | Source observations/publications ready by the agreed meeting deadline, detected failures preserve last-good data, both managers complete reviews without rebuilding reports. |
+
+Stages 1–2 constrain implementation; they do not prevent finishing already-qualified
+families. Work on at most one implementation/release family at a time while other agents
+resolve bounded source questions or independently verify retained evidence. Prefer closing
+already-qualified CSAT/first-reply/outbound operational and closed-period gates before
+starting broad new adapters. Then qualify inbound, required workforce/effort and human-action
+families as their evidence permits. No blocked family silently disappears from acceptance.
+
+The closed-period gate is immediate: retained September 29 evidence contains current-week
+outbound contract provenance but not the two earlier Sunday-week groups. Do not label those
+older values certified, substitute current-week data, or silently repair history. Determine
+whether exact historical evidence is recoverable and record the earliest fully supported
+review week. A historical correction needs its own scoped evidence and release procedure;
+historical repair stays disabled during this qualification work.
+
+### Status and discrepancy discipline
+
+For each team/metric contract, keep a compact record in the acceptance ledger: required
+meaning; owner; current stage (definition, coverage, reconciled, released, scheduled,
+accepted); eligible/passing employee-period cases; discrepancies; evidence reference;
+next action; and any external dependency. Mark dates, candidate SHA and effective source
+version. A discrepancy records whether the cause is meaning, identity, period/timezone,
+source coverage, arithmetic, publication or presentation. Reuse existing evidence unless
+it is stale for that specific decision or insufficient in scope.
+
+Report three separate results: required contracts fully qualified/required; employee-period
+cases passing/eligible; complete meeting packs/expected. Also state open discrepancies and
+scheduled readiness. Never convert 14/40 arithmetic evidence into a project progress or
+accuracy percentage. A truthful unavailable field protects the user but remains an unmet
+requirement. An empty denominator is complete only after the eligible population is proven
+empty. A contract is not certified forever: source/configuration changes and newly observed
+coverage failures require requalification of affected results.
+
+If an investigation cannot answer its named question within its declared request/time budget,
+stop that investigation with its precise evidence gap and next dependency. Do not widen into
+another general audit. Use the existing user policy for routine technical choices; consolidate
+only genuine business-definition questions for the user. Do not invent an upstream fact to
+avoid asking. No new feature, visual redesign or hosting migration enters the pilot release
+unless it fixes a proven blocker to this workflow.
+
+### Agent execution boundary
+
+The recommended staffing remains the lead plus three specialists described below: Zendesk,
+Assembled and independent verification. The lead owns the single task queue, coordinated live
+reads and releases. Workers receive narrow evidence questions, disjoint code ownership,
+acceptance criteria and a stop condition. Start with finite assignments, not open-ended
+instructions to make a whole source accurate. Rotate verification into UI/export/reliability
+work when calculations are ready; additional visual agents are not needed for this phase.
+
+Earlier delegated execution attempts were rejected by automatic safety review. This planning
+update does not retry those actions or route them through another tool. They remain recorded
+as blocked; resolve the actual restriction before attempting affected execution. No new
+agents or collectors were started by this plan update.
+
 ## Outcome and scope
 
 Barbara and Alex open an employee's last completed week in Cadence, trust the full agreed

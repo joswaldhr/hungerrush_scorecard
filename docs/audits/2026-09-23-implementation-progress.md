@@ -1,5 +1,14 @@
 # Audit implementation — current checkpoint
 
+**September 29 — delivery plan tightened around the complete last-week review:** User
+requested controls against project drift and an agent recommendation. The existing
+cross-source execution plan now has ordered exit gates, one active release family,
+explicit closed-week provenance checks, discrepancy categories and separate contract,
+employee-period and meeting-pack acceptance counts. Optional features/hosting work remain
+outside this release. The lead plus three bounded specialists is the recommended structure;
+this planning pass started no agents, retried no safety-rejected tasks, and changed no
+application/source/deployment state. Qualification counts remain unchanged.
+
 **September 29 — authenticated Assembled instance discovery:** After user sign-in,
 read-only inspection covered all five standard Report pages, staffing/forecast/realtime
 views, connected Zendesk/Talk integrations, queue exclusions and agent-state settings.
