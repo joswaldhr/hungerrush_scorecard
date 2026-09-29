@@ -1,5 +1,18 @@
 # Audit implementation — current checkpoint
 
+**September 29 — core reporting inventory and Assembled requalification:** Fresh read-only
+production inventory confirms 23 assigned keys / 40 team assignments. The existing Assembled
+key works; no key replacement is needed. Nine bounded GETs across census and follow-up
+returned 104 people and six schedule samples (168 segments). All 23 Menufy and 38/39 POS
+employees have unique nondeleted matches; the remaining POS exact-email record is deleted.
+Do not silently remap, restore or drop this employee. Two closed-week/current-week samples
+show structural schedule availability, not qualified adherence or effort metrics. See
+`2026-09-29-reporting-requirements.md` and its aggregate evidence. Eight synthetic diagnostic
+guard tests pass; the reader is not imported by the app. No vendor/database writes, report
+generation, connector activation, deployment or demo changes occurred. Source support remains
+retired and certification counts remain unchanged. Latest AGENTS instructions prohibit all
+Zendesk report/dashboard editors, superseding older inspection allowances below.
+
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
 **September 28, 18:08 UTC — visual refresh live; POS outbound publication verified:**

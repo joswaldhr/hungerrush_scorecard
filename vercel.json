@@ -1,6 +1,7 @@
 {
   "git": {
     "deploymentEnabled": {
+      "codex/assembled-qualification": false,
       "codex/csat-bounded-recovery": false
     }
   },

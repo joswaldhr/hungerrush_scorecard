@@ -1,0 +1,448 @@
+{
+  "observedAt": "2026-09-29T15:50:19.660Z",
+  "readOnly": true,
+  "databaseWrites": 0,
+  "vendorWrites": 0,
+  "reportGenerationRequests": 0,
+  "rawRecordsPersisted": false,
+  "sourceSupport": "retired",
+  "api": {
+    "requests": 8,
+    "responseVersions": [],
+    "retries": 0
+  },
+  "roster": {
+    "returned": 104,
+    "paginationComplete": true,
+    "teams": {
+      "menufy": {
+        "employees": 23,
+        "uniqueActiveMatches": 23,
+        "missing": 0,
+        "ambiguous": 0,
+        "missingAgentId": 0,
+        "sharedAgent": 0
+      },
+      "pos": {
+        "employees": 39,
+        "uniqueActiveMatches": 38,
+        "missing": 1,
+        "ambiguous": 0,
+        "missingAgentId": 0,
+        "sharedAgent": 0
+      }
+    }
+  },
+  "inventory": {
+    "keys": 23,
+    "assignments": 40,
+    "rows": [
+      {
+        "key": "avg_call_duration_inbound",
+        "team": "menufy-support",
+        "unit": "s",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "avg_call_duration_inbound",
+        "team": "pos-support",
+        "unit": "s",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "avg_consultation_time_inbound",
+        "team": "menufy-support",
+        "unit": "s",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "avg_consultation_time_inbound",
+        "team": "pos-support",
+        "unit": "s",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "avg_handle_time",
+        "team": "pos-support",
+        "unit": "min",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "avg_hold_time_inbound",
+        "team": "menufy-support",
+        "unit": "s",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "avg_hold_time_inbound",
+        "team": "pos-support",
+        "unit": "s",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "avg_hold_time_outbound",
+        "team": "menufy-support",
+        "unit": "s",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "avg_hold_time_outbound",
+        "team": "pos-support",
+        "unit": "s",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "avg_response_time",
+        "team": "menufy-support",
+        "unit": "min",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "avg_talk_time_inbound",
+        "team": "menufy-support",
+        "unit": "s",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "avg_talk_time_inbound",
+        "team": "pos-support",
+        "unit": "s",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "avg_talk_time_outbound",
+        "team": "menufy-support",
+        "unit": "s",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "avg_talk_time_outbound",
+        "team": "pos-support",
+        "unit": "s",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "avoidable_worked_elevated_tickets",
+        "team": "menufy-support",
+        "unit": "tickets",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "avoidable_worked_elevated_tickets",
+        "team": "pos-support",
+        "unit": "tickets",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "backlog_count",
+        "team": "pos-support",
+        "unit": "tickets",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "csat_response_rate",
+        "team": "menufy-support",
+        "unit": "%",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "csat_score",
+        "team": "menufy-support",
+        "unit": "%",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "csat_score",
+        "team": "pos-support",
+        "unit": "%",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "declined_calls",
+        "team": "menufy-support",
+        "unit": "calls",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "inbound_calls_abandoned_on_hold",
+        "team": "menufy-support",
+        "unit": "calls",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "inbound_calls_abandoned_on_hold",
+        "team": "pos-support",
+        "unit": "calls",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "inbound_calls_accepted",
+        "team": "menufy-support",
+        "unit": "calls",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "inbound_calls_accepted",
+        "team": "pos-support",
+        "unit": "calls",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "inbound_calls_offered",
+        "team": "menufy-support",
+        "unit": "calls",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "inbound_calls_offered",
+        "team": "pos-support",
+        "unit": "calls",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "missed_calls",
+        "team": "menufy-support",
+        "unit": "calls",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "outbound_calls",
+        "team": "menufy-support",
+        "unit": "calls",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "outbound_calls",
+        "team": "pos-support",
+        "unit": "calls",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "outbound_calls_completed",
+        "team": "menufy-support",
+        "unit": "calls",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "outbound_calls_completed",
+        "team": "pos-support",
+        "unit": "calls",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "outbound_calls_non_answered",
+        "team": "menufy-support",
+        "unit": "calls",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "outbound_calls_non_answered",
+        "team": "pos-support",
+        "unit": "calls",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "tickets_resolved",
+        "team": "menufy-support",
+        "unit": "tickets",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "tickets_resolved",
+        "team": "pos-support",
+        "unit": "tickets",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "tickets_updated",
+        "team": "menufy-support",
+        "unit": "tickets",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "tickets_updated",
+        "team": "pos-support",
+        "unit": "tickets",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "worked_elevated_tickets",
+        "team": "menufy-support",
+        "unit": "tickets",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      },
+      {
+        "key": "worked_elevated_tickets",
+        "team": "pos-support",
+        "unit": "tickets",
+        "source_strategy": "zendesk",
+        "assignments": 1
+      }
+    ],
+    "unassigned": [
+      {
+        "key": "first_contact_resolution"
+      },
+      {
+        "key": "schedule_adherence"
+      }
+    ]
+  },
+  "activityTypes": {
+    "count": 18,
+    "productive": 4,
+    "timeoff": 4
+  },
+  "timeZone": "America/Chicago",
+  "samples": [
+    {
+      "team": "menufy",
+      "start": "2026-09-13T05:00:00Z",
+      "end": "2026-09-20T05:00:00Z",
+      "mode": "closed",
+      "rows": 38,
+      "uniqueBaseIds": 23,
+      "uniqueSegmentIds": 38,
+      "invalidIntervals": 0,
+      "outsideWindow": 0,
+      "foreignAgent": 0,
+      "unknownType": 0,
+      "missingSegmentId": 0,
+      "duplicateSegments": 0,
+      "overlaps": 0,
+      "qualified": false
+    },
+    {
+      "team": "menufy",
+      "start": "2026-09-20T05:00:00Z",
+      "end": "2026-09-27T05:00:00Z",
+      "mode": "closed",
+      "rows": 38,
+      "uniqueBaseIds": 22,
+      "uniqueSegmentIds": 38,
+      "invalidIntervals": 0,
+      "outsideWindow": 0,
+      "foreignAgent": 0,
+      "unknownType": 0,
+      "missingSegmentId": 0,
+      "duplicateSegments": 0,
+      "overlaps": 0,
+      "qualified": false
+    },
+    {
+      "team": "menufy",
+      "start": "2026-09-27T05:00:00Z",
+      "end": "2026-09-29T05:00:00Z",
+      "mode": "partial-current",
+      "rows": 7,
+      "uniqueBaseIds": 4,
+      "uniqueSegmentIds": 7,
+      "invalidIntervals": 0,
+      "outsideWindow": 0,
+      "foreignAgent": 0,
+      "unknownType": 0,
+      "missingSegmentId": 0,
+      "duplicateSegments": 0,
+      "overlaps": 0,
+      "qualified": false
+    },
+    {
+      "team": "pos",
+      "start": "2026-09-13T05:00:00Z",
+      "end": "2026-09-20T05:00:00Z",
+      "mode": "closed",
+      "rows": 31,
+      "uniqueBaseIds": 18,
+      "uniqueSegmentIds": 31,
+      "invalidIntervals": 0,
+      "outsideWindow": 0,
+      "foreignAgent": 0,
+      "unknownType": 0,
+      "missingSegmentId": 0,
+      "duplicateSegments": 0,
+      "overlaps": 0,
+      "qualified": false
+    },
+    {
+      "team": "pos",
+      "start": "2026-09-20T05:00:00Z",
+      "end": "2026-09-27T05:00:00Z",
+      "mode": "closed",
+      "rows": 38,
+      "uniqueBaseIds": 22,
+      "uniqueSegmentIds": 38,
+      "invalidIntervals": 0,
+      "outsideWindow": 0,
+      "foreignAgent": 0,
+      "unknownType": 0,
+      "missingSegmentId": 0,
+      "duplicateSegments": 0,
+      "overlaps": 0,
+      "qualified": false
+    },
+    {
+      "team": "pos",
+      "start": "2026-09-27T05:00:00Z",
+      "end": "2026-09-29T05:00:00Z",
+      "mode": "partial-current",
+      "rows": 16,
+      "uniqueBaseIds": 10,
+      "uniqueSegmentIds": 16,
+      "invalidIntervals": 0,
+      "outsideWindow": 0,
+      "foreignAgent": 0,
+      "unknownType": 0,
+      "missingSegmentId": 0,
+      "duplicateSegments": 0,
+      "overlaps": 0,
+      "qualified": false
+    }
+  ],
+  "limitations": [
+    "One matched employee per team is sampled; schedule availability does not establish all-employee coverage.",
+    "Current mappings do not establish historical membership, employment eligibility or Zendesk platform identity agreement.",
+    "No API version override is sent; an absent response version leaves pinned version unverified.",
+    "Activity rows are planned time, not proof of attendance, adherence, human ticket actions or handling effort.",
+    "No schedule sum is certified: account activity mappings, layer semantics, exclusions and independent report comparison remain open.",
+    "No Assembled report was generated or retrieved; adherence and effort report qualification remains open."
+  ]
+}
