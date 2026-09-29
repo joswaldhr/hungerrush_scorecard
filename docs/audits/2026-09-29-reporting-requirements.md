@@ -1,5 +1,61 @@
 # Core 1:1 reporting requirements and source qualification
 
+## Retained manager-template baseline — discovered September 29
+
+A local two-page PDF of the manager's Rippling 1:1 template, printed June 11, 2026,
+provides direct historical workflow evidence. Page 1 was text-extracted and visually
+inspected; page 2 contains only the print footer. The file is a blank template, not
+employee performance evidence. Private source SHA256:
+`3c2bee4eafa045ffcdb7c9dfa3a99d29ed815699ca076cbcf622dfd7040ba84a`.
+The PDF/screenshots, private template URL and identity information are not committed.
+The source's age means current use and unchanged requirements are not established.
+
+The template has **13 metric prompts**, plus two separate attendance prompts and
+discussion/ticket-review/action-item sections. Seven metric labels have corresponding
+assigned Cadence keys; six do not. Label correspondence does not certify the calculation.
+This is the concrete starting meeting-pack baseline, distinct from the 21 currently
+assigned Menufy keys and their existing acceptance obligations. Do not silently drop
+existing requirements or claim the template is already covered by the current key list.
+
+| Template prompt | Current mapping / required work |
+|---|---|
+| IB calls offered | `inbound_calls_offered`; saved filter and offered-component version qualification |
+| IB answered | `inbound_calls_accepted`; confirm accepted-leg meaning versus distinct calls |
+| Declined | `declined_calls`; retain transfer-declined inclusion and exact leg scope |
+| Missed | `missed_calls`; retain call-date and source scope |
+| Percent of calls answered | No assigned equivalent; accepted/offered is the retained report formula, but both sets must use one qualified scope/version; no offers means no sample, not 0% |
+| OB calls | `outbound_calls`; reconcile participating calls with the report's attribution |
+| Tickets updated | `tickets_updated` exists but is withheld; template label alone does not resolve events versus distinct tickets or approved human attribution |
+| Away | No assigned equivalent; establish source, unit and historical coverage |
+| Transfer only | No assigned equivalent; establish source, unit and historical coverage |
+| Total hours away / transfer only | No assigned equivalent; establish compatible state durations, period boundaries, overlap and complete capture before summing |
+| Total IB Talk Time | No assigned equivalent; retained report SUM leg talk is relevant. Do not replace with `avg_talk_time_inbound` or reconstruct from rounded averages |
+| Total OB Talk Time | No assigned equivalent; qualify source leg SUM and report participation scope, distinct from `avg_talk_time_outbound` |
+| CSAT Score | `csat_score`; match the released contract to the manager's intended rating cohort |
+
+The separate attendance prompts concern current points and rolling 90-day unplanned
+attendance. Source and policy ownership are not established. Do not infer attendance
+points or employment judgments from Zendesk state durations. Leave the existing HR
+workflow in place while the user has explicitly limited this phase to Zendesk metrics.
+Discussion/ticket review/action items are not numerical source contracts.
+
+### Important source limit for the state-time prompts
+
+The official [Zendesk Talk Stats API](https://developer.zendesk.com/api-reference/voice/talk-api/stats/)
+documents agent away/transfers-only duration fields, but its statistics cover only the
+current day from midnight in the account timezone. This endpoint alone cannot retrieve
+last week's complete state durations. This was documentation review, not an authenticated
+API call. Do not add today's counter to a weekly scorecard, sum repeated cumulative
+observations, or promise a historical reconstruction without a complete history source.
+Investigate the actual report/source used for these prompts when viewer access returns.
+Assembled remains parked; no WFM connector or status collector was activated.
+
+Immediate delivery priority is now the historically evidenced manager pack: qualify
+offered/answered and answer percentage together; retain total-talk measures explicitly;
+resolve the state-history and human-update dependencies. Existing response/quality and
+other assigned metrics stay intact. New metric keys/assignments are not created by this
+requirements correction, and no production arithmetic or certification count changes.
+
 ## Active Menufy comparison — September 29
 
 Assembled is parked under the latest user instruction. From the retained assignment

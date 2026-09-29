@@ -1,5 +1,17 @@
 # Audit implementation — current checkpoint
 
+**September 29 — actual retained manager template changes requirements baseline:** A
+June 11 saved blank 1:1 template was text-extracted and visually checked. Its 13 metric
+prompts include answer percentage, two total-talk measures and three Away/Transfer-only
+prompts without corresponding assigned keys. Seven have label-level matches to existing
+keys, not certified formula parity. Separate attendance prompts are not inferred from
+Zendesk activity. The 21-key Menufy inventory remains intact but cannot stand in for the
+actual meeting-pack requirements. `2026-09-29-reporting-requirements.md` now maps every
+template prompt and preserves current-use uncertainty. Official Talk Stats documentation
+limits state counters to the current account-timezone day; this alone cannot supply
+last-week state history. No new collector, metric assignment or vendor access occurred.
+Assembled remains parked. Current dashboard viewer access still awaits user sign-in.
+
 **September 29 — Menufy filter support and access dependency:** Retained inbound CSV
 inspection confirms 1,927 matched named leg rows across two old weeks, no duplicate
 named IDs/missing joins/out-of-scope rows, and unreachable attempts present. The rows
