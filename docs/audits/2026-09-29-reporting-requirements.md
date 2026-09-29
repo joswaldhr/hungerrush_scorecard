@@ -1,5 +1,15 @@
 # Core 1:1 reporting requirements and source qualification
 
+## September 29 viewer follow-up
+
+Authenticated **1x1 / Last Week** inspection now verifies the selected report filters
+and dates without opening editors. See [viewer contract findings](2026-09-29-menufy-viewer-contract.md).
+Inbound, outbound, CSAT, ticket updates and state time have different group scopes.
+Away/Transfers Only comes from the historical Agent state daily report, filtered to
+Talk/two support groups; its displayed Sum includes Online. This closes source discovery
+and named selection gaps below, not state-history automation, complete report delivery,
+human provenance or September 20–26 qualification. No new assignments or publication.
+
 ## Retained manager-template baseline — discovered September 29
 
 A local two-page PDF of the manager's Rippling 1:1 template, printed June 11, 2026,

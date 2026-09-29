@@ -1,5 +1,19 @@
 # Audit implementation — current checkpoint
 
+**September 29 — Menufy viewer access and saved filters verified:** After user sign-in,
+the 1x1 dashboard was inspected entirely in viewer mode. Keyboard-focused tooltips
+confirm September 20–26/Central scope, four inbound call groups/three lines/six statuses,
+six outbound ticket groups, five CSAT ticket groups, six ticket-update groups plus brand,
+and Talk/two groups for historical Agent state daily data. The state's displayed Sum
+includes Online, so it must not populate Away plus Transfers Only. Explicit-status replay
+changes no results across 56 older retained report row-weeks; this is not current-week
+report parity. CSV and Excel viewer exports both failed to deliver a file. A supported
+historical state feed, complete September 20–26 export/source reconciliation, human
+provenance and release gates remain open. See `2026-09-29-menufy-viewer-contract.md` and
+its aggregate replay. No editors, vendor changes, API collection, production publication,
+demo changes or certification increase. Earlier sign-in/filter-name-only gaps below
+are superseded to the precise extent recorded in this viewer observation.
+
 **September 29 — actual retained manager template changes requirements baseline:** A
 June 11 saved blank 1:1 template was text-extracted and visually checked. Its 13 metric
 prompts include answer percentage, two total-talk measures and three Away/Transfer-only

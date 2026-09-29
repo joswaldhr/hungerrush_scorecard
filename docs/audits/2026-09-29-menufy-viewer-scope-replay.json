@@ -1,0 +1,57 @@
+{
+  "observedOn": "2026-09-29",
+  "mode": "offline sensitivity replay of viewer-confirmed completion-status selection",
+  "sourceRequests": 0,
+  "productionWrites": 0,
+  "productionActivated": false,
+  "selectedGroupCount": 4,
+  "selectedLineCount": 3,
+  "retainedLineSelectionMatchesViewer": true,
+  "selectedCompletionStatuses": [
+    "agent_declined",
+    "agent_transfer_declined",
+    "agent_missed",
+    "agent_unreachable",
+    "completed",
+    "customer_hang_up"
+  ],
+  "offeredDefinition": "accepted-declined-missed-unreachable",
+  "timeZone": "America/Chicago",
+  "periods": [
+    {
+      "start": "2026-09-13",
+      "end": "2026-09-19",
+      "reportRowWeeks": 30,
+      "statusFilterChangedRows": 0,
+      "excludedLegs": 0,
+      "changedDurationRows": 0,
+      "changedOfferedRows": 0,
+      "answerRatioRangeChecks": 30
+    },
+    {
+      "start": "2026-09-06",
+      "end": "2026-09-12",
+      "reportRowWeeks": 26,
+      "statusFilterChangedRows": 0,
+      "excludedLegs": 0,
+      "changedDurationRows": 0,
+      "changedOfferedRows": 0,
+      "answerRatioRangeChecks": 26
+    }
+  ],
+  "inputDigests": {
+    "zendesk-call-reference-scope.json": "48db4226b9a52b5714e9bba26eb6eda1b26d7ad2d63adf97663fcfb84d3a29d1",
+    "zendesk-full-related-legs.json": "41f60175ef01ca456b661860d648fc79aba461de60fcf9d1c27cfab753932f9b",
+    "zendesk-call-reference-snapshot.json": "bcb1da2250099fd869c21bed6a30bb5c09ba70f505f2080050b74ed16182b70f",
+    "zendesk-call-report-week1.json": "0abb6dff41340defeac203849827924c85e495598ac2137337062dffcbcf0aec",
+    "zendesk-call-reference-previous-snapshot.json": "e4fdf73e3dbc729f26129872be7085f0efe0925cdb827ac2ec6a50747ebd9d10",
+    "zendesk-call-report-week2.json": "f60eeb23e47773035bbeabbdc9824ae39130a88cee20d913569a590b66301e8b"
+  },
+  "limitations": [
+    "Current viewer period is September 20-26; retained replay periods are September 6-12 and 13-19.",
+    "Group labels agree with retained scope documentation; current ID mapping and historical membership are not re-observed.",
+    "This compares filtered and unfiltered calculations on retained source, not fresh all-employee report parity.",
+    "Visible viewer rows and failed CSV delivery do not establish complete current report output.",
+    "No certification, target eligibility, scheduled operation or publication claim."
+  ]
+}

@@ -10,7 +10,9 @@ overall acceptance inventory. Report a separate, explicit Menufy milestone denom
 
 Use the retained Menufy report definitions as the starting reference, not an assumption
 that every saved report is currently used by Barbara or is mathematically appropriate
-for Cadence's labels. Current-use confirmation and full selected filters remain open.
+for Cadence's labels. Current-use confirmation remains open. The September 29
+[viewer inspection](2026-09-29-menufy-viewer-contract.md) now records selected filters
+for the five primary report families; complete outputs and historical scope remain open.
 No report editors may be opened under latest AGENTS safeguards.
 
 ### Source strategy
