@@ -69,9 +69,13 @@ roster synchronization.
 ## Assembled
 
 **Status: Removed.** The Assembled connector code was deleted. The `schedule_adherence`
-metric definition still exists (unassigned from both pilot teams). If Assembled is
-revisited, start from `docs/ARCHITECTURE.md`'s connector status notes — the Agent State
-Mapping configuration issue that prevented meaningful data was never resolved.
+metric definition still exists (unassigned from both pilot teams). The user's September 29
+clarification makes Assembled part of the required workflow to investigate. September 25
+evidence matched all 62 pilot employees and retained a bounded workforce-effort sample;
+this supersedes the old missing-roster rationale but does not qualify metric semantics,
+state configuration, report units or scheduled publication. Start from that evidence
+and the current documented APIs, not the retired connector's assumptions. See
+`audits/2026-09-29-product-fit-review.md` and the source-capability JSON it references.
 Data Health labels its retained source record as retired and preserves historical records.
 Manual sync requests for unsupported source types are rejected before fetching or publishing.
 

@@ -1,5 +1,17 @@
 # HungerRush Cadence --- Product Specification v0.3
 
+**September 29 purpose clarification:** The user's original problem is manual assembly
+of employee 1:1 metrics from Zendesk and Assembled. Cadence is the standalone scorecard
+application intended to eliminate that preparation. Exports support the managers' existing
+workflow, which includes attaching reports in Rippling; this does not request moving the
+application into Rippling or building an HR connector. Microsoft work-account sign-in
+and portable hosting remain appropriate. The current Zendesk-only implementation does
+not establish completion of the cross-source requirement. Assembled remains retired in
+code but must be requalified against the actual required report columns. The September 25
+source census matched all 62 pilot employees, superseding the earlier roster gap below.
+See `audits/2026-09-29-product-fit-review.md` for the evidence and critique. No connector
+or publication policy is activated by this clarification.
+
 **September 29 growth direction:** Cadence should become the place managers find trusted
 metrics already prepared for their recurring reviews. Start by eliminating manual metric
 assembly for the two pilot managers' 1:1s, then make manager onboarding configurable and
@@ -174,12 +186,15 @@ the underlying facts, not a wider exact-match query on `metricValues`.
 | HungerRush POS Support | Zendesk | Zendesk groups (`CustSup - Support Complex Queue`) | Manager: Alexander Smith |
 | Menufy Support | Zendesk | Zendesk groups (`Menufy Support - Consumers` + `- Restaurant`) | Manager: Barbara Maenza |
 
-Assembled and Rippling were both evaluated and dropped. Assembled never had accounts for most
-of this roster (verified live: 11 of 36 pilot employees, 31%) and its workforce-state API
-couldn't produce Schedule Adherence in any case. Rippling never had a real integration beyond
-a stub connector and a static link-out. Team/roster membership is Zendesk-groups-only now (see
-`docs/audits/2026-09-01-metric-integrity-report.md` Finding 6, and this repo's roster
-reconciliation work, 2026-09-02 through 2026-09-03).
+Assembled was removed in the earlier scope reduction; Rippling has no implemented
+connector. The September 1 finding of 11/36 matched Assembled employees is historical:
+the September 25 complete lookup matched all 62 current pilot employees to nondeleted
+people, without ambiguous matches. Its bounded effort sample does not qualify report
+units, full numerator coverage, schedule adherence or production ingestion. Assembled's
+current documented reporting interfaces warrant qualification for the user's required
+metrics; do not infer inability from the old connector or a single endpoint. See
+`audits/2026-09-25-workforce-source-capability.json`. Existing roster publication rules
+and employee assignments remain unchanged.
 
 ### Metric Categories
 

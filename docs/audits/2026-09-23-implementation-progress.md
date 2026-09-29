@@ -1,5 +1,15 @@
 # Audit implementation — current checkpoint
 
+**September 29 — original workflow clarified and reviewed:** The user reaffirmed that
+Cadence must eliminate employee 1:1 report assembly across Zendesk and Assembled; Rippling
+explains export usage, not a migration or new connector request. The product-fit review
+retains the standalone app and prioritizes reporting completeness over platform changes.
+Assembled remains retired in production code. September 25 evidence already matched all
+62 employees, superseding stale roster-gap wording; PRODUCT/INTEGRATIONS now reflect this.
+Current public reporting APIs warrant qualification, not an unsupported claim of inability
+or readiness. Review: `2026-09-29-product-fit-review.md`. No app, vendor, metric-policy,
+deployment or access changes occurred; qualification counts and release gates are unchanged.
+
 **September 29 — product growth mapped:** The user defined the core promise as having
 metrics ready for meetings instead of rebuilding them, starting with two managers and
 expanding later. `PRODUCT_ROADMAP.md` records staged acceptance: dependable pilot 1:1s,
