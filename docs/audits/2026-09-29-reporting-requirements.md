@@ -42,6 +42,16 @@ The initial pnpm runner refused the shared node_modules junction before running 
 existing Node package entrypoints were used without reinstalling or removing dependencies.
 No environment file, production DB or vendor API was accessed by these tests.
 
+The corrected reference was then replayed against retained private source/report files:
+all **448 comparisons across 56 report row-weeks** preserve the older saved results.
+On that same older scope, adding unreachable legs changes one September 13–19 row by
+two attempts and five September 6–12 rows by 24 attempts in aggregate. This confirms
+the definition difference can affect employee results; it is not proof of parity with
+the September 28 report's complete filter selection. The private inspection record
+identifies the newer inbound report as linked to the agent-audit dashboard, but records
+filter names rather than all selected values. See the aggregate
+`2026-09-29-menufy-offered-reference-replay.json`; no source rows are committed.
+
 September 29. Working inventory reconstructed from production assignments and retained
 manager-report evidence. This is not a claim that both managers have confirmed their entire
 manual workflow. Cadence remains a standalone scorecard app; Rippling explains the export

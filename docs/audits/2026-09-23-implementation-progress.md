@@ -1,5 +1,14 @@
 # Audit implementation — current checkpoint
 
+**September 29 — retained Menufy report replay:** Corrected diagnostic `cc6bcfe` matches
+all 448 retained comparisons across 56 named report row-weeks (September 6–12 and 13–19).
+Including unreachable attempts on that same older scope changes six row-weeks / 26
+attempts in aggregate. This is definition sensitivity, not four-component saved-report
+parity, current-pilot coverage or September 20–26 qualification. Private inspection
+confirms the newer report is dashboard-linked; complete selected filter values and
+current manager usage remain open. Aggregate replay evidence is committed separately;
+no new source requests, publication, historical repair or certification increase.
+
 **September 29 — Menufy code/report comparison and diagnostic correction:** Traced the
 21 Menufy assigned keys (23 employees in retained inventory) across legacy, first-reply,
 CSAT and Talk paths. The candidate already supports four-component offered calls, but
