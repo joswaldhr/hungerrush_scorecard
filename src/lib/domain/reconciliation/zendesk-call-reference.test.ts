@@ -138,6 +138,61 @@ describe("independent inbound report reference", () => {
       ).acceptedLegIds
     ).toEqual([2, 3]);
   });
+  it("applies a status selection to the entire report, including durations and participation", () => {
+    const result = referenceInboundCalls(
+      [call(1), call(2, { completion_status: "abandoned_on_hold" })],
+      [
+        leg(1, { talk_time: 10, hold_time: 2 }),
+        leg(2, { type: "supervisor", talk_time: 20, hold_time: 5 }),
+        leg(3, {
+          call_id: 2,
+          completion_status: "agent_unreachable",
+          talk_time: 100,
+          hold_time: 99,
+        }),
+        leg(4, { call_id: 2, completion_status: "agent_missed", talk_time: 40, hold_time: 8 }),
+      ],
+      {
+        ...scope,
+        offeredDefinition: "accepted-declined-missed-unreachable",
+        legCompletionStatuses: ["completed"],
+      }
+    );
+    expect(result).toMatchObject({
+      legCompletionStatuses: ["completed"],
+      selectedLegIds: [1, 2],
+      offeredLegIds: [1],
+      unreachableLegIds: [],
+      missedLegIds: [],
+      participatingCallIds: [1],
+      abandonedParticipatingCallIds: [],
+      talkSeconds: 30,
+      maxHoldSeconds: 5,
+    });
+  });
+  it("distinguishes an explicit empty status selection from unfiltered legacy input", () => {
+    const calls = [call(1)],
+      legs = [leg(1)];
+    expect(referenceInboundCalls(calls, legs, scope).selectedLegIds).toEqual([1]);
+    expect(referenceInboundCalls(calls, legs, { ...scope, legCompletionStatuses: null })).toEqual(
+      referenceInboundCalls(calls, legs, scope)
+    );
+    expect(
+      referenceInboundCalls(calls, legs, { ...scope, legCompletionStatuses: [] })
+    ).toMatchObject({
+      legCompletionStatuses: [],
+      selectedLegIds: [],
+      offered: 0,
+      talkSeconds: null,
+      maxHoldSeconds: null,
+    });
+  });
+  it("rejects unknown or duplicate selected statuses before calculating a result", () => {
+    for (const statuses of [["completed", "completed"], ["unknown"]])
+      expect(() =>
+        referenceInboundCalls([], [], { ...scope, legCompletionStatuses: statuses })
+      ).toThrow("Invalid call reference leg status filter");
+  });
   it("sums agent segment talk and takes maximum hold without charging the other agent", () => {
     expect(
       referenceInboundCalls(

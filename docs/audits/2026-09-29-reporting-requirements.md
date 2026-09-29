@@ -52,6 +52,37 @@ identifies the newer inbound report as linked to the agent-audit dashboard, but 
 filter names rather than all selected values. See the aggregate
 `2026-09-29-menufy-offered-reference-replay.json`; no source rows are committed.
 
+### Completion-status scope and retained CSV inspection
+
+The September 28 inspection records a leg-completion-status filter, but not its selected
+values. The independent comparator now supports an explicit status list for the entire
+report population, including durations and abandoned-call participation. Undefined/null
+preserves the earlier unfiltered replay, an empty array explicitly selects no statuses,
+and unknown or duplicate selections fail. Output retains the selected filter. This
+implements a comparison capability, not a choice of the manager's actual filter.
+
+Read-only inspection of the two September 25 inbound CSVs found 920 and 1,007 matched
+named leg rows, respectively. There were no duplicate named leg IDs, missing source
+joins or rows outside the retained period/direction/group/line scope. The rows include
+two and 24 unreachable attempts. Both files represent two groups and two lines with
+activity, whereas the known earlier report scope selected four groups and three lines.
+Thus observed row membership cannot reconstruct the selected filters. CSVs contain
+no saved-filter metadata, and do not establish September 28 scope or current use.
+
+The exported columns additionally include answer percentage, transferred-to and distinct
+inbound calls. Their presence does not prove that Barbara requires them in the meeting
+pack. Keep these potential report-to-scorecard differences explicit; do not silently
+add them to or omit them from the final manager requirements.
+
+A September 29 attempt to reach the ordinary Explore viewer failed in Microsoft sign-in
+with AADSTS90015 (query string too long), before any Zendesk report/dashboard opened.
+The failed tab was closed; user sign-in through the normal company path and a dashboard
+viewer was requested. No authentication settings, sessions or permissions were changed.
+The remaining selected-filter evidence gap is pending access. No editor fallback is allowed.
+
+Validation: 26 targeted synthetic tests and TypeScript pass; the test scope contains no
+database/API work. Retained source/export files were read locally and never modified.
+
 September 29. Working inventory reconstructed from production assignments and retained
 manager-report evidence. This is not a claim that both managers have confirmed their entire
 manual workflow. Cadence remains a standalone scorecard app; Rippling explains the export

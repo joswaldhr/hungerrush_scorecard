@@ -27,6 +27,8 @@ export interface CallReferenceScope {
   agentId: number;
   /** Omission preserves the September 25 retained comparison; never infer from team. */
   offeredDefinition?: "accepted-declined-missed" | "accepted-declined-missed-unreachable";
+  /** Undefined/null preserves an unfiltered status scope; [] deliberately selects none. */
+  legCompletionStatuses?: string[] | null;
 }
 
 /**
@@ -47,6 +49,24 @@ export function referenceInboundCalls(
     offeredDefinition !== "accepted-declined-missed-unreachable"
   )
     throw new Error("Invalid call reference offered definition");
+  const legCompletionStatuses = scope.legCompletionStatuses ?? null;
+  if (
+    legCompletionStatuses !== null &&
+    (!Array.isArray(legCompletionStatuses) ||
+      new Set(legCompletionStatuses).size !== legCompletionStatuses.length ||
+      legCompletionStatuses.some(
+        (status) =>
+          ![
+            "completed",
+            "agent_missed",
+            "agent_declined",
+            "agent_transfer_declined",
+            "agent_unreachable",
+            "customer_hang_up",
+          ].includes(status)
+      ))
+  )
+    throw new Error("Invalid call reference leg status filter");
   for (const day of [scope.startDay, scope.endDay]) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new Error("Invalid call reference day");
     const date = new Date(`${day}T00:00:00Z`);
@@ -119,6 +139,8 @@ export function referenceInboundCalls(
     if (leg.agent_id !== scope.agentId) continue;
     if (!byCall.has(leg.call_id)) throw new Error("Incomplete call join for agent legs");
     if (!cohort.has(leg.call_id)) continue;
+    if (legCompletionStatuses !== null && !legCompletionStatuses.includes(leg.completion_status))
+      continue;
     if (
       leg.type === "agent" &&
       ![
@@ -173,6 +195,8 @@ export function referenceInboundCalls(
   ]);
   return {
     offeredDefinition,
+    legCompletionStatuses:
+      legCompletionStatuses === null ? null : [...legCompletionStatuses].sort(),
     selectedLegIds: sorted(selected),
     acceptedLegIds: sorted(accepted),
     declinedLegIds: sorted(declined),

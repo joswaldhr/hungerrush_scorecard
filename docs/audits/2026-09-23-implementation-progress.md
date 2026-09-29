@@ -1,5 +1,17 @@
 # Audit implementation — current checkpoint
 
+**September 29 — Menufy filter support and access dependency:** Retained inbound CSV
+inspection confirms 1,927 matched named leg rows across two old weeks, no duplicate
+named IDs/missing joins/out-of-scope rows, and unreachable attempts present. The rows
+represent fewer groups/lines than the saved selection, so row membership cannot prove
+full filter settings. The independent checker now accepts an explicit completion-status
+filter, applies it to all report measures and rejects invalid selections. No actual saved
+selection was guessed or publisher changed. All 26 targeted tests and typecheck pass.
+An ordinary Explore viewer attempt failed at Microsoft SSO with AADSTS90015 before any
+report opened; the failed tab was closed and the user was asked to sign in through the
+normal company path. Selected filters/current report use remain pending; editor inspection
+is still prohibited. No vendor mutation, production publication or demo changes occurred.
+
 **September 29 — retained Menufy report replay:** Corrected diagnostic `cc6bcfe` matches
 all 448 retained comparisons across 56 named report row-weeks (September 6–12 and 13–19).
 Including unreachable attempts on that same older scope changes six row-weeks / 26
