@@ -1,5 +1,19 @@
 # Audit implementation — current checkpoint
 
+**September 29 — authenticated Assembled instance discovery:** After user sign-in,
+read-only inspection covered all five standard Report pages, staffing/forecast/realtime
+views, connected Zendesk/Talk integrations, queue exclusions and agent-state settings.
+The Team performance catalog exposes 30 selected measures; this is availability in the
+UI, not certification. Definitions separate call/chat AHT, solved-ticket viewing effort,
+productive adherence and schedule adherence. The latter is enabled but its documented
+clock-in/out prerequisite remains unverified. Display timezone is Pacific; report
+defaults mix rolling seven-day and Sunday-week windows. See
+`2026-09-29-assembled-instance-audit.md` for aggregate findings and qualification gates.
+No vendor changes, Zendesk editors, source activation, production changes or demo changes
+occurred. Browser returned to the original timeline with no new changes to save. The
+earlier sign-in blocker is resolved; 14/40 arithmetic and 0/40 full-contract counts are
+unchanged. Earlier automatically blocked delegated execution tasks were not retried.
+
 **September 29 — comprehensive cross-source plan:** The user requested a broad Assembled
 instance/metric audit, Zendesk accuracy completion and coordinated agents. Three planning
 reviews informed `2026-09-29-cross-source-execution-plan.md`: full accessible-instance catalog,

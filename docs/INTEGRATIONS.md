@@ -75,6 +75,17 @@ Mapping configuration issue that prevented meaningful data was never resolved.
 Data Health labels its retained source record as retired and preserves historical records.
 Manual sync requests for unsupported source types are rejected before fetching or publishing.
 
+**September 29 requalification:** A bounded diagnostic reader verifies API access and
+sample schedule structure; it is not an application connector. The authenticated
+[instance audit](audits/2026-09-29-assembled-instance-audit.md) confirms connected
+Zendesk/Talk sources, workforce/performance reports and visible state mappings.
+This does not resolve their completeness or the earlier calculation issue. Productive
+adherence, schedule adherence, call/chat handling time and solved-ticket viewing effort
+need separate contracts. Clock-in/out prerequisites, report boundaries, source exclusions,
+full-population coverage and independent reconciliation remain open. No Assembled
+publisher was activated, and viewing-based ticket counts cannot replace the approved
+verified-human action policy.
+
 ## Rippling
 
 **Status: No connector.** No Rippling connector code exists in the codebase. A plain
