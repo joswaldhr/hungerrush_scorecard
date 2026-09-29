@@ -1,5 +1,17 @@
 # Audit implementation — current checkpoint
 
+**September 29 — fresh Assembled qualification in separate branch:**
+`codex/assembled-qualification` preserves separation from PR41 and Adam's frozen demo.
+Read-only production inventory remains 23 assigned keys / 40 team assignments. The current
+Assembled key successfully returned 104 people and six schedule samples (168 segments).
+All 23 Menufy and 38/39 POS employees match uniquely to nondeleted source people. The
+remaining POS exact-email record is deleted, superseding September 25's all-nondeleted
+coverage for the new observation only; no employment or historical eligibility inference
+is warranted. Nine bounded vendor GETs, zero vendor/database writes or report-generation
+requests. Eight synthetic safety tests pass. App connector remains retired; metric
+certification counts, source policies and release gates are unchanged. The separate branch
+owns `2026-09-29-reporting-requirements.md` and aggregate census/identity-gap evidence.
+
 **September 29 — original workflow clarified and reviewed:** The user reaffirmed that
 Cadence must eliminate employee 1:1 report assembly across Zendesk and Assembled; Rippling
 explains export usage, not a migration or new connector request. The product-fit review
