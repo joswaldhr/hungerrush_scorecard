@@ -1,5 +1,15 @@
 # Audit implementation — current checkpoint
 
+**September 29 — user narrows active delivery to Barbara/Menufy:** Assembled is parked;
+new POS qualification and optional upgrades are outside the immediate phase. Existing
+source/production behavior and overall requirements remain preserved. The execution plan
+now prioritizes a Menufy report-to-scorecard mapping, documented source calculations with
+retained report comparisons, and the complete previous-week pack for 23 assigned employees.
+Known report mismatches are four-component offered calls, SUM talk time, MAX hold time,
+and update events versus human distinct-ticket activity. Exact saved filter scope and
+Barbara's current use of each retained report remain unverified. No vendor/editor access,
+application change, agent restart or deployment occurred in this scope update.
+
 **September 29 — delivery plan tightened around the complete last-week review:** User
 requested controls against project drift and an agent recommendation. The existing
 cross-source execution plan now has ordered exit gates, one active release family,

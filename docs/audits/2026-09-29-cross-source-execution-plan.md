@@ -1,5 +1,62 @@
 # Cadence cross-source audit, metric qualification and delivery plan
 
+## Active scope amendment — Menufy first
+
+The user's latest September 29 instruction parks Assembled and prioritizes Barbara's
+Menufy scorecard. This supersedes the cross-source execution order below. Stop Assembled
+qualification/adapter work and new POS qualification for this phase; preserve their
+evidence and existing production behavior. Do not remove their requirements from the
+overall acceptance inventory. Report a separate, explicit Menufy milestone denominator.
+
+Use the retained Menufy report definitions as the starting reference, not an assumption
+that every saved report is currently used by Barbara or is mathematically appropriate
+for Cadence's labels. Current-use confirmation and full selected filters remain open.
+No report editors may be opened under latest AGENTS safeguards.
+
+### Source strategy
+
+Prefer documented Zendesk source APIs plus versioned Cadence calculations for recurring
+delivery. Use retained authorized report exports as independent comparison evidence for
+manager-facing definitions, filters and totals. A reusable source observation must retain
+its time, complete scope and provenance privately; public Git contains aggregates only.
+Do not promise a supported automated Explore export route without verifying one.
+
+A report-file import can be a temporary explicit workflow if source reconstruction is
+impossible and a reliable export is available. First verify employee identity, complete
+rows/pagination, exact dates/timezone, filters, units, nulls, duplicate uploads and report
+definition/version. Mark file observation time and import provenance. A manual upload
+does not meet the final no-preparation requirement and must not masquerade as live sync.
+
+### First comparison matrix and execution sequence
+
+| Menufy measure | Retained evidence | Required decision/check |
+|---|---|---|
+| Inbound offered | Accepted + declined + missed + unreachable distinct legs | Establish full saved filter set, disjointness/duplicate rules and exact source IDs; inactive three-component candidate is insufficient |
+| Inbound talk time | Saved report uses SUM leg seconds | Preserve total talk as total if required; Cadence average needs its own measured-leg denominator and compatible target |
+| Inbound hold time | Saved report uses MAX leg seconds | Preserve maximum as maximum if required; do not relabel as mean hold time |
+| Ticket activity | Distinct update events and distinct solved tickets, updater-based rows | Resolve event-versus-ticket requirement and human attribution; report matching alone cannot override the approved verified-human policy |
+| Response and CSAT | Existing released policies and qualified observations | Reuse evidence, verify complete closed-week source sets, exact report cohort differences, targets and scheduled delivery |
+| Outbound | Menufy current-week controlled publication already independently matched | Close scheduled and closed-period provenance gaps; current-week evidence does not certify last week |
+| Elevated/avoidable work | Team-specific attribution/classification still unresolved | Establish required meaning and source event evidence; a ticket flag alone is insufficient |
+
+1. Build the report-to-scorecard mapping for every required Menufy column, including
+   report identity/version, actual-use evidence, formula, selected filters, period basis,
+   timezone, attribution, unit, targets and export placement. Keep unknowns explicit.
+2. Resolve each mismatch as exact reproduction, correctly labelled additional measure,
+   justified correction, or blocked evidence. Do not silently change business meaning.
+3. Finish one Menufy family through all existing independent reconciliation and release
+   gates. Reuse qualified CSAT/first-reply/outbound evidence; investigate the inbound
+   mismatches and human provenance with bounded source questions in parallel where safe.
+4. Verify all 23 currently assigned Menufy employees, with effective historical eligibility,
+   across two closed weeks and current progress. Include legitimate no-sample outcomes;
+   unexplained missing records or values remain blockers, not zeros.
+5. Prove Barbara's previous-week page, historical comparisons, actual export bytes and
+   scheduled readiness. Pilot acceptance still requires no manual rebuilding of reports.
+
+Do not enable human-action/shadow/historical repair features or change vendors, employee
+assignments, POS, the demo, hosting or qualified policies incidentally. Existing safety
+review rejections remain in force; this scope amendment does not retry blocked tasks.
+
 September 29, 2026. Requested by the user after confirming the original product purpose.
 Three planning agents reviewed Assembled, Zendesk and end-to-end acceptance. This document
 combines their recommendations under the latest user safeguards. Planning used repository
