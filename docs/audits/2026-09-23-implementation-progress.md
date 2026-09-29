@@ -1,5 +1,22 @@
 # Audit implementation — current checkpoint
 
+**September 29 — company-hosting proposal; CSAT code deployed:** The user requested a
+path away from Vercel/Railway to company infrastructure. `docs/INFRASTRUCTURE_MIGRATION.md`
+records a provisional Azure/container design plus a physical-server alternative, exact
+portability work, one-writer cutover and rollback gates. Destination/IT requirements are
+pending; no hosting, DNS, billing or identity changes were made for this proposal.
+
+PR42 merged to production `2241763`, deployment `dpl_GnmLnC5NGNmMtTJ1nRpnAhqnnisj`.
+Master CI `36490899861` passes and production health returns HTTP 200. Its fresh pre-release
+encrypted restore matched 33 tables / 63,633 rows. The next-day comparison confirms all
+18 production settings and six assignment/configuration digests unchanged; metric values
+changed across six intervening completed publications, so no all-row-unchanged result is
+claimed. Exact scheduler correlation and renewed authenticated browser smoke remain
+unverified. See the CSAT release record for those limits. Main UI PR41 now includes the
+released transport fix at `4ac2be1`, with exact combined CI `36490995017` passing. Its
+hosted authenticated/export gates still await separate Preview sign-in. Demo remains
+frozen at the original deployment. Metric certification counts do not change.
+
 **September 28 — isolated main Preview READY; release remains gated:** PR41 app SHA
 `3bfc9df` passes exact CI `36487847138` (866 tests / 109 files and build). Separate
 Preview `dpl_5hvg7HpvnPKgoYeJsrbJU55KrPHU` passes the database isolation build guard.

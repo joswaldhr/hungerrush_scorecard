@@ -14,6 +14,7 @@ be distinguished: an audit-branch fix is not automatically a production fix.
 | [METRIC_TRACEABILITY.md](METRIC_TRACEABILITY.md) | Source-to-display paths and known semantic gaps |
 | [INTEGRATIONS.md](INTEGRATIONS.md) | Verified vendor interfaces, identity requirements and unresolved source behavior |
 | [RUNBOOK.md](RUNBOOK.md) | Safe validation, deployment and recovery procedures |
+| [INFRASTRUCTURE_MIGRATION.md](INFRASTRUCTURE_MIGRATION.md) | Proposed company-managed hosting, portability work, IT decisions and cutover/rollback gates; not a completed migration |
 | [SAFETY_GUARDRAILS.md](SAFETY_GUARDRAILS.md) | Zendesk read-only boundary, incident containment, environment isolation and release acceptance gates |
 | [Implementation ledger](audits/2026-09-23-implementation-progress.md) | Active audit branch, accepted process, completed checks and remaining release gates |
 | [Contract audit](audits/2026-09-23-metric-contracts.md) | September 23 inventory and observed/proposed contract differences |
