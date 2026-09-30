@@ -1,5 +1,16 @@
 # Audit implementation — current checkpoint
 
+**September 30 — user-supplied Menufy workbook audited:** The eight-sheet export is
+now retained privately and excluded from Git; this resolves the earlier file-delivery
+gap. Read-only viewer inspection corroborates September 20–26/Central with matching
+visible samples. Of 183 internal checks, 182 agree; one outbound Total exceeds Complete
+plus NA by one, requiring matched source records rather than an assumed formula fix.
+State Sum includes Online; five state rows have missing components. An unnamed inbound
+row and incomplete retained identity coverage remain explicit. No formula/error cells
+were found. See `2026-09-30-menufy-workbook-audit.md` and its aggregate JSON. These are
+reference-data findings, not independent reconciliation or increased certification.
+No Zendesk edits, source API collection, production/demo changes or metric publication.
+
 **September 29 — Menufy viewer access and saved filters verified:** After user sign-in,
 the 1x1 dashboard was inspected entirely in viewer mode. Keyboard-focused tooltips
 confirm September 20–26/Central scope, four inbound call groups/three lines/six statuses,

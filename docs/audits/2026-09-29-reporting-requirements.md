@@ -1,5 +1,13 @@
 # Core 1:1 reporting requirements and source qualification
 
+## September 30 workbook received
+
+The user supplied an eight-sheet export, resolving report-byte delivery. The current
+viewer corroborates September 20–26/Central; the file itself embeds no period manifest.
+See [workbook findings](2026-09-30-menufy-workbook-audit.md) for internal arithmetic,
+the unresolved outbound residual, missing state components and identity coverage limits.
+Full source reconciliation, state-history automation and human provenance remain open.
+
 ## September 29 viewer follow-up
 
 Authenticated **1x1 / Last Week** inspection now verifies the selected report filters

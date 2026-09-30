@@ -1,0 +1,253 @@
+{
+  "observedOn": "2026-09-30",
+  "inputSha256": "11f8bcc26ae23a8dca9cc2678e0d286bbc201087f5477304b2df1b5f5aa0586e",
+  "inputBytes": 15906,
+  "sheetCount": 8,
+  "formulaCells": 0,
+  "errorCells": 0,
+  "embeddedDateCells": 0,
+  "sheets": [
+    {
+      "sheet": "Menufy Support %ticket solved",
+      "dataRows": 43,
+      "columns": [
+        "Agent",
+        "Agent updates",
+        "Solved",
+        "% Solved"
+      ],
+      "unnamedRows": 0,
+      "duplicateNamedRows": 0,
+      "checks": {
+        "solvedPerUpdateRatio": {
+          "tested": 43,
+          "mismatches": 0,
+          "noSample": 0
+        }
+      },
+      "retainedIdentityComparison": {
+        "pilotSize": 23,
+        "pilotRowsMatched": 19,
+        "pilotRowsAbsent": 4,
+        "uniquelyMappedOutsidePilot": 6,
+        "unmappedNames": 18,
+        "ambiguousNames": 0
+      }
+    },
+    {
+      "sheet": "Menufy Support CSAT by Agent",
+      "dataRows": 24,
+      "columns": [
+        "Agent",
+        "CSAT",
+        "Good",
+        "Bad",
+        "Sent",
+        "Return %"
+      ],
+      "unnamedRows": 0,
+      "duplicateNamedRows": 0,
+      "checks": {
+        "csatRatio": {
+          "tested": 24,
+          "mismatches": 0,
+          "noSample": 9
+        },
+        "returnRatio": {
+          "tested": 24,
+          "mismatches": 0,
+          "noSample": 5
+        }
+      },
+      "retainedIdentityComparison": {
+        "pilotSize": 23,
+        "pilotRowsMatched": 19,
+        "pilotRowsAbsent": 4,
+        "uniquelyMappedOutsidePilot": 4,
+        "unmappedNames": 1,
+        "ambiguousNames": 0
+      }
+    },
+    {
+      "sheet": "Menufy Support Inbound Ca...",
+      "dataRows": 27,
+      "columns": [
+        "Name",
+        "Offered",
+        "Accepted",
+        "Declined",
+        "Missed",
+        "unreachable",
+        "% answered",
+        "Abandoned on hold",
+        "transferred to",
+        "Talk time",
+        "Max Hold time"
+      ],
+      "unnamedRows": 1,
+      "duplicateNamedRows": 0,
+      "checks": {
+        "fourComponentOffered": {
+          "tested": 27,
+          "mismatches": 0,
+          "noSample": 0
+        },
+        "answerRatio": {
+          "tested": 27,
+          "mismatches": 0,
+          "noSample": 3
+        }
+      },
+      "retainedIdentityComparison": {
+        "pilotSize": 23,
+        "pilotRowsMatched": 17,
+        "pilotRowsAbsent": 6,
+        "uniquelyMappedOutsidePilot": 6,
+        "unmappedNames": 3,
+        "ambiguousNames": 0
+      }
+    },
+    {
+      "sheet": "Menufy Support Outbound C...",
+      "dataRows": 20,
+      "columns": [
+        "Leg agent name",
+        "Complete",
+        "NA",
+        "Total",
+        "Talk"
+      ],
+      "unnamedRows": 0,
+      "duplicateNamedRows": 0,
+      "checks": {
+        "outboundPartitionHypothesis": {
+          "tested": 20,
+          "mismatches": 1,
+          "noSample": 0
+        }
+      },
+      "retainedIdentityComparison": {
+        "pilotSize": 23,
+        "pilotRowsMatched": 18,
+        "pilotRowsAbsent": 5,
+        "uniquelyMappedOutsidePilot": 2,
+        "unmappedNames": 0,
+        "ambiguousNames": 0
+      }
+    },
+    {
+      "sheet": "Menufy Support ticket updates",
+      "dataRows": 70,
+      "columns": [
+        "Ticket Type _MFY",
+        "update",
+        "Solved"
+      ],
+      "unnamedRows": 1,
+      "duplicateNamedRows": 0,
+      "checks": {}
+    },
+    {
+      "sheet": "Menufy Support Time in State",
+      "dataRows": 23,
+      "columns": [
+        "Agent name",
+        "Away\nAgent daily time in state",
+        "Online\nAgent daily time in state",
+        "Transfers only\nAgent daily time in state",
+        "SUM\nAgent daily time in state"
+      ],
+      "unnamedRows": 0,
+      "duplicateNamedRows": 0,
+      "checks": {
+        "stateSumIncludesOnline": {
+          "tested": 18,
+          "mismatches": 0,
+          "noSample": 0,
+          "missingComponentRows": 5
+        }
+      },
+      "retainedIdentityComparison": {
+        "pilotSize": 23,
+        "pilotRowsMatched": 19,
+        "pilotRowsAbsent": 4,
+        "uniquelyMappedOutsidePilot": 2,
+        "unmappedNames": 2,
+        "ambiguousNames": 0
+      }
+    },
+    {
+      "sheet": "MFY Controllable calls avoid",
+      "dataRows": 10,
+      "columns": [
+        "Leg agent name",
+        "Agent declined\nCalls Offered",
+        "Agent missed\nCalls Offered"
+      ],
+      "unnamedRows": 0,
+      "duplicateNamedRows": 0,
+      "checks": {},
+      "retainedIdentityComparison": {
+        "pilotSize": 23,
+        "pilotRowsMatched": 10,
+        "pilotRowsAbsent": 13,
+        "uniquelyMappedOutsidePilot": 0,
+        "unmappedNames": 0,
+        "ambiguousNames": 0
+      }
+    },
+    {
+      "sheet": "Missedunreachable  invali...",
+      "dataRows": 28,
+      "columns": [
+        "Leg agent name",
+        "Missed",
+        "Agent Unreachable",
+        "invalid declined"
+      ],
+      "unnamedRows": 1,
+      "duplicateNamedRows": 0,
+      "checks": {},
+      "retainedIdentityComparison": {
+        "pilotSize": 23,
+        "pilotRowsMatched": 17,
+        "pilotRowsAbsent": 6,
+        "uniquelyMappedOutsidePilot": 6,
+        "unmappedNames": 4,
+        "ambiguousNames": 0
+      }
+    }
+  ],
+  "differenceCount": 1,
+  "sourceRequests": 0,
+  "productionWrites": 0,
+  "limitations": [
+    "Workbook is an exported value snapshot, not underlying source records or formulas.",
+    "No reporting interval is assumed from the export filename.",
+    "Identity coverage uses retained name-to-ID and pilot mappings; no fuzzy matching or current/historical census.",
+    "Missing agent rows do not prove zero activity.",
+    "Internal ratio agreement is not independent source reconciliation or certification."
+  ],
+  "viewerCorroboration": {
+    "observedOn": "2026-09-30",
+    "mode": "viewer",
+    "selectedView": "Last Week",
+    "periodStart": "2026-09-20",
+    "periodEnd": "2026-09-26",
+    "displayTimeZone": "Central Time",
+    "workbookPeriodEmbedded": false,
+    "basis": "Selected viewer interval and matching visible samples; not an embedded export manifest."
+  },
+  "outboundInterpretation": {
+    "partitionAssumptionProven": false,
+    "rowsWithPositiveResidual": 1,
+    "totalResidual": 1.0,
+    "causeVerified": false,
+    "note": "Total exceeds Complete plus NA. Existing calculator has separate abandoned-on-hold/unclassified buckets; exact cause requires matched source records."
+  },
+  "checkSummary": {
+    "tested": 183,
+    "nonMatchingHypotheses": 1,
+    "certificationIncrease": false
+  }
+}
