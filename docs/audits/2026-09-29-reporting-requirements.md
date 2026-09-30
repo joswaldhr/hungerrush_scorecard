@@ -1,5 +1,15 @@
 # Core 1:1 reporting requirements and source qualification
 
+## September 30 same-week source comparison
+
+Underlying records now reproduce all 434 compared values in the received week's named
+inbound, outbound and CSAT tables, with no unexplained differences. The one outbound
+residual is abandoned-on-hold participation, correctly included only in Total. See
+[source reconciliation](2026-09-30-menufy-source-reconciliation.md) for exact populations,
+source-set checks and remaining limits. This supersedes the unresolved call residual and
+same-week comparison gap below. It does not activate inbound publication, qualify averages
+from SUM/MAX output, resolve effective eligibility, or certify human-ticket/state metrics.
+
 ## September 30 workbook received
 
 The user supplied an eight-sheet export, resolving report-byte delivery. The current

@@ -1,0 +1,122 @@
+{
+  "observedOn": "2026-09-30",
+  "periodStart": "2026-09-20",
+  "periodEnd": "2026-09-26",
+  "timeZone": "America/Chicago",
+  "outboundReportRows": 20,
+  "outboundValuesCompared": 80,
+  "outboundDifferences": 0,
+  "inboundReportRows": 26,
+  "inboundSourceSetsCompared": 156,
+  "inboundSourceSetDifferences": 0,
+  "inboundReportValuesCompared": 234,
+  "inboundReportDifferences": 0,
+  "unnamedInboundRowsExcluded": 1,
+  "transferredToCompared": false,
+  "productionPublished": false,
+  "sourceCollection": {
+    "vendorMethod": "GET",
+    "calls": {
+      "complete": true,
+      "modifiedSince": "2026-09-25",
+      "observationStartedAt": "2026-09-30T20:09:20.882Z",
+      "observationEndedAt": "2026-09-30T20:10:14.119Z",
+      "pages": 8,
+      "watermark": 1790798993
+    },
+    "legs": {
+      "complete": true,
+      "modifiedSince": "2026-09-25",
+      "observationStartedAt": "2026-09-30T20:10:16.544Z",
+      "observationEndedAt": "2026-09-30T20:12:04.361Z",
+      "pages": 15,
+      "watermark": 1790799113
+    },
+    "callDeltaRecords": 6321,
+    "legDeltaRecords": 12689,
+    "ticketMetadata": {
+      "complete": true,
+      "observationStartedAt": "2026-09-30T20:11:25.150Z",
+      "observationEndedAt": "2026-09-30T20:11:59.657Z",
+      "requestedTickets": 1575,
+      "returnedTickets": 1575,
+      "requests": 16,
+      "scopeMeaning": "current-linked-ticket-group"
+    },
+    "identityCensus": {
+      "complete": true,
+      "pages": 4,
+      "staffCount": 374,
+      "observedAt": "2026-09-30T20:12:55.720Z"
+    },
+    "sharedTalkLeaseAndPacing": true,
+    "leaseReleasedVerified": true,
+    "zendeskMutations": 0,
+    "metricWrites": 0,
+    "databaseWritesLimitedTo": "existing Talk account coordination lease and request pacing; no record/checkpoint/metric/assignment/configuration writes"
+  },
+  "mergedSource": {
+    "callRowsInPeriod": 8233,
+    "legRowsJoinedToPeriodCalls": 16445,
+    "conflictingVersions": 0,
+    "outboundMissingTicketJoins": 0
+  },
+  "outboundResidual": {
+    "explained": true,
+    "cause": "one distinct abandoned-on-hold call, included in total but excluded from complete/non-answered",
+    "formulaChangeRequired": false
+  },
+  "pilotCoverage": {
+    "pilotSize": 23,
+    "inboundRepresented": 17,
+    "inboundAbsentFromReport": 6,
+    "outboundRepresented": 18,
+    "outboundAbsentFromReport": 5,
+    "effectiveHistoricalEligibilityVerified": false
+  },
+  "validation": {
+    "targetedTests": 20,
+    "typecheck": "pass",
+    "scope": "synthetic outbound regression plus existing inbound reference tests; no production activation"
+  },
+  "limitations": [
+    "Report aggregate parity is not report source-ID set parity; the workbook does not export those IDs.",
+    "Fresh exact names resolve all named call-report rows; this is not effective-dated employee eligibility.",
+    "The unnamed inbound row is excluded from employee attribution.",
+    "Transferred-to/multi-assist is not compared: retained captures omit consultation type.",
+    "SUM talk/MAX hold do not qualify average metrics.",
+    "Historical groups reflect current ticket metadata; immutable historical context/targets remain unverified.",
+    "Human ticket activity, state history automation, remaining metric families and release gates remain separate.",
+    "No increase in full-contract certification, production publication, demo or Assembled changes."
+  ],
+  "inputDigests": {
+    "menufy-workbook-extracted-2026-09-30.json": "2820191ec1a65a1ca153784609535dd946920d95ba4f2b527b44f76548bb511e",
+    "talk-qualified-calls.json": "f2e800b0f6e1007fdd86c07c311a5c991fd650304fd7a7ea19252a3d26abab0c",
+    "talk-current-legs.json": "32ed1c623ca958073c8610d5bdfa046117ee6c066fafa8047e607caac37faa1a",
+    "menufy-week-gap-2026-09-30-calls.json": "178b1f10e487650c9390277bb3fde219deb33db6db095dee5429dbd2cedfb22e",
+    "menufy-week-gap-2026-09-30-legs.json": "8d556e94f511f002dfd38d9ca3a0c2c65e364caa1d92217c02649336fa380955",
+    "menufy-week-tickets-2026-09-30.json": "86f968e4fd0976f95bc6198e37c41c2c44033b81fe924fcf134984e61ab95051",
+    "menufy-report-identities-2026-09-30.json": "ca40a46aa80820fb6f556ac55db449000141450a044d1ff0166c64e6f88bdaf9",
+    "menufy-week-csat-2026-09-30.json": "26252a91a4422ab40b06b43387a7eb7ca1560950b1f382388af4407c9414eaad"
+  },
+  "csat": {
+    "complete": true,
+    "reportRows": 24,
+    "comparisons": 120,
+    "rowsMatching": 24,
+    "sourceTickets": 5491,
+    "metricSets": 5491,
+    "requests": 110,
+    "elapsedMs": 151190,
+    "productionWrites": 0,
+    "differenceCount": 0,
+    "independentCheck": {
+      "independentImplementation": "Python raw-ticket and metric-set reduction",
+      "sourceSetComparisons": 96,
+      "reportValueComparisons": 120,
+      "differences": 0
+    }
+  },
+  "totalReportValueComparisons": 434,
+  "totalSourceRequests": 153
+}

@@ -1,5 +1,20 @@
 # Audit implementation — current checkpoint
 
+**September 30 — same-week Menufy calls and CSAT reconciled:** Bounded GET collection
+closed the retained Talk gap and retrieved complete linked-ticket metadata, staff names
+and solved-CSAT source records. All 434 compared workbook values match: outbound 20
+rows/80 values, inbound 26 named rows/234 values, CSAT 24 rows/120 values. Independent
+candidate/reference checks also match 156 inbound source sets and 96 CSAT ticket sets.
+The outbound residual is one abandoned-on-hold call; the existing calculation is correct.
+Twenty focused tests, typecheck, scoped lint and formatting pass; a synthetic regression
+protects that three-outcome partition. See `2026-09-30-menufy-source-reconciliation.md`
+and JSON. The Talk reader used the existing shared account lease/pacing and verified
+release; only that operational coordination metadata changed in the database. No Zendesk
+mutations, metric publication, settings/assignments, demo or Assembled changes. Unnamed
+inbound activity, transferred-to, historical eligibility/targets, SUM versus AVG, state
+automation, human-ticket provenance and publisher/release gates remain explicit. This
+is report-value parity for one closed week, not full-contract/product certification.
+
 **September 30 — user-supplied Menufy workbook audited:** The eight-sheet export is
 now retained privately and excluded from Git; this resolves the earlier file-delivery
 gap. Read-only viewer inspection corroborates September 20–26/Central with matching

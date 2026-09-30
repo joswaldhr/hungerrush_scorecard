@@ -1,5 +1,11 @@
 # Menufy workbook comparison baseline
 
+**Later September 30 source follow-up:** All 314 compared named call-report values
+now match underlying records. The outbound residual is an abandoned-on-hold call;
+all named call-report identities resolve uniquely in the fresh census. See
+[source reconciliation](2026-09-30-menufy-source-reconciliation.md). The initial findings
+below remain the record of what the workbook alone established.
+
 The user supplied the dashboard's Excel export on September 30. The private original
 is 15,906 bytes; SHA256 is recorded in the accompanying aggregate JSON. It is excluded
 from Git locally and was read without modification. The eight sheets contain static
