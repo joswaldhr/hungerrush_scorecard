@@ -78,9 +78,12 @@ the merged diagnostic capture is not passed off as a production durable observat
 See [aggregate replay](2026-09-30-menufy-inbound-candidate-replay.json).
 
 The focused suite passes 29 tests: ten new calculation/record safeguards, seven shared
-observation checks and twelve independent-reference cases. Typecheck passes. Full CI
-and build status must be recorded against the pushed candidate before treating this
-increment as validated for integration.
+observation checks and twelve independent-reference cases. Typecheck passes. Exact code
+candidate `fed37e7b05ad50ad8d3ed20bd4f8b378f030a235` passes full CI
+[`36773317887`](https://github.com/joswaldhr/hungerrush_scorecard/actions/runs/36773317887):
+all 107 test files, PostgreSQL migrations, full type/lint checks, the eight retained
+read-only diagnostic guards and the production build. This validates the inactive
+increment; it does not satisfy the separate publication/hosted/recovery release gates.
 
 ## Remaining release work
 

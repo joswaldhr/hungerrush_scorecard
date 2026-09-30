@@ -7,8 +7,9 @@ fields. Replay matches 234 values and 182 source sets for all 26 named report ro
 Missing talk on completed legs withholds uncertain accepted/offered counts; incomplete
 durations withhold SUM/MAX while measured zeros remain numeric. Candidate normalization
 recomputes raw evidence and rejects foreign identity/period rows and injected totals.
-Twenty-nine focused tests and typecheck pass; full CI/build remains to be observed on
-the pushed candidate. See `2026-09-30-menufy-inbound-candidate.md`. No live imports,
+Twenty-nine focused tests and typecheck pass. Code candidate `fed37e7` also passes full
+CI `36773317887`: 107 test files, migrations, full lint/type checks, eight diagnostic
+guards and production build. See `2026-09-30-menufy-inbound-candidate.md`. No live imports,
 metric definitions/assignments, environment flags, scheduler, database/source writes,
 production or demo changes. Dedicated publication, PostgreSQL/hosted/recovery gates and
 prospective activation remain required; historical repair stays disabled.
