@@ -91,27 +91,23 @@ beforeAll(async () => {
       displayName: "Outside policy",
     },
   ]);
-  await db
-    .insert(dataSources)
-    .values({
-      id: source,
-      organizationId: org,
-      type: "zendesk",
-      displayName: "Synthetic source",
-      status: "configured",
-      configurationReference: "zendesk-account:synthetic",
-    });
+  await db.insert(dataSources).values({
+    id: source,
+    organizationId: org,
+    type: "zendesk",
+    displayName: "Synthetic source",
+    status: "configured",
+    configurationReference: "zendesk-account:synthetic",
+  });
   await db.insert(externalIdentities).values(identity);
-  await db
-    .insert(metricDefinitions)
-    .values(
-      definitions.map((d) => ({
-        ...d,
-        organizationId: org,
-        name: d.key,
-        sourceStrategy: "zendesk",
-      }))
-    );
+  await db.insert(metricDefinitions).values(
+    definitions.map((d) => ({
+      ...d,
+      organizationId: org,
+      name: d.key,
+      sourceStrategy: "zendesk",
+    }))
+  );
   await db
     .insert(metricAssignments)
     .values(ids.map((metricDefinitionId) => ({ metricDefinitionId, teamId: team })));
