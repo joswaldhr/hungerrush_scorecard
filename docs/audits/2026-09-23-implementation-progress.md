@@ -4,8 +4,10 @@
 rejects the inactive inbound record/contract and explicitly ineligible facts,
 including retained contributors. A separate read-only preflight validates account,
 organization, team-wide effective assignments, metric units/aggregation and unique
-active employee identities. Local typecheck, scoped lint and 23 focused tests pass;
-new PostgreSQL atomic-rejection and binding tests await exact-candidate CI. See
+active employee identities. Candidate `bcb40b6` passes full CI `36775503153`: 842 tests
+in 109 files, isolated PostgreSQL migrations/rollback/binding checks, full lint and
+typecheck, eight separate diagnostic guards and production build. The first CI run
+stopped at formatting; the formatting-only correction passed the full rerun. See
 `2026-09-30-menufy-publication-preflight.md`. No new vendor requests, production/demo
 changes, metric assignments or activation. Successful publication/replacement,
 transaction-time revalidation, hosted/recovery gates and wider qualification remain

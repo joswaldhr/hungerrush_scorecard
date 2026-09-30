@@ -27,9 +27,18 @@ manager scorecard.
 ## Validation and boundaries
 
 Local validation: typecheck, scoped ESLint and 23 calculator, source-description,
-source-context and eligibility tests pass. Full CI with isolated PostgreSQL and
-the production build is required on the committed candidate; result will be
-recorded in the implementation ledger.
+source-context and eligibility tests pass. Candidate `bcb40b67b0ac35e9bfe8061cef5e8c1542de1c0a`
+passes [CI 36775503153](https://github.com/joswaldhr/hungerrush_scorecard/actions/runs/36775503153):
+842 tests in 109 files, isolated PostgreSQL migrations, all 22 atomic-publication
+tests and four new inbound-binding tests, full lint/typecheck, eight separate
+read-only diagnostic guard tests and production build. Run `36775252426` stopped
+at test-file formatting; a formatting-only correction resolved that failure.
+
+Static inspection confirms source descriptions, reporting timezones and missing
+reasons already travel through the shared metric rows into data details and CSV
+exports. No new inbound presentation is activated or hosted export inspected by
+this increment; contract-specific display/availability work remains part of the
+future publisher integration.
 
 The preflight has no route, environment flag, scheduler or source-fetch caller.
 It is not an authorization token: future publication must revalidate bindings
