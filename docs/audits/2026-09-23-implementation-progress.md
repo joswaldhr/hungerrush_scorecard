@@ -1,5 +1,18 @@
 # Audit implementation — current checkpoint
 
+**September 30 — inactive Menufy inbound record candidate implemented:** A separately
+versioned report calculator and strict prospective record builder now preserve offered
+components, answer percentage, total talk and maximum hold without changing average
+fields. Replay matches 234 values and 182 source sets for all 26 named report rows.
+Missing talk on completed legs withholds uncertain accepted/offered counts; incomplete
+durations withhold SUM/MAX while measured zeros remain numeric. Candidate normalization
+recomputes raw evidence and rejects foreign identity/period rows and injected totals.
+Twenty-nine focused tests and typecheck pass; full CI/build remains to be observed on
+the pushed candidate. See `2026-09-30-menufy-inbound-candidate.md`. No live imports,
+metric definitions/assignments, environment flags, scheduler, database/source writes,
+production or demo changes. Dedicated publication, PostgreSQL/hosted/recovery gates and
+prospective activation remain required; historical repair stays disabled.
+
 **September 30 — same-week Menufy calls and CSAT reconciled:** Bounded GET collection
 closed the retained Talk gap and retrieved complete linked-ticket metadata, staff names
 and solved-CSAT source records. All 434 compared workbook values match: outbound 20
