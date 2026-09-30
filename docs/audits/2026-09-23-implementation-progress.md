@@ -1,5 +1,16 @@
 # Audit implementation — current checkpoint
 
+**September 30 — inbound publication containment and scope preflight:** Sync now
+rejects the inactive inbound record/contract and explicitly ineligible facts,
+including retained contributors. A separate read-only preflight validates account,
+organization, team-wide effective assignments, metric units/aggregation and unique
+active employee identities. Local typecheck, scoped lint and 23 focused tests pass;
+new PostgreSQL atomic-rejection and binding tests await exact-candidate CI. See
+`2026-09-30-menufy-publication-preflight.md`. No new vendor requests, production/demo
+changes, metric assignments or activation. Successful publication/replacement,
+transaction-time revalidation, hosted/recovery gates and wider qualification remain
+unfinished. This supersedes the earlier candidate's unenforced eligibility marker.
+
 **September 30 — inactive Menufy inbound record candidate implemented:** A separately
 versioned report calculator and strict prospective record builder now preserve offered
 components, answer percentage, total talk and maximum hold without changing average
