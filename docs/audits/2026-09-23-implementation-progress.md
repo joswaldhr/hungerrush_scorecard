@@ -1,5 +1,20 @@
 # Audit implementation — current checkpoint
 
+**October 1 — remaining Preview login failure isolated to client authentication:**
+The user reports a return to `/login?error=OAuthCallbackError`. Main Preview runtime
+logs show Microsoft's token response is `invalid_client`; the provider implementation
+raises this error during code exchange. No detailed Microsoft error code was observed.
+The registered callback is correct. Read-only Graph metadata confirms the staging app
+has one currently valid secret; this does not validate the secret configured in Vercel.
+The September 28 main Preview setup record explicitly documents a placeholder client
+credential, and its branch-scoped sensitive environment entry has not been updated since
+that setup. This is consistent with the failure, but masked values cannot be compared.
+Repair requires a valid staging client-secret **value** in the main branch's Preview-only
+`AUTH_MICROSOFT_ENTRA_ID_SECRET`, followed by redeployment and interactive verification.
+Existing Graph credentials cannot modify the registration (previous 403); the old secret
+must remain for the frozen demo. No credentials, registration settings, production or demo
+deployment were changed in this diagnosis. Hosted browser/export gates remain blocked.
+
 **October 1 — main Preview callback saved and verified:** The user added the exact
 main Preview Web redirect URI. A fresh read-only Microsoft Graph check confirms it is
 saved and the existing demo callback is preserved. This resolves the missing-callback

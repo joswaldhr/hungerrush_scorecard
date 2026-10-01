@@ -84,6 +84,19 @@ After authentication setup: verify the combined synthetic UI and actual export b
 then obtain a fresh encrypted backup/restore and pass production rollout/smoke gates.
 No merge to master or production upgrade has occurred.
 
+### October 1 authentication correction
+
+The running main Preview now requests the existing staging registration, not a newly
+created Main Preview registration. The user added this alias's Web callback alongside
+the demo callback; a read-only Graph check verifies both. Token exchange still returns
+`invalid_client`. The main branch's sensitive client-secret entry retains its September 28
+setup timestamp, when the placeholder above was documented. Its masked value cannot be
+validated through the deployment API. Staging has one unexpired secret, which is not proof
+that the branch is using it. Replace only the main branch Preview credential with a valid
+staging secret value, redeploy, then verify actual sign-in and downloaded bytes. Preserve
+the old staging secret used by the frozen demo. Graph application-write access is unavailable;
+credential creation/input requires the user's authenticated configuration session.
+
 ## Fresh reporting health and independent recovery work
 
 The read-only September 28 census observed 12 completed and two failed runs in the last
