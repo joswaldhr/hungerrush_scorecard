@@ -16,6 +16,7 @@ const envSchema = z.object({
   // Independent opt-ins: retaining Talk evidence does not enable outbound publication.
   ZENDESK_TALK_COLLECTION_POLICY: z.string().min(1).optional(),
   ZENDESK_OUTBOUND_POLICY: z.string().min(1).optional(),
+  ZENDESK_INBOUND_REPORT_RELEASE: z.string().min(1).optional(),
 
   // Assembled connector (optional)
   ASSEMBLED_API_KEY: z.string().min(1).optional(),

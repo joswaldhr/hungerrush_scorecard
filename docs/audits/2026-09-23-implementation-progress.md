@@ -1,5 +1,15 @@
 # Audit implementation — current checkpoint
 
+**October 1 — production delivery authorized; inbound publishing path implemented:**
+An explicit release contract now connects the report calculator to bounded Talk/staff
+collection, transaction-time assignment/identity validation, atomic publication and
+legacy replacement. The audit-only contract remains blocked. Source descriptions and
+duration coverage preserve SUM/MAX meaning in common view/export data. Local typecheck
+and 29 focused tests pass; new PostgreSQL publication/concurrency tests and full CI are
+pending. See `2026-10-01-menufy-inbound-publication.md` for the change manifest and open
+gates. No production merge, environment activation, metric assignment, vendor request,
+demo change or historical repair has occurred. Ticket/state-source gaps remain separate.
+
 **September 30 — inbound publication containment and scope preflight:** Sync now
 rejects the inactive inbound record/contract and explicitly ineligible facts,
 including retained contributors. A separate read-only preflight validates account,

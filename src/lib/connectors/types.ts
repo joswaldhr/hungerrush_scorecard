@@ -1,3 +1,5 @@
+import type { db } from "@/lib/db";
+
 export interface ConnectorConfig {
   dataSourceId: string;
   organizationId: string;
@@ -80,6 +82,13 @@ export interface HealthStatus {
 
 export interface Connector {
   readonly sourceType: string;
+
+  /** Runs under the publication transaction after source locking, before ingestion. */
+  validatePublication?(
+    connection: typeof db,
+    config: ConnectorConfig,
+    records: IngestedRecord[]
+  ): Promise<void>;
 
   healthCheck(config: ConnectorConfig): Promise<HealthStatus>;
 

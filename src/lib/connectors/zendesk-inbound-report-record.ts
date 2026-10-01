@@ -20,7 +20,7 @@ const metricKeys = z
   .min(1)
   .max(inboundReportKeys.length)
   .refine((keys) => new Set(keys).size === keys.length);
-const policySchema = z
+export const policySchema = z
   .object({
     schemaVersion: z.literal(1),
     organizationId: z.uuid(),
@@ -56,7 +56,7 @@ export function parseInboundReportPolicy(input: unknown): InboundReportPolicy {
       .timeZone,
   };
 }
-const payloadSchema = z
+export const payloadSchema = z
   .object({
     sourceContract: z.literal(INBOUND_REPORT_CONTRACT),
     employeeContext: z.object({ employeeId: z.string().min(1), teamId: z.uuid() }).strict(),

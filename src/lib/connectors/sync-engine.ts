@@ -180,6 +180,15 @@ export async function runSync(
         }
         for (const record of allFetchedRecords)
           assertMetricPublicationEligible(record.payload, record.externalRecordType);
+        if (
+          allFetchedRecords.some(
+            (record) =>
+              record.payload.sourceContract === "zendesk-call-created-agent-leg-inbound-v1"
+          ) &&
+          !connector.validatePublication
+        )
+          throw Error("Inbound publication requires transactional scope validation");
+        await connector.validatePublication?.(tx, config, allFetchedRecords);
         const { ingested, skipped, errors } = await ingestRecords(
           tx,
           allFetchedRecords,
