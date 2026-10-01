@@ -1,0 +1,53 @@
+{
+  "observedOn": "2026-10-01",
+  "mode": "read-only incremental source refresh and independent offline replay; no publication",
+  "activeEmployees": 23,
+  "sourceCalls": 6921,
+  "sourceLegs": 13862,
+  "missingParentCalls": 3,
+  "originalMissingParentsRecovered": 9,
+  "collections": {
+    "calls": {
+      "pages": 8,
+      "observationStartedAt": "2026-10-01T14:24:02.546Z",
+      "observationEndedAt": "2026-10-01T14:24:55.088Z",
+      "modifiedSince": "2026-09-25"
+    },
+    "legs": {
+      "pages": 15,
+      "observationStartedAt": "2026-10-01T14:24:57.773Z",
+      "observationEndedAt": "2026-10-01T14:26:43.855Z",
+      "modifiedSince": "2026-09-25"
+    }
+  },
+  "periods": [
+    {
+      "periodStart": "2026-09-27",
+      "periodEnd": "2026-10-03",
+      "comparedRows": 23,
+      "valueComparisons": 207,
+      "differences": 0,
+      "blockedRows": 0
+    }
+  ],
+  "inputDigests": {
+    "retainedSnapshot": "39a941b055e0f1a0c4d33784d23791ca91c9005bd7403542b795cee4eb864112",
+    "calls": "4ec0925bd2a54158bd51aaf4d4f33c4278670c3eafd086fb748e8b2126a4460f",
+    "legs": "80d6719b9bc64abb2841f0e41448122892d892b1b4f1c8a3f0d1333472818c1f"
+  },
+  "metricWrites": 0,
+  "limitations": [
+    "Production durable source snapshots remain unchanged; only the shared account lease and pacing metadata were updated by collection.",
+    "Same-period current/closed replay against an independent calculator does not establish historical employee eligibility or end-user report parity.",
+    "No claim of atomic source observation, hosted behavior, canary or scheduled execution.",
+    "The retained September 26 bootstrap cannot qualify September 20–26; no closed-week replay result from these inputs is claimed."
+  ],
+  "identityVerification": {
+    "activeIdentities": 23,
+    "differences": 0,
+    "pages": 4,
+    "privateEvidenceSha256": "f0bb0f2e6a5444888b4aec4167374ce7273fd8f53fff7fbe8cdca56bef8e35d0",
+    "sourceMethod": "GET"
+  },
+  "scopedMissingParentCalls": 0
+}

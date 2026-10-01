@@ -1,5 +1,26 @@
 # Audit implementation — current checkpoint
 
+**October 1 — publisher CI, fresh source replay and recovery passed; release still gated:**
+Code candidate `c768d91` passes full CI `36874191689`: 853 tests in 112 files,
+PostgreSQL migrations/publication/retraction/concurrency checks, lint/typecheck,
+eight diagnostic guards and production build. Two older retained weeks match an
+independent calculation across 504 values and 392 source sets; the older report's
+three-component offers are not relabeled as four-component report parity.
+Read-only production diagnostics found September 28 Talk observations and nine
+missing parent calls, consistent with the documented September 28 containment.
+A bounded GET-only refresh recovered all nine. Current-week replay matches 207
+values for all 23 Menufy employees; four staff-census GETs independently confirm
+their existing mappings. Three remaining parent gaps do not belong to that cohort.
+Only shared collection lease/pacing metadata changed; durable source snapshots,
+metrics and configuration were not updated. A fresh encrypted restore reproduces
+all 33 tables / 72,747 rows and passes migration compatibility. See the October 1
+inbound publication manifest and its aggregate replay/restore evidence.
+Hosted Preview/export verification and current hosting configuration inspection
+await a Vercel account-security prompt requiring user interaction. Four new metric
+assignments, source refresh activation, scoped canary and actual scheduled operation
+remain unperformed. No master merge, production release, demo changes or Zendesk
+mutations. Human ticket and historical state-source gaps remain unresolved.
+
 **October 1 — production delivery authorized; inbound publishing path implemented:**
 An explicit release contract now connects the report calculator to bounded Talk/staff
 collection, transaction-time assignment/identity validation, atomic publication and

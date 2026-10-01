@@ -36,16 +36,70 @@ implements the missing publication path; it is not yet activated or released.
 
 ## Verification status
 
-Local typecheck and 29 targeted calculator, route, contract and containment tests
-pass. PostgreSQL tests cover successful replacement, later legacy refresh, null/zero
-corrections, changed configuration, required transaction validation and concurrent
-assignment fencing. Exact-candidate full CI/build results remain pending.
+Code candidate `c768d91711f63e2e94002904b9caf202e044c6f0` passes
+[full CI 36874191689](https://github.com/joswaldhr/hungerrush_scorecard/actions/runs/36874191689):
+853 tests in 112 files, PostgreSQL migrations, full lint/typecheck, eight diagnostic
+guards and production build. PostgreSQL tests cover successful replacement, later
+legacy refresh, null/zero corrections, changed configuration, required transaction
+validation and concurrent assignment fencing. Local typecheck and 29 focused tests
+also pass.
+
+Two older retained weeks independently replay 504 values and 392 source sets with
+zero differences. Those old exports used three-component offers; the new
+four-component results add 26 unreachable offers across six employee-weeks. See
+`2026-10-01-menufy-inbound-history-replay.json`; this is not a historical repair or
+a claim that changed definitions equal the earlier report totals.
+
+Production read-only readiness inspection found 2,317 retained calls, 4,693 legs,
+nine missing parent calls and September 28 observation timestamps. Twenty-two of
+23 current employee calculations matched 198 independent values; one was blocked
+by parent coverage. The earlier containment had deliberately disabled automatic
+Talk refresh. All nine parents appear in the later September 30 diagnostic capture,
+with source update timestamps more than two hours after the original collection.
+This supports delayed source availability, not permanent absence, and does not
+justify widening the one-hour joined-observation limit.
+
+A new diagnostic refresh used 23 bounded Talk GETs with the existing shared
+account lease/pacing: eight call pages and fifteen leg pages. It recovered all
+nine earlier parent gaps; three new gaps remain outside the selected employee
+cohort. All 23 employee calculations match the independent reference across 207
+current-week values. Four additional bounded staff GETs confirm every mapping
+against the current active staff census. Source records remain private. The
+production durable snapshots, metric values, definitions and assignments were not
+changed; only operational lease/pacing metadata was updated. See
+`2026-10-01-menufy-inbound-fresh-replay.json`. The retained September 26 bootstrap
+cannot qualify September 20–26, so this replay claims only September 27–October 3.
+The separate September 30 workbook reconciliation remains the closed-week evidence.
+
+The fresh encrypted backup/restore rehearsal passes for all 33 tables / 72,747
+rows, with matching digests and unchanged application data after migrations through
+0015. See `2026-10-01-production-restore-inbound-candidate.json`. Recovery is tied
+to this Windows profile; provider PITR and portable disaster recovery are not proven.
+Take another fresh recovery point if release is materially delayed or scope changes.
 
 ## Release gates still open
 
-Additional period/current coverage reconciliation; production assignment manifest;
-hosted synthetic scorecard/export and recovery verification; exact rollback reference;
-scoped production canary; actual scheduled operation. No production merge or activation
-is justified by the local tests alone. Historical repair remains disabled, the demo
-stays frozen, and human ticket attribution and historical state-time sources remain
-separate unresolved requirements. No Zendesk changes or new source reads were performed.
+The current production inventory has 21 Menufy assignments. The new unreachable,
+answer-percentage, total-talk and maximum-hold keys need explicit prospective
+definitions/assignments; existing average keys stay unchanged. No targets are inferred.
+Hosted synthetic scorecard/export verification, active policy configuration,
+scoped production canary and actual scheduled operation remain open. The already
+rendered Vercel overview identifies the current Ready production deployment as
+`GnmLnC5NGNmMtTJ1nRpnAhqnnisj`, deployment URL
+`hungerrush-scorecard-gl17iqbr2-water-hungerrush-scorecard.vercel.app`, serving
+`hungerrush-scorecard.vercel.app` from master commit
+`224176336c9b29c1c7e76c41213d5e52b3d74518` (PR42). It shows the Hobby plan.
+This supersedes the September 28 PR33 rollback reference as the observed active
+deployment, but does not verify environment values or function invocations.
+Vercel is displaying an account-security prompt that must be handled by the user;
+no security setting was changed or prompt bypassed. Reconfirm the deployment and
+capture its policy configuration immediately before any release.
+
+Source collection remains disabled in production. The independent diagnostic refresh
+is not a successful durable publication or scheduler run. The publisher must still
+obtain fresh bounded observations, pass binding checks and publish one controlled
+canary before activation is widened. Delayed parents must be recovered on subsequent
+fresh collection cycles without dropping legs, inventing zeros or relaxing freshness.
+No production merge or activation is justified by CI/replay alone. Historical repair
+remains disabled, the demo stays frozen, and human ticket attribution and historical
+state-time sources remain separate unresolved requirements. No Zendesk changes occurred.
