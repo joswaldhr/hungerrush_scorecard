@@ -138,6 +138,19 @@ async function owned(tx: Tx, scope: TalkOwnedScope) {
   return { lease: lease.data, now };
 }
 
+/** Shares the existing account fence without exposing or weakening lease checks. */
+export async function withTalkCollectionLease<T>(
+  scope: TalkOwnedScope,
+  work: (tx: Tx, now: number) => Promise<T>
+) {
+  return db.transaction(async (tx) => {
+    const { now } = await owned(tx, scope);
+    const result = await work(tx, now);
+    await owned(tx, scope);
+    return result;
+  });
+}
+
 /** Six-minute lease fences a worker whose hosted budget is at most five minutes. */
 export async function claimTalkCollection(scope: TalkStoreScope) {
   return db.transaction(async (tx) => {
@@ -220,7 +233,7 @@ interface Checkpoint {
   lastPageAt: string | null;
   cursor: TalkCursor;
 }
-const checkpointSchema = z.object({
+export const talkCheckpointSchema = z.object({
   accountReference: z.string(),
   bootstrapStart: z.number().int().nonnegative().safe(),
   cycle: z.number().int().positive().safe(),
@@ -243,7 +256,7 @@ function checkpoint(
   scope: TalkStoreScope,
   resource: "calls" | "legs"
 ): Checkpoint {
-  const parsed = checkpointSchema.safeParse(payload);
+  const parsed = talkCheckpointSchema.safeParse(payload);
   if (!parsed.success) throw Error("Invalid stored Talk checkpoint");
   const state = parsed.data,
     cursor = state.cursor;

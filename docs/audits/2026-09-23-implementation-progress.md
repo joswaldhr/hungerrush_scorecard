@@ -1,5 +1,18 @@
 # Audit implementation — current checkpoint
 
+**October 1 — CSAT read-only agreement; resumable legacy Talk candidate:** Diagnostics
+candidate `0a1ffd9` passes full CI `36889256825` (117 test files). A single bounded,
+GET-only current-week CSAT diagnosis completed in 125,150 ms: 80 requests, no retries,
+62 employee records and 85 independent metric comparisons with zero differences.
+This does not establish the overnight 429's cause or scheduled recovery. Legacy Talk
+now has an isolated per-week durable cursor/record/version candidate, preserving the
+existing account lease, budgets, UTC periods and whole-call inputs. Six new PostgreSQL
+recovery tests and five existing legacy tests pass after correcting checkpoint field
+ordering; the existing 14 store and ten cursor tests also passed. No source publication,
+production/demo changes or Zendesk writes. Hosted sign-in/exports, exact-candidate CI,
+source replay, retention review, fresh recovery proof and production gates remain.
+See [sync recovery evidence](2026-10-01-sync-recovery.md).
+
 **October 1 — hosted publication passed; overnight recovery work authorized:**
 Candidate `bec579f` passes CI `36884561539` (915 tests / 116 files) and is Ready
 in isolated main Preview deployment `dpl_2r3cQv82u1jNBUnbh2esytG2iFRW`.

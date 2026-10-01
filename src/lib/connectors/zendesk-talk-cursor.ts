@@ -2,10 +2,11 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import { talkParticipationLegSchema } from "./zendesk-talk-participation";
 import { outboundCallSchema } from "./zendesk-outbound";
+import { legacyTalkCallSchema, type LegacyTalkCall } from "./zendesk-talk-legacy-schema";
 
 type Resource = "calls" | "legs";
 export type TalkRecordValue =
-  z.infer<typeof outboundCallSchema> | z.infer<typeof talkParticipationLegSchema>;
+  z.infer<typeof outboundCallSchema> | z.infer<typeof talkParticipationLegSchema> | LegacyTalkCall;
 export interface TalkCursor {
   version: 1;
   origin: string;
@@ -77,8 +78,11 @@ export function advanceTalkCursor(
   before: TalkCursor,
   response: unknown,
   storedLatest: TalkRecordValue[],
-  storedVersions: TalkStoredVersion[]
+  storedVersions: TalkStoredVersion[],
+  contract: "participation" | "legacy" = "participation"
 ) {
+  if (contract === "legacy" && before.resource !== "calls")
+    throw new Error("Legacy Talk contract requires calls");
   const initial = initialTalkCursor(before.origin, before.resource, before.initialStartTime);
   if (
     before.version !== 1 ||
@@ -107,7 +111,12 @@ export function advanceTalkCursor(
     .safeParse(response);
   if (!envelope.success) throw new Error("Invalid Talk export envelope");
   const page = envelope.data;
-  const schema = before.resource === "calls" ? outboundCallSchema : talkParticipationLegSchema;
+  const schema =
+    contract === "legacy"
+      ? legacyTalkCallSchema
+      : before.resource === "calls"
+        ? outboundCallSchema
+        : talkParticipationLegSchema;
   const parsed = z.array(schema).safeParse(page[before.resource]);
   if (!parsed.success || parsed.data.length !== page.count || page.end_time < before.watermark)
     throw new Error("Invalid Talk export count, records or watermark");
