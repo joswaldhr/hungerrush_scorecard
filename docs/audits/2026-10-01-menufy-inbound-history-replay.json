@@ -1,0 +1,42 @@
+{
+  "observedOn": "2026-10-01",
+  "mode": "offline new-calculator versus independent source reference; not historical publication",
+  "periods": [
+    {
+      "periodStart": "2026-09-06",
+      "periodEnd": "2026-09-12",
+      "rows": 26,
+      "valueComparisons": 234,
+      "sourceSetComparisons": 182,
+      "differences": 0,
+      "rowsAffectedByFourComponentDefinition": 5,
+      "addedUnreachableOffers": 24
+    },
+    {
+      "periodStart": "2026-09-13",
+      "periodEnd": "2026-09-19",
+      "rows": 30,
+      "valueComparisons": 270,
+      "sourceSetComparisons": 210,
+      "differences": 0,
+      "rowsAffectedByFourComponentDefinition": 1,
+      "addedUnreachableOffers": 2
+    }
+  ],
+  "inputDigests": {
+    "zendesk-call-reference-scope.json": "48db4226b9a52b5714e9bba26eb6eda1b26d7ad2d63adf97663fcfb84d3a29d1",
+    "zendesk-full-related-legs.json": "41f60175ef01ca456b661860d648fc79aba461de60fcf9d1c27cfab753932f9b",
+    "zendesk-call-reference-previous-snapshot.json": "e4fdf73e3dbc729f26129872be7085f0efe0925cdb827ac2ec6a50747ebd9d10",
+    "zendesk-call-report-week2.json": "f60eeb23e47773035bbeabbdc9824ae39130a88cee20d913569a590b66301e8b",
+    "zendesk-call-reference-snapshot.json": "bcb1da2250099fd869c21bed6a30bb5c09ba70f505f2080050b74ed16182b70f",
+    "zendesk-call-report-week1.json": "0abb6dff41340defeac203849827924c85e495598ac2137337062dffcbcf0aec"
+  },
+  "sourceRequests": 0,
+  "productionWrites": 0,
+  "limitations": [
+    "Earlier report totals used a three-component offered definition; new four-component offers are independently recalculated, not claimed equal to those earlier totals.",
+    "Retained call populations and related-leg collection declared complete at their original observation; no new source observation performed.",
+    "Historical employee/team eligibility and targets remain unverified; no repair authorized.",
+    "Prospective current-week source collection, hosted rendering/export and release recovery gates remain separate."
+  ]
+}

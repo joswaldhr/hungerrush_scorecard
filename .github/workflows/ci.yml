@@ -65,6 +65,9 @@ jobs:
 
       - run: pnpm test
 
+      - name: Verify read-only Assembled qualification guards
+        run: node --test scripts/assembled-readonly.test.mjs
+
       - name: Verify production build
         # NODE_ENV=production is scoped to just this step, not the whole job —
         # setting it job-wide broke `pnpm test` (Vite/Vitest's jsdom test

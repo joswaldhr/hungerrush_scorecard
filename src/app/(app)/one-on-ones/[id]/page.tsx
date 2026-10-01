@@ -71,12 +71,6 @@ export default async function OneOnOnePage({
           <ArrowLeft className="h-3.5 w-3.5" />
           <span>Back to 1:1s</span>
         </Link>
-        <Link
-          href={`/one-on-ones/${employee.id}/history`}
-          className="rounded-lg border border-border/80 bg-card px-3 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground"
-        >
-          Stored reporting periods
-        </Link>
       </div>
 
       {rows.length === 0 ? (

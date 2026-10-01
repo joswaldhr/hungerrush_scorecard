@@ -77,6 +77,35 @@ describe("qualified outbound candidate", () => {
       unclassifiedCallIds: [1],
     });
   });
+  it("includes abandoned-on-hold participation in total without forcing it into completed or non-answered", () => {
+    const result = calculateOutboundParticipation(
+      [
+        call(1),
+        call(2, { talk_time: 0 }),
+        call(3, { completion_status: "abandoned_on_hold", talk_time: 20 }),
+      ],
+      [1, 2, 3].map((id) => ({ id, group_id: 10 })),
+      [
+        leg(1),
+        leg(2, { call_id: 2, talk_time: 0 }),
+        leg(3, { call_id: 3, talk_time: 20 }),
+        leg(4, { call_id: 3, talk_time: 5 }),
+        leg(5, { call_id: 3, agent_id: 43, talk_time: 999 }),
+      ],
+      scope
+    );
+    expect(result).toMatchObject({
+      attempted: 3,
+      completed: 1,
+      nonAnswered: 1,
+      attemptedCallIds: [1, 2, 3],
+      completedCallIds: [1],
+      nonAnsweredCallIds: [2],
+      abandonedOnHoldCallIds: [3],
+      unclassifiedCallIds: [],
+      talk: { sumSeconds: 35, sampleCount: 4 },
+    });
+  });
   it("scopes by linked ticket group and counts repeat participation once per employee-call", () => {
     const calls = [call(1), call(2, { call_group_id: 10 })],
       tickets = [

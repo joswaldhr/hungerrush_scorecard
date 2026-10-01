@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { beforeEach, expect, it, vi } from "vitest";
 import { createBoundedCsatReader } from "./zendesk-csat-reader";
+import { sourceFailureDiagnostics } from "./source-fetch-error";
 
 const clock = vi.hoisted(() => ({ now: 0, waits: [] as number[], extraDelay: 0 }));
 vi.mock("node:timers/promises", () => ({
@@ -116,5 +117,106 @@ it("does not retry other HTTP failures", async () => {
   ]);
   await expect(reader.read("/users.json")).rejects.toThrow(/HTTP 503/);
   expect(fetcher).toHaveBeenCalledTimes(1);
+  expect(clock.waits).toEqual([]);
+});
+
+it("retains the precise retry stop reason without private request data", async () => {
+  const { reader } = setup([limited("9"), Response.json({ users: [] }), limited("9")]);
+  await reader.read("/users.json");
+  const failure = await reader
+    .read("/tickets/show_many.json?ids=123")
+    .catch((error: unknown) => error);
+  const diagnostics = sourceFailureDiagnostics(failure);
+  expect(diagnostics).toMatchObject({
+    family: "csat",
+    endpoint: "tickets/show_many",
+    requests: 3,
+    rateLimitRetries: 1,
+    backoffWaitMs: 9000,
+    httpStatus: 429,
+    retryAfterMs: 9000,
+    retryStoppedBy: "retry_allowance",
+  });
+  expect(JSON.stringify(diagnostics)).not.toMatch(/123|private|fixture/);
+});
+
+it("distinguishes insufficient time from a consumed retry allowance", async () => {
+  const { reader } = setup([limited("9")], { elapsedMs: 38_000 });
+  const failure = await reader.read("/users.json").catch((error: unknown) => error);
+  expect(sourceFailureDiagnostics(failure)).toMatchObject({
+    rateLimitRetries: 0,
+    retryStoppedBy: "time_budget",
+  });
+});
+
+const quotaResponse = (remaining: string, reset: string | null) =>
+  Response.json(
+    {},
+    {
+      headers: {
+        "ratelimit-limit": "700",
+        "ratelimit-remaining": remaining,
+        ...(reset === null ? {} : { "ratelimit-reset": reset }),
+      },
+    }
+  );
+
+it("waits for the shared account quota before crossing into another endpoint", async () => {
+  const { reader, fetcher } = setup([quotaResponse("0", "9"), Response.json({})]);
+  await reader.read("/users.json");
+  await reader.read("/tickets/show_many.json?ids=123");
+  expect(clock.waits).toEqual([10000]);
+  expect(fetcher).toHaveBeenCalledTimes(2);
+  expect(reader.stats()).toMatchObject({ quotaWaitMs: 10000, rateLimitRetries: 0 });
+});
+
+it("does not borrow publication time to wait for quota or issue another request", async () => {
+  const { reader, fetcher } = setup([quotaResponse("0", "9")], { elapsedMs: 39000 });
+  await reader.read("/users.json");
+  const error = await reader.read("/tickets/show_many.json?ids=123").catch((error) => error);
+  expect(sourceFailureDiagnostics(error)).toMatchObject({
+    accountLimit: 700,
+    accountRemaining: 0,
+    retryStoppedBy: "quota_budget",
+    requests: 1,
+  });
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  expect(clock.waits).toEqual([]);
+});
+
+it("respects the longer account reset when Retry-After is shorter", async () => {
+  const response = limited("1");
+  response.headers.set("ratelimit-limit", "700");
+  response.headers.set("ratelimit-remaining", "0");
+  response.headers.set("ratelimit-reset", "9");
+  const { reader } = setup([response, Response.json({})]);
+  await reader.read("/users.json");
+  expect(clock.waits).toEqual([10000]);
+  expect(reader.stats()).toMatchObject({ backoffWaitMs: 10000, rateLimitRetries: 1 });
+});
+
+it.each([
+  ["private", "1"],
+  ["999999999999999999999", "1"],
+  ["701", "1"],
+])("ignores malformed quota without exposing its text (%s)", async (remaining, reset) => {
+  const { reader } = setup([quotaResponse(remaining, reset), Response.json({})]);
+  await reader.read("/users.json");
+  await reader.read("/users.json");
+  expect(clock.waits).toEqual([]);
+  expect(JSON.stringify(reader.stats())).not.toContain("private");
+});
+
+it("fails closed when a known empty account quota has no usable reset", async () => {
+  const { reader, fetcher } = setup([quotaResponse("0", null)]);
+  await expect(reader.read("/users.json")).rejects.toThrow("without a usable reset");
+  expect(fetcher).toHaveBeenCalledTimes(1);
+});
+
+it("does not wait twice when normal processing already passes the quota delay", async () => {
+  const { reader } = setup([quotaResponse("3", "9"), Response.json({})]);
+  await reader.read("/users.json");
+  clock.now += 10000;
+  await reader.read("/users.json");
   expect(clock.waits).toEqual([]);
 });

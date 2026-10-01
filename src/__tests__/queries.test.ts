@@ -290,6 +290,11 @@ describe("getEmployeeMetricsBatch", () => {
       expect(await read()).toMatchObject({ previousValue: 42, comparisonUnavailableReason: null });
       await db
         .update(metricValues)
+        .set({ qualityStatus: "partial" })
+        .where(eq(metricValues.id, prior!.id));
+      expect(await read()).toMatchObject({ previousValue: 42, previousQualityStatus: "partial" });
+      await db
+        .update(metricValues)
         .set({ numericValue: null, qualityStatus: "missing" })
         .where(currentScope);
       expect(await read()).toMatchObject({
@@ -449,6 +454,9 @@ describe("getEmployeeMetricsBatch", () => {
           const csv = exportCsv(
             {
               employeeName: "Synthetic",
+              periodStart: PERIOD_START,
+              periodEnd: "2026-09-20",
+              mode: "review",
               periodLabel: PERIOD_START,
               previousPeriodLabel: PREVIOUS_PERIOD_START,
               metrics: [

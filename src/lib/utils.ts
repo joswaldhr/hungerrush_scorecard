@@ -44,14 +44,16 @@ export function weekBoundsForDate(dateStr: string) {
   };
 }
 
-/** Normalize untrusted URL/calendar input; impossible and future dates use the current week. */
+/** Scorecard navigation only: absent/invalid/future input opens last week's review. */
 export function resolveReportingWeek(value: string | null | undefined): string {
   const current = weekDates(0).periodStart;
-  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return current;
+  const fallback = shiftWeekStart(current, -1);
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return fallback;
   const date = new Date(`${value}T00:00:00Z`);
-  if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== value) return current;
+  if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== value)
+    return fallback;
   const normalized = weekBoundsForDate(value).periodStart;
-  return normalized > current ? current : normalized;
+  return normalized > current ? fallback : normalized;
 }
 
 // Shifts a periodStart (always a Sunday, per weekDates()'s convention) by N

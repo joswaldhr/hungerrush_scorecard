@@ -1,5 +1,427 @@
 # Audit implementation — current checkpoint
 
+**October 1 — recovery checks advanced; activation remains disabled:** Legacy recovery
+candidate `e94afa1` passes full CI `36891453194` (118 test files). Offline replay preserves
+all ten consumed fields across 25,694 retained calls and matches 507 agent/direction groups
+over three intervals, without vendor or database requests. Subsequent hardening adds an
+explicit, unset-by-default legacy-resume rollout switch and keeps synthetic Preview source
+work disabled. CSAT quota-aware pacing honors account reset headers within the existing
+request/time/single-retry limits; 36 focused tests pass. Neither a production retry nor new
+scheduled success has been claimed. Hosted Microsoft sign-in/export bytes remain pending.
+
+**October 1 — CSAT read-only agreement; resumable legacy Talk candidate:** Diagnostics
+candidate `0a1ffd9` passes full CI `36889256825` (117 test files). A single bounded,
+GET-only current-week CSAT diagnosis completed in 125,150 ms: 80 requests, no retries,
+62 employee records and 85 independent metric comparisons with zero differences.
+This does not establish the overnight 429's cause or scheduled recovery. Legacy Talk
+now has an isolated per-week durable cursor/record/version candidate, preserving the
+existing account lease, budgets, UTC periods and whole-call inputs. Six new PostgreSQL
+recovery tests and five existing legacy tests pass after correcting checkpoint field
+ordering; the existing 14 store and ten cursor tests also passed. No source publication,
+production/demo changes or Zendesk writes. Hosted sign-in/exports, exact-candidate CI,
+source replay, retention review, fresh recovery proof and production gates remain.
+See [sync recovery evidence](2026-10-01-sync-recovery.md).
+
+**October 1 — hosted publication passed; overnight recovery work authorized:**
+Candidate `bec579f` passes CI `36884561539` (915 tests / 116 files) and is Ready
+in isolated main Preview deployment `dpl_2r3cQv82u1jNBUnbh2esytG2iFRW`.
+The synthetic rehearsal publishes nine results for September 20–26 and
+September 27–October 3: eight numeric, one legitimately unavailable maximum hold.
+Earlier/unrelated values are unchanged. Demo alias still resolves to its frozen
+deployment `dpl_6zgVGDyR2tW1JMVmbmv7hTm4fTYR`. Preview browser authentication and
+actual downloaded-file inspection remain unverified; Computer Use stopped on Escape.
+
+Production read-only checks found two October 1 failures, both with zero values
+written: legacy Talk week offset 3 at 07:27 UTC exhausted its collection budget
+after 212,380 ms; current-week CSAT at 08:34 UTC stopped on `tickets/show_many`
+HTTP 429 with a 9,000 ms retry delay. Production already permits one bounded CSAT
+retry; the retained failure does not prove which allowance stopped recovery.
+Candidate diagnostics now preserve allowlisted request/retry/time fields on failed
+fetches instead of losing them before publication. No retry limits, metrics, policies,
+production data or source settings are changed by this diagnostic increment.
+Thirty-three focused tests and all 23 PostgreSQL publication tests pass, along with
+typecheck and scoped lint. The initial local database failures were unavailable/wrong
+loopback test destinations; the verified PostgreSQL 18 cluster at port 55441 and
+`cadence_outbound_test` then passed persistence/rollback/freshness checks.
+The authorized next work is bounded/resumable Talk recovery, evidence-based CSAT
+recovery, hosted exports, fresh backup, scoped canary and real scheduler observation.
+
+**October 1 — hosted rehearsal in progress:** Vercel security and CLI authentication
+are resolved, and main Preview's Microsoft sign-in configuration is present. Combined
+candidate `3b42d92` passes full CI `36882447051`. An initial file deployment failed
+closed because its Git branch identity was absent; subsequent Git-source deployments
+passed exact branch/database/vendor-disable guards. The synthetic configuration then
+rolled back on older fixture definitions' `staging` source label. The rehearsal now
+explicitly converts only compatible inbound definitions in the guarded synthetic org
+to the dedicated source strategy, without weakening production preflight. Fingerprints
+cover all values outside the selected employee/nine keys/current-and-previous periods.
+No production publication, master merge, demo or Zendesk changes. Hosted publication,
+actual export bytes, production canary and scheduled verification remain open.
+
+**October 1 — combined main-app release verification resumed:** Vercel browser and
+official CLI authentication are available. The release candidate now incorporates
+PR41's already-authorized last-week review, navigation, highlights and actual-file
+export changes alongside PR43's gated inbound publisher. Both histories are retained;
+the frozen demo branch, deployment and settings are untouched. The existing isolated
+main Preview is the rehearsal destination, with its database guard extended to reject
+vendor credentials and every publication policy including inbound. Combined-candidate
+CI, hosted authentication/export checks, prospective catalog registration, canary and
+scheduled observation remain required; prior test counts below describe their exact
+earlier candidates. The current-week replay additionally matches all 184 source ID sets.
+The CLI upload dry run exposed an ignored local recovery script in the proposed
+payload; upload was stopped before transmission. Explicit `.vercelignore` exclusions
+now cover recovery files, environment files, local build/cache outputs and non-runtime
+documentation. The release must recheck the upload list against tracked source files.
+
+**October 1 — publisher CI, fresh source replay and recovery passed; release still gated:**
+Code candidate `c768d91` passes full CI `36874191689`: 853 tests in 112 files,
+PostgreSQL migrations/publication/retraction/concurrency checks, lint/typecheck,
+eight diagnostic guards and production build. Two older retained weeks match an
+independent calculation across 504 values and 392 source sets; the older report's
+three-component offers are not relabeled as four-component report parity.
+Read-only production diagnostics found September 28 Talk observations and nine
+missing parent calls, consistent with the documented September 28 containment.
+A bounded GET-only refresh recovered all nine. Current-week replay matches 207
+values for all 23 Menufy employees; four staff-census GETs independently confirm
+their existing mappings. Three remaining parent gaps do not belong to that cohort.
+Only shared collection lease/pacing metadata changed; durable source snapshots,
+metrics and configuration were not updated. A fresh encrypted restore reproduces
+all 33 tables / 72,747 rows and passes migration compatibility. See the October 1
+inbound publication manifest and its aggregate replay/restore evidence.
+Hosted Preview/export verification and current hosting configuration inspection
+await a Vercel account-security prompt requiring user interaction. Four new metric
+assignments, source refresh activation, scoped canary and actual scheduled operation
+remain unperformed. No master merge, production release, demo changes or Zendesk
+mutations. Human ticket and historical state-source gaps remain unresolved.
+
+**October 1 — production delivery authorized; inbound publishing path implemented:**
+An explicit release contract now connects the report calculator to bounded Talk/staff
+collection, transaction-time assignment/identity validation, atomic publication and
+legacy replacement. The audit-only contract remains blocked. Source descriptions and
+duration coverage preserve SUM/MAX meaning in common view/export data. Local typecheck
+and 29 focused tests pass; new PostgreSQL publication/concurrency tests and full CI are
+pending. See `2026-10-01-menufy-inbound-publication.md` for the change manifest and open
+gates. No production merge, environment activation, metric assignment, vendor request,
+demo change or historical repair has occurred. Ticket/state-source gaps remain separate.
+
+**September 30 — inbound publication containment and scope preflight:** Sync now
+rejects the inactive inbound record/contract and explicitly ineligible facts,
+including retained contributors. A separate read-only preflight validates account,
+organization, team-wide effective assignments, metric units/aggregation and unique
+active employee identities. Candidate `bcb40b6` passes full CI `36775503153`: 842 tests
+in 109 files, isolated PostgreSQL migrations/rollback/binding checks, full lint and
+typecheck, eight separate diagnostic guards and production build. The first CI run
+stopped at formatting; the formatting-only correction passed the full rerun. See
+`2026-09-30-menufy-publication-preflight.md`. No new vendor requests, production/demo
+changes, metric assignments or activation. Successful publication/replacement,
+transaction-time revalidation, hosted/recovery gates and wider qualification remain
+unfinished. This supersedes the earlier candidate's unenforced eligibility marker.
+
+**September 30 — inactive Menufy inbound record candidate implemented:** A separately
+versioned report calculator and strict prospective record builder now preserve offered
+components, answer percentage, total talk and maximum hold without changing average
+fields. Replay matches 234 values and 182 source sets for all 26 named report rows.
+Missing talk on completed legs withholds uncertain accepted/offered counts; incomplete
+durations withhold SUM/MAX while measured zeros remain numeric. Candidate normalization
+recomputes raw evidence and rejects foreign identity/period rows and injected totals.
+Twenty-nine focused tests and typecheck pass. Code candidate `fed37e7` also passes full
+CI `36773317887`: 107 test files, migrations, full lint/type checks, eight diagnostic
+guards and production build. See `2026-09-30-menufy-inbound-candidate.md`. No live imports,
+metric definitions/assignments, environment flags, scheduler, database/source writes,
+production or demo changes. Dedicated publication, PostgreSQL/hosted/recovery gates and
+prospective activation remain required; historical repair stays disabled.
+
+**September 30 — same-week Menufy calls and CSAT reconciled:** Bounded GET collection
+closed the retained Talk gap and retrieved complete linked-ticket metadata, staff names
+and solved-CSAT source records. All 434 compared workbook values match: outbound 20
+rows/80 values, inbound 26 named rows/234 values, CSAT 24 rows/120 values. Independent
+candidate/reference checks also match 156 inbound source sets and 96 CSAT ticket sets.
+The outbound residual is one abandoned-on-hold call; the existing calculation is correct.
+Twenty focused tests, typecheck, scoped lint and formatting pass; a synthetic regression
+protects that three-outcome partition. See `2026-09-30-menufy-source-reconciliation.md`
+and JSON. The Talk reader used the existing shared account lease/pacing and verified
+release; only that operational coordination metadata changed in the database. No Zendesk
+mutations, metric publication, settings/assignments, demo or Assembled changes. Unnamed
+inbound activity, transferred-to, historical eligibility/targets, SUM versus AVG, state
+automation, human-ticket provenance and publisher/release gates remain explicit. This
+is report-value parity for one closed week, not full-contract/product certification.
+
+**September 30 — user-supplied Menufy workbook audited:** The eight-sheet export is
+now retained privately and excluded from Git; this resolves the earlier file-delivery
+gap. Read-only viewer inspection corroborates September 20–26/Central with matching
+visible samples. Of 183 internal checks, 182 agree; one outbound Total exceeds Complete
+plus NA by one, requiring matched source records rather than an assumed formula fix.
+State Sum includes Online; five state rows have missing components. An unnamed inbound
+row and incomplete retained identity coverage remain explicit. No formula/error cells
+were found. See `2026-09-30-menufy-workbook-audit.md` and its aggregate JSON. These are
+reference-data findings, not independent reconciliation or increased certification.
+No Zendesk edits, source API collection, production/demo changes or metric publication.
+
+**September 29 — Menufy viewer access and saved filters verified:** After user sign-in,
+the 1x1 dashboard was inspected entirely in viewer mode. Keyboard-focused tooltips
+confirm September 20–26/Central scope, four inbound call groups/three lines/six statuses,
+six outbound ticket groups, five CSAT ticket groups, six ticket-update groups plus brand,
+and Talk/two groups for historical Agent state daily data. The state's displayed Sum
+includes Online, so it must not populate Away plus Transfers Only. Explicit-status replay
+changes no results across 56 older retained report row-weeks; this is not current-week
+report parity. CSV and Excel viewer exports both failed to deliver a file. A supported
+historical state feed, complete September 20–26 export/source reconciliation, human
+provenance and release gates remain open. See `2026-09-29-menufy-viewer-contract.md` and
+its aggregate replay. No editors, vendor changes, API collection, production publication,
+demo changes or certification increase. Earlier sign-in/filter-name-only gaps below
+are superseded to the precise extent recorded in this viewer observation.
+
+**September 29 — actual retained manager template changes requirements baseline:** A
+June 11 saved blank 1:1 template was text-extracted and visually checked. Its 13 metric
+prompts include answer percentage, two total-talk measures and three Away/Transfer-only
+prompts without corresponding assigned keys. Seven have label-level matches to existing
+keys, not certified formula parity. Separate attendance prompts are not inferred from
+Zendesk activity. The 21-key Menufy inventory remains intact but cannot stand in for the
+actual meeting-pack requirements. `2026-09-29-reporting-requirements.md` now maps every
+template prompt and preserves current-use uncertainty. Official Talk Stats documentation
+limits state counters to the current account-timezone day; this alone cannot supply
+last-week state history. No new collector, metric assignment or vendor access occurred.
+Assembled remains parked. Current dashboard viewer access still awaits user sign-in.
+
+**September 29 — Menufy filter support and access dependency:** Retained inbound CSV
+inspection confirms 1,927 matched named leg rows across two old weeks, no duplicate
+named IDs/missing joins/out-of-scope rows, and unreachable attempts present. The rows
+represent fewer groups/lines than the saved selection, so row membership cannot prove
+full filter settings. The independent checker now accepts an explicit completion-status
+filter, applies it to all report measures and rejects invalid selections. No actual saved
+selection was guessed or publisher changed. All 26 targeted tests and typecheck pass.
+An ordinary Explore viewer attempt failed at Microsoft SSO with AADSTS90015 before any
+report opened; the failed tab was closed and the user was asked to sign in through the
+normal company path. Selected filters/current report use remain pending; editor inspection
+is still prohibited. No vendor mutation, production publication or demo changes occurred.
+
+**September 29 — retained Menufy report replay:** Corrected diagnostic `cc6bcfe` matches
+all 448 retained comparisons across 56 named report row-weeks (September 6–12 and 13–19).
+Including unreachable attempts on that same older scope changes six row-weeks / 26
+attempts in aggregate. This is definition sensitivity, not four-component saved-report
+parity, current-pilot coverage or September 20–26 qualification. Private inspection
+confirms the newer report is dashboard-linked; complete selected filter values and
+current manager usage remain open. Aggregate replay evidence is committed separately;
+no new source requests, publication, historical repair or certification increase.
+
+**September 29 — Menufy code/report comparison and diagnostic correction:** Traced the
+21 Menufy assigned keys (23 employees in retained inventory) across legacy, first-reply,
+CSAT and Talk paths. The candidate already supports four-component offered calls, but
+the independent report comparator only counted three. It now explicitly selects and
+labels either definition, retains exact offered/unreachable IDs, preserves legacy callers,
+and rejects unknown definitions. SUM/MAX duration meaning is unchanged. This offline
+checker has no production imports or publisher changes. All 23 targeted tests, typecheck,
+scoped lint and formatting pass. `2026-09-29-reporting-requirements.md` records the family
+trace and gaps. Full saved report filters/current use, human provenance, closed-period
+coverage, targets and scheduled readiness remain open. No source access, production or
+demo change occurred; this does not increase metric certification counts.
+
+**September 29 — user narrows active delivery to Barbara/Menufy:** Assembled is parked;
+new POS qualification and optional upgrades are outside the immediate phase. Existing
+source/production behavior and overall requirements remain preserved. The execution plan
+now prioritizes a Menufy report-to-scorecard mapping, documented source calculations with
+retained report comparisons, and the complete previous-week pack for 23 assigned employees.
+Known report mismatches are four-component offered calls, SUM talk time, MAX hold time,
+and update events versus human distinct-ticket activity. Exact saved filter scope and
+Barbara's current use of each retained report remain unverified. No vendor/editor access,
+application change, agent restart or deployment occurred in this scope update.
+
+**September 29 — delivery plan tightened around the complete last-week review:** User
+requested controls against project drift and an agent recommendation. The existing
+cross-source execution plan now has ordered exit gates, one active release family,
+explicit closed-week provenance checks, discrepancy categories and separate contract,
+employee-period and meeting-pack acceptance counts. Optional features/hosting work remain
+outside this release. The lead plus three bounded specialists is the recommended structure;
+this planning pass started no agents, retried no safety-rejected tasks, and changed no
+application/source/deployment state. Qualification counts remain unchanged.
+
+**September 29 — authenticated Assembled instance discovery:** After user sign-in,
+read-only inspection covered all five standard Report pages, staffing/forecast/realtime
+views, connected Zendesk/Talk integrations, queue exclusions and agent-state settings.
+The Team performance catalog exposes 30 selected measures; this is availability in the
+UI, not certification. Definitions separate call/chat AHT, solved-ticket viewing effort,
+productive adherence and schedule adherence. The latter is enabled but its documented
+clock-in/out prerequisite remains unverified. Display timezone is Pacific; report
+defaults mix rolling seven-day and Sunday-week windows. See
+`2026-09-29-assembled-instance-audit.md` for aggregate findings and qualification gates.
+No vendor changes, Zendesk editors, source activation, production changes or demo changes
+occurred. Browser returned to the original timeline with no new changes to save. The
+earlier sign-in blocker is resolved; 14/40 arithmetic and 0/40 full-contract counts are
+unchanged. Earlier automatically blocked delegated execution tasks were not retried.
+
+**September 29 — comprehensive cross-source plan:** The user requested a broad Assembled
+instance/metric audit, Zendesk accuracy completion and coordinated agents. Three planning
+reviews informed `2026-09-29-cross-source-execution-plan.md`: full accessible-instance catalog,
+manager-required packs, source-specific contracts, independent all-employee reconciliation,
+one coordinated live collector, family-sized releases and actual meeting-readiness proof.
+Planning used retained evidence and public vendor documentation only; no additional tenant
+requests or production changes occurred. PR43's prior diagnostic CI `36593699297` passed.
+CLAUDE/SAFETY now reflect latest AGENTS's complete Zendesk editor prohibition, superseding
+their stale September 28 allowance. Execution audit and metric qualification remain open;
+the plan does not increase certification counts or activate sources.
+
+**September 29 — core reporting inventory and Assembled requalification:** Fresh read-only
+production inventory confirms 23 assigned keys / 40 team assignments. The existing Assembled
+key works; no key replacement is needed. Nine bounded GETs across census and follow-up
+returned 104 people and six schedule samples (168 segments). All 23 Menufy and 38/39 POS
+employees have unique nondeleted matches; the remaining POS exact-email record is deleted.
+Do not silently remap, restore or drop this employee. Two closed-week/current-week samples
+show structural schedule availability, not qualified adherence or effort metrics. See
+`2026-09-29-reporting-requirements.md` and its aggregate evidence. Eight synthetic diagnostic
+guard tests pass; the reader is not imported by the app. No vendor/database writes, report
+generation, connector activation, deployment or demo changes occurred. Source support remains
+retired and certification counts remain unchanged. Latest AGENTS instructions prohibit all
+Zendesk report/dashboard editors, superseding older inspection allowances below.
+**September 29 — coordinated completion plan prepared:** The user's requested Assembled
+instance audit, Zendesk completion plan and agent workstreams are recorded in PR43's
+`docs/audits/2026-09-29-cross-source-execution-plan.md` on `codex/assembled-qualification`.
+Three planning agents reviewed source scope and acceptance. One designated live collector
+coordinates all vendor access; other agents use retained evidence and isolated tests. Plan
+requires complete manager packs, exact source reconciliation, family-sized gated releases,
+real scheduled readiness and two actual weekly review cycles. No additional tenant requests
+or production changes occurred for planning; current qualification counts remain unchanged.
+
+**September 29 — fresh Assembled qualification in separate branch:**
+`codex/assembled-qualification` preserves separation from PR41 and Adam's frozen demo.
+Read-only production inventory remains 23 assigned keys / 40 team assignments. The current
+Assembled key successfully returned 104 people and six schedule samples (168 segments).
+All 23 Menufy and 38/39 POS employees match uniquely to nondeleted source people. The
+remaining POS exact-email record is deleted, superseding September 25's all-nondeleted
+coverage for the new observation only; no employment or historical eligibility inference
+is warranted. Nine bounded vendor GETs, zero vendor/database writes or report-generation
+requests. Eight synthetic safety tests pass. App connector remains retired; metric
+certification counts, source policies and release gates are unchanged. The separate branch
+owns `2026-09-29-reporting-requirements.md` and aggregate census/identity-gap evidence.
+
+**September 29 — original workflow clarified and reviewed:** The user reaffirmed that
+Cadence must eliminate employee 1:1 report assembly across Zendesk and Assembled; Rippling
+explains export usage, not a migration or new connector request. The product-fit review
+retains the standalone app and prioritizes reporting completeness over platform changes.
+Assembled remains retired in production code. September 25 evidence already matched all
+62 employees, superseding stale roster-gap wording; PRODUCT/INTEGRATIONS now reflect this.
+Current public reporting APIs warrant qualification, not an unsupported claim of inability
+or readiness. Review: `2026-09-29-product-fit-review.md`. No app, vendor, metric-policy,
+deployment or access changes occurred; qualification counts and release gates are unchanged.
+
+**September 29 — product growth mapped:** The user defined the core promise as having
+metrics ready for meetings instead of rebuilding them, starting with two managers and
+expanding later. `PRODUCT_ROADMAP.md` records staged acceptance: dependable pilot 1:1s,
+configurable manager onboarding, recurring team/report packs, optional meeting continuity,
+then broader approved coverage. `PRODUCT.md` now states that direction and removes stale
+wording implying a current team-comparison screen. Proposed features do not change the
+present UI scope, metric policies, demo or infrastructure. This documentation does not
+increase qualification counts or close outstanding main-app release gates.
+
+**September 29 — company-hosting proposal; CSAT code deployed:** The user requested a
+path away from Vercel/Railway to company infrastructure. `docs/INFRASTRUCTURE_MIGRATION.md`
+records a provisional Azure/container design plus a physical-server alternative, exact
+portability work, one-writer cutover and rollback gates. Destination/IT requirements are
+pending; no hosting, DNS, billing or identity changes were made for this proposal.
+
+PR42 merged to production `2241763`, deployment `dpl_GnmLnC5NGNmMtTJ1nRpnAhqnnisj`.
+Master CI `36490899861` passes and production health returns HTTP 200. Its fresh pre-release
+encrypted restore matched 33 tables / 63,633 rows. The next-day comparison confirms all
+18 production settings and six assignment/configuration digests unchanged; metric values
+changed across six intervening completed publications, so no all-row-unchanged result is
+claimed. Exact scheduler correlation and renewed authenticated browser smoke remain
+unverified. See the CSAT release record for those limits. Main UI PR41 now includes the
+released transport fix at `4ac2be1`, with exact combined CI `36490995017` passing. Its
+hosted authenticated/export gates still await separate Preview sign-in. Demo remains
+frozen at the original deployment. Metric certification counts do not change.
+
+**September 28 — isolated main Preview READY; release remains gated:** PR41 app SHA
+`3bfc9df` passes exact CI `36487847138` (866 tests / 109 files and build). Separate
+Preview `dpl_5hvg7HpvnPKgoYeJsrbJU55KrPHU` passes the database isolation build guard.
+Two earlier attempts correctly stopped at that guard; explicit branch-only settings
+resolved inheritance of unrelated Preview defaults. Anonymous sign-in renders; creating
+separate Microsoft Preview access awaits the browser tool's required confirmation.
+Authenticated hosted/export checks and fresh backup/production release remain pending.
+Demo deployment, alias, access and fixture values remain unchanged. The latest read-only
+census found 12 completed/two failed runs and no stuck workers. CSAT bounded recovery
+is a separate PR42; neither that change nor PR41 is deployed to production.
+
+**September 28 — main application completion work resumed:** User authorized completing
+and upgrading the main app with Adam's demo frozen. Main branch
+`codex/main-operational-upgrade` starts from production `ed6b2df` in the idle managed
+checkout. It integrates the review/navigation/export improvements without demo routes,
+demo authentication or PR38. Automatic branch deployment is disabled. Separate Preview,
+exact combined checks, fresh recovery and production gates remain in progress.
+The demo stays on `dpl_6zgVGDyR2tW1JMVmbmv7hTm4fTYR`; its branch, alias, access and
+fixtures must not change. See `2026-09-28-main-operational-upgrade.md` for work order and
+acceptance. Metric qualification remains distinct from the first UI release.
+Latest AGENTS instructions prohibit all Zendesk editors despite the older amendment.
+
+**September 28 — presentation upgrade and file delivery:** User authorized the first
+recommended presentation pass. Final app candidate `f17821c` integrates configured headline
+metrics, conservative signed comparisons, reduced repeated period framing, presentation
+text sizes/category jumps and preserved print dates. All quality/availability warnings
+and underlying rows remain. Native same-origin file attachments replace failing blob
+downloads, with session/origin/type/size checks and no persistence or data reads.
+Fifty-nine combined focused tests and local static checks pass. Exact final CI
+`36484866012` passes all 872 tests / 111 files and build. Isolated Preview
+`dpl_6zgVGDyR2tW1JMVmbmv7hTm4fTYR` is READY at the exact app SHA and stable staging
+alias. Hosted PDF, PNG and CSV actually saved on the preceding `0109468` candidate:
+828,518, 1,267,645 and 10,910 bytes respectively. PDF/PNG decoded pixels match exactly;
+CSV retains all 22 rows, 20 columns and selected dates. The final two-class layout fix
+contains accessible labels within the main scroller; at 1920x1080 document height is
+1080 and category keyboard navigation moves focus/main scroll without outer scrolling.
+Earlier download-byte limitations below are superseded for this demo candidate.
+Production remains unchanged and requires its separate release gates; no production
+merge is implied. The presenter share link reaches Microsoft sign-in; Adam's own
+first login remains unobserved. PDF pagination remains a later improvement.
+
+**September 28 — presentation copy cleanup:** The user requested removing repeated
+demo notices. Workspace/scorecard banners, manager suffix and account subtitle are
+removed; Reporting weeks and export dates use ordinary labels. Sample provenance is
+retained in metric details. No access, fixture values, production or vendor changes.
+Candidate `c20a875` passes exact CI `36481385244` and hosted Preview inspection on
+`dpl_pqZbynr4frNYD1opv2pAanJJvMC9`. The user supplied actual earlier PDF/PNG exports;
+inspection confirms the verbose audit appendix. A follow-up now replaces it in visual
+exports and copied text with concise source notes and grouped material warnings. The
+CSV retains its full provenance and column layout. 29 focused tests and static checks
+pass. Final `17b9921` passes exact CI `36481956742` and is READY on isolated Preview
+`dpl_Gdeb4dTiN2eDLc5jfMZzFsQXoDNA`. Fresh downloaded output inspection still requires
+the user-assisted re-download: automated browser downloads do not save files. The
+presentation assessment and ordered upgrades are recorded in
+`2026-09-28-demo-readiness-and-upgrades.md`; production release remains held.
+The user confirmed manual downloads also reported success without a file. A follow-up
+replaces automatic clicks with a persistent prepared-file dialog and explicit Save file
+gesture, PDF/PNG preview and truthful requested status; blob URLs survive dialog closure
+briefly to avoid a download race. Hosted file-saving verification is still required.
+
+**September 28 — presentation demo and navigation candidate:** The requested parallel
+UI agent's sidebar upgrade is integrated locally. A separate authenticated `/demo`
+workspace contains 15 invented full-name employees (8 POS, 7 Menufy) and 22 complete
+synthetic metrics each, with prior-week comparisons, sample targets and current-week
+neutral progress. Exact allowlisting and a production-deployment denial protect entry;
+the demo does not read, seed or change live data. Final app candidate `d34ed60` passes exact
+CI 36479595298 (840 tests / 109 files and build) and is READY on isolated Preview
+`dpl_FF7RuE6mwtK7ENZUSbfQTpgNFCte`, PR40 stacked on PR39. All 15 hosted profiles show
+22/22 values and populated comparisons/targets (330 rows total). Neutral current-week
+status, history return, aligned columns, light/dark and mobile drawer checks pass.
+Actual downloaded-file bytes remain unverified; production release stays held.
+Adam's user-confirmed work email is now allowlisted for the demo only. A seven-day
+staging share link reaches Microsoft sign-in without requiring Vercel membership;
+anonymous requests still cannot see demo profiles. Adam's own login remains unobserved.
+The sidebar's toggle, navigation, theme and avatar centers now stay identical across
+collapse/expand, verified on the final hosted build. See `2026-09-28-presentation-demo.md`.
+PR38 remains separate/inactive; no production account, role or deployment changed.
+
+**September 28 — last-week review candidate:** A focused branch based on production
+implements the approved default previous-week review, explicit current-week progress
+mode, availability summary, interval filenames, fixed-week share links and history
+return context. Typecheck and 820 tests / 106 files pass; release gates remain pending.
+No metric definitions, calculations, eligibility, source policies or production data
+changed. PR38 remains separate and inactive. See the review-week release record.
+
+PR39 candidate `db599ed` now passes exact CI 36474330989 and is READY on isolated
+Preview `dpl_BfBrmQrvkEfL82ZWibVGkLXaoFgF`. Default/comparison dates, eight aligned
+tables, empty current-week progress, history return and narrow layout are verified.
+Fresh backup/restore matches 33 tables / 63,633 rows. Actual hosted export-file bytes
+remain unavailable from the current browser integration despite success notifications;
+production merge is held at that required gate. Production remains PR37 / `ed6b2df`.
+The later demo checkpoint above supersedes the earlier pending presenter-email state.
+
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.
 **September 28, 18:08 UTC — visual refresh live; POS outbound publication verified:**

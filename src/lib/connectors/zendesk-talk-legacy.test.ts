@@ -2,6 +2,11 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { fetchCoordinatedTalkWeek } from "./zendesk-talk-legacy";
 import * as store from "./zendesk-talk-store";
+vi.mock("./zendesk-talk-legacy-store", () => ({
+  beginLegacyTalkCycle: vi.fn(),
+  commitLegacyTalkPage: vi.fn(),
+  readLegacyTalkWeek: vi.fn(),
+}));
 vi.mock("./zendesk-talk-store", () => ({
   claimTalkCollection: vi.fn(),
   reserveTalkRequest: vi.fn(),
