@@ -107,6 +107,9 @@ a five-minute watermark overlap to collect corrections. Do not reset checkpoints
 to retry a timeout. Old-period rows remain source evidence, not permission for historical
 repair. Per-week retained population is capped at 250,000 calls; exceeding it stops collection.
 Production activation and source-retention policy remain subject to the release manifest.
+`ZENDESK_LEGACY_TALK_RESUME=1` opts the existing legacy fetch into this path; unset retains
+the original behavior. Keep it unset until the scoped recovery rehearsal passes. Clearing
+it rolls collection back without deleting retained evidence or changing metric values.
 
 Data Health labels completed work Published, not verified metric correctness. Interrupted
 means its running lease expired; a new sync can reclaim it through the transactional lease

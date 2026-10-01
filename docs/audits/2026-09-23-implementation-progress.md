@@ -1,5 +1,14 @@
 # Audit implementation — current checkpoint
 
+**October 1 — recovery checks advanced; activation remains disabled:** Legacy recovery
+candidate `e94afa1` passes full CI `36891453194` (118 test files). Offline replay preserves
+all ten consumed fields across 25,694 retained calls and matches 507 agent/direction groups
+over three intervals, without vendor or database requests. Subsequent hardening adds an
+explicit, unset-by-default legacy-resume rollout switch and keeps synthetic Preview source
+work disabled. CSAT quota-aware pacing honors account reset headers within the existing
+request/time/single-retry limits; 36 focused tests pass. Neither a production retry nor new
+scheduled success has been claimed. Hosted Microsoft sign-in/export bytes remain pending.
+
 **October 1 — CSAT read-only agreement; resumable legacy Talk candidate:** Diagnostics
 candidate `0a1ffd9` passes full CI `36889256825` (117 test files). A single bounded,
 GET-only current-week CSAT diagnosis completed in 125,150 ms: 80 requests, no retries,

@@ -258,3 +258,25 @@ it("refuses an old completed observation even when its checksum is valid", async
   await expect(readLegacyTalkWeek(owner, start, end, hash)).rejects.toThrow("no longer fresh");
   await releaseTalkCollection(owner);
 });
+
+it("persists a full-sized page in bounded batches without dropping zero or null inputs", async () => {
+  const owner = await own();
+  let current = await beginLegacyTalkCycle(owner, start, end);
+  const calls = Array.from({ length: 1000 }, (_, index) => call(index + 1, index % 2 ? null : 0));
+  current = await commitLegacyTalkPage(owner, start, end, current.expectedHash, page(calls));
+  current = await commitLegacyTalkPage(
+    owner,
+    start,
+    end,
+    current.expectedHash,
+    page([], bootstrap + 1000)
+  );
+  const snapshot = await readLegacyTalkWeek(owner, start, end, current.expectedHash);
+  expect(snapshot.calls).toHaveLength(1000);
+  expect(snapshot.calls.filter((c) => c.talk_time === 0)).toHaveLength(500);
+  expect(snapshot.calls.filter((c) => c.talk_time === null)).toHaveLength(500);
+  expect(
+    (await rows()).filter((r) => r.externalRecordType === "zendesk_legacy_talk_revision_v1")
+  ).toHaveLength(1000);
+  await releaseTalkCollection(owner);
+});

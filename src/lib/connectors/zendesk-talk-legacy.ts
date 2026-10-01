@@ -149,6 +149,6 @@ export function fetchLegacyTalkWeek<T extends TalkCall>(
     periodStart,
     periodEnd,
     createTalkExportReader(credentials, accountReference),
-    { resumable: true }
+    { resumable: env.ZENDESK_LEGACY_TALK_RESUME === "1" }
   );
 }

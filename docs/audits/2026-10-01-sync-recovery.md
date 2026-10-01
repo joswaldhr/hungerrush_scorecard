@@ -46,6 +46,23 @@ conflicting versions, transaction rollback, cross-week isolation and stale obser
 
 ## Remaining release gates
 
+The legacy resume path has an explicit `ZENDESK_LEGACY_TALK_RESUME=1` opt-in. It is unset
+on production and synthetic main Preview. Clearing it preserves saved evidence and restores
+the previous collector. Candidate `e94afa1` passed full CI `36891453194` before this opt-in
+and the subsequent CSAT pacing change. An offline replay preserves all ten consumed fields
+across 25,694 retained calls and matches 507 agent/direction groups across three reporting
+intervals. This is field/input preservation, not new report-semantic certification.
+
+CSAT now uses valid account quota headers to spread remaining requests and wait for reset
+before making another request. The two-request reserve and one-second reset margin are local
+conservative choices, not a guaranteed account allocation. It honors the longer of account
+reset and Retry-After, preserves the collection-wide single-retry limit, and stops when waiting
+would consume the reserved request time. It records only numeric quota fields and wait time.
+Malformed headers do not become trusted quota evidence. A known empty quota with no usable
+reset stops collection. Thirty-six focused reader/retry/diagnostic tests pass. The prior live
+diagnosis did not reproduce 429; neither this change nor those tests certify scheduled recovery.
+Header semantics follow [Zendesk's rate-limit documentation](https://developer.zendesk.com/api-reference/introduction/rate-limits/).
+
 Full exact-candidate CI, hosted sign-in and actual export-file inspection, fresh encrypted
 backup/restore, bounded source replay against retained evidence, scoped production deployment
 and genuine scheduled evidence remain required. The first long bootstrap may need more than

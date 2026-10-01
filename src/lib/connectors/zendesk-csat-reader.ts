@@ -43,7 +43,34 @@ export function createBoundedCsatReader(
   let requests = 0,
     lastStarted: number | null = null,
     rateLimitRetries = 0,
-    backoffWaitMs = 0;
+    backoffWaitMs = 0,
+    quotaWaitMs = 0,
+    quotaNextAt = 0;
+  let accountQuota: { accountLimit: number; accountRemaining: number } | undefined;
+  const headerCount = (headers: Headers, key: string) => {
+    const value = headers.get(key)?.trim();
+    return value && /^\d+$/.test(value) && Number.isSafeInteger(Number(value))
+      ? Number(value)
+      : null;
+  };
+  const observeQuota = (headers: Headers, requireReset = true) => {
+    const limit = headerCount(headers, "ratelimit-limit"),
+      remaining = headerCount(headers, "ratelimit-remaining"),
+      reset = headerCount(headers, "ratelimit-reset");
+    accountQuota = undefined;
+    quotaNextAt = 0;
+    if (limit === null || remaining === null || limit < 1 || remaining > limit) return;
+    accountQuota = { accountLimit: limit, accountRemaining: remaining };
+    if (reset === null || reset > 86400) {
+      if (remaining === 0 && requireReset)
+        throw Error("CSAT account quota exhausted without a usable reset time");
+      return;
+    }
+    // Leave two requests for competing account clients. Integer reset headers have
+    // second precision; allow one additional second at the exhausted boundary.
+    const delay = remaining <= 2 ? (reset + 1) * 1000 : Math.ceil((reset * 1000) / (remaining - 2));
+    quotaNextAt = now() + delay;
+  };
   let failure: Pick<
     SourceFetchError["diagnostics"],
     "endpoint" | "httpStatus" | "retryAfterMs" | "retryStoppedBy"
@@ -55,6 +82,8 @@ export function createBoundedCsatReader(
     elapsedBudgetMs: elapsedMs,
     rateLimitRetries,
     backoffWaitMs,
+    quotaWaitMs,
+    ...accountQuota,
   });
   const checkTime = () => {
     if (deadline.aborted || now() - started >= elapsedMs)
@@ -78,6 +107,20 @@ export function createBoundedCsatReader(
     // A retry consumes the same global request/time budget and repeats only this GET.
     for (;;) {
       if (requests >= requestBudget) throw new Error("CSAT collection request budget exhausted");
+      const quotaDelay = quotaNextAt - now();
+      if (quotaDelay > 0) {
+        if (quotaDelay > 65000 || now() - started + quotaDelay + 30000 >= elapsedMs) {
+          failure.retryStoppedBy = "quota_budget";
+          throw Error("CSAT account quota wait exceeds remaining collection budget");
+        }
+        quotaWaitMs += quotaDelay;
+        try {
+          await wait(quotaDelay, undefined, { signal: deadline });
+        } catch {
+          throw Error("CSAT collection elapsed-time budget exhausted");
+        }
+        checkTime();
+      }
       if (lastStarted !== null) {
         const remaining = spacingMs - (now() - lastStarted);
         if (remaining > 0) {
@@ -112,6 +155,7 @@ export function createBoundedCsatReader(
         const endpoint = url.pathname.slice("/api/v2/".length, -".json".length);
         let delay = "";
         if (response.status === 429) {
+          observeQuota(response.headers, false);
           const header = response.headers.get("retry-after")?.trim();
           const retryAfterMs = header
             ? /^\d+$/.test(header)
@@ -122,7 +166,7 @@ export function createBoundedCsatReader(
             Number.isSafeInteger(retryAfterMs) && retryAfterMs >= 0
               ? `; retryAfterMs=${retryAfterMs}`
               : "; retryAfterMs=unavailable";
-          const waitMs = Math.max(retryAfterMs, spacingMs);
+          const waitMs = Math.max(retryAfterMs, spacingMs, quotaNextAt - now());
           failure.retryAfterMs =
             Number.isSafeInteger(retryAfterMs) && retryAfterMs >= 0 ? retryAfterMs : null;
           failure.retryStoppedBy =
@@ -163,6 +207,7 @@ export function createBoundedCsatReader(
           `CSAT source request failed: HTTP ${response.status}; endpoint=${endpoint}${delay}`
         );
       }
+      observeQuota(response.headers);
       try {
         const result: unknown = await response.json();
         checkTime();

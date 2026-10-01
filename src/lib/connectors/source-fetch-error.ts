@@ -11,6 +11,9 @@ const diagnosticsSchema = z.object({
   rateLimitRetries: count.optional(),
   backoffWaitMs: count.optional(),
   pacingWaitMs: count.optional(),
+  quotaWaitMs: count.optional(),
+  accountLimit: count.optional(),
+  accountRemaining: count.optional(),
   endpoint: z.enum(["users", "search/export", "tickets/show_many", "calls"]).optional(),
   httpStatus: z.number().int().min(100).max(599).optional(),
   retryAfterMs: count.nullable().optional(),
@@ -22,6 +25,7 @@ const diagnosticsSchema = z.object({
       "retry_allowance",
       "request_budget",
       "time_budget",
+      "quota_budget",
     ])
     .optional(),
 });
