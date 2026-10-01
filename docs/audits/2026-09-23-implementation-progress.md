@@ -1,5 +1,17 @@
 # Audit implementation — current checkpoint
 
+**October 1 — hosted rehearsal in progress:** Vercel security and CLI authentication
+are resolved, and main Preview's Microsoft sign-in configuration is present. Combined
+candidate `3b42d92` passes full CI `36882447051`. An initial file deployment failed
+closed because its Git branch identity was absent; subsequent Git-source deployments
+passed exact branch/database/vendor-disable guards. The synthetic configuration then
+rolled back on older fixture definitions' `staging` source label. The rehearsal now
+explicitly converts only compatible inbound definitions in the guarded synthetic org
+to the dedicated source strategy, without weakening production preflight. Fingerprints
+cover all values outside the selected employee/nine keys/current-and-previous periods.
+No production publication, master merge, demo or Zendesk changes. Hosted publication,
+actual export bytes, production canary and scheduled verification remain open.
+
 **October 1 — combined main-app release verification resumed:** Vercel browser and
 official CLI authentication are available. The release candidate now incorporates
 PR41's already-authorized last-week review, navigation, highlights and actual-file

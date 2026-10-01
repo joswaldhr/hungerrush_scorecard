@@ -53,10 +53,12 @@ async function main() {
       team = staff[0]!.primary_team_id;
     assert(team);
     assert.equal((await connection`select id from sync_runs where status='running'`).length, 0);
+    const rehearsalPeriods = [weekDates(1).periodStart, weekDates(0).periodStart];
     const fingerprint = async () => {
       const rows =
         await connection`select to_jsonb(v) as value from metric_values v join metric_definitions d on d.id=v.metric_definition_id
-        where v.employee_id=${employee} and not (d.key=any(${[...inboundReportKeys]}::text[])) order by v.id`;
+        where not (v.employee_id=${employee} and d.key=any(${[...inboundReportKeys]}::text[])
+          and v.period_start=any(${rehearsalPeriods}::date[])) order by v.id`;
       return createHash("sha256").update(JSON.stringify(rows)).digest("hex");
     };
     const before = await fingerprint();
@@ -94,12 +96,19 @@ async function main() {
           unit,
           value_type: valueType,
           calculation_type: calculationType,
-          source_strategy: "zendesk",
           status: "active",
         })) {
           stage = `synthetic definition ${key} ${field}`;
           assert.equal(def[field], expected);
         }
+        stage = `synthetic definition ${key} source_strategy`;
+        // Older isolated fixtures used the generic staging normalizer. Bind only
+        // these compatible synthetic definitions to the dedicated publisher;
+        // never relax the production publisher's source contract.
+        assert(["staging", "zendesk"].includes(def.source_strategy));
+        if (def.source_strategy === "staging")
+          await tx`update metric_definitions set source_strategy='zendesk',updated_at=now()
+            where id=${def.id} and organization_id=${org} and source_strategy='staging'`;
         stage = `synthetic assignment ${key}`;
         const assignments =
           await tx`select employee_id,role_key from metric_assignments where metric_definition_id=${def.id} and team_id=${team}`;
