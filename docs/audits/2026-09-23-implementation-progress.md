@@ -1,5 +1,22 @@
 # Audit implementation — current checkpoint
 
+**October 1 — exact recovery candidate and synthetic Preview pass; release still gated:**
+Code candidate `8210d7a8fbc6919708cd829223bde39865c103fe` passes full CI `36892381643`
+(typecheck, lint, migrations, full tests, diagnostic guards and build). Isolated main
+Preview `dpl_8zmnehw9E3NLehvxorprpwj6Erxx` is Ready on that SHA. Its guarded rehearsal
+again publishes nine synthetic results for each of two weeks: eight numeric and one
+legitimately unavailable, with unrelated values unchanged, no vendor requests and no
+production writes. Anonymous inbound requests return 401; anonymous export submissions
+redirect to sign-in (307), which is authentication evidence only. Seven PostgreSQL
+legacy recovery tests pass, including a 1,000-call page with null/zero preservation.
+Hosted Microsoft sign-in and actual exported-file inspection remain unverified and
+require the user's session. No PC control was used in this continuation. Production
+remains `2241763` / `dpl_GnmLnC5NGNmMtTJ1nRpnAhqnnisj`; frozen demo remains `f17821c` /
+`dpl_6zgVGDyR2tW1JMVmbmv7hTm4fTYR`, verified by alias metadata. Legacy resume remains
+opt-in and inactive; prospective inbound activation, fresh backup/restore, controlled
+canary and real scheduler evidence are still required. CSAT's earlier 429 was not
+reproduced, so quota-aware pacing is not reported as proven scheduled recovery.
+
 **October 1 — recovery checks advanced; activation remains disabled:** Legacy recovery
 candidate `e94afa1` passes full CI `36891453194` (118 test files). Offline replay preserves
 all ten consumed fields across 25,694 retained calls and matches 507 agent/direction groups
