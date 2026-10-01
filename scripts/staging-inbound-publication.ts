@@ -58,7 +58,7 @@ async function main() {
       const rows =
         await connection`select to_jsonb(v) as value from metric_values v join metric_definitions d on d.id=v.metric_definition_id
         where not (v.employee_id=${employee} and d.key=any(${[...inboundReportKeys]}::text[])
-          and v.period_start=any(${rehearsalPeriods}::date[])) order by v.id`;
+          and v.period_start::text=any(${rehearsalPeriods}::text[])) order by v.id`;
       return createHash("sha256").update(JSON.stringify(rows)).digest("hex");
     };
     const before = await fingerprint();
