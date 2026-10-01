@@ -75,6 +75,7 @@ async function main() {
       await tx`insert into external_identities(employee_id,data_source_id,external_id,external_entity_type,match_method)
         values(${employee},${sourceId},'synthetic-inbound@example.invalid','user','manual') on conflict do nothing`;
       for (const [index, key] of inboundReportKeys.entries()) {
+        stage = `synthetic definition ${key}`;
         const rate = key === "inbound_calls_answer_rate";
         const duration = ["total_talk_time_inbound", "max_hold_time_inbound"].includes(key);
         const unit = rate ? "%" : duration ? "s" : "calls";
@@ -89,11 +90,17 @@ async function main() {
           returning id,unit,value_type,calculation_type,source_strategy,status`;
         assert.equal(defs.length, 1);
         const def = defs[0]!;
-        assert.equal(def.unit, unit);
-        assert.equal(def.value_type, valueType);
-        assert.equal(def.calculation_type, calculationType);
-        assert.equal(def.source_strategy, "zendesk");
-        assert.equal(def.status, "active");
+        for (const [field, expected] of Object.entries({
+          unit,
+          value_type: valueType,
+          calculation_type: calculationType,
+          source_strategy: "zendesk",
+          status: "active",
+        })) {
+          stage = `synthetic definition ${key} ${field}`;
+          assert.equal(def[field], expected);
+        }
+        stage = `synthetic assignment ${key}`;
         const assignments =
           await tx`select employee_id,role_key from metric_assignments where metric_definition_id=${def.id} and team_id=${team}`;
         if (!assignments.length)
@@ -179,9 +186,16 @@ async function main() {
     delete globalDb._cadenceDb;
   }
 }
-main().catch(() => {
+main().catch((error: unknown) => {
+  const code =
+    typeof error === "object" && error !== null && "code" in error ? String(error.code) : "";
   console.error(
-    `Synthetic inbound rehearsal failed at ${stage}; no production action was performed.`
+    JSON.stringify({
+      syntheticRehearsalFailedAt: stage,
+      errorName: error instanceof Error ? error.name : "Unknown",
+      databaseCode: /^[0-9A-Z]{5}$/.test(code) ? code : undefined,
+      productionWrites: 0,
+    })
   );
   process.exitCode = 1;
 });
