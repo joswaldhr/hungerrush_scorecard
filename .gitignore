@@ -46,3 +46,4 @@ next-env.d.ts
 
 # Local recovery payloads must not be committed or deployed.
 /backups/
+.vercel

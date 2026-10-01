@@ -27,7 +27,9 @@
       "comparedRows": 23,
       "valueComparisons": 207,
       "differences": 0,
-      "blockedRows": 0
+      "blockedRows": 0,
+      "sourceSetComparisons": 184,
+      "sourceSetDifferences": 0
     }
   ],
   "inputDigests": {
