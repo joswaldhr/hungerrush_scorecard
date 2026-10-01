@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { beforeEach, expect, it, vi } from "vitest";
 import { createBoundedCsatReader } from "./zendesk-csat-reader";
+import { sourceFailureDiagnostics } from "./source-fetch-error";
 
 const clock = vi.hoisted(() => ({ now: 0, waits: [] as number[], extraDelay: 0 }));
 vi.mock("node:timers/promises", () => ({
@@ -117,4 +118,33 @@ it("does not retry other HTTP failures", async () => {
   await expect(reader.read("/users.json")).rejects.toThrow(/HTTP 503/);
   expect(fetcher).toHaveBeenCalledTimes(1);
   expect(clock.waits).toEqual([]);
+});
+
+it("retains the precise retry stop reason without private request data", async () => {
+  const { reader } = setup([limited("9"), Response.json({ users: [] }), limited("9")]);
+  await reader.read("/users.json");
+  const failure = await reader
+    .read("/tickets/show_many.json?ids=123")
+    .catch((error: unknown) => error);
+  const diagnostics = sourceFailureDiagnostics(failure);
+  expect(diagnostics).toMatchObject({
+    family: "csat",
+    endpoint: "tickets/show_many",
+    requests: 3,
+    rateLimitRetries: 1,
+    backoffWaitMs: 9000,
+    httpStatus: 429,
+    retryAfterMs: 9000,
+    retryStoppedBy: "retry_allowance",
+  });
+  expect(JSON.stringify(diagnostics)).not.toMatch(/123|private|fixture/);
+});
+
+it("distinguishes insufficient time from a consumed retry allowance", async () => {
+  const { reader } = setup([limited("9")], { elapsedMs: 38_000 });
+  const failure = await reader.read("/users.json").catch((error: unknown) => error);
+  expect(sourceFailureDiagnostics(failure)).toMatchObject({
+    rateLimitRetries: 0,
+    retryStoppedBy: "time_budget",
+  });
 });

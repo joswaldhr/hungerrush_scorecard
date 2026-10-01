@@ -1,5 +1,29 @@
 # Audit implementation — current checkpoint
 
+**October 1 — hosted publication passed; overnight recovery work authorized:**
+Candidate `bec579f` passes CI `36884561539` (915 tests / 116 files) and is Ready
+in isolated main Preview deployment `dpl_2r3cQv82u1jNBUnbh2esytG2iFRW`.
+The synthetic rehearsal publishes nine results for September 20–26 and
+September 27–October 3: eight numeric, one legitimately unavailable maximum hold.
+Earlier/unrelated values are unchanged. Demo alias still resolves to its frozen
+deployment `dpl_6zgVGDyR2tW1JMVmbmv7hTm4fTYR`. Preview browser authentication and
+actual downloaded-file inspection remain unverified; Computer Use stopped on Escape.
+
+Production read-only checks found two October 1 failures, both with zero values
+written: legacy Talk week offset 3 at 07:27 UTC exhausted its collection budget
+after 212,380 ms; current-week CSAT at 08:34 UTC stopped on `tickets/show_many`
+HTTP 429 with a 9,000 ms retry delay. Production already permits one bounded CSAT
+retry; the retained failure does not prove which allowance stopped recovery.
+Candidate diagnostics now preserve allowlisted request/retry/time fields on failed
+fetches instead of losing them before publication. No retry limits, metrics, policies,
+production data or source settings are changed by this diagnostic increment.
+Thirty-three focused tests and all 23 PostgreSQL publication tests pass, along with
+typecheck and scoped lint. The initial local database failures were unavailable/wrong
+loopback test destinations; the verified PostgreSQL 18 cluster at port 55441 and
+`cadence_outbound_test` then passed persistence/rollback/freshness checks.
+The authorized next work is bounded/resumable Talk recovery, evidence-based CSAT
+recovery, hosted exports, fresh backup, scoped canary and real scheduler observation.
+
 **October 1 — hosted rehearsal in progress:** Vercel security and CLI authentication
 are resolved, and main Preview's Microsoft sign-in configuration is present. Combined
 candidate `3b42d92` passes full CI `36882447051`. An initial file deployment failed

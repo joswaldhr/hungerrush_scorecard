@@ -19,6 +19,7 @@ import { computeMetricValuesFromFacts } from "@/lib/domain/metrics/compute-value
 import { chunk } from "@/lib/utils";
 import { completeSnapshotVersion } from "@/lib/domain/metrics/source-context";
 import { assertMetricPublicationEligible } from "@/lib/domain/metrics/publication-eligibility";
+import { sourceFailureDiagnostics } from "./source-fetch-error";
 
 function payloadHash(payload: Record<string, unknown>): string {
   return createHash("sha256").update(JSON.stringify(payload)).digest("hex");
@@ -115,6 +116,7 @@ export async function runSync(
     }
   } catch (err) {
     success = false;
+    fetchDiagnostics = sourceFailureDiagnostics(err) ?? fetchDiagnostics;
     fetchErrors.push({ message: safeErrorMessage(err) });
     logger.error("Sync fetch phase failed", { syncRunId, error: err });
   }

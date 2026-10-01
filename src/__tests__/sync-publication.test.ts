@@ -20,6 +20,7 @@ import { runSync } from "@/lib/connectors/sync-engine";
 import type { Connector, IngestedRecord } from "@/lib/connectors/types";
 import { FIRST_REPLY_CONTRACT, SOLVED_CSAT_CONTRACT } from "@/lib/domain/metrics/source-context";
 import { ZendeskConnector } from "@/lib/connectors/zendesk";
+import { SourceFetchError } from "@/lib/connectors/source-fetch-error";
 import { buildSolvedCsatRecord } from "@/lib/connectors/zendesk-solved-csat-record";
 import type { fetchSolvedCsatCandidate } from "@/lib/connectors/zendesk-solved-csat";
 
@@ -163,6 +164,32 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
     );
     expect((await runSync(connector([record(6)]), config)).valuesWritten).toBe(0);
     expect(await values()).toEqual(after);
+  });
+  it("retains safe failed-fetch diagnostics without publishing or advancing freshness", async () => {
+    const before = await values();
+    const [beforeSource] = await db.select().from(dataSources).where(eq(dataSources.id, source));
+    const failing = connector([]);
+    failing.fetchRecords = async () => {
+      throw new SourceFetchError(Error("Synthetic rate limit"), {
+        family: "csat",
+        requests: 6,
+        elapsedMs: 9000,
+        elapsedBudgetMs: 240000,
+        rateLimitRetries: 1,
+        retryStoppedBy: "retry_allowance",
+        endpoint: "tickets/show_many",
+      });
+    };
+    const result = await runSync(failing, config);
+    expect(result).toMatchObject({ success: false, valuesWritten: 0 });
+    expect(await values()).toEqual(before);
+    const [afterSource] = await db.select().from(dataSources).where(eq(dataSources.id, source));
+    expect(afterSource?.lastSuccessfulSyncAt).toEqual(beforeSource?.lastSuccessfulSyncAt);
+    const [run] = await db.select().from(syncRuns).where(eq(syncRuns.id, result.syncRunId));
+    expect(run?.metadataJson).toMatchObject({
+      fetch: { family: "csat", requests: 6, retryStoppedBy: "retry_allowance" },
+    });
+    expect(run?.status).toBe("failed");
   });
   it("source outages leave values and last successful sync unchanged", async () => {
     const before = await values();

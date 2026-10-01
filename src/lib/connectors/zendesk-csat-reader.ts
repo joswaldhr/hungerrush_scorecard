@@ -1,5 +1,6 @@
 import { setTimeout as wait } from "node:timers/promises";
 import { zendeskAccountReference } from "./zendesk-account-binding";
+import { SourceFetchError } from "./source-fetch-error";
 
 /** CSAT has its own global budget; neither transport retries nor pagination can extend it. */
 export function createBoundedCsatReader(
@@ -43,110 +44,142 @@ export function createBoundedCsatReader(
     lastStarted: number | null = null,
     rateLimitRetries = 0,
     backoffWaitMs = 0;
+  let failure: Pick<
+    SourceFetchError["diagnostics"],
+    "endpoint" | "httpStatus" | "retryAfterMs" | "retryStoppedBy"
+  > = {};
+  const stats = () => ({
+    requests,
+    elapsedMs: Math.max(0, now() - started),
+    requestBudget,
+    elapsedBudgetMs: elapsedMs,
+    rateLimitRetries,
+    backoffWaitMs,
+  });
   const checkTime = () => {
     if (deadline.aborted || now() - started >= elapsedMs)
       throw new Error("CSAT collection elapsed-time budget exhausted");
   };
-  return {
-    stats: () => ({
-      requests,
-      elapsedMs: now() - started,
-      requestBudget,
-      elapsedBudgetMs: elapsedMs,
-      rateLimitRetries,
-      backoffWaitMs,
-    }),
-    read: async (path: string): Promise<unknown> => {
+  const read = async (path: string): Promise<unknown> => {
+    failure = {};
+    checkTime();
+    const url = new URL(path.startsWith("http") ? path : `${origin}/api/v2${path}`);
+    if (
+      url.origin !== origin ||
+      url.username ||
+      url.password ||
+      url.hash ||
+      !/^\/api\/v2\/(users|search\/export|tickets\/show_many)\.json$/.test(url.pathname)
+    )
+      throw new Error("CSAT source URL outside the account endpoint allowlist");
+    failure.endpoint = url.pathname.slice("/api/v2/".length, -".json".length) as NonNullable<
+      typeof failure.endpoint
+    >;
+    // A retry consumes the same global request/time budget and repeats only this GET.
+    for (;;) {
+      if (requests >= requestBudget) throw new Error("CSAT collection request budget exhausted");
+      if (lastStarted !== null) {
+        const remaining = spacingMs - (now() - lastStarted);
+        if (remaining > 0) {
+          try {
+            await wait(remaining, undefined, { signal: deadline });
+          } catch {
+            throw new Error("CSAT collection elapsed-time budget exhausted");
+          }
+        }
+      }
       checkTime();
-      const url = new URL(path.startsWith("http") ? path : `${origin}/api/v2${path}`);
-      if (
-        url.origin !== origin ||
-        url.username ||
-        url.password ||
-        url.hash ||
-        !/^\/api\/v2\/(users|search\/export|tickets\/show_many)\.json$/.test(url.pathname)
-      )
-        throw new Error("CSAT source URL outside the account endpoint allowlist");
-      // A retry consumes the same global request/time budget and repeats only this GET.
-      for (;;) {
-        if (requests >= requestBudget) throw new Error("CSAT collection request budget exhausted");
-        if (lastStarted !== null) {
-          const remaining = spacingMs - (now() - lastStarted);
-          if (remaining > 0) {
+      if (requests >= requestBudget) throw new Error("CSAT collection request budget exhausted");
+      lastStarted = now();
+      requests++;
+      let response: Response;
+      try {
+        response = await request(url, {
+          method: "GET",
+          headers: { Authorization: authorization },
+          redirect: "error",
+          signal: AbortSignal.any([deadline, AbortSignal.timeout(30000)]),
+        });
+      } catch {
+        checkTime();
+        throw new Error("CSAT source request failed");
+      }
+      if (!response.ok) {
+        failure.httpStatus = response.status;
+        // Failed fetches do not return collection stats. Preserve only this bounded
+        // endpoint category and a parsed delay in the sync error, never the URL,
+        // query (employee/ticket IDs), response body or raw vendor header.
+        const endpoint = url.pathname.slice("/api/v2/".length, -".json".length);
+        let delay = "";
+        if (response.status === 429) {
+          const header = response.headers.get("retry-after")?.trim();
+          const retryAfterMs = header
+            ? /^\d+$/.test(header)
+              ? Number(header) * 1000
+              : Date.parse(header) - now()
+            : NaN;
+          delay =
+            Number.isSafeInteger(retryAfterMs) && retryAfterMs >= 0
+              ? `; retryAfterMs=${retryAfterMs}`
+              : "; retryAfterMs=unavailable";
+          const waitMs = Math.max(retryAfterMs, spacingMs);
+          failure.retryAfterMs =
+            Number.isSafeInteger(retryAfterMs) && retryAfterMs >= 0 ? retryAfterMs : null;
+          failure.retryStoppedBy =
+            maxRateLimitRetries === 0
+              ? "disabled"
+              : failure.retryAfterMs === null
+                ? "invalid_delay"
+                : waitMs > 60_000
+                  ? "delay_too_long"
+                  : rateLimitRetries >= maxRateLimitRetries
+                    ? "retry_allowance"
+                    : requests >= requestBudget
+                      ? "request_budget"
+                      : "time_budget";
+          if (
+            Number.isSafeInteger(retryAfterMs) &&
+            retryAfterMs >= 0 &&
+            waitMs <= 60_000 &&
+            rateLimitRetries < maxRateLimitRetries &&
+            requests < requestBudget &&
+            // Reserve a full request timeout; never borrow from publication time.
+            now() - started + waitMs + 30_000 < elapsedMs
+          ) {
+            await response.body?.cancel();
+            rateLimitRetries++;
+            backoffWaitMs += waitMs;
             try {
-              await wait(remaining, undefined, { signal: deadline });
+              await wait(waitMs, undefined, { signal: deadline });
             } catch {
               throw new Error("CSAT collection elapsed-time budget exhausted");
             }
+            checkTime();
+            failure = { endpoint: failure.endpoint };
+            continue;
           }
         }
+        throw new Error(
+          `CSAT source request failed: HTTP ${response.status}; endpoint=${endpoint}${delay}`
+        );
+      }
+      try {
+        const result: unknown = await response.json();
         checkTime();
-        if (requests >= requestBudget) throw new Error("CSAT collection request budget exhausted");
-        lastStarted = now();
-        requests++;
-        let response: Response;
-        try {
-          response = await request(url, {
-            method: "GET",
-            headers: { Authorization: authorization },
-            redirect: "error",
-            signal: AbortSignal.any([deadline, AbortSignal.timeout(30000)]),
-          });
-        } catch {
-          checkTime();
-          throw new Error("CSAT source request failed");
-        }
-        if (!response.ok) {
-          // Failed fetches do not return collection stats. Preserve only this bounded
-          // endpoint category and a parsed delay in the sync error, never the URL,
-          // query (employee/ticket IDs), response body or raw vendor header.
-          const endpoint = url.pathname.slice("/api/v2/".length, -".json".length);
-          let delay = "";
-          if (response.status === 429) {
-            const header = response.headers.get("retry-after")?.trim();
-            const retryAfterMs = header
-              ? /^\d+$/.test(header)
-                ? Number(header) * 1000
-                : Date.parse(header) - now()
-              : NaN;
-            delay =
-              Number.isSafeInteger(retryAfterMs) && retryAfterMs >= 0
-                ? `; retryAfterMs=${retryAfterMs}`
-                : "; retryAfterMs=unavailable";
-            const waitMs = Math.max(retryAfterMs, spacingMs);
-            if (
-              Number.isSafeInteger(retryAfterMs) &&
-              retryAfterMs >= 0 &&
-              waitMs <= 60_000 &&
-              rateLimitRetries < maxRateLimitRetries &&
-              requests < requestBudget &&
-              // Reserve a full request timeout; never borrow from publication time.
-              now() - started + waitMs + 30_000 < elapsedMs
-            ) {
-              await response.body?.cancel();
-              rateLimitRetries++;
-              backoffWaitMs += waitMs;
-              try {
-                await wait(waitMs, undefined, { signal: deadline });
-              } catch {
-                throw new Error("CSAT collection elapsed-time budget exhausted");
-              }
-              checkTime();
-              continue;
-            }
-          }
-          throw new Error(
-            `CSAT source request failed: HTTP ${response.status}; endpoint=${endpoint}${delay}`
-          );
-        }
-        try {
-          const result: unknown = await response.json();
-          checkTime();
-          return result;
-        } catch {
-          checkTime();
-          throw new Error("CSAT source response could not be read");
-        }
+        return result;
+      } catch {
+        checkTime();
+        throw new Error("CSAT source response could not be read");
+      }
+    }
+  };
+  return {
+    stats,
+    read: async (path: string) => {
+      try {
+        return await read(path);
+      } catch (error) {
+        throw new SourceFetchError(error, { family: "csat", ...stats(), ...failure });
       }
     },
   };

@@ -11,6 +11,7 @@ import {
   type TalkStoreScope,
 } from "./zendesk-talk-store";
 import { SourceRetryLaterError } from "./source-retry";
+import { SourceFetchError } from "./source-fetch-error";
 import type { ConnectorConfig } from "./types";
 
 /** Same account lease and persisted request budget as the durable call/leg worker. */
@@ -83,6 +84,17 @@ export async function fetchCoordinatedTalkWeek<T extends TalkCall>(
         sharedAccountBudget: true,
       },
     };
+  } catch (error) {
+    if (error instanceof SourceRetryLaterError) throw error;
+    throw new SourceFetchError(error, {
+      family: "legacy_talk",
+      endpoint: "calls",
+      requests,
+      elapsedMs: Math.max(0, Date.now() - started),
+      elapsedBudgetMs: maxDurationMs,
+      requestBudget: maxPages,
+      pacingWaitMs,
+    });
   } finally {
     await releaseTalkCollection(owned);
   }
