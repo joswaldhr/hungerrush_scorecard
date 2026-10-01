@@ -10,6 +10,10 @@ vendor credentials and every publication policy including inbound. Combined-cand
 CI, hosted authentication/export checks, prospective catalog registration, canary and
 scheduled observation remain required; prior test counts below describe their exact
 earlier candidates. The current-week replay additionally matches all 184 source ID sets.
+The CLI upload dry run exposed an ignored local recovery script in the proposed
+payload; upload was stopped before transmission. Explicit `.vercelignore` exclusions
+now cover recovery files, environment files, local build/cache outputs and non-runtime
+documentation. The release must recheck the upload list against tracked source files.
 
 **October 1 — publisher CI, fresh source replay and recovery passed; release still gated:**
 Code candidate `c768d91` passes full CI `36874191689`: 853 tests in 112 files,
