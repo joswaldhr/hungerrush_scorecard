@@ -1,5 +1,11 @@
 # Audit implementation — current checkpoint
 
+**October 1 — main Preview callback saved and verified:** The user added the exact
+main Preview Web redirect URI. A fresh read-only Microsoft Graph check confirms it is
+saved and the existing demo callback is preserved. This resolves the missing-callback
+configuration blocker below. A fresh interactive Microsoft sign-in and actual hosted
+export-file inspection remain required; successful authentication is not yet observed.
+
 **October 1 — Preview sign-in blocker identified:** Read-only Microsoft Graph inspection
 of the existing staging registration confirms it allows only the frozen demo callback.
 The main Preview alias's `/api/auth/callback/microsoft-entra-id` address is missing,
