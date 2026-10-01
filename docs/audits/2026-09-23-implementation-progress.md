@@ -1,5 +1,15 @@
 # Audit implementation — current checkpoint
 
+**October 1 — Preview sign-in blocker identified:** Read-only Microsoft Graph inspection
+of the existing staging registration confirms it allows only the frozen demo callback.
+The main Preview alias's `/api/auth/callback/microsoft-entra-id` address is missing,
+although the running app requests it. An exact additive callback update through Graph
+was rejected with HTTP 403 `Authorization_RequestDenied`; no registration change occurred.
+The user must add the main Preview callback as a Web redirect URI while retaining the
+existing demo entry. No production registration, credentials, permissions or deployment
+were changed. This corrects the earlier assumption that having staging credentials present
+was enough for the new Preview alias to sign in. Hosted exports remain unverified.
+
 **October 1 — exact recovery candidate and synthetic Preview pass; release still gated:**
 Code candidate `8210d7a8fbc6919708cd829223bde39865c103fe` passes full CI `36892381643`
 (typecheck, lint, migrations, full tests, diagnostic guards and build). Isolated main
