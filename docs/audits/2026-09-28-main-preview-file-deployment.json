@@ -1,0 +1,9 @@
+{
+  "id": "dpl_F8xyW2fVz8Pgh7oStsf5QECTKGS5",
+  "url": "hungerrush-scorecard-ps5qmo3j9-water-hungerrush-scorecard.vercel.app",
+  "state": "ERROR",
+  "target": null,
+  "metaRef": "codex/main-operational-upgrade",
+  "aliases": [],
+  "outcome": "Database isolation guard rejected inherited configuration before application build"
+}

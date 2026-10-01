@@ -42,6 +42,7 @@ export interface EmployeeMetricRow {
   target: ResolvedTarget | null;
   status: ReturnType<typeof evaluateStatus>;
   qualityStatus: string;
+  previousQualityStatus?: string;
   dataFreshnessAt: Date | null;
   calculationVersion: number;
   targetContextStatus?: "current" | "historical_unverified" | "source_unverified";
@@ -266,6 +267,9 @@ export async function getEmployeeMetricsBatch(
           : missingReason && sourceContext === null
             ? "unsupported"
             : (current?.qualityStatus ?? "missing"),
+        previousQualityStatus: restriction
+          ? restriction.quality
+          : (previous?.qualityStatus ?? "missing"),
         dataFreshnessAt: current?.dataFreshnessAt ?? null,
         calculationVersion: current?.calculationVersion ?? 0,
         targetContextStatus:

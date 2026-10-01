@@ -1,5 +1,16 @@
 # Audit implementation — current checkpoint
 
+**October 1 — combined main-app release verification resumed:** Vercel browser and
+official CLI authentication are available. The release candidate now incorporates
+PR41's already-authorized last-week review, navigation, highlights and actual-file
+export changes alongside PR43's gated inbound publisher. Both histories are retained;
+the frozen demo branch, deployment and settings are untouched. The existing isolated
+main Preview is the rehearsal destination, with its database guard extended to reject
+vendor credentials and every publication policy including inbound. Combined-candidate
+CI, hosted authentication/export checks, prospective catalog registration, canary and
+scheduled observation remain required; prior test counts below describe their exact
+earlier candidates. The current-week replay additionally matches all 184 source ID sets.
+
 **October 1 — publisher CI, fresh source replay and recovery passed; release still gated:**
 Code candidate `c768d91` passes full CI `36874191689`: 853 tests in 112 files,
 PostgreSQL migrations/publication/retraction/concurrency checks, lint/typecheck,
@@ -199,6 +210,155 @@ guard tests pass; the reader is not imported by the app. No vendor/database writ
 generation, connector activation, deployment or demo changes occurred. Source support remains
 retired and certification counts remain unchanged. Latest AGENTS instructions prohibit all
 Zendesk report/dashboard editors, superseding older inspection allowances below.
+**September 29 — coordinated completion plan prepared:** The user's requested Assembled
+instance audit, Zendesk completion plan and agent workstreams are recorded in PR43's
+`docs/audits/2026-09-29-cross-source-execution-plan.md` on `codex/assembled-qualification`.
+Three planning agents reviewed source scope and acceptance. One designated live collector
+coordinates all vendor access; other agents use retained evidence and isolated tests. Plan
+requires complete manager packs, exact source reconciliation, family-sized gated releases,
+real scheduled readiness and two actual weekly review cycles. No additional tenant requests
+or production changes occurred for planning; current qualification counts remain unchanged.
+
+**September 29 — fresh Assembled qualification in separate branch:**
+`codex/assembled-qualification` preserves separation from PR41 and Adam's frozen demo.
+Read-only production inventory remains 23 assigned keys / 40 team assignments. The current
+Assembled key successfully returned 104 people and six schedule samples (168 segments).
+All 23 Menufy and 38/39 POS employees match uniquely to nondeleted source people. The
+remaining POS exact-email record is deleted, superseding September 25's all-nondeleted
+coverage for the new observation only; no employment or historical eligibility inference
+is warranted. Nine bounded vendor GETs, zero vendor/database writes or report-generation
+requests. Eight synthetic safety tests pass. App connector remains retired; metric
+certification counts, source policies and release gates are unchanged. The separate branch
+owns `2026-09-29-reporting-requirements.md` and aggregate census/identity-gap evidence.
+
+**September 29 — original workflow clarified and reviewed:** The user reaffirmed that
+Cadence must eliminate employee 1:1 report assembly across Zendesk and Assembled; Rippling
+explains export usage, not a migration or new connector request. The product-fit review
+retains the standalone app and prioritizes reporting completeness over platform changes.
+Assembled remains retired in production code. September 25 evidence already matched all
+62 employees, superseding stale roster-gap wording; PRODUCT/INTEGRATIONS now reflect this.
+Current public reporting APIs warrant qualification, not an unsupported claim of inability
+or readiness. Review: `2026-09-29-product-fit-review.md`. No app, vendor, metric-policy,
+deployment or access changes occurred; qualification counts and release gates are unchanged.
+
+**September 29 — product growth mapped:** The user defined the core promise as having
+metrics ready for meetings instead of rebuilding them, starting with two managers and
+expanding later. `PRODUCT_ROADMAP.md` records staged acceptance: dependable pilot 1:1s,
+configurable manager onboarding, recurring team/report packs, optional meeting continuity,
+then broader approved coverage. `PRODUCT.md` now states that direction and removes stale
+wording implying a current team-comparison screen. Proposed features do not change the
+present UI scope, metric policies, demo or infrastructure. This documentation does not
+increase qualification counts or close outstanding main-app release gates.
+
+**September 29 — company-hosting proposal; CSAT code deployed:** The user requested a
+path away from Vercel/Railway to company infrastructure. `docs/INFRASTRUCTURE_MIGRATION.md`
+records a provisional Azure/container design plus a physical-server alternative, exact
+portability work, one-writer cutover and rollback gates. Destination/IT requirements are
+pending; no hosting, DNS, billing or identity changes were made for this proposal.
+
+PR42 merged to production `2241763`, deployment `dpl_GnmLnC5NGNmMtTJ1nRpnAhqnnisj`.
+Master CI `36490899861` passes and production health returns HTTP 200. Its fresh pre-release
+encrypted restore matched 33 tables / 63,633 rows. The next-day comparison confirms all
+18 production settings and six assignment/configuration digests unchanged; metric values
+changed across six intervening completed publications, so no all-row-unchanged result is
+claimed. Exact scheduler correlation and renewed authenticated browser smoke remain
+unverified. See the CSAT release record for those limits. Main UI PR41 now includes the
+released transport fix at `4ac2be1`, with exact combined CI `36490995017` passing. Its
+hosted authenticated/export gates still await separate Preview sign-in. Demo remains
+frozen at the original deployment. Metric certification counts do not change.
+
+**September 28 — isolated main Preview READY; release remains gated:** PR41 app SHA
+`3bfc9df` passes exact CI `36487847138` (866 tests / 109 files and build). Separate
+Preview `dpl_5hvg7HpvnPKgoYeJsrbJU55KrPHU` passes the database isolation build guard.
+Two earlier attempts correctly stopped at that guard; explicit branch-only settings
+resolved inheritance of unrelated Preview defaults. Anonymous sign-in renders; creating
+separate Microsoft Preview access awaits the browser tool's required confirmation.
+Authenticated hosted/export checks and fresh backup/production release remain pending.
+Demo deployment, alias, access and fixture values remain unchanged. The latest read-only
+census found 12 completed/two failed runs and no stuck workers. CSAT bounded recovery
+is a separate PR42; neither that change nor PR41 is deployed to production.
+
+**September 28 — main application completion work resumed:** User authorized completing
+and upgrading the main app with Adam's demo frozen. Main branch
+`codex/main-operational-upgrade` starts from production `ed6b2df` in the idle managed
+checkout. It integrates the review/navigation/export improvements without demo routes,
+demo authentication or PR38. Automatic branch deployment is disabled. Separate Preview,
+exact combined checks, fresh recovery and production gates remain in progress.
+The demo stays on `dpl_6zgVGDyR2tW1JMVmbmv7hTm4fTYR`; its branch, alias, access and
+fixtures must not change. See `2026-09-28-main-operational-upgrade.md` for work order and
+acceptance. Metric qualification remains distinct from the first UI release.
+Latest AGENTS instructions prohibit all Zendesk editors despite the older amendment.
+
+**September 28 — presentation upgrade and file delivery:** User authorized the first
+recommended presentation pass. Final app candidate `f17821c` integrates configured headline
+metrics, conservative signed comparisons, reduced repeated period framing, presentation
+text sizes/category jumps and preserved print dates. All quality/availability warnings
+and underlying rows remain. Native same-origin file attachments replace failing blob
+downloads, with session/origin/type/size checks and no persistence or data reads.
+Fifty-nine combined focused tests and local static checks pass. Exact final CI
+`36484866012` passes all 872 tests / 111 files and build. Isolated Preview
+`dpl_6zgVGDyR2tW1JMVmbmv7hTm4fTYR` is READY at the exact app SHA and stable staging
+alias. Hosted PDF, PNG and CSV actually saved on the preceding `0109468` candidate:
+828,518, 1,267,645 and 10,910 bytes respectively. PDF/PNG decoded pixels match exactly;
+CSV retains all 22 rows, 20 columns and selected dates. The final two-class layout fix
+contains accessible labels within the main scroller; at 1920x1080 document height is
+1080 and category keyboard navigation moves focus/main scroll without outer scrolling.
+Earlier download-byte limitations below are superseded for this demo candidate.
+Production remains unchanged and requires its separate release gates; no production
+merge is implied. The presenter share link reaches Microsoft sign-in; Adam's own
+first login remains unobserved. PDF pagination remains a later improvement.
+
+**September 28 — presentation copy cleanup:** The user requested removing repeated
+demo notices. Workspace/scorecard banners, manager suffix and account subtitle are
+removed; Reporting weeks and export dates use ordinary labels. Sample provenance is
+retained in metric details. No access, fixture values, production or vendor changes.
+Candidate `c20a875` passes exact CI `36481385244` and hosted Preview inspection on
+`dpl_pqZbynr4frNYD1opv2pAanJJvMC9`. The user supplied actual earlier PDF/PNG exports;
+inspection confirms the verbose audit appendix. A follow-up now replaces it in visual
+exports and copied text with concise source notes and grouped material warnings. The
+CSV retains its full provenance and column layout. 29 focused tests and static checks
+pass. Final `17b9921` passes exact CI `36481956742` and is READY on isolated Preview
+`dpl_Gdeb4dTiN2eDLc5jfMZzFsQXoDNA`. Fresh downloaded output inspection still requires
+the user-assisted re-download: automated browser downloads do not save files. The
+presentation assessment and ordered upgrades are recorded in
+`2026-09-28-demo-readiness-and-upgrades.md`; production release remains held.
+The user confirmed manual downloads also reported success without a file. A follow-up
+replaces automatic clicks with a persistent prepared-file dialog and explicit Save file
+gesture, PDF/PNG preview and truthful requested status; blob URLs survive dialog closure
+briefly to avoid a download race. Hosted file-saving verification is still required.
+
+**September 28 — presentation demo and navigation candidate:** The requested parallel
+UI agent's sidebar upgrade is integrated locally. A separate authenticated `/demo`
+workspace contains 15 invented full-name employees (8 POS, 7 Menufy) and 22 complete
+synthetic metrics each, with prior-week comparisons, sample targets and current-week
+neutral progress. Exact allowlisting and a production-deployment denial protect entry;
+the demo does not read, seed or change live data. Final app candidate `d34ed60` passes exact
+CI 36479595298 (840 tests / 109 files and build) and is READY on isolated Preview
+`dpl_FF7RuE6mwtK7ENZUSbfQTpgNFCte`, PR40 stacked on PR39. All 15 hosted profiles show
+22/22 values and populated comparisons/targets (330 rows total). Neutral current-week
+status, history return, aligned columns, light/dark and mobile drawer checks pass.
+Actual downloaded-file bytes remain unverified; production release stays held.
+Adam's user-confirmed work email is now allowlisted for the demo only. A seven-day
+staging share link reaches Microsoft sign-in without requiring Vercel membership;
+anonymous requests still cannot see demo profiles. Adam's own login remains unobserved.
+The sidebar's toggle, navigation, theme and avatar centers now stay identical across
+collapse/expand, verified on the final hosted build. See `2026-09-28-presentation-demo.md`.
+PR38 remains separate/inactive; no production account, role or deployment changed.
+
+**September 28 — last-week review candidate:** A focused branch based on production
+implements the approved default previous-week review, explicit current-week progress
+mode, availability summary, interval filenames, fixed-week share links and history
+return context. Typecheck and 820 tests / 106 files pass; release gates remain pending.
+No metric definitions, calculations, eligibility, source policies or production data
+changed. PR38 remains separate and inactive. See the review-week release record.
+
+PR39 candidate `db599ed` now passes exact CI 36474330989 and is READY on isolated
+Preview `dpl_BfBrmQrvkEfL82ZWibVGkLXaoFgF`. Default/comparison dates, eight aligned
+tables, empty current-week progress, history return and narrow layout are verified.
+Fresh backup/restore matches 33 tables / 63,633 rows. Actual hosted export-file bytes
+remain unavailable from the current browser integration despite success notifications;
+production merge is held at that required gate. Production remains PR37 / `ed6b2df`.
+The later demo checkpoint above supersedes the earlier pending presenter-email state.
 
 This is the authoritative progress and release-checkpoint document for the September 23
 overhaul. The audit is a historical baseline; HANDOFF.md links here for current status.

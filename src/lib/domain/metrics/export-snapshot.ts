@@ -5,8 +5,10 @@ import {
   TICKET_ATTRIBUTION_REASON,
 } from "./availability";
 import { SOURCE_TARGET_REASON } from "./source-context";
+import { snapshotObservation, type ScorecardMode } from "./scorecard-presentation";
 
 export interface ScorecardMetric {
+  key?: string;
   category: string | null;
   name: string;
   currentValue: number | null;
@@ -32,9 +34,30 @@ export interface ScorecardMetric {
 
 export interface ExportSnapshot {
   employeeName: string;
+  periodStart: string;
+  periodEnd: string;
+  mode: ScorecardMode;
   periodLabel: string;
   previousPeriodLabel: string;
   metrics: ScorecardMetric[];
+}
+
+export function scorecardFilename(
+  snapshot: Pick<ExportSnapshot, "employeeName" | "periodStart" | "periodEnd">,
+  kind: "scorecard" | "metrics",
+  extension: "pdf" | "png" | "csv"
+) {
+  const name = snapshot.employeeName
+    .replace(/[^a-zA-Z0-9]/g, "-")
+    .replace(/-+/g, "-")
+    .toLowerCase();
+  return `${name}-${kind}-${snapshot.periodStart}_${snapshot.periodEnd}.${extension}`;
+}
+
+export function scorecardShareUrl(href: string, periodStart: string) {
+  const url = new URL(href);
+  url.searchParams.set("week", periodStart);
+  return url.toString();
 }
 
 export function formatExportValue(value: number | null, unit: string | null, type: ValueType) {
@@ -102,7 +125,9 @@ export function exportCsv(snapshot: ExportSnapshot, statusLabel: (status: string
           : metric.targetContextStatus === "current"
             ? "Current profile"
             : "Not recorded",
-      metric.sourceDescription ?? "",
+      [metric.sourceDescription, snapshotObservation(metric.key ?? "", metric.dataFreshnessAt)]
+        .filter(Boolean)
+        .join("; "),
       exportUnavailableReason(metric),
       metric.valueType === "duration" ? DURATION_FORMAT_LABEL : (metric.unit ?? ""),
       metric.reportingTimeZone ?? "UTC",
@@ -126,7 +151,52 @@ export function exportDataDetails(metrics: ScorecardMetric[]) {
   return metrics
     .map(
       (metric) =>
-        `${metric.name}: ${metric.qualityStatus}; observed ${metric.dataFreshnessAt ?? "unavailable"}; calculation v${metric.calculationVersion}; reporting timezone ${metric.reportingTimeZone ?? "UTC"}; source definition ${metric.sourceContract ?? "legacy / not recorded"}; target scope ${metric.targetSource ?? "none"}${metric.targetContextStatus === "historical_unverified" ? `; ${HISTORICAL_TARGET_REASON}` : metric.targetContextStatus === "source_unverified" ? `; ${SOURCE_TARGET_REASON}` : ""}${metric.sourceDescription ? `; ${metric.sourceDescription}` : ""}${exportUnavailableReason(metric) ? `; ${exportUnavailableReason(metric)}` : ""}${metric.comparisonUnavailableReason ? `; ${metric.comparisonUnavailableReason}` : ""}${metric.valueType === "duration" ? `; times ${DURATION_FORMAT_LABEL}` : ""}`
+        `${metric.name}: ${metric.qualityStatus}; observed ${metric.dataFreshnessAt ?? "unavailable"}; calculation v${metric.calculationVersion}; reporting timezone ${metric.reportingTimeZone ?? "UTC"}; source definition ${metric.sourceContract ?? "legacy / not recorded"}; target scope ${metric.targetSource ?? "none"}${metric.targetContextStatus === "historical_unverified" ? `; ${HISTORICAL_TARGET_REASON}` : metric.targetContextStatus === "source_unverified" ? `; ${SOURCE_TARGET_REASON}` : ""}${metric.sourceDescription ? `; ${metric.sourceDescription}` : ""}${snapshotObservation(metric.key ?? "", metric.dataFreshnessAt) ? `; ${snapshotObservation(metric.key ?? "", metric.dataFreshnessAt)}` : ""}${exportUnavailableReason(metric) ? `; ${exportUnavailableReason(metric)}` : ""}${metric.comparisonUnavailableReason ? `; ${metric.comparisonUnavailableReason}` : ""}${metric.valueType === "duration" ? `; times ${DURATION_FORMAT_LABEL}` : ""}`
     )
     .join("\n");
+}
+
+/** Human-readable export notes. Detailed provenance stays in CSV and the app. */
+export function exportReviewNotes(metrics: ScorecardMetric[]) {
+  const timezones = [...new Set(metrics.map((metric) => metric.reportingTimeZone ?? "UTC"))];
+  const observations = metrics
+    .map((metric) => (metric.dataFreshnessAt ? new Date(metric.dataFreshnessAt) : null))
+    .filter((date): date is Date => date !== null && Number.isFinite(date.getTime()))
+    .map((date) => date.toISOString())
+    .sort();
+  const stamp = (date: string) => `${date.slice(0, 16).replace("T", " ")} UTC`;
+  const first = observations[0];
+  const last = observations.at(-1);
+  const notes = [
+    `Reporting ${timezones.length === 1 ? "timezone" : "timezones"}: ${timezones.join(", ") || "not recorded"}.`,
+    first && last
+      ? `Source observations: ${stamp(first)}${first === last ? "" : ` to ${stamp(last)}`}.${observations.length < metrics.length ? " Some observation times are not recorded." : ""}`
+      : "Source observation times are not recorded.",
+  ];
+  // Group repeated caveats rather than repeating the entire audit record per row.
+  const warnings = new Map<string, string[]>();
+  for (const metric of metrics) {
+    const reasons = [
+      exportUnavailableReason(metric),
+      metric.comparisonUnavailableReason,
+      metric.targetContextStatus === "historical_unverified"
+        ? HISTORICAL_TARGET_REASON
+        : metric.targetContextStatus === "source_unverified"
+          ? SOURCE_TARGET_REASON
+          : null,
+      metric.qualityStatus !== "complete" && !exportUnavailableReason(metric)
+        ? `${metric.qualityStatus === "partial" ? "Partial" : metric.qualityStatus === "stale" ? "Stale" : "Unverified"} data.`
+        : null,
+    ];
+    for (const reason of new Set(reasons.filter((value): value is string => Boolean(value)))) {
+      const names = warnings.get(reason) ?? [];
+      if (!names.includes(metric.name)) names.push(metric.name);
+      warnings.set(reason, names);
+    }
+  }
+  for (const [reason, names] of warnings) notes.push(`${names.join(", ")}: ${reason}`);
+  notes.push(
+    "Metric definitions and individual source details are available in Cadence and the CSV export."
+  );
+  return notes.join("\n");
 }
