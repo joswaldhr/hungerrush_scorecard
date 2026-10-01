@@ -152,32 +152,40 @@ async function main() {
       );
       const result = await runSync(publisher, config, { weekOffset: offset });
       assert.equal(result.success, true, "Synthetic publication failed");
+      stage = `synthetic readback offset ${offset}`;
       const values =
         await connection`select d.key,v.numeric_value,v.provenance_json from metric_values v join metric_definitions d on d.id=v.metric_definition_id
         where v.employee_id=${employee} and v.period_start=${periodStart} and v.period_end=${periodEnd} and d.key=any(${[...inboundReportKeys]}::text[])`;
       assert.equal(values.length, 9);
       assert(
-        values.every((v) => v.numeric_value !== null && Number.isFinite(Number(v.numeric_value)))
-      );
-      assert(
         values.every(
           (v) => v.provenance_json.sourceContract === "zendesk-call-created-agent-leg-inbound-v1"
         )
       );
-      assert.equal(Number(values.find((v) => v.key === "inbound_calls_offered")!.numeric_value), 2);
-      assert.equal(
-        Number(values.find((v) => v.key === "inbound_calls_answer_rate")!.numeric_value),
-        100
-      );
-      assert.equal(
-        Number(values.find((v) => v.key === "inbound_calls_unreachable")!.numeric_value),
-        0
-      );
-      assert.equal(
-        Number(values.find((v) => v.key === "total_talk_time_inbound")!.numeric_value),
-        2
-      );
-      results.push({ periodStart, periodEnd, publishedValues: values.length });
+      // Three owned legs: two positive-talk accepts, one zero-talk completed leg.
+      // All three lack a hold measurement, so maximum hold must stay unavailable.
+      const expected: Record<string, number | null> = {
+        inbound_calls_offered: 2,
+        inbound_calls_accepted: 2,
+        declined_calls: 0,
+        missed_calls: 0,
+        inbound_calls_unreachable: 0,
+        inbound_calls_answer_rate: 100,
+        inbound_calls_abandoned_on_hold: 0,
+        total_talk_time_inbound: 2,
+        max_hold_time_inbound: null,
+      };
+      for (const value of values) {
+        stage = `synthetic readback offset ${offset} ${value.key}`;
+        assert.equal(value.numeric_value, expected[value.key]);
+      }
+      results.push({
+        periodStart,
+        periodEnd,
+        publishedValues: values.length,
+        reported: 8,
+        unavailable: 1,
+      });
     }
     assert.equal(await fingerprint(), before, "Unrelated synthetic values changed");
     console.log(
