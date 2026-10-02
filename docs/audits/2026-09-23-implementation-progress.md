@@ -1,5 +1,18 @@
 # Audit implementation — current checkpoint
 
+**October 2 — main Preview credential corrected and redeployed:** The user supplied the
+staging secret through a private local file. Microsoft accepted it for the staging app;
+an exact ID/branch/Preview-only/type guard then updated only the main Preview secret at
+17:13:28 UTC. Temporary secret input and update payload files were deleted after success.
+Deployment `dpl_381BvP38NGsSypBe6vMCCYsttfPL` is Ready on unchanged code candidate
+`8210d7a8fbc6919708cd829223bde39865c103fe`, with the main Preview alias assigned.
+Build isolation checks pass. Two synthetic weeks each publish nine results (eight numeric,
+one unavailable), with unrelated values unchanged, zero vendor requests and zero production
+writes. A fresh unauthenticated sign-in probe redirects to Microsoft with a configured client
+ID; this is not an interactive user login. The user was directed to retry sign-in; hosted
+authenticated browser/export checks remain unverified. Production and frozen demo aliases
+still point to `dpl_GnmLnC5NGNmMtTJ1nRpnAhqnnisj` and `dpl_6zgVGDyR2tW1JMVmbmv7hTm4fTYR`.
+
 **October 2 — wrong-scope authentication change contained; main Preview still blocked:**
 After the user saved a new staging secret, metadata showed the production-scoped entry
 changed at 16:04:22 UTC; the main Preview override still had its September 28 timestamp.

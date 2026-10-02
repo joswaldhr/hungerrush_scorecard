@@ -97,6 +97,17 @@ staging secret value, redeploy, then verify actual sign-in and downloaded bytes.
 the old staging secret used by the frozen demo. Graph application-write access is unavailable;
 credential creation/input requires the user's authenticated configuration session.
 
+### October 2 main Preview credential repair
+
+The user supplied a staging secret locally; Microsoft accepted it for the staging client.
+The guarded API update targeted only the main branch's sensitive Preview override and
+deleted temporary plaintext input after success. New Preview deployment
+`dpl_381BvP38NGsSypBe6vMCCYsttfPL` is Ready on `8210d7a`, with isolation and synthetic
+rehearsal checks passing. Its sign-in initiation reaches Microsoft; full interactive login
+and actual hosted export bytes still require verification. Production and the frozen demo
+remain on their recorded deployments. See the authoritative ledger for the preceding
+wrong-scope production change and recovery; no new main release has been merged.
+
 ## Fresh reporting health and independent recovery work
 
 The read-only September 28 census observed 12 completed and two failed runs in the last
