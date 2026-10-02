@@ -1,5 +1,15 @@
 # Audit implementation — current checkpoint
 
+**October 2 — interactive Preview sign-in confirmed:** The user reports successful entry.
+Runtime evidence on `dpl_381BvP38NGsSypBe6vMCCYsttfPL` shows the Microsoft callback
+returning 302 followed by successful 200 responses from the 1:1 list and employee
+scorecard; the inspected 12 log entries contain no `invalid_client`/OAuth callback errors.
+This resolves the authentication blocker, not the remaining UI/export acceptance gates.
+Opened the synthetic September 20–26 scorecard for actual PDF/PNG/CSV download checks.
+No recent files were present in Downloads at inspection. The available Windows automation
+skill prohibits operating the Codex UI, so embedded-browser downloads require a user gesture;
+local file inspection can proceed once files exist. Production/demo deployments are unchanged.
+
 **October 2 — main Preview credential corrected and redeployed:** The user supplied the
 staging secret through a private local file. Microsoft accepted it for the staging app;
 an exact ID/branch/Preview-only/type guard then updated only the main Preview secret at
