@@ -4,10 +4,12 @@ export const SOLVED_CSAT_CALCULATION_VERSION = 2;
 export const FIRST_REPLY_CONTRACT = "zendesk-created-current-assignee-first-reply-business-v1";
 export const FIRST_REPLY_CALCULATION_VERSION = 2;
 export const OUTBOUND_PARTICIPATION_CONTRACT = "zendesk-call-created-agent-leg-outbound-v1";
+export const INBOUND_PARTICIPATION_CONTRACT = "zendesk-call-created-agent-leg-inbound-v1";
 export function completeSnapshotVersion(contract: string | undefined): number | null {
   if (contract === SOLVED_CSAT_CONTRACT) return SOLVED_CSAT_CALCULATION_VERSION;
   if (contract === FIRST_REPLY_CONTRACT) return FIRST_REPLY_CALCULATION_VERSION;
   if (contract === OUTBOUND_PARTICIPATION_CONTRACT) return 2;
+  if (contract === INBOUND_PARTICIPATION_CONTRACT) return 2;
   return null;
 }
 export const INCOMPATIBLE_COMPARISON_REASON =
@@ -44,7 +46,11 @@ export function readMetricSourceContext(value: unknown): MetricSourceContext | n
     throw new Error("Invalid metric source scope");
   const counts: { sampleCount?: number; cohortCount?: number } = {};
   if (
-    [FIRST_REPLY_CONTRACT, OUTBOUND_PARTICIPATION_CONTRACT].includes(row.sourceContract) &&
+    [
+      FIRST_REPLY_CONTRACT,
+      OUTBOUND_PARTICIPATION_CONTRACT,
+      INBOUND_PARTICIPATION_CONTRACT,
+    ].includes(row.sourceContract) &&
     (row.sampleCount !== undefined || row.cohortCount !== undefined)
   ) {
     if (

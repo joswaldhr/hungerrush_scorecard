@@ -1,5 +1,11 @@
 # HungerRush Cadence — Metric Registry
 
+> September 30 inactive candidate: the verified Menufy inbound report has a dedicated
+> calculation/replay contract, including proposed answer-rate, total-talk, maximum-hold
+> and unreachable fields. These are not live metric definitions or employee assignments.
+> See [candidate contract and integration gates](audits/2026-09-30-menufy-inbound-candidate.md).
+> SUM talk and MAX hold must never populate the existing average fields.
+
 > September 24 audit branch: the tables below describe legacy configuration and include
 > superseded calendar/null behavior. Use the [contract audit](audits/2026-09-23-metric-contracts.md)
 > and [implementation ledger](audits/2026-09-23-implementation-progress.md) for current status.

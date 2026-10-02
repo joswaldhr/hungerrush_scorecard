@@ -20,6 +20,7 @@ import { runSync } from "@/lib/connectors/sync-engine";
 import type { Connector, IngestedRecord } from "@/lib/connectors/types";
 import { FIRST_REPLY_CONTRACT, SOLVED_CSAT_CONTRACT } from "@/lib/domain/metrics/source-context";
 import { ZendeskConnector } from "@/lib/connectors/zendesk";
+import { SourceFetchError } from "@/lib/connectors/source-fetch-error";
 import { buildSolvedCsatRecord } from "@/lib/connectors/zendesk-solved-csat-record";
 import type { fetchSolvedCsatCandidate } from "@/lib/connectors/zendesk-solved-csat";
 
@@ -164,6 +165,32 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
     expect((await runSync(connector([record(6)]), config)).valuesWritten).toBe(0);
     expect(await values()).toEqual(after);
   });
+  it("retains safe failed-fetch diagnostics without publishing or advancing freshness", async () => {
+    const before = await values();
+    const [beforeSource] = await db.select().from(dataSources).where(eq(dataSources.id, source));
+    const failing = connector([]);
+    failing.fetchRecords = async () => {
+      throw new SourceFetchError(Error("Synthetic rate limit"), {
+        family: "csat",
+        requests: 6,
+        elapsedMs: 9000,
+        elapsedBudgetMs: 240000,
+        rateLimitRetries: 1,
+        retryStoppedBy: "retry_allowance",
+        endpoint: "tickets/show_many",
+      });
+    };
+    const result = await runSync(failing, config);
+    expect(result).toMatchObject({ success: false, valuesWritten: 0 });
+    expect(await values()).toEqual(before);
+    const [afterSource] = await db.select().from(dataSources).where(eq(dataSources.id, source));
+    expect(afterSource?.lastSuccessfulSyncAt).toEqual(beforeSource?.lastSuccessfulSyncAt);
+    const [run] = await db.select().from(syncRuns).where(eq(syncRuns.id, result.syncRunId));
+    expect(run?.metadataJson).toMatchObject({
+      fetch: { family: "csat", requests: 6, retryStoppedBy: "retry_allowance" },
+    });
+    expect(run?.status).toBe("failed");
+  });
   it("source outages leave values and last successful sync unchanged", async () => {
     const before = await values();
     const [beforeSource] = await db.select().from(dataSources).where(eq(dataSources.id, source));
@@ -173,6 +200,91 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
     expect(await values()).toEqual(before);
     const [afterSource] = await db.select().from(dataSources).where(eq(dataSources.id, source));
     expect(afterSource?.lastSuccessfulSyncAt).toEqual(beforeSource?.lastSuccessfulSyncAt);
+  });
+  it("atomically refuses candidate records and ineligible facts without advancing successful state", async () => {
+    const beforeValues = await values();
+    const beforeRecords = await db
+      .select()
+      .from(sourceRecords)
+      .where(eq(sourceRecords.dataSourceId, source));
+    const beforeFacts = await db
+      .select()
+      .from(normalizedFacts)
+      .where(eq(normalizedFacts.organizationId, org));
+    const [beforeSource] = await db.select().from(dataSources).where(eq(dataSources.id, source));
+    const attempts = [
+      { ...record(999), externalRecordType: "inbound_report_candidate" },
+      {
+        ...record(999),
+        payload: {
+          value: 999,
+          sourceContract: "zendesk-inbound-report-v1",
+          publicationEligible: true,
+        },
+      },
+      { ...record(999), payload: { value: 999, sourceContext: { publicationEligible: false } } },
+      {
+        ...record(999),
+        payload: {
+          value: 999,
+          sourceContext: { sourceContract: "zendesk-inbound-report-v1", publicationEligible: true },
+        },
+      },
+    ];
+    for (const attempted of attempts) {
+      const result = await runSync(connector([record(300, "2026-09-13"), attempted]), config);
+      expect(result).toMatchObject({ success: false, valuesWritten: 0 });
+      expect(await values()).toEqual(beforeValues);
+      expect(
+        await db.select().from(sourceRecords).where(eq(sourceRecords.dataSourceId, source))
+      ).toEqual(beforeRecords);
+      expect(
+        await db.select().from(normalizedFacts).where(eq(normalizedFacts.organizationId, org))
+      ).toEqual(beforeFacts);
+      expect(
+        await db.select().from(syncRevisions).where(eq(syncRevisions.syncRunId, result.syncRunId))
+      ).toHaveLength(0);
+      const [afterSource] = await db.select().from(dataSources).where(eq(dataSources.id, source));
+      expect(afterSource?.lastSuccessfulSyncAt).toEqual(beforeSource?.lastSuccessfulSyncAt);
+      const [run] = await db.select().from(syncRuns).where(eq(syncRuns.id, result.syncRunId));
+      expect(run?.cursor).toBeNull();
+      expect(run?.status).toBe("failed");
+    }
+  });
+  it("rejects retained ineligible contributors even when the new record is publishable", async () => {
+    const [retained] = await db
+      .select()
+      .from(normalizedFacts)
+      .where(eq(normalizedFacts.organizationId, org));
+    expect(retained).toBeDefined();
+    await db
+      .update(normalizedFacts)
+      .set({ dimensionsJson: { publicationEligible: false } })
+      .where(eq(normalizedFacts.id, retained!.id));
+    try {
+      const before = await values();
+      const beforeRecords = await db
+        .select()
+        .from(sourceRecords)
+        .where(eq(sourceRecords.dataSourceId, source));
+      const result = await runSync(
+        connector([record(1000, retained!.periodStart, "new-publishable")]),
+        config
+      );
+      expect(result).toMatchObject({ success: false, valuesWritten: 0 });
+      expect(await values()).toEqual(before);
+      expect(
+        await db.select().from(sourceRecords).where(eq(sourceRecords.dataSourceId, source))
+      ).toEqual(beforeRecords);
+      expect(
+        await db.select().from(syncRevisions).where(eq(syncRevisions.syncRunId, result.syncRunId))
+      ).toHaveLength(0);
+    } finally {
+      await db
+        .update(normalizedFacts)
+        .set({ dimensionsJson: retained!.dimensionsJson })
+        .where(eq(normalizedFacts.id, retained!.id));
+    }
   });
   it("preserves explicit source context and atomically rejects mixed contributor definitions", async () => {
     const context = {

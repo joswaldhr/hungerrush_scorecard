@@ -97,6 +97,20 @@ old last-good value is not proof of current source success. Do not repeatedly la
 exports after rate limits or completeness failures. Resume the retained checkpoint or use
 bounded diagnostics. Preserve aggregate failure evidence without raw IDs or employee payloads.
 
+The legacy whole-call collector candidate retains a separate checkpoint per UTC reporting
+week in `zendesk_legacy_talk_*_v1` source-record namespaces. This does not repurpose the
+participation call/leg store or qualify its metrics. Each validated page, minimized call
+versions and checkpoint commit atomically under the existing account lease. A failed or
+unfinished fetch still fails publication and retains the last successful values; the next
+normal invocation resumes its cursor. After completion, the next collection starts from
+a five-minute watermark overlap to collect corrections. Do not reset checkpoints merely
+to retry a timeout. Old-period rows remain source evidence, not permission for historical
+repair. Per-week retained population is capped at 250,000 calls; exceeding it stops collection.
+Production activation and source-retention policy remain subject to the release manifest.
+`ZENDESK_LEGACY_TALK_RESUME=1` opts the existing legacy fetch into this path; unset retains
+the original behavior. Keep it unset until the scoped recovery rehearsal passes. Clearing
+it rolls collection back without deleting retained evidence or changing metric values.
+
 Data Health labels completed work Published, not verified metric correctness. Interrupted
 means its running lease expired; a new sync can reclaim it through the transactional lease
 mechanism. Viewing the page does not modify the job. Disabled sources cannot start sync work,

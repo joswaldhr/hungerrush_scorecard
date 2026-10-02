@@ -1,0 +1,15 @@
+# Deployment inputs must not include local recovery data or credentials.
+.git
+.vercel
+.env*
+backups/
+.claude/
+.github/
+node_modules/
+.next/
+coverage/
+*.tsbuildinfo
+*.log
+# Documentation and design references are not application runtime inputs.
+docs/
+mockups/

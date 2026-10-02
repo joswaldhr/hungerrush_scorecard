@@ -1,0 +1,21 @@
+{
+  "observedAt": "2026-09-29T15:50:59.092Z",
+  "readOnly": true,
+  "vendorRequests": 1,
+  "databaseWrites": 0,
+  "vendorWrites": 0,
+  "unresolved": [
+    {
+      "team": "pos",
+      "exactEmailRows": 1,
+      "deletedExactEmailRows": 1,
+      "storedIdentityRows": 0,
+      "nondeletedStoredIdentityRows": 0
+    }
+  ],
+  "limitations": [
+    "No employee assignments or source identities were changed.",
+    "Deleted source membership does not establish termination or historical ineligibility.",
+    "Restore or remapping requires verified identity and effective dates."
+  ]
+}
