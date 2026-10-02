@@ -1,5 +1,22 @@
 # Audit implementation — current checkpoint
 
+**October 2 — wrong-scope authentication change contained; main Preview still blocked:**
+After the user saved a new staging secret, metadata showed the production-scoped entry
+changed at 16:04:22 UTC; the main Preview override still had its September 28 timestamp.
+Production had also been redeployed at 16:04:37 as `dpl_H7t5RUPRXf4h5ukquKSouqXPDuZW`,
+with unchanged app SHA `2241763`. No runtime auth failures were observed in the queried
+logs; the credential mismatch was a configuration risk, not a demonstrated user outage.
+Rolled production back to the verified same-code deployment
+`dpl_GnmLnC5NGNmMtTJ1nRpnAhqnnisj`; alias metadata confirms restoration. The existing
+local production credential matched the production client ID/issuer and was accepted by
+Microsoft's token endpoint. Restored that credential to the production-only sensitive
+entry at 16:10:18 UTC, without exposing it or redeploying. Public login/provider endpoints
+return 200; an interactive production sign-in was not performed. The temporary restoration
+payload was removed. No database, metric, schedule or Zendesk changes occurred.
+The frozen demo alias remains `dpl_6zgVGDyR2tW1JMVmbmv7hTm4fTYR`. Graph confirms a second
+valid staging secret and both callbacks; its value still needs to be saved to the exact
+main branch Preview override. Main Preview redeployment and hosted exports remain held.
+
 **October 1 — remaining Preview login failure isolated to client authentication:**
 The user reports a return to `/login?error=OAuthCallbackError`. Main Preview runtime
 logs show Microsoft's token response is `invalid_client`; the provider implementation
