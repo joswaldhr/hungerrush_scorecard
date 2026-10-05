@@ -1,5 +1,41 @@
 # Metric acceptance ledger
 
+## October 5, 21:30 UTC — current evidence supersedes earlier snapshots
+
+The pre-registration inventory is 23 keys / 40 team assignments. Four additional
+neutral Menufy definitions and assignments are now registered effective October 11,
+without publication or targets. Thus the prospective catalog adds four assignments;
+it does not change the current-week eligibility denominator or certify four new metrics.
+Earlier inventory counts below are dated evidence, not the post-registration inventory.
+
+Menufy source reconstruction now matches 414 values and exact source sets plus 552
+duration comparisons across all 23 current identities and last/current periods. The
+source catalog is ready, but prospective publication and actual scheduling remain separate.
+No-sample means and zero-denominator rates are legitimate unavailable results when the
+population is verified; missing source joins and unknown human attribution are defects
+or unresolved evidence, never legitimate fabricated zeros.
+
+Separate PR44's CI-passed POS projection retains whole-call hold explicitly. Independent
+reconstruction matches 539 exact source sets and 385 duration summaries for 77 employee
+periods: 39 closed-week and 38 current-week rows. One current period is blocked by a missing
+parent. The diagnostic covers only 14 known groups; four original report labels remain
+unbound. This improves source evidence, not the count of production reporting contracts.
+
+All 992 main-candidate tests and production build pass; hosted actual PDF/PNG/CSV bytes
+and roster lifecycle checks pass on isolated synthetic Preview. Print and copied-link
+bytes are still pending the browser check. Production app remains 2241763, with new
+publication policies absent. Existing qualified CSAT/first-reply contracts remain unchanged.
+
+Remaining completion requirements are concrete: finish source definition/scope and missing
+joins; reconcile two closed weeks/current progress where supported; pass remaining hosted
+checks; deploy through fresh recovery/rollback gates; qualify persisted publication and
+genuine scheduled refresh. Human action attribution, elevated work, active handling,
+historical state/attendance and historical eligibility/targets remain distinct source
+requirements. A read-only source audit cannot invent their unavailable evidence.
+
+The implementation ledger owns exact receipts and release state. No dated percentage
+below should be presented as current completion. Frozen demo and Zendesk remain unchanged.
+
 ## October 5 — fresh POS baseline
 
 The read-only inventory remains 40 assignments / 23 keys, including 19 POS assignments
