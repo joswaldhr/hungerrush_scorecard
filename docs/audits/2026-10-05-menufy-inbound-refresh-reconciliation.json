@@ -1,0 +1,101 @@
+{
+  "observedAt": "2026-10-05T18:30:47.154Z",
+  "mode": "GET-only source delta and independent Python calculation; no publication",
+  "sourceContract": "zendesk-call-created-agent-leg-inbound-v1",
+  "activeEmployees": 23,
+  "sourceCalls": 12007,
+  "sourceLegs": 24050,
+  "missingParentCalls": 9,
+  "collections": {
+    "calls": {
+      "pages": 8,
+      "observationStartedAt": "2026-10-05T18:27:05.301Z",
+      "observationEndedAt": "2026-10-05T18:27:58.069Z",
+      "modifiedSince": "2026-09-30"
+    },
+    "legs": {
+      "pages": 17,
+      "observationStartedAt": "2026-10-05T18:28:00.519Z",
+      "observationEndedAt": "2026-10-05T18:30:02.408Z",
+      "modifiedSince": "2026-09-30"
+    }
+  },
+  "identityVerification": {
+    "activeIdentities": 23,
+    "pages": 4,
+    "requests": 4,
+    "retainedAgentIdsMatch": true
+  },
+  "periods": [
+    {
+      "periodStart": "2026-09-27",
+      "periodEnd": "2026-10-03",
+      "employeeCases": 23,
+      "valueComparisons": 207,
+      "sourceSetComparisons": 207,
+      "durationEvidenceComparisons": 276,
+      "differences": 0,
+      "blockedCases": 0,
+      "reportedNumbers": 195,
+      "unavailableValues": 12,
+      "numericZeros": 89,
+      "unavailableReasons": {
+        "noDurationSamples": 8,
+        "missingDurationMeasurements": 0,
+        "noOffersForRate": 4,
+        "uncertainAccepted": 0
+      }
+    },
+    {
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-10",
+      "employeeCases": 23,
+      "valueComparisons": 207,
+      "sourceSetComparisons": 207,
+      "durationEvidenceComparisons": 276,
+      "differences": 0,
+      "blockedCases": 0,
+      "reportedNumbers": 174,
+      "unavailableValues": 33,
+      "numericZeros": 121,
+      "unavailableReasons": {
+        "noDurationSamples": 22,
+        "missingDurationMeasurements": 0,
+        "noOffersForRate": 11,
+        "uncertainAccepted": 0
+      }
+    }
+  ],
+  "inputDigests": {
+    "retained": "39a941b055e0f1a0c4d33784d23791ca91c9005bd7403542b795cee4eb864112",
+    "2026-10-01:calls": "4ec0925bd2a54158bd51aaf4d4f33c4278670c3eafd086fb748e8b2126a4460f",
+    "2026-10-05:calls": "36e12aa55a8fbc13413e7aa63895e211f284d545f92b811f6dce969b04367841",
+    "2026-10-01:legs": "80d6719b9bc64abb2841f0e41448122892d892b1b4f1c8a3f0d1333472818c1f",
+    "2026-10-05:legs": "2aa7cf224c3ebc9aa303235666efd78964f836fa75002dd8c71b4c3c5cf8408b"
+  },
+  "privateCandidateSha256": "058ac516a30b1020ac5cecee6f32079cbe71d731546aaa8164f86ce55a909b49",
+  "independentImplementation": "Python with no Cadence imports",
+  "productionMetricWrites": 0,
+  "sourceCheckpointWrites": 0,
+  "sourceMethods": [
+    "GET"
+  ],
+  "coordinationMetadataOnly": true,
+  "publicationActivated": false,
+  "limitations": [
+    "Current active roster is a diagnostic denominator, not reconstructed historical eligibility.",
+    "The closed week is compared under the retained Menufy report contract; no new manager workbook was supplied for that week.",
+    "Sequential calls and legs reads are not an atomic source snapshot; missing parent coverage remains blocking.",
+    "This calculation replay does not verify hosted approval flows, publication, targets or scheduled execution."
+  ],
+  "talkGetRequests": 25,
+  "totalVendorGetRequests": 29,
+  "coordinationLeaseRelease": {
+    "observedAt": "2026-10-05T18:35:50.695Z",
+    "readOnly": true,
+    "activeAccountLeases": 0,
+    "leaseRows": 1,
+    "sourceRequests": 0,
+    "databaseWrites": 0
+  }
+}

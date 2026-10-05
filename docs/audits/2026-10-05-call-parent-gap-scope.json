@@ -1,0 +1,29 @@
+{
+  "observedAt": "2026-10-05T18:30:47.154Z",
+  "identityObservationAt": "2026-10-05T16:00:54.736Z",
+  "readOnly": true,
+  "vendorRequests": 0,
+  "databaseWrites": 0,
+  "globalMissingParents": 9,
+  "teams": [
+    {
+      "team": "pos-support",
+      "currentRoster": 39,
+      "affectedAgents": 3,
+      "missingParents": 2,
+      "affectedLegs": 3
+    },
+    {
+      "team": "menufy-support",
+      "currentRoster": 23,
+      "affectedAgents": 0,
+      "missingParents": 0,
+      "affectedLegs": 0
+    }
+  ],
+  "limitations": [
+    "Current roster identity is a diagnostic scope only.",
+    "Missing parents prevent call-created period and business-scope classification; no period is inferred from leg dates.",
+    "Source completeness and source-set parity do not establish POS inbound report semantics."
+  ]
+}

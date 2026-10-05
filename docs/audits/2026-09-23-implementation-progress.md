@@ -1,5 +1,39 @@
 # Audit implementation — current checkpoint
 
+**October 5 — fresh Menufy inbound parity and POS source gaps:** A GET-only diagnostic
+delta starting September 30 used 8 calls pages and 17 legs pages, with the existing
+account lease/pacing and bounded per-stream budgets. Four bounded staff GETs reverified
+all 23 Menufy agent bindings. Latest-version merging with retained complete observations
+rejects conflicting equal versions. No durable collection checkpoint, metric value,
+definition, assignment or policy was changed; only account coordination metadata was written.
+
+For September 27–October 3 and October 4–10, independent Python matches all 23 current
+employees / nine inbound report keys: 414 value comparisons, 414 exact source-set comparisons
+and 552 duration-evidence comparisons, zero differences and zero Menufy parent-coverage
+blocks. Last week has 195 numbers and 12 unavailable values: eight no-sample durations and
+four zero-denominator answer rates. This week has 174 numbers and 33 unavailable values:
+22 no-sample durations and eleven zero-denominator rates. Numeric zeros are preserved.
+This is arithmetic/coverage parity under the retained report contract and current roster,
+not reconstructed historical eligibility, a new workbook comparison or production publication.
+Evidence: `2026-10-05-menufy-inbound-refresh-reconciliation.json`.
+
+Nine missing parent calls initially remained globally; retained October 5 roster evidence
+scopes two of them to three POS employees and none to Menufy. A bounded calls-only catch-up
+made two GETs, retained the exact leg observation and recovered two other parents. Seven
+global gaps remain, including the same two POS gaps. Their cause is unresolved; no missing
+call's period is inferred from its leg timestamp, and no zero or widened freshness is used.
+The account lease was subsequently verified inactive in a read-only connection. See
+`2026-10-05-call-parent-gap-scope.json` and `2026-10-05-call-parent-recovery.json`.
+
+The user reports that the basic main Preview flow works. Hosted roster approval/post-change
+visibility remains unverified because browser control is unavailable in this session.
+Next gates: finish hosted lifecycle checks when control returns; finish the Menufy prospective
+definition/assignment manifest, scoped canary and genuine scheduled refresh; recover and
+qualify POS parent coverage plus its separate inbound report semantics. Human activity,
+historical targets/eligibility and unattended archival remain unresolved. Neither manager's
+complete metric set is certified. Production, frozen demo and disabled publication policies
+were not changed by this diagnostic work.
+
 **October 5 — main Preview available for user testing:** Recovered the existing staging
 connection through the signed-in Railway staging service without modifying Railway variables.
 An explicit guarded command migrated only the isolated staging database through 0017 and
