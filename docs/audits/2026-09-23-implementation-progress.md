@@ -1,5 +1,21 @@
 # Audit implementation — current checkpoint
 
+**October 5 — completion resumed, migration baseline rehearsal:** The user requested
+autonomous execution through completion. Fresh encrypted PostgreSQL 18.6 backup/restore
+matches all 33 tables / 85,721 rows. A narrowly scoped present-schema adoption candidate
+repairs only the missing 0009 journal entry, without replaying its fact cleanup or
+changing existing hashes/application data. Twelve focused tests pass, including real
+PostgreSQL concurrency, idempotence and schema/hash refusals. A second fresh restore
+successfully adopts exactly one journal row on the local copy, migrates through 0017
+and preserves all existing application digests. Exact-candidate CI and production
+execution remain pending. See `2026-10-05-migration-baseline-adoption.md` and
+`2026-10-05-baseline-adoption-restore.json`.
+
+The documentation-only CI run for `2612c9a` was cancelled with no executed steps;
+it was rerun, not represented as a code failure or pass. Code candidate `2992e8e`
+retains its successful PostgreSQL 18 full CI. No production registration, migration,
+source activation, Zendesk write or demo change occurred.
+
 **October 5 — full local catalog suite and fresh source replay:** All 979 local tests in
 122 files pass on the isolated PostgreSQL 16 cluster. Candidate `2992e8e` is pushed;
 PostgreSQL 18 CI run `37363666846` passes the full test suite, typecheck, lint,

@@ -45,6 +45,13 @@ async function main() {
         (row, index) =>
           expected[index]?.hash === row.hash && expected[index]?.when === Number(row.created_at)
       );
+      const knownLineEndingPrefix = applied.every((row, index) => {
+        const entry = expected[index];
+        return (
+          entry?.when === Number(row.created_at) &&
+          (entry.lfHash === row.hash || entry.crlfHash === row.hash)
+        );
+      });
       const latestApplied = Math.max(0, ...applied.map((row) => Number(row.created_at)));
       const appliedEvidence = applied.map((row) => {
         const entry = expected.find((item) => item.when === Number(row.created_at));
@@ -93,6 +100,7 @@ async function main() {
         migrations: {
           appliedCount: applied.length,
           matchesCandidatePrefix: migrationsMatch,
+          matchesKnownLineEndingPrefix: knownLineEndingPrefix,
           pending: migrationsMatch
             ? expected.slice(applied.length).map((entry) => entry.tag)
             : null,
