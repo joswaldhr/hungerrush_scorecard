@@ -77,7 +77,11 @@ export async function GET(request: Request) {
       // rather than redundantly on all 4 staggered legs.
       let rosterResult: { newCandidates: number; departedCandidates: number } | null = null;
       let rosterError: string | undefined;
-      if (syncResult.success && (weekOffset === undefined || weekOffset === 0)) {
+      if (
+        syncResult.success &&
+        (weekOffset === undefined || weekOffset === 0) &&
+        env.ROSTER_DISCOVERY_SOURCE_ID !== source.id
+      ) {
         try {
           const [mapping] = await db
             .select({ id: rosterSourceTeamMappings.id })

@@ -240,8 +240,15 @@ by an active or inactive employee remains pending instead of creating another em
 Manual new-candidate approval rejects existing identities/emails and shares discovery's
 source lock, preventing concurrent candidates from creating duplicate source bindings.
 These safeguards are candidate code, not evidence that transfers, returns or departures
-are automatically reconciled in production. Roster discovery still follows successful
-current-week metric sync; independent scheduling and durable roster-run health remain work.
+are automatically reconciled in production. Production discovery still follows successful
+current-week metric sync. Candidate route `/api/cron/roster` instead runs independently and
+always holds additions/departures for review. Its source-scoped run records commit with
+candidate writes, without changing metric freshness. A ten-minute cooldown prevents
+overlapping worker runs; expired run tokens cannot publish. Source account, configuration
+and mappings are rechecked before publication. `ROSTER_DISCOVERY_SOURCE_ID` opts one source
+out of legacy cron discovery and into this worker. It defaults unset, has no scheduled entry,
+and is forbidden in the synthetic main Preview. Scheduling/activation and lifecycle rules
+remain release work; deploying candidate code alone enables neither.
 
 The October 5 read-only comparison confirms all 62 active pilot employees in their mapped
 Zendesk groups. Immediate Entra direct reports are not the same cohort: supervisor-level

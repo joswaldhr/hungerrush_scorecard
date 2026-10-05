@@ -5,6 +5,11 @@ const mocks = vi.hoisted(() => ({
   fetch: vi.fn(),
   roster: vi.fn(),
   sources: [] as unknown[],
+  env: {
+    CRON_SECRET: "test",
+    SYNC_HEARTBEAT_URL: "https://heartbeat.test.invalid",
+    ROSTER_DISCOVERY_SOURCE_ID: undefined as string | undefined,
+  },
 }));
 vi.mock("@/lib/db", () => ({
   db: {
@@ -28,12 +33,13 @@ vi.mock("@/lib/connectors", () => ({
 }));
 vi.mock("@/lib/rate-limit", () => ({ isSyncRateLimited: mocks.limited }));
 vi.mock("@/lib/env", () => ({
-  env: { CRON_SECRET: "test", SYNC_HEARTBEAT_URL: "https://heartbeat.test.invalid" },
+  env: mocks.env,
 }));
 import { GET } from "@/app/api/cron/sync/route";
 import { POST } from "@/app/api/sync/run/route";
 beforeEach(() => {
   vi.clearAllMocks();
+  mocks.env.ROSTER_DISCOVERY_SOURCE_ID = undefined;
   mocks.sources = [{ id: "source", organizationId: "org", status: "configured", type: "zendesk" }];
   mocks.limited.mockResolvedValue(false);
   mocks.run.mockResolvedValue({ success: false, syncRunId: "run", valuesWritten: 0 });
@@ -74,6 +80,15 @@ describe("sync API failure reporting", () => {
     expect((await cron(0)).status).toBe(200);
     expect(mocks.roster).toHaveBeenCalledOnce();
     expect(mocks.fetch).toHaveBeenCalledOnce();
+  });
+  it("decouples roster discovery only for the explicitly selected independent source", async () => {
+    mocks.run.mockResolvedValue({ success: true, syncRunId: "run", valuesWritten: 4 });
+    mocks.env.ROSTER_DISCOVERY_SOURCE_ID = "source";
+    expect((await cron(0)).status).toBe(200);
+    expect(mocks.roster).not.toHaveBeenCalled();
+    mocks.env.ROSTER_DISCOVERY_SOURCE_ID = "different-source";
+    expect((await cron(0)).status).toBe(200);
+    expect(mocks.roster).toHaveBeenCalledOnce();
   });
   it.each(["disabled", "retired", "unknown"])(
     "refuses %s sources in cron and manual triggers",

@@ -113,6 +113,13 @@
       "when": 1790363781609,
       "tag": "0015_metric_numeric_precision",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1791216732619,
+      "tag": "0016_roster_discovery_runs",
+      "breakpoints": true
     }
   ]
 }

@@ -43,6 +43,8 @@ const envSchema = z.object({
   ACTION_SHADOW_SOURCE_ID: z.string().uuid().optional(),
   // Optional dedicated scheduler credential; when set, the shadow route stops accepting CRON_SECRET.
   ACTION_SHADOW_SECRET: z.string().min(32).optional(),
+  // Independent review-only roster worker. Absent until source/rollout validation.
+  ROSTER_DISCOVERY_SOURCE_ID: z.string().uuid().optional(),
 
   // Optional dead-man's-switch URL (e.g. a Healthchecks.io or Cronitor check
   // URL) pinged after /api/cron/sync completes its real work. Left unset,

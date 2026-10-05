@@ -80,7 +80,7 @@ async function main() {
   assert(process.env.RESTORE_PG_BIN, "Explicit PostgreSQL 18 binary directory required");
   const sourceUrl = new URL(process.env.DATABASE_URL ?? "");
   const journal = JSON.parse(await readFile("drizzle/meta/_journal.json", "utf8"));
-  assert.equal(journal.entries.at(-1).tag, "0015_metric_numeric_precision");
+  assert.equal(journal.entries.at(-1).tag, "0016_roster_discovery_runs");
   assert.equal(sourceUrl.hostname, "metro.proxy.rlwy.net");
   assert.equal(sourceUrl.port, "57223");
   assert.equal(sourceUrl.pathname, "/railway");
@@ -238,6 +238,7 @@ async function main() {
       const upgraded = await local.begin("read only", (tx) =>
         inventory(tx, lineExists.length === 0, true)
       );
+      assert(upgraded.some((table) => table.table === "public.roster_discovery_runs"));
       for (const original of baseline.filter(
         (table) => table.table !== "drizzle.__drizzle_migrations"
       )) {
@@ -267,7 +268,7 @@ async function main() {
       tableCount: before.length,
       rowCount: before.reduce((n, t) => n + t.count, 0),
       allTableDigestsMatch: true,
-      restoredCopyMigrationsThrough: "0015_metric_numeric_precision",
+      restoredCopyMigrationsThrough: "0016_roster_discovery_runs",
       existingApplicationDataUnchangedAfterMigration: true,
       globalsAndOriginalOwnershipRestored: false,
       limitation:
