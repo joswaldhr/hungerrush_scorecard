@@ -1,0 +1,104 @@
+{
+  "observedAt": "2026-10-05T16:02:55.023Z",
+  "directory": {
+    "observedAt": "2026-10-05T15:52:27.866Z",
+    "graphGetRequests": 2,
+    "databaseWrites": 0,
+    "directoryWrites": 0,
+    "summaries": [
+      {
+        "team": "pos-support",
+        "directReports": 17,
+        "enabled": 9,
+        "disabled": 8,
+        "unknownAccountStatus": 0,
+        "cadenceActive": 39,
+        "cadenceActiveMatched": 0,
+        "cadenceActiveOutsideDirectReports": 39,
+        "directReportsNotActiveInTeam": 17,
+        "pendingNewCandidates": 6,
+        "pendingMatchedToManager": 6
+      },
+      {
+        "team": "menufy-support",
+        "directReports": 21,
+        "enabled": 3,
+        "disabled": 18,
+        "unknownAccountStatus": 0,
+        "cadenceActive": 23,
+        "cadenceActiveMatched": 0,
+        "cadenceActiveOutsideDirectReports": 23,
+        "directReportsNotActiveInTeam": 21,
+        "pendingNewCandidates": 0,
+        "pendingMatchedToManager": 0
+      }
+    ],
+    "limitations": [
+      "Direct reports are current directory observations, not independently confirmed operational team authority.",
+      "Account disablement is not proof of employment termination.",
+      "Exact normalized mail/UPN comparison only; unresolved aliases require evidence."
+    ]
+  },
+  "supervisorLevel": {
+    "observedAt": "2026-10-05T15:53:47.796Z",
+    "graphGetRequests": 12,
+    "directoryWrites": 0,
+    "summaries": [
+      {
+        "team": "pos-support",
+        "enabledDirectReportsInspected": 9,
+        "secondLevelAccounts": 67,
+        "uniqueSecondLevelAccounts": 67,
+        "matchedActiveCadence": 38
+      },
+      {
+        "team": "menufy-support",
+        "enabledDirectReportsInspected": 3,
+        "secondLevelAccounts": 49,
+        "uniqueSecondLevelAccounts": 49,
+        "matchedActiveCadence": 23
+      }
+    ],
+    "limitation": "Only immediate reports of enabled direct reports inspected; not complete organizational ancestry or roster authority."
+  },
+  "zendesk": {
+    "observedAt": "2026-10-05T16:00:54.737Z",
+    "zendeskGetRequests": 5,
+    "zendeskWrites": 0,
+    "databaseWrites": 0,
+    "summaries": [
+      {
+        "team": "pos-support",
+        "groups": 2,
+        "uniqueGroupAccounts": 52,
+        "activeGroupAccounts": 52,
+        "activeCadence": 39,
+        "activeCadenceMatched": 39,
+        "pendingCandidates": 6,
+        "pendingActiveAgentMatches": 6
+      },
+      {
+        "team": "menufy-support",
+        "groups": 2,
+        "uniqueGroupAccounts": 28,
+        "activeGroupAccounts": 28,
+        "activeCadence": 23,
+        "activeCadenceMatched": 23,
+        "pendingCandidates": 0,
+        "pendingActiveAgentMatches": 0
+      }
+    ],
+    "limitations": [
+      "Group membership verifies operational source membership, not employment status or manager authority.",
+      "Current observations do not establish historical eligibility."
+    ]
+  },
+  "notes": [
+    "No production, directory or Zendesk writes. No source scope or manager assignments changed.",
+    "All 62 active Cadence employees match active Zendesk accounts in their mapped groups.",
+    "Six pending POS candidates match active nonsuspended Zendesk agents and enabled direct reports of the POS manager. They remain pending.",
+    "Directory supervisor-level comparison matches 38 POS employees and all 23 Menufy employees. One matched Menufy directory account is disabled; this is not termination evidence.",
+    "One POS directory relationship remains unresolved. This is not evidence for automatic removal.",
+    "Do not substitute immediate directory reports for operational team membership."
+  ]
+}

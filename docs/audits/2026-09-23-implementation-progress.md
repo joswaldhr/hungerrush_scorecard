@@ -1,5 +1,139 @@
 # Audit implementation — current checkpoint
 
+**October 5 — roster authority checked; duplicate-identity safeguards implemented:**
+Two bounded Graph direct-report GETs and twelve supervisor-level GETs establish that
+immediate manager reports are not the operational agent cohort. Supervisor relationships
+match 38/39 POS and 23/23 Menufy active employees by exact normalized mail/UPN. One Menufy
+match has a disabled directory account; this does not prove departure. Five bounded,
+read-only Zendesk requests independently match all 62 active employees in configured
+groups. All six pending POS candidates match enabled manager direct reports and active,
+nonsuspended Zendesk agents. No candidates, employees, permissions or assignments were
+changed. Raw identities remain private; aggregate evidence is
+`2026-10-05-roster-source-comparison.json`. Resolve the POS directory exception and the
+Menufy directory/account disagreement before automatic removals; retain the existing
+roster meanwhile. A directory hierarchy alone does not establish historical eligibility.
+
+Recovery code now normalizes Zendesk email comparisons, rejects ambiguous stored identities,
+holds existing employee emails for review instead of creating duplicates, and serializes
+manual approvals against discovery using the source lock. Two concurrent candidates for
+the same normalized source identity cannot both create employees. Existing inactive records
+and history remain intact. Fifty-one focused PostgreSQL/connector tests pass, including
+five new regressions; typecheck, scoped lint and formatting pass. Initial new-fixture errors
+were corrected before these passing checks. Full candidate CI is pending. This is not yet
+a production release or completed lifecycle automation: stale candidate refresh, transfers,
+returns, independent roster scheduling/health and confirmed removal policy remain open.
+The prior metric coverage/publication gates remain unchanged.
+
+**October 5 — POS refresh gap identified; hosted export clipping corrected:** Fresh
+read-only production census preserves the 40-assignment / 23-key denominator, including
+19 POS assignments and 39 uniquely mapped active POS employees. Last week's five
+qualified outbound metrics still have September 28 observations; current-week outbound
+rows use legacy source context. New call collection/publication policies remain absent.
+Ten runs completed in the latest 24 hours without failures, but database success and
+limited retained HTTP logs do not establish full source coverage or scheduler recovery.
+See `2026-10-05-pos-readiness.md` and its aggregate census evidence. Neither manager's
+complete metric set is certified.
+
+Supported in-app browser control now works, superseding the October 2 tooling limitation.
+Actual hosted PDF/PNG/CSV downloads exposed a clipped Status column. Capture width fix
+`8be1e3c` passes full CI `37329827500`, including all tests and build. The same change is
+deployed only to isolated main Preview as `dbc1e5a` / `dpl_JCLBg3VBGxLktJnbzwyhy4cXwij2`.
+Fresh files show every column; PDF and PNG rasters match exactly, CSV matches 104 displayed
+cells, and all 26 historical values match. Current-week CSV matches another 104 cells
+with neutral statuses. History return-week and loading snapshot suppression pass.
+File hashes and limits are recorded in `2026-10-05-hosted-export-verification.json` and
+the readiness report. Production/demo remain unchanged. Fresh recovery, source retention/
+coverage, prospective family-specific activation, independent canary and genuine scheduled
+refresh are still required; no unqualified metric or disabled policy was enabled.
+
+**October 2 — interactive Preview sign-in confirmed:** The user reports successful entry.
+Runtime evidence on `dpl_381BvP38NGsSypBe6vMCCYsttfPL` shows the Microsoft callback
+returning 302 followed by successful 200 responses from the 1:1 list and employee
+scorecard; the inspected 12 log entries contain no `invalid_client`/OAuth callback errors.
+This resolves the authentication blocker, not the remaining UI/export acceptance gates.
+Opened the synthetic September 20–26 scorecard for actual PDF/PNG/CSV download checks.
+No recent files were present in Downloads at inspection. The available Windows automation
+skill prohibits operating the Codex UI, so embedded-browser downloads require a user gesture;
+local file inspection can proceed once files exist. Production/demo deployments are unchanged.
+
+**October 2 — main Preview credential corrected and redeployed:** The user supplied the
+staging secret through a private local file. Microsoft accepted it for the staging app;
+an exact ID/branch/Preview-only/type guard then updated only the main Preview secret at
+17:13:28 UTC. Temporary secret input and update payload files were deleted after success.
+Deployment `dpl_381BvP38NGsSypBe6vMCCYsttfPL` is Ready on unchanged code candidate
+`8210d7a8fbc6919708cd829223bde39865c103fe`, with the main Preview alias assigned.
+Build isolation checks pass. Two synthetic weeks each publish nine results (eight numeric,
+one unavailable), with unrelated values unchanged, zero vendor requests and zero production
+writes. A fresh unauthenticated sign-in probe redirects to Microsoft with a configured client
+ID; this is not an interactive user login. The user was directed to retry sign-in; hosted
+authenticated browser/export checks remain unverified. Production and frozen demo aliases
+still point to `dpl_GnmLnC5NGNmMtTJ1nRpnAhqnnisj` and `dpl_6zgVGDyR2tW1JMVmbmv7hTm4fTYR`.
+
+**October 2 — wrong-scope authentication change contained; main Preview still blocked:**
+After the user saved a new staging secret, metadata showed the production-scoped entry
+changed at 16:04:22 UTC; the main Preview override still had its September 28 timestamp.
+Production had also been redeployed at 16:04:37 as `dpl_H7t5RUPRXf4h5ukquKSouqXPDuZW`,
+with unchanged app SHA `2241763`. No runtime auth failures were observed in the queried
+logs; the credential mismatch was a configuration risk, not a demonstrated user outage.
+Rolled production back to the verified same-code deployment
+`dpl_GnmLnC5NGNmMtTJ1nRpnAhqnnisj`; alias metadata confirms restoration. The existing
+local production credential matched the production client ID/issuer and was accepted by
+Microsoft's token endpoint. Restored that credential to the production-only sensitive
+entry at 16:10:18 UTC, without exposing it or redeploying. Public login/provider endpoints
+return 200; an interactive production sign-in was not performed. The temporary restoration
+payload was removed. No database, metric, schedule or Zendesk changes occurred.
+The frozen demo alias remains `dpl_6zgVGDyR2tW1JMVmbmv7hTm4fTYR`. Graph confirms a second
+valid staging secret and both callbacks; its value still needs to be saved to the exact
+main branch Preview override. Main Preview redeployment and hosted exports remain held.
+
+**October 1 — remaining Preview login failure isolated to client authentication:**
+The user reports a return to `/login?error=OAuthCallbackError`. Main Preview runtime
+logs show Microsoft's token response is `invalid_client`; the provider implementation
+raises this error during code exchange. No detailed Microsoft error code was observed.
+The registered callback is correct. Read-only Graph metadata confirms the staging app
+has one currently valid secret; this does not validate the secret configured in Vercel.
+The September 28 main Preview setup record explicitly documents a placeholder client
+credential, and its branch-scoped sensitive environment entry has not been updated since
+that setup. This is consistent with the failure, but masked values cannot be compared.
+Repair requires a valid staging client-secret **value** in the main branch's Preview-only
+`AUTH_MICROSOFT_ENTRA_ID_SECRET`, followed by redeployment and interactive verification.
+Existing Graph credentials cannot modify the registration (previous 403); the old secret
+must remain for the frozen demo. No credentials, registration settings, production or demo
+deployment were changed in this diagnosis. Hosted browser/export gates remain blocked.
+
+**October 1 — main Preview callback saved and verified:** The user added the exact
+main Preview Web redirect URI. A fresh read-only Microsoft Graph check confirms it is
+saved and the existing demo callback is preserved. This resolves the missing-callback
+configuration blocker below. A fresh interactive Microsoft sign-in and actual hosted
+export-file inspection remain required; successful authentication is not yet observed.
+
+**October 1 — Preview sign-in blocker identified:** Read-only Microsoft Graph inspection
+of the existing staging registration confirms it allows only the frozen demo callback.
+The main Preview alias's `/api/auth/callback/microsoft-entra-id` address is missing,
+although the running app requests it. An exact additive callback update through Graph
+was rejected with HTTP 403 `Authorization_RequestDenied`; no registration change occurred.
+The user must add the main Preview callback as a Web redirect URI while retaining the
+existing demo entry. No production registration, credentials, permissions or deployment
+were changed. This corrects the earlier assumption that having staging credentials present
+was enough for the new Preview alias to sign in. Hosted exports remain unverified.
+
+**October 1 — exact recovery candidate and synthetic Preview pass; release still gated:**
+Code candidate `8210d7a8fbc6919708cd829223bde39865c103fe` passes full CI `36892381643`
+(typecheck, lint, migrations, full tests, diagnostic guards and build). Isolated main
+Preview `dpl_8zmnehw9E3NLehvxorprpwj6Erxx` is Ready on that SHA. Its guarded rehearsal
+again publishes nine synthetic results for each of two weeks: eight numeric and one
+legitimately unavailable, with unrelated values unchanged, no vendor requests and no
+production writes. Anonymous inbound requests return 401; anonymous export submissions
+redirect to sign-in (307), which is authentication evidence only. Seven PostgreSQL
+legacy recovery tests pass, including a 1,000-call page with null/zero preservation.
+Hosted Microsoft sign-in and actual exported-file inspection remain unverified and
+require the user's session. No PC control was used in this continuation. Production
+remains `2241763` / `dpl_GnmLnC5NGNmMtTJ1nRpnAhqnnisj`; frozen demo remains `f17821c` /
+`dpl_6zgVGDyR2tW1JMVmbmv7hTm4fTYR`, verified by alias metadata. Legacy resume remains
+opt-in and inactive; prospective inbound activation, fresh backup/restore, controlled
+canary and real scheduler evidence are still required. CSAT's earlier 429 was not
+reproduced, so quota-aware pacing is not reported as proven scheduled recovery.
+
 **October 1 — recovery checks advanced; activation remains disabled:** Legacy recovery
 candidate `e94afa1` passes full CI `36891453194` (118 test files). Offline replay preserves
 all ten consumed fields across 25,694 retained calls and matches 507 agent/direction groups

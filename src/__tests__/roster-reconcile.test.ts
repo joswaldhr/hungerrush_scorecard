@@ -87,6 +87,100 @@ afterAll(async () => {
 });
 
 describe("discoverRosterCandidates", () => {
+  it("does not create a new hire or departure when a known email changes case", async () => {
+    const email = "case-known@example.invalid";
+    const [employee] = await db
+      .insert(employees)
+      .values({
+        organizationId: ORG_ID,
+        displayName: "Case fixture",
+        email,
+        primaryTeamId: TEAM_ID,
+      })
+      .returning();
+    await db.insert(externalIdentities).values({
+      employeeId: employee!.id,
+      dataSourceId: DATA_SOURCE_ID,
+      externalEntityType: "agent",
+      externalId: email,
+      matchMethod: "synthetic",
+    });
+    await discoverRosterCandidates(
+      fakeConnector([
+        {
+          externalId: ` ${email.toUpperCase()} `,
+          externalEmail: email.toUpperCase(),
+          externalDisplayName: "Case fixture",
+          teamId: TEAM_ID,
+        },
+      ]),
+      DATA_SOURCE_ID
+    );
+    const candidates = await db
+      .select()
+      .from(rosterCandidates)
+      .where(eq(rosterCandidates.dataSourceId, DATA_SOURCE_ID));
+    expect(candidates.filter((c) => c.externalId.trim().toLowerCase() === email)).toHaveLength(0);
+    await db.delete(externalIdentities).where(eq(externalIdentities.employeeId, employee!.id));
+    await db.delete(employees).where(eq(employees.id, employee!.id));
+  });
+
+  it("holds an existing inactive employee for review instead of creating a duplicate", async () => {
+    const email = "return-review@example.invalid";
+    const [employee] = await db
+      .insert(employees)
+      .values({
+        organizationId: ORG_ID,
+        displayName: "Return fixture",
+        email,
+        primaryTeamId: TEAM_ID,
+        employmentStatus: "inactive",
+      })
+      .returning();
+    const result = await discoverRosterCandidates(
+      fakeConnector([
+        {
+          externalId: email,
+          externalEmail: email.toUpperCase(),
+          externalDisplayName: "Return fixture",
+          teamId: TEAM_ID,
+        },
+      ]),
+      DATA_SOURCE_ID
+    );
+    expect(result.autoApproved).toBe(0);
+    const [candidate] = await db
+      .select()
+      .from(rosterCandidates)
+      .where(eq(rosterCandidates.externalId, email));
+    expect(candidate?.status).toBe("pending");
+    const people = await db.select().from(employees).where(eq(employees.organizationId, ORG_ID));
+    expect(people.filter((p) => p.email?.toLowerCase() === email)).toEqual([employee]);
+    await db.delete(rosterCandidates).where(eq(rosterCandidates.id, candidate!.id));
+    await db.delete(employees).where(eq(employees.id, employee!.id));
+  });
+
+  it("rejects duplicate discovered emails before writing roster candidates", async () => {
+    const member = {
+      externalId: "duplicate-case@example.invalid",
+      teamId: TEAM_ID,
+      externalEmail: "duplicate-case@example.invalid",
+      externalDisplayName: "Duplicate fixture",
+    };
+    await expect(
+      discoverRosterCandidates(
+        fakeConnector([member, { ...member, externalId: member.externalId.toUpperCase() }]),
+        DATA_SOURCE_ID
+      )
+    ).rejects.toThrow("duplicate identities");
+    expect(
+      await db
+        .select()
+        .from(rosterCandidates)
+        .where(eq(rosterCandidates.externalId, member.externalId))
+    ).toHaveLength(0);
+  });
+
   it("does not propose a manager account as a new-hire candidate", async () => {
     const connector = fakeConnector([
       {

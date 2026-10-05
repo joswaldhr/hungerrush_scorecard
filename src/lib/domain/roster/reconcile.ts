@@ -23,6 +23,10 @@ export async function discoverRosterCandidates(
 ): Promise<{ newCandidates: number; departedCandidates: number; autoApproved: number }> {
   const [source] = await db.select().from(dataSources).where(eq(dataSources.id, dataSourceId));
   if (!source) throw new Error("Data source not found");
+  // Zendesk's roster connector uses email identities. Compare them consistently
+  // without rewriting stored source IDs or case-sensitive IDs from other sources.
+  const identityKey = (value: string) =>
+    source.type === "zendesk" ? value.trim().toLowerCase() : value;
 
   const mappings = await db
     .select()
@@ -57,7 +61,7 @@ export async function discoverRosterCandidates(
     groupMappings,
     existingAssignments
   );
-  const discoveredIds = new Set(discovered.map((d) => d.externalId));
+  const discoveredIds = new Set(discovered.map((d) => identityKey(d.externalId)));
 
   // Fetch externally before taking a database lock. Recheck configuration before writing.
   return db.transaction(async (tx) => {
@@ -112,7 +116,18 @@ export async function discoverRosterCandidates(
       .select()
       .from(externalIdentities)
       .where(eq(externalIdentities.dataSourceId, dataSourceId));
-    const knownExternalIds = new Set(known.map((k) => k.externalId));
+    const knownExternalIds = new Set(known.map((k) => identityKey(k.externalId)));
+    if (knownExternalIds.size !== known.length)
+      throw new Error("Stored roster identities are ambiguous; review required");
+    const organizationEmployees = await tx
+      .select({ email: employees.email })
+      .from(employees)
+      .where(eq(employees.organizationId, source.organizationId));
+    const existingEmployeeEmails = new Set(
+      organizationEmployees.flatMap((employee) =>
+        employee.email ? [employee.email.trim().toLowerCase()] : []
+      )
+    );
 
     const pendingDepartures = await tx
       .select({ externalId: rosterCandidates.externalId })
@@ -124,20 +139,22 @@ export async function discoverRosterCandidates(
           eq(rosterCandidates.status, "pending")
         )
       );
-    const pendingDepartureIds = new Set(pendingDepartures.map((candidate) => candidate.externalId));
+    const pendingDepartureIds = new Set(
+      pendingDepartures.map((candidate) => identityKey(candidate.externalId))
+    );
     const existingNewCandidates = await tx
       .select({ externalId: rosterCandidates.externalId })
       .from(rosterCandidates)
       .where(
         and(eq(rosterCandidates.dataSourceId, dataSourceId), eq(rosterCandidates.changeType, "new"))
       );
-    const seenNewExternalIds = new Set(existingNewCandidates.map((c) => c.externalId));
+    const seenNewExternalIds = new Set(existingNewCandidates.map((c) => identityKey(c.externalId)));
 
     const managerUsers = await tx
       .select({ email: users.email })
       .from(users)
       .where(eq(users.organizationId, source.organizationId));
-    const managerEmails = new Set(managerUsers.map((u) => u.email.toLowerCase()));
+    const managerEmails = new Set(managerUsers.map((u) => u.email.trim().toLowerCase()));
 
     let newCandidates = 0;
     let autoApproved = 0;
@@ -146,9 +163,10 @@ export async function discoverRosterCandidates(
     // --- Pass 1: collect eligible new-hire candidates ---
     const eligible: DiscoveredRosterMember[] = [];
     for (const member of discovered) {
-      if (knownExternalIds.has(member.externalId)) continue;
-      if (seenNewExternalIds.has(member.externalId)) continue;
-      if (member.externalEmail && managerEmails.has(member.externalEmail.toLowerCase())) continue;
+      if (knownExternalIds.has(identityKey(member.externalId))) continue;
+      if (seenNewExternalIds.has(identityKey(member.externalId))) continue;
+      if (member.externalEmail && managerEmails.has(member.externalEmail.trim().toLowerCase()))
+        continue;
       eligible.push(member);
     }
 
@@ -173,12 +191,7 @@ export async function discoverRosterCandidates(
         rosterSize === 0 || eligible.length <= rosterSize * AUTO_APPROVE_ROSTER_PERCENT;
     }
 
-    if (shouldAutoApprove && eligible.length > 0) {
-      logger.info("Auto-approving new-hire candidates", {
-        dataSourceId,
-        count: eligible.length,
-      });
-    } else if (eligible.length > AUTO_APPROVE_ABSOLUTE_MAX) {
+    if (eligible.length > AUTO_APPROVE_ABSOLUTE_MAX) {
       logger.warn("Circuit breaker tripped: too many new candidates, falling back to pending", {
         dataSourceId,
         eligibleCount: eligible.length,
@@ -188,7 +201,12 @@ export async function discoverRosterCandidates(
 
     // --- Pass 2: write candidates ---
     for (const member of eligible) {
-      if (shouldAutoApprove) {
+      // A matching employee may be a return, transfer or missing source binding.
+      // It is not evidence for creating a second employee with a fresh history.
+      const existingEmployee =
+        member.externalEmail &&
+        existingEmployeeEmails.has(member.externalEmail.trim().toLowerCase());
+      if (shouldAutoApprove && !existingEmployee) {
         try {
           await tx.transaction(async (tx) => {
             const today = new Date().toISOString().split("T")[0]!;
@@ -271,7 +289,10 @@ export async function discoverRosterCandidates(
     }
 
     for (const identity of known) {
-      if (discoveredIds.has(identity.externalId) || pendingDepartureIds.has(identity.externalId))
+      if (
+        discoveredIds.has(identityKey(identity.externalId)) ||
+        pendingDepartureIds.has(identityKey(identity.externalId))
+      )
         continue;
 
       const [employee] = await tx

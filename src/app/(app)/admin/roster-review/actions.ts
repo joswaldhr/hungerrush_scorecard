@@ -11,7 +11,7 @@ import {
   teamMemberships,
   dataSources,
 } from "@/lib/db/schema";
-import { eq, and, isNull, inArray } from "drizzle-orm";
+import { eq, and, isNull, inArray, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { ZendeskConnector } from "@/lib/connectors";
 import type { Connector } from "@/lib/connectors";
@@ -88,6 +88,29 @@ export async function approveNewCandidate(formData: FormData) {
 
   await db.transaction(async (tx) => {
     if (teamId) await assertOrganizationResource(organizationId, "team", teamId, tx);
+    const [observed] = await tx
+      .select({ dataSourceId: rosterCandidates.dataSourceId })
+      .from(rosterCandidates)
+      .where(
+        and(
+          eq(rosterCandidates.id, candidateId),
+          inArray(rosterCandidates.dataSourceId, organizationSourceIds(organizationId))
+        )
+      );
+    if (!observed) return;
+    // Share discovery's source lock so two candidates for the same identity
+    // cannot both create an employee before either sees the other's binding.
+    const [source] = await tx
+      .select()
+      .from(dataSources)
+      .where(
+        and(
+          eq(dataSources.id, observed.dataSourceId),
+          eq(dataSources.organizationId, organizationId)
+        )
+      )
+      .for("update");
+    if (!source) throw new Error("Resource not found or not permitted");
     const [candidate] = await tx
       .select()
       .from(rosterCandidates)
@@ -99,6 +122,34 @@ export async function approveNewCandidate(formData: FormData) {
       )
       .for("update");
     if (!candidate || candidate.status !== "pending" || candidate.changeType !== "new") return;
+    if (candidate.dataSourceId !== source.id)
+      throw new Error("Roster candidate changed during review; refresh required");
+    const [existingIdentity] = await tx
+      .select({ id: externalIdentities.id })
+      .from(externalIdentities)
+      .where(
+        and(
+          eq(externalIdentities.dataSourceId, source.id),
+          source.type === "zendesk"
+            ? sql`lower(trim(${externalIdentities.externalId})) = ${candidate.externalId.trim().toLowerCase()}`
+            : eq(externalIdentities.externalId, candidate.externalId)
+        )
+      )
+      .limit(1);
+    const [existingEmployee] = candidate.externalEmail
+      ? await tx
+          .select({ id: employees.id })
+          .from(employees)
+          .where(
+            and(
+              eq(employees.organizationId, organizationId),
+              sql`lower(trim(${employees.email})) = ${candidate.externalEmail.trim().toLowerCase()}`
+            )
+          )
+          .limit(1)
+      : [];
+    if (existingIdentity || existingEmployee)
+      throw new Error("An employee or source identity already exists. Review the existing record.");
 
     const [employee] = await tx
       .insert(employees)

@@ -234,6 +234,23 @@ mapped-team roster in one run -- in which case the whole batch falls back to `pe
 manual review via `/admin/roster-review`. Departures are never auto-processed; a departed
 identity is always written as a `pending` roster candidate for a human to approve.
 
+The October 5 recovery candidate compares Zendesk email identities after trimming and
+case normalization without rewriting stored identifiers. A discovered email already owned
+by an active or inactive employee remains pending instead of creating another employee.
+Manual new-candidate approval rejects existing identities/emails and shares discovery's
+source lock, preventing concurrent candidates from creating duplicate source bindings.
+These safeguards are candidate code, not evidence that transfers, returns or departures
+are automatically reconciled in production. Roster discovery still follows successful
+current-week metric sync; independent scheduling and durable roster-run health remain work.
+
+The October 5 read-only comparison confirms all 62 active pilot employees in their mapped
+Zendesk groups. Immediate Entra direct reports are not the same cohort: supervisor-level
+relationships match 61 of the 62. Six pending POS additions match both enabled manager
+direct reports and active nonsuspended Zendesk agents. They are not yet added; one POS
+directory relationship and one disabled Menufy directory account need resolution without
+equating directory absence/disablement with employment termination. See
+`audits/2026-10-05-roster-source-comparison.json` for aggregate observations and limits.
+
 ### Connector status
 
 | Connector | Source role | Status |
