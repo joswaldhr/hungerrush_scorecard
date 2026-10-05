@@ -1,5 +1,36 @@
 # Audit implementation — current checkpoint
 
+**October 5 — production recovery, durable source evidence and binding fix:** Exact
+candidate `952f3d3` passes full PostgreSQL 18 CI `37367161929` and all 991 local tests.
+The guarded production baseline adoption inserts only the missing known 0009 journal row.
+Separate atomic 0016/0017 migrations preserve all 32 pre-existing application-table
+digests / 137,952 rows, add two empty tables and retain all employees/metrics/policies.
+Readback confirms all 18 known journal entries. A subsequent fresh encrypted restore
+matches all 35 tables / 138,044 rows. See the October 5 production readback and restore
+artifacts. Existing Windows line-ending hashes are preserved; adoption does not prove
+that the old historical fact cleanup ran. Backups remain Windows-profile-bound.
+
+The exact tested collector completes 31 pages and 26,346 source-record/revision changes.
+A separate three-page calls-only catch-up adds 61 changes, recovers four missing parents,
+and preserves the entire leg record/checkpoint snapshot. Independent durable replay matches
+414 values, 414 source sets and 552 duration comparisons for all 23 current Menufy agents
+across last/current week, with no affected parent blocks. One global parent remains missing
+outside that cohort; POS qualification is separate. The account lease is released. These
+are collection/reconciliation results, not metric publication or scheduled-run evidence.
+
+Prospective catalog registration then refuses live identity metadata and rolls back.
+Read-only readback confirms zero of the four new definitions. Diagnosis identifies a code
+contract mismatch: roster discovery writes `agent` bindings, while inbound preflight permits
+only `user`; all 23 bindings are present and unique. The focused fix accepts both staff labels,
+retains account/identity/assignment checks, and does not change employee metadata or human
+activity attribution. Its exact-candidate tests/CI remain required before a new guarded attempt.
+The original private intent is retained; no blind retry is permitted.
+
+Application production remains `2241763`; source publication opt-ins remain absent. Frozen
+demo and Zendesk remain untouched. Next work: validate the binding fix, refresh recovery if
+needed, complete future-effective catalog registration, and close scoped publication/live
+scheduler and POS/source gaps. Print and copied-link bytes remain unverified on hosted Preview.
+
 **October 5 — completion resumed, migration baseline rehearsal:** The user requested
 autonomous execution through completion. Fresh encrypted PostgreSQL 18.6 backup/restore
 matches all 33 tables / 85,721 rows. A narrowly scoped present-schema adoption candidate
@@ -1512,17 +1543,17 @@ and employee mappings remain private. Hosted Cadence export-file bytes remain un
 
 ## Current ledger
 
-| Area | Status | Evidence / remaining work |
-|---|---|---|
-| Audit and metric contracts | Complete | Baseline at ab062c3; audit and contracts in this directory |
-| Reporting context and scope safeguards | Published to production | Navigation, organization and manager-scope regression tests; production current/previous week and history checks passed |
-| Atomic sync publication and freshness | All four scheduled metric publications passed; roster correction deployed | Offsets 0/1/2/3 published 192/1,067/1,080/1,074 values with zero metric errors and exact reporting intervals; no running rows remain. Offsets 1–3 returned 200. Offset 0 returned 503 after publication; PR25 corrects overlapping-line roster discovery. Corrected scheduled roster execution remains unverified; see 2026-09-25-scheduled-sync-verification.md |
-| Null corrections and predecessor evidence | Staging verified | Migration 0012; corrected null/zero and retained revisions tested |
-| Combined implementation validation | Roster correction candidate and master CI passed | PR25: 581 tests / 66 files, PostgreSQL 18 migrations, lint, TypeScript and production build; candidate CI 36106916272/36106921476 and master CI 36107218863 passed |
-| Migration and corrected-sync rehearsal | Passed locally and hosted | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved |
-| Hosted staging / production parity | Database, core UI, worker authentication and bounded ingestion/recovery passed | Separate PostgreSQL 18.6 and Entra app; four fresh ingestion processes, expired-lease takeover and replay verified; source disabled after rehearsal; recurring scheduling remains open |
-| Zendesk completeness | Safety guards and human-only shadow policy implemented | 2,415-ticket export reconciled; Talk boundary verified; retained full-week census reproduced one default lookup omission, resolved by inactive/deleted-inclusive diagnostic; historical eligibility, human provenance and independent parity remain open |
-| Production rollout / historical repair | Core, metric-display and roster corrections deployed; no historical repair | PR25 merged at 467c2fa, production dpl_5MWPNsFU8DRv2zzKg7TgAi1noGE1 READY; fresh backup restored 33 tables / 32,796 rows exactly |
+| Area                                      | Status                                                                         | Evidence / remaining work                                                                                                                                                                                                                                                                                                                                        |
+| ----------------------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Audit and metric contracts                | Complete                                                                       | Baseline at ab062c3; audit and contracts in this directory                                                                                                                                                                                                                                                                                                       |
+| Reporting context and scope safeguards    | Published to production                                                        | Navigation, organization and manager-scope regression tests; production current/previous week and history checks passed                                                                                                                                                                                                                                          |
+| Atomic sync publication and freshness     | All four scheduled metric publications passed; roster correction deployed      | Offsets 0/1/2/3 published 192/1,067/1,080/1,074 values with zero metric errors and exact reporting intervals; no running rows remain. Offsets 1–3 returned 200. Offset 0 returned 503 after publication; PR25 corrects overlapping-line roster discovery. Corrected scheduled roster execution remains unverified; see 2026-09-25-scheduled-sync-verification.md |
+| Null corrections and predecessor evidence | Staging verified                                                               | Migration 0012; corrected null/zero and retained revisions tested                                                                                                                                                                                                                                                                                                |
+| Combined implementation validation        | Roster correction candidate and master CI passed                               | PR25: 581 tests / 66 files, PostgreSQL 18 migrations, lint, TypeScript and production build; candidate CI 36106916272/36106921476 and master CI 36107218863 passed                                                                                                                                                                                               |
+| Migration and corrected-sync rehearsal    | Passed locally and hosted                                                      | Local 0011 -> 0014; hosted staging upgraded through 0014 with all prior rows preserved                                                                                                                                                                                                                                                                           |
+| Hosted staging / production parity        | Database, core UI, worker authentication and bounded ingestion/recovery passed | Separate PostgreSQL 18.6 and Entra app; four fresh ingestion processes, expired-lease takeover and replay verified; source disabled after rehearsal; recurring scheduling remains open                                                                                                                                                                           |
+| Zendesk completeness                      | Safety guards and human-only shadow policy implemented                         | 2,415-ticket export reconciled; Talk boundary verified; retained full-week census reproduced one default lookup omission, resolved by inactive/deleted-inclusive diagnostic; historical eligibility, human provenance and independent parity remain open                                                                                                         |
+| Production rollout / historical repair    | Core, metric-display and roster corrections deployed; no historical repair     | PR25 merged at 467c2fa, production dpl_5MWPNsFU8DRv2zzKg7TgAi1noGE1 READY; fresh backup restored 33 tables / 32,796 rows exactly                                                                                                                                                                                                                                 |
 
 ## Git checkpoints
 
@@ -1675,7 +1706,6 @@ allowing an empty-string line. Hosted staging currently remains at 0012.
 The sections below describe the individual increments as they were completed. Later
 increments supersede earlier lists of pending items; the ledger above owns current status.
 
-
 This working change implements the reporting-context and authorization containment portion of the September 23 audit. It does not claim the entire nine-phase overhaul is complete.
 
 ## Changes
@@ -1707,15 +1737,15 @@ Browser-component tests cover loading/export exclusion, Back with an absent quer
 
 ### Verification results
 
-| Check | Result |
-|---|---|
-| Full isolated suite | 19 files, 207 tests passed. |
-| Final authorization/navigation regression run | 42 tests passed, including the added same-day membership expiry test. The suite now contains 208 tests total. |
-| Final admin compatibility rerun | All 14 admin-scope tests passed, including the existing Terminated employment-status option. |
-| Typecheck | Passed after the final authorization boundary changes. |
-| Lint/format | Passed; only the pre-existing unused transactionFn warning in run-sync.test.ts remains. |
-| Production build | Passed; compilation 8.7 seconds and TypeScript 22.0 seconds. No deployment performed. |
-| Browser | Current week Sep 20–26: 66 tickets; previous week Sep 13–19: 115. Previous showed a loading state with no prior rows/export, Back to the URL without a week restored 66/current dates, and Forward restored 115/prior dates. No browser errors were reported. |
+| Check                                         | Result                                                                                                                                                                                                                                                        |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Full isolated suite                           | 19 files, 207 tests passed.                                                                                                                                                                                                                                   |
+| Final authorization/navigation regression run | 42 tests passed, including the added same-day membership expiry test. The suite now contains 208 tests total.                                                                                                                                                 |
+| Final admin compatibility rerun               | All 14 admin-scope tests passed, including the existing Terminated employment-status option.                                                                                                                                                                  |
+| Typecheck                                     | Passed after the final authorization boundary changes.                                                                                                                                                                                                        |
+| Lint/format                                   | Passed; only the pre-existing unused transactionFn warning in run-sync.test.ts remains.                                                                                                                                                                       |
+| Production build                              | Passed; compilation 8.7 seconds and TypeScript 22.0 seconds. No deployment performed.                                                                                                                                                                         |
+| Browser                                       | Current week Sep 20–26: 66 tickets; previous week Sep 13–19: 115. Previous showed a loading state with no prior rows/export, Back to the URL without a week restored 66/current dates, and Forward restored 115/prior dates. No browser errors were reported. |
 
 Authorization treats effectiveFrom as inclusive and effectiveTo as exclusive: a membership
 closed today must not continue granting access today. The reconciliation membership filter
@@ -1853,7 +1883,6 @@ upgrade of an existing synthetic dataset and corrected publication. No applicati
 changed while organizing these commits; the 223-test application checkpoint remains the
 last full suite. The rehearsal script was formatted and separately typechecked/linted.
 
-
 ## Hosted staging setup - access checkpoint
 
 Railway provisioning access was checked after the request to continue. No Railway CLI,
@@ -1881,7 +1910,6 @@ Provider references checked September 23:
 documents branch-specific preview variables. No hosted resource or Vercel setting has
 been changed at this access checkpoint.
 
-
 ### Hosted staging environment created; database budget pending
 
 The user signed into Railway. Verified project `overflowing-radiance` contains
@@ -1904,7 +1932,6 @@ inherited credentials before deployment, not just the database. No Vercel change
 code pushes have been made.
 
 Cost reference: [Railway usage pricing](https://docs.railway.com/pricing/understanding-your-bill).
-
 
 ### Hosted staging database provisioned and Preview secret scoped
 
@@ -1938,7 +1965,6 @@ and verify the Preview deployment and authentication. DATABASE_URL configuration
 is not evidence that the application can connect. Keep the branch deployment hold until
 these prerequisites are met. The last full application suite remains 223 passing tests;
 this checkpoint changes deployment configuration only.
-
 
 ### Hosted database rehearsal passed; staging sign-in pending
 
@@ -1989,7 +2015,6 @@ Commits: `a58dab5` records hosted rehearsal; `f73d3cd` isolates empty Preview ov
 Both are pushed to the audit branch. After pushing, the latest Vercel deployments still
 showed only master; the audit branch deployment hold is intact.
 
-
 ### Staging sign-in and hosted Preview validated
 
 User approved the prepared registration and setup. Created `HungerRush Cadence Staging`,
@@ -2028,7 +2053,6 @@ Fixture execution, targeted ESLint, and typecheck passed. No application source 
 in this step; Vercel's actual Preview build succeeded. The broader audit remains open,
 including source completeness and the production release gate above.
 
-
 ## Zendesk Search completeness guard — September 23
 
 Replaced silent Search truncation with a complete-cohort guard shared by the weekly ticket
@@ -2052,7 +2076,6 @@ vendor documentation uses count/next_page semantics that differ from Support inc
 exports; resolve that contract before substituting an assumed end-of-stream rule.
 
 Vendor reference: https://developer.zendesk.com/api-reference/ticketing/ticket-management/search/
-
 
 ## Zendesk Talk completeness guard — September 23
 
@@ -2082,7 +2105,6 @@ this does not establish per-agent offers, acceptance events, or handling effort.
 
 Reference: https://developer.zendesk.com/api-reference/voice/talk-api/incremental_exports/
 
-
 ## Vendor-verified pagination follow-up — September 23
 
 This supersedes the conservative Search-cap and empty-only Talk termination checkpoints.
@@ -2106,7 +2128,6 @@ Validation: 24 focused Search/Talk fixtures passed, including a 1,200-ticket exp
 observed repeated Talk boundary. Live data was held in memory; reports contain aggregate
 metadata and an ID-set digest only, not ticket/call contents or credentials.
 
-
 ## Overlapping sync observation ordering — September 23
 
 Successful sync metadata now records the source-record keys observed, including unchanged
@@ -2123,7 +2144,6 @@ Typecheck and focused ESLint passed. The preceding export increment also passed 
 and focused ESLint; live Search reconciliation matched 2,415 unique IDs to counts before
 and after across 25 export pages. No production publication or historical repair occurred.
 
-
 ## Zendesk credential destination guard — September 23
 
 Vendor pagination links now must resolve to the configured HTTPS Zendesk origin and
@@ -2131,7 +2151,6 @@ Vendor pagination links now must resolve to the configured HTTPS Zendesk origin 
 Seven focused tests cover foreign hosts, HTTP downgrade, path escape, embedded credentials,
 and valid relative/absolute API requests. This prevents pagination data from widening the
 authorization destination. Typecheck and focused lint passed.
-
 
 ## Overall status evidence — September 23
 
@@ -2146,7 +2165,6 @@ Validation: all 273 tests across 26 files passed against the isolated local data
 including 11 new status fixtures. Project typecheck, full lint/format checks, and production
 build passed. No production deployment was performed. HANDOFF's stale shared-Preview warning
 was corrected to point to the established isolated staging configuration.
-
 
 ## Effective configuration dates and target ambiguity — September 23
 
@@ -2167,7 +2185,6 @@ Hosted Preview eceade63e8b0c4cb028da6efa6053b06a13b9ec7 is READY
 neutral Partial Data overall, confirmed zero 0.0, No Target for the zero metric, and No Data
 for the missing metric. Production remains on ab062c33f70e2152b8786f6a8ade5a7e0ab96697.
 
-
 ## In-progress reporting context — September 23
 
 For a current UTC reporting interval with sufficient data and targets, the overall status
@@ -2178,7 +2195,6 @@ status. Completed periods retain the existing performance assessment. Briefing d
 and distributions carry the same distinction. No target bands or calculations changed.
 
 Validation: 41 focused status/navigation/briefing tests, typecheck, and focused ESLint passed.
-
 
 ## Durable sync claims and dead-job recovery — September 23
 
@@ -2208,7 +2224,6 @@ the week excluded, leaving 4,621 weekly calls. No rate-limit waiting occurred. T
 one observed export, not independent per-agent metric semantics or a worst-case runtime SLA.
 See `2026-09-23-talk-week-probe.json`. No live sync, production write, or historical repair ran.
 
-
 ## Export snapshot context — September 23
 
 CSV now includes employee, explicit current/comparison dates and UTC, source observation,
@@ -2223,14 +2238,12 @@ Validation: nine export/navigation tests, typecheck, and focused ESLint passed. 
 historical dates, zero versus missing, CSV quoting/formula text, capture identity and data
 details, disposal, and navigation after capture. Hosted visual export verification follows.
 
-
 Export follow-up: all 283 tests, full lint, typecheck, and production build passed at 5b7ff45.
 The hosted PNG was downloaded and visually inspected: employee header, both dated periods
 with UTC, provisional-period note, confirmed zero, missing value, and source-quality/version
 details rendered legibly with no clipping. The temporary export clone is hidden from the
 accessibility tree to avoid duplicate announcements while rendering. Synthetic output:
 `C:/Users/JamesOswald/Downloads/synthetic-employee-scorecard-2026-09-23.png`.
-
 
 ## Exact count reconciliation — September 23
 
@@ -2240,7 +2253,6 @@ percentage tolerance. Other value types retain their configured tolerance. The r
 page describes this distinction and still identifies the comparison as stored-source-fact
 consistency, not an independent vendor audit. Twenty-one focused tests, typecheck, and focused
 lint passed. Independent event/agent ledgers and versioned non-count tolerances remain open.
-
 
 ## Source evidence for version-1 calculations — September 23
 
@@ -2257,7 +2269,6 @@ CSAT counts or loop indefinitely. Five focused real-connector fixtures passed, i
 ID/denominator preservation, unchanged normalized values, missing/zero samples, duplicate
 ratings, and cyclic pagination; typecheck passed. Payload retention/storage growth still
 needs an operational policy. The business-definition question remains pending with the user.
-
 
 ## Employee backup payload retention — September 23
 
@@ -2276,7 +2287,6 @@ portable disaster-recovery backup or verified production restore point. Git hist
 unchanged and still contains older copies; repository access review and coordinated history/
 retention cleanup remain release work. No external transfer or credential rotation occurred.
 
-
 ## Connector identity source scope — September 23
 
 Numeric Zendesk identity resolution now filters the Cadence identity lookup by data-source
@@ -2284,7 +2294,6 @@ ID as well as external email. Matching email addresses in different source insta
 resolve to the other instance's employee. A real PostgreSQL regression creates two
 organizations/sources with the same synthetic email and verifies both resolve correctly.
 The test, typecheck, and focused lint passed. Source-evidence focused lint also passed.
-
 
 ## Stored historical reporting intervals — September 23
 
@@ -2302,7 +2311,6 @@ in preliminary runs was resolved by rerunning sequentially; those failed runs ar
 counted as validation. Full ESLint passed; Prettier found one pre-existing new identity-test
 formatting issue, corrected before commit. Hosted verification follows.
 
-
 ## Database error confidentiality — September 23
 
 Fault-injection tests demonstrated that serializing a Drizzle error exposed SQL parameters
@@ -2316,7 +2324,6 @@ Validation: 22 focused logger, orchestration, and PostgreSQL publication tests p
 real synthetic database failure now logs only DatabaseError / P0001; a Drizzle regression
 asserts private fixture content is absent from logs and the persisted-message formatter.
 Typecheck and focused ESLint passed.
-
 
 ## Reconciliation cooldown claims — September 23
 
@@ -2334,7 +2341,6 @@ Hosted history verification at 39db808 passed: the page showed confirmed zero se
 from missing data, retained observation/version details, and selecting September 13–19
 changed both the URL and displayed interval. The desktop screenshot was legible without
 clipping. No production data changed.
-
 
 ## Visibility save concurrency and combined validation — September 23
 

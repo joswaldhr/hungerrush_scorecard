@@ -80,8 +80,8 @@ beforeEach(async () => {
     dataSourceId: source,
     employeeId: employee,
     externalId: "synthetic@example.invalid",
-    externalEntityType: "user",
-    matchMethod: "manual",
+    externalEntityType: "agent",
+    matchMethod: "roster_discovery",
   });
   for (const key of [...existingKeys, "avg_talk_time_inbound"]) {
     const [definition] = await db

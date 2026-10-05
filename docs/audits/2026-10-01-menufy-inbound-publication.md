@@ -5,6 +5,36 @@ implements the missing publication path; it is not yet activated or released.
 
 ## October 5 release update
 
+### Guarded catalog execution manifest, 20:40 UTC
+
+Execute registration only from tested candidate `952f3d37495b3ae932a003aa9b2c8db841d738e1`
+with successful full CI `37367161929`. The fresh post-migration recovery at 20:35 UTC
+matches all 35 tables / 138,044 rows and retains encrypted round-trip proof. Production
+now has all 18 known migration journal entries. Durable source reconciliation matches
+414 values, 414 source sets and 552 duration comparisons across all 23 active Menufy
+employees, with no affected parent blocks. One global parent gap remains outside that
+cohort. Source feature opt-ins remain absent; no scheduler or publication is activated.
+
+Expected writes are exactly four future-effective definitions and four Menufy team
+assignments with October 11 cutover, neutral direction and no targets. Require the tested
+atomic ownership/binding/compatibility checks and private immutable execution intent;
+compare all existing catalog/assignment/target row digests after commit. Preserve private
+created-row IDs for scoped rollback. On unknown outcome inspect the receipt and database;
+never blindly retry. If rollback is necessary before use, remove only these exact created
+assignments/definitions after checking no dependent facts/values/targets reference them;
+otherwise disable the publisher and retain evidence. Never reset the whole database.
+Production app rollback remains deployment `dpl_GnmLnC5NGNmMtTJ1nRpnAhqnnisj` at
+`224176336c9b29c1c7e76c41213d5e52b3d74518`. This operation does not deploy app code,
+publish metrics, alter older weeks, activate policies, change employees or touch Zendesk.
+
+Observed attempt: the atomic operation refuses the live staff entity label and rolls back.
+Read-only readback confirms zero added definitions. All 23 unique source bindings use
+`agent`, matching the existing roster importer; the candidate checks only `user`.
+Do not repair production identities to satisfy that test-fixture assumption. A focused
+code correction and real PostgreSQL regression checks must pass exact-candidate CI,
+followed by fresh recovery/readback and a separately recorded attempt. The first private
+intent remains retained. Registration and publication remain incomplete.
+
 The approved completion plan now has an explicit catalog-registration candidate in
 `src/lib/connectors/zendesk-inbound-catalog.ts`. This operation is not connected to a route,
 build or scheduler. It creates only the four additions below with future-effective definitions
@@ -34,12 +64,12 @@ The fresh read-only production catalog census confirms 23 active Menufy employee
 five compatible existing definitions/team-wide assignments, and four absent definitions.
 Registration scope is exactly the following; no production registration has occurred:
 
-| New key | Display meaning | Unit / type | Aggregation | Assignment |
-|---|---|---|---|---|
-| `inbound_calls_unreachable` | Unreachable inbound agent legs | calls / count | sum | Menufy team only |
-| `inbound_calls_answer_rate` | Accepted / offered agent legs × 100 | % / percentage | latest | Menufy team only |
-| `total_talk_time_inbound` | Total employee-leg inbound talk | s / duration | sum | Menufy team only |
-| `max_hold_time_inbound` | Maximum employee-leg inbound hold | s / duration | max | Menufy team only |
+| New key                     | Display meaning                     | Unit / type    | Aggregation | Assignment       |
+| --------------------------- | ----------------------------------- | -------------- | ----------- | ---------------- |
+| `inbound_calls_unreachable` | Unreachable inbound agent legs      | calls / count  | sum         | Menufy team only |
+| `inbound_calls_answer_rate` | Accepted / offered agent legs × 100 | % / percentage | latest      | Menufy team only |
+| `total_talk_time_inbound`   | Total employee-leg inbound talk     | s / duration   | sum         | Menufy team only |
+| `max_hold_time_inbound`     | Maximum employee-leg inbound hold   | s / duration   | max         | Menufy team only |
 
 Use neutral direction and no inferred targets for the new definitions. Keep the five
 compatible definitions, their existing assignments and all average keys untouched.
@@ -141,8 +171,7 @@ cannot qualify September 20–26, so this replay claims only September 27–Octo
 The separate September 30 workbook reconciliation remains the closed-week evidence.
 
 The fresh encrypted backup/restore rehearsal passes for all 33 tables / 72,747
-rows, with matching digests and unchanged application data after migrations through
-0015. See `2026-10-01-production-restore-inbound-candidate.json`. Recovery is tied
+rows, with matching digests and unchanged application data after migrations through 0015. See `2026-10-01-production-restore-inbound-candidate.json`. Recovery is tied
 to this Windows profile; provider PITR and portable disaster recovery are not proven.
 Take another fresh recovery point if release is materially delayed or scope changes.
 

@@ -236,7 +236,33 @@ describe.sequential("inactive inbound source preflight (PostgreSQL)", () => {
         .where(eq(metricAssignments.metricDefinitionId, metric));
     }
   });
-  it("rejects missing, ambiguous or non-user identities", async () => {
+  it("accepts roster-discovered agent bindings without changing their metadata", async () => {
+    await db
+      .update(externalIdentities)
+      .set({ externalEntityType: "agent", matchMethod: "roster_discovery" })
+      .where(eq(externalIdentities.dataSourceId, source));
+    try {
+      const before = await db
+        .select()
+        .from(externalIdentities)
+        .where(eq(externalIdentities.dataSourceId, source));
+      expect(await load()).toEqual([
+        { employeeId: employee, teamId: team, externalId: identity.externalId },
+      ]);
+      expect(
+        await db
+          .select()
+          .from(externalIdentities)
+          .where(eq(externalIdentities.dataSourceId, source))
+      ).toEqual(before);
+    } finally {
+      await db
+        .update(externalIdentities)
+        .set({ externalEntityType: "user", matchMethod: "manual" })
+        .where(eq(externalIdentities.dataSourceId, source));
+    }
+  });
+  it("rejects missing, ambiguous or non-staff identities", async () => {
     await db.delete(externalIdentities).where(eq(externalIdentities.dataSourceId, source));
     try {
       await expect(load()).rejects.toThrow("identity");

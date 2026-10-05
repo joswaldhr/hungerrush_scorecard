@@ -56,7 +56,46 @@ the whole database over newer data. The encrypted backup is an emergency recover
 reference, not an automatic rollback action. No historical fact cleanup or metric
 repair is asserted by this adoption.
 
-Production execution has not occurred. Exact-candidate CI remains required. Zendesk,
-production application data, existing metric definitions/targets and frozen demo remain
-unchanged. Backups are Windows-profile-bound; portable disaster recovery/PITR remains
-unverified.
+## Observed production adoption
+
+Candidate `952f3d37495b3ae932a003aa9b2c8db841d738e1` passes PostgreSQL 18 CI
+`37367161929`, all 991 local tests and supplemental local Webpack build. GitHub's
+runner-assignment incident delayed CI; no gate was waived. A fresh post-collection
+restore matches all 33 tables / 137,967 rows and rehearses adoption/migrations without
+changing existing application digests. See `2026-10-05-post-collection-baseline-restore.json`.
+
+The guarded production operator subsequently adds exactly one known 0009 journal row.
+Read-only production readback at 20:25 UTC confirms 16 entries, no missing journal rows
+and a valid known-line-ending prefix. Strict byte hashes still differ where Windows
+line endings differ; no existing hash was rewritten. Policies/metrics remain unchanged.
+See `2026-10-05-baseline-adoption-production-readback.json`.
+
+## Next separate additive migration operation
+
+Scope is exactly pending `0016_roster_discovery_runs` and `0017_roster_observations`
+from the same tested candidate. Reuse the fresh verified recovery point and unchanged
+source configuration; check the exact known journal prefix and no running workers again.
+Execute the trusted migration statements and their two journal inserts atomically with
+bounded locks/timeouts. Compare existing application-table digests within that transaction,
+omitting only the newly added nullable roster-candidate columns as in the successful restore
+rehearsal. Refuse unknown/pending outcomes. Preserve existing employees, assignments,
+metric values/targets and source policies. There is no automatic deployment/activation.
+
+On failure, the transaction rolls back. After success, retain additive schema/journal
+evidence on application rollback; do not drop tables or restore over newer data.
+Record private execution intent/receipt and aggregate readback. This is a pre-execution
+manifest for these two migrations, not a statement that they have run.
+
+### Observed additive migration result
+
+The separate guarded operation subsequently commits both migrations and their journal
+entries atomically. All 32 pre-existing application table digests / 137,952 existing rows
+match within the transaction. Two new tables remain empty; the three new nullable roster
+candidate fields do not modify prior field values. Read-only production verification at
+20:29 UTC confirms all 18 known journal entries and no pending candidate entries.
+See `2026-10-05-roster-migrations-production-readback.json`. No application deployment,
+employee/metric change or source activation accompanies the migration. A fresh restore
+at 20:35 UTC matches all 35 tables / 138,044 rows and requires no baseline adoption.
+
+Zendesk and frozen demo remain unchanged. Backups are Windows-profile-bound; portable
+disaster recovery/PITR remains unverified.
