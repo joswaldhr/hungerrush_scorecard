@@ -7,12 +7,14 @@ import {
   employees,
   teamMemberships,
   users,
+  rosterObservations,
 } from "@/lib/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, desc, ne } from "drizzle-orm";
 import type { Connector } from "@/lib/connectors";
 import type { DiscoveredRosterMember } from "@/lib/connectors/types";
 import { logger } from "@/lib/logger";
 import { assertOrganizationResource } from "@/lib/auth/organization-scope";
+import { rosterMappingKey } from "./evidence";
 
 const AUTO_APPROVE_ABSOLUTE_MAX = 5;
 const AUTO_APPROVE_ROSTER_PERCENT = 0.3;
@@ -66,6 +68,7 @@ export async function discoverRosterCandidates(
     .innerJoin(employees, eq(employees.id, externalIdentities.employeeId))
     .where(assignmentScope);
 
+  const observedAt = new Date();
   const discovered = await connector.discoverRoster(
     { dataSourceId, organizationId: source.organizationId },
     groupMappings,
@@ -75,11 +78,18 @@ export async function discoverRosterCandidates(
 
   // Fetch externally before taking a database lock. Recheck configuration before writing.
   return db.transaction(async (tx) => {
-    await tx
-      .select({ id: dataSources.id })
+    const [currentSource] = await tx
+      .select()
       .from(dataSources)
       .where(eq(dataSources.id, dataSourceId))
       .for("update");
+    if (
+      !currentSource ||
+      currentSource.status !== "configured" ||
+      currentSource.type !== source.type ||
+      currentSource.configurationReference !== source.configurationReference
+    )
+      throw new Error("Roster source changed during discovery; retry required");
     await assertOrganizationResource(source.organizationId, "source", dataSourceId, tx);
     const currentAssignments = await tx
       .select(assignmentFields)
@@ -99,13 +109,7 @@ export async function discoverRosterCandidates(
       .select()
       .from(rosterSourceTeamMappings)
       .where(eq(rosterSourceTeamMappings.dataSourceId, dataSourceId));
-    const mappingKey = (rows: typeof mappings) =>
-      JSON.stringify(
-        rows
-          .map((row) => [row.id, row.externalGroupId, row.teamId, row.line])
-          .sort((a, b) => String(a[0]).localeCompare(String(b[0])))
-      );
-    if (mappingKey(currentMappings) !== mappingKey(mappings))
+    if (rosterMappingKey(currentMappings) !== rosterMappingKey(mappings))
       throw new Error("Roster mappings changed during discovery; retry required");
     await options.validatePublication?.(tx);
     for (const teamId of mappedTeamIds)
@@ -131,7 +135,7 @@ export async function discoverRosterCandidates(
     if (knownExternalIds.size !== known.length)
       throw new Error("Stored roster identities are ambiguous; review required");
     const organizationEmployees = await tx
-      .select({ email: employees.email })
+      .select()
       .from(employees)
       .where(eq(employees.organizationId, source.organizationId));
     const existingEmployeeEmails = new Set(
@@ -140,6 +144,126 @@ export async function discoverRosterCandidates(
       )
     );
 
+    const [latest] = await tx
+      .select()
+      .from(rosterObservations)
+      .where(eq(rosterObservations.dataSourceId, dataSourceId))
+      .orderBy(desc(rosterObservations.observedAt))
+      .limit(1);
+    if (latest && latest.observedAt >= observedAt)
+      throw new Error("A newer roster observation already exists; retry required");
+    const [observation] = await tx
+      .insert(rosterObservations)
+      .values({
+        dataSourceId,
+        observedAt,
+        sourceReference: source.configurationReference,
+        mappingKey: rosterMappingKey(mappings),
+        members: discovered.map((member) => ({
+          externalId: member.externalId,
+          teamId: member.teamId,
+          line: member.line ?? null,
+        })),
+      })
+      .returning();
+    const observationId = observation!.id;
+    const peopleById = new Map(organizationEmployees.map((person) => [person.id, person]));
+    const knownByKey = new Map(
+      known.map((identity) => [identityKey(identity.externalId), identity])
+    );
+    const previousState = (person: typeof employees.$inferSelect) => ({
+      primaryTeamId: person.primaryTeamId,
+      line: person.line,
+      employmentStatus: person.employmentStatus,
+    });
+    const transitionFor = (member: DiscoveredRosterMember) => {
+      const identity = knownByKey.get(identityKey(member.externalId));
+      const person = identity && peopleById.get(identity.employeeId);
+      if (!person) return null;
+      const changeType =
+        person.employmentStatus === "inactive"
+          ? "returned"
+          : person.employmentStatus === "active" &&
+              (person.primaryTeamId !== member.teamId || person.line !== (member.line ?? null))
+            ? "transferred"
+            : null;
+      return changeType ? { person, changeType } : null;
+    };
+    const pending = await tx
+      .select()
+      .from(rosterCandidates)
+      .where(
+        and(eq(rosterCandidates.dataSourceId, dataSourceId), eq(rosterCandidates.status, "pending"))
+      )
+      .for("update");
+    for (const candidate of pending) {
+      const member = discovered.find(
+        (row) => identityKey(row.externalId) === identityKey(candidate.externalId)
+      );
+      const transition = member && transitionFor(member);
+      const person = candidate.employeeId ? peopleById.get(candidate.employeeId) : undefined;
+      const valid =
+        candidate.changeType === "new"
+          ? !!member && !knownByKey.has(identityKey(candidate.externalId))
+          : candidate.changeType === "departed"
+            ? !member &&
+              person?.employmentStatus === "active" &&
+              !!person.primaryTeamId &&
+              mappedTeamIds.has(person.primaryTeamId)
+            : !!transition &&
+              transition.changeType === candidate.changeType &&
+              transition.person.id === candidate.employeeId;
+      await tx
+        .update(rosterCandidates)
+        .set(
+          valid
+            ? {
+                observationId,
+                ...(member
+                  ? {
+                      suggestedTeamId: member.teamId,
+                      suggestedLine: member.line ?? null,
+                      externalEmail: member.externalEmail,
+                      externalDisplayName: member.externalDisplayName,
+                    }
+                  : {}),
+                ...(person ? { previousEmployeeState: previousState(person) } : {}),
+              }
+            : { status: "withdrawn", withdrawnAt: observedAt }
+        )
+        .where(eq(rosterCandidates.id, candidate.id));
+    }
+    // Existing identities can return or move without becoming new employees.
+    for (const member of discovered) {
+      const transition = transitionFor(member);
+      if (!transition) continue;
+      const [prior] = await tx
+        .select()
+        .from(rosterCandidates)
+        .where(
+          and(
+            eq(rosterCandidates.dataSourceId, dataSourceId),
+            eq(rosterCandidates.employeeId, transition.person.id),
+            eq(rosterCandidates.changeType, transition.changeType),
+            inArray(rosterCandidates.status, ["pending", "rejected"])
+          )
+        )
+        .limit(1);
+      if (prior) continue;
+      await tx.insert(rosterCandidates).values({
+        dataSourceId,
+        observationId,
+        externalId: member.externalId,
+        externalEmail: member.externalEmail,
+        externalDisplayName: member.externalDisplayName,
+        changeType: transition.changeType,
+        employeeId: transition.person.id,
+        previousEmployeeState: previousState(transition.person),
+        suggestedTeamId: member.teamId,
+        suggestedLine: member.line ?? null,
+      });
+    }
+
     const pendingDepartures = await tx
       .select({ externalId: rosterCandidates.externalId })
       .from(rosterCandidates)
@@ -147,7 +271,7 @@ export async function discoverRosterCandidates(
         and(
           eq(rosterCandidates.dataSourceId, dataSourceId),
           eq(rosterCandidates.changeType, "departed"),
-          eq(rosterCandidates.status, "pending")
+          inArray(rosterCandidates.status, ["pending", "rejected"])
         )
       );
     const pendingDepartureIds = new Set(
@@ -157,7 +281,11 @@ export async function discoverRosterCandidates(
       .select({ externalId: rosterCandidates.externalId })
       .from(rosterCandidates)
       .where(
-        and(eq(rosterCandidates.dataSourceId, dataSourceId), eq(rosterCandidates.changeType, "new"))
+        and(
+          eq(rosterCandidates.dataSourceId, dataSourceId),
+          eq(rosterCandidates.changeType, "new"),
+          ne(rosterCandidates.status, "withdrawn")
+        )
       );
     const seenNewExternalIds = new Set(existingNewCandidates.map((c) => identityKey(c.externalId)));
 
@@ -256,6 +384,7 @@ export async function discoverRosterCandidates(
 
             await tx.insert(rosterCandidates).values({
               dataSourceId,
+              observationId,
               externalId: member.externalId,
               externalEmail: member.externalEmail,
               externalDisplayName: member.externalDisplayName,
@@ -274,6 +403,7 @@ export async function discoverRosterCandidates(
           });
           await tx.insert(rosterCandidates).values({
             dataSourceId,
+            observationId,
             externalId: member.externalId,
             externalEmail: member.externalEmail,
             externalDisplayName: member.externalDisplayName,
@@ -287,6 +417,7 @@ export async function discoverRosterCandidates(
       } else {
         await tx.insert(rosterCandidates).values({
           dataSourceId,
+          observationId,
           externalId: member.externalId,
           externalEmail: member.externalEmail,
           externalDisplayName: member.externalDisplayName,
@@ -323,6 +454,8 @@ export async function discoverRosterCandidates(
 
       await tx.insert(rosterCandidates).values({
         dataSourceId,
+        observationId,
+        previousEmployeeState: previousState(peopleById.get(identity.employeeId)!),
         externalId: identity.externalId,
         externalEmail: identity.externalEmail,
         externalDisplayName: identity.externalDisplayName,

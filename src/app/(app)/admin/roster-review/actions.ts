@@ -11,11 +11,14 @@ import {
   teamMemberships,
   dataSources,
 } from "@/lib/db/schema";
-import { eq, and, isNull, inArray, sql } from "drizzle-orm";
+import { eq, and, inArray, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { ZendeskConnector } from "@/lib/connectors";
 import type { Connector } from "@/lib/connectors";
 import { discoverRosterCandidates } from "@/lib/domain/roster/reconcile";
+
+import { assertCurrentRosterEvidence } from "@/lib/domain/roster/evidence";
+import { applyRosterTransition } from "@/lib/domain/roster/apply-transition";
 
 const CONNECTORS: Record<string, () => Connector> = {
   zendesk: () => new ZendeskConnector(),
@@ -33,11 +36,16 @@ export async function addGroupMapping(formData: FormData) {
   await assertOrganizationResource(organizationId, "source", dataSourceId);
   await assertOrganizationResource(organizationId, "team", teamId);
 
-  await db.insert(rosterSourceTeamMappings).values({
-    dataSourceId,
-    externalGroupId,
-    externalGroupLabel,
-    teamId,
+  await db.transaction(async (tx) => {
+    const [source] = await tx
+      .select()
+      .from(dataSources)
+      .where(and(eq(dataSources.id, dataSourceId), eq(dataSources.organizationId, organizationId)))
+      .for("update");
+    if (!source) throw new Error("Resource not found or not permitted");
+    await tx
+      .insert(rosterSourceTeamMappings)
+      .values({ dataSourceId, externalGroupId, externalGroupLabel, teamId });
   });
 
   revalidatePath("/admin/roster-review");
@@ -49,14 +57,37 @@ export async function removeGroupMapping(formData: FormData) {
   const mappingId = formData.get("mappingId") as string;
   if (!mappingId) return;
 
-  await db
-    .delete(rosterSourceTeamMappings)
-    .where(
-      and(
-        eq(rosterSourceTeamMappings.id, mappingId),
-        inArray(rosterSourceTeamMappings.dataSourceId, organizationSourceIds(organizationId))
+  await db.transaction(async (tx) => {
+    const [mapping] = await tx
+      .select()
+      .from(rosterSourceTeamMappings)
+      .where(
+        and(
+          eq(rosterSourceTeamMappings.id, mappingId),
+          inArray(rosterSourceTeamMappings.dataSourceId, organizationSourceIds(organizationId))
+        )
+      );
+    if (!mapping) return;
+    const [source] = await tx
+      .select()
+      .from(dataSources)
+      .where(
+        and(
+          eq(dataSources.id, mapping.dataSourceId),
+          eq(dataSources.organizationId, organizationId)
+        )
       )
-    );
+      .for("update");
+    if (!source) return;
+    await tx
+      .delete(rosterSourceTeamMappings)
+      .where(
+        and(
+          eq(rosterSourceTeamMappings.id, mappingId),
+          eq(rosterSourceTeamMappings.dataSourceId, source.id)
+        )
+      );
+  });
 
   revalidatePath("/admin/roster-review");
 }
@@ -124,6 +155,7 @@ export async function approveNewCandidate(formData: FormData) {
     if (!candidate || candidate.status !== "pending" || candidate.changeType !== "new") return;
     if (candidate.dataSourceId !== source.id)
       throw new Error("Roster candidate changed during review; refresh required");
+    await assertCurrentRosterEvidence(tx, source, candidate);
     const [existingIdentity] = await tx
       .select({ id: externalIdentities.id })
       .from(externalIdentities)
@@ -202,57 +234,21 @@ export async function approveNewCandidate(formData: FormData) {
 
 export async function approveDeparture(formData: FormData) {
   const { organizationId, userId } = await requireAdmin();
-
   const candidateId = formData.get("candidateId") as string;
   if (!candidateId) return;
-
-  await db.transaction(async (tx) => {
-    const [candidate] = await tx
-      .select()
-      .from(rosterCandidates)
-      .where(
-        and(
-          eq(rosterCandidates.id, candidateId),
-          inArray(rosterCandidates.dataSourceId, organizationSourceIds(organizationId))
-        )
-      )
-      .for("update");
-    if (!candidate || candidate.status !== "pending" || candidate.changeType !== "departed") return;
-    if (!candidate.employeeId) return;
-    await assertOrganizationResource(organizationId, "employee", candidate.employeeId, tx);
-
-    const today = new Date().toISOString().split("T")[0]!;
-
-    await tx
-      .update(employees)
-      .set({ employmentStatus: "inactive", updatedAt: new Date() })
-      .where(
-        and(eq(employees.id, candidate.employeeId), eq(employees.organizationId, organizationId))
-      );
-
-    await tx
-      .update(teamMemberships)
-      .set({ effectiveTo: today })
-      .where(
-        and(
-          eq(teamMemberships.employeeId, candidate.employeeId),
-          isNull(teamMemberships.effectiveTo)
-        )
-      );
-
-    await tx
-      .update(rosterCandidates)
-      .set({ status: "approved", reviewedAt: new Date(), reviewedBy: userId })
-      .where(
-        and(
-          eq(rosterCandidates.id, candidateId),
-          inArray(rosterCandidates.dataSourceId, organizationSourceIds(organizationId))
-        )
-      );
-  });
-
+  await applyRosterTransition(
+    organizationId,
+    userId,
+    candidateId,
+    String(formData.get("observationId") ?? "")
+  );
   revalidatePath("/admin/roster-review");
   revalidatePath("/admin/employees");
+  revalidatePath("/one-on-ones");
+}
+
+export async function approveExistingEmployeeChange(formData: FormData) {
+  await approveDeparture(formData);
 }
 
 export async function rejectCandidate(formData: FormData) {

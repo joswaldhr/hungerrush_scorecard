@@ -10,6 +10,7 @@ import {
   dataSources,
   rosterSourceTeamMappings,
   rosterCandidates,
+  rosterObservations,
   users,
   employees,
   externalIdentities,
@@ -43,6 +44,7 @@ function fakeConnector(members: DiscoveredRosterMember[]): Connector {
 
 async function cleanup() {
   await db.delete(rosterCandidates).where(eq(rosterCandidates.dataSourceId, DATA_SOURCE_ID));
+  await db.delete(rosterObservations).where(eq(rosterObservations.dataSourceId, DATA_SOURCE_ID));
   await db.delete(teamMemberships).where(eq(teamMemberships.teamId, TEAM_ID));
   await db.delete(externalIdentities).where(eq(externalIdentities.dataSourceId, DATA_SOURCE_ID));
   await db.delete(employees).where(eq(employees.organizationId, ORG_ID));

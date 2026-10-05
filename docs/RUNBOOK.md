@@ -30,6 +30,15 @@ shared `.env` database.
 
 ### Independent roster discovery candidate
 
+Lifecycle candidate migration 0017 adds observation/proposal evidence without changing
+existing assignments. After deployment, rediscover before approving old proposals: legacy
+rows have no fabricated observation. Reviews expire after 36 hours and require the latest
+compatible observation; refresh the page after discovery. Transfers/returns take effect on
+the UTC review date and retain employee identity/history. A departure with another membership
+or an empty source roster is refused. These are administrator-reviewed transitions, not
+automatic employment decisions. Unattended archival remains disabled pending its source
+authority, consecutive-observation/grace-period policy and anomaly gates.
+
 `/api/cron/roster` is disabled unless `ROSTER_DISCOVERY_SOURCE_ID` selects one configured,
 account-bound Zendesk source with group mappings. Deploy migration 0016 first after a
 fresh recovery rehearsal. No schedule is installed by this change. Keep the variable unset

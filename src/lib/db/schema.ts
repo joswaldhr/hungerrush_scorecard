@@ -604,6 +604,23 @@ export const rosterDiscoveryRuns = pgTable(
   ]
 );
 
+export const rosterObservations = pgTable(
+  "roster_observations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    dataSourceId: uuid("data_source_id")
+      .notNull()
+      .references(() => dataSources.id),
+    observedAt: timestamp("observed_at", { withTimezone: true }).notNull().defaultNow(),
+    sourceReference: text("source_reference"),
+    mappingKey: text("mapping_key").notNull(),
+    members: jsonb("members")
+      .$type<{ externalId: string; teamId: string; line: string | null }[]>()
+      .notNull(),
+  },
+  (table) => [index("roster_observations_source_time_idx").on(table.dataSourceId, table.observedAt)]
+);
+
 export const rosterCandidates = pgTable(
   "roster_candidates",
   {
@@ -618,6 +635,13 @@ export const rosterCandidates = pgTable(
     employeeId: uuid("employee_id").references(() => employees.id),
     suggestedTeamId: uuid("suggested_team_id").references(() => teams.id),
     suggestedLine: text("suggested_line"),
+    observationId: uuid("observation_id").references(() => rosterObservations.id),
+    previousEmployeeState: jsonb("previous_employee_state").$type<{
+      primaryTeamId: string | null;
+      line: string | null;
+      employmentStatus: string;
+    }>(),
+    withdrawnAt: timestamp("withdrawn_at", { withTimezone: true }),
     status: text("status").notNull().default("pending"),
     reviewedBy: uuid("reviewed_by").references(() => users.id),
     reviewedAt: timestamp("reviewed_at", { withTimezone: true }),

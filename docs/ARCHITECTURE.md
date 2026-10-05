@@ -250,6 +250,16 @@ out of legacy cron discovery and into this worker. It defaults unset, has no sch
 and is forbidden in the synthetic main Preview. Scheduling/activation and lifecycle rules
 remain release work; deploying candidate code alone enables neither.
 
+The next lifecycle candidate stores complete observations and ties proposals to them.
+Successful discovery withdraws stale proposals and refreshes supported suggestions; explicit
+human rejections persist. Known identities changing team/line or returning from inactivity
+produce review-only transitions. Approval revalidates source/mappings, latest observation
+(36-hour maximum), loaded-page observation for existing employees, and prior employee state.
+Transfers/returns retain employee IDs and membership history. Reviewed departures cannot
+archive someone with another team membership or from an empty source roster. Group-mapping
+edits share the source lock with discovery/approval. Legacy proposals without observation
+evidence require rediscovery. Automatic archival and lifecycle scheduling remain disabled.
+
 The October 5 read-only comparison confirms all 62 active pilot employees in their mapped
 Zendesk groups. Immediate Entra direct reports are not the same cohort: supervisor-level
 relationships match 61 of the 62. Six pending POS additions match both enabled manager
