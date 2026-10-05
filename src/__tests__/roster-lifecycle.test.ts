@@ -320,3 +320,25 @@ it("changes a line in the same team without duplicating membership", async () =>
     await db.select().from(teamMemberships).where(eq(teamMemberships.employeeId, person))
   ).toHaveLength(1);
 });
+
+it("refuses an older response arriving after a newer complete observation", async () => {
+  await expect(
+    discoverRosterCandidates(
+      {
+        discoverRoster: async () => {
+          await discover([member(first)]);
+          return [member(second)];
+        },
+      } as unknown as Connector,
+      source,
+      { reviewOnly: true }
+    )
+  ).rejects.toThrow("newer roster observation");
+  expect(
+    await db.select().from(rosterObservations).where(eq(rosterObservations.dataSourceId, source))
+  ).toHaveLength(1);
+  expect(
+    await db.select().from(rosterCandidates).where(eq(rosterCandidates.dataSourceId, source))
+  ).toHaveLength(0);
+  expect((await savedPerson()).primaryTeamId).toBe(first);
+});

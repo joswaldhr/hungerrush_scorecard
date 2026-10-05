@@ -549,19 +549,30 @@ describe("discoverRosterCandidates", () => {
         teamId: TEAM_ID,
       },
     ]);
-    const results = await Promise.all([
+    const settled = await Promise.allSettled([
       discoverRosterCandidates(connector, DATA_SOURCE_ID),
       discoverRosterCandidates(connector, DATA_SOURCE_ID),
     ]);
+    const results = settled.flatMap((result) =>
+      result.status === "fulfilled" ? [result.value] : []
+    );
+    expect(results.length).toBeGreaterThan(0);
+    for (const result of settled)
+      if (result.status === "rejected")
+        expect(String(result.reason)).toContain("newer roster observation");
     expect(results.reduce((total, result) => total + result.autoApproved, 0)).toBe(1);
     expect(await db.select().from(employees).where(eq(employees.email, email))).toHaveLength(1);
     expect(
       await db.select().from(rosterCandidates).where(eq(rosterCandidates.externalId, email))
     ).toHaveLength(1);
-    await Promise.all([
+    const departuresSettled = await Promise.allSettled([
       discoverRosterCandidates(fakeConnector([]), DATA_SOURCE_ID),
       discoverRosterCandidates(fakeConnector([]), DATA_SOURCE_ID),
     ]);
+    expect(departuresSettled.some((result) => result.status === "fulfilled")).toBe(true);
+    for (const result of departuresSettled)
+      if (result.status === "rejected")
+        expect(String(result.reason)).toContain("newer roster observation");
     const departures = await db
       .select()
       .from(rosterCandidates)
