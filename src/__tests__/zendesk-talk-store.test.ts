@@ -92,6 +92,66 @@ it("serializes workers across data sources bound to the same account", async () 
   expect(claims.filter((x) => x.acquired)).toHaveLength(1);
 });
 
+it("isolates the explicit POS hold projection while retaining the shared account lease", async () => {
+  const owned = await own();
+  const standard = await beginTalkCollectionCycle(owned, "calls", start);
+  await commitTalkCollectionPage(owned, "calls", standard.expectedHash, page());
+  const participation = (await records()).filter((r) =>
+    [
+      "zendesk_talk_collection_checkpoint_v1",
+      "zendesk_talk_collection_record_v1",
+      "zendesk_talk_collection_revision_v1",
+    ].includes(r.externalRecordType)
+  );
+  const projected = { ...owned, projection: "pos-call-hold-v1" as const };
+  expect(await claimTalkCollection(projected)).toMatchObject({ acquired: false });
+  const initial = await beginTalkCollectionCycle(projected, "calls", start);
+  expect(initial.state.cursor.pages).toBe(0);
+  const holdCall = { ...call(), hold_time: 0 };
+  const cycle = await commitTalkCollectionPage(
+    projected,
+    "calls",
+    initial.expectedHash,
+    page([holdCall])
+  );
+  await commitTalkCollectionPage(projected, "calls", cycle.expectedHash, page([], 500));
+  const legs = await beginTalkCollectionCycle(projected, "legs", start);
+  await commitTalkCollectionPage(projected, "legs", legs.expectedHash, {
+    legs: [],
+    count: 0,
+    end_time: 500,
+    next_page: null,
+  });
+  const snapshot = await readTalkCollectionSnapshot(projected);
+  expect(snapshot.status).toBe("ready_for_qualification");
+  expect(snapshot.snapshot?.calls[0]).toHaveProperty("hold_time", 0);
+  expect(snapshot.snapshot?.calls[0]).not.toHaveProperty("customer_phone");
+  expect((await records()).filter((r) => participation.some((p) => p.id === r.id))).toEqual(
+    participation
+  );
+  await releaseTalkCollection(owned);
+});
+
+it("rolls back missing POS hold fields and rejects unknown projections without advancing checkpoints", async () => {
+  const owned = await own();
+  const projected = { ...owned, projection: "pos-call-hold-v1" as const };
+  const cycle = await beginTalkCollectionCycle(projected, "calls", start);
+  const before = await records();
+  await expect(
+    commitTalkCollectionPage(projected, "calls", cycle.expectedHash, page())
+  ).rejects.toThrow();
+  expect(await records()).toEqual(before);
+  await expect(
+    beginTalkCollectionCycle(
+      { ...owned, projection: "unknown" as "pos-call-hold-v1" },
+      "calls",
+      start
+    )
+  ).rejects.toThrow("Unknown");
+  expect(await records()).toEqual(before);
+  await releaseTalkCollection(owned);
+});
+
 it("blocks the durable worker while a legacy fetch owns another source in the same account", async () => {
   let started!: () => void, finish!: () => void;
   const entered = new Promise<void>((resolve) => {
