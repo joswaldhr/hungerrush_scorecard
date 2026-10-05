@@ -1,5 +1,48 @@
 # Metric acceptance ledger
 
+## October 5 — POS qualification scope and completion clarification
+
+The user requested bringing the POS manager's metrics to the same standard as Menufy.
+Menufy is **not fully certified**: the October 2 checkpoint confirms interactive Preview
+sign-in and core reads, not completed hosted export verification, inbound production
+activation or genuine scheduled recovery. Human ticket activity and other unresolved
+definitions remain separate gaps. Do not carry the dated arithmetic counts below forward
+as a current completion percentage; refresh inventory and source observations first.
+
+Initial POS evidence review reuses the retained September 25 inbound comparison and
+September 28 outbound release. The latter independently matched 195 published values
+across 39 employees for one controlled observation. The inbound comparison matched 55
+report rows and all 2,012 source legs for September 13–19. These are historical evidence,
+not current freshness or complete-contract certification. Four selected historical group
+labels were unresolved. The report's abandonment label includes IVR/queue/voicemail
+abandonment, and its hold mean repeats whole-call hold across joined legs; reproducing
+those formulas does not establish that their labels describe employee performance.
+
+POS work proceeds in this order:
+
+1. Refresh read-only production inventory, bindings, reporting periods, active policies
+   and failed/stale jobs. Reconcile the current assignment denominator; preserve the
+   prior observations and distinguish controlled runs from actual scheduled execution.
+2. Establish POS report-specific definitions and scope from retained reports/source
+   evidence. Resolve call versus leg date, agent/supervisor participation, selected groups,
+   zero/null behavior and the abandonment/hold discrepancies. Do not inherit Menufy's
+   SUM/MAX, offered-call components or date basis merely because its implementation exists.
+3. Independently reconcile every eligible POS employee for two closed periods and the
+   current period where source history supports it. Require exact source membership,
+   counts, duration sums and measured denominators before display rounding; retain missing
+   parent/source coverage as unavailable. Reuse existing outbound/CSAT evidence and
+   investigate the specific remaining gaps rather than restarting those families.
+4. Verify matching hosted scorecard/history/PDF/PNG/CSV snapshots, then complete fresh
+   recovery, scoped production canary and genuinely scheduled refresh checks. Publish
+   only qualified families; preserve unrelated metrics and the frozen demonstration.
+5. Close ticket-human attribution, elevated work, handling/backlog and target-context
+   dependencies separately for each applicable assignment. Never mark either team complete
+   solely because call arithmetic, sign-in, a deployment or a synthetic fixture passes.
+
+This increment changes documentation only. No new source reads, report editors, production
+writes, deployment changes or policy activation occurred. The main implementation ledger
+continues to own release state; the dated sections below retain their historical context.
+
 ## September 28 acceptance requirement
 
 The user requires **100% metric accuracy and 100% reporting**, reaffirmed after PR32's
