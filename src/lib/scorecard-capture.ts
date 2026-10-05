@@ -6,12 +6,16 @@ export function freezeScorecardCapture(source: HTMLElement, snapshot: ExportSnap
   const container = document.createElement("div");
   container.setAttribute("aria-hidden", "true");
   const styles = getComputedStyle(source);
+  // The live tables can scroll in a narrow panel. Give the frozen export enough
+  // room for every column instead of capturing only the visible scroll viewport.
+  const contentWidth = Math.max(source.getBoundingClientRect().width, source.scrollWidth, 1024);
   Object.assign(container.style, {
     position: "absolute",
     left: "-100000px",
     top: "0",
     padding: "24px",
-    width: `${Math.max(source.getBoundingClientRect().width, 600) + 48}px`,
+    boxSizing: "border-box",
+    width: `${contentWidth + 48}px`,
     color: styles.color,
     fontFamily: styles.fontFamily,
     backgroundColor: getComputedStyle(document.body).backgroundColor,
