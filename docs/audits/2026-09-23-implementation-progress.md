@@ -19,7 +19,15 @@ manual approvals against discovery using the source lock. Two concurrent candida
 the same normalized source identity cannot both create employees. Existing inactive records
 and history remain intact. Fifty-one focused PostgreSQL/connector tests pass, including
 five new regressions; typecheck, scoped lint and formatting pass. Initial new-fixture errors
-were corrected before these passing checks. Full candidate CI is pending. This is not yet
+were corrected before these passing checks. Candidate `a761dbd` passes full CI
+`37337771810`. Follow-up connector hardening bounds the entire roster to 40 requests and
+a 90-second pre-request budget, with the existing 30-second individual request timeout;
+HTTP 429 defers immediately instead of sleeping/retrying inside discovery. Budget/rate
+failures throw before any reconciliation writes. Fifty-four focused tests pass, including
+three budget/defer regressions; follow-up exact-candidate CI remains pending. A further
+single bounded Graph exact-mail GET finds the unmatched POS account uniquely and enabled,
+but its reporting relationship remains unverified. No employee was removed or added.
+This is not yet
 a production release or completed lifecycle automation: stale candidate refresh, transfers,
 returns, independent roster scheduling/health and confirmed removal policy remain open.
 The prior metric coverage/publication gates remain unchanged.

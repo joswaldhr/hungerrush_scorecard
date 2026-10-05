@@ -9,6 +9,45 @@ const config = { organizationId: "synthetic-org", dataSourceId: "synthetic-sourc
 const user = { id: 42, email: "synthetic@example.invalid", name: "Synthetic", active: true };
 beforeEach(() => vi.resetAllMocks());
 
+it("bounds requests across all groups instead of returning a truncated roster", async () => {
+  vi.mocked(zendeskGet).mockResolvedValue({ group_memberships: [], next_page: null });
+  const mappings = Array.from({ length: 41 }, (_, i) => ({
+    externalGroupId: String(i + 1),
+    teamId: "team-a",
+  }));
+  await expect(new ZendeskConnector().discoverRoster(config, mappings)).rejects.toThrow(
+    "budget exhausted"
+  );
+  expect(zendeskGet).toHaveBeenCalledTimes(40);
+});
+
+it("stops paging after the elapsed budget without publishing a partial membership", async () => {
+  let now = 0;
+  const clock = vi.spyOn(Date, "now").mockImplementation(() => now);
+  vi.mocked(zendeskGet).mockImplementation(async () => {
+    now = 90_000;
+    return { group_memberships: [], next_page: "/groups/1/memberships.json?page=2" };
+  });
+  try {
+    await expect(
+      new ZendeskConnector().discoverRoster(config, [{ externalGroupId: "1", teamId: "team-a" }])
+    ).rejects.toThrow("budget exhausted");
+    expect(zendeskGet).toHaveBeenCalledOnce();
+  } finally {
+    clock.mockRestore();
+  }
+});
+
+it("defers rate limiting rather than sleeping inside a roster request", async () => {
+  vi.mocked(zendeskGet).mockRejectedValue(new Error("Source cooldown"));
+  await expect(
+    new ZendeskConnector().discoverRoster(config, [{ externalGroupId: "1", teamId: "team-a" }])
+  ).rejects.toThrow("Source cooldown");
+  expect(zendeskGet).toHaveBeenCalledExactlyOnceWith("/groups/1/memberships.json", undefined, {
+    deferRateLimit: true,
+  });
+});
+
 it.each(["restaurant", "consumer"])(
   "retains the existing %s line for one account in both line groups",
   async (line) => {
