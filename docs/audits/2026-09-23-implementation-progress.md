@@ -1,5 +1,25 @@
 # Audit implementation — current checkpoint
 
+**October 5 — main Preview available for user testing:** Recovered the existing staging
+connection through the signed-in Railway staging service without modifying Railway variables.
+An explicit guarded command migrated only the isolated staging database through 0017 and
+created three synthetic review proposals: transfer, return and departure. All remained pending;
+no approvals were executed. Candidate `75daee2` is READY as
+`dpl_9kdMDHkAQdg3TNfiFYTQZ7X5T1v2` on the existing `-6aedad-` main Preview alias.
+The build uses the Preview isolation gate and does not perform migrations or fixture resets.
+
+Browser control became unavailable after the session/tool change, so hosted approval clicks,
+post-transition visibility and authenticated browser regression checks on this deployment
+remain unverified. Cleanup restored the synthetic reviewer to non-admin and removed only the
+three rehearsal employees, their proposals, source and teams. A subsequent read-only check
+verified cleanup and all 18 migrations. The existing ordinary manager scorecard fixtures
+remain available for user testing. Protected HTTP checks returned 200 for the Microsoft
+sign-in page and 307 for unauthenticated 1:1s. These do not verify Microsoft callback success.
+The staging connection was encrypted for this Windows profile; its temporary plaintext file
+was removed. Production and frozen demo aliases still point to their prior deployments.
+Aggregate evidence: `2026-10-05-main-preview-live-test.json`. No Zendesk requests, production
+writes, source activation or metric certification occurred in this rollout.
+
 **October 5 — roster lifecycle candidate implemented:** Migration 0017 records complete
 observations and links proposals to their evidence. Successful reconciliation withdraws
 unsupported proposals, refreshes supported proposals and discovers transfers/returns of known
@@ -20,13 +40,15 @@ Preview candidate `75daee2` passes `37346619284`. A fresh restore reproduced all
 85,651 rows with identical digests; migrations through 0017 preserved existing data in the
 restored copy (`2026-10-05-roster-lifecycle-restore-rehearsal.json`).
 
-Hosted migration/UI rehearsal is blocked on the staging connection credential. Both the
+At that checkpoint, hosted migration/UI rehearsal was blocked on the staging connection
+credential. Both the
 retained and fresh Vercel environment pulls contain `[SENSITIVE]` placeholders; the exact
 destination guard refused before any database access or temporary-role change. The user was
 asked to save the staging URL locally and provide only its path. No new Preview deployment
 was requested; the previously verified `dbc1e5a` deployment remains. The prepared guarded
 synthetic rehearsal will restore its temporary staging role and remove only its own fixtures.
-No production/Preview schema, assignments, schedules or policies have changed. Unattended
+At that checkpoint no production/Preview schema, assignments, schedules or policies had
+changed. The later Preview-only migration is recorded above. Unattended
 archival policy, unresolved source-authority exceptions and metric coverage/certification are
 still open; this candidate does not establish either manager's complete reporting accuracy.
 

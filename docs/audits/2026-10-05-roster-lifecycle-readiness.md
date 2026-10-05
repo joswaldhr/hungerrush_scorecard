@@ -38,8 +38,13 @@ observations; proposals withdraw/refresh, known identities transfer/return, and 
 departures preserve history. Fourteen new lifecycle regressions cover these paths. Approvals
 expire after 36 hours or incompatible newer evidence; other memberships/empty rosters block
 archival. Automatic archival, repeated-absence policy, exception resolution and independent
-scheduled activation remain unimplemented/inactive. Hosted UI verification requires the
-staging DB credential, which Vercel does not return for sensitive variables.
+scheduled activation remain unimplemented/inactive. The existing Railway staging connection
+was recovered and the isolated staging migration through 0017 completed. Main Preview
+`75daee2` / `dpl_9kdMDHkAQdg3TNfiFYTQZ7X5T1v2` is READY for user scorecard testing.
+Three synthetic lifecycle proposals were created successfully, remained pending and were
+cleaned up with the temporary staging admin role. Browser control became unavailable before
+hosted approval checks; those checks and post-transition visibility remain release gates.
+See `2026-10-05-main-preview-live-test.json`; ordinary manager fixtures remain available.
 
 1. **Identity safeguards implemented in candidate:** normalized Zendesk comparison, ambiguity
    rejection, existing-employee preservation and serialized new-candidate approvals. Connector
