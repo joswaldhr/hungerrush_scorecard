@@ -9,10 +9,23 @@ Transitions preserve employee IDs, source bindings and prior membership interval
 cannot apply from an empty roster or archive someone with another active/scheduled membership.
 Source-mapping edits now share discovery/approval's lock. Explicit rejections remain intact.
 
-Ninety-seven focused tests pass, including thirteen new lifecycle cases covering transfer,
+Ninety-eight focused tests pass, including fourteen new lifecycle cases covering transfer,
 return, archive, stale withdrawal/page, organization scope, membership conflict, source failure,
 line change and rollback. Typecheck/scoped lint pass after correcting new test fixture types.
-Full CI, restored-copy migration rehearsal and hosted synthetic lifecycle review remain pending.
+Initial CI `37345865612` caught the old concurrency test expecting both discoveries to
+succeed. The test now accepts the deliberately fenced older observation and verifies zero
+duplicate writes; a separate delayed-response regression verifies stale results cannot replace
+newer evidence. Recovery candidate `8e9f080` passes full CI `37346587135`; equivalent main
+Preview candidate `75daee2` passes `37346619284`. A fresh restore reproduced all 33 tables /
+85,651 rows with identical digests; migrations through 0017 preserved existing data in the
+restored copy (`2026-10-05-roster-lifecycle-restore-rehearsal.json`).
+
+Hosted migration/UI rehearsal is blocked on the staging connection credential. Both the
+retained and fresh Vercel environment pulls contain `[SENSITIVE]` placeholders; the exact
+destination guard refused before any database access or temporary-role change. The user was
+asked to save the staging URL locally and provide only its path. No new Preview deployment
+was requested; the previously verified `dbc1e5a` deployment remains. The prepared guarded
+synthetic rehearsal will restore its temporary staging role and remove only its own fixtures.
 No production/Preview schema, assignments, schedules or policies have changed. Unattended
 archival policy, unresolved source-authority exceptions and metric coverage/certification are
 still open; this candidate does not establish either manager's complete reporting accuracy.

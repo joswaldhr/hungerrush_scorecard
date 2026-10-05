@@ -32,6 +32,15 @@ proposals without changing employees. Do not infer authority from login eligibil
 
 ## Implementation sequence
 
+October 5 follow-up: steps 3 and the administrator-reviewed portion of step 4 are now
+implemented in candidate `8e9f080` (full CI `37346587135`). Migration 0017 retains complete
+observations; proposals withdraw/refresh, known identities transfer/return, and reviewed
+departures preserve history. Fourteen new lifecycle regressions cover these paths. Approvals
+expire after 36 hours or incompatible newer evidence; other memberships/empty rosters block
+archival. Automatic archival, repeated-absence policy, exception resolution and independent
+scheduled activation remain unimplemented/inactive. Hosted UI verification requires the
+staging DB credential, which Vercel does not return for sensitive variables.
+
 1. **Identity safeguards implemented in candidate:** normalized Zendesk comparison, ambiguity
    rejection, existing-employee preservation and serialized new-candidate approvals. Connector
    discovery has request/time limits and immediate rate-limit deferral. Full CI passed for
