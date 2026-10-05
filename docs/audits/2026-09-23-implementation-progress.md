@@ -15,9 +15,13 @@ A fresh encrypted read-only production backup restored all 33 source tables / 85
 with matching digests. Candidate migrations through 0016 applied only to the disposable
 restored copy and preserved existing application data. Aggregate evidence:
 `2026-10-05-roster-worker-restore-rehearsal.json`. Recovery requires this Windows profile;
-this is not provider PITR or a portable disaster-recovery backup. Exact worker-candidate
-full CI is pending. Lifecycle automation, source authority/exceptions, scheduled activation,
+this is not provider PITR or a portable disaster-recovery backup. Worker candidate `e7877d3`
+passes full CI `37340161014`, including PostgreSQL migrations, tests and production build.
+Lifecycle automation, source authority/exceptions, scheduled activation,
 and metric completeness/publication gates remain open; neither manager is fully certified.
+The concrete remaining behavior, acceptance and rollout sequence is recorded in
+`2026-10-05-roster-lifecycle-readiness.md`. It distinguishes proposed automation from
+implemented candidate safeguards and production behavior.
 
 **October 5 — roster authority checked; duplicate-identity safeguards implemented:**
 Two bounded Graph direct-report GETs and twelve supervisor-level GETs establish that
