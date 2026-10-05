@@ -1,5 +1,27 @@
 # Audit implementation — current checkpoint
 
+**October 5 — full local catalog suite and fresh source replay:** All 979 local tests in
+122 files pass on the isolated PostgreSQL 16 cluster. Candidate `2992e8e` is pushed;
+PostgreSQL 18 CI run `37363666846` passes the full test suite, typecheck, lint,
+migrations, read-only guards and production build. This is not a production registration or release.
+
+A new bounded calls-and-legs delta uses six Talk GETs and a 37,965 ms joined observation
+span. Four staff GETs reverify all 23 active Menufy bindings. The independently calculated
+last/current-week replay matches 414 values, 414 source sets and 552 duration-evidence
+comparisons with zero differences and zero Menufy parent blocks. Source captures remain
+private; only aggregate reports are committed. No metric/checkpoint writes or publication
+occurred; the account lease is released.
+
+Fresh coverage supersedes the earlier catch-up: five global parents are missing, including
+two affecting three agents in the retained POS diagnostic cohort. The previous two gaps
+were not recovered and three new gaps appeared. A bounded retained-file search examines
+64,253 call records without a match. Cause and reporting period remain unknown; do not
+infer them from leg timestamps or certify affected values. See
+`2026-10-05-menufy-inbound-final-reconciliation.json` and
+`2026-10-05-fresh-parent-coverage.json`. Production migration baseline/recovery,
+prospective registration, durable collection, persisted parity and actual scheduling remain
+release gates. Neither complete manager pack is certified; frozen demo and Zendesk are unchanged.
+
 **October 5 — approved completion plan, catalog registration candidate:** The user approved
 the eight-step completion plan: required inventory, Menufy production calls, POS qualification,
 remaining attribution/history sources, lifecycle/historical context, production gates, actual

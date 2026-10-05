@@ -14,8 +14,9 @@ inside the transaction. Catalog/configuration writers are fenced with bounded ta
 any failure rolls back all additions. Pre-existing addition keys of any version are refused.
 Private returned IDs identify created rows for rollback planning; they do not certify release.
 Eight real PostgreSQL catalog regressions and nine existing binding/publication regressions
-pass locally. New-candidate PostgreSQL 18 CI and production recovery/activation gates remain
-required. Production registration has not occurred.
+pass locally. All 979 tests in 122 files pass locally; candidate `2992e8e` also passes
+PostgreSQL 18 full CI `37363666846`, including lint, typecheck, migrations and production
+build. Production recovery/activation gates remain required; registration has not occurred.
 
 Application candidate `8e9f080` and equivalent main Preview `75daee2` pass full CI.
 Hosted checks on Ready deployment `dpl_9kdMDHkAQdg3TNfiFYTQZ7X5T1v2` now verify
@@ -62,6 +63,14 @@ lacks the known 0009 row although the three checked schema invariants exist, and
 0016/0017 are not deployed. Do not interpret that census as a clean migration prefix.
 Rehearsed restore compatibility is separate from a fresh production migration gate.
 Production and frozen demo remain unchanged.
+
+The later fresh calls-and-legs delta retains this zero-difference Menufy result with a
+37,965 ms joined observation span and reverified current employee identities. Coverage
+now has five global missing parents, including two affecting three agents in the retained
+POS cohort; none affects the active Menufy cohort. Missing-parent cause/period remains
+unknown. See `2026-10-05-menufy-inbound-final-reconciliation.json` and
+`2026-10-05-fresh-parent-coverage.json`. These are source replay evidence, not persisted
+production publication or historical eligibility certification.
 
 ## Change manifest
 
