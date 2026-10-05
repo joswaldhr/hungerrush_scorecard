@@ -444,6 +444,66 @@ describe("organization-scoped admin actions", () => {
         )
     ).toHaveLength(1);
   });
+
+  it("keeps an existing inactive employee intact when a new candidate uses the same email", async () => {
+    const email = "return-existing@example.invalid";
+    const [person] = await db
+      .insert(employees)
+      .values({
+        organizationId: a.org,
+        displayName: "Existing inactive employee",
+        email,
+        employmentStatus: "inactive",
+        primaryTeamId: a.team,
+      })
+      .returning();
+    const [candidate] = await db
+      .insert(rosterCandidates)
+      .values({
+        dataSourceId: a.source,
+        externalId: "return-unbound",
+        externalEmail: email.toUpperCase(),
+        changeType: "new",
+        suggestedTeamId: a.team,
+      })
+      .returning();
+    await expect(
+      approveNewCandidate(form({ candidateId: candidate!.id, teamId: a.team }))
+    ).rejects.toThrow("already exists");
+    expect(await db.select().from(employees).where(eq(employees.id, person!.id))).toEqual([person]);
+    const [unchanged] = await db
+      .select()
+      .from(rosterCandidates)
+      .where(eq(rosterCandidates.id, candidate!.id));
+    expect(unchanged?.status).toBe("pending");
+  });
+
+  it("serializes different candidates for the same normalized source identity", async () => {
+    const candidates = await db
+      .insert(rosterCandidates)
+      .values([
+        { dataSourceId: a.source, externalId: "same-source@example.invalid", changeType: "new" },
+        { dataSourceId: a.source, externalId: "SAME-SOURCE@example.invalid", changeType: "new" },
+      ])
+      .returning();
+    const results = await Promise.allSettled(
+      candidates.map((candidate) =>
+        approveNewCandidate(form({ candidateId: candidate.id, teamId: a.team }))
+      )
+    );
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
+    const saved = await db
+      .select()
+      .from(rosterCandidates)
+      .where(
+        inArray(
+          rosterCandidates.id,
+          candidates.map((candidate) => candidate.id)
+        )
+      );
+    expect(saved.map((candidate) => candidate.status).sort()).toEqual(["approved", "pending"]);
+  });
 });
 
 it("clears the suggested line when manual approval changes the suggested team", async () => {

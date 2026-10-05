@@ -1,5 +1,29 @@
 # Audit implementation — current checkpoint
 
+**October 5 — roster authority checked; duplicate-identity safeguards implemented:**
+Two bounded Graph direct-report GETs and twelve supervisor-level GETs establish that
+immediate manager reports are not the operational agent cohort. Supervisor relationships
+match 38/39 POS and 23/23 Menufy active employees by exact normalized mail/UPN. One Menufy
+match has a disabled directory account; this does not prove departure. Five bounded,
+read-only Zendesk requests independently match all 62 active employees in configured
+groups. All six pending POS candidates match enabled manager direct reports and active,
+nonsuspended Zendesk agents. No candidates, employees, permissions or assignments were
+changed. Raw identities remain private; aggregate evidence is
+`2026-10-05-roster-source-comparison.json`. Resolve the POS directory exception and the
+Menufy directory/account disagreement before automatic removals; retain the existing
+roster meanwhile. A directory hierarchy alone does not establish historical eligibility.
+
+Recovery code now normalizes Zendesk email comparisons, rejects ambiguous stored identities,
+holds existing employee emails for review instead of creating duplicates, and serializes
+manual approvals against discovery using the source lock. Two concurrent candidates for
+the same normalized source identity cannot both create employees. Existing inactive records
+and history remain intact. Fifty-one focused PostgreSQL/connector tests pass, including
+five new regressions; typecheck, scoped lint and formatting pass. Initial new-fixture errors
+were corrected before these passing checks. Full candidate CI is pending. This is not yet
+a production release or completed lifecycle automation: stale candidate refresh, transfers,
+returns, independent roster scheduling/health and confirmed removal policy remain open.
+The prior metric coverage/publication gates remain unchanged.
+
 **October 5 — POS refresh gap identified; hosted export clipping corrected:** Fresh
 read-only production census preserves the 40-assignment / 23-key denominator, including
 19 POS assignments and 39 uniquely mapped active POS employees. Last week's five
