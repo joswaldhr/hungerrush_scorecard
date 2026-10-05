@@ -789,6 +789,16 @@ export class ZendeskConnector implements Connector {
     existingAssignments: ExistingRosterAssignment[] = []
   ): Promise<DiscoveredRosterMember[]> {
     if (groupMappings.length === 0) return [];
+    const startedAt = Date.now();
+    let requests = 0;
+    const rosterGet = async <T>(path: string): Promise<T> => {
+      // Bound the entire roster, not just each group's paging loop. Never
+      // return a partial membership list that could manufacture departures.
+      if (requests >= 40 || Date.now() - startedAt >= 90_000)
+        throw new Error("Roster discovery budget exhausted; no roster changes applied");
+      requests++;
+      return zendeskGet<T>(path, undefined, { deferRateLimit: true });
+    };
 
     const seenExternalIds = new Map<
       string,
@@ -806,7 +816,7 @@ export class ZendeskConnector implements Connector {
           throw new Error("Roster membership pagination did not complete");
         visited.add(path);
         const res: ZendeskGroupMembershipsResponse =
-          await zendeskGet<ZendeskGroupMembershipsResponse>(path);
+          await rosterGet<ZendeskGroupMembershipsResponse>(path);
         if (
           !Array.isArray(res.group_memberships) ||
           res.group_memberships.some(
@@ -829,7 +839,7 @@ export class ZendeskConnector implements Connector {
       for (let i = 0; i < uniqueUserIds.length; i += 100) {
         const batch = uniqueUserIds.slice(i, i + 100);
         if (batch.length === 0) continue;
-        const res = await zendeskGet<ZendeskShowManyUsersResponse>(
+        const res = await rosterGet<ZendeskShowManyUsersResponse>(
           `/users/show_many.json?ids=${batch.join(",")}`
         );
         if (
