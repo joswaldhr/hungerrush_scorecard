@@ -1,0 +1,125 @@
+{
+  "observedAt": "2026-10-05T19:00:25.077Z",
+  "readOnly": true,
+  "team": "Menufy",
+  "activeEmployees": 23,
+  "keys": [
+    {
+      "key": "inbound_calls_offered",
+      "definitionPresent": true,
+      "definition": {
+        "unit": "calls",
+        "valueType": "count",
+        "calculationType": "sum",
+        "sourceStrategy": "zendesk",
+        "status": "active"
+      },
+      "assignments": [
+        {
+          "teamWide": true,
+          "effectiveFrom": null,
+          "effectiveTo": null
+        }
+      ]
+    },
+    {
+      "key": "inbound_calls_accepted",
+      "definitionPresent": true,
+      "definition": {
+        "unit": "calls",
+        "valueType": "count",
+        "calculationType": "sum",
+        "sourceStrategy": "zendesk",
+        "status": "active"
+      },
+      "assignments": [
+        {
+          "teamWide": true,
+          "effectiveFrom": null,
+          "effectiveTo": null
+        }
+      ]
+    },
+    {
+      "key": "declined_calls",
+      "definitionPresent": true,
+      "definition": {
+        "unit": "calls",
+        "valueType": "count",
+        "calculationType": "sum",
+        "sourceStrategy": "zendesk",
+        "status": "active"
+      },
+      "assignments": [
+        {
+          "teamWide": true,
+          "effectiveFrom": null,
+          "effectiveTo": null
+        }
+      ]
+    },
+    {
+      "key": "missed_calls",
+      "definitionPresent": true,
+      "definition": {
+        "unit": "calls",
+        "valueType": "count",
+        "calculationType": "sum",
+        "sourceStrategy": "zendesk",
+        "status": "active"
+      },
+      "assignments": [
+        {
+          "teamWide": true,
+          "effectiveFrom": null,
+          "effectiveTo": null
+        }
+      ]
+    },
+    {
+      "key": "inbound_calls_unreachable",
+      "definitionPresent": false,
+      "definition": null,
+      "assignments": []
+    },
+    {
+      "key": "inbound_calls_answer_rate",
+      "definitionPresent": false,
+      "definition": null,
+      "assignments": []
+    },
+    {
+      "key": "inbound_calls_abandoned_on_hold",
+      "definitionPresent": true,
+      "definition": {
+        "unit": "calls",
+        "valueType": "count",
+        "calculationType": "sum",
+        "sourceStrategy": "zendesk",
+        "status": "active"
+      },
+      "assignments": [
+        {
+          "teamWide": true,
+          "effectiveFrom": null,
+          "effectiveTo": null
+        }
+      ]
+    },
+    {
+      "key": "total_talk_time_inbound",
+      "definitionPresent": false,
+      "definition": null,
+      "assignments": []
+    },
+    {
+      "key": "max_hold_time_inbound",
+      "definitionPresent": false,
+      "definition": null,
+      "assignments": []
+    }
+  ],
+  "productionWrites": 0,
+  "vendorRequests": 0,
+  "releaseAuthorizedByThisCheck": false
+}

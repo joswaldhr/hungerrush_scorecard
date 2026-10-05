@@ -1,5 +1,42 @@
 # Audit implementation — current checkpoint
 
+**October 5 — hosted gates resumed and POS coverage improved:** Browser control returned.
+Ready main Preview `75daee2` now passes authenticated reload, last-week default, neutral
+current-week presentation, stale-export suppression during navigation, nine aligned category
+tables, stored-history return selection and actual PDF/PNG/CSV downloads for both weeks.
+CSV checks match 26 rows/eight reported values per week; zeros, withheld human attribution,
+unsupported handling and historical targets remain correct. Both image formats were inspected.
+Copied-link clipboard bytes and print on this exact deployment remain unverified.
+
+Hosted synthetic transfer/return/departure approvals pass. Read-only database readback proves
+all three approved states, preserved employee IDs/source bindings/prior intervals and two
+prospective intervals. Cleanup removes only rehearsal fixtures and restores the ordinary
+manager role; reloading roster administration redirects to the assigned one-employee list.
+The synthetic inbound publisher also passes last/current-week publication with unrelated
+values unchanged. Its first invocation lacked a required local synthetic AUTH_SECRET and
+stopped before publication; the correctly configured offline invocation passes. No vendor
+requests or production writes occurred in these rehearsals. See
+`2026-10-05-hosted-release-verification.json`.
+
+A final bounded calls-only GET catch-up retains the exact earlier legs, uses the account
+lease/pacing and stays within a 1,982,429 ms joined-observation span. Two requests recover
+five of seven remaining global parents; all five source update timestamps postdate the
+initial call capture. Two global gaps remain, including one affecting two POS employees;
+Menufy has none. Missing-parent cause remains unknown. No freshness relaxation, guessed
+period, metric/checkpoint write or publication occurred, and the account lease is released.
+See `2026-10-05-call-parent-final-recovery.json`.
+
+Fresh read-only catalog inspection confirms the four missing Menufy definitions and the
+five compatible existing definitions/team assignments. The owning inbound release manifest
+now specifies units, aggregation, Menufy-only assignments, neutral/no-inferred targets and
+the next prospective Sunday cutover. Source policies remain inactive. Latest production
+census has zero running/failed-last-24h syncs and ten completed runs, without scheduler
+attribution. The known missing 0009 journal row persists despite its checked schema invariants;
+0016/0017 remain pending. Release still requires fresh recovery/config capture, registration,
+durable observation, persisted canary comparison and genuine scheduled evidence. POS business
+semantics, human attribution and historical eligibility/targets remain open; neither full
+manager metric set is certified. Production and frozen demo were not deployed.
+
 **October 5 — fresh Menufy inbound parity and POS source gaps:** A GET-only diagnostic
 delta starting September 30 used 8 calls pages and 17 legs pages, with the existing
 account lease/pacing and bounded per-stream budgets. Four bounded staff GETs reverified

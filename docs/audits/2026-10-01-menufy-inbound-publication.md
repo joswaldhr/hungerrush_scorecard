@@ -3,6 +3,54 @@
 The user authorized completing verification and production delivery. This candidate
 implements the missing publication path; it is not yet activated or released.
 
+## October 5 release update
+
+Application candidate `8e9f080` and equivalent main Preview `75daee2` pass full CI.
+Hosted checks on Ready deployment `dpl_9kdMDHkAQdg3TNfiFYTQZ7X5T1v2` now verify
+authenticated scorecards, last-week defaults, neutral current-week presentation,
+aligned columns, history return selection, and actual PDF/PNG/CSV downloads for both
+weeks. Image files were rendered/visually inspected; CSV checks preserve eight values,
+zeros, eighteen unavailable measures and withheld historical targets. Synthetic publisher
+rehearsal publishes nine keys for each week without changing unrelated values. Hosted
+transfer/return/departure approvals pass with database readback preserving IDs, bindings
+and previous intervals; disposable fixtures and temporary reviewer role were removed.
+Clipboard bytes and print on this exact deployment remain unverified. See
+`2026-10-05-hosted-release-verification.json`.
+
+The fresh read-only production catalog census confirms 23 active Menufy employees,
+five compatible existing definitions/team-wide assignments, and four absent definitions.
+Registration scope is exactly the following; no production registration has occurred:
+
+| New key | Display meaning | Unit / type | Aggregation | Assignment |
+|---|---|---|---|---|
+| `inbound_calls_unreachable` | Unreachable inbound agent legs | calls / count | sum | Menufy team only |
+| `inbound_calls_answer_rate` | Accepted / offered agent legs × 100 | % / percentage | latest | Menufy team only |
+| `total_talk_time_inbound` | Total employee-leg inbound talk | s / duration | sum | Menufy team only |
+| `max_hold_time_inbound` | Maximum employee-leg inbound hold | s / duration | max | Menufy team only |
+
+Use neutral direction and no inferred targets for the new definitions. Keep the five
+compatible definitions, their existing assignments and all average keys untouched.
+Before registration, repeat the read-only census and refuse duplicate/incompatible
+definitions or assignments; registration and its exact rollback inventory must be
+atomic. Both the four new definitions and team assignments require an explicit future
+Sunday effective date. October 11 is the next prospective boundary as of October 5;
+advance it if release is delayed. The publisher policy must use that same cutover.
+This does not authorize relabeling or repairing September/earlier October values.
+See `2026-10-05-menufy-inbound-config-preflight.json`.
+
+Independent fresh replay matches 414 values, 414 source sets and 552 duration-evidence
+comparisons across last week/current week, without Menufy parent blocks. Two older
+closed-week replays retain the documented three-versus-four-component difference.
+These observations do not certify historical employee eligibility or source authority.
+Fresh durable collection, scoped persisted canary comparison, unrelated-row digests,
+actual scheduling and rollback remain required. Production currently has no running
+sync rows, ten completed and zero failed runs in the last 24 hours; this does not
+attribute them to a scheduler or prove Talk freshness. Its migration journal still
+lacks the known 0009 row although the three checked schema invariants exist, and
+0016/0017 are not deployed. Do not interpret that census as a clean migration prefix.
+Rehearsed restore compatibility is separate from a fresh production migration gate.
+Production and frozen demo remain unchanged.
+
 ## Change manifest
 
 - Family: Menufy inbound call participation only. Nine allowed report keys preserve
