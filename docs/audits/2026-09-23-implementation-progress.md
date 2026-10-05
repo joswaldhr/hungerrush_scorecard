@@ -1,5 +1,23 @@
 # Audit implementation — current checkpoint
 
+**October 5, 21:30 UTC — isolated POS source comparison:** Separate PR44 candidate
+`b5bbbcbd621a40950bbb0edfdb84ad1f6583c485` passes full CI/build `37374409381` and
+999 local tests. Explicit bounded collection/continuation and calls-only parent recovery
+retain 11,085 calls with required whole-call hold and 22,186 legs in a separate source
+namespace. Original participation and protected application digests remain unchanged;
+POS leg records/revisions/checkpoint are unchanged by recovery. No metric publication,
+app deployment, policy activation, employee edit or Zendesk mutation occurs.
+
+Independent comparison passes all 39 POS employee rows for September 27–October 3 and
+38 rows for current progress: 539 exact source-set / 385 duration comparisons, zero
+differences within the 14 known report groups. One current-week employee/period remains
+blocked by a missing parent for a newly created leg. Four original group labels remain
+unbound; this is diagnostic scope parity, not whole-report certification or historical
+eligibility. Lease readback confirms released. Private source inputs/receipts remain private;
+aggregate results and manifests are retained on PR44. Documentation head `64bb0fb`
+also passes full CI `37374605521`. Main production remains `2241763`; print/copied-link
+verification is still pending the already requested browser check.
+
 **October 5 — Menufy catalog registered, code gate passed:** Corrected candidate
 `55c5a843a2cf53878730b5ac632ced244b9ea465` passes full PostgreSQL 18 CI
 `37371504967`, including production build, after GitHub's runner-assignment delay.
