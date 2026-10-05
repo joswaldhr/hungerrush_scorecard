@@ -5,6 +5,18 @@ implements the missing publication path; it is not yet activated or released.
 
 ## October 5 release update
 
+The approved completion plan now has an explicit catalog-registration candidate in
+`src/lib/connectors/zendesk-inbound-catalog.ts`. This operation is not connected to a route,
+build or scheduler. It creates only the four additions below with future-effective definitions
+and Menufy-policy team assignments, neutral direction and no targets. Matching ownership,
+all nine compatible effective assignments and unique active employee bindings are checked
+inside the transaction. Catalog/configuration writers are fenced with bounded table locks;
+any failure rolls back all additions. Pre-existing addition keys of any version are refused.
+Private returned IDs identify created rows for rollback planning; they do not certify release.
+Eight real PostgreSQL catalog regressions and nine existing binding/publication regressions
+pass locally. New-candidate PostgreSQL 18 CI and production recovery/activation gates remain
+required. Production registration has not occurred.
+
 Application candidate `8e9f080` and equivalent main Preview `75daee2` pass full CI.
 Hosted checks on Ready deployment `dpl_9kdMDHkAQdg3TNfiFYTQZ7X5T1v2` now verify
 authenticated scorecards, last-week defaults, neutral current-week presentation,

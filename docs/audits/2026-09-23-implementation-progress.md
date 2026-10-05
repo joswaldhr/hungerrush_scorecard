@@ -1,5 +1,28 @@
 # Audit implementation — current checkpoint
 
+**October 5 — approved completion plan, catalog registration candidate:** The user approved
+the eight-step completion plan: required inventory, Menufy production calls, POS qualification,
+remaining attribution/history sources, lifecycle/historical context, production gates, actual
+scheduled operation and meeting-readiness acceptance. Qualification remains per metric/source;
+genuine no-sample values differ from unresolved coverage. Assembled and infrastructure migration
+remain outside this effort, and neither complete manager pack is certified.
+
+`registerInboundReportCatalog` is an explicit, unconnected registration operation for the
+four missing inbound definitions and team-wide assignments. It requires a future Sunday,
+the full nine-key policy and matching owner; it fences catalog/configuration edits and validates
+source ownership, all nine assignments and unique active employee bindings before commit.
+Existing addition keys of any version are refused rather than adopted. Existing definitions,
+assignments and targets are not edited. Returned creation IDs are private rollback inventory,
+not release authorization. No route/scheduler calls it, and no production registration occurred.
+
+Seventeen focused PostgreSQL tests pass (eight catalog, four source-binding, five publication),
+covering atomic rollback, source mismatch, missing identity/old assignment, incompatible units,
+preservation, prospective guards, duplicate refusal and concurrent attempts. Typecheck and scoped
+lint/format pass after correcting fixture typing/formatting. The older temporary runtime was
+unavailable; a new isolated loopback PostgreSQL 16 test cluster was initialized/migrated without
+loading a shared environment. PostgreSQL 18 full CI remains required for the new candidate.
+No production migration, source activation, Zendesk write or frozen-demo change occurred.
+
 **October 5 — hosted gates resumed and POS coverage improved:** Browser control returned.
 Ready main Preview `75daee2` now passes authenticated reload, last-week default, neutral
 current-week presentation, stale-export suppression during navigation, nine aligned category
