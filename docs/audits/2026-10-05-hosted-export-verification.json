@@ -1,0 +1,41 @@
+{
+  "candidate": "dbc1e5af92129265ee92e0c772b8b446cb44c934",
+  "deployment": "dpl_JCLBg3VBGxLktJnbzwyhy4cXwij2",
+  "synthetic": true,
+  "periodStart": "2026-09-20",
+  "periodEnd": "2026-09-26",
+  "csvMetricRows": 26,
+  "csvColumns": 20,
+  "csvDisplayValueComparisons": 104,
+  "csvDisplayDifferences": 0,
+  "pdfPngPixelsIdentical": true,
+  "rasterDimensions": [
+    2144,
+    8322
+  ],
+  "pdfPages": 1,
+  "allStatusColumnsVisible": true,
+  "files": {
+    ".pdf": {
+      "bytes": 1081107,
+      "sha256": "e11a44026187c3d0c5e97f7573500194de80fe1ad98f952eef00e77f06b5e9a3"
+    },
+    ".png": {
+      "bytes": 1634172,
+      "sha256": "443106a6cba38a1055a5a4ba15cd3a0adf4f9a11fe7f245e40a689277b561c72"
+    },
+    ".csv": {
+      "bytes": 14535,
+      "sha256": "8157d163b0b0f0d029cdeaf611c3270ae777a32857b0263ffcfc1e36f21df899"
+    }
+  },
+  "historyMatchedValues": 26,
+  "historyReturnWeekPreserved": true,
+  "currentWeekCsvDisplayComparisons": 104,
+  "currentWeekCsvDisplayDifferences": 0,
+  "currentWeekStatuses": [
+    "No Data",
+    "In Progress"
+  ],
+  "loadingHidesPreviousSnapshotAndExports": true
+}

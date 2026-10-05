@@ -1,5 +1,27 @@
 # Audit implementation — current checkpoint
 
+**October 5 — POS refresh gap identified; hosted export clipping corrected:** Fresh
+read-only production census preserves the 40-assignment / 23-key denominator, including
+19 POS assignments and 39 uniquely mapped active POS employees. Last week's five
+qualified outbound metrics still have September 28 observations; current-week outbound
+rows use legacy source context. New call collection/publication policies remain absent.
+Ten runs completed in the latest 24 hours without failures, but database success and
+limited retained HTTP logs do not establish full source coverage or scheduler recovery.
+See `2026-10-05-pos-readiness.md` and its aggregate census evidence. Neither manager's
+complete metric set is certified.
+
+Supported in-app browser control now works, superseding the October 2 tooling limitation.
+Actual hosted PDF/PNG/CSV downloads exposed a clipped Status column. Capture width fix
+`8be1e3c` passes full CI `37329827500`, including all tests and build. The same change is
+deployed only to isolated main Preview as `dbc1e5a` / `dpl_JCLBg3VBGxLktJnbzwyhy4cXwij2`.
+Fresh files show every column; PDF and PNG rasters match exactly, CSV matches 104 displayed
+cells, and all 26 historical values match. Current-week CSV matches another 104 cells
+with neutral statuses. History return-week and loading snapshot suppression pass.
+File hashes and limits are recorded in `2026-10-05-hosted-export-verification.json` and
+the readiness report. Production/demo remain unchanged. Fresh recovery, source retention/
+coverage, prospective family-specific activation, independent canary and genuine scheduled
+refresh are still required; no unqualified metric or disabled policy was enabled.
+
 **October 2 — interactive Preview sign-in confirmed:** The user reports successful entry.
 Runtime evidence on `dpl_381BvP38NGsSypBe6vMCCYsttfPL` shows the Microsoft callback
 returning 302 followed by successful 200 responses from the 1:1 list and employee

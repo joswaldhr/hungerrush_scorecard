@@ -1,5 +1,18 @@
 # Metric acceptance ledger
 
+## October 5 — fresh POS baseline
+
+The read-only inventory remains 40 assignments / 23 keys, including 19 POS assignments
+and 39 active POS employees with unique source mappings. Qualified last-week outbound
+observations stop on September 28; this week's rows still use legacy source context.
+The automatic qualified call policies remain disabled. Recent successful jobs therefore
+do not certify complete POS reporting. No full-contract count is increased.
+
+The shared hosted export gap has advanced: actual PDF/PNG/CSV files were saved, a narrow
+capture clipping bug was fixed, and fresh files match displayed/historical synthetic
+values. This establishes presentation agreement, not independent source correctness.
+See `2026-10-05-pos-readiness.md` for current evidence and remaining release dependencies.
+
 ## October 5 — POS qualification scope and completion clarification
 
 The user requested bringing the POS manager's metrics to the same standard as Menufy.

@@ -1,0 +1,999 @@
+{
+  "observedAt": "2026-10-05T14:53:44.472Z",
+  "readOnly": true,
+  "databaseWrites": 0,
+  "vendorRequests": 0,
+  "roster": {
+    "active_employees": 39,
+    "unmapped": 0,
+    "uniquely_mapped": 39,
+    "multiple_mappings": 0,
+    "with_verified_binding": 0
+  },
+  "assignments": [
+    {
+      "key": "avg_call_duration_inbound",
+      "unit": "s",
+      "source_strategy": "zendesk",
+      "assignment_rows": 1
+    },
+    {
+      "key": "avg_consultation_time_inbound",
+      "unit": "s",
+      "source_strategy": "zendesk",
+      "assignment_rows": 1
+    },
+    {
+      "key": "avg_handle_time",
+      "unit": "min",
+      "source_strategy": "zendesk",
+      "assignment_rows": 1
+    },
+    {
+      "key": "avg_hold_time_inbound",
+      "unit": "s",
+      "source_strategy": "zendesk",
+      "assignment_rows": 1
+    },
+    {
+      "key": "avg_hold_time_outbound",
+      "unit": "s",
+      "source_strategy": "zendesk",
+      "assignment_rows": 1
+    },
+    {
+      "key": "avg_talk_time_inbound",
+      "unit": "s",
+      "source_strategy": "zendesk",
+      "assignment_rows": 1
+    },
+    {
+      "key": "avg_talk_time_outbound",
+      "unit": "s",
+      "source_strategy": "zendesk",
+      "assignment_rows": 1
+    },
+    {
+      "key": "avoidable_worked_elevated_tickets",
+      "unit": "tickets",
+      "source_strategy": "zendesk",
+      "assignment_rows": 1
+    },
+    {
+      "key": "backlog_count",
+      "unit": "tickets",
+      "source_strategy": "zendesk",
+      "assignment_rows": 1
+    },
+    {
+      "key": "csat_score",
+      "unit": "%",
+      "source_strategy": "zendesk",
+      "assignment_rows": 1
+    },
+    {
+      "key": "inbound_calls_abandoned_on_hold",
+      "unit": "calls",
+      "source_strategy": "zendesk",
+      "assignment_rows": 1
+    },
+    {
+      "key": "inbound_calls_accepted",
+      "unit": "calls",
+      "source_strategy": "zendesk",
+      "assignment_rows": 1
+    },
+    {
+      "key": "inbound_calls_offered",
+      "unit": "calls",
+      "source_strategy": "zendesk",
+      "assignment_rows": 1
+    },
+    {
+      "key": "outbound_calls",
+      "unit": "calls",
+      "source_strategy": "zendesk",
+      "assignment_rows": 1
+    },
+    {
+      "key": "outbound_calls_completed",
+      "unit": "calls",
+      "source_strategy": "zendesk",
+      "assignment_rows": 1
+    },
+    {
+      "key": "outbound_calls_non_answered",
+      "unit": "calls",
+      "source_strategy": "zendesk",
+      "assignment_rows": 1
+    },
+    {
+      "key": "tickets_resolved",
+      "unit": "tickets",
+      "source_strategy": "zendesk",
+      "assignment_rows": 1
+    },
+    {
+      "key": "tickets_updated",
+      "unit": "tickets",
+      "source_strategy": "zendesk",
+      "assignment_rows": 1
+    },
+    {
+      "key": "worked_elevated_tickets",
+      "unit": "tickets",
+      "source_strategy": "zendesk",
+      "assignment_rows": 1
+    }
+  ],
+  "coverage": [
+    {
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "key": "avg_call_duration_inbound",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 21,
+      "employees_with_numbers": 21,
+      "zero_rows": 0,
+      "stored_complete_rows": 21,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T06:11:03.740Z",
+      "newest_observation": "2026-10-05T06:11:11.438Z"
+    },
+    {
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "key": "avg_consultation_time_inbound",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 10,
+      "employees_with_numbers": 10,
+      "zero_rows": 0,
+      "stored_complete_rows": 10,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-05T06:11:11.438Z",
+      "newest_observation": "2026-10-05T06:11:11.438Z"
+    },
+    {
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "key": "avg_handle_time",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 19,
+      "employees_with_numbers": 19,
+      "zero_rows": 19,
+      "stored_complete_rows": 19,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-05T06:11:11.438Z",
+      "newest_observation": "2026-10-05T06:11:11.438Z"
+    },
+    {
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "key": "avg_hold_time_inbound",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 21,
+      "employees_with_numbers": 21,
+      "zero_rows": 10,
+      "stored_complete_rows": 21,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T06:11:03.740Z",
+      "newest_observation": "2026-10-05T06:11:11.438Z"
+    },
+    {
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "key": "avg_hold_time_outbound",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 14,
+      "employees_with_numbers": 14,
+      "zero_rows": 14,
+      "stored_complete_rows": 14,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T06:11:03.740Z",
+      "newest_observation": "2026-10-05T06:11:11.438Z"
+    },
+    {
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "key": "avg_talk_time_inbound",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 21,
+      "employees_with_numbers": 21,
+      "zero_rows": 0,
+      "stored_complete_rows": 21,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T06:11:03.740Z",
+      "newest_observation": "2026-10-05T06:11:11.438Z"
+    },
+    {
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "key": "avg_talk_time_outbound",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 14,
+      "employees_with_numbers": 14,
+      "zero_rows": 0,
+      "stored_complete_rows": 14,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T06:11:03.740Z",
+      "newest_observation": "2026-10-05T06:11:11.438Z"
+    },
+    {
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "key": "avoidable_worked_elevated_tickets",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 38,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T06:11:03.740Z",
+      "newest_observation": "2026-10-05T06:11:11.438Z"
+    },
+    {
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "key": "backlog_count",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 0,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T06:11:03.740Z",
+      "newest_observation": "2026-10-05T06:11:11.438Z"
+    },
+    {
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "key": "csat_score",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 3,
+      "zero_rows": 0,
+      "stored_complete_rows": 3,
+      "contract_rows": 39,
+      "contracts": [
+        "zendesk-solved-current-assignee-csat-v1"
+      ],
+      "oldest_observation": "2026-10-05T08:35:10.658Z",
+      "newest_observation": "2026-10-05T08:35:10.658Z"
+    },
+    {
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "key": "inbound_calls_abandoned_on_hold",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 39,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T06:11:03.740Z",
+      "newest_observation": "2026-10-05T06:11:11.438Z"
+    },
+    {
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "key": "inbound_calls_accepted",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 18,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T06:11:03.740Z",
+      "newest_observation": "2026-10-05T06:11:11.438Z"
+    },
+    {
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "key": "inbound_calls_offered",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 18,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T06:11:03.740Z",
+      "newest_observation": "2026-10-05T06:11:11.438Z"
+    },
+    {
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "key": "outbound_calls",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 25,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T06:11:03.740Z",
+      "newest_observation": "2026-10-05T06:11:11.438Z"
+    },
+    {
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "key": "outbound_calls_completed",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 25,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T06:11:03.740Z",
+      "newest_observation": "2026-10-05T06:11:11.438Z"
+    },
+    {
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "key": "outbound_calls_non_answered",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 39,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T06:11:03.740Z",
+      "newest_observation": "2026-10-05T06:11:11.438Z"
+    },
+    {
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "key": "tickets_resolved",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 2,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T06:11:03.740Z",
+      "newest_observation": "2026-10-05T06:11:11.438Z"
+    },
+    {
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "key": "tickets_updated",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 1,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T06:11:03.740Z",
+      "newest_observation": "2026-10-05T06:11:11.438Z"
+    },
+    {
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "key": "worked_elevated_tickets",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 30,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T06:11:03.740Z",
+      "newest_observation": "2026-10-05T06:11:11.438Z"
+    },
+    {
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "key": "avg_call_duration_inbound",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 37,
+      "employees_with_numbers": 37,
+      "zero_rows": 0,
+      "stored_complete_rows": 37,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-01T06:12:02.660Z",
+      "newest_observation": "2026-10-04T07:15:37.481Z"
+    },
+    {
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "key": "avg_consultation_time_inbound",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 24,
+      "employees_with_numbers": 24,
+      "zero_rows": 0,
+      "stored_complete_rows": 24,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-02T06:12:47.346Z",
+      "newest_observation": "2026-10-04T07:15:37.481Z"
+    },
+    {
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "key": "avg_handle_time",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 38,
+      "employees_with_numbers": 38,
+      "zero_rows": 3,
+      "stored_complete_rows": 38,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T07:15:37.481Z",
+      "newest_observation": "2026-10-05T07:15:35.347Z"
+    },
+    {
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "key": "avg_hold_time_inbound",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 37,
+      "employees_with_numbers": 37,
+      "zero_rows": 9,
+      "stored_complete_rows": 37,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-01T06:12:02.660Z",
+      "newest_observation": "2026-10-04T07:15:37.481Z"
+    },
+    {
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "key": "avg_hold_time_outbound",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 16,
+      "zero_rows": 14,
+      "stored_complete_rows": 16,
+      "contract_rows": 39,
+      "contracts": [
+        "zendesk-call-created-agent-leg-outbound-v1"
+      ],
+      "oldest_observation": "2026-09-28T17:51:03.130Z",
+      "newest_observation": "2026-09-28T17:51:03.130Z"
+    },
+    {
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "key": "avg_talk_time_inbound",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 37,
+      "employees_with_numbers": 37,
+      "zero_rows": 0,
+      "stored_complete_rows": 37,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-01T06:12:02.660Z",
+      "newest_observation": "2026-10-04T07:15:37.481Z"
+    },
+    {
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "key": "avg_talk_time_outbound",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 16,
+      "zero_rows": 0,
+      "stored_complete_rows": 16,
+      "contract_rows": 39,
+      "contracts": [
+        "zendesk-call-created-agent-leg-outbound-v1"
+      ],
+      "oldest_observation": "2026-09-28T17:51:03.130Z",
+      "newest_observation": "2026-09-28T17:51:03.130Z"
+    },
+    {
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "key": "avoidable_worked_elevated_tickets",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 37,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T07:15:37.481Z",
+      "newest_observation": "2026-10-05T07:15:35.347Z"
+    },
+    {
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "key": "backlog_count",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 0,
+      "zero_rows": 0,
+      "stored_complete_rows": 0,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T07:15:37.481Z",
+      "newest_observation": "2026-10-05T07:15:35.347Z"
+    },
+    {
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "key": "csat_score",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 31,
+      "zero_rows": 2,
+      "stored_complete_rows": 31,
+      "contract_rows": 39,
+      "contracts": [
+        "zendesk-solved-current-assignee-csat-v1"
+      ],
+      "oldest_observation": "2026-10-05T10:22:13.885Z",
+      "newest_observation": "2026-10-05T10:22:13.885Z"
+    },
+    {
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "key": "inbound_calls_abandoned_on_hold",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 31,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-27T06:11:03.682Z",
+      "newest_observation": "2026-10-04T07:15:37.481Z"
+    },
+    {
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "key": "inbound_calls_accepted",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 2,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-27T06:11:03.682Z",
+      "newest_observation": "2026-10-04T07:15:37.481Z"
+    },
+    {
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "key": "inbound_calls_offered",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 2,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-27T06:11:03.682Z",
+      "newest_observation": "2026-10-04T07:15:37.481Z"
+    },
+    {
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "key": "outbound_calls",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 23,
+      "stored_complete_rows": 39,
+      "contract_rows": 39,
+      "contracts": [
+        "zendesk-call-created-agent-leg-outbound-v1"
+      ],
+      "oldest_observation": "2026-09-28T17:51:03.130Z",
+      "newest_observation": "2026-09-28T17:51:03.130Z"
+    },
+    {
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "key": "outbound_calls_completed",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 23,
+      "stored_complete_rows": 39,
+      "contract_rows": 39,
+      "contracts": [
+        "zendesk-call-created-agent-leg-outbound-v1"
+      ],
+      "oldest_observation": "2026-09-28T17:51:03.130Z",
+      "newest_observation": "2026-09-28T17:51:03.130Z"
+    },
+    {
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "key": "outbound_calls_non_answered",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 38,
+      "stored_complete_rows": 39,
+      "contract_rows": 39,
+      "contracts": [
+        "zendesk-call-created-agent-leg-outbound-v1"
+      ],
+      "oldest_observation": "2026-09-28T17:51:03.130Z",
+      "newest_observation": "2026-09-28T17:51:03.130Z"
+    },
+    {
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "key": "tickets_resolved",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 0,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T07:15:37.481Z",
+      "newest_observation": "2026-10-05T07:15:35.347Z"
+    },
+    {
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "key": "tickets_updated",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 0,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T07:15:37.481Z",
+      "newest_observation": "2026-10-05T07:15:35.347Z"
+    },
+    {
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "key": "worked_elevated_tickets",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 14,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-10-04T07:15:37.481Z",
+      "newest_observation": "2026-10-05T07:15:35.347Z"
+    },
+    {
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "key": "avg_call_duration_inbound",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 36,
+      "employees_with_numbers": 36,
+      "zero_rows": 0,
+      "stored_complete_rows": 36,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-25T02:16:44.046Z",
+      "newest_observation": "2026-09-27T07:15:35.271Z"
+    },
+    {
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "key": "avg_consultation_time_inbound",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 22,
+      "employees_with_numbers": 22,
+      "zero_rows": 0,
+      "stored_complete_rows": 22,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-25T02:16:44.046Z",
+      "newest_observation": "2026-09-27T07:15:35.271Z"
+    },
+    {
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "key": "avg_handle_time",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 37,
+      "employees_with_numbers": 37,
+      "zero_rows": 6,
+      "stored_complete_rows": 37,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-27T07:15:35.271Z",
+      "newest_observation": "2026-10-05T07:23:05.203Z"
+    },
+    {
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "key": "avg_hold_time_inbound",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 36,
+      "employees_with_numbers": 36,
+      "zero_rows": 11,
+      "stored_complete_rows": 36,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-25T02:16:44.046Z",
+      "newest_observation": "2026-09-27T07:15:35.271Z"
+    },
+    {
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "key": "avg_hold_time_outbound",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 35,
+      "employees_with_numbers": 35,
+      "zero_rows": 27,
+      "stored_complete_rows": 35,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-25T02:16:44.046Z",
+      "newest_observation": "2026-09-27T07:15:35.271Z"
+    },
+    {
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "key": "avg_talk_time_inbound",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 36,
+      "employees_with_numbers": 36,
+      "zero_rows": 0,
+      "stored_complete_rows": 36,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-25T02:16:44.046Z",
+      "newest_observation": "2026-09-27T07:15:35.271Z"
+    },
+    {
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "key": "avg_talk_time_outbound",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 35,
+      "employees_with_numbers": 35,
+      "zero_rows": 0,
+      "stored_complete_rows": 35,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-25T02:16:44.046Z",
+      "newest_observation": "2026-09-27T07:15:35.271Z"
+    },
+    {
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "key": "avoidable_worked_elevated_tickets",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 37,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-27T07:15:35.271Z",
+      "newest_observation": "2026-10-05T07:23:05.203Z"
+    },
+    {
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "key": "backlog_count",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 0,
+      "zero_rows": 0,
+      "stored_complete_rows": 0,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-27T07:15:35.271Z",
+      "newest_observation": "2026-10-05T07:23:05.203Z"
+    },
+    {
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "key": "csat_score",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 33,
+      "zero_rows": 0,
+      "stored_complete_rows": 33,
+      "contract_rows": 39,
+      "contracts": [
+        "zendesk-solved-current-assignee-csat-v1"
+      ],
+      "oldest_observation": "2026-10-05T12:49:35.789Z",
+      "newest_observation": "2026-10-05T12:49:35.789Z"
+    },
+    {
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "key": "inbound_calls_abandoned_on_hold",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 30,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-25T02:16:44.046Z",
+      "newest_observation": "2026-09-27T07:15:35.271Z"
+    },
+    {
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "key": "inbound_calls_accepted",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 3,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-25T02:16:44.046Z",
+      "newest_observation": "2026-09-27T07:15:35.271Z"
+    },
+    {
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "key": "inbound_calls_offered",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 3,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-25T02:16:44.046Z",
+      "newest_observation": "2026-09-27T07:15:35.271Z"
+    },
+    {
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "key": "outbound_calls",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 4,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-25T02:16:44.046Z",
+      "newest_observation": "2026-09-27T07:15:35.271Z"
+    },
+    {
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "key": "outbound_calls_completed",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 4,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-25T02:16:44.046Z",
+      "newest_observation": "2026-09-27T07:15:35.271Z"
+    },
+    {
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "key": "outbound_calls_non_answered",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 39,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-25T02:16:44.046Z",
+      "newest_observation": "2026-09-27T07:15:35.271Z"
+    },
+    {
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "key": "tickets_resolved",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 2,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-27T07:15:35.271Z",
+      "newest_observation": "2026-10-05T07:23:05.203Z"
+    },
+    {
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "key": "tickets_updated",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 2,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-27T07:15:35.271Z",
+      "newest_observation": "2026-10-05T07:23:05.203Z"
+    },
+    {
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "key": "worked_elevated_tickets",
+      "current_roster_denominator": 39,
+      "employees_with_rows": 39,
+      "employees_with_numbers": 39,
+      "zero_rows": 23,
+      "stored_complete_rows": 39,
+      "contract_rows": 0,
+      "contracts": [],
+      "oldest_observation": "2026-09-27T07:15:35.271Z",
+      "newest_observation": "2026-10-05T07:23:05.203Z"
+    }
+  ],
+  "sources": [
+    {
+      "external_record_type": "agent_stats",
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "records": 39,
+      "first_ingested": "2026-10-04T06:11:08.523Z",
+      "last_ingested": "2026-10-05T06:11:16.124Z"
+    },
+    {
+      "external_record_type": "call_stats",
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "records": 39,
+      "first_ingested": "2026-10-04T06:11:08.523Z",
+      "last_ingested": "2026-10-05T06:11:16.124Z"
+    },
+    {
+      "external_record_type": "csat_summary",
+      "period_start": "2026-10-04T00:00:00.000Z",
+      "records": 39,
+      "first_ingested": "2026-10-05T08:35:18.499Z",
+      "last_ingested": "2026-10-05T08:35:18.499Z"
+    },
+    {
+      "external_record_type": "agent_stats",
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "records": 39,
+      "first_ingested": "2026-10-04T07:15:42.358Z",
+      "last_ingested": "2026-10-05T07:15:40.074Z"
+    },
+    {
+      "external_record_type": "call_stats",
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "records": 39,
+      "first_ingested": "2026-09-27T06:11:08.241Z",
+      "last_ingested": "2026-10-04T07:15:42.358Z"
+    },
+    {
+      "external_record_type": "csat_summary",
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "records": 39,
+      "first_ingested": "2026-10-05T10:23:02.480Z",
+      "last_ingested": "2026-10-05T10:23:02.480Z"
+    },
+    {
+      "external_record_type": "outbound_participation_summary",
+      "period_start": "2026-09-27T00:00:00.000Z",
+      "records": 39,
+      "first_ingested": "2026-09-28T18:04:04.240Z",
+      "last_ingested": "2026-09-28T18:04:44.488Z"
+    },
+    {
+      "external_record_type": "agent_stats",
+      "period_start": "2026-09-21T00:00:00.000Z",
+      "records": 39,
+      "first_ingested": "2026-09-21T06:10:32.516Z",
+      "last_ingested": "2026-09-22T06:10:55.238Z"
+    },
+    {
+      "external_record_type": "call_stats",
+      "period_start": "2026-09-21T00:00:00.000Z",
+      "records": 39,
+      "first_ingested": "2026-09-21T06:10:32.516Z",
+      "last_ingested": "2026-09-22T06:10:55.238Z"
+    },
+    {
+      "external_record_type": "csat_summary",
+      "period_start": "2026-09-21T00:00:00.000Z",
+      "records": 39,
+      "first_ingested": "2026-09-21T06:10:32.516Z",
+      "last_ingested": "2026-09-22T06:10:55.238Z"
+    },
+    {
+      "external_record_type": "agent_stats",
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "records": 39,
+      "first_ingested": "2026-09-27T07:15:39.619Z",
+      "last_ingested": "2026-10-05T07:23:10.055Z"
+    },
+    {
+      "external_record_type": "call_stats",
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "records": 39,
+      "first_ingested": "2026-09-25T02:16:49.176Z",
+      "last_ingested": "2026-09-27T07:15:39.619Z"
+    },
+    {
+      "external_record_type": "csat_summary",
+      "period_start": "2026-09-20T00:00:00.000Z",
+      "records": 39,
+      "first_ingested": "2026-10-05T12:50:31.086Z",
+      "last_ingested": "2026-10-05T12:50:31.086Z"
+    }
+  ],
+  "runHealth": [
+    {
+      "status": "completed",
+      "runs": 57,
+      "older_running": 0
+    },
+    {
+      "status": "failed",
+      "runs": 7,
+      "older_running": 0
+    }
+  ],
+  "limitations": [
+    "Current active roster and assignments are a diagnostic denominator, not reconstructed historical eligibility.",
+    "Stored quality and numeric values do not bypass manager read restrictions or certify accuracy.",
+    "Database runs do not prove scheduler origin without hosting invocation correlation.",
+    "An older observation is not automatically invalid for a closed week."
+  ]
+}
