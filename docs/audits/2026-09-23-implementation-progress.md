@@ -1,5 +1,40 @@
 # Audit implementation — current checkpoint
 
+**October 5 — Menufy catalog registered, code gate passed:** Corrected candidate
+`55c5a843a2cf53878730b5ac632ced244b9ea465` passes full PostgreSQL 18 CI
+`37371504967`, including production build, after GitHub's runner-assignment delay.
+All 992 local tests and 18 focused binding/catalog/publication tests pass. The guarded
+second registration commits exactly four future-effective definitions and four Menufy
+team assignments, October 11, neutral/no new targets. Readback verifies every existing
+catalog/assignment/target digest unchanged and 23 active employee bindings. No metric
+values, source requests or publication policy are written. The first refused transaction
+and execution receipts remain private. A corrected-attempt preflight stopped before
+intent because database result-array metadata differed from parsed JSON; normalizing
+inventory representation then passed the unchanged-content comparison before execution.
+See `2026-10-05-inbound-catalog-production-readback.json`.
+
+Fresh post-catalog encrypted restore matches 35 tables / 138,122 rows, with all digests
+unchanged and no pending migrations/adoption. Application/producer activation remains
+separate. Main Preview `75daee2` has identical app/components/domain-metrics/export code
+to the corrected candidate; only the unconnected registration helper/binding check and
+tests differ within `src`. Existing hosted PDF/PNG/CSV and roster transition evidence
+therefore covers that UI; copied-link bytes and native print remain unverified.
+
+Fresh four-GET staff verification matches all 39 POS identities. The retained durable
+capture's one global parent gap affects neither current team. A separate 14-GET bounded
+whole-call hold probe returns 11,025 measured calls, including 10,882 identical retained
+call versions with zero common-field differences. Offline exact-version join blocks
+94 changed versions, affecting 12 POS identities; it does not mix newer hold fields
+into the old observation or claim a reporting period. The account lease is released.
+See the POS durable coverage and hold probe artifacts. New POS source-storage work is
+isolated on `codex/pos-source-projection`; it is not part of this production candidate.
+Historical group bindings and fresh POS report parity remain required.
+
+Production app remains `2241763`, publication opt-ins remain absent, unverified human
+ticket metrics stay unavailable, and frozen demo/Zendesk are unchanged. Catalog readiness
+is now complete; live publication and scheduler evidence remain separate future-cutover
+work. Print/clipboard limitations are recorded rather than treated as passed checks.
+
 **October 5 — production recovery, durable source evidence and binding fix:** Exact
 candidate `952f3d3` passes full PostgreSQL 18 CI `37367161929` and all 991 local tests.
 The guarded production baseline adoption inserts only the missing known 0009 journal row.

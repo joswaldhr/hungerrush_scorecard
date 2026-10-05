@@ -59,7 +59,9 @@ Sunday–Saturday UTC via `src/lib/utils.ts`; stored older intervals retain thei
 
 Follow [the safety guardrail plan](docs/SAFETY_GUARDRAILS.md). Zendesk is read-only under
 the user's September 25 instruction and latest AGENTS instructions. Do not open report
-or dashboard editors, even for unsaved inspection: an audit editor session locked a manager out.
+or dashboard editors routinely: an audit editor session locked a manager out.
+The latest user AGENTS instructions permit only essential brief report-definition inspection,
+one report at a time with no edits and prompt closure; follow the guardrail controls.
 Prefer retained evidence and bounded GET APIs; make corrections in Cadence, not in Zendesk.
 
 Derive identity and organization from server-side authentication. Check object ownership,

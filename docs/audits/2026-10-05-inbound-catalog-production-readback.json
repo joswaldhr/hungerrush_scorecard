@@ -1,0 +1,13 @@
+{
+  "observedAt": "2026-10-05T20:57:27.296Z",
+  "candidate": "55c5a843a2cf53878730b5ac632ced244b9ea465",
+  "effectivePeriodStart": "2026-10-11",
+  "activeEmployees": 23,
+  "newDefinitions": 4,
+  "newTeamAssignments": 4,
+  "existingCatalogDigestsUnchanged": true,
+  "targetsChanged": 0,
+  "metricValuesWritten": 0,
+  "sourceRequests": 0,
+  "publicationEnabled": false
+}

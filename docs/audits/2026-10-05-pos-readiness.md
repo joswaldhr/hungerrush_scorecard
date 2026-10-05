@@ -2,6 +2,38 @@
 
 ## Production observations
 
+### Later durable-source readback, 20:44 UTC
+
+Four bounded official staff GETs now verify all 39 current active POS identities against
+their unique production bindings. The 20:31 durable calls / 20:21 legs capture contains
+one global missing parent, affecting zero of these POS staff and zero Menufy staff.
+This supersedes the earlier POS parent-gap count for this capture only; the source was
+not refreshed by identity verification, and historical eligibility remains unproven.
+See `2026-10-05-pos-durable-coverage.json`.
+
+The durable calls projection omits whole-call `hold_time`, required by the inspected POS
+report's joined-leg-weighted call hold mean. This is a separate source contract requirement,
+not permission to substitute leg hold or change Menufy's MAX hold metric. POS next steps:
+
+1. Introduce an explicit new projection namespace/version, retaining the old stored records,
+   checkpoint and readers. Missing whole-call hold must remain unknown, with no-sample
+   distinct from zero. Do not enrich an equal source version under the existing hash contract.
+2. Prove the new projection's official GET field and bootstrap coverage, identity/account
+   binding, paging/lease budgets, freshness, source revision conflicts and failure recovery.
+   Rehearse on isolated synthetic PostgreSQL before any bounded production collection.
+3. Resolve the four unmapped historical report group labels from retained authoritative
+   evidence. Unknown deleted groups cannot silently become the current group list or all groups.
+4. Independently compare exact employee leg/call sets, duration numerators and denominators
+   for two closed weeks and current progress. Show the report's IVR/queue/voicemail abandonment
+   formula honestly; it is not actual abandoned-on-hold. Preserve supervisor participation and
+   LEG-created Central date semantics where matching that inspected report.
+5. Release only qualified POS keys through a separate prospective manifest, controlled
+   persisted parity, unrelated-row digests and actual scheduling. Existing verified outbound,
+   CSAT and first-reply policies remain separate; do not replace them with inbound conclusions.
+
+No metric publication, identity change, source-policy activation or vendor write occurs in
+this readback. It proves identity/parent coverage for the stored capture, not the whole POS pack.
+
 Read-only, repeatable-read production diagnostics at 14:51–14:54 UTC made no database
 writes or vendor requests. Aggregate evidence is retained in
 `2026-10-05-production-operational-census.json` and `2026-10-05-pos-reporting-census.json`.
