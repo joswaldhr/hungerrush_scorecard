@@ -1,5 +1,22 @@
 # Audit implementation — current checkpoint
 
+**October 5 — roster lifecycle candidate implemented:** Migration 0017 records complete
+observations and links proposals to their evidence. Successful reconciliation withdraws
+unsupported proposals, refreshes supported proposals and discovers transfers/returns of known
+identities. Approval requires latest compatible evidence no older than 36 hours, unchanged
+employee state and (for existing employees) the observation displayed on the review page.
+Transitions preserve employee IDs, source bindings and prior membership intervals. Departures
+cannot apply from an empty roster or archive someone with another active/scheduled membership.
+Source-mapping edits now share discovery/approval's lock. Explicit rejections remain intact.
+
+Ninety-seven focused tests pass, including thirteen new lifecycle cases covering transfer,
+return, archive, stale withdrawal/page, organization scope, membership conflict, source failure,
+line change and rollback. Typecheck/scoped lint pass after correcting new test fixture types.
+Full CI, restored-copy migration rehearsal and hosted synthetic lifecycle review remain pending.
+No production/Preview schema, assignments, schedules or policies have changed. Unattended
+archival policy, unresolved source-authority exceptions and metric coverage/certification are
+still open; this candidate does not establish either manager's complete reporting accuracy.
+
 **October 5 — independent roster discovery candidate and recovery rehearsal:** Added a
 disabled-by-default, review-only roster worker, with separate durable run health. Source
 locks/cooldown prevent overlapping jobs; publication validates the source, mappings and

@@ -10,6 +10,7 @@ import {
   approveDeparture,
   rejectCandidate,
   restoreRejectedCandidate,
+  approveExistingEmployeeChange,
 } from "./actions";
 
 export default async function RosterReviewPage() {
@@ -52,15 +53,19 @@ export default async function RosterReviewPage() {
   const teamNameById = new Map(allTeams.map((t) => [t.id, t.name]));
   const newCandidates = pendingCandidates.filter((c) => c.changeType === "new");
   const departedCandidates = pendingCandidates.filter((c) => c.changeType === "departed");
+  const existingChanges = pendingCandidates.filter((c) =>
+    ["transferred", "returned"].includes(c.changeType)
+  );
 
   return (
     <div className="max-w-3xl space-y-8">
       <header>
         <h1 className="text-xl font-semibold text-foreground">Roster Review</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          A stopgap for Rippling: diffs each connected source&apos;s configured groups against known
-          people. Small new-hire batches are approved automatically; larger batches appear here for
-          review. Departures always require review.
+          Review observed changes in configured source groups. The independent worker holds all
+          proposals for review; legacy discovery may approve small new-hire batches. Transfers,
+          returns and departures require review and a recent complete observation. A disabled
+          directory account alone does not establish a departure.
         </p>
       </header>
 
@@ -238,11 +243,12 @@ export default async function RosterReviewPage() {
                 <div className="flex items-center gap-2">
                   <form action={approveDeparture}>
                     <input type="hidden" name="candidateId" value={c.id} />
+                    <input type="hidden" name="observationId" value={c.observationId ?? ""} />
                     <button
                       type="submit"
                       className="rounded-md bg-destructive px-2.5 py-1 text-xs font-medium text-destructive-foreground hover:bg-destructive/90"
                     >
-                      Mark inactive
+                      Archive after review
                     </button>
                   </form>
                   <form action={rejectCandidate}>
@@ -263,6 +269,48 @@ export default async function RosterReviewPage() {
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-foreground">
+          Transfers and returns ({existingChanges.length})
+        </h2>
+        <p className="text-xs text-muted-foreground">
+          Keep the employee&apos;s identity and history. Approved membership changes take effect
+          today.
+        </p>
+        {existingChanges.map((c) => (
+          <div
+            key={c.id}
+            className="flex items-center justify-between gap-4 rounded-lg border border-border p-4"
+          >
+            <div>
+              <p className="text-sm font-medium">
+                {c.externalDisplayName ?? c.externalEmail ?? c.externalId}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {c.changeType === "returned" ? "Return" : "Transfer"} ·{" "}
+                {c.suggestedTeamId ? teamNameById.get(c.suggestedTeamId) : "Unassigned"}
+                {c.suggestedLine ? ` · ${c.suggestedLine}` : ""}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <form action={approveExistingEmployeeChange}>
+                <input type="hidden" name="candidateId" value={c.id} />
+                <input type="hidden" name="observationId" value={c.observationId ?? ""} />
+                <button className="rounded-md border border-accent px-3 py-1 text-sm" type="submit">
+                  Approve change
+                </button>
+              </form>
+              <form action={rejectCandidate}>
+                <input type="hidden" name="candidateId" value={c.id} />
+                <button className="rounded-md border px-3 py-1 text-sm" type="submit">
+                  Reject
+                </button>
+              </form>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold text-foreground">
           Recently rejected ({rejectedCandidates.length})
         </h2>
         {rejectedCandidates.length === 0 ? (
@@ -276,7 +324,15 @@ export default async function RosterReviewPage() {
                     {c.externalDisplayName ?? c.externalEmail ?? c.externalId}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {c.changeType === "new" ? "New hire" : "Departure"} · {c.externalEmail}
+                    {(
+                      {
+                        new: "New hire",
+                        departed: "Departure",
+                        transferred: "Transfer",
+                        returned: "Return",
+                      } as Record<string, string>
+                    )[c.changeType] ?? "Change"}{" "}
+                    · {c.externalEmail}
                   </p>
                 </div>
                 <form action={restoreRejectedCandidate}>

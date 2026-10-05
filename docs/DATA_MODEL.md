@@ -353,6 +353,21 @@ RosterCandidate
 - reviewed_by
 - reviewed_at
 
+Migration 0017 adds `observation_id`, `previous_employee_state` and `withdrawn_at`.
+Existing proposals receive no invented evidence; rediscovery is required before approval.
+Complete `roster_observations` retain source reference, mapping signature, observation time,
+and source identities with observed team/line. Observations and proposals commit together.
+These private database records must never be exported to the public repository.
+
+Candidates now also support `transferred` and `returned`, always subject to explicit review.
+`withdrawn` means a complete observation no longer supports the proposal; it is distinct
+from a human rejection. Transfers/returns reuse the employee and binding, preserving prior
+membership intervals. The candidate retains the previous primary team, line and status;
+reviewer/time record the prospective application. Existing historic line snapshots are not
+backfilled. Approvals require the latest compatible observation, at most 36 hours old.
+Departure approval rejects an empty observed roster or any other active/scheduled membership.
+No automatic archival policy is enabled.
+
 ## Meeting Notes / Coaching (schema defined, not yet wired to UI)
 
 MeetingNote

@@ -8,6 +8,7 @@ import {
   employees,
   organizations,
   rosterCandidates,
+  rosterObservations,
   rosterDiscoveryRuns,
   rosterSourceTeamMappings,
   teams,
@@ -39,6 +40,7 @@ beforeAll(async () => {
 afterAll(async () => {
   await db.delete(rosterDiscoveryRuns).where(eq(rosterDiscoveryRuns.dataSourceId, source));
   await db.delete(rosterCandidates).where(eq(rosterCandidates.dataSourceId, source));
+  await db.delete(rosterObservations).where(eq(rosterObservations.dataSourceId, source));
   await db
     .delete(rosterSourceTeamMappings)
     .where(eq(rosterSourceTeamMappings.dataSourceId, source));

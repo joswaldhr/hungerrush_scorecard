@@ -16,9 +16,17 @@ async function main() {
   url.search = "";
   url.searchParams.set("sslmode", "require");
   const journal = JSON.parse(await readFile("drizzle/meta/_journal.json", "utf8"));
-  assert.equal(journal.entries.at(-1).tag, "0016_roster_discovery_runs");
+  assert.equal(journal.entries.at(-1).tag, "0017_roster_observations");
   const client = postgres(url.toString(), { max: 1, onnotice: () => {} });
   try {
+    const existingColumns =
+      await client`select column_name from information_schema.columns where table_schema='public' and table_name='roster_candidates'`;
+    const omitted = [
+      "suggested_line",
+      "observation_id",
+      "previous_employee_state",
+      "withdrawn_at",
+    ].filter((name) => !existingColumns.some((column) => column.column_name === name));
     const fingerprint = () =>
       client.begin("read only", async (tx) => {
         await tx`set local timezone = 'UTC'`;
@@ -27,7 +35,7 @@ async function main() {
         const result = [];
         for (const table of tables) {
           // Compare the original real values after the same widening cast used by 0015.
-          const omit = table.tablename === "roster_candidates" ? ["suggested_line"] : [];
+          const omit = table.tablename === "roster_candidates" ? omitted : [];
           const value = ["metric_values", "normalized_facts"].includes(table.tablename)
             ? tx`(to_jsonb(t) || jsonb_build_object('numeric_value', t.numeric_value::double precision))`
             : tx`to_jsonb(t)`;
@@ -45,6 +53,7 @@ async function main() {
     await migrate(drizzle(client), { migrationsFolder: "drizzle" });
     const after = await fingerprint();
     assert(after.some((table) => table.table === "roster_discovery_runs"));
+    assert(after.some((table) => table.table === "roster_observations"));
     for (const original of before)
       assert.deepEqual(
         after.find((table) => table.table === original.table),
@@ -60,7 +69,7 @@ async function main() {
     console.log(
       JSON.stringify({
         event: "staging_migration_verified",
-        through: "0016_roster_discovery_runs",
+        through: "0017_roster_observations",
         existingTableContentsPreserved: true,
         tables: before.length,
         rows: before.reduce((sum, table) => sum + table.count, 0),
