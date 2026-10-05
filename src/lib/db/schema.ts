@@ -584,6 +584,26 @@ export const rosterSourceTeamMappings = pgTable(
   (table) => [index("roster_mappings_data_source_id_idx").on(table.dataSourceId)]
 );
 
+// Separate from metric sync runs: roster health must not imply fresh metric data.
+export const rosterDiscoveryRuns = pgTable(
+  "roster_discovery_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    dataSourceId: uuid("data_source_id")
+      .notNull()
+      .references(() => dataSources.id),
+    status: text("status").notNull().default("running"),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    newCandidates: integer("new_candidates").notNull().default(0),
+    departedCandidates: integer("departed_candidates").notNull().default(0),
+    failureCode: text("failure_code"),
+  },
+  (table) => [
+    index("roster_discovery_runs_source_started_idx").on(table.dataSourceId, table.startedAt),
+  ]
+);
+
 export const rosterCandidates = pgTable(
   "roster_candidates",
   {

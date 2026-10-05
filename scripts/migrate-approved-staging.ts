@@ -16,7 +16,7 @@ async function main() {
   url.search = "";
   url.searchParams.set("sslmode", "require");
   const journal = JSON.parse(await readFile("drizzle/meta/_journal.json", "utf8"));
-  assert.equal(journal.entries.at(-1).tag, "0015_metric_numeric_precision");
+  assert.equal(journal.entries.at(-1).tag, "0016_roster_discovery_runs");
   const client = postgres(url.toString(), { max: 1, onnotice: () => {} });
   try {
     const fingerprint = () =>
@@ -44,6 +44,7 @@ async function main() {
     await client`set statement_timeout = '120s'`;
     await migrate(drizzle(client), { migrationsFolder: "drizzle" });
     const after = await fingerprint();
+    assert(after.some((table) => table.table === "roster_discovery_runs"));
     for (const original of before)
       assert.deepEqual(
         after.find((table) => table.table === original.table),
@@ -59,7 +60,7 @@ async function main() {
     console.log(
       JSON.stringify({
         event: "staging_migration_verified",
-        through: "0015_metric_numeric_precision",
+        through: "0016_roster_discovery_runs",
         existingTableContentsPreserved: true,
         tables: before.length,
         rows: before.reduce((sum, table) => sum + table.count, 0),

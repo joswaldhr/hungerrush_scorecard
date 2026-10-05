@@ -28,6 +28,32 @@ shared `.env` database.
 
 ## Preview and scheduler
 
+### Independent roster discovery candidate
+
+`/api/cron/roster` is disabled unless `ROSTER_DISCOVERY_SOURCE_ID` selects one configured,
+account-bound Zendesk source with group mappings. Deploy migration 0016 first after a
+fresh recovery rehearsal. No schedule is installed by this change. Keep the variable unset
+in synthetic Preview and production until activation gates pass. Authentication uses the
+existing environment-specific `CRON_SECRET`; `?probe=auth` performs no source/database work,
+and `?probe=health` only reads the latest independent run. Probe success does not establish
+scheduled execution. Never send a normal request merely to manufacture cron evidence.
+
+The worker uses bounded GET discovery (40 requests, 90-second pre-request budget, individual
+30-second timeout, immediate 429 deferral) and never auto-approves candidates. Candidate
+writes and run completion commit together. Ten-minute cooldown/expiry and publication token
+checks protect overlapping or interrupted runs. Errors retain prior candidates and store only
+sanitized failure codes. Metric freshness and employee assignments are unchanged. Manual
+admin discovery remains a separate legacy path; avoid concurrent operator discovery during
+worker canaries. Stale candidates, transfers, returning staff and safe departure confirmation
+still need separate lifecycle work.
+
+Activation requires a source-specific canary, review of candidate scope, documented roster
+authority/exceptions, and a genuine scheduled observation after the chosen schedule is added.
+Setting the variable suppresses the selected source's legacy current-week cron discovery;
+other sources are unchanged. Roll back by removing the worker schedule and variable together,
+restoring legacy discovery; retain the additive run table and its evidence. Never interpret
+the metric heartbeat as independent roster health after opt-in.
+
 ### Talk collection and outbound candidate
 
 Both new paths default to disabled. Outbound refresh has four daily entries in

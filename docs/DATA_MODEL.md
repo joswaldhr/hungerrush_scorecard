@@ -315,6 +315,19 @@ ReconciliationResult
 
 ## Roster Discovery
 
+RosterDiscoveryRun (migration 0016; independent worker only)
+- id, data_source_id
+- status (`running` | `completed` | `failed`)
+- started_at, completed_at
+- new_candidates, departed_candidates (newly created review records in this run)
+- failure_code (`worker_expired` | `discovery_failed`; no vendor payloads)
+
+Runs are serialized through the source row lock. Candidate writes and completed status
+commit atomically. These records do not update `last_successful_sync_at`, metric `SyncRun`
+health or employee assignments. A run's success establishes discovery only, not roster
+approval or metric completeness. Source/start-time indexing supports latest-run health
+and the ten-minute cooldown. No migration changes existing employees or memberships.
+
 RosterSourceTeamMapping
 - id
 - data_source_id

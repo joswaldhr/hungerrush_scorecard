@@ -19,7 +19,17 @@ const AUTO_APPROVE_ROSTER_PERCENT = 0.3;
 
 export async function discoverRosterCandidates(
   connector: Connector,
-  dataSourceId: string
+  dataSourceId: string,
+  options: {
+    reviewOnly?: boolean;
+    validatePublication?: (
+      tx: Parameters<Parameters<typeof db.transaction>[0]>[0]
+    ) => Promise<void>;
+    recordResult?: (
+      tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+      result: { newCandidates: number; departedCandidates: number; autoApproved: number }
+    ) => Promise<void>;
+  } = {}
 ): Promise<{ newCandidates: number; departedCandidates: number; autoApproved: number }> {
   const [source] = await db.select().from(dataSources).where(eq(dataSources.id, dataSourceId));
   if (!source) throw new Error("Data source not found");
@@ -97,6 +107,7 @@ export async function discoverRosterCandidates(
       );
     if (mappingKey(currentMappings) !== mappingKey(mappings))
       throw new Error("Roster mappings changed during discovery; retry required");
+    await options.validatePublication?.(tx);
     for (const teamId of mappedTeamIds)
       await assertOrganizationResource(source.organizationId, "team", teamId, tx);
     if (discovered.some((member) => !mappedTeamIds.has(member.teamId)))
@@ -206,7 +217,7 @@ export async function discoverRosterCandidates(
       const existingEmployee =
         member.externalEmail &&
         existingEmployeeEmails.has(member.externalEmail.trim().toLowerCase());
-      if (shouldAutoApprove && !existingEmployee) {
+      if (shouldAutoApprove && !existingEmployee && !options.reviewOnly) {
         try {
           await tx.transaction(async (tx) => {
             const today = new Date().toISOString().split("T")[0]!;
@@ -322,6 +333,8 @@ export async function discoverRosterCandidates(
       departedCandidates++;
     }
 
-    return { newCandidates, departedCandidates, autoApproved };
+    const result = { newCandidates, departedCandidates, autoApproved };
+    await options.recordResult?.(tx, result);
+    return result;
   });
 }

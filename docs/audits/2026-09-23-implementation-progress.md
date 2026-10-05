@@ -1,5 +1,24 @@
 # Audit implementation — current checkpoint
 
+**October 5 — independent roster discovery candidate and recovery rehearsal:** Added a
+disabled-by-default, review-only roster worker, with separate durable run health. Source
+locks/cooldown prevent overlapping jobs; publication validates the source, mappings and
+run token again. Candidate writes and completion commit atomically. Failures retain prior
+candidates and never update metric freshness or employee assignments. Only the explicitly
+opted-in source leaves legacy current-week cron discovery. No cron entry, environment
+activation, hosted migration or production/demo deployment was performed.
+
+Eighty-four focused PostgreSQL/route/connector tests pass, including stale-worker fencing,
+bookkeeping rollback, concurrency, disabled-source handling and selected-source separation.
+Typecheck, scoped lint and formatting pass. Migration 0016 adds only the run table/index/FK.
+A fresh encrypted read-only production backup restored all 33 source tables / 85,581 rows
+with matching digests. Candidate migrations through 0016 applied only to the disposable
+restored copy and preserved existing application data. Aggregate evidence:
+`2026-10-05-roster-worker-restore-rehearsal.json`. Recovery requires this Windows profile;
+this is not provider PITR or a portable disaster-recovery backup. Exact worker-candidate
+full CI is pending. Lifecycle automation, source authority/exceptions, scheduled activation,
+and metric completeness/publication gates remain open; neither manager is fully certified.
+
 **October 5 — roster authority checked; duplicate-identity safeguards implemented:**
 Two bounded Graph direct-report GETs and twelve supervisor-level GETs establish that
 immediate manager reports are not the operational agent cohort. Supervisor relationships
@@ -24,7 +43,7 @@ were corrected before these passing checks. Candidate `a761dbd` passes full CI
 a 90-second pre-request budget, with the existing 30-second individual request timeout;
 HTTP 429 defers immediately instead of sleeping/retrying inside discovery. Budget/rate
 failures throw before any reconciliation writes. Fifty-four focused tests pass, including
-three budget/defer regressions; follow-up exact-candidate CI remains pending. A further
+three budget/defer regressions; candidate `f71460b` passes full CI `37338483650`. A further
 single bounded Graph exact-mail GET finds the unmatched POS account uniquely and enabled,
 but its reporting relationship remains unverified. No employee was removed or added.
 This is not yet
