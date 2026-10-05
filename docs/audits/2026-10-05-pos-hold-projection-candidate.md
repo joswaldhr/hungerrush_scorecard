@@ -21,11 +21,33 @@ The fresh source probe supplies 11,025 measured hold values. Only 10,882 of the 
 This is a reason to collect a coherent new projection, not to fill old measurements.
 The retained leg snapshot's freshness gate is not asserted passed by that join.
 
+## Actual collection and independent comparison
+
+Exact b5bbbcbd621a40950bbb0edfdb84ad1f6583c485 passes full CI/build 37374409381.
+The guarded initial collection completes 35 pages / 27,060 changes with both streams
+still pending; a separately manifested continuation completes 18 pages / 6,255 changes
+and exhausts both streams. A two-page calls-only recovery adds 15 changes while preserving
+the exact POS leg record/revision/checkpoint digest. Original participation and every
+protected application-table digest match before/after all operations; no metric is written.
+
+The final capture contains 11,085 calls, all with mandatory whole-call hold fields, and
+22,186 legs. Four global parents remain missing. One affects one POS employee's current
+week through a newly created leg; that employee/period is blocked, never assigned zero.
+The account lease is released. Source observation age/span checks pass for this capture.
+
+Independent Python comparison matches the offline TypeScript reference for 77 employee
+periods: all 39 last-week rows and 38 current-week rows, with 539 exact source-set and
+385 duration numerator/denominator/mean comparisons and zero differences. This covers
+the 14 known report groups only. It does not bind the four missing original labels,
+establish historical eligibility, compare a new manager export, or publish any values.
+See the collection, continuation, parent recovery and independent reconciliation artifacts.
+Source operations are controlled manual reads, not scheduled evidence.
+
 Validation: 31 focused cursor/store/join tests pass, including real PostgreSQL namespace
 isolation, unchanged participation rows, shared account lease and rollback on missing hold.
 All 999 local tests in 125 files pass on isolated PostgreSQL 18. Typecheck, scoped ESLint
-and formatting pass. Full exact-candidate CI/build and the production recovery gate remain
-required before any collection from this candidate.
+and formatting pass. Full exact-candidate CI/build and fresh encrypted restore gates passed
+before the manifested collection operations; future operations require fresh gates again.
 
 The official API confirms [whole-call hold seconds](https://developer.zendesk.com/api-reference/voice/talk-api/incremental_exports/).
 A separate official account-audit probe returns 205 group history events in three bounded
