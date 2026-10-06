@@ -23,6 +23,28 @@ The retained leg snapshot's freshness gate is not asserted passed by that join.
 
 ## Actual collection and independent comparison
 
+### Delayed retry and fresh joined observation, October 6 02:48 UTC
+
+A separately manifested two-page calls-only retry recovers all four previously missing
+parents, preserving exact POS leg and protected digests. Its older leg observation is
+not claimed fresh. A separately manifested five-page overlap refresh then exhausts both
+streams: 11,390 calls, each retaining whole-call hold, 22,805 legs, zero missing parents.
+Original participation and protected application digests remain unchanged. No metric writes
+or source activation occur. The account lease is released and original age/span gates pass.
+
+Independent comparison now matches all 78 employee-periods: all 39 last-week and all 39
+current-week rows, with 546 exact source-set and 390 duration comparisons, zero differences.
+This supersedes the one blocked current-week case below, for this newer capture only.
+The 14-group diagnostic scope remains unchanged; the four original report labels still
+need authoritative binding. No historical eligibility, new manager-export parity,
+publication or scheduler result is inferred. A fresh encrypted restore matches 35 tables /
+204,725 rows before the operations. Recovery remains Windows-profile-bound.
+
+Fresh Explore access still fails before opening any report with AADSTS90015; the temporary
+tab is closed. Zendesk's official troubleshooting recommends clearing browser cookies:
+https://support.zendesk.com/hc/en-us/articles/11270498158490-Error-AADSTS90015-Requested-Query-string-is-too-long
+No report, account configuration or permission is changed to bypass this issue.
+
 Exact b5bbbcbd621a40950bbb0edfdb84ad1f6583c485 passes full CI/build 37374409381.
 The guarded initial collection completes 35 pages / 27,060 changes with both streams
 still pending; a separately manifested continuation completes 18 pages / 6,255 changes
