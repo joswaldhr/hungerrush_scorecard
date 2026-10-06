@@ -1,5 +1,24 @@
 # Audit implementation — current checkpoint
 
+**October 6, 15:40 UTC — fresh POS monthly parity passes:** Complete, bounded GET-only
+capture retains 37,405 calls and 74,590 legs privately, with 169 source identity
+observations and 120 GET requests. Both cursor streams exhaust with no relevant missing
+parents. All 71 report identities resolve uniquely. TypeScript reference and independent
+Python each match all 568 values across eight measures for the saved September 6–October 5
+Central leg-created interval: zero differences, including null consultation averages.
+Published values, targets, assignments, definitions, facts, existing source records and
+data-source digests remain unchanged after every batch. Only account lease/request pacing
+is used in production; private cursors do not alter durable source checkpoints.
+
+This resolves fresh aggregate report comparison. It does not qualify the report's two
+transfer columns, historical employment eligibility, targets, the distinct offered-call
+formula or publication/scheduling. Actual on-hold abandonment must not inherit the
+report's mislabeled IVR/queue/voicemail subtotal. Fresh monthly per-leg report identities
+are not in this aggregate CSV; retained weekly 2,012-leg parity remains separate.
+Both inspection/export tabs are closed, Zendesk unchanged, and no app/demo deployment
+or metric publication occurs. Evidence is on PR44; raw source/employee data stays private.
+The preceding ledger commit `e507f64` passes exact CI/build `37487418448`.
+
 **October 6 — retained POS mismatch fixed; fresh monthly benchmark obtained:**
 PR44 candidate `f938a840cec812b6eb68873fd9c47815b0ef72c0` separates current
 report-name matches from historical group aliases. The earlier ten-row mismatch was
