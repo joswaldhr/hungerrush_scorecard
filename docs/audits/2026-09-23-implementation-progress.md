@@ -21,9 +21,11 @@ Human-action shadow/v2 publication and historical repair remain disabled.
 All 997 tests / 125 files pass against isolated loopback PostgreSQL 18. Typecheck and
 full ESLint pass. All source formatting passes with `--end-of-line auto`; the default
 local formatting check reports checkout CRLF differences (core.autocrlf=true).
-Local Turbopack build rejects the existing cross-root node_modules junction, so the
-canonical exact-commit Linux CI/build remains required; no dependency reinstall or
-production workaround is used. The user-facing choice of separate report-matched
+Local Turbopack build rejects the existing cross-root node_modules junction; no
+dependency reinstall or production workaround is used. The canonical Linux CI/build
+**37523231917 succeeds on code commit 133705a60e628425597686a05b6a734468290d8d**,
+including typecheck, default lint/format, migrations, tests and the production build.
+The user-facing choice of separate report-matched
 credits versus verified-human-only counts remains pending. No guard is relaxed and
 no replacement figures or historical repair are published while that meaning is unresolved.
 

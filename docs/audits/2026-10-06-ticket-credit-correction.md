@@ -66,6 +66,11 @@ unrelated backlog values, untouched earlier periods, and stale numeric producer 
 version protection. Full test/type/lint/build evidence belongs in the implementation
 ledger. This document alone does not assert deployment.
 
+Code commit `133705a60e628425597686a05b6a734468290d8d` passes exact GitHub
+CI/build `37523231917`, including all 997 tests. The local Windows build's existing
+cross-root dependency-junction limitation is separate from that successful Linux build.
+The correction is pushed to PR43; it is not merged, deployed or run on production.
+
 Before production: focused reviewed candidate and exact CI, fresh encrypted backup and
 validated restore, scoped before/after digests, one controlled sync, and actual scheduled
 follow-up evidence. Keep action shadow ingestion, action-v2 publication and historical
