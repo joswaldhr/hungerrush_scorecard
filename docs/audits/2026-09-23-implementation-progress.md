@@ -1,5 +1,28 @@
 # Audit implementation — current checkpoint
 
+**October 5 local / October 6 02:48 UTC — POS parent blocker resolved:** Fresh verified
+encrypted restore matches all 35 tables / 204,725 rows. CI-passed PR44 documentation
+head e0d621c (37376325051), with unchanged tested source code, completes a separately
+manifested two-page delayed calls-only retry. All four missing parents recover while
+POS leg records/revisions/checkpoint and protected digests remain unchanged. A separate
+five-page joined refresh exhausts both streams: 11,390 calls with whole-call hold,
+22,805 legs, no missing parents. Original/protected digests match; no metric publication,
+policy activation, employee edit, app deployment or Zendesk mutation occurs.
+
+Original freshness/span gates pass for the joined refresh. Independent Python comparison
+matches all 39 POS employees for last week and all 39 for current progress: 546 exact
+source-set and 390 duration comparisons, zero differences. This supersedes the previous
+one blocked current-week case for this capture. It remains a 14-known-group diagnostic;
+four original report labels, second closed-week coverage and historical eligibility remain
+separate gaps. Lease readback verifies released. Aggregate evidence/manifests are on PR44.
+
+Explore retry still fails before opening a report with AADSTS90015; its temporary tab is
+closed. Official Zendesk guidance recommends browser-cookie cleanup, not a Cadence metric
+fix. Browser-controlled Copy link shows success but exposes an empty virtual clipboard;
+native print inspection remains unsupported. Neither is marked verified without actual
+user-browser evidence. Main documentation head d9af80a passes full CI 37376482534.
+Production remains 2241763, frozen demo unchanged, human action/repair opt-ins disabled.
+
 **October 5, 21:30 UTC — isolated POS source comparison:** Separate PR44 candidate
 `b5bbbcbd621a40950bbb0edfdb84ad1f6583c485` passes full CI/build `37374409381` and
 999 local tests. Explicit bounded collection/continuation and calls-only parent recovery
