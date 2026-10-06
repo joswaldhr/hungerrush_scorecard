@@ -9,7 +9,7 @@ const ids = z
   .max(500)
   .refine((values) => new Set(values).size === values.length);
 const instant = z.iso.datetime({ offset: true });
-const scopeSchema = z
+export const assigneeSolvedReportScopeSchema = z
   .object({
     periodStart: z.iso.date(),
     periodEnd: z.iso.date(),
@@ -21,7 +21,7 @@ const scopeSchema = z
     attribution: z.literal("current-assignee"),
   })
   .strict();
-export type AssigneeSolvedReportScope = z.infer<typeof scopeSchema>;
+export type AssigneeSolvedReportScope = z.infer<typeof assigneeSolvedReportScopeSchema>;
 export const assigneeSolvedReportSnapshotSchema = z.object({
   tickets: z.array(
     z.object({
@@ -43,7 +43,7 @@ export function calculateAssigneeSolvedReport(
   scopeInput: AssigneeSolvedReportScope
 ) {
   const source = assigneeSolvedReportSnapshotSchema.parse(input),
-    scope = scopeSchema.parse(scopeInput);
+    scope = assigneeSolvedReportScopeSchema.parse(scopeInput);
   if (
     scope.periodStart > scope.periodEnd ||
     Date.parse(scope.periodEnd) - Date.parse(scope.periodStart) > 31 * 86400000

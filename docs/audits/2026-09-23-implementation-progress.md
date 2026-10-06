@@ -1,5 +1,19 @@
 # Audit implementation — current checkpoint
 
+**October 6 — bounded POS source collection and timestamp distinction:** The inactive
+assignee-solved collector completes September 20–26 using 38 bounded GET requests.
+All 39 employee counts / 1,464 contributing ticket IDs agree with independent Python.
+Retained source history has a solve event for every ticket: 1,441 exact metric/event
+timestamps and 23 events one second later. POS's solved-date contract includes those
+tickets; Menufy's separate exact-timestamp formula is unchanged. This source comparison
+is distinct from an unavailable second-week POS Explore export. No scheduler or publisher
+uses the collector. The preceding adapter/calculator commit `c5c69c0` passes exact
+CI/build **37541370910**, including all 1,028 tests. Source qualification and live
+publication remain unfinished; the new code is pushed to the audit branch, not production.
+With the collector and timestamp regression added, all **1,035 tests / 129 files**
+pass against isolated PostgreSQL. Typecheck, scoped lint and changed-source formatting
+pass; exact CI/build for this subsequent collector commit is pending.
+
 **October 6 — report-credit calculations and inactive ingestion adapter:** Menufy solved
 credits match both closed-week report comparisons: 43/43 and 42/42 employee rows (4,151
 and 4,185 total). Fresh POS assignee-solved counts match all 39 currently eligible employees

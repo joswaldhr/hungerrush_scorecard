@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { calculateTicketReportCredits } from "./zendesk-ticket-report-credits";
 import {
   calculateAssigneeSolvedReport,
   type AssigneeSolvedReportScope,
@@ -27,6 +28,39 @@ const source = () => ({
   observedAt: "2026-10-06T22:00:00Z",
 });
 describe("report-matched assignee solved tickets", () => {
+  it("preserves the Tickets dataset date rule when an update timestamp differs by one second", () => {
+    const solved = "2026-09-28T12:00:00Z";
+    const s = { ...source(), tickets: [{ ...ticket, solved_at: solved }] };
+    expect(calculateAssigneeSolvedReport(s, scope).agents[0]!.assigneeSolvedTickets).toBe(1);
+    const updater = calculateTicketReportCredits(
+      {
+        ...s,
+        events: [
+          {
+            id: 1,
+            ticket_id: ticket.id,
+            updater_id: 1,
+            created_at: "2026-09-28T12:00:01Z",
+            child_events: [
+              { id: 2, event_type: "Change", status: "solved", previous_value: "open" },
+            ],
+          },
+        ],
+        identities: [
+          { id: 1, role: "agent" },
+          { id: 2, role: "agent" },
+        ],
+      },
+      {
+        ...scope,
+        groupIds: [100],
+        dateBasis: "update-created",
+        groupBasis: "current-ticket-group",
+        attribution: "updater-account",
+      }
+    );
+    expect(updater.agents[0]!.ticketsSolvedCredits).toBe(0);
+  });
   it("counts a solved ticket by current assignee and latest solved date, regardless of later updates", () => {
     const s = source();
     const result = calculateAssigneeSolvedReport(

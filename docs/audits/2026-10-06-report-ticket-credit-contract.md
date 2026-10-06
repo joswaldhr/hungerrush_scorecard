@@ -108,6 +108,24 @@ existing eligibility guard now explicitly blocks this candidate record type and 
 new contracts, even if an eligibility marker is stripped or forged. No live collector
 or normalizer consumes these records yet; activation requires a reviewed release change.
 
+The inactive `zendesk-assignee-solved-collector.ts` now supplies the closed-week POS
+candidate through bounded cursor search and fresh parent/metric-set joins. It shares
+one request budget across both phases, rejects missing/duplicate/foreign parent joins,
+strips ticket content and refuses an unfinished week. The existing account-bound,
+GET-only transport supplies time limits, redirect protection and quota pacing. No
+scheduled route consumes this collector.
+
+A second POS source interval, September 20–26, completes with 38 GETs, 1,806 padded
+source tickets and 1,464 qualifying tickets across 39 employees. Independent Python
+agrees on every employee count and ticket set. Retained incremental history contains
+solve events for all 1,464 tickets: 1,441 have the identical solved timestamp, and 23
+have their solve event exactly one second after the metric-set solved timestamp.
+This is an observed distinction between the two source contracts, not permission to
+loosen Menufy's exact-timestamp formula. The POS Tickets-dataset calculation uses the
+solved date and has no update-timestamp-equality condition. A regression test preserves
+that distinction. No saved second-week POS report export is available; this source
+cross-check is not represented as another Explore export match.
+
 The source investigation reuses retained identity/report evidence and uses bounded
 GET-only incremental events plus minimal parent-ticket joins. Account scope, continuation,
 count and time boundaries are checked; requests are paced below the incremental export
