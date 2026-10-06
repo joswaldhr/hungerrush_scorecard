@@ -1,5 +1,32 @@
 # Audit implementation — current checkpoint
 
+**October 6, 19:49 UTC — shared ticket-credit defect confirmed; correction candidate:**
+Read-only production evidence covers all 23 active Menufy and 39 active POS employees.
+All 248 recent source snapshots use current-assignee / last-updated selection; closed
+counts vary across retained post-close observations for 21 Menufy and 39 POS employees
+(50 and 102 employee-periods). No employee-specific payloads or IDs are committed.
+Brief saved Menufy report inspection confirms distinct update IDs grouped by updater;
+the inspection tab closes without edits. Its semantics differ from distinct tickets
+and from verified-human actions. See [ticket-credit correction](2026-10-06-ticket-credit-correction.md).
+
+The real normalizer now emits explicit null ticket-action facts while retaining raw
+assignee snapshots; publication separately enforces `unverified_attribution`, including
+stale numeric producers and higher definition versions. This prevents false stored
+completeness for both teams, not a claim that replacement values are qualified.
+Ordinary scoped syncs will affect only their touched employee-periods after release;
+predecessor revisions and untouched intervals remain preserved. No live data, source
+policy, Zendesk object, assignment, target, demo or deployment changes in this pass.
+Human-action shadow/v2 publication and historical repair remain disabled.
+
+All 997 tests / 125 files pass against isolated loopback PostgreSQL 18. Typecheck and
+full ESLint pass. All source formatting passes with `--end-of-line auto`; the default
+local formatting check reports checkout CRLF differences (core.autocrlf=true).
+Local Turbopack build rejects the existing cross-root node_modules junction, so the
+canonical exact-commit Linux CI/build remains required; no dependency reinstall or
+production workaround is used. The user-facing choice of separate report-matched
+credits versus verified-human-only counts remains pending. No guard is relaxed and
+no replacement figures or historical repair are published while that meaning is unresolved.
+
 **October 6, 15:40 UTC — fresh POS monthly parity passes:** Complete, bounded GET-only
 capture retains 37,405 calls and 74,590 legs privately, with 169 source identity
 observations and 120 GET requests. Both cursor streams exhaust with no relevant missing

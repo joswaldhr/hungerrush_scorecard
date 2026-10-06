@@ -1,5 +1,15 @@
 # HungerRush Cadence — Metric Traceability
 
+## October 6 ticket-credit correction candidate
+
+The legacy current-assignee / last-updated query below is retained as diagnostic
+source evidence only. The real connector now emits null facts for `tickets_updated`
+and `tickets_resolved`; publication also enforces `unverified_attribution` for those
+Zendesk keys. This corrects stored false completeness as each scoped sync touches its
+employee-periods and retains predecessor revisions. It does not enable a human-action
+or report-credit replacement. See [correction evidence](audits/2026-10-06-ticket-credit-correction.md)
+and the ledger for tested/deployed state.
+
 ## September 25 source-contract updates
 
 The older diagrams below describe legacy observations and contain historical line numbers.
