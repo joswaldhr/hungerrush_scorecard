@@ -1,5 +1,37 @@
 # Audit implementation — current checkpoint
 
+**October 6 — report-credit calculations and inactive ingestion adapter:** Menufy solved
+credits match both closed-week report comparisons: 43/43 and 42/42 employee rows (4,151
+and 4,185 total). Fresh POS assignee-solved counts match all 39 currently eligible employees
+and 1,411 tickets. Separate TypeScript/Python reconstruction agrees on all contributing
+source IDs; report exports provide aggregate rows, not independent detail ID sets.
+Menufy's fresh update-event comparison still has three one-count discrepancies (39/42
+rows match); retained first-week group-change evidence explains six of seven differing
+rows, leaving a two-update residual. These gaps must not be concealed by solved parity.
+
+New calculators preserve updater versus current-assignee meaning under distinct keys.
+An inactive adapter minimizes replay evidence per employee, binds account/team/scope and
+recalculates totals. Candidate records/contracts are explicitly blocked at ordinary
+publication even with a forged eligibility marker. Runtime collection, publication,
+second POS week/current-week checks, Preview and release gates remain. All source calls
+are GET-only; report tabs closed without changes. No production, demo, assignments,
+targets, human-action flags or historical repair changes. See the
+[report-credit contract and evidence](2026-10-06-report-ticket-credit-contract.md).
+
+All 1,028 tests / 128 files pass against isolated loopback PostgreSQL, with typecheck,
+full source ESLint and changed-source formatting passing. An initial adapter test compared
+equivalent ISO timestamps as differently formatted strings; it was corrected to compare
+instants and passes in the full run. Canonical CI/build on the committed candidate remains
+required; the known local cross-root dependency junction is unchanged.
+
+**October 6 — report-matched ticket credits approved:** The user explicitly selected
+clearly labeled report credits with human verification separate. The earlier pending
+choice below is resolved. Proceed with distinct report-credit keys and source contracts
+for each manager, preserving legacy human-only containment, unchanged Zendesk and the
+frozen demo. No new source or publication flag is enabled by this decision alone.
+Menufy definition inspection establishes D_COUNT update IDs / latest solved update IDs
+by updater; exact source comparison and POS ticket-report scope remain required.
+
 **October 6, 19:49 UTC — shared ticket-credit defect confirmed; correction candidate:**
 Read-only production evidence covers all 23 active Menufy and 39 active POS employees.
 All 248 recent source snapshots use current-assignee / last-updated selection; closed
@@ -25,9 +57,9 @@ Local Turbopack build rejects the existing cross-root node_modules junction; no
 dependency reinstall or production workaround is used. The canonical Linux CI/build
 **37523231917 succeeds on code commit 133705a60e628425597686a05b6a734468290d8d**,
 including typecheck, default lint/format, migrations, tests and the production build.
-The user-facing choice of separate report-matched
-credits versus verified-human-only counts remains pending. No guard is relaxed and
-no replacement figures or historical repair are published while that meaning is unresolved.
+At this checkpoint the user-facing policy choice was still pending; the later October 6
+decision at the top of this ledger supersedes that status. No replacement figures or
+historical repair were published by this containment change.
 
 **October 6, 15:40 UTC — fresh POS monthly parity passes:** Complete, bounded GET-only
 capture retains 37,405 calls and 74,590 legs privately, with 169 source identity

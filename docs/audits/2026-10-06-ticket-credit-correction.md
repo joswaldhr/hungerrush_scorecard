@@ -53,10 +53,11 @@ every underlying child action was human.
   by an ordinary scoped sync are recalculated. No replay is enabled and older untouched
   values remain preserved behind the existing read guard.
 
-The user has been asked to select the desired finished scorecard meaning: separate,
-clearly labeled report-matched credits or verified-human counts only. That decision
-does not block correcting the invalid assignee-to-actor conversion. Until resolved,
-no report-credit replacement, new metric key or relaxed human guard is published.
+The user subsequently approved separate, clearly labeled report-matched credits on
+October 6. The [new report-credit contract](2026-10-06-report-ticket-credit-contract.md)
+owns that amendment and qualification work. This containment still prevents the invalid
+assignee-to-actor conversion; approving report credits does not relax the old human guard
+or make legacy assignee counts valid under the new definition.
 
 ## Release requirements
 

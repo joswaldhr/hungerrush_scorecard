@@ -22,6 +22,7 @@ be distinguished: an audit-branch fix is not automatically a production fix.
 | [Core reporting requirements](audits/2026-09-29-reporting-requirements.md) | Current 1:1 inventory, proposed workforce measures and qualification sequence |
 | [Cross-source execution plan](audits/2026-09-29-cross-source-execution-plan.md) | Assembled instance audit, Zendesk completion work, agent coordination and end-to-end acceptance |
 | [Action contract](audits/2026-09-23-action-metric-v2-contract.md) | Approved human-only policy and version-2 shadow evidence/activation requirements |
+| [Report ticket credits](audits/2026-10-06-report-ticket-credit-contract.md) | October 6 separate report-credit decision, candidate semantics and publication qualification boundary |
 
 The [application audit](audits/2026-09-23-application-audit.md) is the historical baseline
 and roadmap. Dated JSON reports support only their stated cohort, environment and time.

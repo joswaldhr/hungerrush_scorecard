@@ -66,6 +66,14 @@ deployments because the host automatically deploys that branch.
 
 ## 3. Change one metric family at a time
 
+**October 6 user amendment:** The user selected report-matched credits with clear
+labels and separate human verification. This supersedes human-only attribution as
+the required meaning of the new scorecard ticket-credit measures. It does not turn
+legacy assignee snapshots into valid credits or authorize claims of manual authorship.
+Keep the old human-only keys and publisher guarded; qualify separate report-credit
+definitions and source observations against each manager's saved report. All source,
+coverage, testing, release and recovery gates below still apply.
+
 Write a short change manifest before release: candidate SHA, defect, affected team/keys,
 effective period, source contract, expected writes, untouched data, validation evidence,
 backup reference, rollback deployment and previous policy configuration. Separate code
