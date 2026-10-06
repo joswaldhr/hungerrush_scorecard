@@ -1,5 +1,26 @@
 # Audit implementation — current checkpoint
 
+**October 6 — Explore restored; four POS labels resolved, expanded parity fails:**
+Agent sign-in restores access. Brief read-only definition inspections are performed one
+at a time; all temporary definition tabs close, no edits/Apply/Save occur, and the original
+user tab returns to shared dashboards. The older retained employee report's full 18-group
+selection is captured. Exact audit rename history resolves the four missing labels; all
+18 bind uniquely to 17 distinct group IDs, including an old/new-name alias and three IDs
+additional to the previous 14. Private source details remain private; aggregate evidence
+and the owning scope review are on PR44.
+
+Expanded replay against the retained September 13–19 export matches 45/55 rows; ten
+rows differ in counts/durations. The earlier 14-group match remains conditional evidence,
+not full saved-scope parity. Fresh unmodified report export/source comparison and complete
+saved filter/eligibility semantics remain necessary. No publication is enabled.
+
+The dashboard-linked POS inbound offered report is distinct: one SUM metric, seven saved
+groups and call-created Central dates. Its inspected formula sums distinct completed
+inbound, voicemail and abandoned calls; it is not Menufy's offered-leg formula or the old
+leg-date report. Seven groups bind; component overlap and tenant predicates still require
+verification. Production/frozen demo remain unchanged. Missing-parent recovery remains
+verified for its prior capture; hosted native print/copied-link bytes remain unverified.
+
 **October 5 local / October 6 02:48 UTC — POS parent blocker resolved:** Fresh verified
 encrypted restore matches all 35 tables / 204,725 rows. CI-passed PR44 documentation
 head e0d621c (37376325051), with unchanged tested source code, completes a separately
