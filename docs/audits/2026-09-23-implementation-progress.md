@@ -12,7 +12,10 @@ CI/build **37541370910**, including all 1,028 tests. Source qualification and li
 publication remain unfinished; the new code is pushed to the audit branch, not production.
 With the collector and timestamp regression added, all **1,035 tests / 129 files**
 pass against isolated PostgreSQL. Typecheck, scoped lint and changed-source formatting
-pass; exact CI/build for this subsequent collector commit is pending.
+pass. Exact CI/build **37542227561** succeeds on collector commit
+`71a61193fe525fe4a69711ef9f0da1fb6915b8c7`, including migrations, all 1,035 tests,
+default lint/format and the production build. This confirms the code checks, not live
+publication or scheduled execution.
 
 **October 6 — report-credit calculations and inactive ingestion adapter:** Menufy solved
 credits match both closed-week report comparisons: 43/43 and 42/42 employee rows (4,151
