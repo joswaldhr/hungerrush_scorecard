@@ -1,5 +1,17 @@
 # POS source report scope review — October 6
 
+**Superseding result:** The ten-row discrepancy below was an audit scope-expansion
+error. The corrected resolver keeps rename identity separate from selected activity.
+Retained weekly parity now matches all 55 rows and all 2,012 exported leg identities.
+Fresh unmodified monthly CSV parity also matches all 71 rows / 568 measure values in
+both TypeScript and independent Python, with no relevant missing parent calls. Bounded
+GET collection retains 37,405 calls and 74,590 legs privately; protected digests match
+after every batch. See the name-scope correction and monthly parity aggregate. The
+historical negative evidence below remains preserved, rather than rewritten as a pass.
+Monthly CSV parity is aggregate evidence, not a new per-leg report export. Two transfer
+measures, historical eligibility and the distinct offered-call formula remain separate.
+No producer is activated and no application deployment or Zendesk mutation occurs.
+
 Agent sign-in restores Explore access. Existing definition inspection occurs one report
 at a time without formula, filter, date, aggregation or layout changes. No Apply/Save is
 used. All three temporary definition tabs are closed, and the user-owned tab returns to
