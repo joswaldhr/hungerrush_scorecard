@@ -1,5 +1,30 @@
 # Audit implementation — current checkpoint
 
+**October 6 — retained POS mismatch fixed; fresh monthly benchmark obtained:**
+PR44 candidate `f938a840cec812b6eb68873fd9c47815b0ef72c0` separates current
+report-name matches from historical group aliases. The earlier ten-row mismatch was
+caused by expanding activity scope from identity rename history without independent
+membership evidence. Historical aliases no longer automatically expand that scope.
+The retained September 13–19 benchmark now matches all 55 employee rows / 440 measure
+comparisons and all 2,012 leg IDs, with zero missing/extra IDs. Independent reconstruction
+matches 16,096 per-leg measure cells and identities. This qualifies that retained
+observation, not every period or historical employee eligibility. The expanded-scope
+negative evidence below remains retained and its activity interpretation is superseded.
+
+All 1,004 tests / 126 files, typecheck and scoped lint pass. Exact GitHub CI/build
+`37485990968` succeeds on `f938a84`. No runtime publisher uses the new offline guard.
+A fresh unmodified report CSV actually downloads: 71 unique employee rows, 11 columns,
+19,154 bytes, SHA-256 `8a5a47a7cbf94a7ebfaf2e22cdf97a02c4c897d69684699dcbab61d0dbd6ea54`.
+Its saved rolling interval is September 6–October 5, Central leg-created dates, rather
+than a weekly interval. Current monthly source parity remains to be reconstructed.
+The export dialog's download-event timeout did not mean file delivery failed; filesystem
+inspection confirms delivery. Both temporary report tabs close without edits/Apply/Save.
+
+Fresh read-only encrypted backup/restore at 15:21 UTC matches all 35 tables / 210,687
+rows. Windows-profile recovery limitations remain recorded in the restore artifact.
+No production metric publication, application deployment, employee change or Zendesk
+mutation occurs in this correction. Main release print/copied-link checks remain separate.
+
 **October 6 — Explore restored; four POS labels resolved, expanded parity fails:**
 Agent sign-in restores access. Brief read-only definition inspections are performed one
 at a time; all temporary definition tabs close, no edits/Apply/Save occur, and the original
