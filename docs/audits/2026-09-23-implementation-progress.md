@@ -1,4 +1,22 @@
 # Audit implementation — current checkpoint
+**October 7 — durable report-event collector implemented, inactive:**
+The separate report-credit stream now has account-wide ownership, persistent request
+spacing/Retry-After, atomic immutable event/checkpoint commits, resumable bounded batches
+and complete-interval reads. It uses GET only and cannot write metric facts or activate
+the human-action shadow/v2 path. Real PostgreSQL tests cover conflicts, rollback,
+concurrent/stale workers, zero-event coverage and account/config fences. All **1,083
+tests / 135 files**, typecheck and full source ESLint pass locally. Exact CI/build and
+the live parent-join/publication adapter remain before any release.
+
+Offline replay of 38 retained source pages preserved 37,117 unique events (376 repeated
+boundary records), selected 5,933 events and reproduced every count/contributing set
+for all 23 Menufy employees. This reuses the previously independently checked source,
+not a new Explore comparison. The stream legitimately includes older-created events
+and one page above 1,000 records; both are preserved and weekly filtering is separate.
+No vendor requests or production writes were made. New stream records use separate
+`zendesk_report_event_*` namespaces; no route, schedule, policy or catalog entry activates
+them. Existing production, demo, CSAT/first-reply and ticket-action restrictions remain.
+
 **October 7 — genuine post-release current-week first-reply refresh verified:**
 The production `vercel-cron/1.0` request to `/api/cron/first-reply?week=0` started
 16:43:32 UTC on release deployment `dpl_HGEAA1j1xJ8XYJLKCMKcuTUPMoKN`, returned HTTP
