@@ -175,6 +175,7 @@ export function ScorecardBody({
     missingReason: r.missingReason,
     sourceContract: r.sourceContract,
     reportingTimeZone: r.reportingTimeZone,
+    reportingAsOf: r.reportingAsOf,
     comparisonUnavailableReason: r.comparisonUnavailableReason,
   }));
 

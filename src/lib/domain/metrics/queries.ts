@@ -50,6 +50,7 @@ export interface EmployeeMetricRow {
   missingReason?: string | null;
   sourceContract?: string | null;
   reportingTimeZone?: string | null;
+  reportingAsOf?: string | null;
   comparisonUnavailableReason?: string | null;
 }
 
@@ -281,6 +282,7 @@ export async function getEmployeeMetricsBatch(
         sourceDescription: metricSourceDescription(def.key, def.sourceStrategy, sourceContext),
         sourceContract: sourceContext?.sourceContract ?? null,
         reportingTimeZone: sourceContext?.reportingTimeZone ?? "UTC",
+        reportingAsOf: sourceContext?.reportingAsOf ?? null,
         comparisonUnavailableReason:
           previous && !comparisonCompatible ? INCOMPATIBLE_COMPARISON_REASON : null,
         missingReason,
