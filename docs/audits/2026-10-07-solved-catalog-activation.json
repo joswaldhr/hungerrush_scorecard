@@ -1,0 +1,25 @@
+{
+  "catalogCommittedAt": "2026-10-07T19:51:52.961Z",
+  "teams": 2,
+  "newMetricDefinitions": 2,
+  "effectivePeriodStart": "2026-09-27",
+  "employeeAssignmentsChanged": 0,
+  "metricValuesWrittenByCatalog": 0,
+  "unaffectedCatalogDigestGroups": 7,
+  "restoredBackupSha256": "2eba4e3699747da916a21579f1e68eca3d1982e0198b960a940c420fc297d335",
+  "releaseEvidenceSha256": "0fe182c4854f9d9959f756856f0a09e355b335217a6337d7a9f64bf535393660",
+  "deploymentId": "dpl_C3zsDWZKpLvz6HCkuxzGJCV3b5tk",
+  "codeSha": "31f4187870b5942db03f28e86c0c202d0ca039d6",
+  "productionAliasVerified": true,
+  "solvedReleasePolicyProductionOnly": true,
+  "existingEnvironmentEntriesUnchanged": 63,
+  "newSchedulesInstalled": 0,
+  "rollbackDeploymentId": "dpl_G82oX6dFur4iAQUDiGRPGKYW26pE",
+  "canaryVerified": false,
+  "notes": [
+    "First catalog attempt failed a timestamp representation comparison and committed nothing; unchanged census confirmed.",
+    "Corrected Date/string instant comparison passed a fresh restored-copy transition and rollback before catalog activation.",
+    "Read-only canary preflight normalized the database DATE representation before its passing check.",
+    "This receipt establishes configuration/catalog activation, not metric publication or scheduler success."
+  ]
+}

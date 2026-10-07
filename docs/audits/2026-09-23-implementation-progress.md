@@ -1,4 +1,138 @@
 # Audit implementation — current checkpoint
+**October 7 — collector/publication coordination candidate in validation:**
+The local candidate makes report-event collection and ordinary sync publication
+acquire ownership under the same Zendesk account lock, then the source row lock.
+Collection defers for active publishers across source/week boundaries; publication
+defers for collection ownership and its persisted request cooldown. Expired owners
+remain fenced and unrelated accounts remain independent. No production code, policies
+or schedules have changed. See `2026-10-07-report-sync-coordination.md`.
+
+The first focused PostgreSQL run passes 18 tests across the new coordination suite and
+existing event store. Typecheck and targeted lint pass. The first full run caught an
+end-to-end test that expected immediate publication during retained collector pacing;
+the test and isolated hosted rehearsal now respect that pacing. The revised test also
+asserts zero vendor reads and unchanged metrics while deferred, before real expiry and
+successful publication. Full revised verification, exact Linux CI/build, isolated
+Preview, fresh recovery and release gates are still pending. This closes an ownership
+race, not deferred-job recovery or daily-capacity acceptance; those remain next.
+
+**October 7, 20:34 UTC — incremental collection passes; schedule recovery needs a fix:**
+The active full-team metric goal remains unchanged. A fresh deployment-identity,
+running-sync, lease and cooldown check preceded the first post-bootstrap manual delta.
+It returned HTTP 200, collected **783 new events / one page**, and exhausted through
+**20:32:53 UTC**. Production now retains **140,698 events**. All thirteen comparison
+digest groups, including published metrics/facts, assignments, unrelated source records
+and existing event records, match before/after. The collector published no metrics;
+the 124 solved employee-week values retain their original publication observations.
+No request or collector is left running. An initial local preflight read an unfinished
+deployment-metadata file and stopped before dispatch; the completed metadata was then
+validated before the single actual request. No production retry was manufactured.
+
+The eleven fully traversed source days peak at **14,219 events/day**, exceeding one
+observed ten-page invocation. Adjacent Hobby hourly windows can also collide with the
+global five-minute source cooldown, and the platform does not retry failures. The
+proposed schedule is therefore still uninstalled pending durable deferred-work recovery,
+collector/publisher coordination and capacity tests. Current official rollback docs
+state that cron definitions revert on Instant Rollback for subsequent invocations;
+verify actual schedule state and already-running work rather than relying on older notes.
+See the updated solved release manifest and `2026-10-07-report-delta-verification.json`.
+Next: implement the bounded scheduling/recovery fix and close the remaining live POS,
+history/export and wider metric acceptance checks. No metric policy, demo, Zendesk,
+assignment or human-action feature changed in this increment.
+
+**October 7, 20:13 UTC — solved counts published for both teams and both initial weeks:**
+READY production **dpl_C3zsDWZKpLvz6HCkuxzGJCV3b5tk** / unchanged runtime **31f4187**
+owns the live aliases with the qualified production-only solved release policy. The
+dated catalog transition starts September 27; earlier human-only history, targets,
+employee assignments and existing source policies are preserved. Fresh encrypted
+restore/rehearsal matches 35 tables / 354,052 rows. The failed first private catalog
+attempt committed nothing; Date/string timestamp precision was corrected, its census
+was unchanged, and a fresh transition/rollback rehearsal passed before the successful
+transaction. Immediate same-runtime policy-off rollback: **dpl_G82oX6dFur4iAQUDiGRPGKYW26pE**.
+
+All four ordinary production canaries returned HTTP 200 and independently reconcile
+**124 employee-week values**: Menufy **23 / 4,106** closed and **23 / 1,634** current;
+POS **39 / 1,410** closed and **39 / 733** current. Every saved employee count and
+contributing set matches, with genuine numeric zeros retained. Twelve unrelated-data
+digest groups remain unchanged for each publication. Platform logs identify the exact
+deployment, controlled manual user agent, durations 39.812–128.252 seconds and no crash.
+These are **manual canaries**, not scheduled operation. POS's one-ticket reduction
+from the earlier 1,411-ticket reference is explained by a fresh bounded GET: that
+ticket changed assignee/status/solved timestamp and is currently unsolved. No new
+schedule is installed and no genuine solved scheduler run is claimed.
+
+Manager-scoped Menufy closed/current UI shows the correct new label, numeric values,
+explicit cutoff and neutral current statuses. Actual downloaded 20-column CSV bytes
+for both periods match saved values, dates, attribution and freshness. The actual
+closed PDF was downloaded, rendered and visually checked. Current CSV verification
+initially expected the wrong prose label; its verified actual label correctly states
+in-progress/full-week targets. The private readback helper also normalized database
+result arrays before comparison with retained JSON; no publication was repeated.
+POS representative browser/history checks, a new live PNG, clipboard/native print,
+ongoing collection capacity/scheduling/revisions and the wider completion matrix remain
+open. Copy was exercised but the browser clipboard read returned empty; do not call
+its bytes verified. Public receipts: `2026-10-07-solved-production-canaries.json`,
+`2026-10-07-solved-catalog-activation.json`, and the two activation restore receipts.
+**The full metric goal remains active.** Next: qualify daily delta capacity, install
+the scoped schedule with release gates, observe genuine execution, then continue
+update-count discrepancies and unqualified call/other families. No background collector
+or canary invocation is left running at this checkpoint.
+
+**October 7, 19:46 UTC — fresh durable-source solved qualification passes:**
+Both Menufy intervals independently reconcile every current employee and contributing
+solved-event ID: **23 staff / 4,106 credits** for September 27–October 3 and
+**23 / 1,634** for October 4–10 through October 7 19:41:45 UTC. The closed-week join
+used 55 GETs for 4,911 parents plus 40 confirmed deletions; current used 26 GETs for
+2,084 parents plus 14 confirmed deletions. Neither has an unresolved parent. The
+independent Python calculation is bound to each exact private input digest. This
+qualifies the fresh durable calculation under the previously reconciled solved-credit
+definition; it is not a fresh same-cutoff Explore export and does not qualify update
+counts. See `2026-10-07-durable-solved-qualification.json`.
+
+Fresh read-only catalog census still finds 23 Menufy / 39 POS bindings, no employee
+overrides or new solved definitions, and no running sync. Fresh encrypted recovery is
+being validated before the dated catalog transition. Metric publication, the solved
+release policy and new schedules remain inactive. The private canary tools retain
+dispatch/outcome evidence, independently rebuild published source sets and compare
+unaffected data digests; preparing these tools is not evidence of a production canary.
+
+**October 7, 19:43 UTC — durable bootstrap complete; live joins in progress:**
+Production retains **139,915 events / 142 pages** from the September 26 bootstrap,
+with an exhausted stream through **October 7 19:41:45 UTC**. All eight corrected
+twenty-second-paced batches completed without another source throttle. Runtime-budget
+`waiting` responses preserved continuation; the last batch returned HTTP 200. Read-only
+inspection confirms no running sync, a released lease and zero new solved values.
+Fresh closed/current Menufy parent joins and independent reconciliation now precede
+catalog activation and scoped publication. This is controlled manual collection,
+not scheduled evidence or certification of joined metrics. The signed-in production
+scorecard still shows the old withheld solved row; no new metric has been published.
+See `2026-10-07-report-event-bootstrap-verification.json`. The latest durable closed-week
+capacity check contains 14,129 events / 4,951 parent IDs for 23 current staff, below the
+5,000 parent guard but with limited headroom. No new schedules or solved release policy
+are active; the demo and existing metric policies remain unchanged.
+
+**October 7, 19:14 UTC — pacing correction live; resumed batch passed:**
+PR46 merged to **31f4187870b5942db03f28e86c0c202d0ca039d6**. Production
+**dpl_G82oX6dFur4iAQUDiGRPGKYW26pE** is READY and owns the live aliases. Exact
+candidate `343c431` passes CI/build **37671569889** (1,114 tests / 140 files), and
+master CI **37672228925** also passes. Runtime-identical isolated Preview `8eb5d36`
+is READY with its isolation gate; the complete synthetic pipeline preserves 3/2
+closed and 3/0 current values and unrelated records. Fresh 19:05 UTC encrypted
+recovery restores 35 tables / 278,563 rows with matching digests and the catalog
+transition/rollback rehearsal intact. Login and unauthorized route checks pass.
+
+The first corrected manual batch retained ten pages / 9,988 events without a source
+throttle. It returned application `waiting` (HTTP 429 / 14.754-second remaining wait)
+at its runtime boundary, distinct from the earlier source `rate_limited` outcomes.
+Platform logs confirm the corrected deployment, controlled manual user agent,
+198.540-second duration and no crash. Total retained evidence is **74,414 events /
+75 pages**, through October 2 at 15:01:47 UTC. No client remains running. Continue
+bounded bootstrap from this checkpoint; coverage is still incomplete, and zero new
+solved values/catalog/schedules/publication policies are active. The proposed schedule
+now includes additional 21:00/23:00 collection windows because one observed batch is
+smaller than a measured source day; no schedule was installed. Recovery/Preview/live
+receipts: `2026-10-07-report-pacing-{restore,preview,production}.json`.
+
 **October 7 — repeated source throttle contained; pacing correction in validation:**
 The fifth manual report-event batch retained three pages / 2,995 events and stopped
 on another source HTTP 429. Collection is stopped at **64,426 events / 65 pages**;
