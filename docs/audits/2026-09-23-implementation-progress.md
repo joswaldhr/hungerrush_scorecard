@@ -1,4 +1,29 @@
 # Audit implementation — current checkpoint
+**October 7, 18:44 UTC — collection enabled; solved publication still inactive:**
+The same PR45 code (`376aaaf`) is READY on production deployment
+**dpl_7TAT6XQEpirG2YpeHG9rG6nMucN7** with only the report-event collection policy
+enabled. The initial source boundary is September 26 UTC. No solved release policy,
+catalog transition, new schedule or metric publication has been activated. The
+immediate configuration rollback is the same-code inactive deployment
+**dpl_5RiNfm8g4tPgkVxyG4X7aQ7hqYRL**; preserve retained collection checkpoints.
+
+The first controlled batch retained 16,528 events across 17 pages before a normal
+runtime-budget pause. The second retained 8,988 more across nine pages, then stopped
+on Zendesk HTTP 429 and persisted its cooldown. Read-only inspection at 18:44 UTC
+confirms 25,516 retained events, an incomplete 26-page checkpoint, a released lease,
+an expired cooldown, zero running syncs and zero new solved values. A third bounded
+batch resumed only after those checks. These are manual bootstrap runs, not scheduler
+evidence. Retained closed-week evidence for the current 23 Menufy staff requires 4,951
+distinct parent joins, below the 5,000 guard but with limited headroom. Completion,
+fresh parent joins and independent reconciliation remain prerequisites to publication.
+
+Separately, the genuine closed-week first-reply cron returned HTTP 200 in 160.489
+seconds on the prior PR45 deployment, with `vercel-cron/1.0`, no crash and a successful
+23-employee database publication. Twenty means have 1,566 duration samples; three
+legitimate unavailable means have zero samples across two cohort tickets. All 23 have
+source/fact/value revisions. This verifies this offset only. Aggregate evidence:
+`2026-10-07-first-reply-closed-week-scheduled.json`.
+
 **October 7, 18:28 UTC — solved-report code released, publication inactive:**
 PR45 merged to **376aaafed437ba42c53d447c0178e7024d4fdb52**. Vercel production
 **dpl_5RiNfm8g4tPgkVxyG4X7aQ7hqYRL** is READY and owns the live alias. Candidate

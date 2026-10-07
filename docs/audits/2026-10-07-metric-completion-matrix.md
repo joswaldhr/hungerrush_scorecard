@@ -1,5 +1,14 @@
 # Production metric completion
 
+**October 7, 18:44 UTC:** PR45's collection-only production policy is active and its
+manual bootstrap is incomplete (25,516 retained events / 26 pages before the current
+resumed batch). No new solved catalog, publication policy or schedule is active.
+A source HTTP 429 preserved progress and cooldown; continuation followed read-only
+cooldown/lease checks. This supersedes earlier inactive-collector descriptions below,
+not the outstanding solved-publication gates. Genuine first-reply scheduling is now
+verified separately for current and last-closed weeks; the closed-week receipt is
+[recorded here](2026-10-07-first-reply-closed-week-scheduled.json).
+
 This is the acceptance tracker for the active goal: usable, independently reconciled
 1:1 scorecards for both manager teams. Code deployment, numeric availability and
 source correctness are separate states. The October 7 live code release does not

@@ -1,5 +1,14 @@
 # Solved-report publication release manifest — code live, metrics inactive
 
+**18:44 UTC update:** Collection-only policy is now active on same-code production
+deployment **dpl_7TAT6XQEpirG2YpeHG9rG6nMucN7**. Solved publication, catalog changes
+and new schedules remain inactive. The first two manual bootstrap batches retained
+25,516 events over 26 pages; the second stopped on a source rate limit and preserved
+its checkpoint/cooldown. A third resumed after the cooldown, lease and running-sync
+checks passed. This is incomplete collection, not complete coverage or publication.
+The immediate configuration rollback is **dpl_5RiNfm8g4tPgkVxyG4X7aQ7hqYRL**.
+The initial inactive release evidence below describes the earlier configuration.
+
 PR45 merged to `376aaafed437ba42c53d447c0178e7024d4fdb52`; production deployment
 **dpl_5RiNfm8g4tPgkVxyG4X7aQ7hqYRL** is READY and owns the live alias. Candidate
 **82c1dea** passes exact CI/build **37665980261**, including **1,109 tests / 140 files**,
