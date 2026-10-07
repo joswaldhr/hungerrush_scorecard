@@ -90,8 +90,16 @@ async function main() {
       } else
         await tx`insert into data_sources(id,organization_id,type,display_name,status,configuration_reference)
         values(${source},${org},'zendesk','Synthetic solved publication rehearsal','configured','zendesk-account:synthetic')`;
-      await tx`insert into external_identities(employee_id,data_source_id,external_id,external_entity_type,match_method)
-        values(${employee},${source},'agent','agent','manual') on conflict do nothing`;
+      const identities =
+        await tx`select employee_id,external_id from external_identities where data_source_id=${source}`;
+      assert(identities.length <= 1);
+      if (identities.length) {
+        assert.equal(identities[0]!.employee_id, employee);
+        assert(["agent", "synthetic-agent@example.invalid"].includes(identities[0]!.external_id));
+        await tx`update external_identities set external_id='synthetic-agent@example.invalid' where data_source_id=${source} and employee_id=${employee}`;
+      } else
+        await tx`insert into external_identities(employee_id,data_source_id,external_id,external_entity_type,match_method)
+        values(${employee},${source},'synthetic-agent@example.invalid','agent','manual')`;
       for (const [index, definition] of definitions.entries()) {
         let defs =
           await tx`select id,unit,value_type,calculation_type,source_strategy,status from metric_definitions where organization_id=${org} and key=${definition.key}`;
@@ -121,11 +129,21 @@ async function main() {
         }
       }
     });
-    const { createSolvedPublisher } =
-      await import("../src/lib/connectors/zendesk-solved-publisher");
+    const { createLiveUpdaterSolvedPublisher } =
+      await import("../src/lib/connectors/zendesk-updater-solved-publisher");
+    const { createLiveAssigneeSolvedPublisher } =
+      await import("../src/lib/connectors/zendesk-assignee-solved-publisher");
+    const { createReportEventReader, runReportEventBatch } =
+      await import("../src/lib/connectors/zendesk-report-event-worker");
     const { runSync } = await import("../src/lib/connectors/sync-engine");
     const config = { organizationId: org, dataSourceId: source };
+    const credentials = {
+      subdomain: "synthetic",
+      email: "source@example.invalid",
+      apiKey: "synthetic-token",
+    };
     const results = [];
+    let simulatedRequests = 0;
     for (const offset of [1, 0]) {
       const { periodStart, periodEnd } = weekDates(offset);
       for (const definition of definitions) {
@@ -133,7 +151,11 @@ async function main() {
         const fixture = solvedPublicationFixture(config, employee, team);
         fixture.policy = { ...fixture.policy, kind: definition.kind, groupIds: [10] };
         const at = `${periodStart}T12:00:00Z`;
-        const cutoff = new Date(Date.now() - 60000).toISOString();
+        const watermark = Math.floor(Date.now() / 1000) - 120;
+        const cutoff = new Date(watermark * 1000).toISOString();
+        // Stable, distinct IDs across weeks and definitions also make reruns idempotent.
+        const idBase =
+          (Date.parse(periodStart) / 86400000) * 1000 + (definition.kind === "updater" ? 0 : 100);
         // The current-period fixture deliberately includes a verified numeric zero.
         const count = offset === 0 && definition.kind === "assignee-solved" ? 0 : definition.count;
         const snapshot = {
@@ -149,25 +171,99 @@ async function main() {
           },
           tickets: Array.from({ length: count }, (_, i) => ({
             ...fixture.snapshot.tickets[0]!,
-            id: 100 + i,
+            id: idBase + 100 + i,
             solved_at: at,
           })),
           events: Array.from({ length: count }, (_, i) => ({
             ...fixture.snapshot.events[0]!,
-            id: 1 + i,
-            ticket_id: 100 + i,
+            id: idBase + 1 + i,
+            ticket_id: idBase + 100 + i,
             created_at: at,
             child_events: [
-              { id: 1000 + i, event_type: "Change", status: "solved", previous_value: "open" },
+              {
+                id: idBase + 500 + i,
+                event_type: "Change",
+                status: "solved",
+                previous_value: "open",
+              },
             ],
           })),
         };
+        // Exercise the production transports without forwarding any request to the network.
+        globalThis.fetch = async (input, options) => {
+          assert.equal(options?.method, "GET");
+          assert.equal(options?.redirect, "error");
+          const requestUrl = new URL(String(input));
+          assert.equal(requestUrl.origin, "https://synthetic.zendesk.com");
+          simulatedRequests++;
+          if (requestUrl.pathname === "/api/v2/users.json")
+            return Response.json({
+              users: [
+                {
+                  id: 42,
+                  email: "synthetic-agent@example.invalid",
+                  role: "agent",
+                  active: true,
+                  suspended: false,
+                },
+              ],
+              meta: { has_more: false },
+              links: { next: null },
+            });
+          if (requestUrl.pathname === "/api/v2/incremental/ticket_events.json") {
+            assert.equal(definition.kind, "updater");
+            return Response.json({
+              ticket_events: snapshot.events,
+              count: snapshot.events.length,
+              end_time: watermark,
+              end_of_stream: true,
+              next_page: null,
+            });
+          }
+          if (requestUrl.pathname === "/api/v2/search/export.json") {
+            assert.equal(definition.kind, "assignee-solved");
+            return Response.json({
+              results: snapshot.tickets.map(({ id }) => ({ id })),
+              meta: { has_more: false },
+              links: { next: null },
+            });
+          }
+          if (requestUrl.pathname === "/api/v2/tickets/show_many.json") {
+            assert.deepEqual(
+              requestUrl.searchParams
+                .get("ids")
+                ?.split(",")
+                .map(Number)
+                .sort((a, b) => a - b),
+              snapshot.tickets.map(({ id }) => id).sort((a, b) => a - b)
+            );
+            return Response.json({
+              tickets: snapshot.tickets,
+              metric_sets: snapshot.tickets.map(({ id, solved_at }) => ({
+                ticket_id: id,
+                solved_at,
+              })),
+            });
+          }
+          throw Error("Unexpected synthetic request");
+        };
+        if (definition.kind === "updater") {
+          stage = `collect synthetic events offset ${offset}`;
+          const collection = await runReportEventBatch(
+            { ...config, accountReference: fixture.policy.accountReference },
+            Date.parse("2026-09-26T00:00:00Z") / 1000,
+            createReportEventReader(credentials, fixture.policy.accountReference)
+          );
+          assert.equal(collection.status, "collected");
+          assert("streamExhausted" in collection && collection.streamExhausted);
+          assert.equal(await fingerprint(), before, "Collection changed unrelated metric values");
+        }
+        stage = `publish ${definition.kind} offset ${offset}`;
+        const publicationStartedAt = Date.now();
         const result = await runSync(
-          createSolvedPublisher(fixture.policy, async () => ({
-            snapshot,
-            observationStartedAt: fixture.identity.observationStartedAt,
-            identities: new Map([["agent", 42]]),
-          })),
+          definition.kind === "updater"
+            ? createLiveUpdaterSolvedPublisher(fixture.policy, credentials)
+            : createLiveAssigneeSolvedPublisher(fixture.policy, credentials),
           config,
           { weekOffset: offset }
         );
@@ -186,13 +282,19 @@ async function main() {
             ? "zendesk-qualified-updater-solved-credits-v1"
             : "zendesk-qualified-assignee-solved-tickets-v1"
         );
-        if (offset === 0) assert.equal(context.reportingAsOf, cutoff);
+        if (offset === 0) {
+          if (definition.kind === "updater") assert.equal(context.reportingAsOf, cutoff);
+          else {
+            assert(Date.parse(context.reportingAsOf) >= publicationStartedAt - 60000);
+            assert(Date.parse(context.reportingAsOf) <= Date.now() - 60000);
+          }
+        } else assert(!context.reportingAsOf);
         results.push({
           key: definition.key,
           periodStart,
           periodEnd,
           value: count,
-          reportingAsOf: offset === 0 ? cutoff : null,
+          reportingAsOf: context.reportingAsOf ?? null,
         });
       }
     }
@@ -200,6 +302,8 @@ async function main() {
     console.log(
       JSON.stringify({
         syntheticSolvedRehearsal: true,
+        completeCollectionAndLiveAdapterPath: true,
+        simulatedRequests,
         results,
         unrelatedValuesUnchanged: true,
         vendorRequests: 0,
