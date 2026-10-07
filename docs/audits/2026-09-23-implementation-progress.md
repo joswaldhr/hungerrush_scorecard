@@ -1,4 +1,16 @@
 # Audit implementation — current checkpoint
+**October 7, 18:52 UTC — bootstrap resumed without further throttling:**
+The third and fourth bounded production collection batches both returned HTTP 202,
+retaining 18 pages each. Total retained evidence is now **61,431 events / 62 pages**,
+through October 1 at 15:48:16 UTC. The stream remains incomplete; zero new solved
+values are published and catalog/release policy/schedules remain inactive. The last
+batch has finished and no client invocation remains pending. Continue from this
+checkpoint, then require complete coverage, fresh parent joins and independent
+reconciliation before the catalog/canary step. Aggregate receipt:
+`2026-10-07-solved-bootstrap-progress.json`. The first four fully traversed UTC days
+contain 10,148–11,567 events by creation time; this excludes possible late-delivery
+and overlap demand and does not yet establish ongoing refresh capacity.
+
 **October 7, 18:44 UTC — collection enabled; solved publication still inactive:**
 The same PR45 code (`376aaaf`) is READY on production deployment
 **dpl_7TAT6XQEpirG2YpeHG9rG6nMucN7** with only the report-event collection policy
