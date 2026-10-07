@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ticketReportCoverage, ticketReportCoverageSchema } from "./zendesk-ticket-report-coverage";
 
 export const TICKET_REPORT_CREDIT_CONTRACT = "zendesk-updater-report-credits-v1";
 export const ticketReportCreditKeys = [
@@ -60,7 +61,7 @@ export const ticketReportCreditSnapshotSchema = z.object({
   deletedTickets: z.array(z.object({ id, deleted_at: instant })).default([]),
   identities: z.array(identitySchema),
   // Coverage belongs to the entire event stream, not just selected employees.
-  coverage: z.object({ start: instant, endExclusive: instant, complete: z.boolean() }),
+  coverage: ticketReportCoverageSchema,
   observedAt: instant,
 });
 
@@ -87,26 +88,11 @@ export function calculateTicketReportCredits(input: unknown, scopeInput: TicketR
     Date.parse(scope.periodEnd) - Date.parse(scope.periodStart) > 31 * 86400000
   )
     throw Error("Invalid ticket-credit reporting interval");
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: scope.timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  const dayAt = (time: number) => {
-    const parts = formatter.formatToParts(new Date(time));
-    const part = (type: string) => parts.find((p) => p.type === type)!.value;
-    return `${part("year")}-${part("month")}-${part("day")}`;
-  };
-  const start = Date.parse(source.coverage.start),
-    end = Date.parse(source.coverage.endExclusive);
-  if (start >= end || end > Date.parse(source.observedAt))
-    throw Error("Invalid ticket-credit observation chronology");
-  const covered =
-    source.coverage.complete &&
-    dayAt(start) <= scope.periodStart &&
-    dayAt(start - 1) < scope.periodStart &&
-    dayAt(end) > scope.periodEnd;
+  const { start, end, dayAt, covered } = ticketReportCoverage(
+    source.coverage,
+    source.observedAt,
+    scope
+  );
 
   const tickets = new Map<number, z.infer<typeof ticketSchema>>();
   for (const ticket of source.tickets) {

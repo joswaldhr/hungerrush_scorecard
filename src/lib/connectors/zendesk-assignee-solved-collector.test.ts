@@ -27,6 +27,30 @@ const joined = () => ({
   metric_sets: [{ ticket_id: 100, solved_at: "2026-09-28T12:00:00Z" }],
 });
 describe("bounded assignee-solved candidate collection", () => {
+  it("supports an explicit current-period cutoff and excludes later joined solves", async () => {
+    const read = vi
+      .fn()
+      .mockResolvedValueOnce(page([100]))
+      .mockResolvedValueOnce(joined());
+    const s = await fetchAssigneeSolvedReportCandidate(scope, read, {
+      now: () => new Date("2026-09-28T12:00:30Z"),
+      allowCurrentPeriod: true,
+    });
+    expect(s.coverage.asOf).toBe("2026-09-28T11:59:30.000Z");
+    expect(
+      calculateAssigneeSolvedReport(s, scope).agents.map((a) => a.assigneeSolvedTickets)
+    ).toEqual([0, 0]);
+  });
+  it("does not use progress mode for a future reporting week", async () => {
+    const read = vi.fn();
+    await expect(
+      fetchAssigneeSolvedReportCandidate(scope, read, {
+        now: () => new Date("2026-09-26T12:00:00Z"),
+        allowCurrentPeriod: true,
+      })
+    ).rejects.toThrow("cutoff");
+    expect(read).not.toHaveBeenCalled();
+  });
   it("uses complete cursor search then freshly joined assignee and solved-date evidence", async () => {
     const read = vi
       .fn()

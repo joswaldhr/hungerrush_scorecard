@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ticketReportCoverage, ticketReportCoverageSchema } from "./zendesk-ticket-report-coverage";
 
 export const ASSIGNEE_SOLVED_REPORT_CONTRACT = "zendesk-assignee-solved-report-v1";
 export const ASSIGNEE_SOLVED_REPORT_KEY = "zendesk_assignee_solved_tickets";
@@ -33,7 +34,7 @@ export const assigneeSolvedReportSnapshotSchema = z.object({
       solved_at: instant.nullable().optional(),
     })
   ),
-  coverage: z.object({ complete: z.boolean(), start: instant, endExclusive: instant }),
+  coverage: ticketReportCoverageSchema,
   observedAt: instant,
 });
 
@@ -49,26 +50,11 @@ export function calculateAssigneeSolvedReport(
     Date.parse(scope.periodEnd) - Date.parse(scope.periodStart) > 31 * 86400000
   )
     throw Error("Invalid assignee-solved reporting interval");
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: scope.timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  const dayAt = (time: number) => {
-    const parts = formatter.formatToParts(new Date(time));
-    const part = (type: string) => parts.find((p) => p.type === type)!.value;
-    return `${part("year")}-${part("month")}-${part("day")}`;
-  };
-  const start = Date.parse(source.coverage.start),
-    end = Date.parse(source.coverage.endExclusive);
-  if (start >= end || end > Date.parse(source.observedAt))
-    throw Error("Invalid assignee-solved observation chronology");
-  const covered =
-    source.coverage.complete &&
-    dayAt(start) <= scope.periodStart &&
-    dayAt(start - 1) < scope.periodStart &&
-    dayAt(end) > scope.periodEnd;
+  const { dayAt, covered, cutoff } = ticketReportCoverage(
+    source.coverage,
+    source.observedAt,
+    scope
+  );
   const agents = new Map(
     scope.agentIds.map((agentId) => [
       agentId,
@@ -99,6 +85,7 @@ export function calculateAssigneeSolvedReport(
     const time = Date.parse(ticket.solved_at);
     if (time > Date.parse(source.observedAt))
       throw Error("Solved ticket is newer than its observation");
+    if (cutoff !== null && time >= cutoff) continue;
     const day = dayAt(time);
     if (day >= scope.periodStart && day <= scope.periodEnd) agent.ticketIds.push(ticket.id);
   }

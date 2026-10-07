@@ -1,0 +1,43 @@
+{
+  "headerWidths": [
+    345,
+    207,
+    207,
+    184,
+    207
+  ],
+  "authenticated": true,
+  "csv": {
+    "rows": 26,
+    "sha256": "483b68e5b0ae9a014492c80e586a1bea62573de329234a03c2f0b5363690bae7",
+    "bytes": 12437
+  },
+  "previewSHA": "735d43f9e68bfa30ad3c6cec71ea2b4d7fae4445",
+  "limits": [
+    "Clipboard adapter returns empty text despite UI success; copied-link bytes unverified.",
+    "Native print dialog not verified.",
+    "Synthetic coverage is not production metric certification."
+  ],
+  "historyReturnWeekPreserved": true,
+  "currentWeek": "2026-10-04",
+  "defaultLastWeek": "2026-09-27",
+  "candidateSHA": "6f3f39753304da7a364d38a765506bd6aa60dca9",
+  "previewDeployment": "dpl_9cGa3Q3geprx6XN949UkpNp2kpXC",
+  "observedAt": "2026-10-07T13:51:05.8698709Z",
+  "png": {
+    "sha256": "7020398f2153652dcb053a9509aa6338e65b225eb0ad0c27b48e307f50b42a77",
+    "matchesPriorVisuallyVerifiedPNG": true,
+    "bytes": 1556488
+  },
+  "pdf": {
+    "sha256": "af94bd919e3494bdc7fb1f0ff8e64f9450d40a9426fe764a917ea35baf11395a",
+    "renderInspected": true,
+    "pages": 1,
+    "bytes": 1012960
+  },
+  "alignedCategories": 9,
+  "neutralCurrentStatuses": [
+    "In Progress",
+    "No Data"
+  ]
+}

@@ -1,0 +1,95 @@
+# Production metric completion
+
+This is the acceptance tracker for the active goal: usable, independently reconciled
+1:1 scorecards for both manager teams. Code deployment, numeric availability and
+source correctness are separate states. The October 7 live code release does not
+complete this tracker. The current roster baseline is 23 Menufy and 39 POS employees;
+refresh that inventory before publication and evaluate period eligibility explicitly.
+
+Fresh October 7 read-only production assignment inventory confirms **21 effective team
+keys / 23 active staff for Menufy**, and **19 / 39 for POS**, at September 27 and
+October 4 period starts. Menufy's four prospective inbound additions bring October 11
+to 25 keys; POS remains at 19. There are no duplicate team assignment rows for these
+keys. [The aggregate inventory](2026-10-07-effective-metric-inventory.json) lists every
+key, unit, aggregation and status. Counts do not establish accuracy, employee-specific
+override resolution or historical membership. POS has no effective first-response
+assignment in this inventory; existing stored first-response values must not be
+mistaken for an assigned metric. None of the new solved-report keys is assigned yet.
+
+## Metric acceptance matrix
+
+| Metric / family | Menufy evidence and remaining work | POS evidence and remaining work |
+| --- | --- | --- |
+| Solved tickets | Updater latest-solve credits match all 43 and 42 report rows in two closed weeks. New solved-only publication adapter now has local transaction tests. Fresh capture, effective catalog registration, current-week coverage, hosted/release/canary and scheduling remain. | Current-assignee solved-date measure matches all 39 eligible employees / 1,411 tickets in one saved weekly report; second-week independent source comparison covers 1,464 tickets. Keep this definition distinct from the manager's created-date report. Same publication/release/operation gates remain. |
+| Update activity | Distinct updater events: first week retains a two-event residual after explained group changes; second week has three one-event employee differences. Resolve exact mismatches before publication. | Establish the applicable update-activity report's exact unit, scope and attribution. Do not copy Menufy's updater/group contract or use current-assignee snapshots. |
+| First response | Qualified business-time policy exists. Verify all current employee cohorts, zero-sample semantics, freshness and actual scheduled execution after the release. | Verify team-specific definition and per-employee source evidence; inherited labels and stored numbers are insufficient. |
+| CSAT score / response rate where assigned | Preserve existing qualified solved-date/current-assignee calculation and its separate rated/offered/cohort denominators. A score without ratings is legitimately unavailable; confirm each blank against its cohort. Close scheduled refresh/recovery checks. | Match team-specific rating cohort and every employee's numerator/denominator. Do not assume Menufy's release policy applies. |
+| Inbound offered / accepted / declined / missed / unreachable / answer rate | Retained comparison covers all 23 active staff over closed/current periods. Qualified publisher remains inactive; new catalog entries are effective October 11. Finish fresh durable collection, scoped canary and scheduled refresh; do not backdate the new assignments silently. | POS source projection has separate weekly and monthly report parity. Reconcile offered components separately, integrate the qualified projection, then complete publication and scheduling. |
+| Inbound total talk / max hold | Saved SUM/MAX definitions have source parity. They must be labeled and published as SUM/MAX, not substituted for averages. Publication and operation gates remain. | Preserve report aggregation and eligible agent-leg cohorts; qualify each displayed duration before activation. |
+| Inbound average talk / hold / total duration / consultation | Identify and verify each required average's denominator. SUM/MAX exports alone do not qualify averages. Null with no eligible legs is distinct from absent collection. | Retained projection comparisons support eight report measures; integrate the separate projection branch, preserve duration sample counts and verify weekly/current publishing. |
+| Abandoned on hold | Verify actual agent-leg on-hold abandonment. A mislabeled IVR/queue/voicemail subtotal is not an acceptable replacement. | Same semantic check; retain team-specific source scope. |
+| Outbound participation / completed / non-answered / talk / hold | Controlled publication and source comparisons exist; older retained observations do not establish daily freshness. Complete ongoing collection/scheduling and qualify average versus total talk separately. | Source projection comparison exists; finish its team-specific publication, null/sample handling and scheduled operation. |
+| Elevated / avoidable elevated work | Current tags alone do not prove who worked an escalation. Establish classification, event attribution and exact report correspondence. | Same evidence requirement, using POS classification and scope. |
+| Backlog snapshot | Retain observation timestamp; do not describe an observed snapshot as a guaranteed week-end count. Confirm required team scope and cadence. | Same snapshot distinction; verify employee ownership and observation time. |
+| Active handle time | Resolution duration is not active handling time. Establish a valid source/definition if required; do not relabel resolution time to fill this row. | Same requirement. |
+| Historical away / transfers-only durations | Required by retained meeting template. A current-day cumulative Talk endpoint cannot reconstruct last week. Find a complete historical source or implement a prospectively qualified capture with its explicit history limit. | Confirm whether required by the team's meeting pack before adding a different team's measures. |
+
+The source census contains historical stored keys that may no longer be displayed or
+assigned. It is not an assignment inventory. Before final acceptance, reconcile current
+effective team/employee assignments and the retained meeting-pack requirements into an
+individual key checklist; no family may be silently dropped to make the tracker green.
+Assembled remains parked. HR attendance points remain outside the Zendesk metric scope.
+
+## Cross-cutting acceptance
+
+- Reconcile employee identities, additions, departures and transfers; preserve prior
+  observations and manager authorization. Current identity matching does not prove
+  historical team membership.
+- Compare at least two completed weeks where reliable history exists and the current
+  in-progress week. Check exact contributing sets and denominators, not just totals.
+- Require complete joins, bounded collection and explicit observation times. A complete
+  calendar week is not necessarily a complete source capture; incomplete current weeks
+  must use an explicit as-of contract and neutral presentation.
+- Exercise real PostgreSQL atomic publication, corrections, predecessor revisions,
+  identity/config changes and rollback. Keep old human-only ticket keys guarded.
+- Pass exact CI/build, isolated synthetic Preview, fresh encrypted backup/restore,
+  scoped canary and independent readback before production widening.
+- Verify UI/history/export consistency and genuine scheduled runs, including recovery.
+  Manual collection must never be recorded as scheduler evidence.
+
+## October 7 implementation increment
+
+`zendesk-solved-publication-record.ts`, `zendesk-solved-report-bindings.ts` and
+`zendesk-solved-publisher.ts` connect the two distinct solved calculations to the existing
+atomic sync service. They publish only their new solved key, replay minimized source
+evidence, bind organization/source/account/team/employee/period, require effective
+compatible assignments, and reject stale or incomplete captures. The publication
+transaction rechecks assignments and staff bindings and rejects changed fetched records.
+No route or environment flag activates them yet. Existing candidate contracts remain
+blocked; legacy human-only keys, update counts, targets and source policies are unchanged.
+
+Local synthetic PostgreSQL checks cover publication, repeat-refresh idempotency, numeric
+zero corrections, revision retention, failed-coverage preservation, incompatible
+assignment rollback, staff departure, record tampering and observation expiry. These
+tests are implementation evidence, not production activation or source qualification.
+Exact code commit `0993446` passes Linux CI/build `37650598578`, including migrations
+and all 1,049 tests. Draft PR45 is the review boundary; it remains unmerged and inactive.
+
+### Current-week follow-through
+
+The follow-up adds explicit as-of coverage, cutoff-preserving provenance/source
+descriptions and a bounded GET-only POS collector connected to the same publisher.
+Fresh source collection on October 7 resolves all 39 current staff and yields 654
+solved tickets before 16:26:38 UTC from 833 padded source tickets. Independent Python
+matches every employee count and contributing ID. See
+[the aggregate receipt](2026-10-07-pos-current-solved-verification.json).
+All 1,060 local tests pass, including preservation of closed-week values during current
+publication. No live values, assignments, policy or schedule changed.
+
+The search cutoff is a reporting exclusion boundary, not a guarantee of instantaneous
+source indexing. Zendesk documents that [search indexing can take a few minutes](https://developer.zendesk.com/api-reference/ticketing/ticket-management/search/).
+The one-minute exclusion is not claimed to eliminate that delay. Ongoing collection
+must refresh the selected period and preserve observation/cutoff evidence; live current
+weeks remain progress views. A same-cutoff Explore comparison is not available for this
+capture. Menufy's fresh event-stream capture and qualified ongoing collection still need
+completion before activation, alongside catalog/Preview/release checks.

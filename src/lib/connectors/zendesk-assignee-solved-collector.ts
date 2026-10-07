@@ -21,7 +21,7 @@ const joinSchema = z.object({
 });
 
 /**
- * Inactive closed-period collector. Supply the existing bounded account-bound GET
+ * Inactive collector. Supply the existing bounded account-bound GET
  * transport (createBoundedCsatReader); this function cannot extend its time/quota budget.
  * Search gives a complete ID census. Refresh all parent attributes and solved times
  * together so the calculation does not combine old search fields with newer metrics.
@@ -29,7 +29,7 @@ const joinSchema = z.object({
 export async function fetchAssigneeSolvedReportCandidate(
   scopeInput: AssigneeSolvedReportScope,
   getPage: (path: string) => Promise<unknown>,
-  options: { requestBudget?: number; now?: () => Date } = {}
+  options: { requestBudget?: number; now?: () => Date; allowCurrentPeriod?: boolean } = {}
 ) {
   const scope = assigneeSolvedReportScopeSchema.parse(scopeInput);
   const budget = options.requestBudget ?? 80;
@@ -44,9 +44,9 @@ export async function fetchAssigneeSolvedReportCandidate(
   const now = options.now ?? (() => new Date());
   const observationStartedAt = now().toISOString();
   // The padded search is a superset of local dates, including DST and UTC offsets.
-  // Only a closed interval is supported in this candidate; progress needs a distinct
-  // as-of coverage contract rather than a false full-week completeness assertion.
-  const coverage = {
+  // Progress is explicit and excludes the source's latest minute. Exhausted search
+  // establishes a census of indexed tickets, not a guarantee of zero vendor index lag.
+  const coverage: z.infer<typeof assigneeSolvedReportSnapshotSchema>["coverage"] = {
     complete: true,
     start: first.toISOString(),
     endExclusive: new Date(
@@ -57,8 +57,17 @@ export async function fetchAssigneeSolvedReportCandidate(
     { tickets: [], coverage, observedAt: observationStartedAt },
     scope
   );
-  if (empty.agents.some((a) => a.assigneeSolvedTickets === null))
-    throw new Error("Assignee-solved collector requires a closed reporting period");
+  if (empty.agents.some((a) => a.assigneeSolvedTickets === null)) {
+    if (!options.allowCurrentPeriod)
+      throw new Error("Assignee-solved collector requires a closed reporting period");
+    coverage.asOf = coverage.endExclusive;
+    const progress = calculateAssigneeSolvedReport(
+      { tickets: [], coverage, observedAt: observationStartedAt },
+      scope
+    );
+    if (progress.agents.some((a) => a.assigneeSolvedTickets === null))
+      throw new Error("Assignee-solved collector lacks current-period coverage");
+  }
   const searchEnd = new Date(last.getTime() - 86400000).toISOString().slice(0, 10);
   const query = `type:ticket solved>=${first.toISOString().slice(0, 10)} solved<=${searchEnd} ${[
     ...scope.agentIds.map((value) => `assignee:${value}`),

@@ -1,4 +1,79 @@
 # Audit implementation — current checkpoint
+**October 7 — explicit current-week solved coverage and fresh POS source check:**
+Both solved calculations now accept an explicit current-period cutoff, keeping partial
+elapsed-week coverage distinct from complete closed-week coverage. Solves at/after the
+cutoff are excluded; missing start coverage, future/old-week cutoffs and stale captures
+are rejected. The cutoff survives normalization into metric provenance and shared source
+descriptions, including export details. A bounded GET-only POS collector is wired to the
+same publisher; no route or policy activates it yet.
+
+Fresh read-only collection resolves all 39 active POS staff, obtains 833 padded source
+tickets with 22 GETs, and calculates **654 solved tickets** for October 4–10 before
+**October 7 16:26:38 UTC**. Independent Python agrees on all 39 employee counts and every
+contributing ticket ID. This is source calculation evidence, not a same-cutoff Explore
+export or production publication. Aggregate receipt: `2026-10-07-pos-current-solved-verification.json`.
+All **1,060 tests / 132 files** pass against isolated PostgreSQL, with typecheck, full
+ESLint and changed-source formatting passing. Current-week database publication preserves
+closed-week values in synthetic tests. Exact CI/build and hosted/release gates remain.
+Private bounded Menufy current-week event collection has started; inspect its live process
+or saved checkpoint before resuming, and do not treat an incomplete capture as evidence.
+
+**October 7 — solved-only publication implementation, not activated:** The new dedicated
+connector now takes the independently reconciled updater-solved and assignee-solved
+calculations through the ordinary atomic sync service under distinct source contracts
+and metric keys. It replays minimized evidence, binds account/team/employee/period,
+requires compatible effective assignments, rejects stale/incomplete captures, and
+rechecks staff/assignment state and fetched-record integrity before commit. It cannot
+publish update counts or enable the legacy human-only measures. No new route, source
+policy, assignment, production value or demo deployment has changed.
+
+All **1,049 tests / 131 files** pass against isolated loopback PostgreSQL. New transaction
+cases verify scoped publication, idempotency, zero corrections, retained revisions and
+rollback on incomplete evidence, changed assignments, departures, tampering and expiry.
+Typecheck and full source ESLint pass. Exact code commit **0993446** passes Linux
+CI/build **37650598578**, including migrations and all 1,049 tests. Draft PR45 retains
+the inactive boundary; hosted/source/release gates remain. Fresh read-only effective
+assignment inventory confirms 21 Menufy keys / 23 active staff and 19 POS keys / 39
+active staff for the last and current reporting weeks, with no new solved-report keys
+assigned. The [completion matrix](2026-10-07-metric-completion-matrix.md) records both teams'
+remaining metric, source, roster and live-operation requirements. Next: complete fresh
+bounded collection/current-week coverage, effective catalog registration and qualified
+canary/release; do not confuse this code increment with live metric completion.
+
+**October 7 — main application code release is live:** PR43 merged as `7fa4593` and
+passes full merge CI/build `37631375550`. Production deployment
+`dpl_HGEAA1j1xJ8XYJLKCMKcuTUPMoKN` was explicitly promoted and the live alias independently
+verified. Fresh Microsoft sign-out/sign-in succeeds. Manager views list 23 Menufy and
+39 POS employees; representative scorecards default to September 27–October 3, current
+week has only neutral progress/missing statuses, and a real production CSV download
+matches the selected October 4–10 snapshot (15 rows). No new deployment errors appear
+in the checked 15-minute log window. Admin view context was restored after checks.
+
+Before promotion, exact synthetic Preview navigation/history/zero/null/alignment checks
+passed; fresh PDF, PNG and CSV files saved and were inspected. The PNG exactly matches
+previous visually reviewed bytes. Fresh encrypted backup restored 35 tables / 213,995
+rows with matching digests. All 18 schema entries already existed; no migration or
+publisher activation was needed. The frozen demo alias remains on its prior deployment.
+
+This is a code release, not completion of metric qualification. New report-credit
+calculators/collector remain inactive, legacy human ticket values remain unavailable,
+and existing qualified CSAT/first-reply policies remain unchanged. The OLD deployment's
+last-day census includes one expired lease and one CSAT HTTP 429; candidate scheduled
+recovery has not yet been observed. No extra manual sync was triggered. Native print
+and clipboard-byte checks remain unverified. Aggregate receipts:
+`2026-10-07-hosted-release-verification.json`, `2026-10-07-live-release-restore.json`,
+`2026-10-07-live-release-census.json`, `2026-10-07-production-code-release.json`.
+
+**October 6 evening — production code release prepared, sign-in pending:**
+Candidate `e86b548` passes exact CI/build `37542573624`. Preview `735d43f` has identical
+application/scripts/schema/config content and is READY as `dpl_9cGa3Q3geprx6XN949UkpNp2kpXC`;
+its isolation guard passed. Production census finds all 18 migrations present, no running
+or stale runs, and 10 completed / zero failed syncs in 24 hours. A fresh encrypted backup
+restores 35 tables / 210,897 rows with matching digests and compatible schema. The browser
+session expired at Vercel protection; the user was asked to sign in for the remaining
+fresh authenticated check. No merge/promotion or production/policy/Zendesk/demo change.
+See [the prepared release manifest](2026-10-06-main-code-release.md). Recheck backup
+freshness before rollout. This deployment will not activate new report-credit values.
 
 **October 6 — bounded POS source collection and timestamp distinction:** The inactive
 assignee-solved collector completes September 20–26 using 38 bounded GET requests.
