@@ -259,19 +259,15 @@ export async function commitReportEventPage(
         throw Error("Retained report event changed; publication requires reconciliation");
     const fresh = next.records.filter((r) => !hashes.has(String(r.id)));
     for (let n = 0; n < fresh.length; n += 200)
-      await tx
-        .insert(sourceRecords)
-        .values(
-          fresh
-            .slice(n, n + 200)
-            .map((r) => ({
-              dataSourceId: scope.dataSourceId,
-              externalRecordType: EVENT,
-              externalRecordId: String(r.id),
-              payloadJson: r,
-              payloadHash: reportEventDigest(r),
-            }))
-        );
+      await tx.insert(sourceRecords).values(
+        fresh.slice(n, n + 200).map((r) => ({
+          dataSourceId: scope.dataSourceId,
+          externalRecordType: EVENT,
+          externalRecordId: String(r.id),
+          payloadJson: r,
+          payloadHash: reportEventDigest(r),
+        }))
+      );
     const state = { ...before, cursor: next.cursor, lastPageAt: new Date(now).toISOString() };
     await put(tx, scope, CHECKPOINT, "stream", state);
     await owned(tx, scope);
