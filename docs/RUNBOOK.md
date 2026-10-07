@@ -238,6 +238,11 @@ shadow/v2 or historical repair, change Zendesk, or change CSAT/first-reply polic
 5. If application rollback is needed, use the recorded compatible deployment. Preserve additive
    tables and revision evidence. Data rollback requires reviewed snapshots and a separate repair;
    restoring stale values can reintroduce the defect. Never blindly reverse null corrections.
+   Verify active cron definitions and in-flight runs too. The October 7 check of
+   [Vercel's current documentation](https://vercel.com/docs/cron-jobs/manage-cron-jobs)
+   says Instant Rollback restores the selected deployment's cron definitions for subsequent
+   invocations; already-running work may continue. Supersede older rollback assumptions
+   with observed project state, and separately contain any affected active publisher.
 
 Unresolved source meaning must remain unavailable in the product. A release containing
 containment is not certification of historical totals. Keep production rollout, metric-version

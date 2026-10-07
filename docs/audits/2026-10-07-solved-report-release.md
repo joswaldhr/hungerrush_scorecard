@@ -100,6 +100,34 @@ the separately unresolved Tickets Updated row.
 
 ## Schedule preparation
 
+**October 7, 20:34 UTC qualification update:** The first post-bootstrap incremental
+cycle completed in one page, retaining 783 new events and reaching 20:32:53 UTC.
+Thirteen digest groups, including all published values/facts, assignments, unrelated
+source records and previously retained events, remain unchanged. This was a labeled
+manual collection, not a scheduled execution or publication refresh. Across the eleven
+fully traversed UTC days, source creation-time volume peaks at **14,219 events/day**.
+The earlier 12,079/day lower bound below is superseded. One ten-page bounded invocation
+per day is insufficient; the small successful delta does not qualify daily capacity.
+See `2026-10-07-report-delta-verification.json`.
+
+**The timetable below is a proposal, not yet eligible for activation.** Adjacent hourly
+windows do not guarantee five-minute separation: a 08:59 invocation and a 09:00
+invocation can collide with the shared source cooldown. Vercel does not retry failed
+invocations. The existing source lease is week-scoped; the event collector has a
+separate lease, so neither proves account-wide mutual exclusion. Before adding jobs:
+
+- Make deferred/failed work recoverable on a subsequent bounded invocation, retaining
+  its exact period and source cutoff rather than silently moving it to another week.
+- Coordinate collector and publisher account access; honor durable quota and Retry-After.
+- Test late/early hourly dispatch, duplicates, missed delivery, interruption, rollover,
+  partial collection and stale-source refusal without weakening publication gates.
+- Demonstrate capacity above the measured daily load, including overlap/late arrivals
+  and a missed collection slot, and observe real scheduling after deployment.
+
+These findings do not authorize changing metric definitions or existing qualified
+CSAT/first-reply policies. The remaining scheduling fix must pass the same isolated
+Preview, exact CI, recovery and controlled release gates.
+
 The present hosting plan has hourly execution precision. Keep new daily jobs in separate
 hour windows from existing work, with a full intervening hour between event collection
 and its first dependent publisher. Proposed UTC slots, not yet installed:
@@ -157,6 +185,13 @@ source/checkpoint/revision rows. Restore only affected catalog/value scope from 
 predecessors if needed, fencing newer writes. Do not perform a full-database rollback or
 undo unrelated qualified work. Keep the frozen demo, CSAT/first-reply policy, Zendesk,
 human-action shadow/v2 and historical repair untouched.
+
+Recheck active cron configuration when rolling back. Vercel's current
+[management documentation](https://vercel.com/docs/cron-jobs/manage-cron-jobs), checked
+October 7, states that Instant Rollback restores the selected deployment's cron
+definitions for subsequent invocations. Already-running work is not canceled by a
+deployment. Verify the actual resulting schedule and in-flight runs; do not rely on
+older notes asserting that rollback never updates cron configuration.
 
 This manifest is a proposed scoped release sequence. It does not record production
 activation or completion of the wider metric acceptance matrix.

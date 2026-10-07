@@ -1,4 +1,28 @@
 # Audit implementation — current checkpoint
+**October 7, 20:34 UTC — incremental collection passes; schedule recovery needs a fix:**
+The active full-team metric goal remains unchanged. A fresh deployment-identity,
+running-sync, lease and cooldown check preceded the first post-bootstrap manual delta.
+It returned HTTP 200, collected **783 new events / one page**, and exhausted through
+**20:32:53 UTC**. Production now retains **140,698 events**. All thirteen comparison
+digest groups, including published metrics/facts, assignments, unrelated source records
+and existing event records, match before/after. The collector published no metrics;
+the 124 solved employee-week values retain their original publication observations.
+No request or collector is left running. An initial local preflight read an unfinished
+deployment-metadata file and stopped before dispatch; the completed metadata was then
+validated before the single actual request. No production retry was manufactured.
+
+The eleven fully traversed source days peak at **14,219 events/day**, exceeding one
+observed ten-page invocation. Adjacent Hobby hourly windows can also collide with the
+global five-minute source cooldown, and the platform does not retry failures. The
+proposed schedule is therefore still uninstalled pending durable deferred-work recovery,
+collector/publisher coordination and capacity tests. Current official rollback docs
+state that cron definitions revert on Instant Rollback for subsequent invocations;
+verify actual schedule state and already-running work rather than relying on older notes.
+See the updated solved release manifest and `2026-10-07-report-delta-verification.json`.
+Next: implement the bounded scheduling/recovery fix and close the remaining live POS,
+history/export and wider metric acceptance checks. No metric policy, demo, Zendesk,
+assignment or human-action feature changed in this increment.
+
 **October 7, 20:13 UTC — solved counts published for both teams and both initial weeks:**
 READY production **dpl_C3zsDWZKpLvz6HCkuxzGJCV3b5tk** / unchanged runtime **31f4187**
 owns the live aliases with the qualified production-only solved release policy. The

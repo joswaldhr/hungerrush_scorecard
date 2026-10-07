@@ -1,5 +1,12 @@
 # Production metric completion
 
+**October 7, 20:34 UTC:** The first incremental collection refresh passes: one page,
+783 new events, exhausted through 20:32:53 UTC, with thirteen unaffected digest groups
+and prior retained events unchanged. It does not refresh the published solved values.
+Daily source volume reaches 14,219 events; ongoing scheduling must handle multiple
+batches, deferred work and adjacent-hour cooldown collisions before activation. No new
+schedule is installed; the full acceptance matrix remains open.
+
 **October 7, 20:13 UTC:** Both solved definitions are published for all 62 current
 staff in the last closed and current weeks: **124 employee-week values**, with zero
 unexplained independent source-set/count differences. All four manual canaries preserve
