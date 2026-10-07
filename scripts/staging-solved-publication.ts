@@ -28,6 +28,8 @@ async function main() {
     "ZENDESK_CSAT_POLICY",
     "ZENDESK_FIRST_REPLY_POLICY",
     "ZENDESK_INBOUND_REPORT_RELEASE",
+    "ZENDESK_REPORT_EVENT_COLLECTION_POLICY",
+    "ZENDESK_SOLVED_REPORT_RELEASES",
     "ACTION_SHADOW_SOURCE_ID",
   ])
     assert(!process.env[key], "Vendor access/publication must be disabled");
