@@ -1,0 +1,119 @@
+{
+  "observedAt": "2026-10-07T19:43:08.340Z",
+  "deploymentId": "dpl_G82oX6dFur4iAQUDiGRPGKYW26pE",
+  "codeSha": "31f4187870b5942db03f28e86c0c202d0ca039d6",
+  "collectionMode": "controlled manual bootstrap",
+  "bootstrapStart": "2026-09-26T00:00:00Z",
+  "streamExhausted": true,
+  "retainedEvents": 139915,
+  "pages": 142,
+  "watermark": 1791402105,
+  "observationStartedAt": "2026-10-07T18:34:47.846Z",
+  "lastPageAt": "2026-10-07T19:42:49.082Z",
+  "activeSyncs": 0,
+  "correctedPacingBatches": [
+    {
+      "startedAt": "2026-10-07T19:10:48.280Z",
+      "completedAt": "2026-10-07T19:14:07.905Z",
+      "httpStatus": 429,
+      "status": "waiting",
+      "pages": 10,
+      "newEvents": 9988,
+      "waitMs": 14754,
+      "retainedEvents": 74414,
+      "cursorPages": 75,
+      "observedThrough": "2026-10-02T15:01:47.000Z"
+    },
+    {
+      "startedAt": "2026-10-07T19:16:34.344Z",
+      "completedAt": "2026-10-07T19:19:51.055Z",
+      "httpStatus": 429,
+      "status": "waiting",
+      "pages": 10,
+      "newEvents": 9985,
+      "waitMs": 15343,
+      "retainedEvents": 84399,
+      "cursorPages": 85,
+      "observedThrough": "2026-10-02T23:26:45.000Z"
+    },
+    {
+      "startedAt": "2026-10-07T19:21:24.464Z",
+      "completedAt": "2026-10-07T19:24:40.774Z",
+      "httpStatus": 429,
+      "status": "waiting",
+      "pages": 10,
+      "newEvents": 9984,
+      "waitMs": 15091,
+      "retainedEvents": 94383,
+      "cursorPages": 95,
+      "observedThrough": "2026-10-03T22:00:11.000Z"
+    },
+    {
+      "startedAt": "2026-10-07T19:25:25.187Z",
+      "completedAt": "2026-10-07T19:28:41.929Z",
+      "httpStatus": 429,
+      "status": "waiting",
+      "pages": 10,
+      "newEvents": 9986,
+      "waitMs": 14989,
+      "retainedEvents": 104369,
+      "cursorPages": 105,
+      "observedThrough": "2026-10-04T20:56:33.000Z"
+    },
+    {
+      "startedAt": "2026-10-07T19:29:14.285Z",
+      "completedAt": "2026-10-07T19:32:30.266Z",
+      "httpStatus": 429,
+      "status": "waiting",
+      "pages": 10,
+      "newEvents": 9986,
+      "waitMs": 15645,
+      "retainedEvents": 114355,
+      "cursorPages": 115,
+      "observedThrough": "2026-10-05T19:53:41.000Z"
+    },
+    {
+      "startedAt": "2026-10-07T19:33:02.122Z",
+      "completedAt": "2026-10-07T19:36:30.434Z",
+      "httpStatus": 202,
+      "status": "collected",
+      "pages": 10,
+      "newEvents": 9295,
+      "retainedEvents": 123650,
+      "cursorPages": 125,
+      "observedThrough": "2026-10-06T15:54:10.000Z"
+    },
+    {
+      "startedAt": "2026-10-07T19:36:50.555Z",
+      "completedAt": "2026-10-07T19:40:06.657Z",
+      "httpStatus": 429,
+      "status": "waiting",
+      "pages": 10,
+      "newEvents": 9986,
+      "waitMs": 15393,
+      "retainedEvents": 133636,
+      "cursorPages": 135,
+      "observedThrough": "2026-10-07T02:01:33.000Z"
+    },
+    {
+      "startedAt": "2026-10-07T19:40:41.652Z",
+      "completedAt": "2026-10-07T19:42:53.652Z",
+      "httpStatus": 200,
+      "status": "collected",
+      "pages": 7,
+      "newEvents": 6279,
+      "retainedEvents": 139915,
+      "cursorPages": 142,
+      "observedThrough": "2026-10-07T19:41:45.000Z"
+    }
+  ],
+  "sourceThrottlesInCorrectedBatches": 0,
+  "newSolvedValues": 0,
+  "publicationActivated": false,
+  "schedulerVerified": false,
+  "limits": [
+    "Endpoint exhaustion establishes event-stream traversal, not complete joined metric coverage.",
+    "Fresh parent joins and independent reconciliation still precede any metric publication.",
+    "Observed manual bootstrap capacity does not establish daily scheduled throughput or recovery."
+  ]
+}

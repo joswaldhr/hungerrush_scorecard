@@ -1,5 +1,20 @@
 # Production metric completion
 
+**October 7, 19:46 UTC:** Fresh durable Menufy joins and independent reconstruction
+match all 23 active employees in both initial publication periods: 4,106 last-week
+solved credits and 1,634 current credits through 19:41:45 UTC. No count/source-set
+differences or unresolved parents remain in these captures. This supports the solved
+definition only; update-event report discrepancies remain unresolved. Production
+catalog/canary and scheduled operation are still pending. See
+[the fresh qualification receipt](2026-10-07-durable-solved-qualification.json).
+
+**October 7, 19:43 UTC:** Durable manual bootstrap is complete: 139,915 events /
+142 pages through October 7 19:41:45 UTC. Eight corrected paced batches avoided
+further source throttling. Fresh joined-source reconciliation, catalog/canary publication
+and genuine scheduling remain; zero new solved values are published. The completed
+stream alone does not complete solved-ticket acceptance. See
+[the aggregate collection receipt](2026-10-07-report-event-bootstrap-verification.json).
+
 **October 7, 19:14 UTC:** The PR46 pacing correction is live and its first resumed
 manual batch advanced ten pages without source throttling. Production retains 74,414
 events / 75 pages through October 2; bootstrap is incomplete. Exact CI, isolated

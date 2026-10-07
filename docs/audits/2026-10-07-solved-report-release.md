@@ -1,5 +1,14 @@
 # Solved-report publication release manifest — code live, metrics inactive
 
+**19:43 UTC update:** The PR46 production runtime `31f4187` on
+`dpl_G82oX6dFur4iAQUDiGRPGKYW26pE` has completed the collection-only bootstrap:
+139,915 events / 142 pages, exhausted through October 7 19:41:45 UTC. Eight corrected
+paced batches had no additional source throttles. Fresh joins and independent
+reconciliation are in progress. Solved catalog/publication/schedules remain inactive;
+this is manual collection, not ongoing scheduler verification. The inactive same-code
+configuration rollback remains `dpl_5RiNfm8g4tPgkVxyG4X7aQ7hqYRL`; do not resume
+the old eleven-second collector pacing when using an earlier code deployment.
+
 **18:44 UTC update:** Collection-only policy is now active on same-code production
 deployment **dpl_7TAT6XQEpirG2YpeHG9rG6nMucN7**. Solved publication, catalog changes
 and new schedules remain inactive. The first two manual bootstrap batches retained

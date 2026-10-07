@@ -1,4 +1,37 @@
 # Audit implementation — current checkpoint
+**October 7, 19:46 UTC — fresh durable-source solved qualification passes:**
+Both Menufy intervals independently reconcile every current employee and contributing
+solved-event ID: **23 staff / 4,106 credits** for September 27–October 3 and
+**23 / 1,634** for October 4–10 through October 7 19:41:45 UTC. The closed-week join
+used 55 GETs for 4,911 parents plus 40 confirmed deletions; current used 26 GETs for
+2,084 parents plus 14 confirmed deletions. Neither has an unresolved parent. The
+independent Python calculation is bound to each exact private input digest. This
+qualifies the fresh durable calculation under the previously reconciled solved-credit
+definition; it is not a fresh same-cutoff Explore export and does not qualify update
+counts. See `2026-10-07-durable-solved-qualification.json`.
+
+Fresh read-only catalog census still finds 23 Menufy / 39 POS bindings, no employee
+overrides or new solved definitions, and no running sync. Fresh encrypted recovery is
+being validated before the dated catalog transition. Metric publication, the solved
+release policy and new schedules remain inactive. The private canary tools retain
+dispatch/outcome evidence, independently rebuild published source sets and compare
+unaffected data digests; preparing these tools is not evidence of a production canary.
+
+**October 7, 19:43 UTC — durable bootstrap complete; live joins in progress:**
+Production retains **139,915 events / 142 pages** from the September 26 bootstrap,
+with an exhausted stream through **October 7 19:41:45 UTC**. All eight corrected
+twenty-second-paced batches completed without another source throttle. Runtime-budget
+`waiting` responses preserved continuation; the last batch returned HTTP 200. Read-only
+inspection confirms no running sync, a released lease and zero new solved values.
+Fresh closed/current Menufy parent joins and independent reconciliation now precede
+catalog activation and scoped publication. This is controlled manual collection,
+not scheduled evidence or certification of joined metrics. The signed-in production
+scorecard still shows the old withheld solved row; no new metric has been published.
+See `2026-10-07-report-event-bootstrap-verification.json`. The latest durable closed-week
+capacity check contains 14,129 events / 4,951 parent IDs for 23 current staff, below the
+5,000 parent guard but with limited headroom. No new schedules or solved release policy
+are active; the demo and existing metric policies remain unchanged.
+
 **October 7, 19:14 UTC — pacing correction live; resumed batch passed:**
 PR46 merged to **31f4187870b5942db03f28e86c0c202d0ca039d6**. Production
 **dpl_G82oX6dFur4iAQUDiGRPGKYW26pE** is READY and owns the live aliases. Exact
