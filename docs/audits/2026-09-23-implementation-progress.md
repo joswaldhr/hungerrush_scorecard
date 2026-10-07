@@ -1,4 +1,22 @@
 # Audit implementation — current checkpoint
+**October 7 — solved-only publication implementation, not activated:** The new dedicated
+connector now takes the independently reconciled updater-solved and assignee-solved
+calculations through the ordinary atomic sync service under distinct source contracts
+and metric keys. It replays minimized evidence, binds account/team/employee/period,
+requires compatible effective assignments, rejects stale/incomplete captures, and
+rechecks staff/assignment state and fetched-record integrity before commit. It cannot
+publish update counts or enable the legacy human-only measures. No new route, source
+policy, assignment, production value or demo deployment has changed.
+
+All **1,049 tests / 131 files** pass against isolated loopback PostgreSQL. New transaction
+cases verify scoped publication, idempotency, zero corrections, retained revisions and
+rollback on incomplete evidence, changed assignments, departures, tampering and expiry.
+Typecheck and full source ESLint pass. Exact committed CI/build and hosted/release gates
+remain. The [completion matrix](2026-10-07-metric-completion-matrix.md) records both teams'
+remaining metric, source, roster and live-operation requirements. Next: complete fresh
+bounded collection/current-week coverage, effective catalog registration and qualified
+canary/release; do not confuse this code increment with live metric completion.
+
 **October 7 — main application code release is live:** PR43 merged as `7fa4593` and
 passes full merge CI/build `37631375550`. Production deployment
 `dpl_HGEAA1j1xJ8XYJLKCMKcuTUPMoKN` was explicitly promoted and the live alias independently

@@ -1,5 +1,17 @@
 # Report-matched ticket credits
 
+## October 7 solved-only publication adapter
+
+The two solved measures now have distinct qualified-publication contracts and a dedicated
+connector using the existing atomic sync service. It independently replays retained
+source evidence, checks source/employee/team/period ownership and effective assignments,
+and fails on incomplete or stale captures. Staff/assignment changes and fetched-record
+tampering stop publication transactionally. Full local PostgreSQL regression passes
+(1,049 tests / 131 files). No live policy, route, catalog registration or publication is
+enabled. The update-event measure and old human-only keys stay guarded. Fresh collection,
+current-week as-of coverage, qualification/release gates and actual scheduled operation
+remain tracked in [the completion matrix](2026-10-07-metric-completion-matrix.md).
+
 The October 6 user decision authorizes report-matched credits with explicit labels,
 separate from verified-human activity. This supersedes the pending policy choice in
 [the earlier correction](2026-10-06-ticket-credit-correction.md). It does not qualify
