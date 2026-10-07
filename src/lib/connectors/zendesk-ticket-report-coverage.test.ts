@@ -4,7 +4,7 @@ import {
   type AssigneeSolvedReportScope,
 } from "./zendesk-assignee-solved-report";
 import { calculateTicketReportCredits } from "./zendesk-ticket-report-credits";
-import { ticketReportCoverage } from "./zendesk-ticket-report-coverage";
+import { ticketReportCoverage, ticketReportPeriodBounds } from "./zendesk-ticket-report-coverage";
 
 const scope: AssigneeSolvedReportScope = {
   periodStart: "2026-10-04",
@@ -25,6 +25,44 @@ const coverage = {
   asOf: cutoff,
 };
 describe("explicit current-week source cutoff", () => {
+  it("locates exact local boundaries across spring/fall DST, half-hour offsets and year rollover", () => {
+    for (const [first, last, zone, start, end] of [
+      [
+        "2026-03-08",
+        "2026-03-14",
+        "America/Chicago",
+        "2026-03-08T06:00:00.000Z",
+        "2026-03-15T05:00:00.000Z",
+      ],
+      [
+        "2026-11-01",
+        "2026-11-07",
+        "America/Chicago",
+        "2026-11-01T05:00:00.000Z",
+        "2026-11-08T06:00:00.000Z",
+      ],
+      [
+        "2026-12-27",
+        "2027-01-02",
+        "America/Chicago",
+        "2026-12-27T06:00:00.000Z",
+        "2027-01-03T06:00:00.000Z",
+      ],
+      [
+        "2026-10-04",
+        "2026-10-10",
+        "Asia/Kolkata",
+        "2026-10-03T18:30:00.000Z",
+        "2026-10-10T18:30:00.000Z",
+      ],
+    ]) {
+      const bounds = ticketReportPeriodBounds(first!, last!, zone!);
+      expect(bounds.start.toISOString()).toBe(start);
+      expect(bounds.endExclusive.toISOString()).toBe(end);
+    }
+    expect(() => ticketReportPeriodBounds("2026-02-30", "2026-03-02", "UTC")).toThrow();
+    expect(() => ticketReportPeriodBounds("2026-10-04", "2026-10-03", "UTC")).toThrow();
+  });
   it("requires an explicit as-of rather than treating an unfinished week as complete", () => {
     expect(ticketReportCoverage(coverage, observedAt, scope).covered).toBe(true);
     const { asOf: unused, ...unmarked } = coverage;

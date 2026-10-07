@@ -120,6 +120,23 @@ it("resumes after handoff, deduplicates boundary events, and preserves zero-even
       .newEvents
   ).toBe(0);
 });
+it("caps an explicitly requested progress read at the retained watermark", async () => {
+  const worker = await own(),
+    begun = await beginReportEventCycle(worker, start);
+  await commitReportEventPage(worker, begun.expectedHash, page([event()], 400, true));
+  const capped = await readReportEventSnapshot(scope, new Date(100000), new Date(500000), [42], {
+    capAtWatermark: true,
+  });
+  expect(capped.snapshot?.coverage.endExclusive).toBe(new Date(400000).toISOString());
+  expect(capped.snapshot?.events).toHaveLength(1);
+  expect(
+    (
+      await readReportEventSnapshot(scope, new Date(500000), new Date(600000), [42], {
+        capAtWatermark: true,
+      })
+    ).status
+  ).toBe("collecting");
+});
 it("rolls back all events and the cursor when a retained ID conflicts", async () => {
   const worker = await own(),
     begun = await beginReportEventCycle(worker, start);

@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-07",
+  "environment": "isolated loopback PostgreSQL; retained private source evidence",
+  "scope": "Menufy current-week report-matched solved-ticket collection and parent join",
+  "inputPages": 38,
+  "rawEvents": 37493,
+  "uniqueRetainedEvents": 37117,
+  "deduplicatedBoundaryRecords": 376,
+  "selectedEmployeeIntervalEvents": 5933,
+  "matchedEmployees": 23,
+  "allEmployeeCountsAndContributingSetsMatch": true,
+  "offlineParentBatches": 20,
+  "offlineDeletionBatches": 1,
+  "sourceRequests": 0,
+  "productionWrites": 0,
+  "observedSourceEdgeCases": [
+    "Delivery stream includes older-created events; retain them and filter reporting intervals separately.",
+    "A time-based page exceeds 1000 records at a shared timestamp; do not truncate it."
+  ],
+  "limits": [
+    "Replay reuses the previously independently checked October 7 source capture; it is not a fresh source observation or new Explore comparison.",
+    "Candidate update-event implementation parity does not resolve the existing Explore report discrepancies.",
+    "Collection and publication route activation, catalog manifest, fresh backup/restore, canary and scheduler evidence remain required.",
+    "No changes to Zendesk, production data, frozen demo, qualified CSAT/first-reply policies or disabled human-action features."
+  ]
+}
