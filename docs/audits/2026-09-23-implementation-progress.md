@@ -1,4 +1,15 @@
 # Audit implementation — current checkpoint
+**October 7 — repeated source throttle contained; pacing correction in validation:**
+The fifth manual report-event batch retained three pages / 2,995 events and stopped
+on another source HTTP 429. Collection is stopped at **64,426 events / 65 pages**;
+the lease is released and no metric publication occurred. Do not resume the old
+eleven-second cadence. The local correction reserves twenty seconds, persists
+observed depleted account quota before cursor advancement, enforces a one-minute
+minimum on throttling and returns allowlisted numeric quota diagnostics. Full checks,
+isolated rehearsal, exact CI/build and fresh recovery precede deployment and resumption.
+The existing production/Preview runtimes and solved publication remain unchanged.
+See `2026-10-07-report-collection-pacing.md` for the scoped release and rollback.
+
 **October 7, 18:52 UTC — bootstrap resumed without further throttling:**
 The third and fourth bounded production collection batches both returned HTTP 202,
 retaining 18 pages each. Total retained evidence is now **61,431 events / 62 pages**,
