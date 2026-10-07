@@ -1,4 +1,72 @@
 # Audit implementation — current checkpoint
+**October 7 — repeated source throttle contained; pacing correction in validation:**
+The fifth manual report-event batch retained three pages / 2,995 events and stopped
+on another source HTTP 429. Collection is stopped at **64,426 events / 65 pages**;
+the lease is released and no metric publication occurred. Do not resume the old
+eleven-second cadence. The local correction reserves twenty seconds, persists
+observed depleted account quota before cursor advancement, enforces a one-minute
+minimum on throttling and returns allowlisted numeric quota diagnostics. Full checks,
+isolated rehearsal, exact CI/build and fresh recovery precede deployment and resumption.
+The existing production/Preview runtimes and solved publication remain unchanged.
+See `2026-10-07-report-collection-pacing.md` for the scoped release and rollback.
+
+**October 7, 18:52 UTC — bootstrap resumed without further throttling:**
+The third and fourth bounded production collection batches both returned HTTP 202,
+retaining 18 pages each. Total retained evidence is now **61,431 events / 62 pages**,
+through October 1 at 15:48:16 UTC. The stream remains incomplete; zero new solved
+values are published and catalog/release policy/schedules remain inactive. The last
+batch has finished and no client invocation remains pending. Continue from this
+checkpoint, then require complete coverage, fresh parent joins and independent
+reconciliation before the catalog/canary step. Aggregate receipt:
+`2026-10-07-solved-bootstrap-progress.json`. The first four fully traversed UTC days
+contain 10,148–11,567 events by creation time; this excludes possible late-delivery
+and overlap demand and does not yet establish ongoing refresh capacity.
+
+**October 7, 18:44 UTC — collection enabled; solved publication still inactive:**
+The same PR45 code (`376aaaf`) is READY on production deployment
+**dpl_7TAT6XQEpirG2YpeHG9rG6nMucN7** with only the report-event collection policy
+enabled. The initial source boundary is September 26 UTC. No solved release policy,
+catalog transition, new schedule or metric publication has been activated. The
+immediate configuration rollback is the same-code inactive deployment
+**dpl_5RiNfm8g4tPgkVxyG4X7aQ7hqYRL**; preserve retained collection checkpoints.
+
+The first controlled batch retained 16,528 events across 17 pages before a normal
+runtime-budget pause. The second retained 8,988 more across nine pages, then stopped
+on Zendesk HTTP 429 and persisted its cooldown. Read-only inspection at 18:44 UTC
+confirms 25,516 retained events, an incomplete 26-page checkpoint, a released lease,
+an expired cooldown, zero running syncs and zero new solved values. A third bounded
+batch resumed only after those checks. These are manual bootstrap runs, not scheduler
+evidence. Retained closed-week evidence for the current 23 Menufy staff requires 4,951
+distinct parent joins, below the 5,000 guard but with limited headroom. Completion,
+fresh parent joins and independent reconciliation remain prerequisites to publication.
+
+Separately, the genuine closed-week first-reply cron returned HTTP 200 in 160.489
+seconds on the prior PR45 deployment, with `vercel-cron/1.0`, no crash and a successful
+23-employee database publication. Twenty means have 1,566 duration samples; three
+legitimate unavailable means have zero samples across two cohort tickets. All 23 have
+source/fact/value revisions. This verifies this offset only. Aggregate evidence:
+`2026-10-07-first-reply-closed-week-scheduled.json`.
+
+**October 7, 18:28 UTC — solved-report code released, publication inactive:**
+PR45 merged to **376aaafed437ba42c53d447c0178e7024d4fdb52**. Vercel production
+**dpl_5RiNfm8g4tPgkVxyG4X7aQ7hqYRL** is READY and owns the live alias. Candidate
+**82c1dea** passes exact CI/build **37665980261** and has identical runtime content to
+the merge; master CI **37666871623** also passes. Fresh 18:26 UTC
+encrypted backup/restore matches 35 tables / 214,065 rows through migration 0017.
+The exact two-team September 27 catalog transition and transactional rollback were
+rehearsed on the restored copy, with every table digest restored. Earlier periods and
+old targets are preserved; incompatible targets are not copied to the new definitions.
+Two private rehearsal script issues (Windows dynamic-import URL and timestamp parser
+representation) were corrected before the passing run; neither changed production.
+
+All three new authenticated production endpoints return HTTP 200 / `enabled:false`;
+unauthenticated requests return 401. The signed-in manager-scoped scorecard loads the
+closed week. No new collection/publication policy, catalog or schedule is active, and
+no employee metric was published by this release. The immediately prior compatible
+rollback is **dpl_HGEAA1j1xJ8XYJLKCMKcuTUPMoKN** / **7fa4593**. Backup evidence:
+`2026-10-07-solved-release-restore.json`. Continue bounded collection-only bootstrap,
+independent live reconciliation, dated catalog/canary publication and genuine cron.
+
 **October 7 — complete-path synthetic Preview passed:**
 Candidate **4573dcd** passes exact CI/build **37664746951** (1,109 tests / 140 files).
 Runtime-identical main Preview **3f7bcc5**, deployment **dpl_7HUcp3NJ5DWEX2GGKS8XxQisXnoL**,

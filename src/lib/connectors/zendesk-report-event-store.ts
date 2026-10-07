@@ -18,6 +18,9 @@ import {
 const LEASE = "zendesk_report_event_lease_v1",
   CHECKPOINT = "zendesk_report_event_checkpoint_v1",
   EVENT = "zendesk_report_event_v1";
+// Incremental export quota is shared with the account's other integrations.
+// Production's eleven-second spacing still received 429s; reserve more headroom.
+export const REPORT_EVENT_SPACING_MS = 20000;
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 export interface ReportEventScope {
   organizationId: string;
@@ -147,7 +150,7 @@ export async function reserveReportEventRequest(scope: OwnedReportEventScope) {
       return { reserved: false as const, waitMs: Date.parse(lease.nextAllowedAt) - now };
     await put(tx, scope, LEASE, scope.accountReference, {
       ...lease,
-      nextAllowedAt: new Date(now + 11000).toISOString(),
+      nextAllowedAt: new Date(now + REPORT_EVENT_SPACING_MS).toISOString(),
     });
     return { reserved: true as const, waitMs: 0 };
   });

@@ -1,5 +1,14 @@
 # Production metric completion
 
+**October 7, 18:44 UTC:** PR45's collection-only production policy is active and its
+manual bootstrap is incomplete (25,516 retained events / 26 pages before the current
+resumed batch). No new solved catalog, publication policy or schedule is active.
+A source HTTP 429 preserved progress and cooldown; continuation followed read-only
+cooldown/lease checks. This supersedes earlier inactive-collector descriptions below,
+not the outstanding solved-publication gates. Genuine first-reply scheduling is now
+verified separately for current and last-closed weeks; the closed-week receipt is
+[recorded here](2026-10-07-first-reply-closed-week-scheduled.json).
+
 This is the acceptance tracker for the active goal: usable, independently reconciled
 1:1 scorecards for both manager teams. Code deployment, numeric availability and
 source correctness are separate states. The October 7 live code release does not
@@ -20,7 +29,7 @@ mistaken for an assigned metric. None of the new solved-report keys is assigned 
 
 | Metric / family | Menufy evidence and remaining work | POS evidence and remaining work |
 | --- | --- | --- |
-| Solved tickets | Updater latest-solve credits match all 43 and 42 report rows in two closed weeks. New solved-only publication adapter now has local transaction tests. Fresh capture, effective catalog registration, current-week coverage, hosted/release/canary and scheduling remain. | Current-assignee solved-date measure matches all 39 eligible employees / 1,411 tickets in one saved weekly report; second-week independent source comparison covers 1,464 tickets. Keep this definition distinct from the manager's created-date report. Same publication/release/operation gates remain. |
+| Solved tickets | Updater latest-solve credits match all 43 and 42 report rows in two closed weeks. Current capture and independent replay cover all 23 active staff. Complete pipeline Preview, actual export checks, exact CI/build, fresh recovery and catalog rollback rehearsal pass; PR45 code is live but policies/catalog remain inactive. Durable production bootstrap, independent readback, catalog/canary and scheduling remain. | Current-assignee solved-date measure matches all 39 eligible employees / 1,411 tickets in one saved weekly report; second-week independent source comparison covers 1,464 tickets, and current source comparison covers all 39. Preserve the distinction from the created-date report. Same code release is live/inactive; dated catalog, production canary and ongoing scheduled operation remain. |
 | Update activity | Distinct updater events: first week retains a two-event residual after explained group changes; second week has three one-event employee differences. Resolve exact mismatches before publication. | Establish the applicable update-activity report's exact unit, scope and attribution. Do not copy Menufy's updater/group contract or use current-assignee snapshots. |
 | First response | Qualified business-time policy exists. Verify all current employee cohorts, zero-sample semantics, freshness and actual scheduled execution after the release. | Verify team-specific definition and per-employee source evidence; inherited labels and stored numbers are insufficient. |
 | CSAT score / response rate where assigned | Preserve existing qualified solved-date/current-assignee calculation and its separate rated/offered/cohort denominators. A score without ratings is legitimately unavailable; confirm each blank against its cohort. Close scheduled refresh/recovery checks. | Match team-specific rating cohort and every employee's numerator/denominator. Do not assume Menufy's release policy applies. |
@@ -80,8 +89,9 @@ atomic sync service. They publish only their new solved key, replay minimized so
 evidence, bind organization/source/account/team/employee/period, require effective
 compatible assignments, and reject stale or incomplete captures. The publication
 transaction rechecks assignments and staff bindings and rejects changed fetched records.
-No route or environment flag activates them yet. Existing candidate contracts remain
-blocked; legacy human-only keys, update counts, targets and source policies are unchanged.
+Dedicated authenticated routes and separate strict policies now exist; absent production
+policies keep them inactive. Legacy human-only keys, update counts, targets and existing
+source policies are unchanged. PR45's live code does not establish numeric publication.
 
 Local synthetic PostgreSQL checks cover publication, repeat-refresh idempotency, numeric
 zero corrections, revision retention, failed-coverage preservation, incompatible
