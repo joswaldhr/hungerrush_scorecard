@@ -1,4 +1,21 @@
 # Audit implementation — current checkpoint
+**October 7 — collector/publication coordination candidate in validation:**
+The local candidate makes report-event collection and ordinary sync publication
+acquire ownership under the same Zendesk account lock, then the source row lock.
+Collection defers for active publishers across source/week boundaries; publication
+defers for collection ownership and its persisted request cooldown. Expired owners
+remain fenced and unrelated accounts remain independent. No production code, policies
+or schedules have changed. See `2026-10-07-report-sync-coordination.md`.
+
+The first focused PostgreSQL run passes 18 tests across the new coordination suite and
+existing event store. Typecheck and targeted lint pass. The first full run caught an
+end-to-end test that expected immediate publication during retained collector pacing;
+the test and isolated hosted rehearsal now respect that pacing. The revised test also
+asserts zero vendor reads and unchanged metrics while deferred, before real expiry and
+successful publication. Full revised verification, exact Linux CI/build, isolated
+Preview, fresh recovery and release gates are still pending. This closes an ownership
+race, not deferred-job recovery or daily-capacity acceptance; those remain next.
+
 **October 7, 20:34 UTC — incremental collection passes; schedule recovery needs a fix:**
 The active full-team metric goal remains unchanged. A fresh deployment-identity,
 running-sync, lease and cooldown check preceded the first post-bootstrap manual delta.

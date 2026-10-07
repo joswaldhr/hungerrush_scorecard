@@ -120,6 +120,19 @@ export async function claimReportEventCollection(scope: ReportEventScope) {
   return db.transaction(async (tx) => {
     await lockSource(tx, scope);
     const now = await clock(tx);
+    // Publication routes claim their sync lease under this same account lock.
+    // A preflight read alone would race a different source/week's publisher.
+    const [sync] = await tx.execute<{ retry_at: Date }>(sql`
+      select max(coalesce((r.metadata_json->>'leaseExpiresAt')::timestamptz,
+        r.started_at + interval '10 minutes')) as retry_at
+      from sync_runs r join data_sources s on s.id=r.data_source_id
+      where s.type='zendesk' and s.configuration_reference=${scope.accountReference}
+        and r.status='running'
+        and coalesce((r.metadata_json->>'leaseExpiresAt')::timestamptz,
+          r.started_at + interval '10 minutes') > clock_timestamp()
+    `);
+    if (sync?.retry_at)
+      return { acquired: false as const, retryAt: new Date(sync.retry_at).toISOString() };
     const rows = await tx
       .select()
       .from(sourceRecords)
