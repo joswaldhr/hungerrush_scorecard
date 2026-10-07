@@ -1,4 +1,25 @@
 # Audit implementation — current checkpoint
+**October 7 — live updater solved adapter implemented, inactive:**
+The Menufy loader now resolves current staff, reads a complete durable interval,
+refreshes ticket parents/solve timestamps and requires source tombstones for missing
+parents. Unresolved/duplicate joins and stale streams preserve prior publication.
+Current-week cutoffs remain explicit; the oldest dependency determines freshness.
+Reporting boundaries use the configured timezone, including DST. The adapter feeds
+the same solved-only atomic publisher as the hosted rehearsal; it cannot publish
+the separately unqualified update metric. The new join transport has its own strict
+GET/query allowlist and bounded request/time/quota budget, leaving CSAT/first-reply
+transport and policy unchanged.
+
+All **1,099 tests / 138 files**, typecheck, full source ESLint and changed-source format
+checks pass locally. Offline durable-store plus parent-join replay still matches every
+count and contributing set for all 23 staff, with zero source requests or production
+writes. Receipt: `2026-10-07-report-event-replay-verification.json`. Collector commit
+**d4797f2** separately passes exact Linux CI/build **37660654108**. Adapter exact CI/build
+is pending; no activation route/policy, schedule, production catalog or value changed.
+Next: explicit inactive release/collection configuration and route controls, verified
+isolated rehearsal of the complete path, then the documented catalog/backup/canary/
+rollback and real-scheduler release gates. Other families remain tracked in the matrix.
+
 **October 7 — durable report-event collector implemented, inactive:**
 The separate report-credit stream now has account-wide ownership, persistent request
 spacing/Retry-After, atomic immutable event/checkpoint commits, resumable bounded batches

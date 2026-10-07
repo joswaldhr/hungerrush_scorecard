@@ -279,7 +279,8 @@ export async function readReportEventSnapshot(
   scope: ReportEventScope,
   start: Date,
   endExclusive: Date,
-  agentIds: number[]
+  agentIds: number[],
+  options: { capAtWatermark?: boolean } = {}
 ) {
   if (
     !Number.isFinite(start.getTime()) ||
@@ -302,10 +303,14 @@ export async function readReportEventSnapshot(
         .where(filter(scope.dataSourceId, CHECKPOINT, "stream"));
       if (!row) return { status: "collecting" as const, snapshot: null };
       const state = stateOf(row, scope);
+      const end = options.capAtWatermark
+        ? new Date(Math.min(endExclusive.getTime(), state.cursor.watermark * 1000))
+        : endExclusive;
       if (
         state.cursor.status !== "exhausted" ||
         state.cursor.bootstrapStart * 1000 > start.getTime() ||
-        state.cursor.watermark * 1000 < endExclusive.getTime()
+        state.cursor.watermark * 1000 < end.getTime() ||
+        end <= start
       )
         return { status: "collecting" as const, snapshot: null };
       const rows = await tx
@@ -316,7 +321,7 @@ export async function readReportEventSnapshot(
             eq(sourceRecords.dataSourceId, scope.dataSourceId),
             eq(sourceRecords.externalRecordType, EVENT),
             sql`(${sourceRecords.payloadJson}->>'created_at')::timestamptz>=${start.toISOString()}::timestamptz`,
-            sql`(${sourceRecords.payloadJson}->>'created_at')::timestamptz<${endExclusive.toISOString()}::timestamptz`,
+            sql`(${sourceRecords.payloadJson}->>'created_at')::timestamptz<${end.toISOString()}::timestamptz`,
             sql`(${sourceRecords.payloadJson}->>'updater_id')::bigint in (${sql.join(
               agentIds.map((id) => sql`${id}`),
               sql`,`
@@ -348,7 +353,7 @@ export async function readReportEventSnapshot(
           state,
           coverage: {
             start: start.toISOString(),
-            endExclusive: endExclusive.toISOString(),
+            endExclusive: end.toISOString(),
             complete: true,
           },
         },

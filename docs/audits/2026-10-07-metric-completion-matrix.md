@@ -59,6 +59,21 @@ Assembled remains parked. HR attendance points remain outside the Zendesk metric
 
 ## October 7 implementation increment
 
+The resumable report-event stream now passes exact Linux CI/build **37660654108**
+at **d4797f2** (1,083 tests / 135 files). It retains minimized immutable events and
+continuations atomically, prevents concurrent/stale collectors, preserves Retry-After
+across handoffs and limits each invocation. It does not activate any collection or
+publication policy. Offline PostgreSQL replay reproduces all 23 current Menufy staff's
+counts and contributing sets from the retained source; see
+[the replay receipt](2026-10-07-report-event-replay-verification.json).
+
+The follow-up joins the durable stream to freshly resolved staff and ticket/metric
+parents, requires explicit deletion evidence and uses exact local week boundaries
+through DST. Its solved-only adapter preserves the oldest dependency's observation
+time and current-week watermark, rejecting stale/incomplete sources before publication.
+This remains inactive pending final technical and release gates. It does not qualify
+update counts, modify CSAT/first-reply policy or change the legacy human-only guards.
+
 `zendesk-solved-publication-record.ts`, `zendesk-solved-report-bindings.ts` and
 `zendesk-solved-publisher.ts` connect the two distinct solved calculations to the existing
 atomic sync service. They publish only their new solved key, replay minimized source
