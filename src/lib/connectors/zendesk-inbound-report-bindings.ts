@@ -115,7 +115,9 @@ export async function loadInboundReportBindings(
           r.externalId.trim() !== r.externalId ||
           !r.externalId.trim() ||
           r.externalId.length > 320 ||
-          r.entityType !== "user"
+          // Roster discovery stores Zendesk staff as "agent"; manually verified
+          // user bindings are also supported. Neither label establishes human activity.
+          (r.entityType !== "user" && r.entityType !== "agent")
       ) ||
       new Set(rows.map((r) => r.employeeId)).size !== rows.length ||
       new Set(rows.map((r) => r.externalId!.toLowerCase())).size !== rows.length

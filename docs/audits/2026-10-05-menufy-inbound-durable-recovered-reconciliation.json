@@ -1,0 +1,68 @@
+{
+  "observedAt": "2026-10-05T20:33:15.395Z",
+  "mode": "Durable source collection and independent Python calculation; no metric publication",
+  "sourceContract": "zendesk-call-created-agent-leg-inbound-v1",
+  "activeEmployees": 23,
+  "sourceCalls": 10976,
+  "sourceLegs": 21947,
+  "missingParentCalls": 1,
+  "collections": {
+    "calls": {
+      "pages": 3,
+      "observationStartedAt": "2026-10-05T20:30:53.445Z",
+      "observationEndedAt": "2026-10-05T20:31:11.321Z",
+      "modifiedSince": 1791231301
+    },
+    "legs": {
+      "pages": 19,
+      "observationStartedAt": "2026-10-05T20:16:21.520Z",
+      "observationEndedAt": "2026-10-05T20:21:51.980Z",
+      "modifiedSince": 1790614040
+    }
+  },
+  "identityVerification": {
+    "activeIdentities": 23,
+    "pages": 4,
+    "requests": 4,
+    "retainedAgentIdsMatch": true
+  },
+  "periods": [
+    {
+      "periodStart": "2026-09-27",
+      "periodEnd": "2026-10-03",
+      "employeeCases": 23,
+      "valueComparisons": 207,
+      "sourceSetComparisons": 207,
+      "durationEvidenceComparisons": 276,
+      "differences": 0,
+      "blockedCases": 0
+    },
+    {
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-10",
+      "employeeCases": 23,
+      "valueComparisons": 207,
+      "sourceSetComparisons": 207,
+      "durationEvidenceComparisons": 276,
+      "differences": 0,
+      "blockedCases": 0
+    }
+  ],
+  "inputDigests": {
+    "retained": "39a941b055e0f1a0c4d33784d23791ca91c9005bd7403542b795cee4eb864112",
+    "durableSnapshot": "9b2e51ba3cce1eb5d5b6ee6efa8495d5bb5715676cdbfc9344a344f410e434d5"
+  },
+  "privateCandidateSha256": "394001a3c8cbf7e887266c70477e2c845a9c271c6af46116c59617ebc493e516",
+  "independentImplementation": "Python with no Cadence imports",
+  "productionMetricWrites": 0,
+  "sourceCheckpointWrites": true,
+  "sourceMethods": ["GET"],
+  "coordinationMetadataOnly": false,
+  "publicationActivated": false,
+  "limitations": [
+    "Current active roster is a diagnostic denominator, not reconstructed historical eligibility.",
+    "The closed week is compared under the retained Menufy report contract; no new manager workbook was supplied for that week.",
+    "Sequential calls and legs reads are not an atomic source snapshot; missing parent coverage remains blocking.",
+    "This calculation replay does not verify hosted approval flows, publication, targets or scheduled execution."
+  ]
+}

@@ -8,6 +8,7 @@ import path from "node:path";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
+import { adoptFactIdentityBaseline, readBaselineEntries } from "./migration-baseline";
 
 async function run(file: string, args: string[], env = process.env) {
   await new Promise<void>((resolve, reject) => {
@@ -133,6 +134,7 @@ async function main() {
   const source = postgres(sourceUrl.toString(), { max: 1, ssl: "require" });
   let started = false;
   let stage = "snapshot";
+  let baselineAdoption: Awaited<ReturnType<typeof adoptFactIdentityBaseline>> | undefined;
   try {
     const before = await source.begin("isolation level repeatable read read only", async (tx) => {
       await tx`set local statement_timeout = '120s'`;
@@ -234,6 +236,12 @@ async function main() {
         "withdrawn_at",
       ].filter((name) => !existingColumns.some((column) => column.column_name === name));
       const baseline = await local.begin("read only", (tx) => inventory(tx, omitted, true));
+      stage = "adopt present schema on restored copy";
+      baselineAdoption = await adoptFactIdentityBaseline(
+        local,
+        await readBaselineEntries("drizzle")
+      );
+      stage = "migrate restored copy";
       await local`set lock_timeout = '10s'`;
       await local`set statement_timeout = '120s'`;
       await migrate(drizzle(local), { migrationsFolder: "drizzle" });
@@ -270,6 +278,7 @@ async function main() {
       rowCount: before.reduce((n, t) => n + t.count, 0),
       allTableDigestsMatch: true,
       restoredCopyMigrationsThrough: "0017_roster_observations",
+      restoredCopyBaselineAdoption: baselineAdoption,
       existingApplicationDataUnchangedAfterMigration: true,
       globalsAndOriginalOwnershipRestored: false,
       limitation:

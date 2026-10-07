@@ -13,6 +13,9 @@ Read `CLAUDE.md`, `docs/SAFETY_GUARDRAILS.md`, and the current checkpoint at the
 - Keep unverified human ticket metrics unavailable and ticket-action shadow ingestion,
   action-v2 publication and historical repair disabled. Qualified CSAT/first-reply
   policies are separate; do not change them incidentally.
+- October 6 user amendment: implement report-matched ticket credits with clear labels
+  and separate human verification. Qualify each manager's report independently; this
+  does not authorize publishing old assignee snapshots or claiming human authorship.
 - Commit only code, synthetic fixtures and aggregate evidence. This repository is public.
 - Continue authorized work without routine approval requests. Failed checks stop the
   affected action; keep working on independent safe tasks and report real blockers.

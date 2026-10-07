@@ -46,6 +46,14 @@ conflicting versions, transaction rollback, cross-week isolation and stale obser
 
 ## Remaining release gates
 
+Final code candidate `8210d7a8fbc6919708cd829223bde39865c103fe` passes full CI
+`36892381643`, including all tests, PostgreSQL migrations, lint/typecheck and build.
+Main Preview `dpl_8zmnehw9E3NLehvxorprpwj6Erxx` is Ready on that SHA; its synthetic
+publication and isolation gates pass. Seven PostgreSQL recovery tests include a full
+1,000-call page (500 measured zeros, 500 missing talk measurements). Anonymous inbound
+requests return 401; export requests redirect to sign-in. This does not verify signed-in
+browser behavior or actual file delivery. Production and the demo aliases are unchanged.
+
 The legacy resume path has an explicit `ZENDESK_LEGACY_TALK_RESUME=1` opt-in. It is unset
 on production and synthetic main Preview. Clearing it preserves saved evidence and restores
 the previous collector. Candidate `e94afa1` passed full CI `36891453194` before this opt-in

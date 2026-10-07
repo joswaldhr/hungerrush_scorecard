@@ -1,5 +1,97 @@
 # Metric acceptance ledger
 
+## October 5, 21:30 UTC — current evidence supersedes earlier snapshots
+
+The pre-registration inventory is 23 keys / 40 team assignments. Four additional
+neutral Menufy definitions and assignments are now registered effective October 11,
+without publication or targets. Thus the prospective catalog adds four assignments;
+it does not change the current-week eligibility denominator or certify four new metrics.
+Earlier inventory counts below are dated evidence, not the post-registration inventory.
+
+Menufy source reconstruction now matches 414 values and exact source sets plus 552
+duration comparisons across all 23 current identities and last/current periods. The
+source catalog is ready, but prospective publication and actual scheduling remain separate.
+No-sample means and zero-denominator rates are legitimate unavailable results when the
+population is verified; missing source joins and unknown human attribution are defects
+or unresolved evidence, never legitimate fabricated zeros.
+
+Separate PR44's CI-passed POS projection retains whole-call hold explicitly. Independent
+reconstruction matches 539 exact source sets and 385 duration summaries for 77 employee
+periods: 39 closed-week and 38 current-week rows. One current period is blocked by a missing
+parent. The diagnostic covers only 14 known groups; four original report labels remain
+unbound. This improves source evidence, not the count of production reporting contracts.
+
+All 992 main-candidate tests and production build pass; hosted actual PDF/PNG/CSV bytes
+and roster lifecycle checks pass on isolated synthetic Preview. Print and copied-link
+bytes are still pending the browser check. Production app remains 2241763, with new
+publication policies absent. Existing qualified CSAT/first-reply contracts remain unchanged.
+
+Remaining completion requirements are concrete: finish source definition/scope and missing
+joins; reconcile two closed weeks/current progress where supported; pass remaining hosted
+checks; deploy through fresh recovery/rollback gates; qualify persisted publication and
+genuine scheduled refresh. Human action attribution, elevated work, active handling,
+historical state/attendance and historical eligibility/targets remain distinct source
+requirements. A read-only source audit cannot invent their unavailable evidence.
+
+The implementation ledger owns exact receipts and release state. No dated percentage
+below should be presented as current completion. Frozen demo and Zendesk remain unchanged.
+
+## October 5 — fresh POS baseline
+
+The read-only inventory remains 40 assignments / 23 keys, including 19 POS assignments
+and 39 active POS employees with unique source mappings. Qualified last-week outbound
+observations stop on September 28; this week's rows still use legacy source context.
+The automatic qualified call policies remain disabled. Recent successful jobs therefore
+do not certify complete POS reporting. No full-contract count is increased.
+
+The shared hosted export gap has advanced: actual PDF/PNG/CSV files were saved, a narrow
+capture clipping bug was fixed, and fresh files match displayed/historical synthetic
+values. This establishes presentation agreement, not independent source correctness.
+See `2026-10-05-pos-readiness.md` for current evidence and remaining release dependencies.
+
+## October 5 — POS qualification scope and completion clarification
+
+The user requested bringing the POS manager's metrics to the same standard as Menufy.
+Menufy is **not fully certified**: the October 2 checkpoint confirms interactive Preview
+sign-in and core reads, not completed hosted export verification, inbound production
+activation or genuine scheduled recovery. Human ticket activity and other unresolved
+definitions remain separate gaps. Do not carry the dated arithmetic counts below forward
+as a current completion percentage; refresh inventory and source observations first.
+
+Initial POS evidence review reuses the retained September 25 inbound comparison and
+September 28 outbound release. The latter independently matched 195 published values
+across 39 employees for one controlled observation. The inbound comparison matched 55
+report rows and all 2,012 source legs for September 13–19. These are historical evidence,
+not current freshness or complete-contract certification. Four selected historical group
+labels were unresolved. The report's abandonment label includes IVR/queue/voicemail
+abandonment, and its hold mean repeats whole-call hold across joined legs; reproducing
+those formulas does not establish that their labels describe employee performance.
+
+POS work proceeds in this order:
+
+1. Refresh read-only production inventory, bindings, reporting periods, active policies
+   and failed/stale jobs. Reconcile the current assignment denominator; preserve the
+   prior observations and distinguish controlled runs from actual scheduled execution.
+2. Establish POS report-specific definitions and scope from retained reports/source
+   evidence. Resolve call versus leg date, agent/supervisor participation, selected groups,
+   zero/null behavior and the abandonment/hold discrepancies. Do not inherit Menufy's
+   SUM/MAX, offered-call components or date basis merely because its implementation exists.
+3. Independently reconcile every eligible POS employee for two closed periods and the
+   current period where source history supports it. Require exact source membership,
+   counts, duration sums and measured denominators before display rounding; retain missing
+   parent/source coverage as unavailable. Reuse existing outbound/CSAT evidence and
+   investigate the specific remaining gaps rather than restarting those families.
+4. Verify matching hosted scorecard/history/PDF/PNG/CSV snapshots, then complete fresh
+   recovery, scoped production canary and genuinely scheduled refresh checks. Publish
+   only qualified families; preserve unrelated metrics and the frozen demonstration.
+5. Close ticket-human attribution, elevated work, handling/backlog and target-context
+   dependencies separately for each applicable assignment. Never mark either team complete
+   solely because call arithmetic, sign-in, a deployment or a synthetic fixture passes.
+
+This increment changes documentation only. No new source reads, report editors, production
+writes, deployment changes or policy activation occurred. The main implementation ledger
+continues to own release state; the dated sections below retain their historical context.
+
 ## September 28 acceptance requirement
 
 The user requires **100% metric accuracy and 100% reporting**, reaffirmed after PR32's

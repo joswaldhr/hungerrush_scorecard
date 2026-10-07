@@ -1,0 +1,24 @@
+{
+  "observedAt": "2026-10-05T20:52:23.189Z",
+  "observationStartedAt": "2026-10-05T20:50:42.507Z",
+  "readOnlyVendor": true,
+  "sourceMethods": ["GET"],
+  "sourceRequests": 14,
+  "pages": 14,
+  "calls": 11025,
+  "measuredHold": 11025,
+  "nullHold": 0,
+  "sameVersion": 10882,
+  "newerVersion": 94,
+  "olderVersion": 0,
+  "commonFieldDifferences": 0,
+  "productionMetricWrites": 0,
+  "sourceCheckpointWrites": 0,
+  "coordinationMetadataOnly": true,
+  "publicationEnabled": false,
+  "limitations": [
+    "New calls observation is not an atomic join with retained legs.",
+    "POS group scope and historical eligibility remain unqualified.",
+    "Field coverage is not independent report parity."
+  ]
+}

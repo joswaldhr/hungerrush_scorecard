@@ -1,0 +1,118 @@
+{
+  "observedAt": "2026-10-05T20:04:08.221Z",
+  "databaseWrites": 0,
+  "transactionReadOnly": true,
+  "serverVersion": 180006,
+  "migrations": {
+    "appliedCount": 15,
+    "matchesCandidatePrefix": false,
+    "matchesKnownLineEndingPrefix": false,
+    "pending": null,
+    "appliedEvidence": [
+      {
+        "tag": "0000_wet_jubilee",
+        "exactHashMatches": false,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0001_shallow_stature",
+        "exactHashMatches": false,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0002_aromatic_silver_fox",
+        "exactHashMatches": false,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0003_redundant_cargill",
+        "exactHashMatches": false,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0004_tidy_blob",
+        "exactHashMatches": false,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0005_absent_the_order",
+        "exactHashMatches": true,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0006_natural_nextwave",
+        "exactHashMatches": false,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0007_slow_bloodstorm",
+        "exactHashMatches": false,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0008_previous_golden_guardian",
+        "exactHashMatches": false,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0010_polite_dark_beast",
+        "exactHashMatches": false,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0011_illegal_golden_guardian",
+        "exactHashMatches": false,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0012_cool_wasp",
+        "exactHashMatches": false,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0013_visibility_scope_uniqueness",
+        "exactHashMatches": false,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0014_roster_candidate_line",
+        "exactHashMatches": true,
+        "knownLineEndingHashMatches": true
+      },
+      {
+        "tag": "0015_metric_numeric_precision",
+        "exactHashMatches": false,
+        "knownLineEndingHashMatches": true
+      }
+    ],
+    "missingJournalEntriesBeforeLatest": ["0009_fact_identity"],
+    "newerCandidateEntries": ["0016_roster_discovery_runs", "0017_roster_observations"]
+  },
+  "visibility": {
+    "duplicate_scopes": 0
+  },
+  "workers": {
+    "running_rows": 0,
+    "recent_running_rows": 0,
+    "older_running_rows": 0,
+    "latest_running_started_at": null,
+    "completed_last_24h": 10,
+    "failed_last_24h": 0
+  },
+  "sources": {
+    "total": 2,
+    "configured_zendesk": 1,
+    "configured_zendesk_without_account_reference": 0,
+    "configured_zendesk_never_published": 0
+  },
+  "legacyMigration0009Schema": {
+    "fact_identity_columns_not_null": true,
+    "fact_identity_unique_index": true,
+    "team_aggregation_column": true
+  },
+  "limitations": [
+    "Point-in-time census; repeat immediately before migration and rollout.",
+    "A running row's age does not prove its worker has stopped; drain legacy workers separately.",
+    "This census does not verify deployment environment, recoverability, source semantics or metric correctness."
+  ]
+}

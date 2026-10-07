@@ -1,0 +1,42 @@
+{
+  "observedAt": "2026-10-05T19:01:02.948Z",
+  "mode": "GET-only calls catch-up against held leg evidence; no publication",
+  "requests": 2,
+  "callsReturned": 194,
+  "globalMissingParentsBefore": 7,
+  "globalMissingParentsAfter": 2,
+  "recoveredParents": 5,
+  "heldLegsUnchanged": true,
+  "teams": [
+    {
+      "team": "pos-support",
+      "currentRoster": 39,
+      "beforeAffectedAgents": 3,
+      "beforeMissingParents": 2,
+      "afterAffectedAgents": 2,
+      "afterMissingParents": 1
+    },
+    {
+      "team": "menufy-support",
+      "currentRoster": 23,
+      "beforeAffectedAgents": 0,
+      "beforeMissingParents": 0,
+      "afterAffectedAgents": 0,
+      "afterMissingParents": 0
+    }
+  ],
+  "identityObservationAt": "2026-10-05T16:00:54.736Z",
+  "productionMetricWrites": 0,
+  "sourceCheckpointWrites": 0,
+  "coordinationMetadataOnly": true,
+  "publicationActivated": false,
+  "inputDigests": {
+    "recoveryCalls": "a6ade0edda81deef922595cd7f9ea9bd903a4aec80c09b853184265cad69ae44",
+    "heldLegs": "2aa7cf224c3ebc9aa303235666efd78964f836fa75002dd8c71b4c3c5cf8408b"
+  },
+  "limitations": [
+    "This diagnostic does not replace production durable source records or publish metrics.",
+    "Current roster identity is a diagnostic denominator, not reconstructed historical eligibility.",
+    "POS inbound report semantics, ticket-linked outbound scope, publication and scheduled operation remain separate gates."
+  ]
+}

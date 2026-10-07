@@ -1,5 +1,13 @@
 # HungerRush Cadence --- Product Specification v0.3
 
+**October 6 ticket-credit decision:** The user approved matching the managers' Zendesk
+report credits, with clear labels and human verification kept separate. Agent update
+events must not be called distinct tickets updated. Report attribution may include
+integration activity credited to an employee account and is not a manual-work claim.
+Use separate qualified keys/contracts; old human-only values stay unavailable, and
+old targets cannot automatically apply to a different unit. Establish each manager's
+saved report scope and observation before publication; the decision is not deployment.
+
 **September 29 purpose clarification:** The user's original problem is manual assembly
 of employee 1:1 metrics from Zendesk and Assembled. Cadence is the standalone scorecard
 application intended to eliminate that preparation. Exports support the managers' existing

@@ -1,7 +1,8 @@
 /** September 24 release policy: ticket activity must have verified human attribution.
  * The active Zendesk publisher has no source-bound human review evidence yet. Neither
  * a stored "complete" flag nor increasing the calculation version can establish it.
- * Remove this containment only with the validated human-only publication path.
+ * Both manager reads and publication enforce this policy. Remove this containment
+ * only with the validated human-only publication path.
  */
 export function requiresTicketAttributionVerification(definition: {
   key: string;
