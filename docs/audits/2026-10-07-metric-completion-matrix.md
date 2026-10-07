@@ -103,3 +103,12 @@ Preview `5184d74` is READY (`dpl_5yWoab2m7S8bynprjH9fy62brVri`); its guarded reh
 publishes both solved definitions for closed/current weeks, including a numeric zero,
 and preserves all unrelated values. Hosted UI/export checks and qualified ongoing
 collection still need completion before activation, alongside catalog/release checks.
+
+Follow-up `3224a70` passes exact CI/build `37655992624` (1,062 tests / 132 files).
+Runtime-identical Preview `45cf3a4` verifies real synthetic publication through the sync
+service, closed/current history, zero values, neutral current status and withheld
+incompatible targets. Actual CSV, PDF and PNG were downloaded; the visual exports now
+retain concise ticket-credit attribution and current cutoffs, and PDF/PNG pixels match.
+See [the hosted receipt](2026-10-07-solved-preview-verification.json). Native print and
+clipboard bytes remain unverified. Qualified ongoing Menufy collection, production
+catalog/canary/recovery and genuine scheduling are still required.

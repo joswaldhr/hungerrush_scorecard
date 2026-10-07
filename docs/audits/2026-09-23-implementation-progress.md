@@ -1,4 +1,21 @@
 # Audit implementation — current checkpoint
+**October 7 — solved Preview/export checks complete, production still inactive:**
+Follow-up **3224a70** passes exact CI/build **37655992624**, including **1,062 tests /
+132 files**. Runtime-identical Preview **45cf3a4** is READY as
+**dpl_4WNCPNpczF4v619r4ut7n4aJ7ABK**, owning the isolated main Preview alias. The browser
+shows closed-week 3/2 and current-week 3/0, neutral current statuses, distinct attribution
+details and exact cutoffs. Stored history matches both intervals and keeps the return week.
+Actual CSV bytes match values/definitions/cutoffs; fresh corrected PDF and PNG have
+identical pixels, and their compact visual footer now preserves attribution and cutoffs.
+Clipboard bytes/native print remain unverified. Receipt: `2026-10-07-solved-preview-verification.json`.
+
+Production catalog/assignments/values/policies and frozen demo remain unchanged. Next
+critical work is durable, bounded Menufy event collection and qualified publication
+activation, with an explicit initial-period/catalog manifest, fresh backup/restore,
+canary/revisions/readback and genuine scheduled evidence. Do not treat private audit
+captures or this hosted rehearsal as a production refresh path. Keep the whole metric
+completion matrix active; solved publication is one family, not goal completion.
+
 **October 7 — current Menufy capture and hosted solved publication rehearsal:**
 The bounded event stream completed 38 pages / 37,493 raw events through October 7
 16:30:07 UTC. Fresh parent joins found 1,952 tickets, 14 source-confirmed deletions
@@ -21,7 +38,8 @@ bytes preserve these fields; downloaded PDF and PNG have identical rendered pixe
 Visual inspection found that their compact footer omitted the new solved definitions
 and exact cutoffs. A focused follow-up adds two brief attribution notes and named
 cutoff notes, keeping detailed technical provenance in CSV. Its 21 scoped export and
-publication tests pass; exact updated CI/Preview and new visual exports remain required.
+publication tests pass; updated exact CI/Preview and visual export checks now pass as
+recorded above.
 
 **October 7 — explicit current-week solved coverage and fresh POS source check:**
 Both solved calculations now accept an explicit current-period cutoff, keeping partial
