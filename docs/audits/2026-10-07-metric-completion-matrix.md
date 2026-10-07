@@ -1,5 +1,14 @@
 # Production metric completion
 
+**October 7, 20:13 UTC:** Both solved definitions are published for all 62 current
+staff in the last closed and current weeks: **124 employee-week values**, with zero
+unexplained independent source-set/count differences. All four manual canaries preserve
+unrelated data and return HTTP 200 on the verified live deployment. Menufy browser,
+closed/current CSV bytes and rendered closed PDF checks pass. POS's changed closed-week
+total is explained by a source ticket becoming unsolved. New schedules, genuine solved
+cron/revisions and wider metric completion remain open. See
+[the production canary receipt](2026-10-07-solved-production-canaries.json).
+
 **October 7, 19:46 UTC:** Fresh durable Menufy joins and independent reconstruction
 match all 23 active employees in both initial publication periods: 4,106 last-week
 solved credits and 1,634 current credits through 19:41:45 UTC. No count/source-set
@@ -52,7 +61,7 @@ mistaken for an assigned metric. None of the new solved-report keys is assigned 
 
 | Metric / family | Menufy evidence and remaining work | POS evidence and remaining work |
 | --- | --- | --- |
-| Solved tickets | Updater latest-solve credits match all 43 and 42 report rows in two closed weeks. Current capture and independent replay cover all 23 active staff. Complete pipeline Preview, actual export checks, exact CI/build, fresh recovery and catalog rollback rehearsal pass; PR45 code is live but policies/catalog remain inactive. Durable production bootstrap, independent readback, catalog/canary and scheduling remain. | Current-assignee solved-date measure matches all 39 eligible employees / 1,411 tickets in one saved weekly report; second-week independent source comparison covers 1,464 tickets, and current source comparison covers all 39. Preserve the distinction from the created-date report. Same code release is live/inactive; dated catalog, production canary and ongoing scheduled operation remain. |
+| Solved tickets | Qualified updater-credit catalog and publication are live from September 27. All 23 active staff independently match 4,106 closed / 1,634 current credits after complete durable collection and fresh joins. UI and actual closed/current CSV plus closed PDF checks pass. Ongoing delta capacity, scheduled publication/revisions and remaining format checks are open. | Qualified current-assignee/solved-date catalog and publication are live from September 27. All 39 active staff independently match 1,410 closed / 733 current tickets. The one-ticket reduction from the earlier saved report is source-explained; second closed-week independent evidence remains 1,464. Representative POS browser/history and ongoing scheduling/revisions remain open. |
 | Update activity | Distinct updater events: first week retains a two-event residual after explained group changes; second week has three one-event employee differences. Resolve exact mismatches before publication. | Establish the applicable update-activity report's exact unit, scope and attribution. Do not copy Menufy's updater/group contract or use current-assignee snapshots. |
 | First response | Qualified business-time policy exists. Verify all current employee cohorts, zero-sample semantics, freshness and actual scheduled execution after the release. | Verify team-specific definition and per-employee source evidence; inherited labels and stored numbers are insufficient. |
 | CSAT score / response rate where assigned | Preserve existing qualified solved-date/current-assignee calculation and its separate rated/offered/cohort denominators. A score without ratings is legitimately unavailable; confirm each blank against its cohort. Close scheduled refresh/recovery checks. | Match team-specific rating cohort and every employee's numerator/denominator. Do not assume Menufy's release policy applies. |

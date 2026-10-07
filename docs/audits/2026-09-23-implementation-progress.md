@@ -1,4 +1,42 @@
 # Audit implementation — current checkpoint
+**October 7, 20:13 UTC — solved counts published for both teams and both initial weeks:**
+READY production **dpl_C3zsDWZKpLvz6HCkuxzGJCV3b5tk** / unchanged runtime **31f4187**
+owns the live aliases with the qualified production-only solved release policy. The
+dated catalog transition starts September 27; earlier human-only history, targets,
+employee assignments and existing source policies are preserved. Fresh encrypted
+restore/rehearsal matches 35 tables / 354,052 rows. The failed first private catalog
+attempt committed nothing; Date/string timestamp precision was corrected, its census
+was unchanged, and a fresh transition/rollback rehearsal passed before the successful
+transaction. Immediate same-runtime policy-off rollback: **dpl_G82oX6dFur4iAQUDiGRPGKYW26pE**.
+
+All four ordinary production canaries returned HTTP 200 and independently reconcile
+**124 employee-week values**: Menufy **23 / 4,106** closed and **23 / 1,634** current;
+POS **39 / 1,410** closed and **39 / 733** current. Every saved employee count and
+contributing set matches, with genuine numeric zeros retained. Twelve unrelated-data
+digest groups remain unchanged for each publication. Platform logs identify the exact
+deployment, controlled manual user agent, durations 39.812–128.252 seconds and no crash.
+These are **manual canaries**, not scheduled operation. POS's one-ticket reduction
+from the earlier 1,411-ticket reference is explained by a fresh bounded GET: that
+ticket changed assignee/status/solved timestamp and is currently unsolved. No new
+schedule is installed and no genuine solved scheduler run is claimed.
+
+Manager-scoped Menufy closed/current UI shows the correct new label, numeric values,
+explicit cutoff and neutral current statuses. Actual downloaded 20-column CSV bytes
+for both periods match saved values, dates, attribution and freshness. The actual
+closed PDF was downloaded, rendered and visually checked. Current CSV verification
+initially expected the wrong prose label; its verified actual label correctly states
+in-progress/full-week targets. The private readback helper also normalized database
+result arrays before comparison with retained JSON; no publication was repeated.
+POS representative browser/history checks, a new live PNG, clipboard/native print,
+ongoing collection capacity/scheduling/revisions and the wider completion matrix remain
+open. Copy was exercised but the browser clipboard read returned empty; do not call
+its bytes verified. Public receipts: `2026-10-07-solved-production-canaries.json`,
+`2026-10-07-solved-catalog-activation.json`, and the two activation restore receipts.
+**The full metric goal remains active.** Next: qualify daily delta capacity, install
+the scoped schedule with release gates, observe genuine execution, then continue
+update-count discrepancies and unqualified call/other families. No background collector
+or canary invocation is left running at this checkpoint.
+
 **October 7, 19:46 UTC — fresh durable-source solved qualification passes:**
 Both Menufy intervals independently reconcile every current employee and contributing
 solved-event ID: **23 staff / 4,106 credits** for September 27–October 3 and

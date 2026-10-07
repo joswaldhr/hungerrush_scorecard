@@ -1,4 +1,32 @@
-# Solved-report publication release manifest — code live, metrics inactive
+# Solved-report publication release manifest — initial canaries verified
+
+**20:13 UTC update:** All four controlled production canaries pass: 124 employee-week
+values across both teams and both initial periods, with independent exact contributing
+sets/counts and unchanged unrelated-data digests. Menufy closed/current UI and actual
+CSV bytes agree; the actual closed PDF renders correctly. POS's one changed closed-week
+ticket is explained by fresh source state showing it unsolved. Platform logs confirm
+four manual HTTP 200 invocations on the intended deployment, with no crash. These
+results supersede the pending-canary state below, not the remaining genuine scheduler,
+delta-capacity/revision or broader metric requirements. No new schedule is installed.
+See `2026-10-07-solved-production-canaries.json`.
+
+**19:54 UTC update:** The dated two-team catalog is committed, and the production-only
+solved release policy is active on READY deployment **dpl_C3zsDWZKpLvz6HCkuxzGJCV3b5tk**,
+using unchanged qualified runtime `31f4187`. All 63 prior environment entries retain
+their values/targets. The first controlled Menufy closed-week canary is running; no
+canary result or scheduler success is claimed yet. Immediate compatible policy-off
+rollback is **dpl_G82oX6dFur4iAQUDiGRPGKYW26pE**, the same runtime with collection only.
+No new schedule is installed. Preserve the new catalog/evidence during containment;
+do not restore the entire production database or erase later observations.
+
+The first catalog attempt failed a private helper's Date/string timestamp comparison
+before committing. The fresh read-only census was identical afterward. After preserving
+millisecond precision for both representations, a second encrypted backup/restore and
+catalog transition/rollback rehearsal passed: 35 tables / 354,052 rows, all digests
+matching. The successful catalog transaction preserved employee assignments, existing
+metric values/facts/targets and earlier visibility, and retained exact prior assignment
+rows privately. See `2026-10-07-solved-activation-restore-recheck.json` and
+`2026-10-07-solved-catalog-activation.json`. The earlier inactive state below is historical.
 
 **19:43 UTC update:** The PR46 production runtime `31f4187` on
 `dpl_G82oX6dFur4iAQUDiGRPGKYW26pE` has completed the collection-only bootstrap:
