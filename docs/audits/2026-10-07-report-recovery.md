@@ -1,6 +1,7 @@
 # Durable report refresh recovery
 
-Status: local candidate in validation. No production scheduler or recovery switch is
+Status: candidate `29208067ce83b19be0c73da0bdc6c0852cc4b66f` in draft PR48; exact
+Linux CI/build `37689610074` passes. No production scheduler or recovery switch is
 enabled. The previous coordination release remains the verified live runtime.
 
 ## Failure being corrected
@@ -55,7 +56,18 @@ Actual solved publication tests cover pinned dates, explicit-period run metadata
 calendar changes during fetching and unchanged values on failed publication. The local
 full run passes **1,162 tests / 144 files**. Typecheck and targeted lint pass. A subsequent
 small attempt-diagnostics addition passes typecheck and the 20 focused worker/store tests;
-exact Linux CI/build on the committed final candidate remains required.
+exact Linux CI/build `37689610074` subsequently passed on `2920806`, including full
+tests, migrations, source guards and production build. The PR is unmerged. Hosted
+dispatcher/recovery and activation gates below remain open.
+
+Fresh read-only measurement over eleven fully retained UTC days raises the peak
+rolling-day demand to **15,273** events, versus the calendar-day maximum 14,219.
+Peak six-hour, twelve-hour and five-minute windows contain **8,213 / 13,620 / 377**
+events. A missed six-hour collection window needs continuation beyond one observed
+ten-page invocation. Use these bursts, overlap and late-arrival allowance for capacity
+testing; daily averages alone would understate the requirement. The timestamp density
+does not prove delivery-time demand or a future quota guarantee. See
+`2026-10-07-report-recovery-capacity.json`.
 
 Before any activation:
 

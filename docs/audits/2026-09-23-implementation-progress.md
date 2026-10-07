@@ -1,4 +1,15 @@
 # Audit implementation — current checkpoint
+**October 7, 21:31 UTC — recovery candidate pushed; exact CI/build passes:**
+Draft PR48 contains `2920806`; exact CI `37689610074` succeeds through the production
+build, full tests, migrations and source guards. The new dispatcher remains default-off
+and unmerged; no production policy or schedule changed. Fresh read-only burst analysis
+finds **15,273 events per rolling day**, **8,213 per six hours**, **13,620 per twelve
+hours**, and **377 per five minutes** across eleven complete retained days. This raises
+the capacity baseline above the earlier calendar-day figure and confirms the need to
+resume a missed collection window. Complete hosted dispatcher/recovery rehearsal,
+capacity/freshness qualification, fresh recovery and scoped canary still precede any
+schedule activation. See `2026-10-07-report-recovery.md` and its capacity receipt.
+
 **October 7, 21:23 UTC — durable recovery candidate implemented; production unchanged:**
 The local candidate now pins solved publication to exact reporting dates and persists
 operational collection/publication demand with fenced ownership, duplicate coalescing,
