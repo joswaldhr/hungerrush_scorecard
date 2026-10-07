@@ -3,7 +3,7 @@
 PR45 merged to **376aaafed437ba42c53d447c0178e7024d4fdb52**. Vercel production
 **dpl_5RiNfm8g4tPgkVxyG4X7aQ7hqYRL** is READY and owns the live alias. Candidate
 **82c1dea** passes exact CI/build **37665980261** and has identical runtime content to
-the merge; the separate master CI is still running at this checkpoint. Fresh 18:26 UTC
+the merge; master CI **37666871623** also passes. Fresh 18:26 UTC
 encrypted backup/restore matches 35 tables / 214,065 rows through migration 0017.
 The exact two-team September 27 catalog transition and transactional rollback were
 rehearsed on the restored copy, with every table digest restored. Earlier periods and
