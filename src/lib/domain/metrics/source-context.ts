@@ -25,6 +25,7 @@ export interface MetricSourceContext {
   sourceScopeFingerprint?: string;
   sampleCount?: number;
   cohortCount?: number;
+  reportingAsOf?: string;
 }
 
 /** Legacy observations have no explicit context. Never infer a new contract from a value. */
@@ -48,6 +49,19 @@ export function readMetricSourceContext(value: unknown): MetricSourceContext | n
   )
     throw new Error("Invalid metric source scope");
   const counts: { sampleCount?: number; cohortCount?: number } = {};
+  const progress: { reportingAsOf?: string } = {};
+  if (
+    [UPDATER_SOLVED_CONTRACT, ASSIGNEE_SOLVED_CONTRACT].includes(row.sourceContract) &&
+    row.reportingAsOf !== undefined
+  ) {
+    if (
+      typeof row.reportingAsOf !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}T/.test(row.reportingAsOf) ||
+      !Number.isFinite(Date.parse(row.reportingAsOf))
+    )
+      throw Error("Invalid ticket report cutoff");
+    progress.reportingAsOf = new Date(row.reportingAsOf).toISOString();
+  }
   if (
     [
       FIRST_REPLY_CONTRACT,
@@ -70,6 +84,7 @@ export function readMetricSourceContext(value: unknown): MetricSourceContext | n
     sourceContract: row.sourceContract,
     reportingTimeZone,
     ...counts,
+    ...progress,
     ...(typeof row.sourceScopeFingerprint === "string"
       ? { sourceScopeFingerprint: row.sourceScopeFingerprint }
       : {}),

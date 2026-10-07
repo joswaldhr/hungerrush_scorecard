@@ -1,4 +1,23 @@
 # Audit implementation — current checkpoint
+**October 7 — explicit current-week solved coverage and fresh POS source check:**
+Both solved calculations now accept an explicit current-period cutoff, keeping partial
+elapsed-week coverage distinct from complete closed-week coverage. Solves at/after the
+cutoff are excluded; missing start coverage, future/old-week cutoffs and stale captures
+are rejected. The cutoff survives normalization into metric provenance and shared source
+descriptions, including export details. A bounded GET-only POS collector is wired to the
+same publisher; no route or policy activates it yet.
+
+Fresh read-only collection resolves all 39 active POS staff, obtains 833 padded source
+tickets with 22 GETs, and calculates **654 solved tickets** for October 4–10 before
+**October 7 16:26:38 UTC**. Independent Python agrees on all 39 employee counts and every
+contributing ticket ID. This is source calculation evidence, not a same-cutoff Explore
+export or production publication. Aggregate receipt: `2026-10-07-pos-current-solved-verification.json`.
+All **1,060 tests / 132 files** pass against isolated PostgreSQL, with typecheck, full
+ESLint and changed-source formatting passing. Current-week database publication preserves
+closed-week values in synthetic tests. Exact CI/build and hosted/release gates remain.
+Private bounded Menufy current-week event collection has started; inspect its live process
+or saved checkpoint before resuming, and do not treat an incomplete capture as evidence.
+
 **October 7 — solved-only publication implementation, not activated:** The new dedicated
 connector now takes the independently reconciled updater-solved and assignee-solved
 calculations through the ordinary atomic sync service under distinct source contracts

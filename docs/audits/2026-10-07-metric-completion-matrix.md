@@ -74,3 +74,22 @@ assignment rollback, staff departure, record tampering and observation expiry. T
 tests are implementation evidence, not production activation or source qualification.
 Exact code commit `0993446` passes Linux CI/build `37650598578`, including migrations
 and all 1,049 tests. Draft PR45 is the review boundary; it remains unmerged and inactive.
+
+### Current-week follow-through
+
+The follow-up adds explicit as-of coverage, cutoff-preserving provenance/source
+descriptions and a bounded GET-only POS collector connected to the same publisher.
+Fresh source collection on October 7 resolves all 39 current staff and yields 654
+solved tickets before 16:26:38 UTC from 833 padded source tickets. Independent Python
+matches every employee count and contributing ID. See
+[the aggregate receipt](2026-10-07-pos-current-solved-verification.json).
+All 1,060 local tests pass, including preservation of closed-week values during current
+publication. No live values, assignments, policy or schedule changed.
+
+The search cutoff is a reporting exclusion boundary, not a guarantee of instantaneous
+source indexing. Zendesk documents that [search indexing can take a few minutes](https://developer.zendesk.com/api-reference/ticketing/ticket-management/search/).
+The one-minute exclusion is not claimed to eliminate that delay. Ongoing collection
+must refresh the selected period and preserve observation/cutoff evidence; live current
+weeks remain progress views. A same-cutoff Explore comparison is not available for this
+capture. Menufy's fresh event-stream capture and qualified ongoing collection still need
+completion before activation, alongside catalog/Preview/release checks.

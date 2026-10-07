@@ -21,6 +21,7 @@ import {
 import { runSync } from "@/lib/connectors/sync-engine";
 import { createSolvedPublisher } from "@/lib/connectors/zendesk-solved-publisher";
 import { solvedPublicationFixture } from "./fixtures/solved-publication";
+import { weekDates } from "@/lib/utils";
 
 const org = randomUUID(),
   source = randomUUID(),
@@ -239,5 +240,33 @@ describe.sequential("solved-only publication through PostgreSQL", () => {
     );
     expect((await runSync(expiring, config, { weekOffset: 1 })).success).toBe(false);
     expect(await values()).toEqual(before);
+  });
+  it("persists a current-week cutoff without changing the closed-week value", async () => {
+    const before = await values(),
+      base = fixture();
+    const { periodStart, periodEnd } = weekDates(0);
+    const asOf = new Date(Date.now() - 1).toISOString();
+    const progress = {
+      ...base,
+      periodStart,
+      periodEnd,
+      snapshot: {
+        ...base.snapshot,
+        observedAt: new Date().toISOString(),
+        events: [],
+        tickets: [],
+        coverage: { start: `${periodStart}T00:00:00Z`, endExclusive: asOf, asOf, complete: true },
+      },
+    };
+    expect((await runSync(publisher(progress), config, { weekOffset: 0 })).success).toBe(true);
+    const after = await values();
+    expect(
+      after.find((v) => v.periodStart === periodStart && v.metricDefinitionId === ids[0])
+    ).toMatchObject({
+      numericValue: 0,
+      qualityStatus: "complete",
+      provenanceJson: { reportingAsOf: asOf },
+    });
+    expect(after.filter((v) => v.periodStart === base.periodStart)).toEqual(before);
   });
 });

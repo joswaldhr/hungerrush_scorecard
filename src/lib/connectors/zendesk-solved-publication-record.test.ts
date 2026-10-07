@@ -27,6 +27,65 @@ function facts(f = solvedPublicationFixture()) {
   );
 }
 describe("qualified solved ticket publication", () => {
+  it("retains current-week cutoff evidence and cannot relabel an old cutoff as fresh", () => {
+    const f = solvedPublicationFixture();
+    const asOf = "2026-10-07T15:59:00Z";
+    const source = {
+      tickets: [],
+      coverage: { start: "2026-10-04T00:00:00Z", endExclusive: asOf, asOf, complete: true },
+      observedAt: "2026-10-07T16:00:30Z",
+    };
+    const policy = {
+      ...f.policy,
+      kind: "assignee-solved" as const,
+      groupIds: null,
+      effectivePeriodStart: "2026-10-04",
+    };
+    const identity = { ...f.identity, observationStartedAt: "2026-10-07T16:00:00Z" };
+    const record = buildSolvedPublicationRecord(
+      source,
+      policy,
+      f.config,
+      identity,
+      "2026-10-04",
+      "2026-10-10",
+      new Date("2026-10-07T16:01:00Z")
+    );
+    expect(record.sourceUpdatedAt!.toISOString()).toBe("2026-10-07T15:59:00.000Z");
+    const row = normalizeSolvedPublicationRecord(
+      record.payload,
+      identity.employeeId,
+      identity.teamId,
+      "2026-10-04",
+      "2026-10-10"
+    )[0]!;
+    expect(row).toMatchObject({
+      numericValue: 0,
+      dimensionsJson: { reportingMode: "in-progress", reportingAsOf: asOf },
+    });
+    expect(sharedMetricSourceContext([row.dimensionsJson])?.reportingAsOf).toBe(
+      "2026-10-07T15:59:00.000Z"
+    );
+    const old = {
+      ...source,
+      coverage: {
+        ...source.coverage,
+        endExclusive: "2026-10-07T14:00:00Z",
+        asOf: "2026-10-07T14:00:00Z",
+      },
+    };
+    expect(() =>
+      buildSolvedPublicationRecord(
+        old,
+        policy,
+        f.config,
+        identity,
+        "2026-10-04",
+        "2026-10-10",
+        new Date("2026-10-07T16:01:00Z")
+      )
+    ).toThrow("stale");
+  });
   it("publishes only recalculated solved credits, not updates or human-only metrics", () => {
     const f = solvedPublicationFixture();
     const rows = facts(f);

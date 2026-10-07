@@ -127,8 +127,16 @@ function replay(
 export function assertSolvedObservationFresh(payload: unknown, now: Date) {
   const parsed = payloadSchema.parse(payload);
   const policy = parseSolvedRelease(parsed.release);
-  const age = now.getTime() - Date.parse(parsed.identity.observationStartedAt);
-  const evidence = parsed.sourceEvidence as { observedAt?: unknown } | null;
+  const evidence = parsed.sourceEvidence as {
+    observedAt?: unknown;
+    coverage?: { asOf?: unknown };
+  } | null;
+  const cutoff = evidence?.coverage?.asOf;
+  const started = Math.min(
+    Date.parse(parsed.identity.observationStartedAt),
+    cutoff === undefined ? Infinity : typeof cutoff === "string" ? Date.parse(cutoff) : NaN
+  );
+  const age = now.getTime() - started;
   const end = typeof evidence?.observedAt === "string" ? Date.parse(evidence.observedAt) : NaN;
   if (
     !Number.isFinite(age) ||
@@ -167,8 +175,17 @@ export function buildSolvedPublicationRecord(
     sourceEvidence: candidate.payload.sourceEvidence,
   };
   assertSolvedObservationFresh(payload, now);
+  const evidence = candidate.payload.sourceEvidence as { coverage: { asOf?: string } };
+  const observed = new Date(
+    Math.min(
+      Date.parse(identity.observationStartedAt),
+      evidence.coverage.asOf ? Date.parse(evidence.coverage.asOf) : Infinity
+    )
+  );
   return {
     ...candidate,
+    occurredAt: observed,
+    sourceUpdatedAt: observed,
     externalRecordType: "solved_ticket_report_summary",
     externalRecordId: `${contract(policy)}:${identity.agentId}:${periodStart}:${periodEnd}`,
     payload,
@@ -200,6 +217,7 @@ export function normalizeSolvedPublicationRecord(
     periodStart,
     periodEnd
   );
+  const evidence = candidate.payload.sourceEvidence as { coverage: { asOf?: string } };
   return [
     {
       employeeId,
@@ -221,6 +239,8 @@ export function normalizeSolvedPublicationRecord(
         releaseEvidenceSha256: policy.releaseEvidenceSha256,
         attribution: policy.kind === "updater" ? "updater-account" : "current-assignee",
         humanActivityVerified: false,
+        reportingMode: evidence.coverage.asOf ? "in-progress" : "closed-period",
+        ...(evidence.coverage.asOf ? { reportingAsOf: evidence.coverage.asOf } : {}),
       },
     },
   ];
