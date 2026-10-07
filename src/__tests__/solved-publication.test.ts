@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { randomUUID } from "node:crypto";
+import { setTimeout as wait } from "node:timers/promises";
 import { beforeAll, afterAll, describe, it, expect, vi } from "vitest";
 import { eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
@@ -335,6 +336,16 @@ describe.sequential("solved-only publication through PostgreSQL", () => {
         email: "source@example.invalid",
         apiKey: "synthetic-token",
       };
+      const deferred = await runSync(
+        createLiveUpdaterSolvedPublisher(f.policy, credentials),
+        config,
+        { weekOffset: 1 }
+      );
+      expect(deferred.success).toBe(false);
+      expect(request).not.toHaveBeenCalled();
+      expect((await current())?.numericValue).toBe(0);
+      // Exercise real database-time expiry, not a bypass of production pacing.
+      await wait(20100);
       const closed = await runSync(
         createLiveUpdaterSolvedPublisher(f.policy, credentials),
         config,
@@ -365,5 +376,5 @@ describe.sequential("solved-only publication through PostgreSQL", () => {
         .set({ externalId: "agent" })
         .where(eq(externalIdentities.dataSourceId, source));
     }
-  });
+  }, 40000);
 });

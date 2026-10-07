@@ -1,6 +1,7 @@
 /** Explicit synthetic hosted rehearsal. Never loads vendor credentials or production data. */
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { setTimeout as wait } from "node:timers/promises";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import * as schema from "../src/lib/db/schema";
@@ -257,6 +258,9 @@ async function main() {
           assert.equal(collection.status, "collected");
           assert("streamExhausted" in collection && collection.streamExhausted);
           assert.equal(await fingerprint(), before, "Collection changed unrelated metric values");
+          // Retained request pacing survives collector release. The synthetic
+          // rehearsal must observe the same handoff delay as production.
+          await wait(20100);
         }
         stage = `publish ${definition.kind} offset ${offset}`;
         const publicationStartedAt = Date.now();

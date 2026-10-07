@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { dataSources, syncRuns, syncErrors } from "@/lib/db/schema";
 import { sql } from "drizzle-orm";
+import { isZendeskAccountReference } from "./zendesk-account-binding";
 
 type Connection = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -11,7 +12,40 @@ const expiry = sql`clock_timestamp() + interval '10 minutes'`;
 export async function createLeasedSyncRun(dataSourceId: string, weekOffset?: number) {
   const scope = weekOffset === undefined ? "all" : `week:${weekOffset}`;
   return db.transaction(async (tx) => {
-    await tx.execute(sql`select id from ${dataSources} where id = ${dataSourceId} for update`);
+    // Match the collector's lock order: account first, then source. The account
+    // lock also coordinates distinct Cadence sources bound to the same vendor.
+    await tx.execute(sql`set local lock_timeout = '3s'`);
+    const [before] = await tx.execute<{ type: string; configuration_reference: string | null }>(
+      sql`select type, configuration_reference from ${dataSources} where id=${dataSourceId}`
+    );
+    if (!before) throw Error("Sync source is unavailable");
+    const account =
+      before.type === "zendesk" && isZendeskAccountReference(before.configuration_reference)
+        ? before.configuration_reference
+        : null;
+    if (account)
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${account},0))`);
+    const [locked] = await tx.execute<{ type: string; configuration_reference: string | null }>(
+      sql`select type, configuration_reference from ${dataSources} where id=${dataSourceId} for update`
+    );
+    if (
+      !locked ||
+      locked.type !== before.type ||
+      locked.configuration_reference !== before.configuration_reference
+    )
+      throw Error("Sync source binding changed while acquiring its lease");
+    const reportCollection = account
+      ? await tx.execute(sql`
+          select id from source_records
+          where external_record_type='zendesk_report_event_lease_v1'
+            and external_record_id=${account}
+            and ((payload_json->>'expiresAt') is null
+              or (payload_json->>'nextAllowedAt') is null
+              or greatest((payload_json->>'expiresAt')::timestamptz,
+              (payload_json->>'nextAllowedAt')::timestamptz) > clock_timestamp())
+          limit 1
+        `)
+      : [];
     const expired = await tx.execute<{ id: string }>(sql`
       update ${syncRuns} set status = 'failed', completed_at = clock_timestamp(),
         error_count = error_count + 1,
@@ -35,14 +69,20 @@ export async function createLeasedSyncRun(dataSourceId: string, weekOffset?: num
         and (${scope} = 'all' or coalesce(metadata_json->>'leaseScope', 'all') in ('all', ${scope}))
       limit 1
     `);
+    const skipped = active.length > 0 || reportCollection.length > 0;
     const [run] = await tx
       .insert(syncRuns)
       .values({
         dataSourceId,
-        status: active.length ? "skipped" : "running",
-        completedAt: active.length ? new Date() : null,
-        metadataJson: active.length
-          ? { reason: "An overlapping sync is already running", leaseScope: scope }
+        status: skipped ? "skipped" : "running",
+        completedAt: skipped ? new Date() : null,
+        metadataJson: skipped
+          ? {
+              reason: reportCollection.length
+                ? "Report collection owns the account or its request cooldown"
+                : "An overlapping sync is already running",
+              leaseScope: scope,
+            }
           : sql`jsonb_build_object('leaseScope', ${scope}::text, 'leaseExpiresAt', ${expiry})`,
       })
       .returning();
