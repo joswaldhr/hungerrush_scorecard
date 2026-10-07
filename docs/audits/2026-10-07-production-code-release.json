@@ -1,0 +1,42 @@
+{
+  "mergeCI": 37631375550,
+  "schemaMigrationsApplied": 0,
+  "alias": "https://hungerrush-scorecard.vercel.app",
+  "teamLists": {
+    "menufy": 23,
+    "pos": 39
+  },
+  "zendeskMutations": 0,
+  "aliasVerified": true,
+  "rollbackDeployment": "dpl_GnmLnC5NGNmMtTJ1nRpnAhqnnisj",
+  "deployment": "dpl_HGEAA1j1xJ8XYJLKCMKcuTUPMoKN",
+  "freshMicrosoftSignIn": true,
+  "representativeScorecardsPassed": true,
+  "explicitPromotionSucceeded": true,
+  "productionCSV": {
+    "statuses": [
+      "No Data",
+      "In Progress"
+    ],
+    "rows": 15,
+    "comparisonWeek": "2026-09-27",
+    "week": "2026-10-04",
+    "legacyHumanTicketValuesUnavailable": true,
+    "bytes": 7436
+  },
+  "newPublishersEnabled": false,
+  "runtimeErrorLogLines": 0,
+  "manualSyncsTriggered": 0,
+  "frozenDemoDeployment": "dpl_6zgVGDyR2tW1JMVmbmv7hTm4fTYR",
+  "limits": [
+    "No genuine scheduled execution of the new code observed yet.",
+    "Old deployment had one lease expiry and one current-week CSAT HTTP 429 in the preceding 24 hours.",
+    "Report-credit publisher remains inactive; unresolved metrics remain unavailable.",
+    "Fresh native print and clipboard-byte verification remain unavailable."
+  ],
+  "mergeCIPassed": true,
+  "sha": "7fa4593f8676afe679952d83b7bb38771537cb77",
+  "observedAt": "2026-10-07T13:55:13.937327Z",
+  "pr": 43,
+  "runtimeErrorWindow": "Query covered the preceding 15 minutes and was filtered to this newly deployed candidate; this is only the initial smoke window."
+}

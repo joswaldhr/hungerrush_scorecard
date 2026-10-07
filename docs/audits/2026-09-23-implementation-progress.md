@@ -1,4 +1,28 @@
 # Audit implementation — current checkpoint
+**October 7 — main application code release is live:** PR43 merged as `7fa4593` and
+passes full merge CI/build `37631375550`. Production deployment
+`dpl_HGEAA1j1xJ8XYJLKCMKcuTUPMoKN` was explicitly promoted and the live alias independently
+verified. Fresh Microsoft sign-out/sign-in succeeds. Manager views list 23 Menufy and
+39 POS employees; representative scorecards default to September 27–October 3, current
+week has only neutral progress/missing statuses, and a real production CSV download
+matches the selected October 4–10 snapshot (15 rows). No new deployment errors appear
+in the checked 15-minute log window. Admin view context was restored after checks.
+
+Before promotion, exact synthetic Preview navigation/history/zero/null/alignment checks
+passed; fresh PDF, PNG and CSV files saved and were inspected. The PNG exactly matches
+previous visually reviewed bytes. Fresh encrypted backup restored 35 tables / 213,995
+rows with matching digests. All 18 schema entries already existed; no migration or
+publisher activation was needed. The frozen demo alias remains on its prior deployment.
+
+This is a code release, not completion of metric qualification. New report-credit
+calculators/collector remain inactive, legacy human ticket values remain unavailable,
+and existing qualified CSAT/first-reply policies remain unchanged. The OLD deployment's
+last-day census includes one expired lease and one CSAT HTTP 429; candidate scheduled
+recovery has not yet been observed. No extra manual sync was triggered. Native print
+and clipboard-byte checks remain unverified. Aggregate receipts:
+`2026-10-07-hosted-release-verification.json`, `2026-10-07-live-release-restore.json`,
+`2026-10-07-live-release-census.json`, `2026-10-07-production-code-release.json`.
+
 **October 6 evening — production code release prepared, sign-in pending:**
 Candidate `e86b548` passes exact CI/build `37542573624`. Preview `735d43f` has identical
 application/scripts/schema/config content and is READY as `dpl_9cGa3Q3geprx6XN949UkpNp2kpXC`;
