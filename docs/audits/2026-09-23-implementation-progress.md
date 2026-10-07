@@ -1,4 +1,14 @@
 # Audit implementation — current checkpoint
+**October 6 evening — production code release prepared, sign-in pending:**
+Candidate `e86b548` passes exact CI/build `37542573624`. Preview `735d43f` has identical
+application/scripts/schema/config content and is READY as `dpl_9cGa3Q3geprx6XN949UkpNp2kpXC`;
+its isolation guard passed. Production census finds all 18 migrations present, no running
+or stale runs, and 10 completed / zero failed syncs in 24 hours. A fresh encrypted backup
+restores 35 tables / 210,897 rows with matching digests and compatible schema. The browser
+session expired at Vercel protection; the user was asked to sign in for the remaining
+fresh authenticated check. No merge/promotion or production/policy/Zendesk/demo change.
+See [the prepared release manifest](2026-10-06-main-code-release.md). Recheck backup
+freshness before rollout. This deployment will not activate new report-credit values.
 
 **October 6 — bounded POS source collection and timestamp distinction:** The inactive
 assignee-solved collector completes September 20–26 using 38 bounded GET requests.
