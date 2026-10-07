@@ -1,0 +1,33 @@
+{
+  "observedAt": "2026-10-05T19:30:50.072Z",
+  "sourceMethods": ["GET"],
+  "previousGlobalGaps": 2,
+  "previousParentsRecovered": 0,
+  "currentGlobalGaps": 5,
+  "newGaps": 3,
+  "joinedObservationSpanMs": 37965,
+  "teams": [
+    {
+      "team": "pos-support",
+      "retainedRosterSize": 39,
+      "missingParents": 2,
+      "affectedAgents": 3
+    },
+    {
+      "team": "menufy-support",
+      "retainedRosterSize": 23,
+      "missingParents": 0,
+      "affectedAgents": 0
+    }
+  ],
+  "identityObservationAt": "2026-10-05T16:00:54.736Z",
+  "productionMetricWrites": 0,
+  "sourceCheckpointWrites": 0,
+  "publicationActivated": false,
+  "limitations": [
+    "Retained POS roster is a diagnostic cohort, not fresh POS identity or historical eligibility qualification.",
+    "Fresh Menufy staff bindings and independent metric reconciliation are recorded separately.",
+    "Recovered older gaps do not prove future joined completeness; new unmatched source legs remain blocking for their owners.",
+    "No missing parent period or cause is inferred from leg creation time."
+  ]
+}

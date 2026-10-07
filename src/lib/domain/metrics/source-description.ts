@@ -1,5 +1,6 @@
 import {
   FIRST_REPLY_CONTRACT,
+  INBOUND_PARTICIPATION_CONTRACT,
   OUTBOUND_PARTICIPATION_CONTRACT,
   SOLVED_CSAT_CONTRACT,
   type MetricSourceContext,
@@ -17,6 +18,38 @@ export function metricSourceDescription(
   sourceStrategy: string | null,
   context?: MetricSourceContext | null
 ) {
+  if (context?.sourceContract === INBOUND_PARTICIPATION_CONTRACT) {
+    const cohort = `Inbound calls created in this period (${context.reportingTimeZone}), filtered by the configured call groups and lines, attributed through this employee's call legs.`;
+    const descriptions = new Map([
+      [
+        "inbound_calls_offered",
+        "Accepted, declined (including transfer declines), missed and unreachable agent legs. Repeated offers on one call count separately.",
+      ],
+      [
+        "inbound_calls_accepted",
+        "Completed agent legs with positive reported talk time. This is acceptance participation, not distinct customer calls.",
+      ],
+      ["declined_calls", "Agent-declined and agent-transfer-declined legs."],
+      ["missed_calls", "Agent-missed legs."],
+      ["inbound_calls_unreachable", "Agent-unreachable legs."],
+      [
+        "inbound_calls_answer_rate",
+        "Accepted agent legs divided by offered agent legs, multiplied by 100. No offers or uncertain acceptance means unavailable.",
+      ],
+      [
+        "inbound_calls_abandoned_on_hold",
+        "Distinct abandoned-on-hold calls in which this employee participated. Participation does not assign responsibility for abandonment.",
+      ],
+    ]);
+    if (descriptions.has(key)) return `${cohort} ${descriptions.get(key)}`;
+    if (key === "total_talk_time_inbound" || key === "max_hold_time_inbound") {
+      const samples =
+        context.sampleCount === undefined
+          ? ""
+          : ` ${context.sampleCount} measured legs out of ${context.cohortCount}.`;
+      return `${cohort} ${key === "total_talk_time_inbound" ? "Sum of employee-leg talk seconds" : "Maximum employee-leg hold seconds"}, including agent/supervisor legs and reported zeros. Missing leg measurements withhold the result.${samples}`;
+    }
+  }
   if (context?.sourceContract === OUTBOUND_PARTICIPATION_CONTRACT) {
     const cohort = `Outbound calls created in this period (${context.reportingTimeZone}), scoped by their linked ticket's current group and attributed through this employee's agent/supervisor call legs.`;
     if (key === "outbound_calls")
@@ -118,6 +151,15 @@ export function unsupportedMetricReason(
   context?: MetricSourceContext | null
 ) {
   if (sourceStrategy !== "zendesk") return null;
+  if (context?.sourceContract === INBOUND_PARTICIPATION_CONTRACT) {
+    if (["total_talk_time_inbound", "max_hold_time_inbound"].includes(key))
+      return "No complete set of employee-leg duration measurements is available.";
+    if (key === "inbound_calls_answer_rate")
+      return "No offered legs, or acceptance could not be established for every completed agent leg.";
+    if (["inbound_calls_offered", "inbound_calls_accepted"].includes(key))
+      return "Acceptance could not be established for every completed agent leg.";
+    return null;
+  }
   if (context?.sourceContract === OUTBOUND_PARTICIPATION_CONTRACT) {
     if (key === "outbound_calls_completed" || key === "outbound_calls_non_answered")
       return "One or more outbound call outcomes could not be classified from the source evidence.";

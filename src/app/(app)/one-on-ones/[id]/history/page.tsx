@@ -10,14 +10,19 @@ import {
   formatMetricValue,
   type ValueType,
 } from "@/lib/domain/metrics/types";
-import { formatWeekRangeLong } from "@/lib/utils";
+import { formatWeekRangeLong, resolveReportingWeek } from "@/lib/utils";
 
 export default async function StoredPeriodsPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ period?: string; before?: string; revisions?: string }>;
+  searchParams: Promise<{
+    period?: string;
+    before?: string;
+    revisions?: string;
+    returnWeek?: string;
+  }>;
 }) {
   const session = await auth();
   if (!session?.user?.email) redirect("/login");
@@ -26,7 +31,8 @@ export default async function StoredPeriodsPage({
   const { id } = await params;
   const employee = (await getAssignedEmployees(ctx)).find((row) => row.id === id);
   if (!employee) notFound();
-  const { period, before, revisions: showRevisions } = await searchParams;
+  const { period, before, revisions: showRevisions, returnWeek: returnParam } = await searchParams;
+  const returnWeek = resolveReportingWeek(returnParam);
   const history = await getStoredMetricHistory(ctx, id, period);
   if (period && !history.selected) notFound();
   let revisions = null;
@@ -44,11 +50,11 @@ export default async function StoredPeriodsPage({
       throw error;
     }
   }
-  const historyPath = `/one-on-ones/${id}/history?${new URLSearchParams({ period: history.selected ? `${history.selected.start}/${history.selected.end}` : "" })}`;
+  const historyPath = `/one-on-ones/${id}/history?${new URLSearchParams({ period: history.selected ? `${history.selected.start}/${history.selected.end}` : "", returnWeek })}`;
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-12">
       <Link
-        href={`/one-on-ones/${id}`}
+        href={`/one-on-ones/${id}?${new URLSearchParams({ week: returnWeek })}`}
         className="text-sm text-muted-foreground hover:text-foreground"
       >
         ← Back to scorecard
@@ -69,6 +75,7 @@ export default async function StoredPeriodsPage({
             Times use {DURATION_FORMAT_LABEL}. {DURATION_CLOCK_NOTE}
           </p>
           <form className="flex flex-wrap items-end gap-3">
+            <input type="hidden" name="returnWeek" value={returnWeek} />
             <label className="grid gap-2 text-sm">
               Reporting interval (timezone shown per metric)
               <select

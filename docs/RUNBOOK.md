@@ -28,6 +28,41 @@ shared `.env` database.
 
 ## Preview and scheduler
 
+### Independent roster discovery candidate
+
+Lifecycle candidate migration 0017 adds observation/proposal evidence without changing
+existing assignments. After deployment, rediscover before approving old proposals: legacy
+rows have no fabricated observation. Reviews expire after 36 hours and require the latest
+compatible observation; refresh the page after discovery. Transfers/returns take effect on
+the UTC review date and retain employee identity/history. A departure with another membership
+or an empty source roster is refused. These are administrator-reviewed transitions, not
+automatic employment decisions. Unattended archival remains disabled pending its source
+authority, consecutive-observation/grace-period policy and anomaly gates.
+
+`/api/cron/roster` is disabled unless `ROSTER_DISCOVERY_SOURCE_ID` selects one configured,
+account-bound Zendesk source with group mappings. Deploy migration 0016 first after a
+fresh recovery rehearsal. No schedule is installed by this change. Keep the variable unset
+in synthetic Preview and production until activation gates pass. Authentication uses the
+existing environment-specific `CRON_SECRET`; `?probe=auth` performs no source/database work,
+and `?probe=health` only reads the latest independent run. Probe success does not establish
+scheduled execution. Never send a normal request merely to manufacture cron evidence.
+
+The worker uses bounded GET discovery (40 requests, 90-second pre-request budget, individual
+30-second timeout, immediate 429 deferral) and never auto-approves candidates. Candidate
+writes and run completion commit together. Ten-minute cooldown/expiry and publication token
+checks protect overlapping or interrupted runs. Errors retain prior candidates and store only
+sanitized failure codes. Metric freshness and employee assignments are unchanged. Manual
+admin discovery remains a separate legacy path; avoid concurrent operator discovery during
+worker canaries. Stale candidates, transfers, returning staff and safe departure confirmation
+still need separate lifecycle work.
+
+Activation requires a source-specific canary, review of candidate scope, documented roster
+authority/exceptions, and a genuine scheduled observation after the chosen schedule is added.
+Setting the variable suppresses the selected source's legacy current-week cron discovery;
+other sources are unchanged. Roll back by removing the worker schedule and variable together,
+restoring legacy discovery; retain the additive run table and its evidence. Never interpret
+the metric heartbeat as independent roster health after opt-in.
+
 ### Talk collection and outbound candidate
 
 Both new paths default to disabled. Outbound refresh has four daily entries in
@@ -96,6 +131,20 @@ lease/checkpoint state and sanitized errors. A 200 response, a recomputation tim
 old last-good value is not proof of current source success. Do not repeatedly launch whole
 exports after rate limits or completeness failures. Resume the retained checkpoint or use
 bounded diagnostics. Preserve aggregate failure evidence without raw IDs or employee payloads.
+
+The legacy whole-call collector candidate retains a separate checkpoint per UTC reporting
+week in `zendesk_legacy_talk_*_v1` source-record namespaces. This does not repurpose the
+participation call/leg store or qualify its metrics. Each validated page, minimized call
+versions and checkpoint commit atomically under the existing account lease. A failed or
+unfinished fetch still fails publication and retains the last successful values; the next
+normal invocation resumes its cursor. After completion, the next collection starts from
+a five-minute watermark overlap to collect corrections. Do not reset checkpoints merely
+to retry a timeout. Old-period rows remain source evidence, not permission for historical
+repair. Per-week retained population is capped at 250,000 calls; exceeding it stops collection.
+Production activation and source-retention policy remain subject to the release manifest.
+`ZENDESK_LEGACY_TALK_RESUME=1` opts the existing legacy fetch into this path; unset retains
+the original behavior. Keep it unset until the scoped recovery rehearsal passes. Clearing
+it rolls collection back without deleting retained evidence or changing metric values.
 
 Data Health labels completed work Published, not verified metric correctness. Interrupted
 means its running lease expired; a new sync can reclaim it through the transactional lease

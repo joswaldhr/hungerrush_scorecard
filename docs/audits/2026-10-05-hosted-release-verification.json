@@ -1,0 +1,107 @@
+{
+  "candidateSHA": "75daee2ab1aba11ed5045fc4f4c93caa5cdba9c2",
+  "deploymentId": "dpl_9kdMDHkAQdg3TNfiFYTQZ7X5T1v2",
+  "environment": "isolated synthetic main Preview",
+  "browserControlRestored": true,
+  "authenticatedScorecardReload": true,
+  "freshEmployeeLinkDefaultsToLastWeek": true,
+  "lastWeek": [
+    "2026-09-27",
+    "2026-10-03"
+  ],
+  "progressWeek": [
+    "2026-10-04",
+    "2026-10-10"
+  ],
+  "staleExportHiddenDuringNavigation": true,
+  "historicalTargetComparisonsWithheld": true,
+  "zeroValuesPreserved": true,
+  "unverifiedHumanAttributionWithheld": true,
+  "unsupportedHandlingMetricWithheld": true,
+  "alignedTableHeaderWidthsPx": [
+    345,
+    207,
+    207,
+    184,
+    207
+  ],
+  "alignedCategories": 9,
+  "csvRowsPerPeriod": 26,
+  "reportedPerPeriod": 8,
+  "currentCSVStatuses": [
+    "In Progress",
+    "No Data"
+  ],
+  "actualDownloadsCaptured": {
+    "closedPDF": {
+      "bytes": 1178268,
+      "sha256": "7fe409e3bd7ab14a9abea0aea71235f4b864ab9c215dc4685b4b952637ae6b42"
+    },
+    "closedPNG": {
+      "bytes": 1792775,
+      "sha256": "cfa91cd05cad94762babb0038f9b0cc5971b6ec2a39bb9c39e2373c13b9024bd"
+    },
+    "closedCSV": {
+      "bytes": 12437,
+      "sha256": "d75b252d8bd258637a0936873272ad1532d0264ab56880e888250e6b3f35cf69"
+    },
+    "progressCSV": {
+      "bytes": 11584,
+      "sha256": "ea5c75d7a0442a7edec617126c0231e518bef7259f81442941b2b27a68fe1f14"
+    },
+    "progressPDF": {
+      "bytes": 1012960,
+      "sha256": "e679f391356bfe0d14cb2a0ded8a64e7655238108e01f4eaf7814b1cee9f4af4"
+    },
+    "progressPNG": {
+      "bytes": 1556488,
+      "sha256": "7020398f2153652dcb053a9509aa6338e65b225eb0ad0c27b48e307f50b42a77"
+    }
+  },
+  "closedPDFPages": 1,
+  "closedPNGDimensions": [
+    2400,
+    7858
+  ],
+  "closedImageExportsRenderedAndVisuallyInspected": true,
+  "historyReturnWeekPreserved": true,
+  "roster": {
+    "hostedApprovedTransitions": [
+      "transfer",
+      "return",
+      "departure"
+    ],
+    "readOnlyDatabaseReadbackPassed": true,
+    "employeeIdsPreserved": true,
+    "sourceBindingsPreserved": 3,
+    "priorMembershipIntervalsPreserved": 3,
+    "newProspectiveIntervals": 2,
+    "cleanupVerified": true,
+    "temporaryAdminRemoved": true,
+    "ordinaryManagerRedirectedFromRosterAdministration": true
+  },
+  "syntheticPublication": {
+    "lastWeekValues": 9,
+    "currentWeekValues": 9,
+    "reportedPerPeriod": 8,
+    "unavailablePerPeriod": 1,
+    "unrelatedValuesUnchanged": true,
+    "vendorRequests": 0,
+    "productionWrites": 0
+  },
+  "limitations": [
+    "Copied-link clipboard bytes were empty in the browser adapter; fixed-week clipboard verification remains open.",
+    "Print dialog/layout verification remains open on this exact deployment.",
+    "Hosted UI and synthetic publication do not certify production vendor metrics.",
+    "No source policy, live metric publication or scheduler was activated."
+  ],
+  "productionMetricWrites": 0,
+  "zendeskMutations": 0,
+  "frozenDemoChanged": false,
+  "progressPDFPages": 1,
+  "progressPNGDimensions": [
+    2400,
+    7354
+  ],
+  "progressImageExportsRenderedAndVisuallyInspected": true
+}

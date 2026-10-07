@@ -47,9 +47,11 @@ Sunday–Saturday UTC via `src/lib/utils.ts`; stored older intervals retain thei
   a metric. A successful export or internal consistency check is not independent reconciliation.
 - Require bounded requests, timeouts, validated same-origin pagination, retry limits, leases
   and resumable checkpoints where source work exceeds one invocation's budget.
-- The approved ticket policy credits verified human activity only. Role, channel and updater
-  ID alone are insufficient. Manager reads withhold unverified Zendesk ticket counts. Version 2
-  remains shadow-only until source-bound identity/activity evidence and reconciliation are proven.
+- October 6: the user approved clearly labeled report-matched ticket credits for scorecards,
+  with human verification separate. Reconcile each manager's exact report definition, unit,
+  scope and timezone; account-attributed events are not proof of manual human activity.
+  Legacy human-only keys remain withheld. Do not revive current-assignee snapshot counts,
+  relabel old values as report credits, or enable the human-only shadow/v2 publisher.
 - Do not judge a closed period using today's team/line or edited targets. Until immutable
   historical context exists, retain observations and expose unavailable target comparisons.
 - Never silently rewrite historical calculations, periods, source observations or targets.
@@ -58,9 +60,10 @@ Sunday–Saturday UTC via `src/lib/utils.ts`; stored older intervals retain thei
 ## Security and operational safety
 
 Follow [the safety guardrail plan](docs/SAFETY_GUARDRAILS.md). Zendesk is read-only under
-the user's September 25 instruction. The September 28 amendment permits brief inspection
-of existing report definitions with no edits and prompt closure, one report at a time.
-Otherwise avoid report/dashboard editors: an audit editor session locked a manager out.
+the user's September 25 instruction and latest AGENTS instructions. Do not open report
+or dashboard editors routinely: an audit editor session locked a manager out.
+The latest user AGENTS instructions permit only essential brief report-definition inspection,
+one report at a time with no edits and prompt closure; follow the guardrail controls.
 Prefer retained evidence and bounded GET APIs; make corrections in Cadence, not in Zendesk.
 
 Derive identity and organization from server-side authentication. Check object ownership,

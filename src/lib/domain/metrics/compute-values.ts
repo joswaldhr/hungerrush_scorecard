@@ -14,6 +14,9 @@ import type { CalculationType } from "./types";
 import { sharedMetricSourceContext, completeSnapshotVersion } from "./source-context";
 import { selectFirstReplyContributors } from "./first-reply-contributors";
 import { selectOutboundContributors } from "./outbound-contributors";
+import { selectInboundContributors } from "./inbound-contributors";
+import { assertMetricPublicationEligible } from "./publication-eligibility";
+import { requiresTicketAttributionVerification, TICKET_ATTRIBUTION_QUALITY } from "./availability";
 
 // Rows per bulk upsert statement — see the same constant's comment in
 // sync-engine.ts. metricValues has fewer columns than normalizedFacts but
@@ -161,17 +164,35 @@ export async function computeMetricValuesFromFacts(
     }
 
     for (const group of groups.values()) {
+      // Also protect against candidate facts retained by a different ingestion path.
+      for (const fact of group.facts) {
+        assertMetricPublicationEligible(fact.dimensionsJson, fact.recordType);
+        assertMetricPublicationEligible({ sourceContract: fact.recordContract });
+      }
       const firstReply = selectFirstReplyContributors(def.key, group.facts);
       const outbound = selectOutboundContributors(def.key, firstReply.selected);
-      const selected = outbound.selected;
-      const supersededFactIds = [...firstReply.supersededFactIds, ...outbound.supersededFactIds];
+      const inbound = selectInboundContributors(def.key, outbound.selected);
+      const selected = inbound.selected;
+      const supersededFactIds = [
+        ...firstReply.supersededFactIds,
+        ...outbound.supersededFactIds,
+        ...inbound.supersededFactIds,
+      ];
       group.values = selected.map((f) => f.numericValue);
       group.observed = selected.map((f) => f.sourceObservedAt);
       group.factIds = selected.map((f) => f.id);
       group.contexts = selected.map((f) => f.dimensionsJson);
       const sourceContext = sharedMetricSourceContext(group.contexts);
       const snapshotVersion = completeSnapshotVersion(sourceContext?.sourceContract);
-      const value = aggregateSourceValues(group.values, def.calculationType as CalculationType);
+      // The read guard must also hold at publication: retained legacy numeric
+      // contributors or a newer definition version cannot prove human actions.
+      const withheldTicketActivity = requiresTicketAttributionVerification({
+        key: def.key,
+        sourceStrategy,
+      });
+      const value = withheldTicketActivity
+        ? null
+        : aggregateSourceValues(group.values, def.calculationType as CalculationType);
 
       rows.push({
         metricDefinitionId: def.id,
@@ -185,8 +206,9 @@ export async function computeMetricValuesFromFacts(
         calculationVersion: snapshotVersion ?? def.version,
         calculatedAt: new Date(),
         dataFreshnessAt: new Date(Math.min(...group.observed.map((date) => date.getTime()))),
-        qualityStatus:
-          value === null
+        qualityStatus: withheldTicketActivity
+          ? TICKET_ATTRIBUTION_QUALITY
+          : value === null
             ? "missing"
             : group.values.some((value) => value === null)
               ? "partial"
@@ -198,6 +220,7 @@ export async function computeMetricValuesFromFacts(
           factIds: group.factIds,
           ...(supersededFactIds.length ? { supersededFactIds } : {}),
           ...(sourceContext ?? {}),
+          ...(withheldTicketActivity ? { availability: TICKET_ATTRIBUTION_QUALITY } : {}),
         },
       });
     }

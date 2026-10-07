@@ -18,12 +18,14 @@ import {
   teamMemberships,
   externalIdentities,
   rosterCandidates,
+  rosterObservations,
   rosterSourceTeamMappings,
   reconciliationRuns,
   reconciliationResults,
   managerAssignments,
 } from "@/lib/db/schema";
 import { and, eq, inArray } from "drizzle-orm";
+import { rosterMappingKey } from "@/lib/domain/roster/evidence";
 import {
   createEmployee,
   createTeam,
@@ -86,6 +88,35 @@ function form(values: Record<string, string>) {
   const result = new FormData();
   for (const [key, value] of Object.entries(values)) result.set(key, value);
   return result;
+}
+async function qualifyCandidates(ids: string[]) {
+  const candidates = await db
+    .select()
+    .from(rosterCandidates)
+    .where(inArray(rosterCandidates.id, ids));
+  const mappings = await db
+    .select()
+    .from(rosterSourceTeamMappings)
+    .where(eq(rosterSourceTeamMappings.dataSourceId, a.source));
+  const [source] = await db.select().from(dataSources).where(eq(dataSources.id, a.source));
+  const [observation] = await db
+    .insert(rosterObservations)
+    .values({
+      dataSourceId: a.source,
+      sourceReference: source!.configurationReference,
+      mappingKey: rosterMappingKey(mappings),
+      members: candidates.map((c) => ({
+        externalId: c.externalId,
+        teamId: c.suggestedTeamId ?? a.team,
+        line: c.suggestedLine,
+      })),
+    })
+    .returning();
+  for (const candidate of candidates)
+    await db
+      .update(rosterCandidates)
+      .set({ observationId: observation!.id, suggestedTeamId: candidate.suggestedTeamId ?? a.team })
+      .where(eq(rosterCandidates.id, candidate.id));
 }
 beforeAll(async () => {
   for (const fixture of [a, b]) {
@@ -153,6 +184,7 @@ afterAll(async () => {
     .delete(metricVisibilityOverrides)
     .where(inArray(metricVisibilityOverrides.metricDefinitionId, metricIds));
   await db.delete(rosterCandidates).where(inArray(rosterCandidates.dataSourceId, sourceIds));
+  await db.delete(rosterObservations).where(inArray(rosterObservations.dataSourceId, sourceIds));
   await db
     .delete(rosterSourceTeamMappings)
     .where(inArray(rosterSourceTeamMappings.dataSourceId, sourceIds));
@@ -417,6 +449,7 @@ describe("organization-scoped admin actions", () => {
         suggestedLine: "synthetic-line",
       })
       .returning();
+    await qualifyCandidates([candidate!.id]);
     await Promise.all([
       approveNewCandidate(form({ candidateId: candidate!.id, teamId: a.team })),
       approveNewCandidate(form({ candidateId: candidate!.id, teamId: a.team })),
@@ -444,6 +477,68 @@ describe("organization-scoped admin actions", () => {
         )
     ).toHaveLength(1);
   });
+
+  it("keeps an existing inactive employee intact when a new candidate uses the same email", async () => {
+    const email = "return-existing@example.invalid";
+    const [person] = await db
+      .insert(employees)
+      .values({
+        organizationId: a.org,
+        displayName: "Existing inactive employee",
+        email,
+        employmentStatus: "inactive",
+        primaryTeamId: a.team,
+      })
+      .returning();
+    const [candidate] = await db
+      .insert(rosterCandidates)
+      .values({
+        dataSourceId: a.source,
+        externalId: "return-unbound",
+        externalEmail: email.toUpperCase(),
+        changeType: "new",
+        suggestedTeamId: a.team,
+      })
+      .returning();
+    await qualifyCandidates([candidate!.id]);
+    await expect(
+      approveNewCandidate(form({ candidateId: candidate!.id, teamId: a.team }))
+    ).rejects.toThrow("already exists");
+    expect(await db.select().from(employees).where(eq(employees.id, person!.id))).toEqual([person]);
+    const [unchanged] = await db
+      .select()
+      .from(rosterCandidates)
+      .where(eq(rosterCandidates.id, candidate!.id));
+    expect(unchanged?.status).toBe("pending");
+  });
+
+  it("serializes different candidates for the same normalized source identity", async () => {
+    const candidates = await db
+      .insert(rosterCandidates)
+      .values([
+        { dataSourceId: a.source, externalId: "same-source@example.invalid", changeType: "new" },
+        { dataSourceId: a.source, externalId: "SAME-SOURCE@example.invalid", changeType: "new" },
+      ])
+      .returning();
+    await qualifyCandidates(candidates.map((c) => c.id));
+    const results = await Promise.allSettled(
+      candidates.map((candidate) =>
+        approveNewCandidate(form({ candidateId: candidate.id, teamId: a.team }))
+      )
+    );
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
+    const saved = await db
+      .select()
+      .from(rosterCandidates)
+      .where(
+        inArray(
+          rosterCandidates.id,
+          candidates.map((candidate) => candidate.id)
+        )
+      );
+    expect(saved.map((candidate) => candidate.status).sort()).toEqual(["approved", "pending"]);
+  });
 });
 
 it("clears the suggested line when manual approval changes the suggested team", async () => {
@@ -458,6 +553,7 @@ it("clears the suggested line when manual approval changes the suggested team", 
       suggestedLine: "synthetic-line",
     })
     .returning();
+  await qualifyCandidates([candidate!.id]);
   await approveNewCandidate(form({ candidateId: candidate!.id, teamId: "" }));
   const [person] = await db
     .select()

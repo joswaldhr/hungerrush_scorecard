@@ -8,6 +8,7 @@ import path from "node:path";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
+import { adoptFactIdentityBaseline, readBaselineEntries } from "./migration-baseline";
 
 async function run(file: string, args: string[], env = process.env) {
   await new Promise<void>((resolve, reject) => {
@@ -39,7 +40,7 @@ async function powershell(script: string, env = process.env) {
 type Inventory = { table: string; count: number; digest: string | null }[];
 async function inventory(
   tx: postgres.TransactionSql,
-  omitNewRosterLine = false,
+  omitRosterColumns: string[] = [],
   normalizeNumericWidening = false
 ): Promise<Inventory> {
   await tx`set local timezone = 'UTC'`;
@@ -48,8 +49,7 @@ async function inventory(
     order by schemaname, tablename`;
   const result: Inventory = [];
   for (const table of tables) {
-    const omit =
-      omitNewRosterLine && table.tablename === "roster_candidates" ? ["suggested_line"] : [];
+    const omit = table.tablename === "roster_candidates" ? omitRosterColumns : [];
     // Exact source/restore comparison remains unchanged. Only migration comparisons
     // normalize the JSON representation of the same widened numeric value.
     const value =
@@ -80,7 +80,7 @@ async function main() {
   assert(process.env.RESTORE_PG_BIN, "Explicit PostgreSQL 18 binary directory required");
   const sourceUrl = new URL(process.env.DATABASE_URL ?? "");
   const journal = JSON.parse(await readFile("drizzle/meta/_journal.json", "utf8"));
-  assert.equal(journal.entries.at(-1).tag, "0015_metric_numeric_precision");
+  assert.equal(journal.entries.at(-1).tag, "0017_roster_observations");
   assert.equal(sourceUrl.hostname, "metro.proxy.rlwy.net");
   assert.equal(sourceUrl.port, "57223");
   assert.equal(sourceUrl.pathname, "/railway");
@@ -134,6 +134,7 @@ async function main() {
   const source = postgres(sourceUrl.toString(), { max: 1, ssl: "require" });
   let started = false;
   let stage = "snapshot";
+  let baselineAdoption: Awaited<ReturnType<typeof adoptFactIdentityBaseline>> | undefined;
   try {
     const before = await source.begin("isolation level repeatable read read only", async (tx) => {
       await tx`set local statement_timeout = '120s'`;
@@ -226,18 +227,27 @@ async function main() {
       const after = await local.begin("read only", inventory);
       assert.deepEqual(after, before);
       stage = "migrate restored copy";
-      const lineExists =
-        await local`select 1 from information_schema.columns where table_schema='public'
-        and table_name='roster_candidates' and column_name='suggested_line'`;
-      const baseline = await local.begin("read only", (tx) =>
-        inventory(tx, lineExists.length === 0, true)
+      const existingColumns = await local`select column_name from information_schema.columns
+        where table_schema='public' and table_name='roster_candidates'`;
+      const omitted = [
+        "suggested_line",
+        "observation_id",
+        "previous_employee_state",
+        "withdrawn_at",
+      ].filter((name) => !existingColumns.some((column) => column.column_name === name));
+      const baseline = await local.begin("read only", (tx) => inventory(tx, omitted, true));
+      stage = "adopt present schema on restored copy";
+      baselineAdoption = await adoptFactIdentityBaseline(
+        local,
+        await readBaselineEntries("drizzle")
       );
+      stage = "migrate restored copy";
       await local`set lock_timeout = '10s'`;
       await local`set statement_timeout = '120s'`;
       await migrate(drizzle(local), { migrationsFolder: "drizzle" });
-      const upgraded = await local.begin("read only", (tx) =>
-        inventory(tx, lineExists.length === 0, true)
-      );
+      const upgraded = await local.begin("read only", (tx) => inventory(tx, omitted, true));
+      assert(upgraded.some((table) => table.table === "public.roster_discovery_runs"));
+      assert(upgraded.some((table) => table.table === "public.roster_observations"));
       for (const original of baseline.filter(
         (table) => table.table !== "drizzle.__drizzle_migrations"
       )) {
@@ -267,7 +277,8 @@ async function main() {
       tableCount: before.length,
       rowCount: before.reduce((n, t) => n + t.count, 0),
       allTableDigestsMatch: true,
-      restoredCopyMigrationsThrough: "0015_metric_numeric_precision",
+      restoredCopyMigrationsThrough: "0017_roster_observations",
+      restoredCopyBaselineAdoption: baselineAdoption,
       existingApplicationDataUnchangedAfterMigration: true,
       globalsAndOriginalOwnershipRestored: false,
       limitation:

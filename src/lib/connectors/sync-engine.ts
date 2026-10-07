@@ -18,6 +18,8 @@ import { safeErrorMessage } from "@/lib/error-summary";
 import { computeMetricValuesFromFacts } from "@/lib/domain/metrics/compute-values";
 import { chunk } from "@/lib/utils";
 import { completeSnapshotVersion } from "@/lib/domain/metrics/source-context";
+import { assertMetricPublicationEligible } from "@/lib/domain/metrics/publication-eligibility";
+import { sourceFailureDiagnostics } from "./source-fetch-error";
 
 function payloadHash(payload: Record<string, unknown>): string {
   return createHash("sha256").update(JSON.stringify(payload)).digest("hex");
@@ -114,6 +116,7 @@ export async function runSync(
     }
   } catch (err) {
     success = false;
+    fetchDiagnostics = sourceFailureDiagnostics(err) ?? fetchDiagnostics;
     fetchErrors.push({ message: safeErrorMessage(err) });
     logger.error("Sync fetch phase failed", { syncRunId, error: err });
   }
@@ -177,6 +180,17 @@ export async function runSync(
             throw new Error("Sync superseded by a newer publication for the same source records");
           }
         }
+        for (const record of allFetchedRecords)
+          assertMetricPublicationEligible(record.payload, record.externalRecordType);
+        if (
+          allFetchedRecords.some(
+            (record) =>
+              record.payload.sourceContract === "zendesk-call-created-agent-leg-inbound-v1"
+          ) &&
+          !connector.validatePublication
+        )
+          throw Error("Inbound publication requires transactional scope validation");
+        await connector.validatePublication?.(tx, config, allFetchedRecords);
         const { ingested, skipped, errors } = await ingestRecords(
           tx,
           allFetchedRecords,
@@ -537,6 +551,7 @@ async function normalizeIngestedRecords(
       record.periodStart,
       record.periodEnd
     );
+    for (const fact of facts) assertMetricPublicationEligible(fact.dimensionsJson);
 
     const sourceObservedAt = record.sourceUpdatedAt ?? record.occurredAt ?? record.ingestedAt;
 

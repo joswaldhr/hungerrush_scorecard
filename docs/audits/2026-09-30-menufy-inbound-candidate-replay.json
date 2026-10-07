@@ -1,0 +1,13 @@
+{
+  "observedOn": "2026-09-30",
+  "mode": "offline candidate replay; not live observation or publication",
+  "periodStart": "2026-09-20",
+  "periodEnd": "2026-09-26",
+  "rows": 26,
+  "metricComparisons": 234,
+  "sourceSetComparisons": 182,
+  "differences": 0,
+  "sourceRequests": 0,
+  "productionWrites": 0,
+  "publicationActivated": false
+}

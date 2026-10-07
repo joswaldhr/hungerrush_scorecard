@@ -1,5 +1,18 @@
 # HungerRush Cadence — Metric Registry
 
+> October 6 correction candidate: real Zendesk current-assignee snapshots no longer
+> normalize into numeric employee Tickets Updated/Resolved facts. Publication stores
+> touched groups as null / `unverified_attribution`, preserving source evidence and
+> predecessor revisions. Report-matched update events would be a separate measure,
+> not a relabeling or override of the approved human-only counts. See the
+> [correction and release boundary](audits/2026-10-06-ticket-credit-correction.md).
+
+> September 30 inactive candidate: the verified Menufy inbound report has a dedicated
+> calculation/replay contract, including proposed answer-rate, total-talk, maximum-hold
+> and unreachable fields. These are not live metric definitions or employee assignments.
+> See [candidate contract and integration gates](audits/2026-09-30-menufy-inbound-candidate.md).
+> SUM talk and MAX hold must never populate the existing average fields.
+
 > September 24 audit branch: the tables below describe legacy configuration and include
 > superseded calendar/null behavior. Use the [contract audit](audits/2026-09-23-metric-contracts.md)
 > and [implementation ledger](audits/2026-09-23-implementation-progress.md) for current status.

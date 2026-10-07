@@ -584,6 +584,43 @@ export const rosterSourceTeamMappings = pgTable(
   (table) => [index("roster_mappings_data_source_id_idx").on(table.dataSourceId)]
 );
 
+// Separate from metric sync runs: roster health must not imply fresh metric data.
+export const rosterDiscoveryRuns = pgTable(
+  "roster_discovery_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    dataSourceId: uuid("data_source_id")
+      .notNull()
+      .references(() => dataSources.id),
+    status: text("status").notNull().default("running"),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    newCandidates: integer("new_candidates").notNull().default(0),
+    departedCandidates: integer("departed_candidates").notNull().default(0),
+    failureCode: text("failure_code"),
+  },
+  (table) => [
+    index("roster_discovery_runs_source_started_idx").on(table.dataSourceId, table.startedAt),
+  ]
+);
+
+export const rosterObservations = pgTable(
+  "roster_observations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    dataSourceId: uuid("data_source_id")
+      .notNull()
+      .references(() => dataSources.id),
+    observedAt: timestamp("observed_at", { withTimezone: true }).notNull().defaultNow(),
+    sourceReference: text("source_reference"),
+    mappingKey: text("mapping_key").notNull(),
+    members: jsonb("members")
+      .$type<{ externalId: string; teamId: string; line: string | null }[]>()
+      .notNull(),
+  },
+  (table) => [index("roster_observations_source_time_idx").on(table.dataSourceId, table.observedAt)]
+);
+
 export const rosterCandidates = pgTable(
   "roster_candidates",
   {
@@ -598,6 +635,13 @@ export const rosterCandidates = pgTable(
     employeeId: uuid("employee_id").references(() => employees.id),
     suggestedTeamId: uuid("suggested_team_id").references(() => teams.id),
     suggestedLine: text("suggested_line"),
+    observationId: uuid("observation_id").references(() => rosterObservations.id),
+    previousEmployeeState: jsonb("previous_employee_state").$type<{
+      primaryTeamId: string | null;
+      line: string | null;
+      employmentStatus: string;
+    }>(),
+    withdrawnAt: timestamp("withdrawn_at", { withTimezone: true }),
     status: text("status").notNull().default("pending"),
     reviewedBy: uuid("reviewed_by").references(() => users.id),
     reviewedAt: timestamp("reviewed_at", { withTimezone: true }),

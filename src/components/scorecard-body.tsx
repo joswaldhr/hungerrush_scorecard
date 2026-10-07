@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import Link from "next/link";
+import { ScorecardHighlights } from "@/components/scorecard-highlights";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { StatusBadge, getStatusLabel } from "@/components/status-badge";
 import { MetricCategoryTable } from "@/components/metric-category-table";
@@ -8,11 +10,14 @@ import { ScorecardExport, SCORECARD_CAPTURE_ID } from "@/components/scorecard-ex
 import type { ScorecardMetric } from "@/components/scorecard-export";
 import { WeekNavigator } from "@/components/week-navigator";
 import { formatCategoryLabel } from "@/lib/domain/metrics/category-labels";
-import { deriveOverallStatus, isReportingPeriodInProgress } from "@/lib/domain/metrics/status";
+import {
+  scorecardPresentation,
+  type ScorecardRow,
+} from "@/lib/domain/metrics/scorecard-presentation";
 import type { EmployeeMetricRow } from "@/lib/domain/metrics/queries";
 import {
+  cn,
   initials,
-  shiftWeekStart,
   weekBoundsForDate,
   resolveReportingWeek,
   weeksAgoFor,
@@ -31,6 +36,8 @@ interface ScorecardBodyProps {
   managerName: string | null;
   initialPeriodStart: string;
   initialRows: EmployeeMetricRow[];
+  loadWeekAction?: (employeeId: string, periodStart: string) => Promise<EmployeeMetricRow[]>;
+  basePath?: "/one-on-ones" | "/demo/one-on-ones";
 }
 
 const CACHE_TTL_MS = 60_000;
@@ -43,19 +50,21 @@ export function ScorecardBody({
   managerName,
   initialPeriodStart,
   initialRows,
+  loadWeekAction = getWeekMetrics,
+  basePath = "/one-on-ones",
 }: ScorecardBodyProps) {
+  const [presentationMode, setPresentationMode] = useState(false);
+  const categoryPrefix = useId();
   const [periodStart, setPeriodStart] = useState(initialPeriodStart);
   const [snapshot, setSnapshot] = useState({ periodStart: initialPeriodStart, rows: initialRows });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const cacheRef = useRef(new Map<string, { rows: EmployeeMetricRow[]; loadedAt: number }>());
   const requestRef = useRef(0);
-  const selectedPeriodRef = useRef(initialPeriodStart);
 
   const fetchWeek = useCallback(
     async (ps: string, force = false) => {
       const request = ++requestRef.current;
-      selectedPeriodRef.current = ps;
       setPeriodStart(ps);
       setError(null);
       const cached = cacheRef.current.get(ps);
@@ -66,7 +75,7 @@ export function ScorecardBody({
       }
       setLoading(true);
       try {
-        const rows = await getWeekMetrics(employeeId, ps);
+        const rows = await loadWeekAction(employeeId, ps);
         // A slow response may never replace a more recently requested period.
         if (request !== requestRef.current) return;
         if (cacheRef.current.size >= 8) cacheRef.current.clear();
@@ -80,7 +89,7 @@ export function ScorecardBody({
         if (request === requestRef.current) setLoading(false);
       }
     },
-    [employeeId]
+    [employeeId, loadWeekAction]
   );
 
   // Seed the cache from the server snapshot; invalidate pending work on unmount.
@@ -100,7 +109,9 @@ export function ScorecardBody({
       void fetchWeek(resolveReportingWeek(params.get("week")));
     }
     function onFocus() {
-      void fetchWeek(selectedPeriodRef.current, true);
+      // An unpinned entry follows last week after rollover; explicit links stay fixed.
+      const params = new URLSearchParams(window.location.search);
+      void fetchWeek(resolveReportingWeek(params.get("week")), true);
     }
     window.addEventListener("popstate", onPopState);
     window.addEventListener("focus", onFocus);
@@ -122,57 +133,50 @@ export function ScorecardBody({
   );
 
   const ready = !loading && !error && snapshot.periodStart === periodStart;
-  const displayRows = snapshot.rows;
-
+  const presentation = scorecardPresentation(snapshot.periodStart, snapshot.rows);
+  const displayRows = presentation.rows;
   const periodEnd = weekBoundsForDate(periodStart).periodEnd;
-  const previousPeriodStart = shiftWeekStart(periodStart, -1);
-  const previousPeriodEnd = shiftWeekStart(periodEnd, -1);
   const weeksAgo = weeksAgoFor(periodStart);
+  const { overallStatus, previousPeriodStart, previousPeriodEnd } = presentation;
+  const inProgress = presentation.mode === "progress";
+  const offTargetNames = displayRows
+    .filter((r) => r.displayStatus === "off_target")
+    .map((r) => r.name);
 
-  const overallStatus = deriveOverallStatus(displayRows, { periodStart, periodEnd });
-  const inProgress = isReportingPeriodInProgress(periodStart, periodEnd);
-  const offTargetNames = useMemo(
-    () => displayRows.filter((r) => r.status.status === "off_target").map((r) => r.name),
-    [displayRows]
-  );
-
-  const categories = useMemo(() => {
-    const map = new Map<string | null, EmployeeMetricRow[]>();
+  const categories = (() => {
+    const map = new Map<string | null, ScorecardRow[]>();
     for (const row of displayRows) {
       const forCategory = map.get(row.category) ?? [];
       forCategory.push(row);
       map.set(row.category, forCategory);
     }
     return map;
-  }, [displayRows]);
+  })();
 
-  const scorecardMetrics: ScorecardMetric[] = useMemo(
-    () =>
-      displayRows.map((r) => ({
-        category: r.category,
-        name: r.name,
-        currentValue: r.currentValue,
-        previousValue: r.previousValue,
-        targetValue: r.target?.targetValue ?? null,
-        targetType: r.target?.targetType ?? null,
-        targetMin: r.target?.targetMin ?? null,
-        targetMax: r.target?.targetMax ?? null,
-        status: r.status.status,
-        unit: r.unit,
-        valueType: r.valueType,
-        qualityStatus: r.qualityStatus,
-        dataFreshnessAt: r.dataFreshnessAt ? new Date(r.dataFreshnessAt).toISOString() : null,
-        calculationVersion: r.calculationVersion,
-        targetSource: r.target?.source ?? null,
-        targetContextStatus: r.targetContextStatus,
-        sourceDescription: r.sourceDescription,
-        missingReason: r.missingReason,
-        sourceContract: r.sourceContract,
-        reportingTimeZone: r.reportingTimeZone,
-        comparisonUnavailableReason: r.comparisonUnavailableReason,
-      })),
-    [displayRows]
-  );
+  const scorecardMetrics: ScorecardMetric[] = displayRows.map((r) => ({
+    key: r.key,
+    category: r.category,
+    name: r.name,
+    currentValue: r.currentValue,
+    previousValue: r.previousValue,
+    targetValue: r.target?.targetValue ?? null,
+    targetType: r.target?.targetType ?? null,
+    targetMin: r.target?.targetMin ?? null,
+    targetMax: r.target?.targetMax ?? null,
+    status: r.displayStatus,
+    unit: r.unit,
+    valueType: r.valueType,
+    qualityStatus: r.qualityStatus,
+    dataFreshnessAt: r.dataFreshnessAt ? new Date(r.dataFreshnessAt).toISOString() : null,
+    calculationVersion: r.calculationVersion,
+    targetSource: r.target?.source ?? null,
+    targetContextStatus: r.targetContextStatus,
+    sourceDescription: r.sourceDescription,
+    missingReason: r.missingReason,
+    sourceContract: r.sourceContract,
+    reportingTimeZone: r.reportingTimeZone,
+    comparisonUnavailableReason: r.comparisonUnavailableReason,
+  }));
 
   return (
     <>
@@ -219,20 +223,35 @@ export function ScorecardBody({
             </div>
           </div>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border/80 bg-muted/25 px-5 py-4 sm:px-6 print:hidden">
-          <div>
-            <p className="text-sm font-semibold text-foreground">Weekly scorecard</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Choose a reporting week or export this view.
-            </p>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/80 bg-muted/25 px-5 py-3 sm:px-6 print:hidden">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              aria-pressed={presentationMode}
+              onClick={() => setPresentationMode((value) => !value)}
+              className="min-h-11 rounded-lg border border-border bg-card px-3 text-sm font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              Presentation view
+            </button>
+            {ready && (
+              <Link
+                href={`${basePath}/${employeeId}/history?${new URLSearchParams({ returnWeek: presentation.periodStart })}`}
+                className="text-sm font-medium text-foreground underline underline-offset-4"
+              >
+                {basePath === "/demo/one-on-ones" ? "Reporting weeks" : "Stored reporting periods"}
+              </Link>
+            )}
           </div>
           <div className="flex w-full min-w-0 flex-col items-start gap-2 sm:w-auto sm:flex-row sm:items-center">
             {ready && (
               <ScorecardExport
                 key={periodStart}
                 employeeName={employeeName}
-                periodLabel={`${formatWeekRangeLong(periodStart, periodEnd)}${inProgress ? " — In progress; targets cover the full week" : ""}`}
-                previousPeriodLabel={formatWeekRangeLong(previousPeriodStart, previousPeriodEnd)}
+                periodStart={presentation.periodStart}
+                periodEnd={presentation.periodEnd}
+                mode={presentation.mode}
+                periodLabel={presentation.periodLabel}
+                previousPeriodLabel={presentation.previousPeriodLabel}
                 metrics={scorecardMetrics}
               />
             )}
@@ -263,10 +282,76 @@ export function ScorecardBody({
           Loading {formatWeekRangeLong(periodStart, periodEnd)}…
         </div>
       ) : (
-        <div id={SCORECARD_CAPTURE_ID} className="space-y-5">
+        <div
+          id={SCORECARD_CAPTURE_ID}
+          data-presentation-view={presentationMode}
+          className={cn(
+            "space-y-4",
+            presentationMode && "[&_.text-xs]:text-sm [&_.text-muted-foreground]:text-foreground/80"
+          )}
+        >
           <p className="sr-only" role="status">
             Loaded {formatWeekRangeLong(periodStart, periodEnd)}
           </p>
+          <section
+            aria-label="Review period and data availability"
+            className="rounded-xl border border-primary/20 bg-primary/[0.045] px-4 py-3"
+          >
+            <p className="hidden font-semibold print:block">
+              {formatWeekRangeLong(presentation.periodStart, presentation.periodEnd)}
+            </p>
+            <p className="text-sm font-medium text-foreground">
+              {inProgress
+                ? "This week · In progress"
+                : weeksAgo === 1
+                  ? "1:1 review · Last week"
+                  : "1:1 review · Historical review"}{" "}
+              <span className="font-normal">
+                · Compared with {presentation.previousPeriodLabel}
+              </span>
+            </p>
+            <p className="mt-1 text-sm font-medium">{presentation.availability}</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              Reported values do not imply certified accuracy. Source observations and definitions
+              are in Data details.
+              {presentation.qualityWarnings > 0 &&
+                ` ${presentation.qualityWarnings} metric${presentation.qualityWarnings === 1 ? " has" : "s have"} data quality warnings.`}
+            </p>
+            {presentation.reported === 0 && displayRows.length > 0 && (
+              <p className="mt-3 text-sm text-muted-foreground">
+                No values are available for this reporting week. Use the arrows or calendar to
+                review an older week.
+              </p>
+            )}
+          </section>
+          <ScorecardHighlights
+            rows={displayRows}
+            inProgress={inProgress}
+            previousLabel={formatWeekRangeShort(previousPeriodStart, previousPeriodEnd)}
+          />
+          {presentationMode && categories.size > 1 && (
+            <nav
+              aria-label="Metric categories"
+              data-html2canvas-ignore="true"
+              className="flex flex-wrap gap-2 print:hidden"
+            >
+              {Array.from(categories.keys()).map((category, index) => (
+                <a
+                  key={category ?? "uncategorized"}
+                  href={`#${categoryPrefix}-category-${index}`}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    const section = document.getElementById(`${categoryPrefix}-category-${index}`);
+                    section?.scrollIntoView({ block: "start" });
+                    section?.focus({ preventScroll: true });
+                  }}
+                  className="min-h-11 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  {formatCategoryLabel(category)}
+                </a>
+              ))}
+            </nav>
+          )}
           {displayRows.some((row) => row.valueType === "duration") && (
             <p className="rounded-lg border border-border/80 bg-card px-4 py-3 text-xs leading-relaxed text-muted-foreground">
               Times use {DURATION_FORMAT_LABEL}. {DURATION_CLOCK_NOTE}
@@ -274,8 +359,8 @@ export function ScorecardBody({
           )}
           {inProgress && (
             <p className="border-l-2 border-primary/50 pl-3 text-xs leading-relaxed text-muted-foreground">
-              This week is in progress. Targets cover the full week; individual comparisons are
-              provisional.
+              This week is in progress. Targets cover the full week. Values are shown for progress,
+              without performance judgments against an unfinished week.
             </p>
           )}
           {displayRows.some((row) => row.targetContextStatus === "historical_unverified") && (
@@ -285,15 +370,24 @@ export function ScorecardBody({
             </p>
           )}
           {displayRows.length === 0 && <p>No metrics assigned for this scorecard.</p>}
-          {Array.from(categories.entries()).map(([category, categoryRows]) => (
-            <MetricCategoryTable
+          {Array.from(categories.entries()).map(([category, categoryRows], index) => (
+            <section
               key={category ?? "uncategorized"}
-              category={category}
-              title={formatCategoryLabel(category)}
-              rows={categoryRows}
-              currentLabel={formatWeekRangeShort(periodStart, periodEnd)}
-              previousLabel={formatWeekRangeShort(previousPeriodStart, previousPeriodEnd)}
-            />
+              id={`${categoryPrefix}-category-${index}`}
+              tabIndex={-1}
+              className="scroll-mt-4 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <MetricCategoryTable
+                presentationMode={presentationMode}
+                inProgress={inProgress}
+                category={category}
+                title={formatCategoryLabel(category)}
+                rows={categoryRows}
+                currentLabel={formatWeekRangeShort(periodStart, periodEnd)}
+                previousLabel={formatWeekRangeShort(previousPeriodStart, previousPeriodEnd)}
+                currentHeading={inProgress ? "This week so far" : "Review week"}
+              />
+            </section>
           ))}
         </div>
       )}

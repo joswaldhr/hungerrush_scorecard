@@ -634,32 +634,34 @@ export class ZendeskConnector implements Connector {
         continue;
       }
       if ("ticketsResolved" in payload) {
+        // agent_stats is a current-assignee / last-updated search snapshot.
+        // Preserve its raw counts in source_records for diagnostics, but never
+        // normalize them as employee actions. Explicit nulls retract earlier
+        // contributions atomically on the next scoped sync, including zero counts.
         facts.push({
           employeeId,
           teamId,
           factType: "tickets_resolved",
-          numericValue: payload.ticketsResolved as number,
+          numericValue: null,
           textValue: null,
           booleanValue: null,
           unit: "count",
           periodStart,
           periodEnd,
-          dimensionsJson: null,
+          dimensionsJson: { availability: "unverified_attribution", basis: "assignee_snapshot" },
         });
-        if (payload.ticketsUpdated != null) {
-          facts.push({
-            employeeId,
-            teamId,
-            factType: "tickets_updated",
-            numericValue: payload.ticketsUpdated as number,
-            textValue: null,
-            booleanValue: null,
-            unit: "count",
-            periodStart,
-            periodEnd,
-            dimensionsJson: null,
-          });
-        }
+        facts.push({
+          employeeId,
+          teamId,
+          factType: "tickets_updated",
+          numericValue: null,
+          textValue: null,
+          booleanValue: null,
+          unit: "count",
+          periodStart,
+          periodEnd,
+          dimensionsJson: { availability: "unverified_attribution", basis: "assignee_snapshot" },
+        });
         if (payload.avgHandleTimeMinutes != null) {
           facts.push({
             employeeId,
@@ -789,6 +791,16 @@ export class ZendeskConnector implements Connector {
     existingAssignments: ExistingRosterAssignment[] = []
   ): Promise<DiscoveredRosterMember[]> {
     if (groupMappings.length === 0) return [];
+    const startedAt = Date.now();
+    let requests = 0;
+    const rosterGet = async <T>(path: string): Promise<T> => {
+      // Bound the entire roster, not just each group's paging loop. Never
+      // return a partial membership list that could manufacture departures.
+      if (requests >= 40 || Date.now() - startedAt >= 90_000)
+        throw new Error("Roster discovery budget exhausted; no roster changes applied");
+      requests++;
+      return zendeskGet<T>(path, undefined, { deferRateLimit: true });
+    };
 
     const seenExternalIds = new Map<
       string,
@@ -806,7 +818,7 @@ export class ZendeskConnector implements Connector {
           throw new Error("Roster membership pagination did not complete");
         visited.add(path);
         const res: ZendeskGroupMembershipsResponse =
-          await zendeskGet<ZendeskGroupMembershipsResponse>(path);
+          await rosterGet<ZendeskGroupMembershipsResponse>(path);
         if (
           !Array.isArray(res.group_memberships) ||
           res.group_memberships.some(
@@ -829,7 +841,7 @@ export class ZendeskConnector implements Connector {
       for (let i = 0; i < uniqueUserIds.length; i += 100) {
         const batch = uniqueUserIds.slice(i, i + 100);
         if (batch.length === 0) continue;
-        const res = await zendeskGet<ZendeskShowManyUsersResponse>(
+        const res = await rosterGet<ZendeskShowManyUsersResponse>(
           `/users/show_many.json?ids=${batch.join(",")}`
         );
         if (

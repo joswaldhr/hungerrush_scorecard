@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-10-05T20:44:25.391Z",
+  "readOnly": true,
+  "sourceMethods": ["GET"],
+  "databaseWrites": 0,
+  "activePosEmployees": 39,
+  "verifiedStaffIdentities": 39,
+  "staffRequests": 4,
+  "globalMissingParents": 1,
+  "posMissingParents": 0,
+  "affectedPosAgents": 0,
+  "sourceProjectionHasWholeCallHold": false,
+  "metricPublication": false,
+  "limitations": [
+    "Stored call/leg observation is the prior durable capture, not refreshed by this identity verification.",
+    "Missing parent direction, scope, cause and reporting period remain unknown.",
+    "Fresh identity matching is not historical employment eligibility.",
+    "Complete POS calculation remains blocked by report group bindings and missing whole-call hold projection."
+  ]
+}

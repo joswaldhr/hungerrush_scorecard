@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
-import { cn, shiftWeekStart, weekBoundsForDate } from "@/lib/utils";
+import { cn, shiftWeekStart, weekBoundsForDate, weekDates } from "@/lib/utils";
 
 interface WeekNavigatorProps {
   periodStart: string;
@@ -39,13 +39,39 @@ export function WeekNavigator({
 
   const isCurrent = weeksAgo <= 0;
   const contextLabel = isCurrent
-    ? "CURRENT WEEK"
+    ? "IN PROGRESS"
     : weeksAgo === 1
-      ? "1 WEEK AGO"
-      : `${weeksAgo} WEEKS AGO`;
+      ? "LAST WEEK · REVIEW"
+      : "HISTORICAL REVIEW";
 
   return (
     <div className="flex w-full min-w-0 max-w-full flex-col items-end gap-1.5 sm:w-auto print:hidden">
+      <div
+        role="group"
+        aria-label="Reporting week shortcuts"
+        className="grid w-full grid-cols-2 gap-1 rounded-lg border border-border/80 bg-muted/40 p-1"
+      >
+        {[
+          { label: "Last week · Review", offset: 1 },
+          { label: "This week · In progress", offset: 0 },
+        ].map(({ label, offset }) => (
+          <button
+            key={offset}
+            type="button"
+            aria-label={label}
+            aria-pressed={weeksAgo === offset}
+            onClick={() => onNavigate(weekDates(offset).periodStart)}
+            className={cn(
+              "min-h-11 rounded-md px-3 py-2 text-xs font-semibold transition-colors",
+              weeksAgo === offset
+                ? "bg-card text-primary shadow-xs"
+                : "text-muted-foreground hover:bg-card hover:text-foreground"
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
       <div className="grid grid-cols-3 sm:flex w-full items-center gap-1 rounded-lg border border-border/80 bg-card p-1 shadow-2xs">
         <button
           type="button"
