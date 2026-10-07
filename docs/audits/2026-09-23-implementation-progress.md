@@ -12,10 +12,14 @@ resolution, GET-only parent joins, closed-week publication and explicit current-
 zero/cutoff readback, with the legacy human-only row unchanged. Authentication, query,
 disabled/malformed policy, scope/cutover/cooldown and partial/busy/retry responses also
 pass (18 scoped tests). Adapter **cdda1d0** passes exact Linux CI/build **37661993009**
-with all **1,099 tests / 138 files**. The route increment's exact CI/build is pending.
+with all **1,099 tests / 138 files**. Route candidate **fa48909** also passes exact
+Linux CI/build **37663078337**, including typecheck, lint, migrations and **1,109 tests /
+140 files**. Typecheck, full source ESLint and changed-file format checks pass locally.
 Production code, values, policies, schedules and frozen demo remain unchanged; finish
 isolated complete-path Preview rehearsal and the explicit catalog/backup/canary/scheduler
 release gates next. Do not mark solved publication or the wider metric goal complete.
+The prepared scope/initial-period/recovery manifest is
+`2026-10-07-solved-report-release.md`; its proposed daily slots are not installed.
 
 **October 7 — live updater solved adapter implemented, inactive:**
 The Menufy loader now resolves current staff, reads a complete durable interval,
