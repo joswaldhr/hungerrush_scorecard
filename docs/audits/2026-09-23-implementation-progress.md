@@ -1,4 +1,50 @@
 # Audit implementation — current checkpoint
+**October 7 — durable report-event collector implemented, inactive:**
+The separate report-credit stream now has account-wide ownership, persistent request
+spacing/Retry-After, atomic immutable event/checkpoint commits, resumable bounded batches
+and complete-interval reads. It uses GET only and cannot write metric facts or activate
+the human-action shadow/v2 path. Real PostgreSQL tests cover conflicts, rollback,
+concurrent/stale workers, zero-event coverage and account/config fences. All **1,083
+tests / 135 files**, typecheck and full source ESLint pass locally. Exact CI/build and
+the live parent-join/publication adapter remain before any release.
+
+Offline replay of 38 retained source pages preserved 37,117 unique events (376 repeated
+boundary records), selected 5,933 events and reproduced every count/contributing set
+for all 23 Menufy employees. This reuses the previously independently checked source,
+not a new Explore comparison. The stream legitimately includes older-created events
+and one page above 1,000 records; both are preserved and weekly filtering is separate.
+No vendor requests or production writes were made. New stream records use separate
+`zendesk_report_event_*` namespaces; no route, schedule, policy or catalog entry activates
+them. Existing production, demo, CSAT/first-reply and ticket-action restrictions remain.
+
+**October 7 — genuine post-release current-week first-reply refresh verified:**
+The production `vercel-cron/1.0` request to `/api/cron/first-reply?week=0` started
+16:43:32 UTC on release deployment `dpl_HGEAA1j1xJ8XYJLKCMKcuTUPMoKN`, returned HTTP
+200 in 62.430 seconds and did not crash. The corresponding database run completed
+in 60.255 seconds with zero errors, 48 GETs, no rate-limit retry and 23 published
+observations for October 4–10 / America/Chicago. Readback finds 19 numeric values
+(588 duration samples) and four legitimate unavailable means (zero duration samples
+across 12 cohort tickets); all 23 have source/fact/value predecessor revisions.
+This verifies this family/offset's scheduled operation, not every source or POS metric.
+No manual sync was triggered. Receipt: `2026-10-07-first-reply-scheduled-verification.json`.
+
+**October 7 — solved Preview/export checks complete, production still inactive:**
+Follow-up **3224a70** passes exact CI/build **37655992624**, including **1,062 tests /
+132 files**. Runtime-identical Preview **45cf3a4** is READY as
+**dpl_4WNCPNpczF4v619r4ut7n4aJ7ABK**, owning the isolated main Preview alias. The browser
+shows closed-week 3/2 and current-week 3/0, neutral current statuses, distinct attribution
+details and exact cutoffs. Stored history matches both intervals and keeps the return week.
+Actual CSV bytes match values/definitions/cutoffs; fresh corrected PDF and PNG have
+identical pixels, and their compact visual footer now preserves attribution and cutoffs.
+Clipboard bytes/native print remain unverified. Receipt: `2026-10-07-solved-preview-verification.json`.
+
+Production catalog/assignments/values/policies and frozen demo remain unchanged. Next
+critical work is durable, bounded Menufy event collection and qualified publication
+activation, with an explicit initial-period/catalog manifest, fresh backup/restore,
+canary/revisions/readback and genuine scheduled evidence. Do not treat private audit
+captures or this hosted rehearsal as a production refresh path. Keep the whole metric
+completion matrix active; solved publication is one family, not goal completion.
+
 **October 7 — current Menufy capture and hosted solved publication rehearsal:**
 The bounded event stream completed 38 pages / 37,493 raw events through October 7
 16:30:07 UTC. Fresh parent joins found 1,952 tickets, 14 source-confirmed deletions
@@ -21,7 +67,8 @@ bytes preserve these fields; downloaded PDF and PNG have identical rendered pixe
 Visual inspection found that their compact footer omitted the new solved definitions
 and exact cutoffs. A focused follow-up adds two brief attribution notes and named
 cutoff notes, keeping detailed technical provenance in CSV. Its 21 scoped export and
-publication tests pass; exact updated CI/Preview and new visual exports remain required.
+publication tests pass; updated exact CI/Preview and visual export checks now pass as
+recorded above.
 
 **October 7 — explicit current-week solved coverage and fresh POS source check:**
 Both solved calculations now accept an explicit current-period cutoff, keeping partial
