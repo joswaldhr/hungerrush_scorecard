@@ -6,6 +6,16 @@ source correctness are separate states. The October 7 live code release does not
 complete this tracker. The current roster baseline is 23 Menufy and 39 POS employees;
 refresh that inventory before publication and evaluate period eligibility explicitly.
 
+Fresh October 7 read-only production assignment inventory confirms **21 effective team
+keys / 23 active staff for Menufy**, and **19 / 39 for POS**, at September 27 and
+October 4 period starts. Menufy's four prospective inbound additions bring October 11
+to 25 keys; POS remains at 19. There are no duplicate team assignment rows for these
+keys. [The aggregate inventory](2026-10-07-effective-metric-inventory.json) lists every
+key, unit, aggregation and status. Counts do not establish accuracy, employee-specific
+override resolution or historical membership. POS has no effective first-response
+assignment in this inventory; existing stored first-response values must not be
+mistaken for an assigned metric. None of the new solved-report keys is assigned yet.
+
 ## Metric acceptance matrix
 
 | Metric / family | Menufy evidence and remaining work | POS evidence and remaining work |
@@ -62,3 +72,5 @@ Local synthetic PostgreSQL checks cover publication, repeat-refresh idempotency,
 zero corrections, revision retention, failed-coverage preservation, incompatible
 assignment rollback, staff departure, record tampering and observation expiry. These
 tests are implementation evidence, not production activation or source qualification.
+Exact code commit `0993446` passes Linux CI/build `37650598578`, including migrations
+and all 1,049 tests. Draft PR45 is the review boundary; it remains unmerged and inactive.
