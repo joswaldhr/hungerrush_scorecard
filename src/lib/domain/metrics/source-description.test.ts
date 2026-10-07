@@ -8,7 +8,30 @@ import {
   FIRST_REPLY_CONTRACT,
   SOLVED_CSAT_CONTRACT,
   OUTBOUND_PARTICIPATION_CONTRACT,
+  UPDATER_SOLVED_CONTRACT,
+  ASSIGNEE_SOLVED_CONTRACT,
 } from "./source-context";
+
+it("names solved definitions explicitly and carries the current cutoff into shared export details", () => {
+  const context = {
+    sourceContract: UPDATER_SOLVED_CONTRACT,
+    reportingTimeZone: "America/Chicago",
+    reportingAsOf: "2026-10-07T15:59:00.000Z",
+  };
+  expect(metricSourceName("Tickets Resolved", "zendesk_tickets_solved_credits", context)).toBe(
+    "Tickets solved (Zendesk credit)"
+  );
+  const text = metricSourceDescription("zendesk_tickets_solved_credits", "zendesk", context);
+  expect(text).toContain("does not establish manual human activity");
+  expect(text).toContain("before 2026-10-07T15:59:00.000Z");
+  const assigned = { ...context, sourceContract: ASSIGNEE_SOLVED_CONTRACT };
+  expect(metricSourceName("Tickets Resolved", "zendesk_assignee_solved_tickets", assigned)).toBe(
+    "Tickets solved (assigned)"
+  );
+  expect(metricSourceDescription("zendesk_assignee_solved_tickets", "zendesk", assigned)).toContain(
+    "not who performed the solve"
+  );
+});
 
 it("uses replacement semantics only for explicitly classified observations", () => {
   const context = { sourceContract: SOLVED_CSAT_CONTRACT, reportingTimeZone: "America/Chicago" };

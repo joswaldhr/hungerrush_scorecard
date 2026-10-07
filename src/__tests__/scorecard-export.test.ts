@@ -195,4 +195,46 @@ describe("scorecard export context", () => {
       "Source observation times are not recorded."
     );
   });
+  it("preserves report-credit meaning and distinct current cutoffs in compact visual exports", () => {
+    const notes = exportReviewNotes([
+      {
+        ...snapshot.metrics[0]!,
+        name: "Tickets solved (Zendesk credit)",
+        sourceContract: "zendesk-qualified-updater-solved-credits-v1",
+        reportingAsOf: "2026-10-07T16:30:07.000Z",
+      },
+      {
+        ...snapshot.metrics[0]!,
+        name: "Tickets solved (assigned)",
+        sourceContract: "zendesk-qualified-assignee-solved-tickets-v1",
+        reportingAsOf: "2026-10-07T16:26:38.342Z",
+      },
+    ]);
+    expect(notes).toContain(
+      "may include integration activity. Not proof of manual human activity."
+    );
+    expect(notes).toContain("does not identify who performed the solve.");
+    expect(notes).toContain(
+      "Tickets solved (Zendesk credit): Captured source data before 2026-10-07T16:30:07.000Z; current-week progress."
+    );
+    expect(notes).toContain(
+      "Tickets solved (assigned): Captured source data before 2026-10-07T16:26:38.342Z; current-week progress."
+    );
+    expect(notes).not.toContain("zendesk-qualified");
+  });
+  it("does not invent a current cutoff for closed observations or unrelated source contracts", () => {
+    const closed = exportReviewNotes([
+      { ...snapshot.metrics[0]!, sourceContract: "zendesk-qualified-updater-solved-credits-v1" },
+    ]);
+    expect(closed).toContain("Latest-solve credits");
+    expect(closed).not.toContain("current-week progress");
+    const unrelated = exportReviewNotes([
+      {
+        ...snapshot.metrics[0]!,
+        sourceContract: "synthetic-contract-v1",
+        reportingAsOf: "2026-10-07T16:30:07.000Z",
+      },
+    ]);
+    expect(unrelated).not.toMatch(/current-week progress|Latest-solve credits/);
+  });
 });

@@ -48,3 +48,41 @@ production alias, sign-in/core-read/export observations and error outcome. Roll 
 the application to the recorded compatible deployment if necessary; do not restore the
 entire database or undo retained null corrections blindly. Genuine candidate scheduler
 execution remains a separate post-release observation; do not manufacture it with manual syncs.
+
+## October 7 release continuation (pre-promotion)
+
+The user restored browser sign-in. Candidate `6f3f39753304da7a364d38a765506bd6aa60dca9`
+passes exact CI/build `37562945362`. Its runtime tree is unchanged from the isolated
+Preview above. Authenticated synthetic last-week/current-week/history reads pass;
+all nine table headers have aligned widths and current-week statuses contain only
+In Progress/No Data. Human-only and unsupported handling values remain unavailable,
+zeros remain numeric, and history preserves returnWeek. Fresh CSV saves 26 rows /
+12,437 bytes with correct selected/comparison periods. Fresh current-week PDF saves
+1,012,960 bytes, renders correctly as one long scorecard page, and retains neutral
+statuses and the compact source footer. Prior PNG byte/layout evidence applies to
+identical export code. Copied-link bytes remain unavailable through the adapter;
+native print dialog remains unverified.
+
+A refreshed recovery check at 13:43 UTC restores 35 tables / 213,995 rows with matching
+digests and no migration/application-row changes; see `2026-10-07-live-release-restore.json`.
+The 13:42 UTC census has no running/stale rows but records two failures on the OLD
+production version: a lease expiration and a CSAT tickets/show_many HTTP 429 with a
+10-second Retry-After. Candidate pacing/diagnostics do not yet prove scheduled recovery;
+the opt-in persistent legacy Talk path remains disabled. Existing failures are recorded,
+not represented as corrected or manufactured into successes through extra manual syncs.
+Production environment metadata still contains only the existing CSAT/first-reply policy
+keys; all new publishers remain disabled. The existing rollback deployment remains READY.
+
+Proceed with code-only PR43 merge/build/promotion, then verify the actual live alias and
+authenticated core reads. No new metric publisher activation is included.
+
+## Released October 7
+
+PR43 merged as `7fa4593f8676afe679952d83b7bb38771537cb77`; full merge CI/build
+`37631375550` passed. Deployment `dpl_HGEAA1j1xJ8XYJLKCMKcuTUPMoKN` was promoted
+successfully and independently verified on the production alias. Fresh Microsoft
+callback, both manager-scoped employee lists, representative scorecards and production
+CSV download pass. No runtime error lines appeared in the checked window. See
+`2026-10-07-production-code-release.json` for aggregate post-release evidence and limits.
+The prepared/pending statements above describe earlier checkpoints and are superseded
+by this release receipt. New report-credit metrics remain unpublished.

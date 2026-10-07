@@ -1,4 +1,201 @@
 # Audit implementation — current checkpoint
+**October 7 — complete-path synthetic Preview passed:**
+Candidate **4573dcd** passes exact CI/build **37664746951** (1,109 tests / 140 files).
+Runtime-identical main Preview **3f7bcc5**, deployment **dpl_7HUcp3NJ5DWEX2GGKS8XxQisXnoL**,
+is READY with the isolation build gate. The guarded hosted-database rehearsal now uses
+the real durable collector, source identity/parent transports and both live solved
+adapters, with 11 simulated responses and zero vendor requests/production writes.
+Closed-week 3/2 and current-week 3/0 values, explicit cutoffs and unchanged unrelated
+values pass. Browser current/closed/history, neutral current status and actual downloaded
+20-column CSV match. The renderer is unchanged from the previously verified PDF/PNG;
+clipboard byte readback and native print remain unverified.
+
+Fresh read-only production preflight confirms 23 Menufy and 39 POS bindings, one legacy
+resolved team assignment each, no conflicting employee overrides and no new solved
+definitions. Recovery plus exact effective catalog transition rehearsal is in progress;
+no production catalog, metric, policy or schedule has changed. Aggregate receipt:
+`2026-10-07-solved-complete-path-preview.json`. Continue inactive code release, bounded
+source bootstrap, independent reconciliation, catalog/canary and scheduled operation.
+
+**October 7 — inactive route controls and complete local pipeline:**
+Separate strict environment policies now control report-event collection and solved-only
+publication. The authenticated collection endpoint accepts no query overrides and never
+publishes; the publication endpoint accepts one configured kind/week, honors cutover and
+cooldown, and calls the common atomic sync service. Absent policies remain inert. Main
+Preview and fixture guards require both new policies absent. No `vercel.json` schedule
+or hosting environment was changed.
+
+The complete local PostgreSQL path now passes: durable collection, active identity
+resolution, GET-only parent joins, closed-week publication and explicit current-week
+zero/cutoff readback, with the legacy human-only row unchanged. Authentication, query,
+disabled/malformed policy, scope/cutover/cooldown and partial/busy/retry responses also
+pass (18 scoped tests). Adapter **cdda1d0** passes exact Linux CI/build **37661993009**
+with all **1,099 tests / 138 files**. Route candidate **fa48909** also passes exact
+Linux CI/build **37663078337**, including typecheck, lint, migrations and **1,109 tests /
+140 files**. Typecheck, full source ESLint and changed-file format checks pass locally.
+Production code, values, policies, schedules and frozen demo remain unchanged; finish
+isolated complete-path Preview rehearsal and the explicit catalog/backup/canary/scheduler
+release gates next. Do not mark solved publication or the wider metric goal complete.
+The prepared scope/initial-period/recovery manifest is
+`2026-10-07-solved-report-release.md`; its proposed daily slots are not installed.
+
+**October 7 — live updater solved adapter implemented, inactive:**
+The Menufy loader now resolves current staff, reads a complete durable interval,
+refreshes ticket parents/solve timestamps and requires source tombstones for missing
+parents. Unresolved/duplicate joins and stale streams preserve prior publication.
+Current-week cutoffs remain explicit; the oldest dependency determines freshness.
+Reporting boundaries use the configured timezone, including DST. The adapter feeds
+the same solved-only atomic publisher as the hosted rehearsal; it cannot publish
+the separately unqualified update metric. The new join transport has its own strict
+GET/query allowlist and bounded request/time/quota budget, leaving CSAT/first-reply
+transport and policy unchanged.
+
+All **1,099 tests / 138 files**, typecheck, full source ESLint and changed-source format
+checks pass locally. Offline durable-store plus parent-join replay still matches every
+count and contributing set for all 23 staff, with zero source requests or production
+writes. Receipt: `2026-10-07-report-event-replay-verification.json`. Collector commit
+**d4797f2** separately passes exact Linux CI/build **37660654108**. Adapter exact CI/build
+is pending; no activation route/policy, schedule, production catalog or value changed.
+Next: explicit inactive release/collection configuration and route controls, verified
+isolated rehearsal of the complete path, then the documented catalog/backup/canary/
+rollback and real-scheduler release gates. Other families remain tracked in the matrix.
+
+**October 7 — durable report-event collector implemented, inactive:**
+The separate report-credit stream now has account-wide ownership, persistent request
+spacing/Retry-After, atomic immutable event/checkpoint commits, resumable bounded batches
+and complete-interval reads. It uses GET only and cannot write metric facts or activate
+the human-action shadow/v2 path. Real PostgreSQL tests cover conflicts, rollback,
+concurrent/stale workers, zero-event coverage and account/config fences. All **1,083
+tests / 135 files**, typecheck and full source ESLint pass locally. Exact CI/build and
+the live parent-join/publication adapter remain before any release.
+
+Offline replay of 38 retained source pages preserved 37,117 unique events (376 repeated
+boundary records), selected 5,933 events and reproduced every count/contributing set
+for all 23 Menufy employees. This reuses the previously independently checked source,
+not a new Explore comparison. The stream legitimately includes older-created events
+and one page above 1,000 records; both are preserved and weekly filtering is separate.
+No vendor requests or production writes were made. New stream records use separate
+`zendesk_report_event_*` namespaces; no route, schedule, policy or catalog entry activates
+them. Existing production, demo, CSAT/first-reply and ticket-action restrictions remain.
+
+**October 7 — genuine post-release current-week first-reply refresh verified:**
+The production `vercel-cron/1.0` request to `/api/cron/first-reply?week=0` started
+16:43:32 UTC on release deployment `dpl_HGEAA1j1xJ8XYJLKCMKcuTUPMoKN`, returned HTTP
+200 in 62.430 seconds and did not crash. The corresponding database run completed
+in 60.255 seconds with zero errors, 48 GETs, no rate-limit retry and 23 published
+observations for October 4–10 / America/Chicago. Readback finds 19 numeric values
+(588 duration samples) and four legitimate unavailable means (zero duration samples
+across 12 cohort tickets); all 23 have source/fact/value predecessor revisions.
+This verifies this family/offset's scheduled operation, not every source or POS metric.
+No manual sync was triggered. Receipt: `2026-10-07-first-reply-scheduled-verification.json`.
+
+**October 7 — solved Preview/export checks complete, production still inactive:**
+Follow-up **3224a70** passes exact CI/build **37655992624**, including **1,062 tests /
+132 files**. Runtime-identical Preview **45cf3a4** is READY as
+**dpl_4WNCPNpczF4v619r4ut7n4aJ7ABK**, owning the isolated main Preview alias. The browser
+shows closed-week 3/2 and current-week 3/0, neutral current statuses, distinct attribution
+details and exact cutoffs. Stored history matches both intervals and keeps the return week.
+Actual CSV bytes match values/definitions/cutoffs; fresh corrected PDF and PNG have
+identical pixels, and their compact visual footer now preserves attribution and cutoffs.
+Clipboard bytes/native print remain unverified. Receipt: `2026-10-07-solved-preview-verification.json`.
+
+Production catalog/assignments/values/policies and frozen demo remain unchanged. Next
+critical work is durable, bounded Menufy event collection and qualified publication
+activation, with an explicit initial-period/catalog manifest, fresh backup/restore,
+canary/revisions/readback and genuine scheduled evidence. Do not treat private audit
+captures or this hosted rehearsal as a production refresh path. Keep the whole metric
+completion matrix active; solved publication is one family, not goal completion.
+
+**October 7 — current Menufy capture and hosted solved publication rehearsal:**
+The bounded event stream completed 38 pages / 37,493 raw events through October 7
+16:30:07 UTC. Fresh parent joins found 1,952 tickets, 14 source-confirmed deletions
+and zero unresolved parents. Independent Python matches all 23 employees' candidate
+counts and contributing sets (1,527 solved credits; 5,617 update IDs). Updates remain
+unqualified against Explore; API implementation parity does not resolve the retained
+report discrepancies. Aggregate receipt: `2026-10-07-menufy-current-ticket-verification.json`.
+
+Exact runtime commit **42e477b** passes Linux CI/build **37652865585**, including all
+1,060 tests. Isolated Preview **5184d74** has identical runtime/schema/package content
+and is READY as **dpl_5yWoab2m7S8bynprjH9fy62brVri**. The guarded synthetic rehearsal
+publishes both solved definitions through `runSync`, verifies last-week 3/2 and
+current-week 3/0 values plus retained cutoffs, and confirms unrelated values unchanged.
+It makes no vendor requests or production writes. Hosted UI/export acceptance,
+ongoing Menufy collection, production catalog/canary/recovery and scheduling remain.
+
+The initial hosted check confirms both labels, current-week 3/0 versus prior 3/2,
+neutral progress statuses, and detailed attribution/cutoff explanations. Actual CSV
+bytes preserve these fields; downloaded PDF and PNG have identical rendered pixels.
+Visual inspection found that their compact footer omitted the new solved definitions
+and exact cutoffs. A focused follow-up adds two brief attribution notes and named
+cutoff notes, keeping detailed technical provenance in CSV. Its 21 scoped export and
+publication tests pass; updated exact CI/Preview and visual export checks now pass as
+recorded above.
+
+**October 7 — explicit current-week solved coverage and fresh POS source check:**
+Both solved calculations now accept an explicit current-period cutoff, keeping partial
+elapsed-week coverage distinct from complete closed-week coverage. Solves at/after the
+cutoff are excluded; missing start coverage, future/old-week cutoffs and stale captures
+are rejected. The cutoff survives normalization into metric provenance and shared source
+descriptions, including export details. A bounded GET-only POS collector is wired to the
+same publisher; no route or policy activates it yet.
+
+Fresh read-only collection resolves all 39 active POS staff, obtains 833 padded source
+tickets with 22 GETs, and calculates **654 solved tickets** for October 4–10 before
+**October 7 16:26:38 UTC**. Independent Python agrees on all 39 employee counts and every
+contributing ticket ID. This is source calculation evidence, not a same-cutoff Explore
+export or production publication. Aggregate receipt: `2026-10-07-pos-current-solved-verification.json`.
+All **1,060 tests / 132 files** pass against isolated PostgreSQL, with typecheck, full
+ESLint and changed-source formatting passing. Current-week database publication preserves
+closed-week values in synthetic tests. Exact CI/build now passes as recorded above;
+hosted/release gates remain. The private Menufy capture is complete as recorded above;
+do not restart it or treat it as an ongoing production collector.
+
+**October 7 — solved-only publication implementation, not activated:** The new dedicated
+connector now takes the independently reconciled updater-solved and assignee-solved
+calculations through the ordinary atomic sync service under distinct source contracts
+and metric keys. It replays minimized evidence, binds account/team/employee/period,
+requires compatible effective assignments, rejects stale/incomplete captures, and
+rechecks staff/assignment state and fetched-record integrity before commit. It cannot
+publish update counts or enable the legacy human-only measures. No new route, source
+policy, assignment, production value or demo deployment has changed.
+
+All **1,049 tests / 131 files** pass against isolated loopback PostgreSQL. New transaction
+cases verify scoped publication, idempotency, zero corrections, retained revisions and
+rollback on incomplete evidence, changed assignments, departures, tampering and expiry.
+Typecheck and full source ESLint pass. Exact code commit **0993446** passes Linux
+CI/build **37650598578**, including migrations and all 1,049 tests. Draft PR45 retains
+the inactive boundary; hosted/source/release gates remain. Fresh read-only effective
+assignment inventory confirms 21 Menufy keys / 23 active staff and 19 POS keys / 39
+active staff for the last and current reporting weeks, with no new solved-report keys
+assigned. The [completion matrix](2026-10-07-metric-completion-matrix.md) records both teams'
+remaining metric, source, roster and live-operation requirements. Next: complete fresh
+bounded collection/current-week coverage, effective catalog registration and qualified
+canary/release; do not confuse this code increment with live metric completion.
+
+**October 7 — main application code release is live:** PR43 merged as `7fa4593` and
+passes full merge CI/build `37631375550`. Production deployment
+`dpl_HGEAA1j1xJ8XYJLKCMKcuTUPMoKN` was explicitly promoted and the live alias independently
+verified. Fresh Microsoft sign-out/sign-in succeeds. Manager views list 23 Menufy and
+39 POS employees; representative scorecards default to September 27–October 3, current
+week has only neutral progress/missing statuses, and a real production CSV download
+matches the selected October 4–10 snapshot (15 rows). No new deployment errors appear
+in the checked 15-minute log window. Admin view context was restored after checks.
+
+Before promotion, exact synthetic Preview navigation/history/zero/null/alignment checks
+passed; fresh PDF, PNG and CSV files saved and were inspected. The PNG exactly matches
+previous visually reviewed bytes. Fresh encrypted backup restored 35 tables / 213,995
+rows with matching digests. All 18 schema entries already existed; no migration or
+publisher activation was needed. The frozen demo alias remains on its prior deployment.
+
+This is a code release, not completion of metric qualification. New report-credit
+calculators/collector remain inactive, legacy human ticket values remain unavailable,
+and existing qualified CSAT/first-reply policies remain unchanged. The OLD deployment's
+last-day census includes one expired lease and one CSAT HTTP 429; candidate scheduled
+recovery has not yet been observed. No extra manual sync was triggered. Native print
+and clipboard-byte checks remain unverified. Aggregate receipts:
+`2026-10-07-hosted-release-verification.json`, `2026-10-07-live-release-restore.json`,
+`2026-10-07-live-release-census.json`, `2026-10-07-production-code-release.json`.
+
 **October 6 evening — production code release prepared, sign-in pending:**
 Candidate `e86b548` passes exact CI/build `37542573624`. Preview `735d43f` has identical
 application/scripts/schema/config content and is READY as `dpl_9cGa3Q3geprx6XN949UkpNp2kpXC`;
