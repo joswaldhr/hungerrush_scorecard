@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-07",
+  "candidate": "4573dcd403a12c020b5ea66cc36be421f7371d63",
+  "ciRun": 37664746951,
+  "ciPassed": true,
+  "tests": 1109,
+  "testFiles": 140,
+  "previewCommit": "3f7bcc569b42493c0e501151529f69c81c8b5790",
+  "previewDeployment": "dpl_7HUcp3NJ5DWEX2GGKS8XxQisXnoL",
+  "previewReady": true,
+  "runtimeAndRehearsalFilesMatch": true,
+  "previewIsolationBuildGatePassed": true,
+  "syntheticRehearsal": {
+    "actualDurableCollection": true,
+    "actualIdentityAndParentJoinAdapters": true,
+    "actualAtomicSyncService": true,
+    "simulatedRequests": 11,
+    "vendorRequests": 0,
+    "productionWrites": 0,
+    "closedWeek": { "start": "2026-09-27", "end": "2026-10-03", "updaterCredits": 3, "assignedSolvedTickets": 2 },
+    "currentWeek": { "start": "2026-10-04", "end": "2026-10-10", "updaterCredits": 3, "assignedSolvedTickets": 0 },
+    "currentUpdaterCutoff": "2026-10-07T18:09:37.000Z",
+    "currentAssigneeCutoff": "2026-10-07T18:11:02.380Z",
+    "unrelatedMetricValuesUnchanged": true
+  },
+  "browser": {
+    "currentAndClosedValuesMatch": true,
+    "currentStatusesNeutral": true,
+    "historyValuesDefinitionsAndCutoffsMatch": true,
+    "historyReturnWeekPreserved": true,
+    "legacyHumanActivityWithheld": true,
+    "actualDownloadedCsvMatches": true,
+    "csvColumns": 20,
+    "pdfAndPng": "Prior exact shared renderer acceptance remains valid; runtime renderer is unchanged from 3224a70.",
+    "clipboard": "Copy action completed but browser clipboard API returned empty; byte readback remains unverified.",
+    "nativePrint": "Unverified"
+  },
+  "productionReadOnlyPreflight": {
+    "observedAt": "2026-10-07T18:14:06.843Z",
+    "menufyEmployees": 23,
+    "posEmployees": 39,
+    "newSolvedDefinitions": 0,
+    "conflictingEmployeeOverrides": 0,
+    "runningSyncs": 0,
+    "legacyResolvedAssignmentsPerTeam": 1
+  },
+  "productionActivation": false,
+  "remaining": ["Fresh recovery and effective catalog rehearsal", "Inactive code deployment", "Durable source bootstrap and independent reconciliation", "Scoped catalog/canary publication and revisions", "Scheduled operation", "Other required metric families"]
+}

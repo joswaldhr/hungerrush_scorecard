@@ -1,4 +1,22 @@
 # Audit implementation — current checkpoint
+**October 7 — complete-path synthetic Preview passed:**
+Candidate **4573dcd** passes exact CI/build **37664746951** (1,109 tests / 140 files).
+Runtime-identical main Preview **3f7bcc5**, deployment **dpl_7HUcp3NJ5DWEX2GGKS8XxQisXnoL**,
+is READY with the isolation build gate. The guarded hosted-database rehearsal now uses
+the real durable collector, source identity/parent transports and both live solved
+adapters, with 11 simulated responses and zero vendor requests/production writes.
+Closed-week 3/2 and current-week 3/0 values, explicit cutoffs and unchanged unrelated
+values pass. Browser current/closed/history, neutral current status and actual downloaded
+20-column CSV match. The renderer is unchanged from the previously verified PDF/PNG;
+clipboard byte readback and native print remain unverified.
+
+Fresh read-only production preflight confirms 23 Menufy and 39 POS bindings, one legacy
+resolved team assignment each, no conflicting employee overrides and no new solved
+definitions. Recovery plus exact effective catalog transition rehearsal is in progress;
+no production catalog, metric, policy or schedule has changed. Aggregate receipt:
+`2026-10-07-solved-complete-path-preview.json`. Continue inactive code release, bounded
+source bootstrap, independent reconciliation, catalog/canary and scheduled operation.
+
 **October 7 — inactive route controls and complete local pipeline:**
 Separate strict environment policies now control report-event collection and solved-only
 publication. The authenticated collection endpoint accepts no query overrides and never
