@@ -228,6 +228,14 @@ shadow/v2 or historical repair, change Zendesk, or change CSAT/first-reply polic
 
 ### Release procedure
 
+The durable report-recovery candidate adds a separate `ZENDESK_REPORT_RECOVERY=1`
+opt-in and authenticated `/api/cron/report-recovery?slot=0..23` endpoint. It persists
+deferred work and fixed reporting dates in `zendesk_report_job_v1` operational records;
+these are not employee metric facts. The switch and new schedules remain absent until
+the [recovery release gates](audits/2026-10-07-report-recovery.md) pass. Clearing this
+switch contains new dispatcher work without deleting retained evidence or disabling
+the independently qualified solved/CSAT/first-reply policies. Check in-flight work too.
+
 1. Complete the ledger's technical gates and verify the exact candidate commit's checks.
 2. Refresh and verify a recoverable backup immediately before rollout. Record the previous
    production deployment, migration state, candidate commit and active feature flags.

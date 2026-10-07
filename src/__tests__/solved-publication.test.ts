@@ -23,6 +23,7 @@ import { runSync } from "@/lib/connectors/sync-engine";
 import { createSolvedPublisher } from "@/lib/connectors/zendesk-solved-publisher";
 import { solvedPublicationFixture } from "./fixtures/solved-publication";
 import { weekDates } from "@/lib/utils";
+import * as reportingWeeks from "@/lib/utils";
 import { runReportEventBatch } from "@/lib/connectors/zendesk-report-event-worker";
 import { createLiveUpdaterSolvedPublisher } from "@/lib/connectors/zendesk-updater-solved-publisher";
 
@@ -280,6 +281,53 @@ describe.sequential("solved-only publication through PostgreSQL", () => {
       provenanceJson: { reportingAsOf: asOf },
     });
     expect(after.filter((v) => v.periodStart === base.periodStart)).toEqual(before);
+  });
+  it("publishes the exact persisted recovery period and records it in the completed run", async () => {
+    const f = fixture();
+    const period = { periodStart: f.periodStart, periodEnd: f.periodEnd };
+    const result = await runSync(
+      publisher({
+        ...f,
+        snapshot: { ...f.snapshot, events: [], tickets: [] },
+      }),
+      config,
+      { period }
+    );
+    expect(result.success).toBe(true);
+    const [run] = await db.select().from(syncRuns).where(eq(syncRuns.id, result.syncRunId));
+    expect(run?.metadataJson).toMatchObject({ period });
+    expect(await current()).toMatchObject({ ...period, numericValue: 0 });
+  });
+  it("pins offset-selected dates before fetching even if the relative calendar advances", async () => {
+    const f = fixture(),
+      next = weekDates(0);
+    const connector = publisher({ ...f, snapshot: { ...f.snapshot, events: [], tickets: [] } });
+    const fetch = connector.fetchRecords.bind(connector);
+    connector.fetchRecords = async (config, ctx) => {
+      const calendar = vi.spyOn(reportingWeeks, "weekDates").mockReturnValue(next);
+      try {
+        return await fetch(config, ctx);
+      } finally {
+        calendar.mockRestore();
+      }
+    };
+    const result = await runSync(connector, config, { weekOffset: 1 });
+    expect(result.success).toBe(true);
+    expect(await current()).toMatchObject({ periodStart: f.periodStart, numericValue: 0 });
+  });
+  it("rejects conflicting dates and unsupported fixed-period connectors before creating a run", async () => {
+    const f = fixture(),
+      period = { periodStart: f.periodStart, periodEnd: f.periodEnd };
+    const before = await db.select().from(syncRuns).where(eq(syncRuns.dataSourceId, source));
+    await expect(runSync(publisher(f), config, { period, weekOffset: 0 })).rejects.toThrow(
+      "not both"
+    );
+    const legacy = publisher(f);
+    Object.assign(legacy, { supportsFixedPeriod: false });
+    await expect(runSync(legacy, config, { period })).rejects.toThrow("does not support");
+    expect(await db.select().from(syncRuns).where(eq(syncRuns.dataSourceId, source))).toEqual(
+      before
+    );
   });
   it("publishes through durable collection, live join transport and the atomic service end to end", async () => {
     const f = fixture(),

@@ -31,6 +31,7 @@ async function main() {
     "ZENDESK_INBOUND_REPORT_RELEASE",
     "ZENDESK_REPORT_EVENT_COLLECTION_POLICY",
     "ZENDESK_SOLVED_REPORT_RELEASES",
+    "ZENDESK_REPORT_RECOVERY",
     "ACTION_SHADOW_SOURCE_ID",
   ])
     assert(!process.env[key], "Vendor access/publication must be disabled");

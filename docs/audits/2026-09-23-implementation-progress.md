@@ -1,4 +1,17 @@
 # Audit implementation — current checkpoint
+**October 7, 21:23 UTC — durable recovery candidate implemented; production unchanged:**
+The local candidate now pins solved publication to exact reporting dates and persists
+operational collection/publication demand with fenced ownership, duplicate coalescing,
+cooldown/backoff and recovery after termination. A newer request cannot be erased by
+an older acknowledgment; a Sunday rollover cannot redirect the retry to another week.
+It has a separate default-off recovery switch, no new schema and no installed schedule.
+The local full run passes **1,162 tests / 144 files**; typecheck and targeted lint pass.
+The subsequent attempt-diagnostics addition passes typecheck and 20 focused worker/store
+tests. Exact final CI/build, complete hosted dispatcher rehearsal, capacity tests,
+fresh recovery and scoped canary gates are still pending. See
+`2026-10-07-report-recovery.md`. This is progress toward automatic operation, not a claim
+that the scheduler or the full metric goal is complete. The live state below remains.
+
 **October 7, 21:04 UTC — coordination fix live; independent refresh and revisions pass:**
 PR47 merged to `8a88279`; READY production `dpl_5LFAcRdxm6VbvAQsXobikfdMuPuK`
 owns the live aliases. Exact candidate CI passes 1,125 tests / 141 files and build;
