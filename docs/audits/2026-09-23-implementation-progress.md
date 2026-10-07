@@ -1,4 +1,15 @@
 # Audit implementation — current checkpoint
+**October 7 — genuine post-release current-week first-reply refresh verified:**
+The production `vercel-cron/1.0` request to `/api/cron/first-reply?week=0` started
+16:43:32 UTC on release deployment `dpl_HGEAA1j1xJ8XYJLKCMKcuTUPMoKN`, returned HTTP
+200 in 62.430 seconds and did not crash. The corresponding database run completed
+in 60.255 seconds with zero errors, 48 GETs, no rate-limit retry and 23 published
+observations for October 4–10 / America/Chicago. Readback finds 19 numeric values
+(588 duration samples) and four legitimate unavailable means (zero duration samples
+across 12 cohort tickets); all 23 have source/fact/value predecessor revisions.
+This verifies this family/offset's scheduled operation, not every source or POS metric.
+No manual sync was triggered. Receipt: `2026-10-07-first-reply-scheduled-verification.json`.
+
 **October 7 — solved Preview/export checks complete, production still inactive:**
 Follow-up **3224a70** passes exact CI/build **37655992624**, including **1,062 tests /
 132 files**. Runtime-identical Preview **45cf3a4** is READY as

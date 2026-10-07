@@ -112,3 +112,13 @@ retain concise ticket-credit attribution and current cutoffs, and PDF/PNG pixels
 See [the hosted receipt](2026-10-07-solved-preview-verification.json). Native print and
 clipboard bytes remain unverified. Qualified ongoing Menufy collection, production
 catalog/canary/recovery and genuine scheduling are still required.
+
+### Existing first-reply scheduled operation
+
+The October 7 current-week Menufy first-reply invocation is confirmed as
+`vercel-cron/1.0`, HTTP 200 on production release `7fa4593`, with a 60.255-second
+database run, zero errors and 23 current-period observations. Nineteen have numeric
+means from 588 duration samples; four have zero samples across 12 cohort tickets and
+correctly remain unavailable. Source/fact/value predecessor revisions exist for all
+23. See [the scheduler receipt](2026-10-07-first-reply-scheduled-verification.json).
+Other offsets/families and POS qualification remain open; this does not certify them.
