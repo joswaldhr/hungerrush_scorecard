@@ -31,13 +31,20 @@ const org = randomUUID(),
   team = randomUUID(),
   employee = randomUUID();
 const config = { organizationId: org, dataSourceId: source };
+// Account-level leases must be isolated across concurrently running test files.
+const subdomain = `solved-${randomUUID()}`;
+const accountReference = `zendesk-account:${subdomain}`;
 const defs = [
   "zendesk_tickets_solved_credits",
   "zendesk_assignee_solved_tickets",
   "tickets_resolved",
 ].map((key) => ({ id: randomUUID(), key }));
 const ids = defs.map((d) => d.id);
-const fixture = () => solvedPublicationFixture(config, employee, team);
+const fixture = () => {
+  const result = solvedPublicationFixture(config, employee, team);
+  result.policy = { ...result.policy, subdomain, accountReference };
+  return result;
+};
 const values = () =>
   db.select().from(metricValues).where(inArray(metricValues.metricDefinitionId, ids));
 const current = async (index = 0) =>
@@ -75,7 +82,7 @@ beforeAll(async () => {
     type: "zendesk",
     displayName: "Synthetic source",
     status: "configured",
-    configurationReference: "zendesk-account:synthetic",
+    configurationReference: accountReference,
   });
   await db.insert(externalIdentities).values({
     employeeId: employee,
@@ -307,7 +314,7 @@ describe.sequential("solved-only publication through PostgreSQL", () => {
     const request = vi.fn<typeof fetch>(async (input, options) => {
       expect(options).toMatchObject({ method: "GET", redirect: "error" });
       const url = new URL(String(input));
-      expect(url.origin).toBe("https://synthetic.zendesk.com");
+      expect(url.origin).toBe(`https://${subdomain}.zendesk.com`);
       if (url.pathname === "/api/v2/users.json")
         return Response.json({
           users: [
@@ -332,7 +339,7 @@ describe.sequential("solved-only publication through PostgreSQL", () => {
     vi.stubGlobal("fetch", request);
     try {
       const credentials = {
-        subdomain: "synthetic",
+        subdomain,
         email: "source@example.invalid",
         apiKey: "synthetic-token",
       };
