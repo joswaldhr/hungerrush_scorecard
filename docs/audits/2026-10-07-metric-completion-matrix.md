@@ -91,5 +91,15 @@ source indexing. Zendesk documents that [search indexing can take a few minutes]
 The one-minute exclusion is not claimed to eliminate that delay. Ongoing collection
 must refresh the selected period and preserve observation/cutoff evidence; live current
 weeks remain progress views. A same-cutoff Explore comparison is not available for this
-capture. Menufy's fresh event-stream capture and qualified ongoing collection still need
-completion before activation, alongside catalog/Preview/release checks.
+capture. Menufy's fresh event-stream capture is complete: 38 pages, 1,952 joined
+parents, 14 source-confirmed deletions and zero unresolved joins. Independent Python
+matches all 23 employee counts and contributing sets, including 1,527 solved credits
+through October 7 16:30:07 UTC. The 5,617 update-event IDs have implementation parity
+only; their report qualification remains unresolved. See
+[the aggregate receipt](2026-10-07-menufy-current-ticket-verification.json).
+
+Exact runtime `42e477b` passes CI/build `37652865585`. Runtime-identical synthetic
+Preview `5184d74` is READY (`dpl_5yWoab2m7S8bynprjH9fy62brVri`); its guarded rehearsal
+publishes both solved definitions for closed/current weeks, including a numeric zero,
+and preserves all unrelated values. Hosted UI/export checks and qualified ongoing
+collection still need completion before activation, alongside catalog/release checks.

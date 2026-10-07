@@ -1,4 +1,28 @@
 # Audit implementation — current checkpoint
+**October 7 — current Menufy capture and hosted solved publication rehearsal:**
+The bounded event stream completed 38 pages / 37,493 raw events through October 7
+16:30:07 UTC. Fresh parent joins found 1,952 tickets, 14 source-confirmed deletions
+and zero unresolved parents. Independent Python matches all 23 employees' candidate
+counts and contributing sets (1,527 solved credits; 5,617 update IDs). Updates remain
+unqualified against Explore; API implementation parity does not resolve the retained
+report discrepancies. Aggregate receipt: `2026-10-07-menufy-current-ticket-verification.json`.
+
+Exact runtime commit **42e477b** passes Linux CI/build **37652865585**, including all
+1,060 tests. Isolated Preview **5184d74** has identical runtime/schema/package content
+and is READY as **dpl_5yWoab2m7S8bynprjH9fy62brVri**. The guarded synthetic rehearsal
+publishes both solved definitions through `runSync`, verifies last-week 3/2 and
+current-week 3/0 values plus retained cutoffs, and confirms unrelated values unchanged.
+It makes no vendor requests or production writes. Hosted UI/export acceptance,
+ongoing Menufy collection, production catalog/canary/recovery and scheduling remain.
+
+The initial hosted check confirms both labels, current-week 3/0 versus prior 3/2,
+neutral progress statuses, and detailed attribution/cutoff explanations. Actual CSV
+bytes preserve these fields; downloaded PDF and PNG have identical rendered pixels.
+Visual inspection found that their compact footer omitted the new solved definitions
+and exact cutoffs. A focused follow-up adds two brief attribution notes and named
+cutoff notes, keeping detailed technical provenance in CSV. Its 21 scoped export and
+publication tests pass; exact updated CI/Preview and new visual exports remain required.
+
 **October 7 — explicit current-week solved coverage and fresh POS source check:**
 Both solved calculations now accept an explicit current-period cutoff, keeping partial
 elapsed-week coverage distinct from complete closed-week coverage. Solves at/after the
@@ -14,9 +38,9 @@ contributing ticket ID. This is source calculation evidence, not a same-cutoff E
 export or production publication. Aggregate receipt: `2026-10-07-pos-current-solved-verification.json`.
 All **1,060 tests / 132 files** pass against isolated PostgreSQL, with typecheck, full
 ESLint and changed-source formatting passing. Current-week database publication preserves
-closed-week values in synthetic tests. Exact CI/build and hosted/release gates remain.
-Private bounded Menufy current-week event collection has started; inspect its live process
-or saved checkpoint before resuming, and do not treat an incomplete capture as evidence.
+closed-week values in synthetic tests. Exact CI/build now passes as recorded above;
+hosted/release gates remain. The private Menufy capture is complete as recorded above;
+do not restart it or treat it as an ongoing production collector.
 
 **October 7 — solved-only publication implementation, not activated:** The new dedicated
 connector now takes the independently reconciled updater-solved and assignee-solved
