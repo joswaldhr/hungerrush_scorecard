@@ -1,4 +1,24 @@
 # Audit implementation — current checkpoint
+**October 7, 18:28 UTC — solved-report code released, publication inactive:**
+PR45 merged to **376aaafed437ba42c53d447c0178e7024d4fdb52**. Vercel production
+**dpl_5RiNfm8g4tPgkVxyG4X7aQ7hqYRL** is READY and owns the live alias. Candidate
+**82c1dea** passes exact CI/build **37665980261** and has identical runtime content to
+the merge; the separate master CI is still running at this checkpoint. Fresh 18:26 UTC
+encrypted backup/restore matches 35 tables / 214,065 rows through migration 0017.
+The exact two-team September 27 catalog transition and transactional rollback were
+rehearsed on the restored copy, with every table digest restored. Earlier periods and
+old targets are preserved; incompatible targets are not copied to the new definitions.
+Two private rehearsal script issues (Windows dynamic-import URL and timestamp parser
+representation) were corrected before the passing run; neither changed production.
+
+All three new authenticated production endpoints return HTTP 200 / `enabled:false`;
+unauthenticated requests return 401. The signed-in manager-scoped scorecard loads the
+closed week. No new collection/publication policy, catalog or schedule is active, and
+no employee metric was published by this release. The immediately prior compatible
+rollback is **dpl_HGEAA1j1xJ8XYJLKCMKcuTUPMoKN** / **7fa4593**. Backup evidence:
+`2026-10-07-solved-release-restore.json`. Continue bounded collection-only bootstrap,
+independent live reconciliation, dated catalog/canary publication and genuine cron.
+
 **October 7 — complete-path synthetic Preview passed:**
 Candidate **4573dcd** passes exact CI/build **37664746951** (1,109 tests / 140 files).
 Runtime-identical main Preview **3f7bcc5**, deployment **dpl_7HUcp3NJ5DWEX2GGKS8XxQisXnoL**,
