@@ -8,8 +8,33 @@ import {
   deferReportEventRequests,
   releaseReportEventCollection,
   reserveReportEventRequest,
+  REPORT_EVENT_SPACING_MS,
   type ReportEventScope,
 } from "./zendesk-report-event-store";
+
+// Only allowlisted numeric quota fields may leave the transport. Never return raw
+// headers, source bodies or URLs in rate-limit diagnostics.
+function quotaNumber(headers: Headers, names: string[], maximum: number) {
+  for (const name of names) {
+    const raw = headers.get(name);
+    if (raw !== null && /^\d+$/.test(raw) && Number(raw) <= maximum) return Number(raw);
+  }
+  return null;
+}
+function accountQuota(headers: Headers) {
+  const remaining = quotaNumber(headers, ["ratelimit-remaining", "x-rate-limit-remaining"], 1e9),
+    resetSeconds = quotaNumber(headers, ["ratelimit-reset"], 86400),
+    limit = quotaNumber(headers, ["ratelimit-limit", "x-rate-limit"], 1e9);
+  const delay =
+    remaining === null
+      ? 0
+      : remaining <= 2
+        ? (resetSeconds === null ? 60 : Math.min(86400, resetSeconds + 1)) * 1000
+        : resetSeconds === null
+          ? 0
+          : Math.ceil((resetSeconds * 1000) / (remaining - 2));
+  return { remaining, resetSeconds, limit, delayMs: delay > REPORT_EVENT_SPACING_MS ? delay : 0 };
+}
 
 /** Credentials never leave the exact GET export allowlist, including on redirects. */
 export function createReportEventReader(
@@ -34,6 +59,7 @@ export function createReportEventReader(
     } catch {
       throw Error("Report event request failed");
     }
+    const quota = accountQuota(response.headers);
     if (response.status === 429) {
       const header = response.headers.get("retry-after");
       const seconds = header !== null && /^\d+(?:\.\d+)?$/.test(header) ? Number(header) : null;
@@ -46,11 +72,21 @@ export function createReportEventReader(
             : 60000;
       if (!Number.isFinite(delay) || delay > 86400000)
         throw Error("Report retry delay exceeds collection policy");
-      return { rateLimited: true as const, retryAfterMs: Math.max(11000, delay) };
+      await response.body?.cancel().catch(() => {});
+      return {
+        rateLimited: true as const,
+        retryAfterMs: Math.max(60000, delay, quota.delayMs),
+        sourceRetryAfterMs: delay,
+        quota: { remaining: quota.remaining, resetSeconds: quota.resetSeconds, limit: quota.limit },
+      };
     }
     if (!response.ok) throw Error(`Report event request failed: HTTP ${response.status}`);
     try {
-      return { rateLimited: false as const, page: (await response.json()) as unknown };
+      return {
+        rateLimited: false as const,
+        page: (await response.json()) as unknown,
+        quotaDelayMs: quota.delayMs,
+      };
     } catch {
       throw Error("Report event response could not be read");
     }
@@ -92,7 +128,7 @@ export async function runReportEventBatch(
       let reservation = await reserveReportEventRequest(owned);
       while (!reservation.reserved) {
         if (
-          reservation.waitMs > 12000 ||
+          reservation.waitMs > 30000 ||
           Date.now() - started + reservation.waitMs >= maxDurationMs - 35000
         )
           return { status: "waiting" as const, pages, newEvents, waitMs: reservation.waitMs };
@@ -105,8 +141,18 @@ export async function runReportEventBatch(
       );
       if (response.rateLimited) {
         await deferReportEventRequests(owned, response.retryAfterMs);
-        return { status: "rate_limited" as const, pages, newEvents, waitMs: response.retryAfterMs };
+        return {
+          status: "rate_limited" as const,
+          pages,
+          newEvents,
+          waitMs: response.retryAfterMs,
+          sourceRetryAfterMs: response.sourceRetryAfterMs,
+          quota: response.quota,
+        };
       }
+      // Persist quota deferral before advancing the cursor: a failed page commit
+      // or worker interruption must not let its successor skip the cooldown.
+      if (response.quotaDelayMs > 0) await deferReportEventRequests(owned, response.quotaDelayMs);
       const committed = await commitReportEventPage(owned, current.expectedHash, response.page);
       current = committed;
       pages++;

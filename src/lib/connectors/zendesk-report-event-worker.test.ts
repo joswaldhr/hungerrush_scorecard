@@ -4,6 +4,7 @@ import { createReportEventReader, runReportEventBatch } from "./zendesk-report-e
 import { initialReportEventCursor } from "./zendesk-report-event-cursor";
 import * as store from "./zendesk-report-event-store";
 vi.mock("./zendesk-report-event-store", () => ({
+  REPORT_EVENT_SPACING_MS: 20000,
   beginReportEventCycle: vi.fn(),
   claimReportEventCollection: vi.fn(),
   commitReportEventPage: vi.fn(),
@@ -91,6 +92,106 @@ it("persists Retry-After without advancing the rejected page", async () => {
   expect(store.deferReportEventRequests).toHaveBeenCalledWith(expect.anything(), 120000);
   expect(store.commitReportEventPage).not.toHaveBeenCalled();
   expect(request).toHaveBeenCalledTimes(1);
+});
+it("backs off at least one minute and exposes only numeric quota diagnostics", async () => {
+  const request = vi.fn<typeof fetch>().mockResolvedValue(
+    new Response("private source response", {
+      status: 429,
+      headers: {
+        "retry-after": "4",
+        "ratelimit-remaining": "0",
+        "ratelimit-limit": "700",
+        "ratelimit-reset": "42",
+        "set-cookie": "private-cookie",
+        "x-request-id": "private-request",
+      },
+    })
+  );
+  const result = await runReportEventBatch(
+    scope,
+    100,
+    createReportEventReader(credentials, scope.accountReference, request)
+  );
+  expect(result).toEqual({
+    status: "rate_limited",
+    pages: 0,
+    newEvents: 0,
+    waitMs: 60000,
+    sourceRetryAfterMs: 4000,
+    quota: { remaining: 0, resetSeconds: 42, limit: 700 },
+  });
+  expect(store.deferReportEventRequests).toHaveBeenCalledWith(expect.anything(), 60000);
+  expect(store.commitReportEventPage).not.toHaveBeenCalled();
+  expect(JSON.stringify(result)).not.toContain("private");
+});
+it("persists depleted account quota before retaining the successful page", async () => {
+  const request = vi
+    .fn<typeof fetch>()
+    .mockResolvedValue(
+      new Response("{}", { headers: { "ratelimit-remaining": "1", "ratelimit-reset": "90" } })
+    );
+  await runReportEventBatch(
+    scope,
+    100,
+    createReportEventReader(credentials, scope.accountReference, request)
+  );
+  expect(store.commitReportEventPage).toHaveBeenCalledTimes(1);
+  expect(store.deferReportEventRequests).toHaveBeenCalledWith(expect.anything(), 91000);
+  expect(vi.mocked(store.deferReportEventRequests).mock.invocationCallOrder[0]).toBeLessThan(
+    vi.mocked(store.commitReportEventPage).mock.invocationCallOrder[0]!
+  );
+});
+it("handles quota header aliases and missing reset times without exposing malformed values", async () => {
+  const request = vi.fn<typeof fetch>();
+  const read = createReportEventReader(credentials, scope.accountReference, request);
+  request.mockResolvedValueOnce(
+    new Response("{}", { headers: { "x-rate-limit-remaining": "0", "ratelimit-reset": "private" } })
+  );
+  expect(await read(state.cursor.path, new AbortController().signal)).toMatchObject({
+    rateLimited: false,
+    quotaDelayMs: 60000,
+  });
+  request.mockResolvedValueOnce(
+    new Response("", {
+      status: 429,
+      headers: { "retry-after": "120", "ratelimit-limit": "private" },
+    })
+  );
+  expect(await read(state.cursor.path, new AbortController().signal)).toMatchObject({
+    rateLimited: true,
+    retryAfterMs: 120000,
+    quota: { limit: null },
+  });
+});
+it("still persists throttle deferral if disposing of the response body fails", async () => {
+  const response = new Response("private", { status: 429, headers: { "retry-after": "4" } });
+  vi.spyOn(response.body!, "cancel").mockRejectedValue(Error("private transport failure"));
+  const request = vi.fn<typeof fetch>().mockResolvedValue(response);
+  expect(
+    await runReportEventBatch(
+      scope,
+      100,
+      createReportEventReader(credentials, scope.accountReference, request)
+    )
+  ).toMatchObject({ status: "rate_limited", waitMs: 60000 });
+  expect(store.deferReportEventRequests).toHaveBeenCalledWith(expect.anything(), 60000);
+  expect(store.commitReportEventPage).not.toHaveBeenCalled();
+});
+it("does not advance the cursor if a known quota deferral cannot be persisted", async () => {
+  const request = vi
+    .fn<typeof fetch>()
+    .mockResolvedValue(
+      new Response("{}", { headers: { "ratelimit-remaining": "0", "ratelimit-reset": "90" } })
+    );
+  vi.mocked(store.deferReportEventRequests).mockRejectedValueOnce(Error("lease lost"));
+  await expect(
+    runReportEventBatch(
+      scope,
+      100,
+      createReportEventReader(credentials, scope.accountReference, request)
+    )
+  ).rejects.toThrow("lease lost");
+  expect(store.commitReportEventPage).not.toHaveBeenCalled();
 });
 it("does no source work when busy or deferred and releases after failure", async () => {
   const read = vi.fn();

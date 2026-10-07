@@ -196,7 +196,10 @@ it("fences duplicate commits, expired owners and late cleanup", async () => {
 it("retains account-wide request spacing and Retry-After through handoff", async () => {
   const worker = await own();
   expect((await reserveReportEventRequest(worker)).reserved).toBe(true);
-  expect((await reserveReportEventRequest(worker)).reserved).toBe(false);
+  const spacing = await reserveReportEventRequest(worker);
+  expect(spacing.reserved).toBe(false);
+  expect(spacing.waitMs).toBeGreaterThan(18000);
+  expect(spacing.waitMs).toBeLessThanOrEqual(20000);
   await deferReportEventRequests(worker, 60000);
   await releaseReportEventCollection(worker);
   const lease = await claimReportEventCollection({ ...scope, dataSourceId: secondSourceId });

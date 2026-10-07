@@ -282,6 +282,7 @@ describe.sequential("solved-only publication through PostgreSQL", () => {
       Date.parse(f.periodStart) / 1000,
       async () => ({
         rateLimited: false,
+        quotaDelayMs: 0,
         page: {
           ticket_events: f.snapshot.events,
           count: f.snapshot.events.length,
