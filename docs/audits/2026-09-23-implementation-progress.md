@@ -1,4 +1,26 @@
 # Audit implementation — current checkpoint
+**October 7, 19:14 UTC — pacing correction live; resumed batch passed:**
+PR46 merged to **31f4187870b5942db03f28e86c0c202d0ca039d6**. Production
+**dpl_G82oX6dFur4iAQUDiGRPGKYW26pE** is READY and owns the live aliases. Exact
+candidate `343c431` passes CI/build **37671569889** (1,114 tests / 140 files), and
+master CI **37672228925** also passes. Runtime-identical isolated Preview `8eb5d36`
+is READY with its isolation gate; the complete synthetic pipeline preserves 3/2
+closed and 3/0 current values and unrelated records. Fresh 19:05 UTC encrypted
+recovery restores 35 tables / 278,563 rows with matching digests and the catalog
+transition/rollback rehearsal intact. Login and unauthorized route checks pass.
+
+The first corrected manual batch retained ten pages / 9,988 events without a source
+throttle. It returned application `waiting` (HTTP 429 / 14.754-second remaining wait)
+at its runtime boundary, distinct from the earlier source `rate_limited` outcomes.
+Platform logs confirm the corrected deployment, controlled manual user agent,
+198.540-second duration and no crash. Total retained evidence is **74,414 events /
+75 pages**, through October 2 at 15:01:47 UTC. No client remains running. Continue
+bounded bootstrap from this checkpoint; coverage is still incomplete, and zero new
+solved values/catalog/schedules/publication policies are active. The proposed schedule
+now includes additional 21:00/23:00 collection windows because one observed batch is
+smaller than a measured source day; no schedule was installed. Recovery/Preview/live
+receipts: `2026-10-07-report-pacing-{restore,preview,production}.json`.
+
 **October 7 — repeated source throttle contained; pacing correction in validation:**
 The fifth manual report-event batch retained three pages / 2,995 events and stopped
 on another source HTTP 429. Collection is stopped at **64,426 events / 65 pages**;

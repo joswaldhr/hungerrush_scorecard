@@ -1,5 +1,13 @@
 # Production metric completion
 
+**October 7, 19:14 UTC:** The PR46 pacing correction is live and its first resumed
+manual batch advanced ten pages without source throttling. Production retains 74,414
+events / 75 pages through October 2; bootstrap is incomplete. Exact CI, isolated
+synthetic complete-path checks and fresh encrypted recovery pass. No solved catalog,
+publication policy or new schedule is active. Continue collection, fresh joins,
+independent reconciliation and scoped publication; do not treat the pacing release
+as completed employee metrics. See [the receipt](2026-10-07-report-pacing-production.json).
+
 **October 7, 18:44 UTC:** PR45's collection-only production policy is active and its
 manual bootstrap is incomplete (25,516 retained events / 26 pages before the current
 resumed batch). No new solved catalog, publication policy or schedule is active.

@@ -78,6 +78,14 @@ and its first dependent publisher. Proposed UTC slots, not yet installed:
 | 15 | Menufy solved, week 3 |
 | 17 | POS solved, week 2 |
 | 19 | POS solved, week 3 |
+| 21 | Report-event collection / retained continuation |
+| 23 | Report-event collection / retained continuation |
+
+The additional collection windows are proposed after the October 7 pacing correction:
+the first corrected invocation retained 9,988 events / ten pages, while fully traversed
+source days already contain up to 12,079 events by creation time. One observed daily
+batch therefore cannot be assumed sufficient. These entries are not installed; confirm
+delta throughput and rate-limit recovery before activation.
 
 Offsets before the initial effective Sunday skip publication. Collection must complete
 within the bounded daily capacity under the observed event rate; measure this during
@@ -88,7 +96,7 @@ Concurrent reads from unrelated integrations are outside this worker's lease; re
 source quota/Retry-After and preserve the last publication on failure.
 
 Vercel's [current documented project limit is 100 cron jobs](https://vercel.com/changelog/cron-jobs-now-support-100-per-project-on-every-plan),
-so these nine proposed entries plus the existing sixteen do not require a plan change
+so these eleven proposed entries plus the existing sixteen do not require a plan change
 for job count. Verify actual project scheduling eligibility at release; this does not
 establish execution timing, account quota or sufficient runtime.
 
