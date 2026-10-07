@@ -1,5 +1,14 @@
 # Production metric completion
 
+**October 7, 21:04 UTC:** PR47's collector/publication coordination is live after exact
+CI/build, isolated synthetic rehearsal and fresh encrypted restore. One controlled
+Menufy current-week refresh independently matches all 23 staff / **1,657 credits**,
+including three numeric zeros. All 69 exact predecessor snapshots match revisions and
+12 unrelated-data digest groups are unchanged. This closes the production refresh-revision
+check for this scope. It does not close genuine scheduling, deferred-work recovery,
+daily capacity, other metric families or remaining formats. No new schedules changed.
+See [the coordination receipt](2026-10-07-report-sync-coordination-production.json).
+
 **October 7, 20:34 UTC:** The first incremental collection refresh passes: one page,
 783 new events, exhausted through 20:32:53 UTC, with thirteen unaffected digest groups
 and prior retained events unchanged. It does not refresh the published solved values.
@@ -62,7 +71,9 @@ keys. [The aggregate inventory](2026-10-07-effective-metric-inventory.json) list
 key, unit, aggregation and status. Counts do not establish accuracy, employee-specific
 override resolution or historical membership. POS has no effective first-response
 assignment in this inventory; existing stored first-response values must not be
-mistaken for an assigned metric. None of the new solved-report keys is assigned yet.
+mistaken for an assigned metric. This inventory preceded the subsequent October 7
+solved catalog activation; the qualified solved keys are now assigned from September 27
+as recorded above, replacing the old human-only solved assignments prospectively.
 
 ## Metric acceptance matrix
 

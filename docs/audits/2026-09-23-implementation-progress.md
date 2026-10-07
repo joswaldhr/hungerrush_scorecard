@@ -1,4 +1,29 @@
 # Audit implementation — current checkpoint
+**October 7, 21:04 UTC — coordination fix live; independent refresh and revisions pass:**
+PR47 merged to `8a88279`; READY production `dpl_5LFAcRdxm6VbvAQsXobikfdMuPuK`
+owns the live aliases. Exact candidate CI passes 1,125 tests / 141 files and build;
+master CI also passes. Runtime-identical isolated Preview passes the guarded complete
+synthetic collection/publication rehearsal and signed-in 3/2 closed, 3/0 current
+checks. Fresh encrypted restore matches 35 tables / 355,285 rows. Login, route auth
+and the signed-in closed production scorecard pass. No new schedules or policies changed.
+
+The single controlled current-week Menufy refresh returned HTTP 200 in 69.527 seconds.
+Independent reconstruction matches every one of 23 employee values and contributing
+sets: **1,657 credits, three numeric zeros, no discrepancies**. Twelve unrelated-data
+digest groups remain unchanged. All **69 exact JSONB predecessor snapshots** match
+their retained revisions, without duplicates. Platform logs confirm the new deployment,
+manual user agent and no crash. This is not scheduled evidence. Immediate compatible
+rollback remains `dpl_C3zsDWZKpLvz6HCkuxzGJCV3b5tk` with the same policies.
+
+The refresh completed and its client is stopped. The active goal still includes all
+required metric families and every eligible employee on both teams. Next: durable
+deferred/failed-job recovery and measured collector capacity before schedule activation,
+then remaining POS/history/export and source-definition acceptance. Coordination covers
+the report collector versus `runSync` publications; it does not coordinate all outside
+integrations or direct diagnostics. See `2026-10-07-report-sync-coordination.md` and
+its Preview, restore and production aggregate receipts. The candidate-only checkpoint
+below is superseded by this release evidence.
+
 **October 7 — collector/publication coordination candidate in validation:**
 The local candidate makes report-event collection and ordinary sync publication
 acquire ownership under the same Zendesk account lock, then the source row lock.

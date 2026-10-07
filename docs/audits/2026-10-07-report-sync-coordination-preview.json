@@ -1,0 +1,60 @@
+{
+  "candidate": "2eb2a54e8fc9f82c595d1f73a33d3fb8bfcb9e08",
+  "previewCommit": "5a82087028295e11afbc07211849514eb9cb39cb",
+  "deploymentId": "dpl_BF6SkmwLCjzdg4CSpSdwHFxeGyxh",
+  "state": "READY",
+  "isolationBuildGatePassed": true,
+  "runtimeParityVerified": true,
+  "rehearsal": {
+    "syntheticSolvedRehearsal": true,
+    "completeCollectionAndLiveAdapterPath": true,
+    "simulatedRequests": 11,
+    "results": [
+      {
+        "key": "zendesk_tickets_solved_credits",
+        "periodStart": "2026-09-27",
+        "periodEnd": "2026-10-03",
+        "value": 3,
+        "reportingAsOf": null
+      },
+      {
+        "key": "zendesk_assignee_solved_tickets",
+        "periodStart": "2026-09-27",
+        "periodEnd": "2026-10-03",
+        "value": 2,
+        "reportingAsOf": null
+      },
+      {
+        "key": "zendesk_tickets_solved_credits",
+        "periodStart": "2026-10-04",
+        "periodEnd": "2026-10-10",
+        "value": 3,
+        "reportingAsOf": "2026-10-07T20:50:31.000Z"
+      },
+      {
+        "key": "zendesk_assignee_solved_tickets",
+        "periodStart": "2026-10-04",
+        "periodEnd": "2026-10-10",
+        "value": 0,
+        "reportingAsOf": "2026-10-07T20:52:11.082Z"
+      }
+    ],
+    "unrelatedValuesUnchanged": true,
+    "vendorRequests": 0,
+    "productionWrites": 0
+  },
+  "browser": {
+    "signedInSyntheticEmployee": true,
+    "closedSolvedValues": [
+      3,
+      2
+    ],
+    "currentSolvedValues": [
+      3,
+      0
+    ],
+    "currentStatusesNeutral": true
+  },
+  "limit": "No export renderer or metric calculation changed. Existing actual export-byte evidence is retained; this increment does not claim additional formats or production scheduler evidence.",
+  "recordedAt": "2026-10-07T20:57:33.512866+00:00"
+}
