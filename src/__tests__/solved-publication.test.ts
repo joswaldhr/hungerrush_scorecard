@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { randomUUID } from "node:crypto";
-import { beforeAll, afterAll, describe, it, expect } from "vitest";
+import { beforeAll, afterAll, describe, it, expect, vi } from "vitest";
 import { eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
@@ -22,6 +22,8 @@ import { runSync } from "@/lib/connectors/sync-engine";
 import { createSolvedPublisher } from "@/lib/connectors/zendesk-solved-publisher";
 import { solvedPublicationFixture } from "./fixtures/solved-publication";
 import { weekDates } from "@/lib/utils";
+import { runReportEventBatch } from "@/lib/connectors/zendesk-report-event-worker";
+import { createLiveUpdaterSolvedPublisher } from "@/lib/connectors/zendesk-updater-solved-publisher";
 
 const org = randomUUID(),
   source = randomUUID(),
@@ -38,7 +40,9 @@ const fixture = () => solvedPublicationFixture(config, employee, team);
 const values = () =>
   db.select().from(metricValues).where(inArray(metricValues.metricDefinitionId, ids));
 const current = async (index = 0) =>
-  (await values()).find((v) => v.metricDefinitionId === ids[index]);
+  (await values()).find(
+    (v) => v.metricDefinitionId === ids[index] && v.periodStart === weekDates(1).periodStart
+  );
 function publisher(f = fixture(), mutate?: () => Promise<void>, now?: () => Date) {
   return createSolvedPublisher(
     f.policy,
@@ -268,5 +272,97 @@ describe.sequential("solved-only publication through PostgreSQL", () => {
       provenanceJson: { reportingAsOf: asOf },
     });
     expect(after.filter((v) => v.periodStart === base.periodStart)).toEqual(before);
+  });
+  it("publishes through durable collection, live join transport and the atomic service end to end", async () => {
+    const f = fixture(),
+      legacy = await current(2),
+      cutoff = Math.floor(Date.now() / 1000) - 120;
+    const collection = await runReportEventBatch(
+      { ...config, accountReference: f.policy.accountReference },
+      Date.parse(f.periodStart) / 1000,
+      async () => ({
+        rateLimited: false,
+        page: {
+          ticket_events: f.snapshot.events,
+          count: f.snapshot.events.length,
+          end_time: cutoff,
+          end_of_stream: true,
+          next_page: null,
+        },
+      })
+    );
+    expect(collection).toMatchObject({
+      status: "collected",
+      streamExhausted: true,
+      newEvents: 1,
+      joinedMetricCoverageCertified: false,
+    });
+    expect((await current())?.numericValue).toBe(0);
+    await db
+      .update(externalIdentities)
+      .set({ externalId: "staff@example.invalid" })
+      .where(eq(externalIdentities.dataSourceId, source));
+    const request = vi.fn<typeof fetch>(async (input, options) => {
+      expect(options).toMatchObject({ method: "GET", redirect: "error" });
+      const url = new URL(String(input));
+      expect(url.origin).toBe("https://synthetic.zendesk.com");
+      if (url.pathname === "/api/v2/users.json")
+        return Response.json({
+          users: [
+            {
+              id: 42,
+              email: "staff@example.invalid",
+              role: "agent",
+              active: true,
+              suspended: false,
+            },
+          ],
+          meta: { has_more: false },
+          links: { next: null },
+        });
+      if (url.pathname === "/api/v2/tickets/show_many.json")
+        return Response.json({
+          tickets: f.snapshot.tickets,
+          metric_sets: [{ ticket_id: 100, solved_at: f.snapshot.tickets[0]!.solved_at }],
+        });
+      throw Error("Unexpected synthetic request");
+    });
+    vi.stubGlobal("fetch", request);
+    try {
+      const credentials = {
+        subdomain: "synthetic",
+        email: "source@example.invalid",
+        apiKey: "synthetic-token",
+      };
+      const closed = await runSync(
+        createLiveUpdaterSolvedPublisher(f.policy, credentials),
+        config,
+        { weekOffset: 1 }
+      );
+      expect(closed.success).toBe(true);
+      expect(await current()).toMatchObject({ numericValue: 1, qualityStatus: "complete" });
+      expect(
+        (
+          await runSync(createLiveUpdaterSolvedPublisher(f.policy, credentials), config, {
+            weekOffset: 0,
+          })
+        ).success
+      ).toBe(true);
+      const progress = (await values()).find(
+        (v) => v.metricDefinitionId === ids[0] && v.periodStart === weekDates(0).periodStart
+      );
+      expect(progress).toMatchObject({
+        numericValue: 0,
+        provenanceJson: { reportingAsOf: new Date(cutoff * 1000).toISOString() },
+      });
+      expect(await current(2)).toEqual(legacy);
+      expect(request).toHaveBeenCalledTimes(3);
+    } finally {
+      vi.unstubAllGlobals();
+      await db
+        .update(externalIdentities)
+        .set({ externalId: "agent" })
+        .where(eq(externalIdentities.dataSourceId, source));
+    }
   });
 });

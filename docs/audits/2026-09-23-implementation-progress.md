@@ -1,4 +1,22 @@
 # Audit implementation — current checkpoint
+**October 7 — inactive route controls and complete local pipeline:**
+Separate strict environment policies now control report-event collection and solved-only
+publication. The authenticated collection endpoint accepts no query overrides and never
+publishes; the publication endpoint accepts one configured kind/week, honors cutover and
+cooldown, and calls the common atomic sync service. Absent policies remain inert. Main
+Preview and fixture guards require both new policies absent. No `vercel.json` schedule
+or hosting environment was changed.
+
+The complete local PostgreSQL path now passes: durable collection, active identity
+resolution, GET-only parent joins, closed-week publication and explicit current-week
+zero/cutoff readback, with the legacy human-only row unchanged. Authentication, query,
+disabled/malformed policy, scope/cutover/cooldown and partial/busy/retry responses also
+pass (18 scoped tests). Adapter **cdda1d0** passes exact Linux CI/build **37661993009**
+with all **1,099 tests / 138 files**. The route increment's exact CI/build is pending.
+Production code, values, policies, schedules and frozen demo remain unchanged; finish
+isolated complete-path Preview rehearsal and the explicit catalog/backup/canary/scheduler
+release gates next. Do not mark solved publication or the wider metric goal complete.
+
 **October 7 — live updater solved adapter implemented, inactive:**
 The Menufy loader now resolves current staff, reads a complete durable interval,
 refreshes ticket parents/solve timestamps and requires source tombstones for missing
