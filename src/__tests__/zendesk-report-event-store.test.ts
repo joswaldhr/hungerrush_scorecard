@@ -49,18 +49,16 @@ const records = () =>
     .orderBy(sourceRecords.externalRecordType, sourceRecords.externalRecordId);
 beforeAll(async () => {
   await db.insert(organizations).values({ id: organizationId, name: "Synthetic report events" });
-  await db
-    .insert(dataSources)
-    .values(
-      [dataSourceId, secondSourceId].map((id) => ({
-        id,
-        organizationId,
-        type: "zendesk",
-        displayName: "Synthetic report events",
-        status: "configured",
-        configurationReference: accountReference,
-      }))
-    );
+  await db.insert(dataSources).values(
+    [dataSourceId, secondSourceId].map((id) => ({
+      id,
+      organizationId,
+      type: "zendesk",
+      displayName: "Synthetic report events",
+      status: "configured",
+      configurationReference: accountReference,
+    }))
+  );
 });
 beforeEach(async () => {
   await db
