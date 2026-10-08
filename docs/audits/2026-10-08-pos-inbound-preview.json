@@ -1,0 +1,110 @@
+{
+  "evidence": "isolated synthetic hosted POS publication and presentation",
+  "observedDateUtc": "2026-10-08",
+  "candidateSha": "ed5350a2cd6b1ddcbbe72e31e559386a4cac6790",
+  "exactCiRun": 37729327026,
+  "exactCiConclusion": "success",
+  "precedingPublisherCiRun": 37728421985,
+  "precedingPublisherCiConclusion": "success",
+  "previewSha": "2b89c277605c2d171f01f2d56df5f787eb1f8f38",
+  "runtimeAndScriptsIdenticalToCandidate": true,
+  "deploymentId": "dpl_8b5cqLo6TUePpm9t3p5rN4rpriGe",
+  "deploymentState": "READY",
+  "environment": "isolated Preview with separate staging database and authentication",
+  "fixtureCorrection": "Initial rehearsal stopped before publication because existing synthetic definitions used staging source strategy. Corrected only compatible definitions in the guarded synthetic organization; production contract was not relaxed.",
+  "publication": {
+    "path": "real bounded collection, durable source storage, live adapter, atomic publication and database readback; intercepted synthetic GET responses",
+    "simulatedRequests": 15,
+    "vendorRequests": 0,
+    "productionWrites": 0,
+    "periods": ["2026-09-20/2026-09-26", "2026-09-27/2026-10-03", "2026-10-04/2026-10-10"],
+    "measuresPerPeriod": 7,
+    "expectedValuesMatched": 21,
+    "closedValues": {
+      "accepted": 2,
+      "declined": 0,
+      "missed": 0,
+      "talkSeconds": 500,
+      "wholeCallHoldSecondsPerLeg": 60,
+      "durationSeconds": 600,
+      "consultationSeconds": 30
+    },
+    "currentValues": {
+      "accepted": 0,
+      "declined": 0,
+      "missed": 0,
+      "talkSeconds": 0,
+      "wholeCallHoldSecondsPerLeg": 0,
+      "durationSeconds": 0,
+      "consultationSeconds": null
+    },
+    "durationCohortPerPeriod": 3,
+    "currentConsultationMeasuredCount": 0,
+    "otherDurationMeasuredCount": 3,
+    "unrelatedValueDigestUnchanged": true
+  },
+  "presentation": {
+    "scorecardValuesMatched": 21,
+    "closedAndCurrentHistoryValuesMatched": 14,
+    "closedAndCurrentCsvValuesMatched": 14,
+    "csvRowsPerExport": 28,
+    "currentCopiedTextPosValuesMatched": 7,
+    "copiedLinkExplicitLoadedWeek": true,
+    "historyReturnRestoresSelectedWeek": true,
+    "wholeCallHoldAndSampleDefinitionChecked": true,
+    "missingConsultationExplainsZeroMeasuredOfThree": true,
+    "numericZeroRetained": true,
+    "currentStatusesNeutral": true,
+    "unverifiedTargetsWithheld": true,
+    "closedAndCurrentPdfRenderedAndInspected": true,
+    "closedAndCurrentPngInspected": true,
+    "clipboardRestored": true,
+    "nativePrintBytesVerified": false
+  },
+  "downloadedFiles": [
+    {
+      "period": "closed",
+      "format": "csv",
+      "bytes": 14887,
+      "sha256": "420f411638b20f582a7cab063648c86bba34656a56c6237299f88fb3783cbb93"
+    },
+    {
+      "period": "closed",
+      "format": "pdf",
+      "bytes": 1284702,
+      "sha256": "269e23ca6185459b064b2f5e814e3b7cb4dbc383783350eaa814da18ea01358f"
+    },
+    {
+      "period": "closed",
+      "format": "png",
+      "bytes": 1951426,
+      "sha256": "f8562ae9f427768a1fd55974f24aca5414c0ad8e9286eb57e559e3b2f26bb55a"
+    },
+    {
+      "period": "current",
+      "format": "csv",
+      "bytes": 14807,
+      "sha256": "0e1f9ac38896c79d5b2b04cfedcedd4f11fe9ff8bd2a02a432a54b0698305371"
+    },
+    {
+      "period": "current",
+      "format": "pdf",
+      "bytes": 1188064,
+      "sha256": "af4a662c3e70545d254467cb8f1a5998f37a60139e9085282ee854c3b3f3d5ca"
+    },
+    {
+      "period": "current",
+      "format": "png",
+      "bytes": 1821490,
+      "sha256": "5ab52b72853864d031dbda329bff602aa345fc9b00198b90b6f64a5f405c3105"
+    }
+  ],
+  "limits": [
+    "Synthetic hosted evidence is not fresh vendor reconciliation or production release evidence.",
+    "Seven POS measures only; all remaining metric families and both teams remain in the goal.",
+    "No POS route, production catalog, release policy or new schedule activated.",
+    "Fresh source and roster qualification, production backup/restore and canary remain required.",
+    "Genuine scheduling and recovery are not established by manual rehearsal.",
+    "Native print and independent manager sign-in remain unverified."
+  ]
+}

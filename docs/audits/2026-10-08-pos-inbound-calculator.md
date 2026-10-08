@@ -83,7 +83,10 @@ Its fetched-record digest prevents substitution. Fixed reporting dates survive r
 freshness and closed-week coverage are checked after lock acquisition, including a
 Sunday rollover after fetch. The live adapter explicitly selects `pos-call-hold-v1`,
 shares existing source pacing/leases and uses bounded GET-only collection and identity
-lookups. No environment setting or route invokes this adapter yet.
+lookups. A separate authenticated `/api/cron/pos-inbound?week=0..3` candidate now
+selects this adapter only through `ZENDESK_POS_INBOUND_RELEASE` plus the matching
+collection policy. It defaults off, resolves fixed dates before asynchronous work,
+and adds no schedule. No production policy invokes it yet.
 
 The qualified POS contract is distinct from both its candidate and the existing Menufy
 inbound contract. It replaces only exact legacy `call_stats` contributors for its seven
@@ -101,8 +104,24 @@ matches all 78 retained employee-periods, 546 values, 390 source sets and 624 du
 checks with zero differences. This replay uses synthetic release/binding metadata and
 does not qualify a real release. See `2026-10-08-pos-inbound-publisher-replay.json`.
 
-Remaining: exact candidate full tests/CI, isolated hosted scorecard/history/export and
-publication rehearsal, fresh source reconciliation and roster eligibility, prospective
+Hosted candidate `ed5350a` passes exact CI/build `37729327026`; publisher `fa92837`
+also passes `37728421985`. Runtime-identical isolated Preview `2b89c27` is READY at
+`dpl_8b5cqLo6TUePpm9t3p5rN4rpriGe`. The guarded rehearsal exercises the live adapter,
+durable collection and atomic publication for two closed weeks plus current using
+15 intercepted synthetic GET responses. All 21 expected values and duration sample
+counts match database readback; unrelated metric values retain the same digest.
+The initial fixture source-strategy mismatch was corrected only in the synthetic
+catalog; the production adapter's compatibility checks remain strict.
+
+Browser scorecards match all three periods. Closed/current stored history and actual
+CSV files match all 14 POS values, comparisons and statuses. Both PDF files were
+downloaded and rendered, and both downloaded PNGs visually inspected. Numeric zeros,
+current neutral statuses, unverified target withholding, whole-call hold definition
+and zero-of-three consultation samples are preserved. Current copied text matches
+all seven values; copied links and history returns retain the loaded week. Native
+print remains unverified. See `2026-10-08-pos-inbound-preview.json`.
+
+Remaining: fresh source reconciliation and roster eligibility, prospective
 catalog/release manifest, backup/restore, scoped production canary and genuine ongoing
 scheduling. No policy, catalog, source request, production write or demo change occurred
 while building/testing this publisher. Remaining call measures are not implicitly enabled.
