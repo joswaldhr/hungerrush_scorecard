@@ -1,0 +1,41 @@
+{
+  "observedAt": "2026-10-08T15:25:41.573Z",
+  "pullRequest": 50,
+  "sha": "2a62d53337765c553b2cdaffa0415cf764fd103e",
+  "deploymentId": "dpl_FjYh9B34SCKicN55KR1pCTRE17JA",
+  "state": "READY",
+  "liveAliasVerified": true,
+  "productionEnvironmentEntriesUnchanged": 22,
+  "cronDefinitionsUnchanged": true,
+  "cronCount": 16,
+  "recoveryEnabled": false,
+  "extraSyncsTriggered": 0,
+  "observations": [
+    {
+      "path": "/login",
+      "authenticated": false,
+      "status": 200
+    },
+    {
+      "path": "/api/cron/csat?week=0",
+      "authenticated": false,
+      "status": 401
+    },
+    {
+      "path": "/api/cron/report-recovery?slot=0",
+      "authenticated": false,
+      "status": 401
+    },
+    {
+      "path": "/api/cron/csat?week=0&week=1",
+      "authenticated": true,
+      "status": 400
+    },
+    {
+      "path": "/api/cron/report-recovery?slot=0",
+      "authenticated": true,
+      "status": 200
+    }
+  ],
+  "rollbackDeploymentId": "dpl_GNJxmAjuSeCfUVrTVui2ete9WtQ4"
+}
