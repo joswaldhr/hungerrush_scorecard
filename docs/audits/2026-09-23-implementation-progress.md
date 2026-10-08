@@ -1,5 +1,17 @@
 # Audit implementation — current checkpoint
 
+**October 8, 15:12 UTC — actual current-week CSAT recovered and independently checked:**
+One controlled request on unchanged production `baca908` returned HTTP 200 and
+published 85 assigned CSAT values for all 62 current staff. Independent Python
+reconstruction from retained source records matches every value and cohort with zero
+differences. All 85 predecessor snapshots and six unrelated-data digest groups match.
+Ten numeric zeros and 25 legitimate no-sample nulls retain their meanings. No source
+configuration changed. Fresh encrypted restore passed at 15:06. See
+`2026-10-08-csat-controlled-recovery.json` and `2026-10-08-csat-refresh-restore.json`.
+This recovers today's failed current-week observation; it is not scheduled-recovery
+evidence and does not close other metric gaps. Recovery code `a59a9df` passes exact
+CI/build `37797969105`; hosted acceptance and activation remain separate work.
+
 **October 8, 15:05 UTC — CSAT durable recovery locally validated:**
 The independently gated CSAT recovery job now retains fixed reporting dates and
 source retry-after through the existing account lease/fenced acknowledgement queue.
