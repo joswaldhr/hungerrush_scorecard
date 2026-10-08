@@ -11,6 +11,7 @@ import { solvedPublicationFixture } from "../src/__tests__/fixtures/solved-publi
 let stage = "guard";
 async function main() {
   assert.equal(process.argv[2], "--apply");
+  assert(process.argv[3] === undefined || process.argv[3] === "--recovery");
   assert.equal(process.env.VERCEL_ENV, "preview");
   assert.equal(process.env.VERCEL_GIT_COMMIT_REF, "codex/main-operational-upgrade");
   const url = new URL(process.env.DATABASE_URL ?? "");
@@ -131,6 +132,20 @@ async function main() {
         }
       }
     });
+    if (process.argv[3] === "--recovery") {
+      stage = "complete synthetic recovery dispatcher";
+      const { rehearseReportRecovery } = await import("./staging-report-recovery");
+      await rehearseReportRecovery({
+        connection,
+        org,
+        source,
+        employee,
+        team,
+        fingerprint,
+        before,
+      });
+      return;
+    }
     const { createLiveUpdaterSolvedPublisher } =
       await import("../src/lib/connectors/zendesk-updater-solved-publisher");
     const { createLiveAssigneeSolvedPublisher } =
