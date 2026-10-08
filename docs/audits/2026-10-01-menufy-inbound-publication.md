@@ -1,5 +1,20 @@
 # Menufy inbound publisher — October 1
 
+## October 8 boundary correction candidate
+
+The pending publisher now supports the sync service's fixed reporting period. The
+route selects dates before any asynchronous cooldown work, preventing a Sunday
+rollover from changing the requested week. The publisher also rechecks the retained
+source observation after acquiring publication locks. Expired evidence and a capture
+started before a now-closed local week ended stop publication without changing prior
+values. The current/future catalog cutovers and source formulas remain unchanged.
+
+Thirteen focused tests cover route rollover, explicit previous-week writes preserving
+current values, freshness expiry, boundary rejection and existing transaction controls.
+All 1,209 tests / 151 files plus typecheck/scoped lint pass locally. Exact CI and hosted
+validation remain pending; the Menufy publication policy is still inactive. This does
+not enable the four October 11 assignments early or qualify unrelated averages.
+
 The user authorized completing verification and production delivery. This candidate
 implements the missing publication path; it is not yet activated or released.
 

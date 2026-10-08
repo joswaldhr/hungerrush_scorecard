@@ -1,0 +1,46 @@
+{
+  "observedAt": "2026-10-08T15:24:57.271Z",
+  "mode": "read-only production snapshot reconstruction; no vendor requests",
+  "employeeCohort": "62 currently active employees; not a historical membership certification",
+  "periods": [
+    {
+      "periodStart": "2026-09-20",
+      "employees": 62,
+      "valuesChecked": 85,
+      "contributingCohortsChecked": 85,
+      "differences": 0,
+      "numericZeros": 5,
+      "noSampleNulls": 21,
+      "oldestSourceObservation": "2026-10-08T12:47:04.237Z",
+      "latestSourceObservation": "2026-10-08T12:49:34.106Z"
+    },
+    {
+      "periodStart": "2026-09-27",
+      "employees": 62,
+      "valuesChecked": 85,
+      "contributingCohortsChecked": 85,
+      "differences": 0,
+      "numericZeros": 10,
+      "noSampleNulls": 18,
+      "oldestSourceObservation": "2026-10-08T10:19:57.610Z",
+      "latestSourceObservation": "2026-10-08T10:22:05.270Z"
+    },
+    {
+      "periodStart": "2026-10-04",
+      "employees": 62,
+      "valuesChecked": 85,
+      "contributingCohortsChecked": 85,
+      "differences": 0,
+      "numericZeros": 10,
+      "noSampleNulls": 25,
+      "oldestSourceObservation": "2026-10-08T15:09:14.765Z",
+      "latestSourceObservation": "2026-10-08T15:10:29.455Z"
+    }
+  ],
+  "totalValueChecks": 255,
+  "independentDifferences": 0,
+  "limits": [
+    "No new Explore export was obtained; independent arithmetic and cohort reconstruction use retained source evidence.",
+    "Scheduling/recovery capacity, actual manager login and other metric families remain separate checks."
+  ]
+}

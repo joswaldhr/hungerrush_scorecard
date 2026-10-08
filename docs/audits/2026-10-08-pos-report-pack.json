@@ -1,0 +1,31 @@
+{
+  "observedAt": "2026-10-08T16:23:39.045953+00:00",
+  "employees": 39,
+  "coverage": {
+    "POS Ticket Audit.csv": {
+      "currentEmployees": 39,
+      "matchedEmployees": 37,
+      "absentEmployees": 2
+    },
+    "POS IB Audit.csv": {
+      "currentEmployees": 39,
+      "matchedEmployees": 36,
+      "absentEmployees": 3
+    },
+    "POS OB Audit.csv": {
+      "currentEmployees": 39,
+      "matchedEmployees": 35,
+      "absentEmployees": 4
+    },
+    "POS Support Status Audit.csv": {
+      "currentEmployees": 39,
+      "matchedEmployees": 37,
+      "absentEmployees": 2
+    }
+  },
+  "qualifiedValues": 195,
+  "sourceSha256": "6f6401c782dddf5812f1df1020743be491731eb4df5a05d62d53e00602521e20",
+  "outputSha256": "a925316c6704aaf40d634d94c641a0dadd60af6bfbecb7b8e2f0204a46c01636",
+  "productionWrites": 0,
+  "reportChanges": 0
+}

@@ -1,0 +1,16 @@
+{
+  "observedAt": "2026-10-08T16:19:54.196036+00:00",
+  "employees": 23,
+  "periodStart": "2026-09-27",
+  "periodEnd": "2026-10-03",
+  "valuesCompared": 115,
+  "publishedEmployeeSourceSetsChecked": 46,
+  "differences": 0,
+  "numericZeros": 64,
+  "noSampleNulls": 0,
+  "unrelatedDigestGroupsUnchanged": 11,
+  "predecessorValueSnapshotsMatchedAtCapturedPrecision": 69,
+  "sourceRequests": 0,
+  "verificationDatabaseWrites": 0,
+  "independentReference": "Recomputed full retained call/leg data in Python, then compared exact persisted employee source sets and values."
+}

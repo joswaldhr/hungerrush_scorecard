@@ -1,0 +1,25 @@
+{
+  "observedAt": "2026-10-08T16:23:26.030777+00:00",
+  "periodStart": "2026-09-27",
+  "periodEnd": "2026-10-03",
+  "liveManagerViewsVerified": 2,
+  "actualDownloadedCsv": [
+    {
+      "team": "pos",
+      "bytes": 11655,
+      "sha256": "205935f8981f6130a65c575df6a16f673f9924c6fed6016833803c07ca25b55d",
+      "qualifiedValuesCompared": 5,
+      "differences": 0
+    },
+    {
+      "team": "menufy",
+      "bytes": 9481,
+      "sha256": "45a7616b59c8948e3736a8ec44dd6bb5581e4d88b53160961046013e67c914d5",
+      "qualifiedValuesCompared": 5,
+      "differences": 0
+    }
+  ],
+  "nativePrintVerified": false,
+  "newPdfPngByteInspection": false,
+  "runtimeExportCodeUnchanged": true
+}
