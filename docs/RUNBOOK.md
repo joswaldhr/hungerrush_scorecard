@@ -306,6 +306,33 @@ Unresolved source meaning must remain unavailable in the product. A release cont
 containment is not certification of historical totals. Keep production rollout, metric-version
 activation and historical repair as distinct, evidenced operations.
 
+## Manager meeting-roster archive and restore
+
+Use **1:1s → Manage roster** for a manager-confirmed departure from that manager's
+meeting list. Record a concise confirmation reason, then select **Archive from my
+roster**. Verify the person moved to Archived and disappeared from that manager's
+active picker. An administrator can perform this through the existing view-as
+context; confirm the displayed manager before submitting.
+
+The archive retains its actor, reason and recorded date. It survives source
+rediscovery and does not affect another manager's list. Existing authorized
+scorecard/history access remains. If the person returns, use **Restore to my
+roster**, record a reason and verify the active picker. If a stale-form error
+appears, refresh and review the current decision before retrying.
+
+At weekly meeting preparation, review Data Health for directory conflicts and
+confirm roster changes with the manager. A disabled account alone must not become
+an employment-termination decision. Source membership, HR employment status and
+access revocation require their own authoritative confirmation and process; this
+archive does not perform them. Do not change Zendesk to resolve a Cadence roster
+discrepancy. Organization-level directory review retains unresolved conflicts.
+
+When diagnosing a repeated appearance, check the manager context and open archive
+first. Do not delete historical employee data or erase a decision to repair a
+source mismatch. A code rollback to a version before PR58 retains the additive
+table but stops honoring the archive in the active picker; record that consequence.
+See the [verified release and process](audits/2026-10-08-manager-roster-archive.md).
+
 ## Directory roster review
 
 Directory checks use a dedicated `entra` data source whose configuration reference

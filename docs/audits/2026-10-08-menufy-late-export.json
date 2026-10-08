@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-10-08T22:02:03.853619+00:00",
+  "periodStart": "2026-09-27",
+  "periodEnd": "2026-10-03",
+  "reportingTimezone": "America/Chicago",
+  "reportFiles": 8,
+  "changedCells": 18,
+  "changedReports": 2,
+  "updateReportRows": 21,
+  "updateMatches": 17,
+  "updateDifferences": 4,
+  "outboundReportRows": 19,
+  "outboundMatches": 17,
+  "outboundDifferences": 2,
+  "freshSourceCapture": false,
+  "publication": false,
+  "databaseWrites": 0,
+  "vendorWrites": 0,
+  "exportSha256": "958e25556a82732e7a5665bdca5975d0e78af5217b301c1ec69083bef7bf2516"
+}

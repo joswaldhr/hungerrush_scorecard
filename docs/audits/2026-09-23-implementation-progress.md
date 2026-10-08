@@ -1,5 +1,22 @@
 # Audit implementation — current checkpoint
 
+**October 8, 22:05 UTC — metric qualification resumed after the roster release:**
+The 21:57 UTC unchanged Menufy dashboard export and 22:03 UTC parent attributes now
+match all 21 populated September 27–October 3 update rows exactly. Independent replay
+matches all 23 source counts and contributing event sets. No formula was changed;
+no guessed follower-event exclusion was applied. Source reads resolve 4,911 parents
+and 40 tombstones in 52 bounded GETs. Meeting-list archiving does not alter that
+historical source cohort. See [current contract](2026-10-06-report-ticket-credit-contract.md)
+and [aggregate parity](2026-10-08-menufy-update-late-parity.json).
+
+This is qualification, not publication: the comparison retains October 6 events;
+fresh events/identities and required multi-period qualification remain. A separate
+read-only production checkpoint is exhausted at 18:43 UTC, outside the one-hour
+publication window at this check. The fresh export still differs for two Menufy
+outbound rows by one completed call each (seven and 36 talk seconds); those exclusions
+remain. No metric/database/vendor writes occurred in this follow-up. The viewer
+is closed. The permanent archive/restore procedure is now also in the runbook.
+
 **October 8, 21:53 UTC — PR58 manager roster archive live:**
 Master `ea7138b` / `dpl_5BDnKrAqA8LpZfZDDzuaze4iWqWj` is READY on the
 production alias. Candidate `b17594a` and master CI/build `37849269164` /
