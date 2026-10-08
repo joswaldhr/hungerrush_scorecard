@@ -503,8 +503,9 @@ it("recovers a later parent across invocations without discarding or refreshing 
     accountReference,
     observationLimits: { maxAgeMs: 26 * 3600000, maxSpanMs: 3600000 },
   };
-  const plan = (offset = 2, now = new Date()) =>
-    planOutboundRecovery(policy, metricScope.periodStart, metricScope.periodEnd, offset, now);
+  const period = { periodStart: metricScope.periodStart, periodEnd: metricScope.periodEnd };
+  const plan = (now = new Date()) =>
+    planOutboundRecovery(policy, period.periodStart, period.periodEnd, now);
   expect(await plan()).toEqual({ mode: "both" });
   const failedId = randomUUID(),
     successId = randomUUID();
@@ -522,17 +523,36 @@ it("recovers a later parent across invocations without discarding or refreshing 
       errorType: "fetch_fatal",
       message: "Incomplete outbound parent-call coverage",
     });
+    // Offset-only evidence cannot identify the original week after rollover.
+    expect(await plan()).toEqual({ mode: "both" });
+    await db.update(syncRuns).set({ metadataJson: { period } }).where(eq(syncRuns.id, failedId));
     expect(await plan()).toEqual({ mode: "calls-only", legsState: before.legsState });
-    expect(await plan(1)).toEqual({ mode: "both" });
+    expect(await planOutboundRecovery(policy, "2026-09-06", "2026-09-12")).toEqual({
+      mode: "both",
+    });
+    await db
+      .update(syncRuns)
+      .set({ metadataJson: { period: { ...period, periodEnd: "2026-09-18" } } })
+      .where(eq(syncRuns.id, failedId));
+    expect(await plan()).toEqual({ mode: "both" });
+    await db.update(syncRuns).set({ metadataJson: { period } }).where(eq(syncRuns.id, failedId));
     expect(
-      await plan(2, new Date(Date.parse(before.legsState.observationStartedAt) + 3600000))
+      await plan(new Date(Date.parse(before.legsState.observationStartedAt) + 3600000))
     ).toEqual({ mode: "both" });
     await db.insert(syncRuns).values({
       id: successId,
       dataSourceId,
       status: "completed",
-      metadataJson: { weekOffset: 2, fetch: { family: "outbound_call_participation" } },
+      metadataJson: {
+        period: { periodStart: "2026-09-06", periodEnd: "2026-09-12" },
+        fetch: { family: "outbound_call_participation" },
+      },
     });
+    expect(await plan()).toEqual({ mode: "calls-only", legsState: before.legsState });
+    await db
+      .update(syncRuns)
+      .set({ metadataJson: { period, fetch: { family: "outbound_call_participation" } } })
+      .where(eq(syncRuns.id, successId));
     expect(await plan()).toEqual({ mode: "both" });
   } finally {
     await db.delete(syncErrors).where(eq(syncErrors.syncRunId, failedId));
