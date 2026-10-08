@@ -26,7 +26,7 @@ const definitionSchema = z.discriminatedUnion("kind", [
     .strict(),
 ]);
 export type ReportJobDefinition = z.infer<typeof definitionSchema>;
-const stateSchema = z
+export const reportJobStateSchema = z
   .object({
     version: z.literal(1),
     accountReference: z.string(),
@@ -46,7 +46,7 @@ const stateSchema = z
       .nullable(),
   })
   .strict();
-type State = z.infer<typeof stateSchema>;
+type State = z.infer<typeof reportJobStateSchema>;
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 const selector = (scope: ReportEventScope) =>
   and(
@@ -108,7 +108,7 @@ async function put(tx: Tx, scope: ReportEventScope, state: State) {
     });
 }
 function readState(payload: unknown, scope: ReportEventScope) {
-  const state = stateSchema.parse(payload);
+  const state = reportJobStateSchema.parse(payload);
   if (state.accountReference !== scope.accountReference) throw Error("Report job account changed");
   return state;
 }

@@ -1,5 +1,41 @@
 # Production metric completion
 
+## Current readiness and next work — October 8, 20:30 UTC
+
+This table supersedes older status paragraphs below. A published number, successful
+job or reported-value count is not a whole-scorecard accuracy claim.
+
+| Workstream | Verified state | Next acceptance check |
+|---|---|---|
+| Solved report credits | Both teams' September 27 and October 4 queue generations completed. Current-week independent reconstruction matches 23 Menufy and 39 POS values with zero differences, including five genuine zeros. | Correlate the two newer runs with platform invocation logs; observe the next six-hour collection and a full recurring day. |
+| Ticket updates | Menufy retained evidence still has one unexplained report-membership difference; POS needs its own report definition. | Same-period, same-filter, same-cutoff source/report comparison with exact contributing sets before publication. |
+| Inbound and outbound | Scoped independent canaries are recorded below; five outbound employees remain excluded. Some legacy numeric measures still lack qualified contracts. | Resolve those source joins and qualify each remaining measure; then verify genuine recurring publication and recovery. |
+| CSAT and first reply | Separate qualified policies exist. No-rating cohorts remain null. Optional CSAT recovery is not enabled. | Verify repeated scheduling, bounded recovery, sample denominators and observation freshness independently. |
+| Roster lifecycle | Legacy discovery still depends on successful current-week metric sync. Independent roster route has no dedicated installed schedule. Departures require review. | Decouple discovery, expose its health, and define authoritative team-removal handling before unattended archival. |
+| Manager experience | Administrator view-as and prior export bytes were checked. | Each manager's own sign-in and normal meeting/export workflow; native print remains unverified. |
+
+**Fresh roster discrepancy:** a manager-reported former team member remains an
+active, unsuspended Zendesk agent in the mapped group. Today's 06:12 UTC Cadence
+observation and 20:30 UTC bounded source read agree; no departure proposal exists.
+This is a source-authority gap, not evidence of company employment. Zendesk's
+`active` means not deleted, not employed. Do not archive employment from this flag.
+Add a dated, reviewed team-membership override with history and protection against
+automatic re-addition, then reconcile it against an agreed roster authority.
+Keep personnel details in private evidence; no Zendesk or employee changes occurred.
+
+**Execution order:** finish the focused Data Health release; address roster authority
+and discovery visibility; finish one metric family at a time using independent
+report/source comparisons, then prove recurring operation. Keep a single owner for
+integration and releases. Parallel research, when requested, must have disjoint
+scopes and cannot mutate vendors or production independently.
+
+**Completion standard:** every expected employee/metric/period has a correctly
+defined value or a truthful, explained no-sample/not-applicable state; unexplained
+gaps are zero, source sets and denominators reconcile, and refresh/retry/access/export
+behavior is observed. Never replace missing evidence with zero to improve coverage.
+
+Earlier dated sections below are historical evidence, not the current checklist.
+
 **October 8, 18:11 UTC — continuation repair live and current acceptance baseline:**
 PR54 (`bf7ea0d`) corrects deleted-ticket pagination; isolated synthetic checks, all
 1,224 tests, exact CI/build and production read checks pass. Fresh parent joins reduce

@@ -1,5 +1,27 @@
 # Audit implementation — current checkpoint
 
+**October 8, 20:30 UTC — recovery queue drained; reporting-readiness candidate:**
+Read-only production checks show both current-week solved jobs completed (23 Menufy
+values at 19:15 and 39 POS values at 19:30 UTC), with no job failures or active leases.
+Independent retained-source reconstruction matches all 62 values, 2,104 Menufy event
+contributions and 911 POS ticket contributions, including five numeric zeros. These
+two runs still require their own platform-log correlation; no manual sync was issued.
+The next collection window and full recurring day remain unobserved.
+
+The focused `codex/reporting-readiness` candidate adds organization/team-scoped,
+read-only recovery status by period, distinguishes latest source activity from
+completed requests, and explains the legacy manual button's limited refresh scope.
+Local full tests pass (1,236 / 153 files); hosted verification/release remain pending.
+It changes no metrics, assignments, source configuration, schedules or demo behavior.
+
+A separate manager-reported roster discrepancy was traced: the person is still
+present in Zendesk's mapped group as an active, unsuspended agent, matching today's
+Cadence observation. No departure proposal exists. This does not verify employment;
+no employee/vendor mutation was made. The roster authority/removal workflow is an
+explicit open requirement. See the current table in the
+[completion matrix](2026-10-07-metric-completion-matrix.md), which supersedes its
+older historical status paragraphs.
+
 **October 8, 19:02 UTC - Pro recovery live and actual scheduled publication verified:**
 Production remains `ba96597` / `dpl_D4Ff1Txjjnqn2ue7KALjn8nLDgde` with the
 15-minute dispatcher enabled for the qualified solved-report policies only.

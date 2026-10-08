@@ -1,6 +1,7 @@
 {
   "git": {
     "deploymentEnabled": {
+      "codex/reporting-readiness": false,
       "codex/pro-recovery-scheduler": false,
       "codex/report-deletion-pagination": false,
       "codex/outbound-release-evidence": false,

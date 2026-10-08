@@ -13,6 +13,8 @@ import { SyncNowButton } from "./actions";
 import { AutoRefresh } from "./auto-refresh";
 import { sourceSupport } from "@/lib/connectors/source-support";
 import { syncRunHealth } from "@/lib/connectors/sync-run-health";
+import { getReportRecoveryHealth } from "@/lib/domain/metrics/report-recovery-health";
+import { ReportRecoveryHealth } from "@/components/report-recovery-health";
 
 function syncStatusIcon(status: string) {
   switch (status) {
@@ -42,6 +44,7 @@ export default async function DataHealthPage() {
 
   const now = new Date();
   const nowTs = now.getTime();
+  const recovery = await getReportRecoveryHealth(ctx.organizationId, ctx.assignedTeamIds, now);
 
   const sources = await db
     .select()
@@ -82,15 +85,17 @@ export default async function DataHealthPage() {
     })
   );
 
-  const anySyncing = sourceHealth.some(
-    (s) =>
-      sourceSupport(s.source.type) === "supported" &&
-      s.source.status === "configured" &&
-      s.health.status === "running"
-  );
+  const anySyncing =
+    recovery.rows.some((row) => row.status === "running") ||
+    sourceHealth.some(
+      (s) =>
+        sourceSupport(s.source.type) === "supported" &&
+        s.source.status === "configured" &&
+        s.health.status === "running"
+    );
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="max-w-5xl space-y-6">
       <AutoRefresh active={anySyncing} />
       <header>
         <h1 className="text-xl font-semibold text-foreground">Data Health</h1>
@@ -98,6 +103,12 @@ export default async function DataHealthPage() {
           Status of external data sources and recent sync activity
         </p>
       </header>
+
+      <ReportRecoveryHealth health={recovery} />
+      <p className="text-sm text-muted-foreground">
+        The source cards below show the latest activity only. A recent successful run does not mean
+        all metric families or reporting weeks have refreshed.
+      </p>
 
       <div className="space-y-3">
         {sourceHealth.map(({ source, latestRun, errors, health }) => {
@@ -138,7 +149,7 @@ export default async function DataHealthPage() {
                             ? source.status === "disabled"
                               ? "Disabled"
                               : "Not enabled"
-                            : health.label}
+                            : `Latest run: ${health.label}`}
                     </Badge>
                     {support === "supported" && enabled && (
                       <SyncNowButton dataSourceType={source.type} />
