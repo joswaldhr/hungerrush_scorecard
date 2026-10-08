@@ -1,0 +1,32 @@
+{
+  "observedAt": "2026-10-08T18:10:09.547Z",
+  "pullRequest": 54,
+  "sha": "bf7ea0de2d92c757cb41f3ee0b24493b81ab5251",
+  "deploymentId": "dpl_9tJxGRF9S45ad4nsGFKXhzUANDqd",
+  "ready": true,
+  "productionAliasVerified": true,
+  "unchangedEnvironmentEntries": 22,
+  "unchangedCronDefinitions": 16,
+  "sourceSyncsTriggered": 0,
+  "databaseWrites": 0,
+  "checks": [
+    {
+      "path": "/login",
+      "status": 200
+    },
+    {
+      "path": "/api/cron/outbound?week=0",
+      "status": 401
+    },
+    {
+      "path": "/api/cron/report-recovery?slot=0",
+      "status": 401
+    },
+    {
+      "path": "/api/cron/outbound?week=0",
+      "status": 200,
+      "authenticated": true,
+      "enabled": false
+    }
+  ]
+}

@@ -1,5 +1,29 @@
 # Audit implementation — current checkpoint
 
+**October 8, 18:11 UTC — PR54 live; full manager-visible census retained:**
+PR54 merged as `bf7ea0d`; production `dpl_9tJxGRF9S45ad4nsGFKXhzUANDqd` is
+READY and owns the live alias. Exact final candidate `f95e545` CI/build
+`37821453954` passes. Authenticated scorecard selection, login, anonymous cron
+rejection and the inactive outbound route are verified. All 22 production environment
+metadata entries and 16 cron definitions are unchanged; no smoke-triggered sync.
+See [production verification](2026-10-08-report-deletion-production.json).
+
+The read-only production domain reader, using each actual manager's access context
+and visibility settings, checks 23 Menufy and 39 POS employees for September 20,
+September 27 and October 4. This establishes current manager access and displayed
+coverage, not a historical roster reconstruction or accuracy percentage. September
+27 has 296 reported / 61 unavailable Menufy cells and 588 / 153 POS cells. Some
+unavailable results are genuine no-rating/no-duration cohorts; some numeric legacy
+values still lack qualified source definitions. Neither filling blanks nor counting
+numeric cells certifies those values. See the aggregate manager-visible coverage file.
+
+Next work stays explicit: close Menufy's remaining one-update report-membership
+discrepancy and qualify fresh report-credit publication; establish POS's own update
+measure; qualify remaining legacy inbound/handling/escalation/backlog measures;
+finish multi-period replay and recurring collection/publication/recovery; complete
+roster lifecycle, manager-own-login and export acceptance. Zendesk and the demo
+remain unchanged. The candidate/pending-deployment description below is superseded.
+
 **October 8, 18:05 UTC — report refresh fix qualified, update residual narrowed:**
 PR54 fixes a real deleted-ticket continuation rejection without changing formulas
 or enabling a producer. The corrected GET-only diagnostic joins all 4,951 parent
