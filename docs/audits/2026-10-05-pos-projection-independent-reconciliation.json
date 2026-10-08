@@ -1,0 +1,14 @@
+{
+  "rows": 77,
+  "blockedEmployeePeriods": 1,
+  "closedWeekRows": 39,
+  "currentWeekRows": 38,
+  "employees": 39,
+  "periods": 2,
+  "sourceSetComparisons": 539,
+  "durationComparisons": 385,
+  "differences": 0,
+  "scope": "known-14-groups-diagnostic-only",
+  "reportScopeCertified": false,
+  "publicationEnabled": false
+}

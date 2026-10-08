@@ -102,6 +102,32 @@ Keep both policies unset during default Preview deployments. Synthetic rehearsal
 must reject vendor credentials, verify the exact isolated database, and publish only
 synthetic records. Do not populate real credentials merely to test disabled route behavior.
 
+### POS inbound candidate
+
+`/api/cron/pos-inbound?week=0` accepts exactly one offset 0–3 and the environment's
+scheduler bearer credential. It is disabled unless `ZENDESK_POS_INBOUND_RELEASE` is
+set to strict private JSON accepted by `parsePosInboundRelease`: a policy plus its
+qualified release-evidence SHA-256. The policy owns the organization/source/account,
+team, prospective Sunday cutover, timezone, leg-created dates, group/line scope,
+explicit metric keys and observation limits. It is separate from Menufy's inbound
+release. No schedule is added by this route, and installing code does not enable it.
+
+The shared Talk collection policy must identify the same account, source and
+organization. The live adapter selects the separate `pos-call-hold-v1` projection;
+it retains bounded collection, shared account pacing, completeness and atomic
+publication checks. Dates are resolved once before asynchronous work and passed as
+fixed dates to the sync engine. Invalid policy/source configuration returns 503;
+cooldown returns 429; incomplete or failed publication returns 503 while preserving
+the previous good values. Authentication and query validation occur before source work.
+
+Before activation, qualify fresh source/employee evidence, effective assignments and
+the exact source definition. The October 7 inventory contains five of these seven
+POS assignments; declined/missed additions require an explicit prospective assignment
+decision and catalog receipt, not a silent historical backfill. Perform the normal
+backup/restore and scoped canary gates. Genuine scheduled operation remains a separate
+acceptance check. Clear only this POS release to disable its publisher; do not change
+Menufy, CSAT, first-reply, solved or human-only policies incidentally.
+
 The audit branch is `codex/audit-reliability-checkpoints`; `master` deploys production.
 Preview uses its separate Railway database and Entra sign-in registration. Check the exact
 commit/deployment before claiming hosted verification. Use synthetic rows for UI tests and

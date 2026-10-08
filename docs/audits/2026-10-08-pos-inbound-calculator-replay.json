@@ -1,0 +1,42 @@
+{
+  "observedAt": "2026-10-08T04:13:00Z",
+  "contract": "zendesk-pos-leg-date-inbound-report-v1",
+  "reportMeasuresImplemented": 7,
+  "dateBasis": "leg-created",
+  "reportingTimeZone": "America/Chicago",
+  "weeklyExport": {
+    "interval": "2026-09-13/2026-09-19",
+    "rows": 55,
+    "comparisons": 385,
+    "differences": 0,
+    "durationComparison": "Floor seconds to match retained report display"
+  },
+  "monthlyExport": {
+    "interval": "2026-09-06/2026-10-05",
+    "rows": 71,
+    "comparisons": 497,
+    "differences": 0,
+    "absoluteDurationToleranceSeconds": 1e-9,
+    "independentPythonSelectedLegSetsMatched": 71
+  },
+  "retainedOctober6Capture": {
+    "periods": ["2026-09-27/2026-10-03", "2026-10-04/2026-10-10"],
+    "currentEmployees": 39,
+    "employeePeriods": 78,
+    "values": 546,
+    "exactSourceSets": 390,
+    "durationNumeratorsAndDenominators": 624,
+    "differences": 0,
+    "groupSelectionMatchesQualifiedCurrentNameScope": true
+  },
+  "newSourceRequests": 0,
+  "productionWrites": 0,
+  "publicationEnabled": false,
+  "deploymentPerformed": false,
+  "limits": [
+    "Independent baseline references were retained from their dated prior comparisons; no fresh vendor or report export was requested.",
+    "Saved report parity is distinct from historical employment eligibility, compatible targets, fresh coverage and ongoing operation.",
+    "Offered calls, true on-hold abandonment and transfer metrics remain separate unfinished contracts.",
+    "The calculation is not connected to a production publisher."
+  ]
+}

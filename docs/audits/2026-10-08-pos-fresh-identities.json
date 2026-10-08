@@ -1,0 +1,17 @@
+{
+  "observedAt": "2026-10-08T05:18:36.472Z",
+  "readOnly": true,
+  "sourceMethods": ["GET"],
+  "databaseWrites": 0,
+  "activePosEmployees": 39,
+  "verifiedActiveStaffIdentities": 39,
+  "staffRequests": 4,
+  "groupRequests": 2,
+  "groupScopeUnchanged": true,
+  "exactNameGroupCount": 14,
+  "retainedHistoricalAliasCount": 4,
+  "unknownLabels": 0,
+  "scopeBasis": "October 6 saved report labels and previously source-set-qualified exact group names; fresh census matches.",
+  "historicalEmploymentEligibilityProven": false,
+  "publicationEnabled": false
+}

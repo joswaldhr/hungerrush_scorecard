@@ -1,0 +1,16 @@
+{
+  "observedAt": "2026-10-06T14:23:24.033Z",
+  "selectedLabels": 18,
+  "uniquelyBoundLabels": 18,
+  "renameHistoryResolvedLabels": 4,
+  "distinctGroupIds": 17,
+  "additionalGroupIds": 3,
+  "aliasLabels": 1,
+  "priorKnownIdsPreserved": true,
+  "sourceRequests": 0,
+  "metricWrites": 0,
+  "reconciliationWithExpandedScope": false,
+  "allDefinitionTabsClosed": true,
+  "filtersEdited": false,
+  "reportSaved": false
+}
