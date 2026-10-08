@@ -1,5 +1,26 @@
 # Audit implementation — current checkpoint
 
+**October 8, 21:53 UTC — PR58 manager roster archive live:**
+Master `ea7138b` / `dpl_5BDnKrAqA8LpZfZDDzuaze4iWqWj` is READY on the
+production alias. Candidate `b17594a` and master CI/build `37849269164` /
+`37849675687` pass. Local validation passes 1,275 tests / 158 files, typecheck,
+ESLint and formatting. Isolated hosted synthetic archive/restore, empty-list
+navigation, retained scorecard access, keyboard submission and light/dark checks pass.
+Fresh 21:50 UTC encrypted backup restores all 35 pre-migration tables / 389,063
+rows with matching digests; additive `0018` rehearsal preserves existing data.
+The explicit production migration and one manager-confirmed archive are applied.
+
+The affected manager now has 22 active meeting-roster entries and one archived;
+the other manager remains at 39 active / zero archived. All eight protected
+employee/assignment/metric/target table digests match. Production picker, archive
+record and 22/22 active-roster directory display are verified via administrator
+view-as. Actual manager-own-login acceptance is not implied. Archive/restore retains
+decision history and survives source rediscovery, without declaring termination,
+revoking existing authorized history access or changing vendor/team assignments.
+See [workflow and release](2026-10-08-manager-roster-archive.md) and
+[canary evidence](2026-10-08-manager-archive-canary.json). Metric work resumes next;
+no metric qualification gaps were changed by this release.
+
 **October 8 — manager roster archive candidate (not live):**
 The user authorized completion of the manager-specific removal and ongoing archive
 process before resuming metric work. `codex/manager-roster-archive` adds a durable,

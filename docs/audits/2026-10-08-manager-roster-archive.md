@@ -1,5 +1,34 @@
 # Manager meeting-roster archive
 
+## Verified release
+
+PR58 merged as `ea7138b14506e5a825fa1b8fc0acd96e546bd14f`. Production
+`dpl_5BDnKrAqA8LpZfZDDzuaze4iWqWj` is READY and owns the live alias.
+Candidate `b17594a30dd100b143c15ae91c71c61a9710d58c` and master CI/build
+`37849269164` / `37849675687` pass. Local validation passes 1,275 tests across
+158 files, typecheck, ESLint and formatting. An initial test-cleanup foreign-key
+error and missing Data Health mock were corrected before the successful full run.
+
+Exact isolated Preview `dpl_5xjZcTfztyuZYLwxJDoUVi7etRuw` passed its environment
+gate and explicit additive migration. Actual synthetic archive and keyboard restore
+both succeeded. The empty picker retains the archive-management link; an archived
+employee's scorecard still renders with its archive notice. Light/dark layouts pass.
+The synthetic employee was restored to its original active-list state; its audit
+history is intentionally retained. No production fixtures or vendor requests.
+
+At 21:50 UTC, the encrypted restore matched 35 original tables / 389,063 rows and
+rehearsed `0018` with original application data unchanged. Production applied only
+the additive migration at 21:51 UTC. At 21:53 UTC the administrator, viewing as the
+affected manager, recorded the user-confirmed removal through the shipped form.
+One archive is retained; active counts are 22 and 39, with one and zero archives.
+Eight protected table digests match exactly. Production picker omits the archived
+person, offers the archive link, and Data Health checks the 22 active entries.
+No employment, source assignment, metric or vendor changes occurred.
+
+The earlier manifest below describes the reviewed candidate. Its pending wording
+is superseded by this release. Company roster authority, separate access revocation,
+independent group discovery and actual manager-own-login acceptance remain distinct.
+
 ## Contract
 
 Manager-confirmed removals are separate from employment termination and source team

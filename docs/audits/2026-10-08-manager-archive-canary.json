@@ -1,0 +1,23 @@
+{
+  "observedAt": "2026-10-08T21:53:21.992Z",
+  "protectedTableCount": 8,
+  "protectedDigestsMatch": true,
+  "counts": [
+    {
+      "scope": "POS",
+      "assigned": 39,
+      "active": 39,
+      "archived": 0
+    },
+    {
+      "scope": "Menufy",
+      "assigned": 23,
+      "active": 22,
+      "archived": 1
+    }
+  ],
+  "managerArchivesAdded": 1,
+  "employeeWrites": 0,
+  "metricWrites": 0,
+  "vendorWrites": 0
+}
