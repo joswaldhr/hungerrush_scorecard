@@ -100,10 +100,15 @@ async function main() {
           unit,
           value_type: type,
           calculation_type: aggregation,
-          source_strategy: "zendesk",
           status: "active",
         }))
           assert.equal(def[field], value);
+        // Earlier UI rehearsals deliberately use a synthetic source strategy. Only
+        // this guarded synthetic organization's compatible POS definitions may
+        // move to the real adapter contract for the hosted publication rehearsal.
+        assert(["staging", "zendesk"].includes(def.source_strategy));
+        if (def.source_strategy === "staging")
+          await tx`update metric_definitions set source_strategy='zendesk' where id=${def.id} and organization_id=${org} and source_strategy='staging'`;
         const assignments =
           await tx`select employee_id,role_key from metric_assignments where metric_definition_id=${def.id} and team_id=${team}`;
         if (!assignments.length)
