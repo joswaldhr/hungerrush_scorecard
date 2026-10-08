@@ -1,0 +1,52 @@
+{
+  "observedAt": "2026-10-08T14:39:52.394Z",
+  "pullRequest": 49,
+  "sha": "baca90867ebf9d7647c43686e575eeac8e55720e",
+  "deploymentId": "dpl_GNJxmAjuSeCfUVrTVui2ete9WtQ4",
+  "state": "READY",
+  "liveAliasVerified": true,
+  "cronDefinitionsUnchanged": true,
+  "cronCount": 16,
+  "productionEnvironmentEntriesUnchanged": 22,
+  "observations": [
+    {
+      "path": "/login",
+      "authenticated": false,
+      "status": 200
+    },
+    {
+      "path": "/api/cron/inbound?week=0",
+      "authenticated": false,
+      "status": 401
+    },
+    {
+      "path": "/api/cron/pos-inbound?week=0",
+      "authenticated": false,
+      "status": 401
+    },
+    {
+      "path": "/api/cron/inbound?week=0",
+      "authenticated": true,
+      "status": 200,
+      "enabled": false
+    },
+    {
+      "path": "/api/cron/report-recovery?slot=0",
+      "authenticated": true,
+      "status": 200,
+      "enabled": false
+    }
+  ],
+  "rollbackDeploymentId": "dpl_5H9MubkMyqtAbEVjZ3QUbkbyXdbR",
+  "menufyPublicationEnabled": false,
+  "extraSyncsTriggered": 0,
+  "exactCandidateCiRun": 37793605960,
+  "exactCandidateCiConclusion": "success",
+  "exactMasterCiRun": 37794117956,
+  "exactMasterCiConclusion": "success",
+  "authenticatedProductionScorecardRead": true,
+  "managerContext": "administrator preview; actual manager login not re-observed",
+  "browserErrorsObserved": 0,
+  "temporaryVerificationTabsClosed": true,
+  "sourceMetricCertificationChanged": false
+}
