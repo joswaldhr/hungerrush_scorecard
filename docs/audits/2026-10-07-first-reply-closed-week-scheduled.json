@@ -1,0 +1,80 @@
+{
+  "observedAt": "2026-10-07T18:32:42.020Z",
+  "databaseWrites": 0,
+  "transactionReadOnly": true,
+  "run": {
+    "status": "completed",
+    "startedAt": "2026-10-07T18:29:20.405Z",
+    "completedAt": "2026-10-07T18:31:59.251Z",
+    "durationSeconds": 158.845463,
+    "records": 23,
+    "errors": 0,
+    "family": "created_first_reply",
+    "periodStart": "2026-09-27",
+    "periodEnd": "2026-10-03",
+    "timeZone": "America/Chicago",
+    "requests": 112,
+    "elapsedMs": 150739,
+    "rateLimitRetries": 0,
+    "valuesWritten": 23,
+    "weekOffset": 1
+  },
+  "values": [
+    {
+      "period_start": "2026-09-27",
+      "period_end": "2026-10-03",
+      "calculation_version": 2,
+      "quality_status": "complete",
+      "source_contract": "zendesk-created-current-assignee-first-reply-business-v1",
+      "values": 20,
+      "employees": 20,
+      "null_values": 0,
+      "samples": "1566",
+      "cohort": "4060",
+      "nulls_with_zero_samples": 0,
+      "earliest_observation": "2026-10-07T18:29:25.471Z",
+      "latest_observation": "2026-10-07T18:29:25.471Z"
+    },
+    {
+      "period_start": "2026-09-27",
+      "period_end": "2026-10-03",
+      "calculation_version": 2,
+      "quality_status": "missing",
+      "source_contract": "zendesk-created-current-assignee-first-reply-business-v1",
+      "values": 3,
+      "employees": 3,
+      "null_values": 3,
+      "samples": "0",
+      "cohort": "2",
+      "nulls_with_zero_samples": 3,
+      "earliest_observation": "2026-10-07T18:29:25.471Z",
+      "latest_observation": "2026-10-07T18:29:25.471Z"
+    }
+  ],
+  "revisions": [
+    {
+      "entity_type": "metric_value",
+      "count": 23
+    },
+    {
+      "entity_type": "normalized_fact",
+      "count": 23
+    },
+    {
+      "entity_type": "source_record",
+      "count": 23
+    }
+  ],
+  "scheduler": {
+    "deploymentId": "dpl_5RiNfm8g4tPgkVxyG4X7aQ7hqYRL",
+    "startedAt": "2026-10-07T18:29:19.096Z",
+    "userAgent": "vercel-cron/1.0",
+    "path": "/api/cron/first-reply",
+    "weekOffset": 1,
+    "httpStatus": 200,
+    "durationMs": 160489,
+    "crashed": false
+  },
+  "manualRequest": false,
+  "scopeLimit": "This confirms the Menufy first-reply closed-week refresh, not other families or full scorecard correctness."
+}

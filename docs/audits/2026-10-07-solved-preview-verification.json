@@ -1,0 +1,51 @@
+{
+  "environment": "isolated synthetic Preview",
+  "runtimeCommit": "3224a705936227c1cda366a52fdc9f884149f3ee",
+  "previewCommit": "45cf3a4baf1dd288af6bca1772ee3c826c0af6a7",
+  "deploymentId": "dpl_4WNCPNpczF4v619r4ut7n4aJ7ABK",
+  "deploymentState": "READY",
+  "runtimeSchemaPackageParity": true,
+  "ciRun": 37655992624,
+  "ciConclusion": "success",
+  "testFiles": 132,
+  "tests": 1062,
+  "syntheticPublication": {
+    "path": "createSolvedPublisher through runSync",
+    "closedWeek": "2026-09-27/2026-10-03",
+    "closedValues": { "updaterCredits": 3, "assignedSolved": 2 },
+    "currentWeek": "2026-10-04/2026-10-10",
+    "currentValues": { "updaterCredits": 3, "assignedSolved": 0 },
+    "unrelatedValuesUnchanged": true,
+    "vendorRequests": 0,
+    "productionWrites": 0
+  },
+  "browserChecks": {
+    "distinctAttributionDescriptions": true,
+    "currentCutoffsVisibleInDetails": true,
+    "currentNeutralStatuses": true,
+    "numericZeroDisplayed": true,
+    "unverifiedTargetsWithheld": true,
+    "legacyHumanAttributionStillWithheld": true,
+    "storedCurrentAndClosedValuesMatch": true,
+    "returnLinkRetainsSelectedScorecardWeek": true
+  },
+  "exports": {
+    "actualCsvBytesVerified": true,
+    "csvValuesDefinitionsCutoffsStatusesMatch": true,
+    "actualPdfAndPngSaved": true,
+    "pdfPages": 1,
+    "imageWidth": 2144,
+    "imageHeight": 8150,
+    "pdfEmbeddedImageAndPngPixelsIdentical": true,
+    "visualFooterDefinitionsAndCutoffsVerified": true,
+    "pdfSha256": "9d6c8892ac884ad2b7fd20f25fffb69460a8947fc92ce0179b3a4a2d61d9dae0",
+    "pngSha256": "185f23cab97df5e70d164f88aab62473cdc77ef56424e7093ba755fabb02354c",
+    "clipboardBytes": "unverified: success toast observed, browser clipboard read returned no text",
+    "nativePrint": "unverified"
+  },
+  "limits": [
+    "Synthetic hosted behavior does not certify vendor source counts or activate production publication.",
+    "CSV was verified on runtime 42e477b; the follow-up changes only compact visual notes and cutoff transport, not CSV generation.",
+    "Production catalog, new publisher activation, ongoing Menufy event collection, canary/recovery and scheduled refresh remain unfinished."
+  ]
+}

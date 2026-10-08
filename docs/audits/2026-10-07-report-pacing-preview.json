@@ -1,0 +1,22 @@
+{
+  "candidateSha": "343c4314a830db1d52ac3c153881a2c877e3a7f6",
+  "ciRunId": 37671569889,
+  "ciConclusion": "success",
+  "ciTestsPassed": 1114,
+  "ciTestFilesPassed": 140,
+  "typecheckLintMigrationsAndBuildPassed": true,
+  "previewSha": "8eb5d361af989aa4a434b1a3a9d3bbc94c2e3fe9",
+  "previewDeploymentId": "dpl_4chPy7AdhwTLM9aK8X7yDSq9ympP",
+  "previewState": "READY",
+  "runtimeAndRehearsalMatchCandidate": true,
+  "isolationBuildGatePassed": true,
+  "syntheticCompleteCollectionAndLiveAdapterPath": true,
+  "simulatedRequests": 11,
+  "vendorRequests": 0,
+  "productionWritesDuringRehearsal": 0,
+  "closedWeekValues": { "updaterSolved": 3, "assigneeSolved": 2 },
+  "currentWeekValues": { "updaterSolved": 3, "assigneeSolved": 0 },
+  "unrelatedValuesUnchanged": true,
+  "rehearsalRecovery": "The first staging connection reset during ownership reads before mutation. One retry completed successfully.",
+  "scopeLimit": "No UI or export renderer changed. This verifies synthetic collection and publication after pacing changes; it does not establish actual source quota capacity or production metric completion."
+}

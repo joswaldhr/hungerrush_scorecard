@@ -1,0 +1,11 @@
+{
+  "observedAt": "2026-10-05T21:24:55.495Z",
+  "candidate": "b5bbbcbd621a40950bbb0edfdb84ad1f6583c485",
+  "sourceRequests": 35,
+  "changedRecords": 27060,
+  "storedStatus": "collecting",
+  "originalProjectionDigestsUnchanged": true,
+  "protectedApplicationDigestsUnchanged": true,
+  "metricWrites": 0,
+  "publicationEnabled": false
+}

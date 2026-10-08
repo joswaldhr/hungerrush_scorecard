@@ -1,0 +1,38 @@
+{
+  "observedAt": "2026-10-07T19:14:07.905Z",
+  "mergeSha": "31f4187870b5942db03f28e86c0c202d0ca039d6",
+  "masterCiRunId": 37672228925,
+  "masterCiConclusion": "success",
+  "deploymentId": "dpl_G82oX6dFur4iAQUDiGRPGKYW26pE",
+  "productionReadyAndAliasVerified": true,
+  "collectionOnlyPolicyPresent": true,
+  "solvedPublicationPolicyPresent": false,
+  "productionLoginHttpStatus": 200,
+  "unauthorizedCollectorHttpStatus": 401,
+  "manualBatch": {
+    "startedAt": "2026-10-07T19:10:48.280Z",
+    "completedAt": "2026-10-07T19:14:07.905Z",
+    "httpStatus": 429,
+    "status": "waiting",
+    "pages": 10,
+    "newEvents": 9988,
+    "waitMs": 14754,
+    "retainedEvents": 74414,
+    "cursorPages": 75,
+    "observedThrough": "2026-10-02T15:01:47.000Z",
+    "solvedValues": 0
+  },
+  "platform": {
+    "userAgent": "Cadence-controlled-bootstrap/1.0",
+    "durationMs": 198540,
+    "crashed": false
+  },
+  "sourceThrottleObservedInCorrectedBatch": false,
+  "streamExhausted": false,
+  "metricCoverageCertified": false,
+  "limits": [
+    "Application waiting is a runtime-budget pause; not a new upstream rate-limit response.",
+    "Manual bootstrap is not scheduler evidence.",
+    "One successful paced batch does not establish sufficient ongoing collection capacity."
+  ]
+}

@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import { talkParticipationLegSchema } from "./zendesk-talk-participation";
 import { outboundCallSchema } from "./zendesk-outbound";
+import { posCallHoldSchema } from "./zendesk-pos-call-hold";
 import { legacyTalkCallSchema, type LegacyTalkCall } from "./zendesk-talk-legacy-schema";
 
 type Resource = "calls" | "legs";
@@ -79,7 +80,7 @@ export function advanceTalkCursor(
   response: unknown,
   storedLatest: TalkRecordValue[],
   storedVersions: TalkStoredVersion[],
-  contract: "participation" | "legacy" = "participation"
+  contract: "participation" | "legacy" | "pos-hold" = "participation"
 ) {
   if (contract === "legacy" && before.resource !== "calls")
     throw new Error("Legacy Talk contract requires calls");
@@ -115,7 +116,9 @@ export function advanceTalkCursor(
     contract === "legacy"
       ? legacyTalkCallSchema
       : before.resource === "calls"
-        ? outboundCallSchema
+        ? contract === "pos-hold"
+          ? posCallHoldSchema
+          : outboundCallSchema
         : talkParticipationLegSchema;
   const parsed = z.array(schema).safeParse(page[before.resource]);
   if (!parsed.success || parsed.data.length !== page.count || page.end_time < before.watermark)

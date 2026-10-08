@@ -1,0 +1,12 @@
+{
+  "observedAt": "2026-10-07T21:30:27.205Z",
+  "readOnly": true,
+  "watermark": "2026-10-07T20:32:53.000Z",
+  "completeUtcDays": 11,
+  "peakFiveMinutes": 377,
+  "peakSixHours": 8213,
+  "peakTwelveHours": 13620,
+  "peakRollingDay": 15273,
+  "schedulingQualified": false,
+  "limit": "Retained creation-time density, not delivery-time or future quota guarantees. Inclusive boundary windows are conservative. Late arrival and pagination overhead require separate capacity allowance. A missed six-hour collection window requires more than the observed single ten-page invocation."
+}

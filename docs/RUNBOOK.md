@@ -228,6 +228,14 @@ shadow/v2 or historical repair, change Zendesk, or change CSAT/first-reply polic
 
 ### Release procedure
 
+The durable report-recovery candidate adds a separate `ZENDESK_REPORT_RECOVERY=1`
+opt-in and authenticated `/api/cron/report-recovery?slot=0..23` endpoint. It persists
+deferred work and fixed reporting dates in `zendesk_report_job_v1` operational records;
+these are not employee metric facts. The switch and new schedules remain absent until
+the [recovery release gates](audits/2026-10-07-report-recovery.md) pass. Clearing this
+switch contains new dispatcher work without deleting retained evidence or disabling
+the independently qualified solved/CSAT/first-reply policies. Check in-flight work too.
+
 1. Complete the ledger's technical gates and verify the exact candidate commit's checks.
 2. Refresh and verify a recoverable backup immediately before rollout. Record the previous
    production deployment, migration state, candidate commit and active feature flags.
@@ -238,6 +246,11 @@ shadow/v2 or historical repair, change Zendesk, or change CSAT/first-reply polic
 5. If application rollback is needed, use the recorded compatible deployment. Preserve additive
    tables and revision evidence. Data rollback requires reviewed snapshots and a separate repair;
    restoring stale values can reintroduce the defect. Never blindly reverse null corrections.
+   Verify active cron definitions and in-flight runs too. The October 7 check of
+   [Vercel's current documentation](https://vercel.com/docs/cron-jobs/manage-cron-jobs)
+   says Instant Rollback restores the selected deployment's cron definitions for subsequent
+   invocations; already-running work may continue. Supersede older rollback assumptions
+   with observed project state, and separately contain any affected active publisher.
 
 Unresolved source meaning must remain unavailable in the product. A release containing
 containment is not certification of historical totals. Keep production rollout, metric-version

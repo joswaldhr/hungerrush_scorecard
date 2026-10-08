@@ -15,6 +15,7 @@ import { sharedMetricSourceContext, completeSnapshotVersion } from "./source-con
 import { selectFirstReplyContributors } from "./first-reply-contributors";
 import { selectOutboundContributors } from "./outbound-contributors";
 import { selectInboundContributors } from "./inbound-contributors";
+import { selectPosInboundContributors } from "./pos-inbound-contributors";
 import { assertMetricPublicationEligible } from "./publication-eligibility";
 import { requiresTicketAttributionVerification, TICKET_ATTRIBUTION_QUALITY } from "./availability";
 
@@ -172,11 +173,13 @@ export async function computeMetricValuesFromFacts(
       const firstReply = selectFirstReplyContributors(def.key, group.facts);
       const outbound = selectOutboundContributors(def.key, firstReply.selected);
       const inbound = selectInboundContributors(def.key, outbound.selected);
-      const selected = inbound.selected;
+      const posInbound = selectPosInboundContributors(def.key, inbound.selected);
+      const selected = posInbound.selected;
       const supersededFactIds = [
         ...firstReply.supersededFactIds,
         ...outbound.supersededFactIds,
         ...inbound.supersededFactIds,
+        ...posInbound.supersededFactIds,
       ];
       group.values = selected.map((f) => f.numericValue);
       group.observed = selected.map((f) => f.sourceObservedAt);

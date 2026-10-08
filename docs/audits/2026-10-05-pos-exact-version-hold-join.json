@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-10-05T20:53:08.382Z",
+  "mode": "Offline exact-version POS source join, not metric qualification",
+  "sourceCalls": 10976,
+  "joinedCallVersions": 10882,
+  "blockedCallVersions": 94,
+  "missingVersions": 0,
+  "mismatchedVersions": 94,
+  "activePosIdentities": 39,
+  "posAgentsWithBlockedVersions": 12,
+  "posParentGaps": 0,
+  "productionWrites": 0,
+  "sourceRequests": 0,
+  "publicationEnabled": false,
+  "limitations": [
+    "Retained leg observation has not been refreshed; its freshness gate is not claimed passed.",
+    "Report group bindings and historical employee eligibility remain unverified.",
+    "Changed parent versions are blocked; they are not assigned a reporting period from leg dates."
+  ]
+}
