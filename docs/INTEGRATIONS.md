@@ -21,6 +21,12 @@ Before implementing a live connector, confirm:
 
 ## Zendesk
 
+Outbound refreshes retain an explicit Sunday–Saturday interval through asynchronous
+work and recovery. Recovery matches both stored date boundaries; legacy offset-only
+failures collect both source streams rather than assuming an offset still identifies
+the original week. Source reporting timezone and the joined observation window are
+unchanged. Deployment/activation evidence is recorded in the implementation ledger.
+
 The September 25 user instruction makes this investigation read-only: no account changes
 and no report/dashboard editor sessions. Follow [the safety guardrails](SAFETY_GUARDRAILS.md).
 Retained evidence and bounded documented GETs are the permitted source surfaces.

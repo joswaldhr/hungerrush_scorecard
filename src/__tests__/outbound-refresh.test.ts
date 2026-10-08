@@ -176,3 +176,51 @@ it("withholds publication if another collector replaced the held legs", async ()
   await expect(invoke()).rejects.toThrow("leg observation changed");
   expect(mocks.collect).not.toHaveBeenCalled();
 });
+
+it("retains fixed backlog dates after Sunday for bindings, recovery and collection", async () => {
+  vi.setSystemTime(new Date("2026-11-01T00:00:01Z"));
+  const connector = createOutboundConnector(f.policy, collection);
+  expect(connector.supportsFixedPeriod).toBe(true);
+  const period = { periodStart: "2026-09-20", periodEnd: "2026-09-26" };
+  await connector.fetchRecords(f.config, {
+    ...f.config,
+    syncRunId: "synthetic",
+    cursor: null,
+    period,
+  });
+  expect(mocks.recovery).toHaveBeenCalledWith(f.policy, period.periodStart, period.periodEnd);
+  expect(mocks.collect).toHaveBeenCalledWith(
+    f.snapshot,
+    f.policy,
+    f.config,
+    period.periodStart,
+    period.periodEnd,
+    [
+      {
+        employeeId: f.identity.employeeId,
+        teamId: f.identity.teamId,
+        externalId: f.identity.externalId,
+      },
+    ],
+    expect.any(Function)
+  );
+});
+
+it.each([
+  { periodStart: "2026-09-21", periodEnd: "2026-09-27" },
+  { periodStart: "2026-09-20", periodEnd: "2026-09-25" },
+  { periodStart: "2026-09-27", periodEnd: "2026-10-03" },
+  { periodStart: "invalid", periodEnd: "2026-09-26" },
+])("rejects malformed or future fixed dates before any source work: %j", async (period) => {
+  await expect(
+    createOutboundConnector(f.policy, collection).fetchRecords(f.config, {
+      ...f.config,
+      syncRunId: "synthetic",
+      cursor: null,
+      period,
+    })
+  ).rejects.toThrow();
+  expect(mocks.where).not.toHaveBeenCalled();
+  expect(mocks.batch).not.toHaveBeenCalled();
+  expect(mocks.collect).not.toHaveBeenCalled();
+});

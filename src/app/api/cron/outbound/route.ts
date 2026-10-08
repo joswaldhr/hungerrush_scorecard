@@ -47,7 +47,7 @@ export async function GET(request: Request) {
     const collection = configuredTalkCollectionPolicy();
     if (!collection) throw Error("Outbound refresh requires an explicit collection policy");
     const result = await runSync(createOutboundConnector(policy, collection), config, {
-      weekOffset: offset,
+      period: { periodStart, periodEnd },
     });
     return NextResponse.json(
       { ...result, periodStart, periodEnd },

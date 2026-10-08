@@ -13,7 +13,6 @@ export async function planOutboundRecovery(
   policy: ZendeskTalkPolicy,
   periodStart: string,
   periodEnd: string,
-  weekOffset: number,
   now = new Date()
 ) {
   const stored = await readTalkCollectionSnapshot(policy);
@@ -51,7 +50,10 @@ export async function planOutboundRecovery(
         eq(syncRuns.dataSourceId, policy.dataSourceId),
         eq(syncRuns.status, "failed"),
         eq(syncErrors.message, "Incomplete outbound parent-call coverage"),
-        sql`${syncRuns.metadataJson}->>'weekOffset' = ${String(weekOffset)}`,
+        // A relative offset can identify a different interval after Sunday. Old
+        // offset-only runs safely collect both streams instead of holding legs.
+        sql`${syncRuns.metadataJson}->'period'->>'periodStart' = ${periodStart}`,
+        sql`${syncRuns.metadataJson}->'period'->>'periodEnd' = ${periodEnd}`,
         sql`${syncRuns.startedAt} <= ${snapshot.legsState.observationStartedAt}::timestamptz`,
         sql`${syncRuns.completedAt} >= ${snapshot.legsState.lastPageAt}::timestamptz`,
         sql`not exists (
@@ -60,7 +62,8 @@ export async function planOutboundRecovery(
           and published.status = 'completed'
           and published.started_at >= ${syncRuns.startedAt}
           and published.metadata_json->'fetch'->>'family' = 'outbound_call_participation'
-          and published.metadata_json->>'weekOffset' = ${String(weekOffset)}
+          and published.metadata_json->'period'->>'periodStart' = ${periodStart}
+          and published.metadata_json->'period'->>'periodEnd' = ${periodEnd}
       )`
       )
     )

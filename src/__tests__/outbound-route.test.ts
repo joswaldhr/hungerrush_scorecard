@@ -86,7 +86,7 @@ it("publishes one policy-bound source/week and reports failed publication as fai
   expect(mocks.run).toHaveBeenCalledWith(
     expect.anything(),
     { dataSourceId: "source", organizationId: "org" },
-    { weekOffset: 0 }
+    { period: { periodStart: "2026-09-20", periodEnd: "2026-09-26" } }
   );
   mocks.run.mockResolvedValue({ success: false, valuesWritten: 0 });
   expect((await invoke()).status).toBe(503);
@@ -102,4 +102,19 @@ it("honors source cooldown and never falls back from invalid policy", async () =
   });
   expect((await invoke()).status).toBe(503);
   expect(mocks.run).not.toHaveBeenCalled();
+});
+
+it("keeps the selected week when the cooldown check crosses Sunday", async () => {
+  vi.setSystemTime(new Date("2026-09-26T23:59:59Z"));
+  mocks.limited.mockImplementationOnce(async () => {
+    vi.setSystemTime(new Date("2026-09-27T00:00:01Z"));
+    return false;
+  });
+  expect(await (await invoke()).json()).toMatchObject({
+    periodStart: "2026-09-20",
+    periodEnd: "2026-09-26",
+  });
+  expect(mocks.run).toHaveBeenCalledWith(expect.anything(), expect.anything(), {
+    period: { periodStart: "2026-09-20", periodEnd: "2026-09-26" },
+  });
 });

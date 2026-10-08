@@ -21,6 +21,7 @@ import { createTalkExportReader, runTalkCollectionBatch } from "./zendesk-talk-w
 import type { parseTalkCollectionPolicy } from "./zendesk-talk-config";
 import type { ConnectorConfig } from "./types";
 import { planOutboundRecovery } from "./zendesk-outbound-recovery";
+import { parseSyncPeriod } from "./sync-period";
 
 /** Validate source, team, assignment semantics and current identity ownership before any GET. */
 export async function loadOutboundEmployeeBindings(
@@ -132,9 +133,14 @@ export function createOutboundConnector(
     throw Error("Outbound collection and publication policies must own the same source");
   const connector = new ZendeskConnector();
   connector.fetchRecords = async (config, ctx) => {
-    if (ctx.cursor === null || !/^\d+$/.test(ctx.cursor) || Number(ctx.cursor) >= MAX_WEEKS_BACK)
-      throw Error("Outbound sync requires one valid week offset");
-    const { periodStart, periodEnd } = weekDates(Number(ctx.cursor));
+    if (
+      (!ctx.period && ctx.cursor === null) ||
+      (ctx.cursor !== null && (!/^[0-3]$/.test(ctx.cursor) || Number(ctx.cursor) >= MAX_WEEKS_BACK))
+    )
+      throw Error("Outbound sync requires one reporting week");
+    const { periodStart, periodEnd } = ctx.period
+      ? parseSyncPeriod(ctx.period)
+      : weekDates(Number(ctx.cursor));
     const bindings = await loadOutboundEmployeeBindings(
       policy,
       config,
@@ -142,7 +148,7 @@ export function createOutboundConnector(
       env.ZENDESK_SUBDOMAIN ?? ""
     );
     const recovery = collection
-      ? await planOutboundRecovery(policy, periodStart, periodEnd, Number(ctx.cursor))
+      ? await planOutboundRecovery(policy, periodStart, periodEnd)
       : { mode: "both" as const };
     // Refresh in the same invocation: separate hourly cron windows can exceed the
     // joined-observation span limit. Leave time for Support reads and atomic writes.
@@ -212,5 +218,5 @@ export function createOutboundConnector(
       },
     };
   };
-  return connector;
+  return Object.assign(connector, { supportsFixedPeriod: true });
 }
