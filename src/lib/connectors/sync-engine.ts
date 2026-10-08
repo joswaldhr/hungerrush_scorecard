@@ -67,7 +67,13 @@ export async function runSync(
   connector: Connector,
   config: ConnectorConfig,
   options: SyncOptions = {}
-): Promise<{ syncRunId: string; success: boolean; valuesWritten: number; skipped?: boolean }> {
+): Promise<{
+  syncRunId: string;
+  success: boolean;
+  valuesWritten: number;
+  skipped?: boolean;
+  retryAt?: string;
+}> {
   if (options.period !== undefined && options.weekOffset !== undefined)
     throw Error("Select a fixed sync period or a week offset, not both");
   if (options.period !== undefined && !connector.supportsFixedPeriod)
@@ -105,6 +111,7 @@ export async function runSync(
   const fetchErrors: Array<{ message: string }> = [];
   let finalCursor: string | null = null;
   let fetchDiagnostics: Record<string, unknown> | undefined;
+  let retryAt: string | undefined;
   const fetchStartedAt = Date.now();
 
   try {
@@ -132,7 +139,13 @@ export async function runSync(
     }
   } catch (err) {
     success = false;
-    fetchDiagnostics = sourceFailureDiagnostics(err) ?? fetchDiagnostics;
+    const failure = sourceFailureDiagnostics(err);
+    fetchDiagnostics = failure ?? fetchDiagnostics;
+    if (failure?.httpStatus === 429 && typeof failure.retryAfterMs === "number") {
+      // Preserve vendor throttling across host invocations, not just in-memory retries.
+      const retryTime = new Date(Date.now() + failure.retryAfterMs);
+      if (Number.isFinite(retryTime.getTime())) retryAt = retryTime.toISOString();
+    }
     fetchErrors.push({ message: safeErrorMessage(err) });
     logger.error("Sync fetch phase failed", { syncRunId, error: err });
   }
@@ -306,7 +319,7 @@ export async function runSync(
       })
       .where(eq(syncRuns.id, syncRunId));
   }
-  return { syncRunId, success, valuesWritten };
+  return { syncRunId, success, valuesWritten, ...(retryAt ? { retryAt } : {}) };
 }
 
 type TxOrDb = typeof db;

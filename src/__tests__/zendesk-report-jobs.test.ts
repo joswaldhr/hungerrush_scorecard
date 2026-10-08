@@ -153,6 +153,41 @@ it("keeps work under a removed policy unclaimed instead of applying today's defi
   expect(await rows()).toHaveLength(1);
 });
 
+it("retains CSAT dates, prior completion and vendor delays longer than one day", async () => {
+  const csat: ReportJobDefinition = { ...definition, kind: "csat" };
+  await requestReportJobs(scope, [request(csat)]);
+  await finishReportJob(scope, await claim(), { status: "complete" });
+  await requestReportJobs(scope, [request(csat, "2021-01-04T00:00:00.000Z")]);
+  const next = await claim();
+  const retryAt = new Date(Date.now() + 172800000).toISOString();
+  await finishReportJob(scope, next, { status: "failed", retryAt });
+  expect(await claimReportJob(scope, [policyHash])).toBeNull();
+  expect((await rows())[0]!.payloadJson).toMatchObject({
+    definition: csat,
+    completedThrough: desiredAt,
+    notBefore: retryAt,
+    failures: 1,
+    lease: null,
+    lastOutcome: "failed",
+  });
+});
+
+it("leaves unknown inactive policies intact but honors their account-wide active leases", async () => {
+  await requestReportJobs(scope, [request({ ...definition, policyHash: otherPolicyHash })]);
+  const other = await claimReportJob(scope, [otherPolicyHash]);
+  await db.execute(
+    sql`update source_records set payload_json=jsonb_set(payload_json,'{definition,kind}',to_jsonb('future-kind'::text)) where data_source_id=${source}`
+  );
+  await requestReportJobs(scope, [request()]);
+  expect(await claimReportJob(scope, [policyHash])).toBeNull();
+  await db.execute(
+    sql`update source_records set payload_json=jsonb_set(payload_json,'{lease,expiresAt}',to_jsonb('2021-01-01T00:00:00.000Z'::text)) where data_source_id=${source} and payload_json->'definition'->>'policyHash'=${otherPolicyHash}`
+  );
+  expect((await claim()).definition).toEqual(definition);
+  expect(other).not.toBeNull();
+  expect(await rows()).toHaveLength(2);
+});
+
 it("prioritizes unfinished collection and fairly rotates deferred publishers", async () => {
   await requestReportJobs(scope, [
     request(),

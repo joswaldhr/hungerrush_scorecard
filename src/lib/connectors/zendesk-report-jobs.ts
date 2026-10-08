@@ -18,7 +18,7 @@ const definitionSchema = z.discriminatedUnion("kind", [
     .strict(),
   z
     .object({
-      kind: z.enum(["updater", "assignee-solved"]),
+      kind: z.enum(["updater", "assignee-solved", "csat"]),
       policyHash: z.string().regex(/^[a-f0-9]{64}$/),
       periodStart: z.iso.date(),
       periodEnd: z.iso.date(),
@@ -176,7 +176,7 @@ export async function claimReportJob(
 ): Promise<ClaimedReportJob | null> {
   if (
     !currentPolicyHashes.length ||
-    currentPolicyHashes.length > 3 ||
+    currentPolicyHashes.length > 4 ||
     currentPolicyHashes.some((h) => !/^[a-f0-9]{64}$/.test(h))
   )
     throw Error("Invalid job policy allowlist");
@@ -192,7 +192,20 @@ export async function claimReportJob(
       limit 1
     `);
     if (active.length) return null;
-    const rows = await tx.select().from(sourceRecords).where(selector(scope));
+    // Inactive policies may belong to a newer worker. Retain them without decoding
+    // their payload; the account-wide lease check above still fences their owners.
+    const rows = await tx
+      .select()
+      .from(sourceRecords)
+      .where(
+        and(
+          selector(scope),
+          sql`${sourceRecords.payloadJson}->'definition'->>'policyHash' in (${sql.join(
+            currentPolicyHashes.map((h) => sql`${h}`),
+            sql`, `
+          )})`
+        )
+      );
     const states = rows.map((r) => readState(r.payloadJson, scope));
     const eligible = states.filter(
       (s) =>
@@ -275,8 +288,7 @@ export async function finishReportJob(
       result.status !== "complete" && result.retryAt
         ? Date.parse(dateTime.parse(result.retryAt))
         : 0;
-    if (requestedRetry > now.getTime() + 86400000)
-      throw Error("Report retry exceeds one-day policy");
+    // A valid vendor delay must not be shortened to our own backoff or one day.
     await put(tx, scope, {
       ...current,
       lease: null,

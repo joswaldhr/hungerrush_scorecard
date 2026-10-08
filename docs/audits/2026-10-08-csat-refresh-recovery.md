@@ -34,6 +34,28 @@ authenticated synthetic Preview for hosted acceptance. Production crons are unch
 
 ## Remaining work to close automatic recovery
 
+### October 8, 15:05 UTC implementation checkpoint
+
+CSAT can now participate in the existing recovery dispatcher only when both
+`ZENDESK_REPORT_RECOVERY=1` and the new `ZENDESK_CSAT_RECOVERY=1` switch are supplied,
+along with the existing qualified CSAT policy. Neither switch has been activated.
+Jobs bind to the exact policy and reporting dates. Failed syncs return an allowlisted
+429 retry timestamp; persisted retry deadlines never shorten a valid vendor delay to
+the queue's own backoff. Inactive policy payloads are not decoded by the current
+worker, but their active account leases still prevent concurrent ownership.
+
+All 1,216 local tests / 151 files, typecheck and scoped lint pass. Real PostgreSQL
+checks cover prior-value preservation, durable CSAT dates, delays longer than one day,
+and unknown inactive job kinds with active leases. Route tests enforce both switches.
+Worker tests cover removed policies and saved dates outside the planning horizon.
+Source transport in these tests is synthetic; no live recovery is implied.
+
+Before activation, install this compatible worker as the rollback baseline. Older
+workers do not understand CSAT jobs: reverting below this baseline requires keeping
+both recovery switches off, without deleting queued evidence. No schedule, credential,
+employee assignment, formula, source request budget or production setting changed.
+Hosted rehearsal, exact CI/build, capacity, activation and real recovery remain open.
+
 1. Validate exact candidate CI/build and a synthetic hosted fixed-period publication.
 2. Extend durable work to CSAT with policy-bound jobs, persistent retry-after/backoff,
    unchanged source pacing, exact period retention, and last-good-value preservation.
