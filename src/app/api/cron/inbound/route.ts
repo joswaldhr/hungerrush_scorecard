@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     const result = await runSync(
       createLiveInboundPublisher(release, collection),
       { organizationId: release.policy.organizationId, dataSourceId: release.policy.dataSourceId },
-      { weekOffset: Number(week) }
+      { period: { periodStart, periodEnd } }
     );
     return NextResponse.json(
       { ...result, periodStart, periodEnd },

@@ -1,6 +1,20 @@
 # Audit implementation — current checkpoint
 
-**October 8, 14:02 UTC � five POS inbound measures live and independently verified:**
+**October 8, 14:14 UTC — Menufy publication boundary correction prepared:**
+Active implementation branch is `codex/menufy-fixed-publication` in the existing
+metric-recovery worktree. The pending inbound route now pins its dates before
+asynchronous work and the publisher consumes that exact interval. Publication
+revalidates the retained source capture after configuration locks, rejecting expired
+observations and a progress capture that crosses the source timezone's week end.
+Explicit previous-week publication preserves current-week values in PostgreSQL.
+All 1,209 tests / 151 files, typecheck and scoped lint pass locally, including 13
+focused route/publication checks. The first local test attempt used the config's
+default loopback database and failed authentication before fixture writes; setting
+the explicit `TEST_DATABASE_URL` selected the isolated `cadence_baseline_test` database.
+No shared environment file was loaded. Exact CI and hosted validation remain pending;
+no Menufy policy, assignment, schedule or production value changed in this increment.
+
+**October 8, 14:02 UTC — five POS inbound measures live and independently verified:**
 PR44 and PR48 are merged; production `bc8e26e` passes exact master CI/build
 `37732854918`. Active deployment `dpl_5H9MubkMyqtAbEVjZ3QUbkbyXdbR` is READY
 and owns the production alias. The code-only deployment first verified authenticated

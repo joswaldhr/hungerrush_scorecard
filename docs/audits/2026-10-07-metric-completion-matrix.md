@@ -1,6 +1,6 @@
 # Production metric completion
 
-**October 8, 14:02 UTC — five POS inbound measures live and independently verified:**
+**October 8, 14:02 UTC â€” five POS inbound measures live and independently verified:**
 PR44 and PR48 are merged; production `bc8e26e` passes exact master CI/build
 `37732854918`. Active deployment `dpl_5H9MubkMyqtAbEVjZ3QUbkbyXdbR` is READY
 and owns the production alias. The code-only deployment first verified authenticated
