@@ -1,5 +1,26 @@
 # Audit implementation — current checkpoint
 
+**October 8 — PR56 reporting health live:**
+Master `cbd8d5d` / `dpl_BzXwfPfMHumJzDgowuhHdMZev6Pe` is READY on the
+production alias. Exact candidate `a20b502` CI/build `37840660871`, 1,236 local
+tests, hosted synthetic states/themes/keyboard checks and authenticated Preview
+reads pass. Fresh 20:43 UTC restore matches all 35 tables / 389,060 rows. Production
+Data Health shows only the viewed manager's solved-recovery weeks; sign-in, scorecard,
+anonymous recovery denial and absence of the synthetic fixture are verified. All 23
+production environment metadata entries and 17 schedules are unchanged. No source,
+metric or assignment mutation was part of this release. See the
+[release receipt](2026-10-08-reporting-readiness-release.md).
+Exact merged-master CI/build `37841640765` also passes.
+
+Both current-week solved publications independently match the retained source sets;
+Selected fields across 186 predecessor revisions also match. Platform request records at
+19:15 and 19:30 UTC return 200 on the expected deployment. Those CLI records do not
+expose the scheduler user agent, so that last attribution check remains explicit.
+See [aggregate evidence](2026-10-08-recovery-current-week-verification.json).
+The full recurring day, other metric-family gaps, manager-own-login acceptance and
+the manager-reported roster/source conflict remain open. The candidate-pending
+description below is superseded by this release.
+
 **October 8, 20:30 UTC — recovery queue drained; reporting-readiness candidate:**
 Read-only production checks show both current-week solved jobs completed (23 Menufy
 values at 19:15 and 39 POS values at 19:30 UTC), with no job failures or active leases.
