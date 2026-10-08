@@ -123,10 +123,17 @@ async function main() {
       for (const resource of ["calls", "legs"] as const) {
         const cycle = await store.beginTalkCollectionCycle(owned, resource, bootstrap);
         const values = resource === "calls" ? calls : legs;
-        await store.commitTalkCollectionPage(owned, resource, cycle.expectedHash, {
+        const end = Math.floor(Date.now() / 1000);
+        const page = await store.commitTalkCollectionPage(owned, resource, cycle.expectedHash, {
           [resource]: values,
           count: values.length,
-          end_time: Math.floor(Date.now() / 1000),
+          end_time: end,
+          next_page: `https://synthetic-outbound-fixed.zendesk.com/api/v2/channels/voice/stats/incremental/${resource}.json?start_time=${end}`,
+        });
+        await store.commitTalkCollectionPage(owned, resource, page.expectedHash, {
+          [resource]: [],
+          count: 0,
+          end_time: end,
           next_page: null,
         });
       }
