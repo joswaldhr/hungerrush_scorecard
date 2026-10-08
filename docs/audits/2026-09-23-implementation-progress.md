@@ -1,5 +1,18 @@
 # Audit implementation — current checkpoint
 
+**October 8, 14:34 UTC — Menufy correction passes hosted publication and recovery:**
+PR49 runtime `bd1784b` passes exact CI/build `37790952102`. Runtime/script-identical
+isolated Preview `ad24cdc` is READY at `dpl_9m8co4p89wB8UPmhn2jxxE9pGxPY`.
+The real synthetic sync path matches nine inbound values in both closed/current weeks;
+unrelated values are unchanged, with no vendor requests or production writes. Hosted
+scorecard/history and actual CSV bytes match all 18 values, dates and quality/status
+semantics. Missing duration samples remain unavailable and current statuses neutral.
+The PR branch's automatic Preview lacks Entra credentials and fails; the designated
+isolated Preview above is the validated deployment. No branch credentials were broadened.
+Fresh 14:31 encrypted recovery restores all 35 tables / 374,350 rows with exact digests.
+See `2026-10-08-menufy-fixed-release.md` and its receipts. Code release is pending;
+Menufy activation, new schedules and full-scorecard completion are not implied.
+
 **October 8, 14:14 UTC — Menufy publication boundary correction prepared:**
 Active implementation branch is `codex/menufy-fixed-publication` in the existing
 metric-recovery worktree. The pending inbound route now pins its dates before
