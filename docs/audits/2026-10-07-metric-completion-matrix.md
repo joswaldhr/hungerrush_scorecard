@@ -1,5 +1,36 @@
 # Production metric completion
 
+**October 8, 14:02 UTC — five POS inbound measures live and independently verified:**
+PR44 and PR48 are merged; production `bc8e26e` passes exact master CI/build
+`37732854918`. Active deployment `dpl_5H9MubkMyqtAbEVjZ3QUbkbyXdbR` is READY
+and owns the production alias. The code-only deployment first verified authenticated
+inactive routes, anonymous rejection and unchanged policy metadata. Activation added
+only the collection and POS release policies; all 16 existing crons are unchanged,
+the recovery queue stays disabled, and no new schedule was installed.
+
+A fresh 13:48 encrypted backup restored 35 tables / 373,526 rows with matching
+digests. An earlier attempt correctly stopped before dispatch because its backup
+was older than one hour. The one controlled canary returned HTTP 200 in 54.567 seconds
+and published 195 current-week values for all 39 POS employees. Independent Python
+reconstruction matches every value, 546 contributing-source sets and 156 duration
+numerator/denominator checks with zero differences. Twelve genuine zeros and 24
+no-sample nulls retain their meaning. Eleven protected digest groups are unchanged;
+170 predecessor value snapshots match at the captured millisecond timestamp precision.
+
+Representative production scorecard and stored history match all five corrected values.
+Fresh actual CSV (11,203 bytes), PDF (785,748) and PNG (1,190,593) downloads pass;
+PDF/PNG decoded pixels match exactly, and the rendered PDF is visually inspected.
+Current statuses stay neutral, incompatible targets/comparisons stay withheld, and
+history returns to the selected week. The administrator's original Barbara preview
+was restored and the temporary tab closed. This is administrator preview evidence,
+not the manager's own login. Native print remains unverified.
+
+See [the production receipt](2026-10-08-pos-inbound-production.json). Closed-week POS
+publication, declined/missed assignments, remaining metric families, roster/access
+and genuine scheduled operation remain open. The full goal still covers both teams.
+The previous deployment/pending-publication descriptions below are historical.
+
+
 **October 8, 05:24 UTC â€” fresh POS qualification:** Runtime `7403b78` passes exact
 CI/build and 1,205 tests; its default-off authenticated POS endpoint is READY on
 isolated Preview. Fresh bounded collection and identity/group checks support all

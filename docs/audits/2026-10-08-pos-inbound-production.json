@@ -1,0 +1,107 @@
+{
+  "state": "current-week scoped production publication verified; full goal remains open",
+  "pullRequest": 48,
+  "codeSha": "bc8e26eccb4099d54d59c0fc290ce8db266341d5",
+  "deploymentId": "dpl_5H9MubkMyqtAbEVjZ3QUbkbyXdbR",
+  "productionAliasVerified": true,
+  "exactMasterCi": {
+    "runId": 37732854918,
+    "conclusion": "success"
+  },
+  "cronCount": 16,
+  "newSchedules": 0,
+  "recoveryQueueEnabled": false,
+  "newPolicies": [
+    "ZENDESK_TALK_COLLECTION_POLICY",
+    "ZENDESK_POS_INBOUND_RELEASE"
+  ],
+  "scope": {
+    "team": "POS",
+    "employees": 39,
+    "periodStart": "2026-10-04",
+    "periodEnd": "2026-10-10",
+    "keys": [
+      "inbound_calls_accepted",
+      "avg_talk_time_inbound",
+      "avg_hold_time_inbound",
+      "avg_call_duration_inbound",
+      "avg_consultation_time_inbound"
+    ]
+  },
+  "controlledExecution": {
+    "startedAt": "2026-10-08T13:49:01.941Z",
+    "completedAt": "2026-10-08T13:49:56.508Z",
+    "httpStatus": 200
+  },
+  "independentReadback": {
+    "observedAt": "2026-10-08T13:53:08.627992+00:00",
+    "employees": 39,
+    "periodStart": "2026-10-04",
+    "periodEnd": "2026-10-10",
+    "valuesCompared": 195,
+    "exactSourceSetChecks": 546,
+    "durationNumeratorDenominatorChecks": 156,
+    "differences": 0,
+    "numericZeros": 12,
+    "noSampleNulls": 24,
+    "unrelatedDigestGroupsUnchanged": 11,
+    "predecessorValueSnapshotsMatchedAtCapturedPrecision": 170,
+    "predecessorTimestampPrecision": "milliseconds; private preflight driver serializes timestamps at JS Date precision",
+    "sourceRequests": 0,
+    "databaseWrites": 0,
+    "scope": "Independent calculation from full durable post-canary call/leg capture, joined to the exact published employee evidence."
+  },
+  "hostedAcceptance": {
+    "observedAt": "2026-10-08T14:01:21.717133+00:00",
+    "employeeProfilesChecked": 1,
+    "periodStart": "2026-10-04",
+    "periodEnd": "2026-10-10",
+    "csvRows": 19,
+    "csvColumns": 20,
+    "qualifiedMetricValuesCompared": 5,
+    "differences": 0,
+    "neutralProgressStatuses": true,
+    "withheldTargetsAndComparisons": true,
+    "reportingTimezone": "America/Chicago",
+    "historyValuesMatched": 5,
+    "historyReturnWeekPreserved": true,
+    "pdfPages": 1,
+    "pdfPngDecodedPixelsIdentical": true,
+    "pdfRenderedAndVisuallyReviewed": true,
+    "pngDimensions": [
+      2144,
+      5822
+    ],
+    "files": {
+      "csv": {
+        "bytes": 11203,
+        "sha256": "922e36c3c6bb5c0cd27c917c507c7e17671d2c4d124de6290159f070848023c0"
+      },
+      "pdf": {
+        "bytes": 785748,
+        "sha256": "1405869c1b39144bb2f63bee88742bd7f6cd5ff75703b25db34c4e73e8975127"
+      },
+      "png": {
+        "bytes": 1190593,
+        "sha256": "8dd6b189d1157f99e6cd2240b9989459629dfa267a88b246324be071503b49f0"
+      }
+    },
+    "limits": [
+      "Representative administrator manager-preview, not the manager's own login.",
+      "This checks exported publication; all-employee source reconciliation is recorded separately.",
+      "Native print remains unverified.",
+      "No claim that other metric families are qualified."
+    ]
+  },
+  "backupReceipt": "2026-10-08-pos-prepublication-restore-2.json",
+  "compatibleRollbackDeployment": "dpl_Adh9HwzB3mGcZcF14e28efydrjgv",
+  "rollbackNote": "Same qualified code with the new POS policies absent. Do not blindly restore legacy code after publication: it may overwrite qualified values. Retain revisions and check for newer writes before scoped recovery.",
+  "limits": [
+    "Controlled execution is not scheduler evidence.",
+    "Closed-week publication under this POS contract is not activated.",
+    "Declined/missed still require prospective assignments.",
+    "Other required metric families, lifecycle/access and ongoing operations remain open.",
+    "Native print and actual manager login remain unverified.",
+    "Predecessor timestamp comparison is at captured millisecond precision, not raw database microseconds."
+  ]
+}

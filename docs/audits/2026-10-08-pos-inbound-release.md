@@ -1,6 +1,18 @@
 # POS inbound release manifest
 
-## Scope and state
+## Released state
+
+The scoped current-week publication is now live at `bc8e26e`, deployment
+`dpl_5H9MubkMyqtAbEVjZ3QUbkbyXdbR`. All 195 values for 39 employees independently
+match, with protected data unchanged and representative history/CSV/PDF/PNG acceptance.
+See [the production receipt](2026-10-08-pos-inbound-production.json). The manifest
+below records the pre-release decision and evidence; its pending-state statements are
+historical. Closed periods, declined/missed assignments and recurring operation remain
+open. Compatible post-publication code rollback is `dpl_Adh9HwzB3mGcZcF14e28efydrjgv`
+(same qualified code, POS policies absent), with scoped data recovery only after
+checking for newer writes. The older legacy deployment is not a safe blind rollback.
+
+## Scope and pre-release state
 
 This release corrects the POS accepted-leg count and four inbound means to the
 saved manager report's leg-created-date, Central-time, exact-group contract.
