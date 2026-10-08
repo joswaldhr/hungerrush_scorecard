@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "productionDeployment": "dpl_C3zsDWZKpLvz6HCkuxzGJCV3b5tk",
+  "runtimeCommit": "31f4187870b5942db03f28e86c0c202d0ca039d6",
+  "delta": {
+    "startedAt": "2026-10-07T20:33:52.189Z",
+    "completedAt": "2026-10-07T20:34:01.159Z",
+    "httpStatus": 200,
+    "status": "collected",
+    "pages": 1,
+    "newEvents": 783,
+    "totalRetainedEvents": 140698,
+    "elapsedMs": 8970,
+    "streamExhausted": true,
+    "previousWatermark": "2026-10-07T19:41:45.000Z",
+    "watermark": "2026-10-07T20:32:53.000Z",
+    "unaffectedDigestGroups": 13,
+    "retainedEventsUnchanged": true,
+    "metricsPublished": false,
+    "manual": true,
+    "scheduledEvidence": false
+  },
+  "sourceVolume": {
+    "at": "2026-10-07T20:31:11.460Z",
+    "readOnly": true,
+    "cursorStatus": "exhausted",
+    "watermark": "2026-10-07T19:41:45.000Z",
+    "completeUtcDaysByCreationTime": [
+      {
+        "day": "2026-09-26",
+        "events": 10870
+      },
+      {
+        "day": "2026-09-27",
+        "events": 10148
+      },
+      {
+        "day": "2026-09-28",
+        "events": 10428
+      },
+      {
+        "day": "2026-09-29",
+        "events": 11567
+      },
+      {
+        "day": "2026-09-30",
+        "events": 12079
+      },
+      {
+        "day": "2026-10-01",
+        "events": 13385
+      },
+      {
+        "day": "2026-10-02",
+        "events": 14219
+      },
+      {
+        "day": "2026-10-03",
+        "events": 11506
+      },
+      {
+        "day": "2026-10-04",
+        "events": 10247
+      },
+      {
+        "day": "2026-10-05",
+        "events": 11002
+      },
+      {
+        "day": "2026-10-06",
+        "events": 12038
+      }
+    ],
+    "limitation": "Creation-time density only; late-delivered older events and pagination overlap can increase actual collection demand. Confirm pages per incremental refresh before installing a schedule."
+  },
+  "newScheduleInstalled": false,
+  "publicationRefreshed": false,
+  "remaining": [
+    "Capacity and recovery under daily load and missed slots",
+    "Collector and publisher coordination",
+    "Durable recovery from source cooldown or failed invocation",
+    "Genuine scheduled collection and publication evidence"
+  ]
+}

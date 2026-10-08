@@ -16,6 +16,7 @@ import { selectFirstReplyContributors } from "./first-reply-contributors";
 import { selectOutboundContributors } from "./outbound-contributors";
 import { selectInboundContributors } from "./inbound-contributors";
 import { assertMetricPublicationEligible } from "./publication-eligibility";
+import { requiresTicketAttributionVerification, TICKET_ATTRIBUTION_QUALITY } from "./availability";
 
 // Rows per bulk upsert statement — see the same constant's comment in
 // sync-engine.ts. metricValues has fewer columns than normalizedFacts but
@@ -183,7 +184,15 @@ export async function computeMetricValuesFromFacts(
       group.contexts = selected.map((f) => f.dimensionsJson);
       const sourceContext = sharedMetricSourceContext(group.contexts);
       const snapshotVersion = completeSnapshotVersion(sourceContext?.sourceContract);
-      const value = aggregateSourceValues(group.values, def.calculationType as CalculationType);
+      // The read guard must also hold at publication: retained legacy numeric
+      // contributors or a newer definition version cannot prove human actions.
+      const withheldTicketActivity = requiresTicketAttributionVerification({
+        key: def.key,
+        sourceStrategy,
+      });
+      const value = withheldTicketActivity
+        ? null
+        : aggregateSourceValues(group.values, def.calculationType as CalculationType);
 
       rows.push({
         metricDefinitionId: def.id,
@@ -197,8 +206,9 @@ export async function computeMetricValuesFromFacts(
         calculationVersion: snapshotVersion ?? def.version,
         calculatedAt: new Date(),
         dataFreshnessAt: new Date(Math.min(...group.observed.map((date) => date.getTime()))),
-        qualityStatus:
-          value === null
+        qualityStatus: withheldTicketActivity
+          ? TICKET_ATTRIBUTION_QUALITY
+          : value === null
             ? "missing"
             : group.values.some((value) => value === null)
               ? "partial"
@@ -210,6 +220,7 @@ export async function computeMetricValuesFromFacts(
           factIds: group.factIds,
           ...(supersededFactIds.length ? { supersededFactIds } : {}),
           ...(sourceContext ?? {}),
+          ...(withheldTicketActivity ? { availability: TICKET_ATTRIBUTION_QUALITY } : {}),
         },
       });
     }

@@ -16,7 +16,8 @@ import { createLeasedSyncRun, renewSyncLease } from "./sync-lease";
 import { logger } from "@/lib/logger";
 import { safeErrorMessage } from "@/lib/error-summary";
 import { computeMetricValuesFromFacts } from "@/lib/domain/metrics/compute-values";
-import { chunk } from "@/lib/utils";
+import { chunk, weekDates } from "@/lib/utils";
+import { parseSyncPeriod, type SyncPeriod } from "./sync-period";
 import { completeSnapshotVersion } from "@/lib/domain/metrics/source-context";
 import { assertMetricPublicationEligible } from "@/lib/domain/metrics/publication-eligibility";
 import { sourceFailureDiagnostics } from "./source-fetch-error";
@@ -42,6 +43,8 @@ export interface SyncOptions {
   // measured ~14 minutes against the real Zendesk account, well over the
   // confirmed 300s limit.
   weekOffset?: number;
+  /** Internal recovery can retry the original dates even after a Sunday rollover. */
+  period?: SyncPeriod;
 }
 
 /**
@@ -64,8 +67,18 @@ export async function runSync(
   connector: Connector,
   config: ConnectorConfig,
   options: SyncOptions = {}
-): Promise<{ syncRunId: string; success: boolean; valuesWritten: number }> {
-  const singleWeek = options.weekOffset !== undefined;
+): Promise<{ syncRunId: string; success: boolean; valuesWritten: number; skipped?: boolean }> {
+  if (options.period !== undefined && options.weekOffset !== undefined)
+    throw Error("Select a fixed sync period or a week offset, not both");
+  if (options.period !== undefined && !connector.supportsFixedPeriod)
+    throw Error("Connector does not support fixed reporting periods");
+  // Resolve before any await: a lease acquisition must not change the requested week.
+  let period = options.period === undefined ? undefined : parseSyncPeriod(options.period);
+  if (!period && connector.supportsFixedPeriod && options.weekOffset !== undefined) {
+    const { periodStart, periodEnd } = weekDates(options.weekOffset);
+    period = parseSyncPeriod({ periodStart, periodEnd });
+  }
+  const singleWeek = options.weekOffset !== undefined || period !== undefined;
   const maxPages = singleWeek ? 1 : (options.maxPages ?? 10);
 
   const [source] = await db
@@ -79,8 +92,9 @@ export async function runSync(
   if (source.status !== "configured") throw new Error("Data source is not enabled for sync");
   if (source.type !== connector.sourceType) throw new Error("Data source connector mismatch");
 
-  const run = await createLeasedSyncRun(config.dataSourceId, options.weekOffset);
-  if (run.status === "skipped") return { syncRunId: run.id, success: false, valuesWritten: 0 };
+  const run = await createLeasedSyncRun(config.dataSourceId, options.weekOffset, period);
+  if (run.status === "skipped")
+    return { syncRunId: run.id, success: false, valuesWritten: 0, skipped: true };
 
   const syncRunId = run.id;
   let success = true;
@@ -94,13 +108,15 @@ export async function runSync(
   const fetchStartedAt = Date.now();
 
   try {
-    let cursor: string | null = singleWeek ? String(options.weekOffset) : null;
+    let cursor: string | null =
+      options.weekOffset !== undefined ? String(options.weekOffset) : null;
     for (let page = 0; page < maxPages; page++) {
       const ctx: SyncContext = {
         syncRunId,
         dataSourceId: config.dataSourceId,
         organizationId: config.organizationId,
         cursor,
+        period,
       };
 
       const fetchResult = await connector.fetchRecords(config, ctx);
@@ -227,6 +243,7 @@ export async function runSync(
               computeValuesMs,
               valuesWritten,
               weekOffset: options.weekOffset,
+              period,
               fetch: fetchDiagnostics,
             },
           })
@@ -283,6 +300,7 @@ export async function runSync(
           computeValuesMs,
           valuesWritten: 0,
           weekOffset: options.weekOffset,
+          period,
           fetch: fetchDiagnostics,
         },
       })

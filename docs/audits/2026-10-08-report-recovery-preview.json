@@ -1,0 +1,87 @@
+{
+  "observedAt": "2026-10-08T03:48:47.628Z",
+  "candidateSha": "0870473aa4e6b89b079f407a2bb2ce22573c7ee4",
+  "previewSha": "d907ec3457a8f905c4076fb7a168d387c58d83fb",
+  "deploymentId": "dpl_Gwq2CE9gG4s9j4VJ2TGrkqmHbv6u",
+  "environment": "isolated-synthetic-preview",
+  "syntheticReportRecoveryRehearsal": true,
+  "completePersistedDispatcherPath": true,
+  "sourceCooldownsBypassed": false,
+  "vendorRequests": 0,
+  "productionWrites": 0,
+  "simulatedRequests": 10,
+  "requestedJobs": 5,
+  "receipts": [
+    {
+      "tick": 0,
+      "status": "complete",
+      "kind": "collection",
+      "collectedPages": 1
+    },
+    {
+      "tick": 1,
+      "status": "deferred",
+      "kind": "assignee-solved",
+      "periodStart": "2026-09-27",
+      "periodEnd": "2026-10-03"
+    },
+    {
+      "tick": 2,
+      "status": "complete",
+      "kind": "updater",
+      "periodStart": "2026-09-27",
+      "periodEnd": "2026-10-03"
+    },
+    {
+      "tick": 3,
+      "status": "complete",
+      "kind": "assignee-solved",
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-10"
+    },
+    {
+      "tick": 4,
+      "status": "complete",
+      "kind": "updater",
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-10"
+    },
+    {
+      "tick": 5,
+      "status": "complete",
+      "kind": "assignee-solved",
+      "periodStart": "2026-09-27",
+      "periodEnd": "2026-10-03"
+    }
+  ],
+  "results": [
+    {
+      "key": "zendesk_assignee_solved_tickets",
+      "periodStart": "2026-09-27",
+      "value": 2
+    },
+    {
+      "key": "zendesk_assignee_solved_tickets",
+      "periodStart": "2026-10-04",
+      "value": 0
+    },
+    {
+      "key": "zendesk_tickets_solved_credits",
+      "periodStart": "2026-09-27",
+      "value": 3
+    },
+    {
+      "key": "zendesk_tickets_solved_credits",
+      "periodStart": "2026-10-04",
+      "value": 3
+    }
+  ],
+  "unrelatedValuesUnchanged": true,
+  "duplicateTickDidNoWork": true,
+  "elapsedSeconds": 1242,
+  "scheduledExecution": false,
+  "actualHostedCrashTested": false,
+  "limits": "Manual build rehearsal of the complete durable dispatcher with production cooldowns. Crash, expired-owner and late-acknowledgment cases are covered by separate PostgreSQL tests, not a hosted process termination. This receipt does not establish production scheduling or all-family metric acceptance.",
+  "deploymentState": "READY",
+  "previewAliasAssigned": true
+}

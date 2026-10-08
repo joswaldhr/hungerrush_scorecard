@@ -200,6 +200,42 @@ vendor state or credentials.
 
 ## Production release and rollback
 
+### Separate report-credit controls (inactive until release)
+
+`ZENDESK_REPORT_EVENT_COLLECTION_POLICY` enables only minimized ticket-event retention:
+schema version 1, organization/source/account binding and a fixed UTC bootstrap date.
+`GET /api/cron/ticket-events` accepts only the scheduler credential and no query controls.
+It commits each page/checkpoint together, returns 202 for unfinished collection, 409
+for account contention and 429 with Retry-After for deferred work. It never publishes
+metrics. Reuse the fixed bootstrap when resuming; do not reset or move it to skip gaps.
+
+`ZENDESK_SOLVED_REPORT_RELEASES` independently enables an array of at most two validated
+solved-only releases, one per kind/team. Each entry uses the strict `SolvedRelease`
+schema, including source/account/team, report timezone/scope, effective Sunday,
+observation age and release evidence digest. `GET /api/cron/solved-tickets` requires
+exactly `kind=updater|assignee-solved` and `week=0|1|2|3`, plus the scheduler credential.
+It honors cutover/cooldown and invokes the same atomic sync service used by rehearsal.
+Collection policy alone does not enable publication; publication does not start or
+reset an event stream. Missing policies are inert. No new recurring job is enabled
+by adding these endpoints. The main Preview gate requires both policies absent.
+
+Before activation, qualify actual source coverage, register the scoped effective catalog,
+complete the remaining release gates, and document the real collection/publication
+schedule and freshness budget. Follow a labeled canary with independent readback and
+check unaffected rows/revisions. To stop new activity, clear the affected new policy
+and redeploy; preserve retained evidence and previous values. Do not enable human-action
+shadow/v2 or historical repair, change Zendesk, or change CSAT/first-reply policy.
+
+### Release procedure
+
+The durable report-recovery candidate adds a separate `ZENDESK_REPORT_RECOVERY=1`
+opt-in and authenticated `/api/cron/report-recovery?slot=0..23` endpoint. It persists
+deferred work and fixed reporting dates in `zendesk_report_job_v1` operational records;
+these are not employee metric facts. The switch and new schedules remain absent until
+the [recovery release gates](audits/2026-10-07-report-recovery.md) pass. Clearing this
+switch contains new dispatcher work without deleting retained evidence or disabling
+the independently qualified solved/CSAT/first-reply policies. Check in-flight work too.
+
 1. Complete the ledger's technical gates and verify the exact candidate commit's checks.
 2. Refresh and verify a recoverable backup immediately before rollout. Record the previous
    production deployment, migration state, candidate commit and active feature flags.
@@ -210,6 +246,11 @@ vendor state or credentials.
 5. If application rollback is needed, use the recorded compatible deployment. Preserve additive
    tables and revision evidence. Data rollback requires reviewed snapshots and a separate repair;
    restoring stale values can reintroduce the defect. Never blindly reverse null corrections.
+   Verify active cron definitions and in-flight runs too. The October 7 check of
+   [Vercel's current documentation](https://vercel.com/docs/cron-jobs/manage-cron-jobs)
+   says Instant Rollback restores the selected deployment's cron definitions for subsequent
+   invocations; already-running work may continue. Supersede older rollback assumptions
+   with observed project state, and separately contain any affected active publisher.
 
 Unresolved source meaning must remain unavailable in the product. A release containing
 containment is not certification of historical totals. Keep production rollout, metric-version

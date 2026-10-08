@@ -1,0 +1,57 @@
+{
+  "verifiedAt": "2026-10-08T04:05:00Z",
+  "deployment": "dpl_5LFAcRdxm6VbvAQsXobikfdMuPuK",
+  "applicationSha": "8a88279fabd8bf8306f2b098184040553c4ad40b",
+  "readyState": "READY",
+  "scope": "One representative POS employee through the administrator's existing manager-preview session",
+  "closedPeriod": "2026-09-27/2026-10-03",
+  "currentPeriod": "2026-10-04/2026-10-10",
+  "csv": {
+    "actualDownloadedFiles": 2,
+    "columnsPerFile": 20,
+    "rowsPerFile": 19,
+    "displayedRowsCompared": 38,
+    "valueComparisonTargetStatusDifferences": 0,
+    "datesAndModesMatch": true,
+    "closedReported": 13,
+    "closedUnavailable": 6,
+    "currentReported": 15,
+    "currentUnavailable": 4
+  },
+  "clipboard": {
+    "closedAndCurrentMetricRowsMatched": 38,
+    "currentPerformanceJudgments": 0,
+    "fixedWeekLinkExplicit": true,
+    "originalEmptyClipboardRestored": true
+  },
+  "visualExports": {
+    "closedPdfBytes": 826574,
+    "pdfPages": 1,
+    "pdfPageFormat": "Custom tall page; native print pagination not verified",
+    "pngWidth": 2144,
+    "pngHeight": 6126,
+    "actualDownloadsInspected": true,
+    "pdfRenderedWithPoppler": true,
+    "all19ClosedRowsVisuallyMatch": true,
+    "datesUnitsMissingReasonsAndFooterRetained": true,
+    "visibleClippingOrOverlaps": false
+  },
+  "history": {
+    "exactClosedIntervalChecked": true,
+    "displayedMetricValuesMatch": true,
+    "returnWeekRestored": true,
+    "originalManagerPreviewRestored": true,
+    "temporaryBrowserTabClosed": true
+  },
+  "limits": [
+    "Representative presentation consistency does not establish all-employee source accuracy or independent manager sign-in.",
+    "Current-week PDF/PNG and native print bytes were not checked in this increment.",
+    "The closed outbound observation dates from September 28, before that reporting period ended. Its displayed numeric zeros are not qualified as full-week results.",
+    "Current outbound values use the legacy UTC whole-call definition while the previous week's qualified values use the Central employee-leg definition. The UI correctly withholds their comparison; ongoing qualified outbound publication remains unresolved.",
+    "POS offered, abandonment, escalation attribution, active handle time and other source acceptance gaps remain open."
+  ],
+  "vendorRequests": 0,
+  "vendorWrites": 0,
+  "productionMetricWrites": 0,
+  "deployments": 0
+}

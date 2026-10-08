@@ -1,0 +1,41 @@
+{
+  "recordedAt": "2026-10-07T21:04:07.386Z",
+  "pullRequest": 47,
+  "candidate": "2eb2a54e8fc9f82c595d1f73a33d3fb8bfcb9e08",
+  "productionCommit": "8a88279fabd8bf8306f2b098184040553c4ad40b",
+  "deploymentId": "dpl_5LFAcRdxm6VbvAQsXobikfdMuPuK",
+  "state": "READY",
+  "liveAliasVerified": true,
+  "candidateCi": { "runId": "37684923033", "conclusion": "success", "tests": 1125, "files": 141 },
+  "masterCi": { "runId": "37685743149", "conclusion": "success" },
+  "smoke": { "loginStatus": 200, "unauthenticatedCollectorStatus": 401, "unauthenticatedPublisherStatus": 401, "signedInClosedScorecardPreserved": true },
+  "refresh": {
+    "kind": "updater",
+    "periodStart": "2026-10-04",
+    "periodEnd": "2026-10-10",
+    "httpStatus": 200,
+    "platformTimestamp": "2026-10-07T21:00:34.712Z",
+    "requestDurationMs": 69527,
+    "clientUserAgent": "Cadence-controlled-coordination-refresh/1.0",
+    "hasFunctionCrashed": false,
+    "employees": 23,
+    "valuesCompared": 23,
+    "contributingIds": 1657,
+    "independentDifferences": 0,
+    "numericZeros": 3,
+    "unrelatedDigestGroupsUnchanged": 12,
+    "exactPredecessorSnapshotsMatched": 69,
+    "predecessorsByType": { "source_record": 23, "normalized_fact": 23, "metric_value": 23 },
+    "duplicateRevisions": 0
+  },
+  "rollbackDeploymentId": "dpl_C3zsDWZKpLvz6HCkuxzGJCV3b5tk",
+  "policiesChanged": false,
+  "schedulesChanged": false,
+  "zendeskMutations": 0,
+  "genuineScheduledEvidence": false,
+  "limits": [
+    "Independent comparison uses exact retained publication evidence, not a fresh same-cutoff Explore export.",
+    "This controlled refresh does not establish scheduled execution, deferred-work recovery or sufficient daily capacity.",
+    "No export implementation changed; remaining unverified formats and wider metric families stay open."
+  ]
+}

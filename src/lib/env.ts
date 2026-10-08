@@ -19,6 +19,11 @@ const envSchema = z.object({
   ZENDESK_LEGACY_TALK_RESUME: z.literal("1").optional(),
   ZENDESK_OUTBOUND_POLICY: z.string().min(1).optional(),
   ZENDESK_INBOUND_REPORT_RELEASE: z.string().min(1).optional(),
+  // Report-credit collection and solved-only publication are separate opt-ins.
+  ZENDESK_REPORT_EVENT_COLLECTION_POLICY: z.string().min(1).optional(),
+  ZENDESK_SOLVED_REPORT_RELEASES: z.string().min(1).optional(),
+  // Separately gated durable recovery; installing code never activates source work.
+  ZENDESK_REPORT_RECOVERY: z.literal("1").optional(),
 
   // Assembled connector (optional)
   ASSEMBLED_API_KEY: z.string().min(1).optional(),

@@ -5,11 +5,14 @@ export const FIRST_REPLY_CONTRACT = "zendesk-created-current-assignee-first-repl
 export const FIRST_REPLY_CALCULATION_VERSION = 2;
 export const OUTBOUND_PARTICIPATION_CONTRACT = "zendesk-call-created-agent-leg-outbound-v1";
 export const INBOUND_PARTICIPATION_CONTRACT = "zendesk-call-created-agent-leg-inbound-v1";
+export const UPDATER_SOLVED_CONTRACT = "zendesk-qualified-updater-solved-credits-v1";
+export const ASSIGNEE_SOLVED_CONTRACT = "zendesk-qualified-assignee-solved-tickets-v1";
 export function completeSnapshotVersion(contract: string | undefined): number | null {
   if (contract === SOLVED_CSAT_CONTRACT) return SOLVED_CSAT_CALCULATION_VERSION;
   if (contract === FIRST_REPLY_CONTRACT) return FIRST_REPLY_CALCULATION_VERSION;
   if (contract === OUTBOUND_PARTICIPATION_CONTRACT) return 2;
   if (contract === INBOUND_PARTICIPATION_CONTRACT) return 2;
+  if (contract === UPDATER_SOLVED_CONTRACT || contract === ASSIGNEE_SOLVED_CONTRACT) return 1;
   return null;
 }
 export const INCOMPATIBLE_COMPARISON_REASON =
@@ -22,6 +25,7 @@ export interface MetricSourceContext {
   sourceScopeFingerprint?: string;
   sampleCount?: number;
   cohortCount?: number;
+  reportingAsOf?: string;
 }
 
 /** Legacy observations have no explicit context. Never infer a new contract from a value. */
@@ -45,6 +49,19 @@ export function readMetricSourceContext(value: unknown): MetricSourceContext | n
   )
     throw new Error("Invalid metric source scope");
   const counts: { sampleCount?: number; cohortCount?: number } = {};
+  const progress: { reportingAsOf?: string } = {};
+  if (
+    [UPDATER_SOLVED_CONTRACT, ASSIGNEE_SOLVED_CONTRACT].includes(row.sourceContract) &&
+    row.reportingAsOf !== undefined
+  ) {
+    if (
+      typeof row.reportingAsOf !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}T/.test(row.reportingAsOf) ||
+      !Number.isFinite(Date.parse(row.reportingAsOf))
+    )
+      throw Error("Invalid ticket report cutoff");
+    progress.reportingAsOf = new Date(row.reportingAsOf).toISOString();
+  }
   if (
     [
       FIRST_REPLY_CONTRACT,
@@ -67,6 +84,7 @@ export function readMetricSourceContext(value: unknown): MetricSourceContext | n
     sourceContract: row.sourceContract,
     reportingTimeZone,
     ...counts,
+    ...progress,
     ...(typeof row.sourceScopeFingerprint === "string"
       ? { sourceScopeFingerprint: row.sourceScopeFingerprint }
       : {}),

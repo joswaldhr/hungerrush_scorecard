@@ -8,16 +8,24 @@ without losing newer data. No plan can guarantee zero failures.
 
 ## 1. Protect Zendesk and managers' work
 
-**Current instruction:** the latest user-provided AGENTS instructions prohibit opening
-report or dashboard editors, including unsaved inspection. This supersedes the earlier
-September 28 permission for brief inspection. Use retained downloads and bounded,
-allowlisted GET APIs; do not reopen editors to close an evidence gap.
+**Current instruction:** the latest user-provided AGENTS instructions retain Zendesk
+read-only access and the September 28 amendment permitting brief report-definition
+inspection with no edits and prompt closure. Prefer retained downloads and bounded,
+allowlisted GET APIs; use that exception only when an essential definition is unavailable
+from retained evidence.
 
 **Zendesk is read-only for this work.** Do not create, edit, save, delete or reconfigure
 reports, dashboards, tickets, users, groups, fields, triggers, automations, permissions
-or account settings. Do not open Explore report/dashboard editors, including for
-temporary filters, unsaved changes, inspection or export. An editor session itself
+or account settings. Avoid Explore editors except the narrow definition-inspection
+exception below; never change temporary filters or make unsaved edits. An editor session itself
 can affect another user's access; “I did not click Save” is insufficient protection.
+
+For an essential report-definition inspection: open one report at a time; inspect only
+existing definitions, without changing metrics, attributes, filters, dates or layout;
+retain the minimum private evidence and leave the editor promptly, then close its tab.
+Verify the editor is closed before another report is opened. Stop immediately if a
+manager reports a lock, close the editor and do not reopen it to complete the audit.
+This exception does not authorize dashboard editing, report saves or source changes.
 
 Prefer retained downloads, previously collected evidence and documented GET APIs.
 Allowlist the exact account, endpoints and query parameters required by each reader.
@@ -42,13 +50,13 @@ earlier assurance that reports were unchanged did not account for editor locks.
 
 ## 2. Separate research, testing and production
 
-| Work | Permitted destination | Required check |
-|---|---|---|
-| Source investigation | Retained private data; bounded Zendesk GET APIs | Known account, minimum fields, no writes/editor sessions |
-| Unit/integration tests and reset/seed commands | Isolated loopback `*_test` or CI database | Explicit test URL; never load shared `.env` |
-| Hosted UI/export checks | Branch-scoped Preview, separate staging DB/auth | Exact deployment SHA and environment identity; synthetic identities/data |
-| Production diagnostics | Known production database in read-only transaction; authenticated read pages | Verify destination and read-only mode before querying |
-| Production change | Exact reviewed candidate and scoped release procedure | Every applicable gate below passes |
+| Work                                           | Permitted destination                                                        | Required check                                                           |
+| ---------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Source investigation                           | Retained private data; bounded Zendesk GET APIs                              | Known account, minimum fields, no writes/editor sessions                 |
+| Unit/integration tests and reset/seed commands | Isolated loopback `*_test` or CI database                                    | Explicit test URL; never load shared `.env`                              |
+| Hosted UI/export checks                        | Branch-scoped Preview, separate staging DB/auth                              | Exact deployment SHA and environment identity; synthetic identities/data |
+| Production diagnostics                         | Known production database in read-only transaction; authenticated read pages | Verify destination and read-only mode before querying                    |
+| Production change                              | Exact reviewed candidate and scoped release procedure                        | Every applicable gate below passes                                       |
 
 Before each hosted command, establish its destination from trusted deployment/config
 metadata; never infer it from the current browser tab or an inherited environment
@@ -57,6 +65,14 @@ Keep the audit branch's Preview isolation intact. Treat merges to `master` as pr
 deployments because the host automatically deploys that branch.
 
 ## 3. Change one metric family at a time
+
+**October 6 user amendment:** The user selected report-matched credits with clear
+labels and separate human verification. This supersedes human-only attribution as
+the required meaning of the new scorecard ticket-credit measures. It does not turn
+legacy assignee snapshots into valid credits or authorize claims of manual authorship.
+Keep the old human-only keys and publisher guarded; qualify separate report-credit
+definitions and source observations against each manager's saved report. All source,
+coverage, testing, release and recovery gates below still apply.
 
 Write a short change manifest before release: candidate SHA, defect, affected team/keys,
 effective period, source contract, expected writes, untouched data, validation evidence,
@@ -77,16 +93,16 @@ definition with an incompatible old target.
 
 ## 4. Release gates and required evidence
 
-| Gate | Pass condition | If it fails |
-|---|---|---|
-| Source meaning | Written unit, date basis/timezone, scope, attribution, numerator and denominator; source missing/zero distinguished | Keep candidate unpublished; investigate the precise mismatch |
-| Independent correctness | Rebuild exact source sets independently; zero unexplained missing/extra IDs and count differences; compare sums/denominators before rounding | Retain discrepancy evidence; totals alone cannot certify employees |
-| Coverage | Pagination/count/duplicate checks, retained versions, identity mapping, parent joins and observation freshness verified | Mark affected results unavailable or explicitly stale; never certify endpoint exhaustion as joined completeness |
-| Code and persistence | Typecheck, lint, appropriate regression tests, full CI/build on exact candidate; PostgreSQL rollback/concurrency tests for writes | Fix locally; no merge to production |
-| Hosted behavior | Synthetic current/history/revision views, authorization, column alignment, duration/sample labels and actual export bytes checked when affected | Keep the previous behavior; record any unverified file formats |
-| Recovery | Fresh encrypted backup, successful restore to a separate database, matching row digests; tested schema compatibility and exact rollback/config references | No production change |
-| Scoped publication | One labeled controlled canary; exact team/period/key scope; atomic publication and retained revisions; independent post-publication comparison | Disable the new publisher and preserve evidence; recover only its affected values |
-| Live operation | Exact production SHA/alias, sign-in/core reads, errors/runtime/freshness and genuine scheduled executions observed | Keep status incomplete; investigate without manufacturing scheduler evidence |
+| Gate                    | Pass condition                                                                                                                                            | If it fails                                                                                                     |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Source meaning          | Written unit, date basis/timezone, scope, attribution, numerator and denominator; source missing/zero distinguished                                       | Keep candidate unpublished; investigate the precise mismatch                                                    |
+| Independent correctness | Rebuild exact source sets independently; zero unexplained missing/extra IDs and count differences; compare sums/denominators before rounding              | Retain discrepancy evidence; totals alone cannot certify employees                                              |
+| Coverage                | Pagination/count/duplicate checks, retained versions, identity mapping, parent joins and observation freshness verified                                   | Mark affected results unavailable or explicitly stale; never certify endpoint exhaustion as joined completeness |
+| Code and persistence    | Typecheck, lint, appropriate regression tests, full CI/build on exact candidate; PostgreSQL rollback/concurrency tests for writes                         | Fix locally; no merge to production                                                                             |
+| Hosted behavior         | Synthetic current/history/revision views, authorization, column alignment, duration/sample labels and actual export bytes checked when affected           | Keep the previous behavior; record any unverified file formats                                                  |
+| Recovery                | Fresh encrypted backup, successful restore to a separate database, matching row digests; tested schema compatibility and exact rollback/config references | No production change                                                                                            |
+| Scoped publication      | One labeled controlled canary; exact team/period/key scope; atomic publication and retained revisions; independent post-publication comparison            | Disable the new publisher and preserve evidence; recover only its affected values                               |
+| Live operation          | Exact production SHA/alias, sign-in/core reads, errors/runtime/freshness and genuine scheduled executions observed                                        | Keep status incomplete; investigate without manufacturing scheduler evidence                                    |
 
 Use at least two closed weeks for an ongoing metric contract where reliable source
 history exists, plus current-week checks; include transfers, nulls, zeros, late updates,

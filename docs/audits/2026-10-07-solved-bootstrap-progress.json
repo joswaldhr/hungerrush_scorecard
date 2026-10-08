@@ -1,0 +1,65 @@
+{
+  "observedAt": "2026-10-07T18:52:09.186Z",
+  "codeSha": "376aaafed437ba42c53d447c0178e7024d4fdb52",
+  "deploymentId": "dpl_7TAT6XQEpirG2YpeHG9rG6nMucN7",
+  "collectionOnly": true,
+  "manualBootstrap": true,
+  "genuineSchedulerEvidence": false,
+  "bootstrapDate": "2026-09-26",
+  "batches": [
+    {
+      "startedAt": "2026-10-07T18:34:45.988Z",
+      "completedAt": "2026-10-07T18:38:09.681Z",
+      "httpStatus": 429,
+      "status": "waiting",
+      "pages": 17,
+      "newEvents": 16528,
+      "waitMs": 4112,
+      "elapsedMs": null,
+      "metricsPublished": false
+    },
+    {
+      "startedAt": "2026-10-07T18:39:01.922Z",
+      "completedAt": "2026-10-07T18:40:55.700Z",
+      "httpStatus": 429,
+      "status": "rate_limited",
+      "pages": 9,
+      "newEvents": 8988,
+      "waitMs": 11000,
+      "elapsedMs": null,
+      "metricsPublished": false
+    },
+    {
+      "startedAt": "2026-10-07T18:44:49.544Z",
+      "completedAt": "2026-10-07T18:48:19.476Z",
+      "httpStatus": 202,
+      "status": "collected",
+      "pages": 18,
+      "newEvents": 17939,
+      "waitMs": null,
+      "elapsedMs": 208671,
+      "metricsPublished": false
+    },
+    {
+      "startedAt": "2026-10-07T18:48:38.164Z",
+      "completedAt": "2026-10-07T18:52:08.253Z",
+      "httpStatus": 202,
+      "status": "collected",
+      "pages": 18,
+      "newEvents": 17976,
+      "waitMs": null,
+      "elapsedMs": 208871,
+      "metricsPublished": false
+    }
+  ],
+  "retainedEvents": 61431,
+  "cursorPages": 62,
+  "observedThrough": "2026-10-01T15:48:16.000Z",
+  "streamExhausted": false,
+  "solvedValues": 0,
+  "limits": [
+    "Incomplete bootstrap: no joined coverage or numeric publication is established.",
+    "One source rate limit stopped collection and persisted cooldown; read-only checks preceded successful resumption.",
+    "Historical density and one batch do not establish sufficient ongoing collection capacity."
+  ]
+}

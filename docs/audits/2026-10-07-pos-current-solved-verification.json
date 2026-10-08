@@ -1,0 +1,15 @@
+{
+  "observedAt": "2026-10-07T16:28:16.989Z",
+  "reportingAsOf": "2026-10-07T16:26:38.342Z",
+  "periodStart": "2026-10-04",
+  "periodEnd": "2026-10-10",
+  "timeZone": "America/Chicago",
+  "employees": 39,
+  "sourceTickets": 833,
+  "solvedTickets": 654,
+  "employeeCountDifferences": 0,
+  "contributingIdDifferences": 0,
+  "independentCalculation": "Python datetime/zoneinfo and ticket-ID sets versus TypeScript",
+  "referenceLimit": "This verifies retained API source calculation, not a same-cutoff Explore export or published production values.",
+  "productionValuesWritten": 0
+}

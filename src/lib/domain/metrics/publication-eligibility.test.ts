@@ -34,3 +34,17 @@ it("rejects false or malformed explicit eligibility without reclassifying existi
   ])
     expect(() => assertMetricPublicationEligible(evidence)).not.toThrow();
 });
+
+it("blocks both unqualified ticket-credit contracts independently of caller eligibility", () => {
+  for (const sourceContract of [
+    "zendesk-updater-report-credits-v1",
+    "zendesk-assignee-solved-report-v1",
+  ])
+    for (const publicationEligible of [undefined, false, true])
+      expect(() =>
+        assertMetricPublicationEligible({ sourceContract, publicationEligible })
+      ).toThrow("not eligible");
+  expect(() => assertMetricPublicationEligible({}, "ticket_report_credit_candidate")).toThrow(
+    "not eligible"
+  );
+});

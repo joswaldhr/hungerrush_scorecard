@@ -1,0 +1,46 @@
+{
+  "observedAt": "2026-10-07T19:46:15.488Z",
+  "source": "Durable production report-event stream plus fresh GET-only parent/metric joins",
+  "team": "Menufy",
+  "timeZone": "America/Chicago",
+  "periods": [
+    {
+      "periodStart": "2026-09-27",
+      "periodEnd": "2026-10-03",
+      "employees": 23,
+      "events": 14129,
+      "joinedParents": 4911,
+      "confirmedDeletedParents": 40,
+      "unresolvedParents": 0,
+      "solvedCredits": 4106,
+      "independentlyMatchedEmployees": 23,
+      "contributingSetDifferences": 0,
+      "sourceGetRequests": 55,
+      "observedAt": "2026-10-07T19:45:08.648Z",
+      "reportingAsOf": null,
+      "inputSha256": "b5846c27b7249c7b09d0be2c83756d32a02c304fdd9039b5ddda1240c9d093c8"
+    },
+    {
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-10",
+      "employees": 23,
+      "events": 6434,
+      "joinedParents": 2084,
+      "confirmedDeletedParents": 14,
+      "unresolvedParents": 0,
+      "solvedCredits": 1634,
+      "independentlyMatchedEmployees": 23,
+      "contributingSetDifferences": 0,
+      "sourceGetRequests": 26,
+      "observedAt": "2026-10-07T19:46:15.488Z",
+      "reportingAsOf": "2026-10-07T19:41:45.000Z",
+      "inputSha256": "fa80deab22af6f958472c0c33bab4041c9fd0b6ff16308e666ad186d42a3513a"
+    }
+  ],
+  "productionMetricWrites": 0,
+  "limitations": [
+    "Independent replay of exact retained evidence; not a same-cutoff Explore export.",
+    "Update-event implementation parity does not resolve the separately retained report discrepancies.",
+    "Catalog activation, scoped canary, live UI readback and scheduled operation still required."
+  ]
+}

@@ -35,6 +35,27 @@ code correction and real PostgreSQL regression checks must pass exact-candidate 
 followed by fresh recovery/readback and a separately recorded attempt. The first private
 intent remains retained. Registration and publication remain incomplete.
 
+The corrected registration attempt is separately scoped to exact candidate
+`55c5a843a2cf53878730b5ac632ced244b9ea465`, after full CI `37371504967` succeeds.
+All 992 local tests pass, including roster-discovered staff identity preservation and
+atomic registration on `agent` bindings. Keep the first intent; require every existing
+catalog/assignment/target digest to equal that original preflight before the new attempt.
+Reuse the 20:35 verified recovery only while it is less than one hour old; otherwise
+refresh it. Recheck production opt-ins and no running workers. Record a new immutable
+attempt receipt and returned IDs, then compare unchanged existing catalog digests.
+The October 11 prospective start, exactly four additions, neutral/no targets, publication
+disabled and scoped rollback boundaries remain unchanged. This paragraph is a manifest,
+not a statement that this corrected attempt has committed.
+
+Observed corrected result at 20:57 UTC: full CI succeeds, four definitions and four team
+assignments commit with the explicit October 11 cutover. All existing catalog/assignment/
+target digests remain unchanged, and all 23 active bindings validate. No targets, metric
+values, vendor requests or publication activation accompany registration. Private created
+IDs remain rollback inventory. See `2026-10-05-inbound-catalog-production-readback.json`.
+The fresh post-catalog recovery at 20:59 UTC matches 35 tables / 138,122 rows, with all
+digests unchanged and no pending migrations. Publication is still inactive and cannot
+rewrite prior periods under the new four-definition cutover.
+
 The approved completion plan now has an explicit catalog-registration candidate in
 `src/lib/connectors/zendesk-inbound-catalog.ts`. This operation is not connected to a route,
 build or scheduler. It creates only the four additions below with future-effective definitions

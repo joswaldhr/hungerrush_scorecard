@@ -4,7 +4,11 @@ import {
   TICKET_ATTRIBUTION_QUALITY,
   TICKET_ATTRIBUTION_REASON,
 } from "./availability";
-import { SOURCE_TARGET_REASON } from "./source-context";
+import {
+  SOURCE_TARGET_REASON,
+  UPDATER_SOLVED_CONTRACT,
+  ASSIGNEE_SOLVED_CONTRACT,
+} from "./source-context";
 import { snapshotObservation, type ScorecardMode } from "./scorecard-presentation";
 
 export interface ScorecardMetric {
@@ -29,6 +33,7 @@ export interface ScorecardMetric {
   missingReason?: string | null;
   sourceContract?: string | null;
   reportingTimeZone?: string | null;
+  reportingAsOf?: string | null;
   comparisonUnavailableReason?: string | null;
 }
 
@@ -176,7 +181,19 @@ export function exportReviewNotes(metrics: ScorecardMetric[]) {
   // Group repeated caveats rather than repeating the entire audit record per row.
   const warnings = new Map<string, string[]>();
   for (const metric of metrics) {
+    const solvedMeaning =
+      metric.sourceContract === UPDATER_SOLVED_CONTRACT
+        ? "Latest-solve credits to the updater account; may include integration activity. Not proof of manual human activity."
+        : metric.sourceContract === ASSIGNEE_SOLVED_CONTRACT
+          ? "Solved tickets assigned to this employee; does not identify who performed the solve."
+          : null;
+    const cutoff =
+      solvedMeaning && metric.reportingAsOf && Number.isFinite(Date.parse(metric.reportingAsOf))
+        ? `Captured source data before ${new Date(metric.reportingAsOf).toISOString()}; current-week progress.`
+        : null;
     const reasons = [
+      solvedMeaning,
+      cutoff,
       exportUnavailableReason(metric),
       metric.comparisonUnavailableReason,
       metric.targetContextStatus === "historical_unverified"

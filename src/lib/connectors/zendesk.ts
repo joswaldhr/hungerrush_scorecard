@@ -634,32 +634,34 @@ export class ZendeskConnector implements Connector {
         continue;
       }
       if ("ticketsResolved" in payload) {
+        // agent_stats is a current-assignee / last-updated search snapshot.
+        // Preserve its raw counts in source_records for diagnostics, but never
+        // normalize them as employee actions. Explicit nulls retract earlier
+        // contributions atomically on the next scoped sync, including zero counts.
         facts.push({
           employeeId,
           teamId,
           factType: "tickets_resolved",
-          numericValue: payload.ticketsResolved as number,
+          numericValue: null,
           textValue: null,
           booleanValue: null,
           unit: "count",
           periodStart,
           periodEnd,
-          dimensionsJson: null,
+          dimensionsJson: { availability: "unverified_attribution", basis: "assignee_snapshot" },
         });
-        if (payload.ticketsUpdated != null) {
-          facts.push({
-            employeeId,
-            teamId,
-            factType: "tickets_updated",
-            numericValue: payload.ticketsUpdated as number,
-            textValue: null,
-            booleanValue: null,
-            unit: "count",
-            periodStart,
-            periodEnd,
-            dimensionsJson: null,
-          });
-        }
+        facts.push({
+          employeeId,
+          teamId,
+          factType: "tickets_updated",
+          numericValue: null,
+          textValue: null,
+          booleanValue: null,
+          unit: "count",
+          periodStart,
+          periodEnd,
+          dimensionsJson: { availability: "unverified_attribution", basis: "assignee_snapshot" },
+        });
         if (payload.avgHandleTimeMinutes != null) {
           facts.push({
             employeeId,

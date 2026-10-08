@@ -1,0 +1,21 @@
+{
+  "employees": 23,
+  "valuesCompared": 46,
+  "updateEventIdsCompared": 5617,
+  "solvedEventIdsCompared": 1527,
+  "differences": 0,
+  "observedAt": "2026-10-07T16:40:24.997Z",
+  "reportingAsOf": "2026-10-07T16:30:07Z",
+  "periodStart": "2026-10-04",
+  "periodEnd": "2026-10-10",
+  "timeZone": "America/Chicago",
+  "unmatchedParents": 0,
+  "sourceRequests": 25,
+  "productionValuesWritten": 0,
+  "referenceLimit": "Independent calculation from API events and parent joins; not a same-cutoff Explore export. Update counts remain unqualified despite implementation parity.",
+  "eventStreamRequests": 38,
+  "totalSourceRequests": 63,
+  "rawEventsCaptured": 37493,
+  "parentsPresent": 1952,
+  "sourceConfirmedDeletions": 14
+}

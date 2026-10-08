@@ -3,10 +3,22 @@ import {
   INBOUND_PARTICIPATION_CONTRACT,
   OUTBOUND_PARTICIPATION_CONTRACT,
   SOLVED_CSAT_CONTRACT,
+  UPDATER_SOLVED_CONTRACT,
+  ASSIGNEE_SOLVED_CONTRACT,
   type MetricSourceContext,
 } from "./source-context";
 
 export function metricSourceName(name: string, key: string, context?: MetricSourceContext | null) {
+  if (
+    key === "zendesk_tickets_solved_credits" &&
+    context?.sourceContract === UPDATER_SOLVED_CONTRACT
+  )
+    return "Tickets solved (Zendesk credit)";
+  if (
+    key === "zendesk_assignee_solved_tickets" &&
+    context?.sourceContract === ASSIGNEE_SOLVED_CONTRACT
+  )
+    return "Tickets solved (assigned)";
   return key === "avg_response_time" && context?.sourceContract === FIRST_REPLY_CONTRACT
     ? "Avg First Reply — Business Time"
     : name;
@@ -18,6 +30,21 @@ export function metricSourceDescription(
   sourceStrategy: string | null,
   context?: MetricSourceContext | null
 ) {
+  if (
+    (key === "zendesk_tickets_solved_credits" &&
+      context?.sourceContract === UPDATER_SOLVED_CONTRACT) ||
+    (key === "zendesk_assignee_solved_tickets" &&
+      context?.sourceContract === ASSIGNEE_SOLVED_CONTRACT)
+  ) {
+    const meaning =
+      key === "zendesk_tickets_solved_credits"
+        ? "Distinct latest-solve update IDs credited to this updater account, within the configured current ticket groups and brand scope. Integration activity credited to the account can be included; this does not establish manual human activity."
+        : "Distinct currently solved or closed tickets attributed to their current assignee, selected by latest solved date within the configured scope. This measures assigned tickets, not who performed the solve.";
+    const cutoff = context.reportingAsOf
+      ? ` Current-week progress; captured source data before ${context.reportingAsOf}.`
+      : "";
+    return `${meaning} Reporting timezone: ${context.reportingTimeZone}. Later reopens, solves or scope changes can revise the report.${cutoff}`;
+  }
   if (context?.sourceContract === INBOUND_PARTICIPATION_CONTRACT) {
     const cohort = `Inbound calls created in this period (${context.reportingTimeZone}), filtered by the configured call groups and lines, attributed through this employee's call legs.`;
     const descriptions = new Map([
