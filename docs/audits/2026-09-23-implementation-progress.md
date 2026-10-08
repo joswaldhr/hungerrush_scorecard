@@ -1,5 +1,15 @@
 # Audit implementation — current checkpoint
 
+**October 8, 15:05 UTC — CSAT durable recovery locally validated:**
+The independently gated CSAT recovery job now retains fixed reporting dates and
+source retry-after through the existing account lease/fenced acknowledgement queue.
+All 1,216 tests / 151 files, typecheck and scoped lint pass. Production remains on
+PR49; neither recovery switch nor any new schedule is active. Exact CI, hosted
+rehearsal, release and scheduler capacity remain open. The 15:05 read-only census
+still finds the current-week CSAT failure and no running workers. The user's next
+45 minutes are prioritized for safe refresh recovery and verified production value,
+without representing partial progress as full-scorecard completion.
+
 **October 8, 14:48 UTC — CSAT fixed-period recovery prerequisite prepared:**
 Active implementation is `codex/csat-fixed-refresh` in the metric-recovery worktree.
 The dedicated CSAT route/connector now preserve exact dates through asynchronous

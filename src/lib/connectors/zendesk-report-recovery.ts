@@ -16,13 +16,16 @@ import { createReportEventReader, runReportEventBatch } from "./zendesk-report-e
 import { createLiveUpdaterSolvedPublisher } from "./zendesk-updater-solved-publisher";
 import { createLiveAssigneeSolvedPublisher } from "./zendesk-assignee-solved-publisher";
 import { runSync } from "./sync-engine";
+import { createCsatConnector } from "./zendesk-csat-connector";
+import { parseZendeskCsatPolicy, type ZendeskCsatPolicy } from "./zendesk-csat-policy";
 
 type Collection = NonNullable<ReturnType<typeof parseReportEventCollectionPolicy>>;
 const digest = (v: unknown) => createHash("sha256").update(JSON.stringify(v)).digest("hex");
 export function planReportRecovery(
   collection: Collection,
   input: SolvedRelease[],
-  now = new Date()
+  now = new Date(),
+  csatInput?: ZendeskCsatPolicy
 ) {
   if (!input.length || input.length > 2)
     throw Error("Report recovery requires qualified solved policies");
@@ -37,6 +40,19 @@ export function planReportRecovery(
     )
   )
     throw Error("Report recovery policies must share one configured source/account");
+  const csat = csatInput
+    ? parseZendeskCsatPolicy(
+        JSON.stringify(csatInput),
+        collection.scope.accountReference.replace(/^zendesk-account:/, "")
+      )
+    : null;
+  if (
+    csat &&
+    (csat.dataSourceId !== collection.scope.dataSourceId ||
+      csat.organizationId !== collection.scope.organizationId)
+  )
+    throw Error("CSAT recovery must share the configured source/account");
+  const csatPolicy = csat ? { release: csat, policyHash: digest({ kind: "csat", ...csat }) } : null;
   const daily = new Date(now);
   daily.setUTCHours(0, 0, 0, 0);
   const sixHourly = new Date(Math.floor(now.getTime() / 21600000) * 21600000);
@@ -59,11 +75,30 @@ export function planReportRecovery(
       });
     }
   }
+  if (csatPolicy) {
+    for (let offset = 0; offset < 4; offset++) {
+      const periodStart = shiftWeekStart(currentWeek, -offset);
+      if (periodStart < csatPolicy.release.effectivePeriodStart) continue;
+      requests.push({
+        definition: {
+          kind: "csat",
+          policyHash: csatPolicy.policyHash,
+          ...weekBoundsForDate(periodStart),
+        },
+        desiredAt: daily.toISOString(),
+      });
+    }
+  }
   return {
     collection,
     publicationPolicies,
+    csatPolicy,
     requests,
-    currentPolicyHashes: [collectionHash, ...publicationPolicies.map((p) => p.policyHash)],
+    currentPolicyHashes: [
+      collectionHash,
+      ...publicationPolicies.map((p) => p.policyHash),
+      ...(csatPolicy ? [csatPolicy.policyHash] : []),
+    ],
   };
 }
 type Plan = ReturnType<typeof planReportRecovery>;
@@ -103,9 +138,10 @@ export async function dispatchReportRecovery(
 export async function runLiveReportRecovery(
   collection: Collection,
   releases: SolvedRelease[],
-  credentials: { subdomain: string; email: string; apiKey: string }
+  credentials: { subdomain: string; email: string; apiKey: string },
+  csatPolicy?: ZendeskCsatPolicy
 ) {
-  const plan = planReportRecovery(collection, releases);
+  const plan = planReportRecovery(collection, releases, new Date(), csatPolicy);
   return dispatchReportRecovery(plan, async (job) => {
     // Preserve source pacing on every attempt, including a previously interrupted job.
     if (await isSyncRateLimited(collection.scope.dataSourceId))
@@ -128,6 +164,18 @@ export async function runLiveReportRecovery(
             : new Date(
                 Date.now() + ("waitMs" in result ? (result.waitMs ?? 30000) : 30000)
               ).toISOString(),
+      };
+    }
+    if (selected.kind === "csat") {
+      if (!plan.csatPolicy || plan.csatPolicy.policyHash !== selected.policyHash)
+        throw Error("Queued CSAT policy no longer active");
+      const result = await runSync(createCsatConnector(plan.csatPolicy.release), collection.scope, {
+        period: { periodStart: selected.periodStart, periodEnd: selected.periodEnd },
+      });
+      return {
+        status: result.success ? "complete" : result.skipped ? "deferred" : "failed",
+        syncRunId: result.syncRunId,
+        ...(!result.success && result.retryAt ? { retryAt: result.retryAt } : {}),
       };
     }
     const policy = plan.publicationPolicies.find(

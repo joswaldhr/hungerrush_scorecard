@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   sync: vi.fn(),
   updater: vi.fn(),
   assignee: vi.fn(),
+  csat: vi.fn(),
 }));
 vi.mock("@/lib/connectors/zendesk-report-jobs", () => ({
   requestReportJobs: mocks.request,
@@ -22,6 +23,7 @@ vi.mock("@/lib/connectors/zendesk-report-event-worker", () => ({
   createReportEventReader: mocks.reader,
 }));
 vi.mock("@/lib/connectors/sync-engine", () => ({ runSync: mocks.sync }));
+vi.mock("@/lib/connectors/zendesk-csat-connector", () => ({ createCsatConnector: mocks.csat }));
 vi.mock("@/lib/connectors/zendesk-updater-solved-publisher", () => ({
   createLiveUpdaterSolvedPublisher: mocks.updater,
 }));
@@ -33,8 +35,17 @@ import {
   runLiveReportRecovery,
 } from "@/lib/connectors/zendesk-report-recovery";
 import { solvedPublicationFixture } from "./fixtures/solved-publication";
+import type { ZendeskCsatPolicy } from "@/lib/connectors/zendesk-csat-policy";
 const f = solvedPublicationFixture();
 const policy = { ...f.policy, effectivePeriodStart: "2020-01-05" };
+const csat: ZendeskCsatPolicy = {
+  ...f.config,
+  schemaVersion: 1,
+  accountReference: f.policy.accountReference,
+  reportingTimeZone: "UTC",
+  effectivePeriodStart: "2020-01-05",
+  teams: [{ teamId: f.policy.teamId, groupIds: [10], brandIds: [20], metricKeys: ["csat_score"] }],
+};
 const collection = {
   scope: { ...f.config, accountReference: f.policy.accountReference },
   bootstrapStart: 1578182400,
@@ -51,6 +62,7 @@ beforeEach(() => {
   mocks.cooldown.mockResolvedValue(false);
   mocks.updater.mockReturnValue("updater");
   mocks.assignee.mockReturnValue("assignee");
+  mocks.csat.mockReturnValue("csat");
   mocks.reader.mockReturnValue("GET-only reader");
   mocks.collect.mockResolvedValue({ status: "collected", streamExhausted: true });
   mocks.sync.mockResolvedValue({ success: true });
@@ -155,4 +167,75 @@ it("does not run work without ownership or claim success when acknowledgment fai
   expect(mocks.collect).not.toHaveBeenCalled();
   mocks.finish.mockRejectedValueOnce(Error("Synthetic lost acknowledgment"));
   await expect(run()).rejects.toThrow("lost acknowledgment");
+});
+
+it("only adds CSAT demand when explicitly supplied, with a policy-specific cutover", () => {
+  expect(plan().requests.some((r) => r.definition.kind === "csat")).toBe(false);
+  const p = planReportRecovery(collection, [policy], new Date("2026-10-08T12:00:00Z"), {
+    ...csat,
+    effectivePeriodStart: "2026-09-27",
+  });
+  expect(p.requests.filter((r) => r.definition.kind === "csat").map((r) => r.definition)).toEqual([
+    {
+      kind: "csat",
+      policyHash: p.csatPolicy!.policyHash,
+      periodStart: "2026-10-04",
+      periodEnd: "2026-10-10",
+    },
+    {
+      kind: "csat",
+      policyHash: p.csatPolicy!.policyHash,
+      periodStart: "2026-09-27",
+      periodEnd: "2026-10-03",
+    },
+  ]);
+  expect(p.currentPolicyHashes).toContain(p.csatPolicy!.policyHash);
+  expect(() =>
+    planReportRecovery(collection, [policy], undefined, {
+      ...csat,
+      organizationId: "20000000-0000-4000-8000-000000000002",
+    })
+  ).toThrow("share");
+  expect(() =>
+    planReportRecovery(collection, [policy], undefined, {
+      ...csat,
+      accountReference: "zendesk-account:foreign",
+    })
+  ).toThrow("binding");
+});
+
+it("resumes CSAT's saved interval after rollover and retains source retry-after", async () => {
+  const p = planReportRecovery(collection, [policy], undefined, csat);
+  const selected = {
+    kind: "csat",
+    policyHash: p.csatPolicy!.policyHash,
+    periodStart: "2021-01-03",
+    periodEnd: "2021-01-09",
+  };
+  mocks.claim.mockResolvedValue({
+    definition: selected,
+    token: "owned",
+    desiredAt: "2021-01-10T00:00:00.000Z",
+  });
+  const retryAt = new Date(Date.now() + 7200000).toISOString();
+  mocks.sync.mockResolvedValueOnce({ success: false, retryAt });
+  expect(await runLiveReportRecovery(collection, [policy], credentials, csat)).toMatchObject({
+    status: "failed",
+    kind: "csat",
+    periodStart: selected.periodStart,
+    periodEnd: selected.periodEnd,
+  });
+  expect(mocks.sync).toHaveBeenCalledWith("csat", collection.scope, {
+    period: { periodStart: selected.periodStart, periodEnd: selected.periodEnd },
+  });
+  expect(mocks.finish).toHaveBeenLastCalledWith(
+    collection.scope,
+    expect.anything(),
+    expect.objectContaining({ status: "failed", retryAt })
+  );
+  expect(mocks.collect).not.toHaveBeenCalled();
+  expect(mocks.updater).not.toHaveBeenCalled();
+  mocks.sync.mockClear();
+  expect(await run()).toMatchObject({ status: "failed" });
+  expect(mocks.sync).not.toHaveBeenCalled();
 });

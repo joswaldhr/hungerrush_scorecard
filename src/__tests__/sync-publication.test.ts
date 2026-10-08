@@ -178,10 +178,15 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
         rateLimitRetries: 1,
         retryStoppedBy: "retry_allowance",
         endpoint: "tickets/show_many",
+        httpStatus: 429,
+        retryAfterMs: 7200000,
       });
     };
+    const start = Date.now();
     const result = await runSync(failing, config);
     expect(result).toMatchObject({ success: false, valuesWritten: 0 });
+    expect(Date.parse(result.retryAt!)).toBeGreaterThanOrEqual(start + 7200000);
+    expect(Date.parse(result.retryAt!)).toBeLessThanOrEqual(Date.now() + 7200000);
     expect(await values()).toEqual(before);
     const [afterSource] = await db.select().from(dataSources).where(eq(dataSources.id, source));
     expect(afterSource?.lastSuccessfulSyncAt).toEqual(beforeSource?.lastSuccessfulSyncAt);
@@ -197,6 +202,7 @@ describe.sequential("atomic metric publication (PostgreSQL)", () => {
     const result = await runSync(connector([], true), config);
     expect(result.success).toBe(false);
     expect(result.valuesWritten).toBe(0);
+    expect(result.retryAt).toBeUndefined();
     expect(await values()).toEqual(before);
     const [afterSource] = await db.select().from(dataSources).where(eq(dataSources.id, source));
     expect(afterSource?.lastSuccessfulSyncAt).toEqual(beforeSource?.lastSuccessfulSyncAt);
