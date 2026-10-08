@@ -76,14 +76,36 @@ historical roster proof. No source requests or production writes occurred. See
 
 ## Remaining integration and release work
 
-This is an unconnected calculation/record candidate in PR44. There is no route, producer,
-catalog change, policy activation or deployment in this increment. Publication must
-bind a fresh `pos-call-hold-v1` source snapshot, exact employee/team/period and prospective
-release policy; retain replay evidence and compatible target rules; and pass isolated
-publication, recovery, source reconciliation and actual scheduling gates.
-The guarded publisher still needs live binding checks under the publication transaction,
-a distinct activated contract, immutable reporting dates across retries and fresh
-coverage validation at publication (including a week rollover during collection).
+The dedicated POS publisher now uses the existing atomic sync service. It selects an
+explicit release policy, verifies current source/team/employee identities and compatible
+effective metric assignments, and rechecks them under table locks before publication.
+Its fetched-record digest prevents substitution. Fixed reporting dates survive retries;
+freshness and closed-week coverage are checked after lock acquisition, including a
+Sunday rollover after fetch. The live adapter explicitly selects `pos-call-hold-v1`,
+shares existing source pacing/leases and uses bounded GET-only collection and identity
+lookups. No environment setting or route invokes this adapter yet.
+
+The qualified POS contract is distinct from both its candidate and the existing Menufy
+inbound contract. It replaces only exact legacy `call_stats` contributors for its seven
+keys. Unknown or competing qualified definitions fail instead of blending, and later
+legacy refreshes cannot overwrite the selected POS observation. Duration sample counts
+and exact means are preserved. Source descriptions distinguish employee-leg durations
+from whole-call hold weighted per leg, with missing-measurement explanations. Existing
+source-context checks continue to withhold incompatible comparisons and targets.
+
+Seven PostgreSQL acceptance cases exercise publication, unrelated keys, legacy overwrite
+resistance, null correction/revisions, changed identity/assignment/departure, expiry at
+commit and fetched-record substitution. Three pure cases check source/sample semantics,
+contributor selection and the Sunday rollover. The serialized publication wrapper also
+matches all 78 retained employee-periods, 546 values, 390 source sets and 624 duration
+checks with zero differences. This replay uses synthetic release/binding metadata and
+does not qualify a real release. See `2026-10-08-pos-inbound-publisher-replay.json`.
+
+Remaining: exact candidate full tests/CI, isolated hosted scorecard/history/export and
+publication rehearsal, fresh source reconciliation and roster eligibility, prospective
+catalog/release manifest, backup/restore, scoped production canary and genuine ongoing
+scheduling. No policy, catalog, source request, production write or demo change occurred
+while building/testing this publisher. Remaining call measures are not implicitly enabled.
 
 Offered calls remain a separate saved formula/date cohort. The saved abandonment report
 counts IVR/queue/voicemail outcomes, so it is deliberately not published as on-hold

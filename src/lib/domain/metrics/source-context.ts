@@ -5,6 +5,7 @@ export const FIRST_REPLY_CONTRACT = "zendesk-created-current-assignee-first-repl
 export const FIRST_REPLY_CALCULATION_VERSION = 2;
 export const OUTBOUND_PARTICIPATION_CONTRACT = "zendesk-call-created-agent-leg-outbound-v1";
 export const INBOUND_PARTICIPATION_CONTRACT = "zendesk-call-created-agent-leg-inbound-v1";
+export const POS_INBOUND_CONTRACT = "zendesk-qualified-pos-leg-date-inbound-v1";
 export const UPDATER_SOLVED_CONTRACT = "zendesk-qualified-updater-solved-credits-v1";
 export const ASSIGNEE_SOLVED_CONTRACT = "zendesk-qualified-assignee-solved-tickets-v1";
 export function completeSnapshotVersion(contract: string | undefined): number | null {
@@ -12,6 +13,7 @@ export function completeSnapshotVersion(contract: string | undefined): number | 
   if (contract === FIRST_REPLY_CONTRACT) return FIRST_REPLY_CALCULATION_VERSION;
   if (contract === OUTBOUND_PARTICIPATION_CONTRACT) return 2;
   if (contract === INBOUND_PARTICIPATION_CONTRACT) return 2;
+  if (contract === POS_INBOUND_CONTRACT) return 2;
   if (contract === UPDATER_SOLVED_CONTRACT || contract === ASSIGNEE_SOLVED_CONTRACT) return 1;
   return null;
 }
@@ -67,6 +69,7 @@ export function readMetricSourceContext(value: unknown): MetricSourceContext | n
       FIRST_REPLY_CONTRACT,
       OUTBOUND_PARTICIPATION_CONTRACT,
       INBOUND_PARTICIPATION_CONTRACT,
+      POS_INBOUND_CONTRACT,
     ].includes(row.sourceContract) &&
     (row.sampleCount !== undefined || row.cohortCount !== undefined)
   ) {

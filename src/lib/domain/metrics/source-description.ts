@@ -5,6 +5,7 @@ import {
   SOLVED_CSAT_CONTRACT,
   UPDATER_SOLVED_CONTRACT,
   ASSIGNEE_SOLVED_CONTRACT,
+  POS_INBOUND_CONTRACT,
   type MetricSourceContext,
 } from "./source-context";
 
@@ -75,6 +76,30 @@ export function metricSourceDescription(
           ? ""
           : ` ${context.sampleCount} measured legs out of ${context.cohortCount}.`;
       return `${cohort} ${key === "total_talk_time_inbound" ? "Sum of employee-leg talk seconds" : "Maximum employee-leg hold seconds"}, including agent/supervisor legs and reported zeros. Missing leg measurements withhold the result.${samples}`;
+    }
+  }
+  if (context?.sourceContract === POS_INBOUND_CONTRACT) {
+    const cohort = `Inbound employee legs created in this period (${context.reportingTimeZone}), filtered by the observed call groups and configured lines. Unreachable legs are excluded.`;
+    const counts: Record<string, string> = {
+      inbound_calls_accepted:
+        "Completed agent legs with positive talk time; repeated accepted legs on a call count separately.",
+      declined_calls: "Agent-declined and agent-transfer-declined legs.",
+      missed_calls: "Agent-missed legs.",
+    };
+    if (counts[key]) return `${cohort} ${counts[key]}`;
+    const durations: Record<string, string> = {
+      avg_talk_time_inbound: "Mean employee-leg talk time",
+      avg_hold_time_inbound:
+        "Mean whole-call hold time, weighted once per selected employee leg; this is not the employee's own hold time",
+      avg_call_duration_inbound: "Mean employee-leg duration",
+      avg_consultation_time_inbound: "Mean employee-leg consultation time",
+    };
+    if (durations[key]) {
+      const samples =
+        context.sampleCount === undefined
+          ? ""
+          : ` ${context.sampleCount} measured legs out of ${context.cohortCount}.`;
+      return `${cohort} ${durations[key]}, stored in seconds. Agent and supervisor legs and reported zeros are included; missing measurements are excluded.${samples}`;
     }
   }
   if (context?.sourceContract === OUTBOUND_PARTICIPATION_CONTRACT) {
@@ -178,6 +203,13 @@ export function unsupportedMetricReason(
   context?: MetricSourceContext | null
 ) {
   if (sourceStrategy !== "zendesk") return null;
+  if (context?.sourceContract === POS_INBOUND_CONTRACT) {
+    if (key === "inbound_calls_accepted")
+      return "Acceptance could not be established for every completed agent leg.";
+    if (key.startsWith("avg_"))
+      return "No reported duration measurements in the selected employee-leg cohort.";
+    return null;
+  }
   if (context?.sourceContract === INBOUND_PARTICIPATION_CONTRACT) {
     if (["total_talk_time_inbound", "max_hold_time_inbound"].includes(key))
       return "No complete set of employee-leg duration measurements is available.";
