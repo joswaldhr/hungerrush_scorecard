@@ -1,5 +1,18 @@
 # Production metric completion
 
+**October 8 POS candidate:** PR44 `fededf0` implements seven saved-report measures.
+Retained weekly/monthly source comparisons match all 882 exported values and 71 monthly
+source sets; a separate two-period 39-person capture matches 546 values and 390 source
+sets. All 1,012 local tests pass. No publisher is connected or activated. Fresh source,
+publication/recovery/scheduling and remaining offered/abandonment/transfer definitions
+are still required. The full goal has not been reduced to these seven measures.
+
+**October 8:** Representative POS closed/current CSV bytes and copied text agree with
+all 38 displayed rows. Actual closed PDF/PNG and exact stored history also agree.
+This does not qualify the source values: closed outbound observations predate the
+period's end, while current outbound remains a different legacy definition. Ongoing
+qualified outbound refresh remains open. See `2026-10-08-pos-production-export-verification.json`.
+
 **October 7, 21:04 UTC:** PR47's collector/publication coordination is live after exact
 CI/build, isolated synthetic rehearsal and fresh encrypted restore. One controlled
 Menufy current-week refresh independently matches all 23 staff / **1,657 credits**,

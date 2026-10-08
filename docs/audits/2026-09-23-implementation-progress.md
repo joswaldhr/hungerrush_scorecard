@@ -1,4 +1,45 @@
 # Audit implementation — current checkpoint
+**October 8, 04:15 UTC — POS report calculator implemented and independently replayed:**
+Separate PR44 candidate `fededf0d80d6a512a413ed84024f862108d2809c` is committed and
+pushed on `codex/pos-source-projection`. Its calculator preserves the saved leg-date
+scope and whole-call hold weighted once per leg; seven accepted/declined/missed and
+duration measures are implemented, with numerator/denominator/source-set evidence.
+All 55 weekly report rows / 385 values and 71 monthly rows / 497 values match, with
+zero differences. All 71 monthly selected-leg sets match independent Python. A separate
+retained observation matches 78 employee-periods / 546 values, 390 source sets and 624
+duration numerator/denominator comparisons. Indexed capture reuse completes the two
+report replays in 177/234 ms on the observed local run, excluding file reads.
+
+All 1,012 local tests / 127 files pass, including eight new focused regressions;
+typecheck, targeted lint and formatting pass. Exact candidate CI/build `37726475078`
+is confirmed running. This is an unconnected candidate: no producer, policy, schedule,
+source request or deployment is activated. Its source projection and calculator remain
+separate from PR48's report refresh recovery. Offered, actual on-hold abandonment and
+transfer measures are still required and unqualified; historical eligibility and
+freshness are not inferred from retained parity. See PR44's
+`2026-10-08-pos-inbound-calculator.md` and replay JSON.
+
+Next: check exact CI, bind the POS calculation to fresh versioned source/replay records,
+then pass scoped publication and ongoing-operation gates. Continue the pending scheduler
+choice and Menufy update residuals independently. Full metric goal remains active.
+
+**October 8, 04:05 UTC — POS production export bytes and history checked:**
+Unchanged production `8a88279` / `dpl_5LFAcRdxm6VbvAQsXobikfdMuPuK` is independently
+rechecked READY. One representative POS employee's closed/current CSV downloads match
+all 38 displayed rows, dates, comparisons, targets and statuses. Copied text matches
+both snapshots, and the copied link pins the loaded week. Actual closed PDF and PNG
+downloads are visually inspected, including the rendered PDF and all 19 metric rows.
+The selected closed history interval agrees and its return link restores the scorecard
+week. The original manager preview is restored and the temporary tab is closed.
+
+This establishes representative presentation consistency only. The closed outbound
+observation predates the period end; its zeros are not complete-week evidence. Current
+outbound values use a different legacy definition, and their comparison is correctly
+withheld. Qualified outbound refresh remains unresolved. Current PDF/PNG and native
+print bytes, independent manager sign-in and whole-team source acceptance remain open.
+No vendor requests, production metric writes or deployment occurred. See
+`2026-10-08-pos-production-export-verification.json`.
+
 **October 8, 03:51 UTC — complete hosted recovery passes; scheduling decision remains:**
 PR48 rehearsal adapter `0870473` passes exact CI/build `37722758931`. Runtime-identical
 isolated Preview `d907ec3` / `dpl_Gwq2CE9gG4s9j4VJ2TGrkqmHbv6u` is READY. Its full
