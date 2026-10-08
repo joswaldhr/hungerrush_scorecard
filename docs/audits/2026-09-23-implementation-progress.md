@@ -1,5 +1,16 @@
 # Audit implementation — current checkpoint
 
+**October 8, outbound completion in progress:** the exact POS saved report scope
+contains 11 groups, versus six in the previous policy. Correcting the diagnostic
+scope resolves 16 of 17 employee count differences. Remaining POS/Menufy deltas
+trace to three tickets that changed groups this morning; source observation timing
+still needs qualification before publication. No Zendesk changes were made and the
+single inspected editor was closed. A fixed-period outbound refresh/recovery fix
+passes local typecheck, ESLint and all 1,222 tests / 151 files; it is not live yet.
+See [the outbound completion record](2026-10-08-outbound-completion.md) for scope,
+evidence limits and required release gates. PR51's production baseline is `b833e68`.
+
+
 **October 8, 16:24 UTC — closed review week published for both teams:**
 For September 27–October 3, the released `2a62d53` runtime's normal atomic sync
 service published five existing POS inbound metrics for all 39 active employees
