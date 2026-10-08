@@ -1,8 +1,46 @@
 # Durable report refresh recovery
 
-Status: candidate `29208067ce83b19be0c73da0bdc6c0852cc4b66f` in draft PR48; exact
-Linux CI/build `37689610074` passes. No production scheduler or recovery switch is
-enabled. The previous coordination release remains the verified live runtime.
+Status: runtime candidate `29208067ce83b19be0c73da0bdc6c0852cc4b66f` and hosted
+rehearsal adapter `0870473aa4e6b89b079f407a2bb2ce22573c7ee4` in draft PR48. Exact
+Linux CI/build `37722758931` passes on the latter. No production scheduler or recovery
+switch is enabled. The previous coordination release remains the verified live runtime.
+
+## October 8 hosted rehearsal and scheduling review
+
+Runtime-identical isolated Preview commit `d907ec3457a8f905c4076fb7a168d387c58d83fb`
+uses deployment `dpl_Gwq2CE9gG4s9j4VJ2TGrkqmHbv6u`. The guarded build invokes
+`staging-solved-publication.ts --apply --recovery`: only synthetic transport and staging
+data, no vendor credentials, real persisted jobs and unchanged production cooldowns.
+The complete rehearsal passed at 03:48:47 UTC after 1,242 seconds. All five persisted
+jobs completed after a genuine pacing deferral: closed-week values are 3/2 and current
+values 3/0. Unrelated values stayed unchanged, and a duplicate final tick performed no
+work. Ten simulated GET requests, zero vendor requests and zero production writes were
+used. The subsequent deployment build passed and the exact Preview is READY. See
+`2026-10-08-report-recovery-preview.json`. This verifies manual hosted recovery, not an
+actual hosted process termination or a scheduled production invocation. Crash/expired
+owner/late acknowledgment coverage remains the separate real PostgreSQL test evidence.
+
+The team API independently confirms the current hosting plan is Hobby. Official
+[cron scheduling limits](https://vercel.com/docs/cron-jobs/usage-and-pricing) allow an
+hour-wide invocation window on that plan; precise recurring intervals require another
+eligible plan or scheduler. The offline `scripts/report-recovery-capacity.mjs` records
+a counterexample to qualifying the proposed 24 daily wake-ups for the full four-week
+horizon with all 16 configured source jobs active. Thirteen occupied hours can leave
+only eleven successful recovery opportunities, against at least twelve daily jobs.
+This is a permitted collision scenario, not a claim that these collisions were observed
+or that all configured routes currently perform source work. Fresh read-only production
+inspection confirms all 23 retained fact types since September 27 share the report
+source. Observed source volume and scope do not themselves establish scheduler reliability.
+
+A precise 15-minute candidate offers 96 daily opportunities. The explicit planning stress
+case removes two ticks per existing job and an entire six-hour outage, leaving forty
+opportunities against eighteen modeled batches/publications. The 25% overlap/late-arrival
+allowance is an assumption, not a measured percentile or delivery guarantee. This arithmetic
+passes but no such scheduler is configured or qualified in production. Do not install an
+unsupported recurring expression on Hobby, weaken pacing, or infer actual execution from
+the model. See `2026-10-08-report-recovery-schedule-capacity.json` for reproducible inputs
+and limitations. Complete the hosted rehearsal and retain the current production runtime
+while selecting an adequate scheduler; all other metric acceptance work remains in scope.
 
 ## Failure being corrected
 

@@ -1,4 +1,42 @@
 # Audit implementation — current checkpoint
+**October 8, 03:51 UTC — complete hosted recovery passes; scheduling decision remains:**
+PR48 rehearsal adapter `0870473` passes exact CI/build `37722758931`. Runtime-identical
+isolated Preview `d907ec3` / `dpl_Gwq2CE9gG4s9j4VJ2TGrkqmHbv6u` is READY. Its full
+persisted dispatcher rehearsal completed in 1,242 seconds with the real source cooldowns:
+five queued jobs, one actual deferral followed by recovery, closed values 3/2, current
+values 3/0, unchanged unrelated values and no work from a duplicate final tick. No vendor
+requests or production writes occurred. This is manual synthetic hosted evidence, not
+scheduled operation or an actual hosted process-kill test; lease/crash/late-acknowledgment
+cases remain covered by the separate PostgreSQL tests. The build and source-audit clients
+are stopped. See `2026-10-08-report-recovery-preview.json`.
+
+Current production is independently rechecked READY at unchanged `8a88279` /
+`dpl_5LFAcRdxm6VbvAQsXobikfdMuPuK`. No recovery flag, cron, vendor setting or demo change
+was made. The team API confirms Hobby. The reproducible offline capacity review rejects
+the proposed 24 wake-ups for an admissible recurring collision pattern at the full
+four-week horizon with all configured source jobs active: eleven successful opportunities
+against at least twelve jobs. It does not claim those collisions were observed. A precise
+15-minute candidate passes the stated arithmetic stress case, but needs a compatible
+scheduler; an asynchronous preference question is pending for paid Vercel Pro versus an
+existing company scheduler. This is not a block on independent metric work. See the
+schedule-capacity JSON and `2026-10-07-report-recovery.md`. Fresh production diagnostics
+also classify the two retained pre-coordination failures as lease expiry and HTTP 429;
+no new run was triggered, and their recovery is not claimed.
+
+Menufy update investigation now aligns the second retained week with all 23 current
+employees: nineteen report rows match, two differ by one each, and two report-absent
+employees have complete-source verified zeros (no account events, known agent roles).
+The first week's two-update residual belongs to a different current employee. Eleven
+paced GET-only audit requests rule out audit/comment author substitution for eighteen
+targeted updates; removing comment-only events would break 28 previously matching rows.
+No update metric was published. Aggregate cohort/author receipts and the acceptance
+matrix record the exact remaining differences, without exposing employee or ticket IDs.
+
+Next: qualify an adequate scheduler and finish fresh recovery/canary/live scheduling gates;
+resolve the update residuals using exact report/source evidence; continue POS/history/export,
+remaining call/CSAT/first-reply and roster acceptance. Keep the full goal active. Assembled
+remains parked, Zendesk remains read-only, and human shadow/v2/repair stay disabled.
+
 **October 7, 21:31 UTC — recovery candidate pushed; exact CI/build passes:**
 Draft PR48 contains `2920806`; exact CI `37689610074` succeeds through the production
 build, full tests, migrations and source guards. The new dispatcher remains default-off

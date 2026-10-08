@@ -1,0 +1,16 @@
+{
+  "observedAt": "2026-10-08T03:42:55.946Z",
+  "sourceObservedAt": "2026-10-06T22:19:40.715Z",
+  "cohortObservedAt": "2026-10-07T21:04:07.386Z",
+  "periodStart": "2026-09-27",
+  "periodEnd": "2026-10-03",
+  "timeZone": "America/Chicago",
+  "eligibleCurrentEmployees": 23,
+  "employeesWithReportRows": 21,
+  "matchingReportRows": 19,
+  "unexplainedReportDifferences": 2,
+  "verifiedZeroSourceRowsAbsentFromReport": 2,
+  "unavailableCalculations": 0,
+  "published": false,
+  "limits": "This aligns the retained completed-week reference with the current eligible roster, not historical membership. Two source-proven zero rows lack an independent exported report row. Two current employees still differ by one update each."
+}
