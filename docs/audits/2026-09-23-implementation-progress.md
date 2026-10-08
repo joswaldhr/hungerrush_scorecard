@@ -1,5 +1,30 @@
 # Audit implementation — current checkpoint
 
+**October 8, 17:43 UTC — outbound code and scoped review refresh live:**
+PR52 is merged as `e05014d`; production `dpl_7H7P3nGE9kLCr9FhdgrowrtCwBE1`
+is READY and owns the live alias. Exact candidate and master CI/build pass. The
+isolated synthetic Preview exercises fixed-period publication across two closed
+weeks and current week. Environment metadata and all 16 cron definitions are unchanged.
+
+Two controlled retained-source runs published 285 outbound values for 57 employees
+(21 Menufy / 36 POS), September 27–October 3 only. Independent persisted checks match
+all 285 values and 1,710 contributing source sets. Eight unrelated-data digests remain
+unchanged; all 285 predecessor numeric values match revision evidence. Five employees
+were excluded: two with missing parent-call evidence and three with unresolved report
+differences. Their prior values remain untouched. Fresh Menufy export still differs
+for the affected rows; ticket group changes do not establish report-refresh parity.
+
+Representative production browser and actual downloaded CSV bytes match the updated
+outbound values, source observation and timezone. Fresh PDF/PNG and native print were
+not reverified in this increment. Outbound recurring publication remains inactive;
+this is controlled publication, not scheduled execution evidence. Ticket-update credits,
+other metric gaps, remaining periods and recurring operation still need completion.
+See [scoped refresh](2026-10-08-outbound-scoped-refresh.md),
+[publication receipts](2026-10-08-outbound-publication.json) and
+[deployment receipt](2026-10-08-outbound-production.json).
+
+The outbound candidate checkpoint below is superseded by this verified release.
+
 **October 8, outbound completion in progress:** the exact POS saved report scope
 contains 11 groups, versus six in the previous policy. Correcting the diagnostic
 scope resolves 16 of 17 employee count differences. Remaining POS/Menufy deltas

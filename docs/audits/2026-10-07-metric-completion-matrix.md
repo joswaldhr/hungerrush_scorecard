@@ -1,5 +1,16 @@
 # Production metric completion
 
+**October 8, 17:43 UTC — latest verified coverage:** all 62 active employees have
+the five scoped inbound measures refreshed for September 27–October 3 (PR51 ledger
+receipts), and 57 have five outbound measures refreshed (PR52). The outbound fixed-date
+code is live as `e05014d`; independent checks match all 285 newly persisted outbound
+values. Five employees remain excluded pending source-parent/report reconciliation.
+CSAT current-week recovery and three-period verification were completed earlier today;
+the older failed-CSAT checkpoint below is superseded. Recurring outbound and Menufy
+publication, ticket-update credits, remaining metric gaps, prior comparison/target
+context and real scheduler evidence remain open. See the authoritative implementation
+ledger and `2026-10-08-outbound-scoped-refresh.md` for exact boundaries.
+
 **October 8, 14:42 UTC — Menufy fixed-period code correction live:**
 PR49 merged to `baca908`; exact candidate CI `37793605960` and master CI
 `37794117956` pass. Production `dpl_GNJxmAjuSeCfUVrTVui2ete9WtQ4` is READY and

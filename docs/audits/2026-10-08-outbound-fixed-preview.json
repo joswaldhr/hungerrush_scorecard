@@ -1,0 +1,31 @@
+{
+  "outboundFixedHostedRehearsal": true,
+  "observedAt": "2026-10-08T17:28:42.404Z",
+  "periods": [
+    {
+      "periodStart": "2026-09-20",
+      "periodEnd": "2026-09-26",
+      "values": 5,
+      "nulls": 1
+    },
+    {
+      "periodStart": "2026-09-27",
+      "periodEnd": "2026-10-03",
+      "values": 5,
+      "nulls": 1
+    },
+    {
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-10",
+      "values": 5,
+      "nulls": 1
+    }
+  ],
+  "simulatedRequests": 6,
+  "vendorRequests": 0,
+  "productionAccess": false,
+  "unrelatedValuesUnchanged": true,
+  "previewDeployment": "dpl_5vXJP6CMnajA5czo2CLs7o3CBKPu",
+  "previewCommit": "ecad511",
+  "runtimeCandidate": "ac65a6d"
+}
