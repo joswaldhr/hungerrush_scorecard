@@ -1,5 +1,15 @@
 # Production metric completion
 
+**October 8 POS hosted acceptance:** PR44 `ed5350a` passes exact CI/build
+`37729327026`; runtime-identical isolated Preview `2b89c27` is READY. Its full
+synthetic collection/live-adapter/publication path matches 21 values over two closed
+weeks plus current with unrelated values unchanged. Browser values, closed/current
+history, actual CSV bytes, rendered PDF and PNG exports pass for the seven measures.
+Zero/null sample handling, neutral progress status and withheld targets are retained.
+Evidence is in PR44 `786e5a2` (`2026-10-08-pos-inbound-preview.json`). Fresh production
+source/roster qualification, release/canary, native print and genuine ongoing scheduling
+remain required. This does not complete or narrow either team's full metric scope.
+
 **October 8 POS publication candidate:** PR44 `fa92837` connects the seven calculations
 to guarded atomic publication with fixed periods, source/employee/assignment checks,
 legacy replacement isolation and exact duration provenance. All 1,199 local tests pass;

@@ -1,4 +1,37 @@
 # Audit implementation — current checkpoint
+**October 8, 05:01 UTC — POS hosted publication and export acceptance passes:**
+PR44 runtime/script candidate `ed5350a2cd6b1ddcbbe72e31e559386a4cac6790` passes
+exact CI/build `37729327026`; preceding `fa92837` and `b103526` also pass their exact
+CI. Isolated Preview `2b89c277605c2d171f01f2d56df5f787eb1f8f38` is runtime/script
+identical and READY at `dpl_8b5cqLo6TUePpm9t3p5rN4rpriGe`. Its deployment-scoped
+build rehearsal invokes the complete POS collection/storage/live-adapter/publication
+path with 15 intercepted synthetic GET responses and no vendor requests. All 21
+expected values across two closed weeks and current, including duration sample counts,
+match database readback. The unrelated-value digest is unchanged.
+
+The initial Preview `dpl_DFdyviEgbbDDSn5bnVDX6nQMubWc` stopped in its synthetic
+catalog transaction before publication: pre-existing UI fixtures had source strategy
+`staging`. The correction binds only compatible definitions in the guarded synthetic
+organization to `zendesk`; it does not weaken production compatibility checks. The
+local pnpm dependency check refused the worktree's shared module link; direct existing
+Prettier/TypeScript executables passed without changing or reinstalling dependencies.
+
+Hosted scorecards match all 21 POS values. Closed/current stored history and actual
+CSV downloads each match all 14 POS values, comparisons and statuses. Closed/current
+PDF files were downloaded and rendered; their PNG exports were also downloaded and
+visually inspected. Zeros remain numeric, current statuses neutral, unverified targets
+withheld, and source details explain whole-call hold per leg and zero measured
+consultation legs out of three. Current copied text matches all seven values; copied
+links and history returns preserve the selected week. Native print remains unverified.
+Aggregate evidence is committed in PR44 `786e5a2`, including
+`2026-10-08-pos-inbound-preview.json`; raw exports remain outside tracked files.
+
+Next: fresh source and roster qualification, prospective catalog/release manifest,
+fresh backup/restore and scoped production canary; connect ongoing scheduling only
+after its capacity/recovery gates pass. No production policy, schedule or demo changed.
+The goal remains active for every required metric on both teams, including the update
+residuals, remaining calls/CSAT/first reply, roster and genuine scheduled operation.
+
 **October 8, 04:38 UTC — guarded POS publisher implemented and locally verified:**
 PR44 candidate `fa9283707484b3eeb11204d84ead20014a7e2c51` is committed and pushed,
 and GitHub reports MERGEABLE with exact CI `37728421985` queued. The preceding merge
