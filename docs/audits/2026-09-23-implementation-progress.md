@@ -1,5 +1,17 @@
 # Audit implementation — current checkpoint
 
+**October 8, 14:48 UTC — CSAT fixed-period recovery prerequisite prepared:**
+Active implementation is `codex/csat-fixed-refresh` in the metric-recovery worktree.
+The dedicated CSAT route/connector now preserve exact dates through asynchronous
+work and accept valid fixed backlog intervals after Sunday. Duplicate/extra route
+parameters and invalid/future dates are rejected. All 1,211 tests / 151 files,
+typecheck and scoped lint pass, including eight focused route/source-binding checks.
+No formula, retry allowance, source pacing, assignment or live configuration changed.
+The branch is excluded from automatic Vercel deployment; hosted verification must use
+the isolated main Preview. Exact CI, hosted acceptance, durable CSAT queue integration,
+capacity and actual recovery remain open. This prerequisite does not resolve today's
+429 by itself. See `2026-10-08-csat-refresh-recovery.md`.
+
 **October 8, 14:42 UTC — Menufy fixed-period code correction live:**
 PR49 merged to `baca908`; exact candidate CI `37793605960` and master CI
 `37794117956` pass. Production `dpl_GNJxmAjuSeCfUVrTVui2ete9WtQ4` is READY and
