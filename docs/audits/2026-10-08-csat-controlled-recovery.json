@@ -1,0 +1,27 @@
+{
+  "observedAt": "2026-10-08T15:11:50.660Z",
+  "mode": "controlled current-week CSAT recovery on existing production code; not scheduler evidence",
+  "productionSha": "baca90867ebf9d7647c43686e575eeac8e55720e",
+  "periodStart": "2026-10-04",
+  "periodEnd": "2026-10-10",
+  "employees": 62,
+  "metricValues": 85,
+  "independentValueChecks": 85,
+  "independentCohortChecks": 85,
+  "independentDiscrepancies": 0,
+  "numericZeros": 10,
+  "noSampleNulls": 25,
+  "predecessorSnapshotsMatched": 85,
+  "protectedDigestGroupsUnchanged": 6,
+  "sourceRequests": 82,
+  "sourceReadOnly": true,
+  "configurationChanges": 0,
+  "status": "completed",
+  "errorCount": 0,
+  "limits": [
+    "Independent reconstruction uses retained source records from this observation; no new Explore export was obtained.",
+    "A no-sample result remains unavailable, not zero.",
+    "Unattended retry and scheduler capacity remain unverified.",
+    "Other metric families are not qualified by this refresh."
+  ]
+}
