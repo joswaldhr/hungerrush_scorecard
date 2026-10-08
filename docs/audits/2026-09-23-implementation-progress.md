@@ -1,4 +1,36 @@
 # Audit implementation — current checkpoint
+**October 8, 04:38 UTC — guarded POS publisher implemented and locally verified:**
+PR44 candidate `fa9283707484b3eeb11204d84ead20014a7e2c51` is committed and pushed,
+and GitHub reports MERGEABLE with exact CI `37728421985` queued. The preceding merge
+candidate `70482a7` passes exact CI/build `37727599861`. The new POS adapter now uses
+the existing atomic sync service with fixed dates, live organization/source/team/identity
+and effective assignment checks, locked revalidation, fetched-record integrity and fresh
+coverage checks after lock acquisition. Its live collector explicitly selects the separate
+POS hold projection and existing bounded GET/pacing controls. No route or environment
+setting invokes it yet; no production policy/catalog/schedule was changed.
+
+All **1,199 local tests / 150 files** pass; typecheck, scoped lint and formatting pass.
+Seven PostgreSQL cases verify qualified values, unrelated keys, legacy-overwrite
+resistance, null retraction/revisions, identity/assignment/departure races, commit-time
+expiry and fetched-record substitution. Three pure cases verify source descriptions,
+sample semantics, contributor guards and a Sunday rollover between fetch/publication.
+An initial revision-test query and prematurely failing expiry fixture were corrected;
+the final expiry assertion proves rejection in publication, not an unrelated fetch error.
+
+The distinct qualified POS contract replaces only exact legacy call contributors for
+its seven keys, preserves raw means/sample counts and describes whole-call hold weighted
+per employee leg. Competing qualified definitions fail rather than blend. Serialized
+publication replay still matches 78 retained employee-periods / 546 values, 390 source
+sets and 624 duration checks with zero differences, using synthetic release/binding
+metadata. This is not fresh source or real production release evidence. See PR44's
+`2026-10-08-pos-inbound-publisher-replay.json` and calculator integration document.
+
+Next: check exact CI; rehearse publication and source descriptions/history/export in
+isolated synthetic Preview; complete fresh source/roster qualification, prospective
+catalog/manifest, backup/restore and controlled canary. Genuine scheduling and the other
+metric families remain required. No Zendesk request, production write or demo change
+occurred in this increment. The full goal stays active.
+
 **October 8, 04:26 UTC — POS replay records and period coverage gates pass:**
 PR44 candidate `ea7680d3da339b3bde0407c78401b96960977158` is committed and pushed.
 Its initial GitHub checks were absent because the newer audit base conflicted in

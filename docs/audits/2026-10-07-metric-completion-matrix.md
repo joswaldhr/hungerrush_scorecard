@@ -1,5 +1,12 @@
 # Production metric completion
 
+**October 8 POS publication candidate:** PR44 `fa92837` connects the seven calculations
+to guarded atomic publication with fixed periods, source/employee/assignment checks,
+legacy replacement isolation and exact duration provenance. All 1,199 local tests pass;
+exact CI `37728421985` is queued. It is not activated or deployed. Hosted rehearsal,
+fresh source/roster reconciliation, catalog/release, canary and scheduler evidence remain;
+offered, abandonment, transfer and other team metric requirements remain unchanged.
+
 **October 8 POS replay records:** PR44 `ea7680d` adds minimized, replayable employee
 records and local-period coverage checks. All 1,019 local tests pass; 78 serialized
 employee-periods preserve all 546 independent values and contributing evidence.
