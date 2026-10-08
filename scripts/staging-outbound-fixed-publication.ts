@@ -114,12 +114,14 @@ async function main() {
       }))
     );
     const store = await import("../src/lib/connectors/zendesk-talk-store");
+    // Only this owned synthetic source's checkpoints are reset for fixture replay.
+    await sql`delete from source_records where data_source_id=${source} and external_record_type='zendesk_talk_collection_checkpoint_v1'`;
     const lease = await store.claimTalkCollection(scope);
     assert(lease.acquired);
     const owned = { ...scope, token: lease.token };
     stage = "synthetic observation";
     try {
-      const bootstrap = Date.parse(periods[0]!.periodStart + "T00:00:00Z") / 1000;
+      const bootstrap = Date.parse(periods[0]!.periodStart + "T00:00:00Z") / 1000 - 86400;
       for (const resource of ["calls", "legs"] as const) {
         const cycle = await store.beginTalkCollectionCycle(owned, resource, bootstrap);
         const values = resource === "calls" ? calls : legs;
