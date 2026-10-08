@@ -1,4 +1,161 @@
 # Audit implementation — current checkpoint
+
+**October 8, 14:48 UTC — CSAT fixed-period recovery prerequisite prepared:**
+Active implementation is `codex/csat-fixed-refresh` in the metric-recovery worktree.
+The dedicated CSAT route/connector now preserve exact dates through asynchronous
+work and accept valid fixed backlog intervals after Sunday. Duplicate/extra route
+parameters and invalid/future dates are rejected. All 1,211 tests / 151 files,
+typecheck and scoped lint pass, including eight focused route/source-binding checks.
+No formula, retry allowance, source pacing, assignment or live configuration changed.
+The branch is excluded from automatic Vercel deployment; hosted verification must use
+the isolated main Preview. Exact CI, hosted acceptance, durable CSAT queue integration,
+capacity and actual recovery remain open. This prerequisite does not resolve today's
+429 by itself. See `2026-10-08-csat-refresh-recovery.md`.
+
+**October 8, 14:42 UTC — Menufy fixed-period code correction live:**
+PR49 merged to `baca908`; exact candidate CI `37793605960` and master CI
+`37794117956` pass. Production `dpl_GNJxmAjuSeCfUVrTVui2ete9WtQ4` is READY and
+owns the live alias. Login, authenticated representative scorecard and disabled Menufy/
+recovery endpoints pass; anonymous inbound requests are rejected. All 22 production
+environment metadata entries and 16 cron definitions are unchanged. No extra sync was
+triggered. The prior qualified POS deployment is the code-only rollback reference.
+See `2026-10-08-menufy-fixed-production.json`; new Menufy publication remains disabled.
+
+The fresh read-only operational census records 14 completed/two failed runs in the
+last day, with no running workers. Older-week legacy and current CSAT requests hit
+source rate limits and wrote zero values; current CSAT still carries an October 6
+observation. This is database evidence, not newly correlated scheduler-log evidence.
+The solved-only recovery path does not cover all metric families: CSAT needs durable
+fixed-period retry, alongside adequate scheduler capacity. See the aggregate
+`2026-10-08-operational-census.json`. Remaining source discrepancies, Menufy activation,
+closed POS periods, other families, lifecycle/access and real scheduling remain open.
+
+**October 8, 14:34 UTC — Menufy correction passes hosted publication and recovery:**
+PR49 runtime `bd1784b` passes exact CI/build `37790952102`. Runtime/script-identical
+isolated Preview `ad24cdc` is READY at `dpl_9m8co4p89wB8UPmhn2jxxE9pGxPY`.
+The real synthetic sync path matches nine inbound values in both closed/current weeks;
+unrelated values are unchanged, with no vendor requests or production writes. Hosted
+scorecard/history and actual CSV bytes match all 18 values, dates and quality/status
+semantics. Missing duration samples remain unavailable and current statuses neutral.
+The PR branch's automatic Preview lacks Entra credentials and fails; the designated
+isolated Preview above is the validated deployment. No branch credentials were broadened.
+Fresh 14:31 encrypted recovery restores all 35 tables / 374,350 rows with exact digests.
+See `2026-10-08-menufy-fixed-release.md` and its receipts. Code release is pending;
+Menufy activation, new schedules and full-scorecard completion are not implied.
+
+**October 8, 14:14 UTC — Menufy publication boundary correction prepared:**
+Active implementation branch is `codex/menufy-fixed-publication` in the existing
+metric-recovery worktree. The pending inbound route now pins its dates before
+asynchronous work and the publisher consumes that exact interval. Publication
+revalidates the retained source capture after configuration locks, rejecting expired
+observations and a progress capture that crosses the source timezone's week end.
+Explicit previous-week publication preserves current-week values in PostgreSQL.
+All 1,209 tests / 151 files, typecheck and scoped lint pass locally, including 13
+focused route/publication checks. The first local test attempt used the config's
+default loopback database and failed authentication before fixture writes; setting
+the explicit `TEST_DATABASE_URL` selected the isolated `cadence_baseline_test` database.
+No shared environment file was loaded. Exact CI and hosted validation remain pending;
+no Menufy policy, assignment, schedule or production value changed in this increment.
+
+**October 8, 14:02 UTC — five POS inbound measures live and independently verified:**
+PR44 and PR48 are merged; production `bc8e26e` passes exact master CI/build
+`37732854918`. Active deployment `dpl_5H9MubkMyqtAbEVjZ3QUbkbyXdbR` is READY
+and owns the production alias. The code-only deployment first verified authenticated
+inactive routes, anonymous rejection and unchanged policy metadata. Activation added
+only the collection and POS release policies; all 16 existing crons are unchanged,
+the recovery queue stays disabled, and no new schedule was installed.
+
+A fresh 13:48 encrypted backup restored 35 tables / 373,526 rows with matching
+digests. An earlier attempt correctly stopped before dispatch because its backup
+was older than one hour. The one controlled canary returned HTTP 200 in 54.567 seconds
+and published 195 current-week values for all 39 POS employees. Independent Python
+reconstruction matches every value, 546 contributing-source sets and 156 duration
+numerator/denominator checks with zero differences. Twelve genuine zeros and 24
+no-sample nulls retain their meaning. Eleven protected digest groups are unchanged;
+170 predecessor value snapshots match at the captured millisecond timestamp precision.
+
+Representative production scorecard and stored history match all five corrected values.
+Fresh actual CSV (11,203 bytes), PDF (785,748) and PNG (1,190,593) downloads pass;
+PDF/PNG decoded pixels match exactly, and the rendered PDF is visually inspected.
+Current statuses stay neutral, incompatible targets/comparisons stay withheld, and
+history returns to the selected week. The administrator's original Barbara preview
+was restored and the temporary tab closed. This is administrator preview evidence,
+not the manager's own login. Native print remains unverified.
+
+See [the production receipt](2026-10-08-pos-inbound-production.json). Closed-week POS
+publication, declined/missed assignments, remaining metric families, roster/access
+and genuine scheduled operation remain open. The full goal still covers both teams.
+The previous deployment/pending-publication descriptions below are historical.
+
+**October 8, 05:24 UTC — fresh POS source qualification passes; publication still gated:**
+PR44 runtime `7403b7821be4abd8779f4221e4529bb1ddff7f56` passes exact CI/build
+`37730891112` and all 1,205 local tests. It adds a separate authenticated, default-off
+POS route with fixed reporting dates; no schedule is installed. Runtime-identical
+isolated Preview `0e71f92` is READY at `dpl_9bF2NGoCC8sy5m9J7xxwgyQ5CHsz`;
+anonymous requests return 401. Positive hosted scheduler-auth probing remains
+unverified because the retained CLI env contains redacted placeholders. Full synthetic
+publisher/collection and actual file acceptance from the preceding runtime remain
+recorded below; route authorization/default/period behavior also has six passing tests.
+
+A fresh 05:11 encrypted production backup restored all 35 tables / 355,355 rows with
+matching digests. The guarded GET-only POS refresh then completed 11 pages in 103
+seconds, retaining 7,548 changed versions. Both streams exhausted; all protected
+application and original projection digests were unchanged, with zero metric writes.
+Two global missing parents affect none of the 39 POS employee-period cohorts.
+Fresh current identity checks match all 39 staff, and fresh group census matches the
+saved report's 14 qualified exact names. Four rename aliases remain excluded.
+The bounded group reader's first attempt stopped on a continuation dropping its
+deleted-group filter; preserving that explicit filter resolved the read without writes.
+
+Independent Python matches all 78 employee-periods, 546 source sets and 390 duration
+calculations. The qualified publisher wrapper matches 546 values, 390 source sets and
+624 numerator/denominator checks with zero differences. This is current source replay
+under the saved report definition, not a new same-cutoff Explore export or historical
+employment proof. The projection cannot cover September 20–26; older report parity is
+separate evidence. Aggregate receipts and the scoped release/rollback manifest are
+pushed in PR44 `8f2818f`; its documentation-head CI `37732155177` is running.
+
+Next: integrate reviewed default-off code, pass exact production release gates, then
+run the explicitly scoped current-week POS canary for the five existing assignments.
+Declined/missed need prospective assignments before publication. New schedules remain
+off pending capacity/recovery qualification. No production code/policy, scorecard value,
+Zendesk configuration, demo, catalog or employee assignment changed in this increment.
+All remaining metrics for both teams, lifecycle/access and genuine scheduling remain
+part of the active goal; this evidence does not complete either full scorecard.
+
+**October 8, 05:01 UTC — POS hosted publication and export acceptance passes:**
+PR44 runtime/script candidate `ed5350a2cd6b1ddcbbe72e31e559386a4cac6790` passes
+exact CI/build `37729327026`; preceding `fa92837` and `b103526` also pass their exact
+CI. Isolated Preview `2b89c277605c2d171f01f2d56df5f787eb1f8f38` is runtime/script
+identical and READY at `dpl_8b5cqLo6TUePpm9t3p5rN4rpriGe`. Its deployment-scoped
+build rehearsal invokes the complete POS collection/storage/live-adapter/publication
+path with 15 intercepted synthetic GET responses and no vendor requests. All 21
+expected values across two closed weeks and current, including duration sample counts,
+match database readback. The unrelated-value digest is unchanged.
+
+The initial Preview `dpl_DFdyviEgbbDDSn5bnVDX6nQMubWc` stopped in its synthetic
+catalog transaction before publication: pre-existing UI fixtures had source strategy
+`staging`. The correction binds only compatible definitions in the guarded synthetic
+organization to `zendesk`; it does not weaken production compatibility checks. The
+local pnpm dependency check refused the worktree's shared module link; direct existing
+Prettier/TypeScript executables passed without changing or reinstalling dependencies.
+
+Hosted scorecards match all 21 POS values. Closed/current stored history and actual
+CSV downloads each match all 14 POS values, comparisons and statuses. Closed/current
+PDF files were downloaded and rendered; their PNG exports were also downloaded and
+visually inspected. Zeros remain numeric, current statuses neutral, unverified targets
+withheld, and source details explain whole-call hold per leg and zero measured
+consultation legs out of three. Current copied text matches all seven values; copied
+links and history returns preserve the selected week. Native print remains unverified.
+Aggregate evidence is committed in PR44 `786e5a2`, including
+`2026-10-08-pos-inbound-preview.json`; raw exports remain outside tracked files.
+
+Next: fresh source and roster qualification, prospective catalog/release manifest,
+fresh backup/restore and scoped production canary; connect ongoing scheduling only
+after its capacity/recovery gates pass. No production policy, schedule or demo changed.
+The goal remains active for every required metric on both teams, including the update
+residuals, remaining calls/CSAT/first reply, roster and genuine scheduled operation.
+
 **October 8, 04:38 UTC — guarded POS publisher implemented and locally verified:**
 PR44 candidate `fa9283707484b3eeb11204d84ead20014a7e2c51` is committed and pushed,
 and GitHub reports MERGEABLE with exact CI `37728421985` queued. The preceding merge

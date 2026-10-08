@@ -12,8 +12,23 @@ import {
   metricDefinitions,
   metricAssignments,
 } from "@/lib/db/schema";
-vi.mock("@/lib/env", () => ({ env: { ZENDESK_SUBDOMAIN: "synthetic" } }));
-import { loadCsatEmployeeBindings } from "@/lib/connectors/zendesk-csat-connector";
+vi.mock("@/lib/env", () => ({
+  env: {
+    ZENDESK_SUBDOMAIN: "synthetic",
+    ZENDESK_EMAIL: "synthetic@example.invalid",
+    ZENDESK_API_KEY: "synthetic-test-only",
+  },
+}));
+const capture = vi.hoisted(() => ({
+  collect: vi.fn(async () => ({ records: [], diagnostics: { family: "synthetic" } })),
+}));
+vi.mock("@/lib/connectors/zendesk-csat-collection", () => ({
+  collectCsatRecords: capture.collect,
+}));
+import {
+  createCsatConnector,
+  loadCsatEmployeeBindings,
+} from "@/lib/connectors/zendesk-csat-connector";
 import { parseZendeskCsatPolicy } from "@/lib/connectors/zendesk-csat-policy";
 const org = randomUUID(),
   team = randomUUID(),
@@ -147,5 +162,39 @@ it("rejects missing identities and assignments not represented by the policy", a
     );
   } finally {
     await db.delete(metricAssignments).where(eq(metricAssignments.id, duplicate!.id));
+  }
+});
+it("retains a fixed backlog period outside the current four-week offset window", async () => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date("2026-10-25T00:00:01Z"));
+  capture.collect.mockClear();
+  try {
+    const connector = createCsatConnector(policy);
+    expect(connector.supportsFixedPeriod).toBe(true);
+    await connector.fetchRecords(config, {
+      ...config,
+      syncRunId: randomUUID(),
+      cursor: null,
+      period: { periodStart: "2026-09-20", periodEnd: "2026-09-26" },
+    });
+    expect(capture.collect).toHaveBeenCalledWith(
+      policy,
+      "2026-09-20",
+      "2026-09-26",
+      [{ employeeId: employee, teamId: team, externalId: "synthetic@example.test" }],
+      expect.any(Function)
+    );
+    capture.collect.mockClear();
+    for (const period of [
+      { periodStart: "2026-09-21", periodEnd: "2026-09-27" },
+      { periodStart: "2026-09-20", periodEnd: "2026-09-25" },
+      { periodStart: "2026-11-01", periodEnd: "2026-11-07" },
+    ])
+      await expect(
+        connector.fetchRecords(config, { ...config, syncRunId: randomUUID(), cursor: null, period })
+      ).rejects.toThrow();
+    expect(capture.collect).not.toHaveBeenCalled();
+  } finally {
+    vi.useRealTimers();
   }
 });
