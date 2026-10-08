@@ -1,0 +1,16 @@
+{
+  "observedAt": "2026-10-08T18:45:21.101Z",
+  "deploymentId": "dpl_3zibofMBLEZUEqKTpbTWW76ndAbt",
+  "sha": "ba965977ac6ee4411a0650470876b69a68af01f6",
+  "environment": "production",
+  "requestPath": "/api/cron/report-recovery",
+  "slot": 0,
+  "scheduled": true,
+  "userAgent": "vercel-cron/1.0",
+  "status": 200,
+  "executionMs": 372,
+  "responseMs": 385,
+  "recoveryEnabled": false,
+  "outgoingRequests": 0,
+  "evidence": "Authenticated Vercel invocation detail; disabled deployment configuration verified separately."
+}

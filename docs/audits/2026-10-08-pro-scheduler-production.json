@@ -1,0 +1,31 @@
+{
+  "observedAt": "2026-10-08T18:34:14.263Z",
+  "pullRequest": 55,
+  "sha": "ba965977ac6ee4411a0650470876b69a68af01f6",
+  "deploymentId": "dpl_3zibofMBLEZUEqKTpbTWW76ndAbt",
+  "ready": true,
+  "productionAliasVerified": true,
+  "plan": "pro",
+  "existingSchedulesPreserved": 16,
+  "recoverySchedule": "*/15 * * * *",
+  "recoveryEnabled": false,
+  "scheduledExecutionObserved": false,
+  "checks": [
+    {
+      "path": "/login",
+      "status": 200,
+      "authenticated": false
+    },
+    {
+      "path": "/api/cron/report-recovery?slot=0",
+      "status": 401,
+      "authenticated": false
+    },
+    {
+      "path": "/api/cron/report-recovery?slot=0",
+      "status": 200,
+      "authenticated": true,
+      "enabled": false
+    }
+  ]
+}

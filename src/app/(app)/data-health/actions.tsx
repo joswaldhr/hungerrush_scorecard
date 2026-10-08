@@ -25,7 +25,9 @@ export function SyncNowButton({ dataSourceType }: { dataSourceType: string }) {
         return;
       }
 
-      toast.success(`Synced this week for ${dataSourceType}`);
+      toast.success(
+        "Standard current-week sync completed. Separate metric refreshes are not included."
+      );
       router.refresh();
     } catch {
       toast.error("Network error — could not reach the server");
@@ -35,8 +37,14 @@ export function SyncNowButton({ dataSourceType }: { dataSourceType: string }) {
   }
 
   return (
-    <Button onClick={handleSync} disabled={loading} size="sm" variant="outline">
-      {loading ? "Syncing…" : "Sync this week"}
-    </Button>
+    <div className="max-w-64 text-right">
+      <Button onClick={handleSync} disabled={loading} size="sm" variant="outline">
+        {loading ? "Syncing…" : "Run standard weekly sync"}
+      </Button>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Current week only. Does not run the separate solved-ticket, CSAT, first-reply, or qualified
+        call refreshes.
+      </p>
+    </div>
   );
 }

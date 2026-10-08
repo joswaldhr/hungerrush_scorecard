@@ -1,0 +1,41 @@
+{
+  "observedAt": "2026-10-08T18:53:22.514Z",
+  "controlledManualCanary": true,
+  "scheduledEvidence": false,
+  "kind": "updater",
+  "periodStart": "2026-09-27",
+  "periodEnd": "2026-10-03",
+  "employees": 23,
+  "values": 23,
+  "successfulPublication": true,
+  "catalogDigestGroups": 9,
+  "catalogUnchanged": true,
+  "checks": {
+    "metric_values": {
+      "predecessorRevisions": 23,
+      "fullBeforeDigestReconstructed": true
+    },
+    "normalized_facts": {
+      "predecessorRevisions": 23,
+      "fullBeforeDigestReconstructed": true
+    },
+    "source_records": {
+      "predecessorRevisions": 23,
+      "fullBeforeDigestReconstructed": true
+    }
+  },
+  "vendorWrites": 0,
+  "verificationCorrection": "Initial private verifier assumed assignee-solved would sort first. Durable key ordering selected updater. No further dispatch; reconstructed complete before-state digests from retained atomic revisions and verified the actual permitted job.",
+  "independent": {
+    "kind": "updater",
+    "periodStart": "2026-09-27",
+    "periodEnd": "2026-10-03",
+    "employees": 23,
+    "valuesCompared": 23,
+    "contributingIds": 4106,
+    "differences": 0,
+    "numericZeros": 2,
+    "databaseWrites": 0,
+    "limit": "Independent calculation of the exact retained publication evidence; not a same-cutoff Explore export."
+  }
+}

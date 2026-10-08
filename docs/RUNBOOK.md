@@ -28,6 +28,30 @@ shared `.env` database.
 
 ## Preview and scheduler
 
+### Data Health interpretation
+
+Data Health's solved-ticket panel reads the persisted recovery requests for the
+manager's assigned teams and current policy's permitted week horizon. It performs
+no source calls, enqueues or writes. Missing requests, pending work, retry cooldowns,
+failed attempts and expired leases remain distinct. “Request completed” means the
+queue acknowledged the requested generation; it does not certify metric accuracy,
+employee coverage or source-observation freshness. Collection is requested every
+six hours and solved publication daily; the dispatcher wakes every 15 minutes.
+Other metric families have separate paths. A disabled recovery switch is shown
+separately from retained queue state; configuration/read failures show unavailable.
+
+The source cards summarize only the latest source run, which may belong to another
+metric family or week. Their success timestamp must not be used as an all-metrics
+freshness indicator. “Run standard weekly sync” invokes the existing current-week
+legacy connector only; it does not run separate solved-ticket, CSAT, first-reply or
+qualified call refreshes. Do not trigger it to manufacture scheduled evidence.
+
+For the isolated UI rehearsal, run `scripts/staging-report-health.ts` after the
+Next build with the approved main Preview configuration. It emits an explicitly
+synthetic static display at `/__rehearsal/report-recovery.html`; no database/vendor
+work occurs. This generated file is not committed or generated in production.
+The protected Data Health page still requires separate authenticated verification.
+
 ### Independent roster discovery candidate
 
 Lifecycle candidate migration 0017 adds observation/proposal evidence without changing

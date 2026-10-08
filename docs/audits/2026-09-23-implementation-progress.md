@@ -1,5 +1,70 @@
 # Audit implementation — current checkpoint
 
+**October 8, 20:30 UTC — recovery queue drained; reporting-readiness candidate:**
+Read-only production checks show both current-week solved jobs completed (23 Menufy
+values at 19:15 and 39 POS values at 19:30 UTC), with no job failures or active leases.
+Independent retained-source reconstruction matches all 62 values, 2,104 Menufy event
+contributions and 911 POS ticket contributions, including five numeric zeros. These
+two runs still require their own platform-log correlation; no manual sync was issued.
+The next collection window and full recurring day remain unobserved.
+
+The focused `codex/reporting-readiness` candidate adds organization/team-scoped,
+read-only recovery status by period, distinguishes latest source activity from
+completed requests, and explains the legacy manual button's limited refresh scope.
+Local full tests pass (1,236 / 153 files); hosted verification/release remain pending.
+It changes no metrics, assignments, source configuration, schedules or demo behavior.
+
+A separate manager-reported roster discrepancy was traced: the person is still
+present in Zendesk's mapped group as an active, unsuspended agent, matching today's
+Cadence observation. No departure proposal exists. This does not verify employment;
+no employee/vendor mutation was made. The roster authority/removal workflow is an
+explicit open requirement. See the current table in the
+[completion matrix](2026-10-07-metric-completion-matrix.md), which supersedes its
+older historical status paragraphs.
+
+**October 8, 19:02 UTC - Pro recovery live and actual scheduled publication verified:**
+Production remains `ba96597` / `dpl_D4Ff1Txjjnqn2ue7KALjn8nLDgde` with the
+15-minute dispatcher enabled for the qualified solved-report policies only.
+The real 19:00 UTC request (`vercel-cron/1.0`, HTTP 200, 74.1 seconds) refreshed
+39 POS employee values for September 27 through October 3. Independent calculation
+matches all 1,410 contributing tickets and 39 values; 117 predecessor revisions
+and 12 unrelated-row digest groups verify. No sync errors or queue failures.
+Menufy's 23 last-week solved values separately passed the controlled refresh.
+Two current-week jobs remain queued; the next collection window and full recurring
+day remain unobserved. A 15-minute wake-up is not a 15-minute freshness guarantee.
+The existing 16 schedules, other environment entries, demo, assignments, targets,
+Zendesk configuration and disabled human-only/shadow/action-v2/repair paths remain
+unchanged. Other metric-family and acceptance gaps listed below remain open.
+See [rollout](2026-10-08-pro-recovery-rollout.md) and
+[actual scheduled evidence](2026-10-08-pro-recovery-first-enabled-tick.json).
+The pending-tick checkpoints below are superseded by this result.
+
+**October 8, 18:55 UTC - Pro recovery activated; first enabled tick pending:**
+Production `dpl_D4Ff1Txjjnqn2ue7KALjn8nLDgde` is READY on unchanged master
+`ba96597`. Only the qualified report-recovery opt-in was added; optional CSAT
+recovery remains disabled. All 17 schedules and 22 prior environment metadata
+entries match. Login, anonymous rejection and authenticated scorecard reload pass.
+The 18:45 disabled scheduled tick is verified (`vercel-cron/1.0`, HTTP 200,
+372 ms). Controlled collection completed 11 pages with restart progress retained.
+A controlled Menufy last-week solved-credit refresh matches all 23 independently
+reconstructed values; 69 predecessor revisions and unrelated-row digests verify.
+Its initial private test expected the other permitted team first; the durable-key
+ordering assumption was corrected and the actual job fully checked before activation.
+This does not certify other metric families or establish a full recurring cycle.
+See [rollout evidence](2026-10-08-pro-recovery-rollout.md). The next genuine
+enabled request is due at 19:00 UTC; no manual active-route request was issued.
+
+**October 8, 18:34 UTC — Pro schedule deployed; recovery still guarded:**
+PR55 is live as `ba96597` / `dpl_3zibofMBLEZUEqKTpbTWW76ndAbt`. One 15-minute
+dispatcher entry is installed alongside the unchanged 16 schedules. Both recovery
+switches remain absent; authenticated route verification returns `enabled:false`.
+Exact candidate CI/build and master CI pass. Fresh 18:32 UTC backup/restore matches
+all 35 tables. A separately labeled controlled dispatcher canary persisted five
+scoped jobs and correctly deferred at the existing source cooldown; all ten checked
+catalog/value/fact digests stayed unchanged. Actual scheduled delivery, resumed
+collection and enabled recurring recovery remain to verify. See the
+[rollout record](2026-10-08-pro-recovery-rollout.md).
+
 **October 8 — Pro upgrade verified; scheduler candidate prepared:**
 The user approved and completed the quoted $20/month Pro upgrade. The authenticated
 billing page confirms Pro Plan / Active, October 8–November 8 and a $20 upcoming
