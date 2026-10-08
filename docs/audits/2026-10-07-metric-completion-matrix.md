@@ -1,6 +1,6 @@
 # Production metric completion
 
-## Current readiness and next work — October 8, 22:05 UTC
+## Current readiness and next work — October 8, 23:54 UTC
 
 This table supersedes older status paragraphs below. A published number, successful
 job or reported-value count is not a whole-scorecard accuracy claim.
@@ -8,7 +8,7 @@ job or reported-value count is not a whole-scorecard accuracy claim.
 | Workstream | Verified state | Next acceptance check |
 |---|---|---|
 | Solved report credits | Both teams' September 27 and October 4 queue generations completed. Current-week independent reconstruction matches 23 Menufy and 39 POS values with zero differences, including five genuine zeros. | Correlate the two newer runs with platform invocation logs; observe the next six-hour collection and a full recurring day. |
-| Ticket updates | Fresh Menufy export and parent attributes now match all 21 populated closed-week report rows; both implementations agree on 23 source counts/event sets. Retained events are not freshly captured; POS needs its own definition. | Fresh coordinated events/identities, required multi-period report parity, tested publication adapter and release. Explore contributing-event IDs remain unverified. |
+| Ticket updates | Fresh Menufy events/identities/parents match all 21 populated closed-week report rows and 23 independently reconstructed counts/event sets. Separate publication adapter passes local tests but is inactive. POS needs its own definition. | Required historical/current reference qualification, exact CI/build and hosted checks, scoped catalog/assignment/canary release. Explore contributing-event IDs remain unverified. |
 | Inbound and outbound | Scoped independent canaries are recorded below; five outbound employees remain excluded. Some legacy numeric measures still lack qualified contracts. | Resolve those source joins and qualify each remaining measure; then verify genuine recurring publication and recovery. |
 | CSAT and first reply | Separate qualified policies exist. No-rating cohorts remain null. Optional CSAT recovery is not enabled. | Verify repeated scheduling, bounded recovery, sample denominators and observation freshness independently. |
 | Roster lifecycle | PR57 checks directory account state. PR58 adds durable manager-specific archive/restore; one confirmed removal is live (22 active / one archived for that manager; other manager 39 unchanged). Historical data and source assignments are preserved. | Observe real directory scheduling; decouple group discovery and establish company/team roster authority. Manager meeting-list archive is not employment termination or source-assignment removal. |

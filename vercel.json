@@ -1,6 +1,7 @@
 {
   "git": {
     "deploymentEnabled": {
+      "codex/agent-update-publication": false,
       "codex/manager-roster-archive": false,
       "codex/entra-roster-conflicts": false,
       "codex/reporting-readiness": false,

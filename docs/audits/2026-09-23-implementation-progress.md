@@ -1,5 +1,21 @@
 # Audit implementation — current checkpoint
 
+**October 8, 23:54 UTC — fresh Menufy update parity and inactive publication candidate:**
+A controlled six-request event refresh completes, preserving all ten protected table
+digests and writing no metrics. Fresh events/identities/parents now independently match
+all 23 source counts and contributing sets for September 27–October 3. All 21 populated
+Menufy update report rows match; the two absent rows have complete-source zero evidence.
+Oldest dependency is 23:48 UTC. This supersedes the retained-event freshness limitation
+of the prior checkpoint for this capture only. It is not scheduler evidence.
+
+`codex/agent-update-publication` adds a separate, unregistered update connector with
+atomic evidence replay, commit-time scope/freshness checks, explicit update units and
+account-attribution labels. Local 1,293 tests / 161 files, typecheck and ESLint pass;
+exact remote CI/build and hosted release checks remain pending. No production update
+definition, assignment, route, environment or publisher was enabled. Older/current
+reference qualification, scoped release and recurring proof remain work. See the
+[candidate and acceptance record](2026-10-08-agent-update-publication.md).
+
 **October 8, 22:05 UTC — metric qualification resumed after the roster release:**
 The 21:57 UTC unchanged Menufy dashboard export and 22:03 UTC parent attributes now
 match all 21 populated September 27–October 3 update rows exactly. Independent replay

@@ -8,13 +8,19 @@ export const INBOUND_PARTICIPATION_CONTRACT = "zendesk-call-created-agent-leg-in
 export const POS_INBOUND_CONTRACT = "zendesk-qualified-pos-leg-date-inbound-v1";
 export const UPDATER_SOLVED_CONTRACT = "zendesk-qualified-updater-solved-credits-v1";
 export const ASSIGNEE_SOLVED_CONTRACT = "zendesk-qualified-assignee-solved-tickets-v1";
+export const AGENT_UPDATE_CONTRACT = "zendesk-qualified-agent-update-events-v1";
 export function completeSnapshotVersion(contract: string | undefined): number | null {
   if (contract === SOLVED_CSAT_CONTRACT) return SOLVED_CSAT_CALCULATION_VERSION;
   if (contract === FIRST_REPLY_CONTRACT) return FIRST_REPLY_CALCULATION_VERSION;
   if (contract === OUTBOUND_PARTICIPATION_CONTRACT) return 2;
   if (contract === INBOUND_PARTICIPATION_CONTRACT) return 2;
   if (contract === POS_INBOUND_CONTRACT) return 2;
-  if (contract === UPDATER_SOLVED_CONTRACT || contract === ASSIGNEE_SOLVED_CONTRACT) return 1;
+  if (
+    [UPDATER_SOLVED_CONTRACT, ASSIGNEE_SOLVED_CONTRACT, AGENT_UPDATE_CONTRACT].includes(
+      contract ?? ""
+    )
+  )
+    return 1;
   return null;
 }
 export const INCOMPATIBLE_COMPARISON_REASON =
@@ -53,7 +59,9 @@ export function readMetricSourceContext(value: unknown): MetricSourceContext | n
   const counts: { sampleCount?: number; cohortCount?: number } = {};
   const progress: { reportingAsOf?: string } = {};
   if (
-    [UPDATER_SOLVED_CONTRACT, ASSIGNEE_SOLVED_CONTRACT].includes(row.sourceContract) &&
+    [UPDATER_SOLVED_CONTRACT, ASSIGNEE_SOLVED_CONTRACT, AGENT_UPDATE_CONTRACT].includes(
+      row.sourceContract
+    ) &&
     row.reportingAsOf !== undefined
   ) {
     if (

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { expect, it, vi } from "vitest";
-import { joinUpdaterSolvedReport } from "./zendesk-updater-solved-join";
+import { joinUpdaterSolvedReport, joinAgentUpdateReport } from "./zendesk-updater-solved-join";
 import {
   calculateTicketReportCredits,
   type TicketReportCreditScope,
@@ -35,6 +35,31 @@ const base = (events = [event()]) => ({
 });
 const parent = { id: 100, status: "closed", group_id: 10, brand_id: 20 };
 const joined = { tickets: [parent], metric_sets: [{ ticket_id: 100, solved_at: time }] };
+it("keeps update qualification independent of solve-transition evidence", async () => {
+  const unknownTransition = {
+    ...event(),
+    child_events: [{ id: 100, event_type: "Change", status: "solved" }],
+  };
+  const input = { ...base(), events: [unknownTransition] };
+  const snapshot = await joinAgentUpdateReport(
+    input,
+    scope,
+    vi.fn().mockResolvedValue(joined),
+    now
+  );
+  expect(calculateTicketReportCredits(snapshot, scope).agents[0]?.agentUpdateEvents).toBe(1);
+  await expect(
+    joinUpdaterSolvedReport(input, scope, vi.fn().mockResolvedValue(joined), now)
+  ).rejects.toThrow("solved");
+  await expect(
+    joinAgentUpdateReport(
+      { ...base(), identities: [] },
+      scope,
+      vi.fn().mockResolvedValue(joined),
+      now
+    )
+  ).rejects.toThrow("updates");
+});
 it("joins latest parent/solve evidence and preserves an independently valid zero", async () => {
   const read = vi.fn().mockResolvedValue(joined);
   const snapshot = await joinUpdaterSolvedReport(base(), scope, read, now);
