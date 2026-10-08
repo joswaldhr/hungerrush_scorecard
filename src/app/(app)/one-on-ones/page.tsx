@@ -8,6 +8,9 @@ import {
 import { EmptyState } from "@/components/empty-state";
 import { OneOnOnesPicker } from "@/components/one-on-ones-picker";
 import { ShieldAlert, Users } from "lucide-react";
+import Link from "next/link";
+import { getDirectoryReview } from "@/lib/domain/roster/directory-check";
+import { directoryBinding } from "@/lib/domain/roster/directory-config";
 
 export default async function OneOnOnesPage() {
   const session = await auth();
@@ -27,6 +30,11 @@ export default async function OneOnOnesPage() {
 
   const employees = await getAssignedEmployees(ctx);
   const teams = await getVisibleTeamsForManager(ctx, employees);
+  const directory = await getDirectoryReview(
+    ctx.organizationId,
+    ctx.assignedEmployeeIds,
+    directoryBinding()
+  );
   if (employees.length === 0) {
     return <EmptyState icon={Users} title="No employees" description="No employees assigned." />;
   }
@@ -55,6 +63,17 @@ export default async function OneOnOnesPage() {
         </div>
       </header>
 
+      {directory.health !== "not_configured" &&
+        (directory.rows.length > 0 || directory.health !== "current") && (
+          <p className="rounded-lg border border-border p-4 text-sm">
+            {directory.rows.length > 0
+              ? "Employee directory discrepancies need review."
+              : "Employee directory checks need attention."}{" "}
+            <Link href="/data-health" className="text-accent underline">
+              Review roster status
+            </Link>
+          </p>
+        )}
       <OneOnOnesPicker teams={teams} employees={employees} />
     </div>
   );

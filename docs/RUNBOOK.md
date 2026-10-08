@@ -305,3 +305,21 @@ the independently qualified solved/CSAT/first-reply policies. Check in-flight wo
 Unresolved source meaning must remain unavailable in the product. A release containing
 containment is not certification of historical totals. Keep production rollout, metric-version
 activation and historical repair as distinct, evidenced operations.
+
+## Directory roster review
+
+Directory checks use a dedicated `entra` data source whose configuration reference
+is `entra-tenant:<tenant UUID>`, plus `ENTRA_ROSTER_SOURCE_ID` and the existing separate
+Graph app credentials. `/api/cron/directory` authenticates with `CRON_SECRET`;
+`?probe=auth` never collects. Unset source opt-in means no work. The six-hour schedule
+is independent of metric collection. Never use interactive SSO credentials for Graph.
+
+Roster Review and manager-scoped Data Health show retained account observations,
+their timestamp, coverage and failure/staleness. Disabled accounts need manager/HR
+review, unmatched accounts need identity review. Neither means employment termination.
+No employee is automatically archived. Failed checks preserve prior observations;
+the reader has a 100-employee cap and fails closed if exceeded. Directory source
+records never establish metric freshness or certified employment status.
+
+For activation and rollback gates see
+[directory conflict release record](audits/2026-10-08-directory-roster-conflicts.md).

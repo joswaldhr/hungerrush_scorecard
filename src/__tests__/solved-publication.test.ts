@@ -47,7 +47,11 @@ const fixture = () => {
   return result;
 };
 const values = () =>
-  db.select().from(metricValues).where(inArray(metricValues.metricDefinitionId, ids));
+  db
+    .select()
+    .from(metricValues)
+    .where(inArray(metricValues.metricDefinitionId, ids))
+    .orderBy(metricValues.id);
 const current = async (index = 0) =>
   (await values()).find(
     (v) => v.metricDefinitionId === ids[index] && v.periodStart === weekDates(1).periodStart

@@ -1,6 +1,7 @@
 {
   "git": {
     "deploymentEnabled": {
+      "codex/entra-roster-conflicts": false,
       "codex/reporting-readiness": false,
       "codex/pro-recovery-scheduler": false,
       "codex/report-deletion-pagination": false,
@@ -17,6 +18,10 @@
     }
   },
   "crons": [
+    {
+      "path": "/api/cron/directory",
+      "schedule": "40 */6 * * *"
+    },
     {
       "path": "/api/cron/report-recovery?slot=0",
       "schedule": "*/15 * * * *"

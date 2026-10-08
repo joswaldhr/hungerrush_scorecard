@@ -23,7 +23,7 @@ Add a dated, reviewed team-membership override with history and protection again
 automatic re-addition, then reconcile it against an agreed roster authority.
 Keep personnel details in private evidence; no Zendesk or employee changes occurred.
 
-**Execution order:** finish the focused Data Health release; address roster authority
+**Execution order:** the focused Data Health release is live in PR56; address roster authority
 and discovery visibility; finish one metric family at a time using independent
 report/source comparisons, then prove recurring operation. Keep a single owner for
 integration and releases. Parallel research, when requested, must have disjoint
