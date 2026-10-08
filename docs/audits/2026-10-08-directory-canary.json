@@ -1,0 +1,15 @@
+{
+  "observedAt": "2026-10-08T21:21:37.284Z",
+  "sourceObservationAt": "2026-10-08T21:21:23.935Z",
+  "employeeCount": 62,
+  "enabled": 61,
+  "disabled": 1,
+  "unresolved": 0,
+  "protectedTableDigestsMatch": 8,
+  "directoryEvidenceRows": 2,
+  "sourceBaselineMatches": true,
+  "employeeWrites": 0,
+  "metricWrites": 0,
+  "directoryWrites": 0,
+  "scheduledExecutionObserved": false
+}

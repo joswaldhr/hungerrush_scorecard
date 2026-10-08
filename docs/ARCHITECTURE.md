@@ -319,7 +319,8 @@ The core domain (People, Metrics, Briefings, Context) contains no Zendesk, Assem
 | `NODE_ENV` | No | `development` (default), `production`, or `test` |
 | `ZENDESK_SUBDOMAIN`, `ZENDESK_EMAIL`, `ZENDESK_API_KEY` | No (required once Zendesk sync is used) | Live Zendesk connector credentials |
 | `ASSEMBLED_API_KEY` | No (required once Assembled sync is used) | Live Assembled connector credentials |
-| `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET` | No | Microsoft Graph app-only (client-credentials) access for org roster sync — separate from SSO below |
+| `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET` | No | Microsoft Graph app-only (client-credentials) access for read-only directory account checks — separate from SSO below |
+| `ENTRA_ROSTER_SOURCE_ID` | No | Explicit tenant-bound directory-check source; absent means inert. Retains account observations and flags conflicts without employment/assignment writes. |
 | `AUTH_MICROSOFT_ENTRA_ID_ID`, `AUTH_MICROSOFT_ENTRA_ID_SECRET`, `AUTH_MICROSOFT_ENTRA_ID_ISSUER` | No, but required in production | Microsoft Entra ID interactive SSO app registration. If missing when `NODE_ENV=production`, the app now throws at startup rather than booting with no working sign-in method |
 | `RIPPLING_MANAGER_URL` | No | Plain link-out URL shown as "Open Rippling" on the 1:1 Prep page once set — not a deep link to a specific employee (no real Rippling integration exists yet, see Known Gaps) |
 
