@@ -1,0 +1,81 @@
+{
+  "observedAt": "2026-10-08T15:52:13.508648+00:00",
+  "mode": "private read-only export intake; no publication",
+  "periodStart": "2026-09-27",
+  "periodEnd": "2026-10-03",
+  "timeZone": "America/Chicago",
+  "archiveSha256": "ad947e6e36fac027221f47a73d4ba5d8b71b63df48a78201d4a92447272ff654",
+  "employeeBindings": 23,
+  "valuesChecked": 459,
+  "differences": 0,
+  "zeros": 103,
+  "blanks": 12,
+  "coverage": [
+    {
+      "report": "menufy-updates",
+      "matchedEmployees": 21,
+      "absentEmployees": 2,
+      "excludedRows": 22,
+      "unnamedRows": 0
+    },
+    {
+      "report": "menufy-csat",
+      "matchedEmployees": 22,
+      "absentEmployees": 1,
+      "excludedRows": 3,
+      "unnamedRows": 0
+    },
+    {
+      "report": "menufy-inbound",
+      "matchedEmployees": 19,
+      "absentEmployees": 4,
+      "excludedRows": 9,
+      "unnamedRows": 1
+    },
+    {
+      "report": "menufy-outbound",
+      "matchedEmployees": 19,
+      "absentEmployees": 4,
+      "excludedRows": 0,
+      "unnamedRows": 0
+    },
+    {
+      "report": "menufy-state",
+      "matchedEmployees": 20,
+      "absentEmployees": 3,
+      "excludedRows": 4,
+      "unnamedRows": 0
+    }
+  ],
+  "limits": [
+    "Exact export transcription and units checked; not independent source calculation certification.",
+    "No production metric values, assignments, scheduling, Zendesk settings or demo changed.",
+    "Report rows missing for some current staff; no zero inferred.",
+    "Fresh source scope and repeat-delivery publication validation remain incomplete.",
+    "POS import is not implemented."
+  ],
+  "liveReportComparison": {
+    "periodStart": "2026-09-27",
+    "comparison": "fresh report against retained production read; tolerance 0.00001 percentage points for floating storage",
+    "results": {
+      "zendesk_tickets_solved_credits": {
+        "compared": 21,
+        "matched": 21,
+        "missingStoredRow": 0,
+        "different": 0
+      },
+      "csat_score": {
+        "compared": 22,
+        "matched": 22,
+        "missingStoredRow": 0,
+        "different": 0
+      },
+      "csat_response_rate": {
+        "compared": 22,
+        "matched": 22,
+        "missingStoredRow": 0,
+        "different": 0
+      }
+    }
+  }
+}

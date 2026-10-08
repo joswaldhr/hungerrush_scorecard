@@ -1,5 +1,27 @@
 # Audit implementation — current checkpoint
 
+**October 8 — direct report bridge prepared; production import remains inactive:**
+Active work is `codex/report-export-intake` in the metric-recovery worktree. A fresh
+read-only Menufy dashboard export for September 27–October 3 was obtained as actual
+CSV ZIP bytes. The offline intake preserves exact identities, explicit period/scope
+evidence, raw cells, zeros and blanks. Independent comparison checks 459 prepared
+report values with zero transcription/unit differences across five tables and 23
+current staff bindings. Different reports omit different employees; absence is not zero.
+No import is published and no Zendesk setting/report or demo changed. Publication is
+explicitly blocked by contract and record type. See `2026-10-08-report-export-intake.md`
+and its aggregate receipt. Verified APIs remain the primary automation strategy;
+report exports provide acceptance evidence and a limited bridge, not a replacement
+for every collector. POS import and durable delivery remain unimplemented.
+
+**October 8, 15:25 UTC — CSAT recovery code live, switches still off:**
+PR50 is merged to `2a62d53`; exact master CI/build passes and production
+`dpl_FjYh9B34SCKicN55KR1pCTRE17JA` is READY on the live alias. Core reads and
+disabled/rejected route checks pass, with all 22 environment entries and 16 crons
+unchanged. Independent retained-source reconstruction matches 255 CSAT values/cohorts
+across two closed weeks plus current week for 62 current employees. This does not
+prove scheduler recovery or historical roster completeness. See
+`2026-10-08-csat-recovery-release.md` and its production/three-period receipts.
+
 **October 8, 15:12 UTC — actual current-week CSAT recovered and independently checked:**
 One controlled request on unchanged production `baca908` returned HTTP 200 and
 published 85 assigned CSAT values for all 62 current staff. Independent Python

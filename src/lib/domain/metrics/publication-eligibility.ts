@@ -5,6 +5,8 @@ export function assertMetricPublicationEligible(evidence: unknown, recordType?: 
   // Block the candidate contract even if a caller strips or changes its marker.
   // Activation requires a reviewed code change; no environment toggle bypasses this.
   if (
+    recordType === "explore_export_candidate" ||
+    row.sourceContract === "zendesk-explore-export-candidate-v1" ||
     recordType === "inbound_report_candidate" ||
     recordType === "pos_inbound_report_candidate" ||
     recordType === "ticket_report_credit_candidate" ||
