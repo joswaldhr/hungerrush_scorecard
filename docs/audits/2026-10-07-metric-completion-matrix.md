@@ -1,6 +1,6 @@
 # Production metric completion
 
-## Current readiness and next work — October 8, 20:30 UTC
+## Current readiness and next work — October 8, 21:21 UTC
 
 This table supersedes older status paragraphs below. A published number, successful
 job or reported-value count is not a whole-scorecard accuracy claim.
@@ -11,7 +11,7 @@ job or reported-value count is not a whole-scorecard accuracy claim.
 | Ticket updates | Menufy retained evidence still has one unexplained report-membership difference; POS needs its own report definition. | Same-period, same-filter, same-cutoff source/report comparison with exact contributing sets before publication. |
 | Inbound and outbound | Scoped independent canaries are recorded below; five outbound employees remain excluded. Some legacy numeric measures still lack qualified contracts. | Resolve those source joins and qualify each remaining measure; then verify genuine recurring publication and recovery. |
 | CSAT and first reply | Separate qualified policies exist. No-rating cohorts remain null. Optional CSAT recovery is not enabled. | Verify repeated scheduling, bounded recovery, sample denominators and observation freshness independently. |
-| Roster lifecycle | Legacy discovery still depends on successful current-week metric sync. Independent roster route has no dedicated installed schedule. Departures require review. | Decouple discovery, expose its health, and define authoritative team-removal handling before unattended archival. |
+| Roster lifecycle | PR57 independently checks Entra account status and surfaces scoped conflicts. Controlled check matches 62 accounts (61 enabled, one disabled); six-hour directory schedule installed. Legacy Zendesk group discovery still depends on metric sync. | Observe real directory scheduling; decouple group discovery and implement dated reviewed team removal that survives rediscovery. Never infer employment termination from disablement. |
 | Manager experience | Administrator view-as and prior export bytes were checked. | Each manager's own sign-in and normal meeting/export workflow; native print remains unverified. |
 
 **Fresh roster discrepancy:** a manager-reported former team member remains an
@@ -22,6 +22,10 @@ This is a source-authority gap, not evidence of company employment. Zendesk's
 Add a dated, reviewed team-membership override with history and protection against
 automatic re-addition, then reconcile it against an agreed roster authority.
 Keep personnel details in private evidence; no Zendesk or employee changes occurred.
+
+The account is independently disabled in Entra, first observed October 5 and confirmed
+October 8. PR57 now surfaces that conflict to the scoped manager and administrators.
+This closes the silent-directory-conflict gap, not the dated removal/HR-authority gap.
 
 **Execution order:** the focused Data Health release is live in PR56; address roster authority
 and discovery visibility; finish one metric family at a time using independent

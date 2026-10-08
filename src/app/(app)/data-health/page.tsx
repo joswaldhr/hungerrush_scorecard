@@ -18,6 +18,8 @@ import { ReportRecoveryHealth } from "@/components/report-recovery-health";
 import { DirectoryReview } from "@/components/directory-review";
 import { getDirectoryReview } from "@/lib/domain/roster/directory-check";
 import { directoryBinding } from "@/lib/domain/roster/directory-config";
+import { getManagerArchives } from "@/lib/domain/roster/manager-archive";
+import Link from "next/link";
 
 function syncStatusIcon(status: string) {
   switch (status) {
@@ -48,9 +50,10 @@ export default async function DataHealthPage() {
   const now = new Date();
   const nowTs = now.getTime();
   const recovery = await getReportRecoveryHealth(ctx.organizationId, ctx.assignedTeamIds, now);
+  const archives = await getManagerArchives(ctx);
   const directory = await getDirectoryReview(
     ctx.organizationId,
-    ctx.assignedEmployeeIds,
+    ctx.assignedEmployeeIds.filter((id) => !archives.some((a) => a.employeeId === id)),
     directoryBinding(),
     now
   );
@@ -121,6 +124,13 @@ export default async function DataHealthPage() {
 
       <ReportRecoveryHealth health={recovery} />
       <DirectoryReview review={directory} />
+      <p className="text-sm text-muted-foreground">
+        Directory warnings cover your active meeting roster. {archives.length} archived from this
+        manager’s list.{" "}
+        <Link className="text-accent underline" href="/one-on-ones/roster">
+          Manage roster and review archives
+        </Link>
+      </p>
       <p className="text-sm text-muted-foreground">
         The source cards below show the latest activity only. A recent successful run does not mean
         all metric families or reporting weeks have refreshed.

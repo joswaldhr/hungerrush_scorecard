@@ -127,6 +127,13 @@
       "when": 1791219404232,
       "tag": "0017_roster_observations",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1791495658388,
+      "tag": "0018_manager_roster_archives",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,39 @@
 # Audit implementation — current checkpoint
 
+**October 8 — manager roster archive candidate (not live):**
+The user authorized completion of the manager-specific removal and ongoing archive
+process before resuming metric work. `codex/manager-roster-archive` adds a durable,
+reasoned manager/employee archive with explicit restore and retained decision history.
+It affects the active 1:1 list only; employment, source/team assignments, metrics and
+other managers stay unchanged. Current authorization still governs history access.
+Migration `0018` is additive. Local/Preview/recovery/release checks are in progress;
+no production archive or migration has been applied. See the
+[contract and release manifest](2026-10-08-manager-roster-archive.md).
+
+**October 8, 21:21 UTC — PR57 directory conflict checks live:**
+Master `98eff5e` / `dpl_A7HW5tczZATxgN3V3PmvkowbmqoL` is READY on production.
+Candidate `fd51a6e` and merged-master CI/build `37845343990` / `37845937548`
+pass. Local validation passes 1,265 tests across 157 files, typecheck and ESLint;
+isolated hosted synthetic display and protected manager-page checks pass.
+Fresh 21:13 UTC encrypted restore matches all 35 tables / 389,060 rows.
+
+A dedicated tenant-bound Entra source and production-only source opt-in are enabled.
+One controlled directory check returns 200, checking 62 employees (61 enabled,
+one disabled; no unresolved identities), matching the prior bounded read-only
+source rehearsal. Eight protected employee/assignment/metric table digests match.
+Existing 23 environment entries and 17 metric schedules are unchanged; one separate
+six-hour directory schedule is installed. Its first real scheduled execution is
+not yet observed. No Zendesk/directory, employment or assignment mutation occurred.
+
+Administrator view-as verifies the 23-person Menufy result and flagged account;
+the POS domain reader verifies 39 checked and no conflicts. Admin Roster Review
+shows 62 checked; the 1:1 picker links to roster status. The synthetic fixture is
+absent from authenticated production. No manager-own-login acceptance is implied.
+Reviewed dated team removal and HR employment confirmation remain separate work.
+See [release evidence](2026-10-08-directory-roster-conflicts.md) and
+[controlled-check receipt](2026-10-08-directory-canary.json).
+The candidate-only status below is superseded.
+
 **October 8 — directory roster conflict candidate:**
 The manager-reported source conflict is independently confirmed in Microsoft Entra:
 the October 5 disabled-account observation remains disabled on October 8 while

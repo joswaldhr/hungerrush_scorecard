@@ -44,21 +44,49 @@ See [Graph list-users documentation](https://learn.microsoft.com/en-us/graph/api
 
 ## Validation and release status
 
-Candidate only; not yet deployed or enabled. Initial 18 focused tests passed.
+Released as PR57, master `98eff5e3c94954f6dc65178e69ae67f45210d4d6`, deployment
+`dpl_A7HW5tczZATxgN3V3PmvkowbmqoL`; the production alias is verified. Initial 18 focused tests passed.
 The first full-suite run found the existing source-capability test needed to retain
 an unsupported-source fixture now that Entra has its own review panel; fixed before
 release. Additional tests cover stale/failed display, source rebinding and superseded
-leases. Exact final CI/build, hosted checks and fresh restore remain release gates.
+leases. Final local tests pass: 1,265 / 157 files, typecheck and ESLint. Two existing
+database-preservation tests compared unordered reads; adding primary-key ordering
+removes nondeterminism while retaining every row/field comparison. Exact candidate
+CI/build `37845343990` and merged-master CI/build `37845937548` pass.
+
+Isolated Preview `dpl_H4Yjy4BTcfaNEECDfUUk3zze7FsM` at exact candidate `fd51a6e`
+passes its database/auth/source isolation build gate. Synthetic failed/retained
+directory observations, missing/ambiguous identities and UTC coverage display are
+verified in light/dark themes and keyboard interaction. The protected manager page
+correctly shows unconfigured directory checks; admin access is denied to the synthetic
+manager. SQL tests separately verify employee scope and cross-organization isolation.
+No exports changed. Fresh [encrypted restore](2026-10-08-directory-restore.json)
+matches all 35 tables / 389,060 rows at 21:13 UTC.
 
 Read-only source rehearsal: all 62 active employees resolve uniquely; 61 enabled,
 one disabled; zero missing/ambiguous identities; no production or directory writes.
 Only aggregate evidence is committed. Raw evidence remains private.
 
-Activation requires a verified dedicated source, existing Graph credential/tenant
-identity, fresh encrypted backup/restore and scoped pre/post digests covering employee
-and membership rows. One controlled directory check must reproduce the read-only
-baseline without changing those rows. That is not proof of a scheduled execution;
-record the next genuine scheduled request separately.
+Activation used a verified dedicated source, existing Graph credential/tenant
+identity, fresh encrypted backup/restore and scoped pre/post digests covering eight
+employee/assignment/metric tables. All digests match. Only the dedicated source,
+latest directory health and retained directory observation were written.
+
+One controlled directory check at 21:21 UTC returns HTTP 200 and reproduces the
+read-only baseline exactly; see [aggregate receipt](2026-10-08-directory-canary.json).
+Existing 23 environment metadata entries and all 17 existing cron definitions are
+unchanged. The added production-only `ENTRA_ROSTER_SOURCE_ID` uses existing Graph
+credentials; no permission/credential expansion. The additional directory schedule is
+`40 */6 * * *`. Its first real scheduled execution remains unobserved; do not present
+the controlled request as scheduler evidence.
+
+Live administrator view-as confirms the 23-person Menufy scope and the flagged
+account; POS domain-reader scope confirms 39 accounts with no conflicts. The admin
+view contains 62 checks. The 1:1 picker displays the review notice. Login returns
+200, anonymous directory requests return 401, and authenticated synthetic-fixture
+navigation returns 404 (anonymous navigation is login-protected). This is not either
+manager's own login acceptance. No employee, membership, target, metric or vendor
+record changed. Reviewed team-removal overrides remain separate work.
 
 Rollback: unset `ENTRA_ROSTER_SOURCE_ID` and redeploy or restore the preceding
 production deployment `dpl_BzXwfPfMHumJzDgowuhHdMZev6Pe` (`cbd8d5d`). Retain directory
