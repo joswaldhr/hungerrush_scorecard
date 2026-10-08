@@ -1,5 +1,16 @@
 # Audit implementation — current checkpoint
 
+**October 8, 18:34 UTC — Pro schedule deployed; recovery still guarded:**
+PR55 is live as `ba96597` / `dpl_3zibofMBLEZUEqKTpbTWW76ndAbt`. One 15-minute
+dispatcher entry is installed alongside the unchanged 16 schedules. Both recovery
+switches remain absent; authenticated route verification returns `enabled:false`.
+Exact candidate CI/build and master CI pass. Fresh 18:32 UTC backup/restore matches
+all 35 tables. A separately labeled controlled dispatcher canary persisted five
+scoped jobs and correctly deferred at the existing source cooldown; all ten checked
+catalog/value/fact digests stayed unchanged. Actual scheduled delivery, resumed
+collection and enabled recurring recovery remain to verify. See the
+[rollout record](2026-10-08-pro-recovery-rollout.md).
+
 **October 8 — Pro upgrade verified; scheduler candidate prepared:**
 The user approved and completed the quoted $20/month Pro upgrade. The authenticated
 billing page confirms Pro Plan / Active, October 8–November 8 and a $20 upcoming

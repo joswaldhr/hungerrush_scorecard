@@ -20,7 +20,9 @@ The candidate adds one cron entry, initially with recovery disabled:
 The existing route accepts this path. `slot` validates the scheduler request; it
 does not select a reporting week or limit a slot to one daily invocation. The
 dispatcher coalesces demand and attempts one bounded persisted job per invocation.
-This entry is not deployed yet. Existing 16 jobs remain
+PR55 merged as `ba96597`; production `dpl_3zibofMBLEZUEqKTpbTWW76ndAbt`
+is READY and owns the live alias with this entry. Exact candidate `72db713`
+CI/build `37824469245` and master CI `37825101424` pass. Existing 16 jobs remain
 unchanged until each replacement is separately verified.
 
 A 15-minute dispatcher wake-up is **not** a 15-minute data freshness promise.
@@ -42,6 +44,26 @@ month. Idle ticks still have execution cost. Actual CPU, memory duration, builds
 and other team projects determine usage; do not promise a $20 total bill.
 After upgrade, inspect usage and configure spend alerts. Do not silently enable
 automatic project pausing, which could interrupt manager access, or paid add-ons.
+
+## Verified rollout evidence
+
+The fresh 18:32 UTC encrypted backup restored all 35 tables / 378,003 rows with
+matching digests and unchanged application data after migration. An older private
+helper first failed its obsolete initial-catalog-transition rehearsal on an
+isolated restored copy; no production write occurred. The current tracked restore
+procedure then passed. See `2026-10-08-pro-scheduler-restore.json`.
+
+At 18:34 UTC, login returned 200, anonymous recovery access returned 401 and the
+authenticated recovery route returned 200 / `enabled:false`. All 22 environment
+metadata entries and 16 pre-existing cron entries are unchanged. This is manual
+route verification; genuine scheduled delivery is still pending.
+
+A separate controlled local invocation of the identical deployed dispatcher at
+18:33 UTC persisted five correctly scoped jobs (collection and both teams' solved
+credits for September 27 and October 4). It respected the existing source-sync
+cooldown and deferred collection until 18:38:47 UTC. Ten catalog/value/fact digest
+groups remained unchanged. Zero employee metric writes and zero vendor writes.
+This verifies durable deferral, not completed collection/publication or cron.
 
 ## Activation sequence
 
@@ -69,7 +91,8 @@ Clear only the new recovery opt-in and redeploy the recorded compatible runtime
 and schedule if necessary. Preserve source records, jobs and last good metrics;
 check in-flight leases rather than resetting cursors or restoring the entire DB.
 
-The currently verified runtime is master `bf7ea0d`, production
-`dpl_9tJxGRF9S45ad4nsGFKXhzUANDqd`. Refresh this reference before activation.
+The current scheduled runtime is master `ba96597`, production
+`dpl_3zibofMBLEZUEqKTpbTWW76ndAbt`. The rollback without the new cron is
+`bf7ea0d` / `dpl_9tJxGRF9S45ad4nsGFKXhzUANDqd`. Refresh these references before activation.
 Zendesk remains read-only. The demo, metric semantics, human-only suppression,
 shadow/action-v2/historical-repair switches, assignments and targets are unchanged.
