@@ -1,4 +1,40 @@
 # Audit implementation — current checkpoint
+**October 8, 05:24 UTC — fresh POS source qualification passes; publication still gated:**
+PR44 runtime `7403b7821be4abd8779f4221e4529bb1ddff7f56` passes exact CI/build
+`37730891112` and all 1,205 local tests. It adds a separate authenticated, default-off
+POS route with fixed reporting dates; no schedule is installed. Runtime-identical
+isolated Preview `0e71f92` is READY at `dpl_9bF2NGoCC8sy5m9J7xxwgyQ5CHsz`;
+anonymous requests return 401. Positive hosted scheduler-auth probing remains
+unverified because the retained CLI env contains redacted placeholders. Full synthetic
+publisher/collection and actual file acceptance from the preceding runtime remain
+recorded below; route authorization/default/period behavior also has six passing tests.
+
+A fresh 05:11 encrypted production backup restored all 35 tables / 355,355 rows with
+matching digests. The guarded GET-only POS refresh then completed 11 pages in 103
+seconds, retaining 7,548 changed versions. Both streams exhausted; all protected
+application and original projection digests were unchanged, with zero metric writes.
+Two global missing parents affect none of the 39 POS employee-period cohorts.
+Fresh current identity checks match all 39 staff, and fresh group census matches the
+saved report's 14 qualified exact names. Four rename aliases remain excluded.
+The bounded group reader's first attempt stopped on a continuation dropping its
+deleted-group filter; preserving that explicit filter resolved the read without writes.
+
+Independent Python matches all 78 employee-periods, 546 source sets and 390 duration
+calculations. The qualified publisher wrapper matches 546 values, 390 source sets and
+624 numerator/denominator checks with zero differences. This is current source replay
+under the saved report definition, not a new same-cutoff Explore export or historical
+employment proof. The projection cannot cover September 20–26; older report parity is
+separate evidence. Aggregate receipts and the scoped release/rollback manifest are
+pushed in PR44 `8f2818f`; its documentation-head CI `37732155177` is running.
+
+Next: integrate reviewed default-off code, pass exact production release gates, then
+run the explicitly scoped current-week POS canary for the five existing assignments.
+Declined/missed need prospective assignments before publication. New schedules remain
+off pending capacity/recovery qualification. No production code/policy, scorecard value,
+Zendesk configuration, demo, catalog or employee assignment changed in this increment.
+All remaining metrics for both teams, lifecycle/access and genuine scheduling remain
+part of the active goal; this evidence does not complete either full scorecard.
+
 **October 8, 05:01 UTC — POS hosted publication and export acceptance passes:**
 PR44 runtime/script candidate `ed5350a2cd6b1ddcbbe72e31e559386a4cac6790` passes
 exact CI/build `37729327026`; preceding `fa92837` and `b103526` also pass their exact

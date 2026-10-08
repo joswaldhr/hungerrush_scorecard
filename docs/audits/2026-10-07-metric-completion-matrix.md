@@ -1,5 +1,16 @@
 # Production metric completion
 
+**October 8, 05:24 UTC — fresh POS qualification:** Runtime `7403b78` passes exact
+CI/build and 1,205 tests; its default-off authenticated POS endpoint is READY on
+isolated Preview. Fresh bounded collection and identity/group checks support all
+39 current staff for last closed and current weeks. Independent source reconstruction
+and the actual publication wrapper match all 546 values and contributing evidence,
+with zero differences; neither of two global parent gaps affects these cohorts.
+Backup/restore matches all 35 tables / 355,355 rows. Aggregate receipts and the scoped
+release manifest are pushed in PR44 `8f2818f`. Production publication remains pending;
+declined/missed require prospective assignments and genuine scheduling remains open.
+This does not close the other POS measures, Menufy gaps or cross-cutting requirements.
+
 **October 8 POS hosted acceptance:** PR44 `ed5350a` passes exact CI/build
 `37729327026`; runtime-identical isolated Preview `2b89c27` is READY. Its full
 synthetic collection/live-adapter/publication path matches 21 values over two closed
