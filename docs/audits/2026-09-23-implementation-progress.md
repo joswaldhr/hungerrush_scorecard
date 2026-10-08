@@ -1,5 +1,18 @@
 # Audit implementation — current checkpoint
 
+**October 8, 18:05 UTC — report refresh fix qualified, update residual narrowed:**
+PR54 fixes a real deleted-ticket continuation rejection without changing formulas
+or enabling a producer. The corrected GET-only diagnostic joins all 4,951 parent
+references (4,911 present / 40 explicitly deleted) for 23 Menufy employees. Against
+the latest unchanged closed-week report, 20 of 21 populated rows now match; one
+differs by one update. Independent reconstruction matches all 23 source counts and
+sets. Retained October 6 events are not relabeled fresh by today's parent lookup.
+No update metric is published. The candidate passes 1,224 tests, exact CI/build and
+the isolated synthetic hosted continuation rehearsal; deployment is pending.
+See [the fix and evidence](2026-10-08-report-deletion-pagination.md). Source-report
+membership for one unusual update, fresh event qualification, POS update meaning and
+the remaining families/ongoing operation are still open.
+
 **October 8, 17:43 UTC — outbound code and scoped review refresh live:**
 PR52 is merged as `e05014d`; production `dpl_7H7P3nGE9kLCr9FhdgrowrtCwBE1`
 is READY and owns the live alias. Exact candidate and master CI/build pass. The

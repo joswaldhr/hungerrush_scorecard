@@ -1,0 +1,15 @@
+{
+  "observedAt": "2026-10-08T17:56:28.089506+00:00",
+  "employees": 23,
+  "sourceRequests": 52,
+  "independentValuesMatched": 23,
+  "independentEventSetsMatched": 23,
+  "reportRows": 21,
+  "reportMatches": 20,
+  "reportDifferences": 1,
+  "sourceScopeChangedTickets": 19,
+  "matchedFreshParents": 4911,
+  "explicitTombstones": 40,
+  "publication": false,
+  "databaseWrites": 0
+}

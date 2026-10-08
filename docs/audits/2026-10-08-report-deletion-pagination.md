@@ -13,6 +13,14 @@ size and invalid page bounds remain rejected. Request/time budgets, quota pacing
 GET-only access, redirect rejection, deletion coverage and fail-closed publication
 behavior are unchanged. No Zendesk configuration or metric formula changed.
 
+Local typecheck/ESLint and all 1,224 tests in 151 files pass. Exact candidate
+`b336d85` CI/build `37820640163` passes. Runtime-identical isolated Preview
+`9fe44d6` / `dpl_48nZFZ4QTB5V5o4mT5z9qM14dwxm` is READY; its mock transport
+follows the real omitted-size continuation, retains explicit deletion evidence and
+matches four synthetic values with no vendor requests or database writes. The
+18:00 UTC encrypted backup restores all 35 tables / 378,002 rows with matching
+digests. See the aggregate Preview, restore and parent-reconciliation receipts.
+
 With the corrected reader, 52 bounded GETs resolve 4,911 current parents and 40
 explicit deletion tombstones for 14,129 retained closed-week account events across
 23 Menufy staff. The source period is September 27–October 3 in America/Chicago.
@@ -27,6 +35,16 @@ earlier capture. Two employees have no report row; missing export rows are not
 invented zeros. Exact residual investigation and fresh event/identity qualification
 remain required for a separate Agent update events release. POS update semantics
 remain separate and cannot inherit Menufy's group/brand contract.
+
+Four additional bounded GET-only audits inspect the remaining employee's four
+updates with no incremental child events. Three are knowledge-link events; one
+contains a follower change and a webhook event. Excluding the latter would close
+the one-count difference, but that is a hypothesis, not independently proven report
+membership. It must not become a formula change solely to fit this row. Dropping
+all empty-child updates would remove 3,508 events across the current cohort and
+break matching rows. The read-only dashboard viewer exposes copy, not contributing
+event details, for the inspected value; it was closed without changing filters or
+opening an editor. All source details remain private.
 
 Release requires exact CI/build, synthetic isolated Preview continuation rehearsal,
 fresh verified backup and production read/authentication checks. The synthetic
