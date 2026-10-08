@@ -1,5 +1,16 @@
 # Audit implementation — current checkpoint
 
+**October 8 — Pro upgrade verified; scheduler candidate prepared:**
+The user approved and completed the quoted $20/month Pro upgrade. The authenticated
+billing page confirms Pro Plan / Active, October 8–November 8 and a $20 upcoming
+invoice. A prepared
+15-minute recovery schedule and expanded capacity model now include optional
+CSAT demand (22 modeled jobs versus 40 remaining opportunities). This is offline
+capacity evidence, not installed scheduling or full metric refresh coverage.
+See [rollout and remaining activation gates](2026-10-08-pro-recovery-rollout.md).
+The branch adds one 15-minute cron entry for initial disabled-route verification;
+it is not deployed yet. No production switch, metric value or Zendesk state changed.
+
 **October 8, 18:11 UTC — PR54 live; full manager-visible census retained:**
 PR54 merged as `bf7ea0d`; production `dpl_9tJxGRF9S45ad4nsGFKXhzUANDqd` is
 READY and owns the live alias. Exact final candidate `f95e545` CI/build

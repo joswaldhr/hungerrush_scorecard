@@ -9,15 +9,25 @@ const observed = JSON.parse(
     "utf8"
   )
 );
-const schedules = configured.crons.map(({ schedule }) => {
-  const [minute, hour, ...rest] = schedule.split(" ");
-  assert(
-    rest.every((v) => v === "*"),
-    "Model only accepts daily schedules"
-  );
-  assert(/^\d+$/.test(minute) && /^\d+$/.test(hour));
-  return { minute: Number(minute), hour: Number(hour) };
-});
+const recoveryCrons = configured.crons.filter(({ path }) =>
+  path.startsWith("/api/cron/report-recovery")
+);
+assert(recoveryCrons.length <= 1, "Only one recovery dispatcher schedule is supported");
+for (const cron of recoveryCrons) {
+  assert.equal(cron.path, "/api/cron/report-recovery?slot=0");
+  assert.equal(cron.schedule, "*/15 * * * *");
+}
+const schedules = configured.crons
+  .filter(({ path }) => !path.startsWith("/api/cron/report-recovery"))
+  .map(({ schedule }) => {
+    const [minute, hour, ...rest] = schedule.split(" ");
+    assert(
+      rest.every((v) => v === "*"),
+      "Model only accepts daily schedules"
+    );
+    assert(/^\d+$/.test(minute) && /^\d+$/.test(hour));
+    return { minute: Number(minute), hour: Number(hour) };
+  });
 const occupiedHours = [...new Set(schedules.map((s) => s.hour))].sort((a, b) => a - b);
 const publications = 2 * 4; // Both approved definitions, current plus three earlier weeks.
 const collections = 24 / 6;
@@ -42,10 +52,15 @@ const missedWindowBatches = Math.ceil(
 const preciseRemaining = 96 - schedules.length * 2 - 24;
 const stressedDailyWork = publications + stressedCollectionBatches + missedWindowBatches;
 assert(preciseRemaining > stressedDailyWork);
+// CSAT is a separate opt-in: include its four fixed-period publications before
+// enabling it. This does not model unimplemented recovery for other families.
+const csatPublications = 4;
+const stressedDailyWorkWithCsat = stressedDailyWork + csatPublications;
+assert(preciseRemaining > stressedDailyWorkWithCsat);
 console.log(
   JSON.stringify(
     {
-      modelVersion: 1,
+      modelVersion: 2,
       sourceEvidenceObservedAt: observed.observedAt,
       productionChanges: false,
       existingDailyJobs: schedules.length,
@@ -68,15 +83,25 @@ console.log(
         stressedDailyWork,
       },
       preciseFifteenMinuteCandidate: {
+        path: "/api/cron/report-recovery?slot=0",
         schedule: "*/15 * * * *",
         dailyTicks: 96,
         ticksAfterModeledCollisionsAndSixHourOutage: preciseRemaining,
         modeledSpareTicks: preciseRemaining - stressedDailyWork,
         capacityArithmeticPasses: true,
         scheduledOperationVerified: false,
-        availableOnCurrentHobbyPlan: false,
+        requiresPreciseSchedulerPlan: true,
+      },
+      optionalCsatRecovery: {
+        additionalDailyPublications: csatPublications,
+        stressedDailyWork: stressedDailyWorkWithCsat,
+        modeledSpareTicks: preciseRemaining - stressedDailyWorkWithCsat,
+        capacityArithmeticPasses: true,
+        activationVerified: false,
       },
       limits: [
+        "A 15-minute wake-up is not a promise that every metric refreshes every 15 minutes.",
+        "This model covers report-event collection, solved credits and optional CSAT only; other metric families need separate recovery qualification.",
         "Creation-time density does not prove source delivery timing or future quota.",
         "25 percent overlap/late-arrival allowance is an explicit stress assumption.",
         "Existing jobs conservatively treated as conflicting source work; this is not a log-derived collision count.",

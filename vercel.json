@@ -1,6 +1,7 @@
 {
   "git": {
     "deploymentEnabled": {
+      "codex/pro-recovery-scheduler": false,
       "codex/report-deletion-pagination": false,
       "codex/outbound-release-evidence": false,
       "codex/outbound-report-completion": false,
@@ -15,6 +16,10 @@
     }
   },
   "crons": [
+    {
+      "path": "/api/cron/report-recovery?slot=0",
+      "schedule": "*/15 * * * *"
+    },
     {
       "path": "/api/cron/outbound?week=0",
       "schedule": "0 0 * * *"
