@@ -1,0 +1,26 @@
+{
+  "observedAt": "2026-10-08T03:43:02.309Z",
+  "readOnly": true,
+  "requests": 11,
+  "lowVolumeReference": {
+    "observedAt": "2026-10-08T03:38:42.288Z",
+    "requests": 6,
+    "tickets": 6,
+    "updates": 7,
+    "allAuthorsMatchRetained": true,
+    "commentOnlyUpdates": 1,
+    "commentsWithDifferentAuthors": 0,
+    "commentsMissingAuthor": 0
+  },
+  "currentEmployeeCandidates": {
+    "observedAt": "2026-10-08T03:43:02.309Z",
+    "requests": 5,
+    "tickets": 5,
+    "updates": 11,
+    "allAuthorsMatchRetained": true,
+    "commentAuthorsDifferentFromUpdater": 0,
+    "commentAuthorsAreOtherDifferingEmployee": 0
+  },
+  "conclusion": "The inspected audit and comment authors match retained updater attribution. No author substitution explains these candidates. This does not resolve report-count discrepancies.",
+  "published": false
+}

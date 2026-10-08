@@ -1,0 +1,22 @@
+{
+  "observedAt": "2026-10-06T14:24:56.708Z",
+  "referencePeriodStart": "2026-09-13",
+  "referencePeriodEnd": "2026-09-19",
+  "referenceRows": 55,
+  "measureComparisons": 440,
+  "matchingRows": 45,
+  "differingRows": 10,
+  "differencesByField": {
+    "missed": 6,
+    "talk": 10,
+    "duration": 10,
+    "hold": 9,
+    "accepted": 8,
+    "abandoned": 6,
+    "consultation": 6
+  },
+  "boundGroupIds": 17,
+  "retainedExportScopeEquivalent": false,
+  "published": false,
+  "sourceRequests": 0
+}

@@ -2,6 +2,16 @@ import { expect, it } from "vitest";
 import { assertMetricPublicationEligible } from "./publication-eligibility";
 
 it("blocks candidate records/contracts even with a forged eligible marker", () => {
+  expect(() => assertMetricPublicationEligible({}, "pos_inbound_report_candidate")).toThrow(
+    "not eligible"
+  );
+  for (const publicationEligible of [undefined, false, true])
+    expect(() =>
+      assertMetricPublicationEligible({
+        sourceContract: "zendesk-pos-leg-date-inbound-report-v1",
+        publicationEligible,
+      })
+    ).toThrow("not eligible");
   expect(() => assertMetricPublicationEligible({}, "inbound_report_candidate")).toThrow(
     "not eligible"
   );

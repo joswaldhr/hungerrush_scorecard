@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-10-06T15:15:45.758Z",
+  "periodStart": "2026-09-13",
+  "periodEnd": "2026-09-19",
+  "selectedLabels": 18,
+  "exactNameGroups": 14,
+  "historicalAliasLabels": 4,
+  "employeeRows": 55,
+  "aggregateComparisons": 440,
+  "aggregateDifferences": 0,
+  "legIds": 2012,
+  "missingLegIds": 0,
+  "extraLegIds": 0,
+  "perLegMeasureComparisons": 16096,
+  "perLegDifferences": 0,
+  "sourceRequests": 0,
+  "productionWrites": 0,
+  "publicationEnabled": false,
+  "qualificationScope": "Retained report observation only; no automatic historical alias expansion"
+}

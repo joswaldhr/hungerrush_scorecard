@@ -1,5 +1,61 @@
 # Production metric completion
 
+**October 8, 05:24 UTC — fresh POS qualification:** Runtime `7403b78` passes exact
+CI/build and 1,205 tests; its default-off authenticated POS endpoint is READY on
+isolated Preview. Fresh bounded collection and identity/group checks support all
+39 current staff for last closed and current weeks. Independent source reconstruction
+and the actual publication wrapper match all 546 values and contributing evidence,
+with zero differences; neither of two global parent gaps affects these cohorts.
+Backup/restore matches all 35 tables / 355,355 rows. Aggregate receipts and the scoped
+release manifest are pushed in PR44 `8f2818f`. Production publication remains pending;
+declined/missed require prospective assignments and genuine scheduling remains open.
+This does not close the other POS measures, Menufy gaps or cross-cutting requirements.
+
+**October 8 POS hosted acceptance:** PR44 `ed5350a` passes exact CI/build
+`37729327026`; runtime-identical isolated Preview `2b89c27` is READY. Its full
+synthetic collection/live-adapter/publication path matches 21 values over two closed
+weeks plus current with unrelated values unchanged. Browser values, closed/current
+history, actual CSV bytes, rendered PDF and PNG exports pass for the seven measures.
+Zero/null sample handling, neutral progress status and withheld targets are retained.
+Evidence is in PR44 `786e5a2` (`2026-10-08-pos-inbound-preview.json`). Fresh production
+source/roster qualification, release/canary, native print and genuine ongoing scheduling
+remain required. This does not complete or narrow either team's full metric scope.
+
+**October 8 POS publication candidate:** PR44 `fa92837` connects the seven calculations
+to guarded atomic publication with fixed periods, source/employee/assignment checks,
+legacy replacement isolation and exact duration provenance. All 1,199 local tests pass;
+exact CI `37728421985` is queued. It is not activated or deployed. Hosted rehearsal,
+fresh source/roster reconciliation, catalog/release, canary and scheduler evidence remain;
+offered, abandonment, transfer and other team metric requirements remain unchanged.
+
+**October 8 POS replay records:** PR44 `ea7680d` adds minimized, replayable employee
+records and local-period coverage checks. All 1,019 local tests pass; 78 serialized
+employee-periods preserve all 546 independent values and contributing evidence.
+Prior calculator CI `37726475078` passes. The new records remain blocked from publication;
+guarded publisher integration, fresh qualification and the other metric families remain open.
+
+**October 8 POS candidate:** PR44 `fededf0` implements seven saved-report measures.
+Retained weekly/monthly source comparisons match all 882 exported values and 71 monthly
+source sets; a separate two-period 39-person capture matches 546 values and 390 source
+sets. All 1,012 local tests pass. No publisher is connected or activated. Fresh source,
+publication/recovery/scheduling and remaining offered/abandonment/transfer definitions
+are still required. The full goal has not been reduced to these seven measures.
+
+**October 8:** Representative POS closed/current CSV bytes and copied text agree with
+all 38 displayed rows. Actual closed PDF/PNG and exact stored history also agree.
+This does not qualify the source values: closed outbound observations predate the
+period's end, while current outbound remains a different legacy definition. Ongoing
+qualified outbound refresh remains open. See `2026-10-08-pos-production-export-verification.json`.
+
+**October 7, 21:04 UTC:** PR47's collector/publication coordination is live after exact
+CI/build, isolated synthetic rehearsal and fresh encrypted restore. One controlled
+Menufy current-week refresh independently matches all 23 staff / **1,657 credits**,
+including three numeric zeros. All 69 exact predecessor snapshots match revisions and
+12 unrelated-data digest groups are unchanged. This closes the production refresh-revision
+check for this scope. It does not close genuine scheduling, deferred-work recovery,
+daily capacity, other metric families or remaining formats. No new schedules changed.
+See [the coordination receipt](2026-10-07-report-sync-coordination-production.json).
+
 **October 7, 20:34 UTC:** The first incremental collection refresh passes: one page,
 783 new events, exhausted through 20:32:53 UTC, with thirteen unaffected digest groups
 and prior retained events unchanged. It does not refresh the published solved values.
@@ -62,14 +118,16 @@ keys. [The aggregate inventory](2026-10-07-effective-metric-inventory.json) list
 key, unit, aggregation and status. Counts do not establish accuracy, employee-specific
 override resolution or historical membership. POS has no effective first-response
 assignment in this inventory; existing stored first-response values must not be
-mistaken for an assigned metric. None of the new solved-report keys is assigned yet.
+mistaken for an assigned metric. This inventory preceded the subsequent October 7
+solved catalog activation; the qualified solved keys are now assigned from September 27
+as recorded above, replacing the old human-only solved assignments prospectively.
 
 ## Metric acceptance matrix
 
 | Metric / family | Menufy evidence and remaining work | POS evidence and remaining work |
 | --- | --- | --- |
 | Solved tickets | Qualified updater-credit catalog and publication are live from September 27. All 23 active staff independently match 4,106 closed / 1,634 current credits after complete durable collection and fresh joins. UI and actual closed/current CSV plus closed PDF checks pass. Ongoing delta capacity, scheduled publication/revisions and remaining format checks are open. | Qualified current-assignee/solved-date catalog and publication are live from September 27. All 39 active staff independently match 1,410 closed / 733 current tickets. The one-ticket reduction from the earlier saved report is source-explained; second closed-week independent evidence remains 1,464. Representative POS browser/history and ongoing scheduling/revisions remain open. |
-| Update activity | Distinct updater events: first week retains a two-event residual after explained group changes; second week has three one-event employee differences. Resolve exact mismatches before publication. | Establish the applicable update-activity report's exact unit, scope and attribution. Do not copy Menufy's updater/group contract or use current-assignee snapshots. |
+| Update activity | Current 23-person cohort: 19 second-week report rows match, two employees differ by one update each, and two report-absent employees have complete-source verified zeros. First week retains a two-update residual for another current employee. Bounded audit/comment-author checks do not explain the differences. Resolve exact mismatches before publication; see the October 8 cohort and author receipts. | Establish the applicable update-activity report's exact unit, scope and attribution. Do not copy Menufy's updater/group contract or use current-assignee snapshots. |
 | First response | Qualified business-time policy exists. Verify all current employee cohorts, zero-sample semantics, freshness and actual scheduled execution after the release. | Verify team-specific definition and per-employee source evidence; inherited labels and stored numbers are insufficient. |
 | CSAT score / response rate where assigned | Preserve existing qualified solved-date/current-assignee calculation and its separate rated/offered/cohort denominators. A score without ratings is legitimately unavailable; confirm each blank against its cohort. Close scheduled refresh/recovery checks. | Match team-specific rating cohort and every employee's numerator/denominator. Do not assume Menufy's release policy applies. |
 | Inbound offered / accepted / declined / missed / unreachable / answer rate | Retained comparison covers all 23 active staff over closed/current periods. Qualified publisher remains inactive; new catalog entries are effective October 11. Finish fresh durable collection, scoped canary and scheduled refresh; do not backdate the new assignments silently. | POS source projection has separate weekly and monthly report parity. Reconcile offered components separately, integrate the qualified projection, then complete publication and scheduling. |

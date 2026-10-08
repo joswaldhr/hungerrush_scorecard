@@ -1,4 +1,262 @@
 # Audit implementation — current checkpoint
+**October 8, 05:24 UTC — fresh POS source qualification passes; publication still gated:**
+PR44 runtime `7403b7821be4abd8779f4221e4529bb1ddff7f56` passes exact CI/build
+`37730891112` and all 1,205 local tests. It adds a separate authenticated, default-off
+POS route with fixed reporting dates; no schedule is installed. Runtime-identical
+isolated Preview `0e71f92` is READY at `dpl_9bF2NGoCC8sy5m9J7xxwgyQ5CHsz`;
+anonymous requests return 401. Positive hosted scheduler-auth probing remains
+unverified because the retained CLI env contains redacted placeholders. Full synthetic
+publisher/collection and actual file acceptance from the preceding runtime remain
+recorded below; route authorization/default/period behavior also has six passing tests.
+
+A fresh 05:11 encrypted production backup restored all 35 tables / 355,355 rows with
+matching digests. The guarded GET-only POS refresh then completed 11 pages in 103
+seconds, retaining 7,548 changed versions. Both streams exhausted; all protected
+application and original projection digests were unchanged, with zero metric writes.
+Two global missing parents affect none of the 39 POS employee-period cohorts.
+Fresh current identity checks match all 39 staff, and fresh group census matches the
+saved report's 14 qualified exact names. Four rename aliases remain excluded.
+The bounded group reader's first attempt stopped on a continuation dropping its
+deleted-group filter; preserving that explicit filter resolved the read without writes.
+
+Independent Python matches all 78 employee-periods, 546 source sets and 390 duration
+calculations. The qualified publisher wrapper matches 546 values, 390 source sets and
+624 numerator/denominator checks with zero differences. This is current source replay
+under the saved report definition, not a new same-cutoff Explore export or historical
+employment proof. The projection cannot cover September 20–26; older report parity is
+separate evidence. Aggregate receipts and the scoped release/rollback manifest are
+pushed in PR44 `8f2818f`; its documentation-head CI `37732155177` is running.
+
+Next: integrate reviewed default-off code, pass exact production release gates, then
+run the explicitly scoped current-week POS canary for the five existing assignments.
+Declined/missed need prospective assignments before publication. New schedules remain
+off pending capacity/recovery qualification. No production code/policy, scorecard value,
+Zendesk configuration, demo, catalog or employee assignment changed in this increment.
+All remaining metrics for both teams, lifecycle/access and genuine scheduling remain
+part of the active goal; this evidence does not complete either full scorecard.
+
+**October 8, 05:01 UTC — POS hosted publication and export acceptance passes:**
+PR44 runtime/script candidate `ed5350a2cd6b1ddcbbe72e31e559386a4cac6790` passes
+exact CI/build `37729327026`; preceding `fa92837` and `b103526` also pass their exact
+CI. Isolated Preview `2b89c277605c2d171f01f2d56df5f787eb1f8f38` is runtime/script
+identical and READY at `dpl_8b5cqLo6TUePpm9t3p5rN4rpriGe`. Its deployment-scoped
+build rehearsal invokes the complete POS collection/storage/live-adapter/publication
+path with 15 intercepted synthetic GET responses and no vendor requests. All 21
+expected values across two closed weeks and current, including duration sample counts,
+match database readback. The unrelated-value digest is unchanged.
+
+The initial Preview `dpl_DFdyviEgbbDDSn5bnVDX6nQMubWc` stopped in its synthetic
+catalog transaction before publication: pre-existing UI fixtures had source strategy
+`staging`. The correction binds only compatible definitions in the guarded synthetic
+organization to `zendesk`; it does not weaken production compatibility checks. The
+local pnpm dependency check refused the worktree's shared module link; direct existing
+Prettier/TypeScript executables passed without changing or reinstalling dependencies.
+
+Hosted scorecards match all 21 POS values. Closed/current stored history and actual
+CSV downloads each match all 14 POS values, comparisons and statuses. Closed/current
+PDF files were downloaded and rendered; their PNG exports were also downloaded and
+visually inspected. Zeros remain numeric, current statuses neutral, unverified targets
+withheld, and source details explain whole-call hold per leg and zero measured
+consultation legs out of three. Current copied text matches all seven values; copied
+links and history returns preserve the selected week. Native print remains unverified.
+Aggregate evidence is committed in PR44 `786e5a2`, including
+`2026-10-08-pos-inbound-preview.json`; raw exports remain outside tracked files.
+
+Next: fresh source and roster qualification, prospective catalog/release manifest,
+fresh backup/restore and scoped production canary; connect ongoing scheduling only
+after its capacity/recovery gates pass. No production policy, schedule or demo changed.
+The goal remains active for every required metric on both teams, including the update
+residuals, remaining calls/CSAT/first reply, roster and genuine scheduled operation.
+
+**October 8, 04:38 UTC — guarded POS publisher implemented and locally verified:**
+PR44 candidate `fa9283707484b3eeb11204d84ead20014a7e2c51` is committed and pushed,
+and GitHub reports MERGEABLE with exact CI `37728421985` queued. The preceding merge
+candidate `70482a7` passes exact CI/build `37727599861`. The new POS adapter now uses
+the existing atomic sync service with fixed dates, live organization/source/team/identity
+and effective assignment checks, locked revalidation, fetched-record integrity and fresh
+coverage checks after lock acquisition. Its live collector explicitly selects the separate
+POS hold projection and existing bounded GET/pacing controls. No route or environment
+setting invokes it yet; no production policy/catalog/schedule was changed.
+
+All **1,199 local tests / 150 files** pass; typecheck, scoped lint and formatting pass.
+Seven PostgreSQL cases verify qualified values, unrelated keys, legacy-overwrite
+resistance, null retraction/revisions, identity/assignment/departure races, commit-time
+expiry and fetched-record substitution. Three pure cases verify source descriptions,
+sample semantics, contributor guards and a Sunday rollover between fetch/publication.
+An initial revision-test query and prematurely failing expiry fixture were corrected;
+the final expiry assertion proves rejection in publication, not an unrelated fetch error.
+
+The distinct qualified POS contract replaces only exact legacy call contributors for
+its seven keys, preserves raw means/sample counts and describes whole-call hold weighted
+per employee leg. Competing qualified definitions fail rather than blend. Serialized
+publication replay still matches 78 retained employee-periods / 546 values, 390 source
+sets and 624 duration checks with zero differences, using synthetic release/binding
+metadata. This is not fresh source or real production release evidence. See PR44's
+`2026-10-08-pos-inbound-publisher-replay.json` and calculator integration document.
+
+Next: check exact CI; rehearse publication and source descriptions/history/export in
+isolated synthetic Preview; complete fresh source/roster qualification, prospective
+catalog/manifest, backup/restore and controlled canary. Genuine scheduling and the other
+metric families remain required. No Zendesk request, production write or demo change
+occurred in this increment. The full goal stays active.
+
+**October 8, 04:26 UTC — POS replay records and period coverage gates pass:**
+PR44 candidate `ea7680d3da339b3bde0407c78401b96960977158` is committed and pushed.
+Its initial GitHub checks were absent because the newer audit base conflicted in
+the publication guard. Merge candidate `70482a7fbd3d9394b4295d40c035c235494e6534`
+preserves both POS and ticket-credit candidate guards and is now MERGEABLE. Post-merge
+typecheck and all 18 focused tests pass; exact CI/build `37727599861` is in progress.
+The 1,019-test full local result below belongs to the pre-merge record candidate;
+the merged base's full test/build result must be checked separately.
+It binds the seven POS calculations to a prospective weekly policy and minimized
+employee source evidence, retaining separate call/leg observation windows. Closed-week
+records require both collections to start after the local period end; a later terminal
+response alone cannot certify coverage. Current-week observations remain in progress.
+Candidate records/contracts are blocked centrally even if their eligible marker changes.
+
+All **1,019 local tests / 128 files** pass, including seven new record regressions;
+typecheck, scoped lint and formatting pass. Serialized-record replay matches all 78
+retained employee-periods: 546 values, 390 exact source sets and 624 duration numerator/
+denominator checks, with zero differences. The capture yields 39 closed observations and
+39 in-progress observations at its saved collection time. This uses synthetic Cadence
+bindings and establishes neither current freshness nor historical employee eligibility.
+Prior calculator `fededf0` passes exact CI/build `37726475078`; the new record candidate
+requires its own CI/build. See PR44's `2026-10-08-pos-inbound-record-replay.json`.
+
+No source request, production write, route, policy, schedule or demo change occurred.
+Next: connect the distinct publication contract and live binding/assignment checks,
+revalidate freshness/closed-period coverage under publication, preserve fixed dates
+through retries, then run isolated publication and release gates. Remaining POS measures,
+Menufy update discrepancies, scheduler capacity and full-team acceptance stay in scope.
+
+**October 8, 04:15 UTC — POS report calculator implemented and independently replayed:**
+Separate PR44 candidate `fededf0d80d6a512a413ed84024f862108d2809c` is committed and
+pushed on `codex/pos-source-projection`. Its calculator preserves the saved leg-date
+scope and whole-call hold weighted once per leg; seven accepted/declined/missed and
+duration measures are implemented, with numerator/denominator/source-set evidence.
+All 55 weekly report rows / 385 values and 71 monthly rows / 497 values match, with
+zero differences. All 71 monthly selected-leg sets match independent Python. A separate
+retained observation matches 78 employee-periods / 546 values, 390 source sets and 624
+duration numerator/denominator comparisons. Indexed capture reuse completes the two
+report replays in 177/234 ms on the observed local run, excluding file reads.
+
+All 1,012 local tests / 127 files pass, including eight new focused regressions;
+typecheck, targeted lint and formatting pass. Exact candidate CI/build `37726475078`
+is confirmed running. This is an unconnected candidate: no producer, policy, schedule,
+source request or deployment is activated. Its source projection and calculator remain
+separate from PR48's report refresh recovery. Offered, actual on-hold abandonment and
+transfer measures are still required and unqualified; historical eligibility and
+freshness are not inferred from retained parity. See PR44's
+`2026-10-08-pos-inbound-calculator.md` and replay JSON.
+
+Next: check exact CI, bind the POS calculation to fresh versioned source/replay records,
+then pass scoped publication and ongoing-operation gates. Continue the pending scheduler
+choice and Menufy update residuals independently. Full metric goal remains active.
+
+**October 8, 04:05 UTC — POS production export bytes and history checked:**
+Unchanged production `8a88279` / `dpl_5LFAcRdxm6VbvAQsXobikfdMuPuK` is independently
+rechecked READY. One representative POS employee's closed/current CSV downloads match
+all 38 displayed rows, dates, comparisons, targets and statuses. Copied text matches
+both snapshots, and the copied link pins the loaded week. Actual closed PDF and PNG
+downloads are visually inspected, including the rendered PDF and all 19 metric rows.
+The selected closed history interval agrees and its return link restores the scorecard
+week. The original manager preview is restored and the temporary tab is closed.
+
+This establishes representative presentation consistency only. The closed outbound
+observation predates the period end; its zeros are not complete-week evidence. Current
+outbound values use a different legacy definition, and their comparison is correctly
+withheld. Qualified outbound refresh remains unresolved. Current PDF/PNG and native
+print bytes, independent manager sign-in and whole-team source acceptance remain open.
+No vendor requests, production metric writes or deployment occurred. See
+`2026-10-08-pos-production-export-verification.json`.
+
+**October 8, 03:51 UTC — complete hosted recovery passes; scheduling decision remains:**
+PR48 rehearsal adapter `0870473` passes exact CI/build `37722758931`. Runtime-identical
+isolated Preview `d907ec3` / `dpl_Gwq2CE9gG4s9j4VJ2TGrkqmHbv6u` is READY. Its full
+persisted dispatcher rehearsal completed in 1,242 seconds with the real source cooldowns:
+five queued jobs, one actual deferral followed by recovery, closed values 3/2, current
+values 3/0, unchanged unrelated values and no work from a duplicate final tick. No vendor
+requests or production writes occurred. This is manual synthetic hosted evidence, not
+scheduled operation or an actual hosted process-kill test; lease/crash/late-acknowledgment
+cases remain covered by the separate PostgreSQL tests. The build and source-audit clients
+are stopped. See `2026-10-08-report-recovery-preview.json`.
+
+Current production is independently rechecked READY at unchanged `8a88279` /
+`dpl_5LFAcRdxm6VbvAQsXobikfdMuPuK`. No recovery flag, cron, vendor setting or demo change
+was made. The team API confirms Hobby. The reproducible offline capacity review rejects
+the proposed 24 wake-ups for an admissible recurring collision pattern at the full
+four-week horizon with all configured source jobs active: eleven successful opportunities
+against at least twelve jobs. It does not claim those collisions were observed. A precise
+15-minute candidate passes the stated arithmetic stress case, but needs a compatible
+scheduler; an asynchronous preference question is pending for paid Vercel Pro versus an
+existing company scheduler. This is not a block on independent metric work. See the
+schedule-capacity JSON and `2026-10-07-report-recovery.md`. Fresh production diagnostics
+also classify the two retained pre-coordination failures as lease expiry and HTTP 429;
+no new run was triggered, and their recovery is not claimed.
+
+Menufy update investigation now aligns the second retained week with all 23 current
+employees: nineteen report rows match, two differ by one each, and two report-absent
+employees have complete-source verified zeros (no account events, known agent roles).
+The first week's two-update residual belongs to a different current employee. Eleven
+paced GET-only audit requests rule out audit/comment author substitution for eighteen
+targeted updates; removing comment-only events would break 28 previously matching rows.
+No update metric was published. Aggregate cohort/author receipts and the acceptance
+matrix record the exact remaining differences, without exposing employee or ticket IDs.
+
+Next: qualify an adequate scheduler and finish fresh recovery/canary/live scheduling gates;
+resolve the update residuals using exact report/source evidence; continue POS/history/export,
+remaining call/CSAT/first-reply and roster acceptance. Keep the full goal active. Assembled
+remains parked, Zendesk remains read-only, and human shadow/v2/repair stay disabled.
+
+**October 7, 21:31 UTC — recovery candidate pushed; exact CI/build passes:**
+Draft PR48 contains `2920806`; exact CI `37689610074` succeeds through the production
+build, full tests, migrations and source guards. The new dispatcher remains default-off
+and unmerged; no production policy or schedule changed. Fresh read-only burst analysis
+finds **15,273 events per rolling day**, **8,213 per six hours**, **13,620 per twelve
+hours**, and **377 per five minutes** across eleven complete retained days. This raises
+the capacity baseline above the earlier calendar-day figure and confirms the need to
+resume a missed collection window. Complete hosted dispatcher/recovery rehearsal,
+capacity/freshness qualification, fresh recovery and scoped canary still precede any
+schedule activation. See `2026-10-07-report-recovery.md` and its capacity receipt.
+
+**October 7, 21:23 UTC — durable recovery candidate implemented; production unchanged:**
+The local candidate now pins solved publication to exact reporting dates and persists
+operational collection/publication demand with fenced ownership, duplicate coalescing,
+cooldown/backoff and recovery after termination. A newer request cannot be erased by
+an older acknowledgment; a Sunday rollover cannot redirect the retry to another week.
+It has a separate default-off recovery switch, no new schema and no installed schedule.
+The local full run passes **1,162 tests / 144 files**; typecheck and targeted lint pass.
+The subsequent attempt-diagnostics addition passes typecheck and 20 focused worker/store
+tests. Exact final CI/build, complete hosted dispatcher rehearsal, capacity tests,
+fresh recovery and scoped canary gates are still pending. See
+`2026-10-07-report-recovery.md`. This is progress toward automatic operation, not a claim
+that the scheduler or the full metric goal is complete. The live state below remains.
+
+**October 7, 21:04 UTC — coordination fix live; independent refresh and revisions pass:**
+PR47 merged to `8a88279`; READY production `dpl_5LFAcRdxm6VbvAQsXobikfdMuPuK`
+owns the live aliases. Exact candidate CI passes 1,125 tests / 141 files and build;
+master CI also passes. Runtime-identical isolated Preview passes the guarded complete
+synthetic collection/publication rehearsal and signed-in 3/2 closed, 3/0 current
+checks. Fresh encrypted restore matches 35 tables / 355,285 rows. Login, route auth
+and the signed-in closed production scorecard pass. No new schedules or policies changed.
+
+The single controlled current-week Menufy refresh returned HTTP 200 in 69.527 seconds.
+Independent reconstruction matches every one of 23 employee values and contributing
+sets: **1,657 credits, three numeric zeros, no discrepancies**. Twelve unrelated-data
+digest groups remain unchanged. All **69 exact JSONB predecessor snapshots** match
+their retained revisions, without duplicates. Platform logs confirm the new deployment,
+manual user agent and no crash. This is not scheduled evidence. Immediate compatible
+rollback remains `dpl_C3zsDWZKpLvz6HCkuxzGJCV3b5tk` with the same policies.
+
+The refresh completed and its client is stopped. The active goal still includes all
+required metric families and every eligible employee on both teams. Next: durable
+deferred/failed-job recovery and measured collector capacity before schedule activation,
+then remaining POS/history/export and source-definition acceptance. Coordination covers
+the report collector versus `runSync` publications; it does not coordinate all outside
+integrations or direct diagnostics. See `2026-10-07-report-sync-coordination.md` and
+its Preview, restore and production aggregate receipts. The candidate-only checkpoint
+below is superseded by this release evidence.
+
 **October 7 — collector/publication coordination candidate in validation:**
 The local candidate makes report-event collection and ordinary sync publication
 acquire ownership under the same Zendesk account lock, then the source row lock.

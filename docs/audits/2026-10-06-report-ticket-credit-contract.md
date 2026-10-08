@@ -1,5 +1,27 @@
 # Report-matched ticket credits
 
+## October 8 current-cohort update investigation
+
+The current-roster comparison is narrower and more precise than the all-report-row
+totals below: of 23 eligible Menufy staff, 21 have rows in the retained September 27–
+October 3 reference. Nineteen match; two differ by +1 and -1 update respectively.
+The remaining two staff have no reference row, but the complete retained account event
+stream contains zero events for each and both retained identities are agents. Re-running
+the calculator for all 23 therefore proves those two source zeros; it does not invent
+independent report rows or establish historical employment. See
+`2026-10-08-menufy-update-cohort.json`. The first retained week's residual of two updates
+also belongs to a current employee, distinct from the two second-week discrepancies.
+
+Eleven paced, GET-only audit requests inspect seven low-volume reference updates and
+eleven candidate updates on tickets shared by the two differing current employees.
+Audit authors match the retained updater IDs, and no inspected comment has a different
+author. This rules out author substitution for those candidates, not every update in
+the interval. See `2026-10-08-menufy-update-author-check.json`. Excluding comment-only
+updates is also rejected: the retained hypothesis breaks all 28 previously matching
+rows among its 31 tested rows. Do not change the calculation to fit one small row.
+Exact report-detail evidence or a demonstrated source/definition difference remains
+necessary for the residuals. No update metric is published by this investigation.
+
 ## October 7 solved-only publication adapter
 
 The two solved measures now have distinct qualified-publication contracts and a dedicated

@@ -1,0 +1,26 @@
+{
+  "observedAt": "2026-10-05T21:06:00.764Z",
+  "readOnly": true,
+  "sourceMethods": ["GET"],
+  "databaseWrites": 0,
+  "sourceRequests": 3,
+  "httpStatus": 200,
+  "groupAuditRows": 205,
+  "exhausted": true,
+  "unresolvedLabels": 4,
+  "retainedLabelsAvailableForMatching": false,
+  "exactLabelMatches": 0,
+  "labelsMentionedInDescriptions": 0,
+  "uniqueMappedSourceIds": 0,
+  "limitations": [
+    "A filtered empty response alone does not prove this tenant logs groups under the requested type.",
+    "Description mentions require inspection and are not automatic scope bindings.",
+    "No source policies, report definitions or metric values were changed."
+  ],
+  "observedSourceTypes": ["group"],
+  "historicalGroupIds": 149,
+  "notInRetainedGroupCensus": 0,
+  "definitionEditorOpened": false,
+  "signInError": "AADSTS90015",
+  "temporaryTabClosed": true
+}

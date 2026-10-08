@@ -11,6 +11,7 @@ import {
   type TalkRecordValue,
 } from "./zendesk-talk-cursor";
 import { outboundCallSchema } from "./zendesk-outbound";
+import { posCallHoldSchema } from "./zendesk-pos-call-hold";
 import { talkParticipationLegSchema } from "./zendesk-talk-participation";
 
 // These namespaces never enter the ticket-action shadow worker or fact publisher.
@@ -24,6 +25,17 @@ export interface TalkStoreScope {
   organizationId: string;
   dataSourceId: string;
   accountReference: string;
+  /** Explicit unconnected projection; never inferred from a source or existing checkpoint. */
+  projection?: "pos-call-hold-v1";
+}
+function recordNamespace(scope: TalkStoreScope, base: string) {
+  if (scope.projection !== undefined && scope.projection !== "pos-call-hold-v1")
+    throw Error("Unknown Talk storage projection");
+  return scope.projection ? base.replace(/_v1$/, "_pos_hold_v1") : base;
+}
+function callSchema(scope: TalkStoreScope) {
+  recordNamespace(scope, RECORD);
+  return scope.projection ? posCallHoldSchema : outboundCallSchema;
 }
 export interface TalkOwnedScope extends TalkStoreScope {
   token: string;
@@ -40,6 +52,7 @@ const filter = (source: string, type: string, key: string) =>
     eq(sourceRecords.externalRecordId, key)
   );
 async function lockSource(tx: Tx, scope: TalkStoreScope) {
+  recordNamespace(scope, CHECKPOINT);
   if (!isZendeskAccountReference(scope.accountReference))
     throw Error("Invalid Talk account binding");
   await tx.execute(
@@ -291,7 +304,7 @@ export async function beginTalkCollectionCycle(
     const [row] = await tx
       .select()
       .from(sourceRecords)
-      .where(filter(scope.dataSourceId, CHECKPOINT, resource));
+      .where(filter(scope.dataSourceId, recordNamespace(scope, CHECKPOINT), resource));
     const previous = row ? checkpoint(row.payloadJson, scope, resource) : undefined;
     if (
       previous &&
@@ -319,7 +332,7 @@ export async function beginTalkCollectionCycle(
       lastPageAt: null,
       cursor,
     };
-    await upsert(tx, scope.dataSourceId, CHECKPOINT, resource, state);
+    await upsert(tx, scope.dataSourceId, recordNamespace(scope, CHECKPOINT), resource, state);
     return { state, expectedHash: hash(state) };
   });
 }
@@ -332,7 +345,7 @@ export async function commitTalkCollectionPage(
   response: unknown
 ) {
   if (!/^[a-f0-9]{64}$/.test(expectedHash)) throw Error("Invalid Talk checkpoint hash");
-  const schema = resource === "calls" ? outboundCallSchema : talkParticipationLegSchema;
+  const schema = resource === "calls" ? callSchema(scope) : talkParticipationLegSchema;
   const pageRecords = z.object({ [resource]: z.array(schema).max(1000) }).parse(response)[
     resource
   ]!;
@@ -343,7 +356,7 @@ export async function commitTalkCollectionPage(
     const [row] = await tx
       .select()
       .from(sourceRecords)
-      .where(filter(scope.dataSourceId, CHECKPOINT, resource));
+      .where(filter(scope.dataSourceId, recordNamespace(scope, CHECKPOINT), resource));
     if (!row || row.payloadHash !== expectedHash)
       throw Error("Talk checkpoint changed before commit");
     const before = checkpoint(row.payloadJson, scope, resource);
@@ -354,7 +367,7 @@ export async function commitTalkCollectionPage(
           .where(
             and(
               eq(sourceRecords.dataSourceId, scope.dataSourceId),
-              eq(sourceRecords.externalRecordType, RECORD),
+              eq(sourceRecords.externalRecordType, recordNamespace(scope, RECORD)),
               inArray(sourceRecords.externalRecordId, recordKeys)
             )
           )
@@ -366,7 +379,7 @@ export async function commitTalkCollectionPage(
           .where(
             and(
               eq(sourceRecords.dataSourceId, scope.dataSourceId),
-              eq(sourceRecords.externalRecordType, REVISION),
+              eq(sourceRecords.externalRecordType, recordNamespace(scope, REVISION)),
               inArray(sourceRecords.externalRecordId, revisionKeys)
             )
           )
@@ -378,12 +391,13 @@ export async function commitTalkCollectionPage(
       revisions.map((r) => {
         const p = r.payloadJson as { record: TalkRecordValue; digest: string };
         return { id: p.record.id, updatedAt: p.record.updated_at, digest: p.digest };
-      })
+      }),
+      scope.projection ? "pos-hold" : "participation"
     );
     await upsertPage(
       tx,
       scope.dataSourceId,
-      REVISION,
+      recordNamespace(scope, REVISION),
       next.revisions.map((revision) => ({
         key: `${resource}:${revision.record.id}:${revision.record.updated_at}`,
         payload: revision,
@@ -392,7 +406,7 @@ export async function commitTalkCollectionPage(
     await upsertPage(
       tx,
       scope.dataSourceId,
-      RECORD,
+      recordNamespace(scope, RECORD),
       next.records.map((record) => ({ key: `${resource}:${record.id}`, payload: record }))
     );
     const state: Checkpoint = {
@@ -400,7 +414,7 @@ export async function commitTalkCollectionPage(
       cursor: next.cursor,
       lastPageAt: new Date(now).toISOString(),
     };
-    await upsert(tx, scope.dataSourceId, CHECKPOINT, resource, state);
+    await upsert(tx, scope.dataSourceId, recordNamespace(scope, CHECKPOINT), resource, state);
     await owned(tx, scope);
     return {
       state,
@@ -440,7 +454,7 @@ export async function readTalkCollectionSnapshot(scope: TalkStoreScope) {
         .where(
           and(
             eq(sourceRecords.dataSourceId, scope.dataSourceId),
-            eq(sourceRecords.externalRecordType, CHECKPOINT),
+            eq(sourceRecords.externalRecordType, recordNamespace(scope, CHECKPOINT)),
             inArray(sourceRecords.externalRecordId, ["calls", "legs"])
           )
         );
@@ -465,7 +479,7 @@ export async function readTalkCollectionSnapshot(scope: TalkStoreScope) {
         .where(
           and(
             eq(sourceRecords.dataSourceId, scope.dataSourceId),
-            eq(sourceRecords.externalRecordType, RECORD)
+            eq(sourceRecords.externalRecordType, recordNamespace(scope, RECORD))
           )
         )
         .limit(250001);
@@ -480,7 +494,7 @@ export async function readTalkCollectionSnapshot(scope: TalkStoreScope) {
             ? "legs"
             : null;
         if (!resource) throw Error("Unexpected Talk stored record key");
-        const schema = resource === "calls" ? outboundCallSchema : talkParticipationLegSchema;
+        const schema = resource === "calls" ? callSchema(scope) : talkParticipationLegSchema;
         const parsed = schema.safeParse(row.payloadJson);
         if (
           !parsed.success ||
