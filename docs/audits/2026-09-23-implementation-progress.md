@@ -1,6 +1,12 @@
 # Audit implementation — current checkpoint
 **October 8, 04:26 UTC — POS replay records and period coverage gates pass:**
 PR44 candidate `ea7680d3da339b3bde0407c78401b96960977158` is committed and pushed.
+Its initial GitHub checks were absent because the newer audit base conflicted in
+the publication guard. Merge candidate `70482a7fbd3d9394b4295d40c035c235494e6534`
+preserves both POS and ticket-credit candidate guards and is now MERGEABLE. Post-merge
+typecheck and all 18 focused tests pass; exact CI/build `37727599861` is in progress.
+The 1,019-test full local result below belongs to the pre-merge record candidate;
+the merged base's full test/build result must be checked separately.
 It binds the seven POS calculations to a prospective weekly policy and minimized
 employee source evidence, retaining separate call/leg observation windows. Closed-week
 records require both collections to start after the local period end; a later terminal
