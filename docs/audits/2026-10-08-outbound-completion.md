@@ -1,6 +1,17 @@
 # Outbound completion and fixed reporting dates
 
-## Candidate, not a production completion claim
+## Released scope
+
+PR52 merged as `e05014d`, with candidate CI `37816569630` and master CI
+`37817465729` passing. Production `dpl_7H7P3nGE9kLCr9FhdgrowrtCwBE1` is READY
+and owns the live alias. The runtime-identical isolated Preview passes its synthetic
+three-period publication rehearsal. A separate controlled refresh published 285 values
+for 57 employees for September 27–October 3; five employees remain excluded and
+recurring outbound publication remains inactive. See the scoped-refresh record and
+aggregate production/publication receipts. The candidate requirements below record
+the pre-release investigation; they are not the current deployment state.
+
+## Fixed-period behavior
 
 The outbound route now resolves the Sunday–Saturday selection before asynchronous
 cooldown checks and passes exact dates to the sync engine. The connector accepts
