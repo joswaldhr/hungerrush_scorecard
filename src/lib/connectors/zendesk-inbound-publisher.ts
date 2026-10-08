@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import { env } from "@/lib/env";
 import { weekDates } from "@/lib/utils";
 import { ZendeskConnector, MAX_WEEKS_BACK } from "./zendesk";
+import { parseSyncPeriod } from "./sync-period";
 import { loadInboundReportBindings } from "./zendesk-inbound-report-bindings";
 import {
   buildInboundPublicationRecord,
@@ -32,17 +33,55 @@ export function createInboundPublisher(
     periodEnd: string,
     externalIds: string[]
   ) => Promise<{ snapshot: TalkCollectionSnapshot; identities: Map<string, number> }>,
-  subdomain: string
+  subdomain: string,
+  now: () => Date = () => new Date()
 ) {
   const release = parseInboundReleasePolicy(input),
     policy = release.policy;
   const connector = new ZendeskConnector();
-  let fetched: { recordsDigest: string; bindings: string; periodStart: string } | null = null;
+  let fetched: {
+    recordsDigest: string;
+    bindings: string;
+    periodStart: string;
+    periodEnd: string;
+    snapshot: TalkCollectionSnapshot;
+  } | null = null;
+  const validateSource = (
+    snapshot: TalkCollectionSnapshot,
+    periodStart: string,
+    periodEnd: string,
+    at: Date
+  ) => {
+    const observed = validateTalkObservation(
+      snapshot,
+      policy.accountReference,
+      { periodStart, periodEnd, timeZone: policy.timeZone },
+      policy.observationLimits,
+      at
+    );
+    const localDay = (date: Date) => {
+      const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: policy.timeZone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).formatToParts(date);
+      const part = (key: string) => parts.find((p) => p.type === key)!.value;
+      return `${part("year")}-${part("month")}-${part("day")}`;
+    };
+    if (localDay(at) > periodEnd && localDay(new Date(observed.observationStartedAt)) <= periodEnd)
+      throw Error("Inbound closed week requires both collections after period end");
+  };
   connector.fetchRecords = async (config, ctx) => {
     fetched = null;
-    if (ctx.cursor === null || !/^[0-3]$/.test(ctx.cursor) || Number(ctx.cursor) >= MAX_WEEKS_BACK)
+    if (
+      (!ctx.period && ctx.cursor === null) ||
+      (ctx.cursor !== null && (!/^[0-3]$/.test(ctx.cursor) || Number(ctx.cursor) >= MAX_WEEKS_BACK))
+    )
       throw Error("Inbound requires exactly one week offset");
-    const { periodStart, periodEnd } = weekDates(Number(ctx.cursor));
+    const { periodStart, periodEnd } = ctx.period
+      ? parseSyncPeriod(ctx.period, now())
+      : weekDates(Number(ctx.cursor));
     const bindings = await loadInboundReportBindings(policy, config, periodStart, subdomain);
     const { snapshot, identities } = await load(
       config,
@@ -52,9 +91,12 @@ export function createInboundPublisher(
     );
     if (
       identities.size !== bindings.length ||
+      bindings.some((b) => !identities.has(b.externalId)) ||
       new Set(identities.values()).size !== bindings.length
     )
       throw Error("Inbound source identity mapping is incomplete or ambiguous");
+    const observedNow = now();
+    validateSource(snapshot, periodStart, periodEnd, observedNow);
     const records = bindings.map((binding) =>
       buildInboundPublicationRecord(
         snapshot,
@@ -62,10 +104,17 @@ export function createInboundPublisher(
         config,
         { ...binding, agentId: identities.get(binding.externalId)! },
         periodStart,
-        periodEnd
+        periodEnd,
+        observedNow
       )
     );
-    fetched = { recordsDigest: digest(records), bindings: bindingDigest(bindings), periodStart };
+    fetched = {
+      recordsDigest: digest(records),
+      bindings: bindingDigest(bindings),
+      periodStart,
+      periodEnd,
+      snapshot: structuredClone(snapshot),
+    };
     return {
       records,
       cursor: null,
@@ -87,6 +136,7 @@ export function createInboundPublisher(
   // new conflicting assignment (row locks alone cannot prevent that phantom).
   // Bounded wait; this runs only for the explicitly enabled dedicated publisher.
   return Object.assign(connector, {
+    supportsFixedPeriod: true,
     async validatePublication(
       connection: Parameters<NonNullable<import("./types").Connector["validatePublication"]>>[0],
       config: ConnectorConfig,
@@ -107,6 +157,8 @@ export function createInboundPublisher(
       );
       if (bindingDigest(current) !== fetched.bindings)
         throw Error("Inbound employee scope changed before publication");
+      // Waiting for publication locks must not turn a fresh progress capture into a stale or closed-week result.
+      validateSource(fetched.snapshot, fetched.periodStart, fetched.periodEnd, now());
     },
   });
 }
