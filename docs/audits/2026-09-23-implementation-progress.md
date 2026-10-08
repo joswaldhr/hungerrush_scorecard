@@ -1,5 +1,15 @@
 # Audit implementation — current checkpoint
 
+**October 8 — manager roster archive candidate (not live):**
+The user authorized completion of the manager-specific removal and ongoing archive
+process before resuming metric work. `codex/manager-roster-archive` adds a durable,
+reasoned manager/employee archive with explicit restore and retained decision history.
+It affects the active 1:1 list only; employment, source/team assignments, metrics and
+other managers stay unchanged. Current authorization still governs history access.
+Migration `0018` is additive. Local/Preview/recovery/release checks are in progress;
+no production archive or migration has been applied. See the
+[contract and release manifest](2026-10-08-manager-roster-archive.md).
+
 **October 8, 21:21 UTC — PR57 directory conflict checks live:**
 Master `98eff5e` / `dpl_A7HW5tczZATxgN3V3PmvkowbmqoL` is READY on production.
 Candidate `fd51a6e` and merged-master CI/build `37845343990` / `37845937548`

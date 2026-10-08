@@ -20,9 +20,10 @@ vi.mock("@/lib/auth", () => ({
 vi.mock("@/lib/domain/metrics/report-recovery-health", () => ({
   getReportRecoveryHealth: async () => state.recovery,
 }));
+vi.mock("@/lib/domain/roster/manager-archive", () => ({ getManagerArchives: async () => [] }));
 vi.mock("@/lib/auth/authorization", () => ({
   getEffectiveManagerContext: async () => ({
-    ctx: { organizationId: "org", assignedTeamIds: ["synthetic-team"] },
+    ctx: { organizationId: "org", assignedTeamIds: ["synthetic-team"], assignedEmployeeIds: [] },
     isPlatformAdmin: false,
   }),
 }));

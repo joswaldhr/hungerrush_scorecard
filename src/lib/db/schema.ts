@@ -1,4 +1,5 @@
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import {
   pgTable,
   uuid,
@@ -127,6 +128,39 @@ export const managerAssignments = pgTable(
 );
 
 // ── Identity / Sources ──────────────────────────────────────
+
+// A manager's meeting-roster decision, not a company employment decision or access grant.
+// Retain restored decisions so source rediscovery cannot erase the review history.
+export const managerRosterArchives = pgTable(
+  "manager_roster_archives",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
+    managerUserId: uuid("manager_user_id")
+      .notNull()
+      .references(() => users.id),
+    employeeId: uuid("employee_id")
+      .notNull()
+      .references(() => employees.id),
+    effectiveFrom: date("effective_from").notNull(),
+    reason: text("reason").notNull(),
+    archivedBy: uuid("archived_by")
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    restoredAt: timestamp("restored_at", { withTimezone: true }),
+    restoredBy: uuid("restored_by").references(() => users.id),
+    restoreReason: text("restore_reason"),
+  },
+  (table) => [
+    uniqueIndex("manager_roster_archive_active_idx")
+      .on(table.managerUserId, table.employeeId)
+      .where(sql`${table.restoredAt} is null`),
+    index("manager_roster_archive_org_idx").on(table.organizationId),
+  ]
+);
 
 export const dataSources = pgTable(
   "data_sources",

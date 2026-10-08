@@ -11,6 +11,7 @@ import { ShieldAlert, Users } from "lucide-react";
 import Link from "next/link";
 import { getDirectoryReview } from "@/lib/domain/roster/directory-check";
 import { directoryBinding } from "@/lib/domain/roster/directory-config";
+import { getManagerArchives } from "@/lib/domain/roster/manager-archive";
 
 export default async function OneOnOnesPage() {
   const session = await auth();
@@ -28,15 +29,29 @@ export default async function OneOnOnesPage() {
     );
   }
 
-  const employees = await getAssignedEmployees(ctx);
+  const archives = await getManagerArchives(ctx);
+  const employees = (await getAssignedEmployees(ctx)).filter(
+    (e) => !archives.some((a) => a.employeeId === e.id)
+  );
   const teams = await getVisibleTeamsForManager(ctx, employees);
   const directory = await getDirectoryReview(
     ctx.organizationId,
-    ctx.assignedEmployeeIds,
+    employees.map((e) => e.id),
     directoryBinding()
   );
   if (employees.length === 0) {
-    return <EmptyState icon={Users} title="No employees" description="No employees assigned." />;
+    return (
+      <div className="space-y-4">
+        <EmptyState
+          icon={Users}
+          title="No active employees"
+          description="No employees in your active 1:1 roster."
+        />
+        <Link href="/one-on-ones/roster" className="text-accent underline">
+          Manage roster and archived employees
+        </Link>
+      </div>
+    );
   }
 
   return (
@@ -74,6 +89,9 @@ export default async function OneOnOnesPage() {
             </Link>
           </p>
         )}
+      <Link href="/one-on-ones/roster" className="inline-block text-sm text-accent underline">
+        Manage roster{archives.length ? ` · ${archives.length} archived` : ""}
+      </Link>
       <OneOnOnesPicker teams={teams} employees={employees} />
     </div>
   );

@@ -10,6 +10,7 @@ import { db } from "@/lib/db";
 import { teams, users } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { resolveReportingWeek, shiftWeekStart } from "@/lib/utils";
+import { getManagerArchives } from "@/lib/domain/roster/manager-archive";
 
 export default async function OneOnOnePage({
   params,
@@ -33,6 +34,7 @@ export default async function OneOnOnePage({
   const employees = await getAssignedEmployees(ctx);
   const employee = employees.find((e) => e.id === id);
   if (!employee) notFound();
+  const archive = (await getManagerArchives(ctx)).find((a) => a.employeeId === id);
 
   const teamId = employee.primaryTeamId;
   if (!teamId) {
@@ -73,6 +75,15 @@ export default async function OneOnOnePage({
         </Link>
       </div>
 
+      {archive && (
+        <p className="rounded-lg border border-border p-3 text-sm print:hidden">
+          Archived from this manager’s active 1:1 roster on {archive.effectiveFrom} (UTC). Saved
+          scorecards remain available.{" "}
+          <Link className="text-accent underline" href="/one-on-ones/roster">
+            Manage roster
+          </Link>
+        </p>
+      )}
       {rows.length === 0 ? (
         <EmptyState
           icon={Users}
