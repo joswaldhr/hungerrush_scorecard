@@ -1,5 +1,23 @@
 # Production metric completion
 
+**October 8, 14:42 UTC — Menufy fixed-period code correction live:**
+PR49 merged to `baca908`; exact candidate CI `37793605960` and master CI
+`37794117956` pass. Production `dpl_GNJxmAjuSeCfUVrTVui2ete9WtQ4` is READY and
+owns the live alias. Login, authenticated representative scorecard and disabled Menufy/
+recovery endpoints pass; anonymous inbound requests are rejected. All 22 production
+environment metadata entries and 16 cron definitions are unchanged. No extra sync was
+triggered. The prior qualified POS deployment is the code-only rollback reference.
+See `2026-10-08-menufy-fixed-production.json`; new Menufy publication remains disabled.
+
+The fresh read-only operational census records 14 completed/two failed runs in the
+last day, with no running workers. Older-week legacy and current CSAT requests hit
+source rate limits and wrote zero values; current CSAT still carries an October 6
+observation. This is database evidence, not newly correlated scheduler-log evidence.
+The solved-only recovery path does not cover all metric families: CSAT needs durable
+fixed-period retry, alongside adequate scheduler capacity. See the aggregate
+`2026-10-08-operational-census.json`. Remaining source discrepancies, Menufy activation,
+closed POS periods, other families, lifecycle/access and real scheduling remain open.
+
 **October 8, 14:02 UTC — five POS inbound measures live and independently verified:**
 PR44 and PR48 are merged; production `bc8e26e` passes exact master CI/build
 `37732854918`. Active deployment `dpl_5H9MubkMyqtAbEVjZ3QUbkbyXdbR` is READY

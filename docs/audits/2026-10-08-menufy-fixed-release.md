@@ -1,5 +1,13 @@
 # Menufy fixed-period publication correction
 
+## Released state
+
+PR49 is merged and live at `baca908`, READY deployment
+`dpl_GNJxmAjuSeCfUVrTVui2ete9WtQ4`. Exact candidate and master CI pass.
+Authenticated reads and unchanged production policy/cron metadata are verified;
+Menufy publication remains disabled. See the [production receipt](2026-10-08-menufy-fixed-production.json).
+The following manifest records the reviewed pre-release scope and gates.
+
 ## Scope
 
 PR49 fixes a rollover race in the dedicated inbound publisher: the selected reporting
