@@ -1,4 +1,27 @@
 # Audit implementation — current checkpoint
+**October 8, 04:26 UTC — POS replay records and period coverage gates pass:**
+PR44 candidate `ea7680d3da339b3bde0407c78401b96960977158` is committed and pushed.
+It binds the seven POS calculations to a prospective weekly policy and minimized
+employee source evidence, retaining separate call/leg observation windows. Closed-week
+records require both collections to start after the local period end; a later terminal
+response alone cannot certify coverage. Current-week observations remain in progress.
+Candidate records/contracts are blocked centrally even if their eligible marker changes.
+
+All **1,019 local tests / 128 files** pass, including seven new record regressions;
+typecheck, scoped lint and formatting pass. Serialized-record replay matches all 78
+retained employee-periods: 546 values, 390 exact source sets and 624 duration numerator/
+denominator checks, with zero differences. The capture yields 39 closed observations and
+39 in-progress observations at its saved collection time. This uses synthetic Cadence
+bindings and establishes neither current freshness nor historical employee eligibility.
+Prior calculator `fededf0` passes exact CI/build `37726475078`; the new record candidate
+requires its own CI/build. See PR44's `2026-10-08-pos-inbound-record-replay.json`.
+
+No source request, production write, route, policy, schedule or demo change occurred.
+Next: connect the distinct publication contract and live binding/assignment checks,
+revalidate freshness/closed-period coverage under publication, preserve fixed dates
+through retries, then run isolated publication and release gates. Remaining POS measures,
+Menufy update discrepancies, scheduler capacity and full-team acceptance stay in scope.
+
 **October 8, 04:15 UTC — POS report calculator implemented and independently replayed:**
 Separate PR44 candidate `fededf0d80d6a512a413ed84024f862108d2809c` is committed and
 pushed on `codex/pos-source-projection`. Its calculator preserves the saved leg-date

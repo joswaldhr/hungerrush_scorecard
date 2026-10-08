@@ -1,5 +1,11 @@
 # Production metric completion
 
+**October 8 POS replay records:** PR44 `ea7680d` adds minimized, replayable employee
+records and local-period coverage checks. All 1,019 local tests pass; 78 serialized
+employee-periods preserve all 546 independent values and contributing evidence.
+Prior calculator CI `37726475078` passes. The new records remain blocked from publication;
+guarded publisher integration, fresh qualification and the other metric families remain open.
+
 **October 8 POS candidate:** PR44 `fededf0` implements seven saved-report measures.
 Retained weekly/monthly source comparisons match all 882 exported values and 71 monthly
 source sets; a separate two-period 39-person capture matches 546 values and 390 source
