@@ -1,5 +1,57 @@
 # Audit implementation — current checkpoint
 
+**October 8, 15:12 UTC — actual current-week CSAT recovered and independently checked:**
+One controlled request on unchanged production `baca908` returned HTTP 200 and
+published 85 assigned CSAT values for all 62 current staff. Independent Python
+reconstruction from retained source records matches every value and cohort with zero
+differences. All 85 predecessor snapshots and six unrelated-data digest groups match.
+Ten numeric zeros and 25 legitimate no-sample nulls retain their meanings. No source
+configuration changed. Fresh encrypted restore passed at 15:06. See
+`2026-10-08-csat-controlled-recovery.json` and `2026-10-08-csat-refresh-restore.json`.
+This recovers today's failed current-week observation; it is not scheduled-recovery
+evidence and does not close other metric gaps. Recovery code `a59a9df` passes exact
+CI/build `37797969105`; hosted acceptance and activation remain separate work.
+
+**October 8, 15:05 UTC — CSAT durable recovery locally validated:**
+The independently gated CSAT recovery job now retains fixed reporting dates and
+source retry-after through the existing account lease/fenced acknowledgement queue.
+All 1,216 tests / 151 files, typecheck and scoped lint pass. Production remains on
+PR49; neither recovery switch nor any new schedule is active. Exact CI, hosted
+rehearsal, release and scheduler capacity remain open. The 15:05 read-only census
+still finds the current-week CSAT failure and no running workers. The user's next
+45 minutes are prioritized for safe refresh recovery and verified production value,
+without representing partial progress as full-scorecard completion.
+
+**October 8, 14:48 UTC — CSAT fixed-period recovery prerequisite prepared:**
+Active implementation is `codex/csat-fixed-refresh` in the metric-recovery worktree.
+The dedicated CSAT route/connector now preserve exact dates through asynchronous
+work and accept valid fixed backlog intervals after Sunday. Duplicate/extra route
+parameters and invalid/future dates are rejected. All 1,211 tests / 151 files,
+typecheck and scoped lint pass, including eight focused route/source-binding checks.
+No formula, retry allowance, source pacing, assignment or live configuration changed.
+The branch is excluded from automatic Vercel deployment; hosted verification must use
+the isolated main Preview. Exact CI, hosted acceptance, durable CSAT queue integration,
+capacity and actual recovery remain open. This prerequisite does not resolve today's
+429 by itself. See `2026-10-08-csat-refresh-recovery.md`.
+
+**October 8, 14:42 UTC — Menufy fixed-period code correction live:**
+PR49 merged to `baca908`; exact candidate CI `37793605960` and master CI
+`37794117956` pass. Production `dpl_GNJxmAjuSeCfUVrTVui2ete9WtQ4` is READY and
+owns the live alias. Login, authenticated representative scorecard and disabled Menufy/
+recovery endpoints pass; anonymous inbound requests are rejected. All 22 production
+environment metadata entries and 16 cron definitions are unchanged. No extra sync was
+triggered. The prior qualified POS deployment is the code-only rollback reference.
+See `2026-10-08-menufy-fixed-production.json`; new Menufy publication remains disabled.
+
+The fresh read-only operational census records 14 completed/two failed runs in the
+last day, with no running workers. Older-week legacy and current CSAT requests hit
+source rate limits and wrote zero values; current CSAT still carries an October 6
+observation. This is database evidence, not newly correlated scheduler-log evidence.
+The solved-only recovery path does not cover all metric families: CSAT needs durable
+fixed-period retry, alongside adequate scheduler capacity. See the aggregate
+`2026-10-08-operational-census.json`. Remaining source discrepancies, Menufy activation,
+closed POS periods, other families, lifecycle/access and real scheduling remain open.
+
 **October 8, 14:34 UTC — Menufy correction passes hosted publication and recovery:**
 PR49 runtime `bd1784b` passes exact CI/build `37790952102`. Runtime/script-identical
 isolated Preview `ad24cdc` is READY at `dpl_9m8co4p89wB8UPmhn2jxxE9pGxPY`.

@@ -39,7 +39,16 @@ afterEach(() => vi.useRealTimers());
 it("authenticates before reading policy and requires one valid week", async () => {
   expect((await invoke("?week=0", "wrong")).status).toBe(401);
   expect(mocks.policy).not.toHaveBeenCalled();
-  for (const query of ["", "?week=", "?week=-1", "?week=1.5", "?week=4", "?week=bad"])
+  for (const query of [
+    "",
+    "?week=",
+    "?week=-1",
+    "?week=1.5",
+    "?week=4",
+    "?week=bad",
+    "?week=0&week=1",
+    "?week=0&extra=1",
+  ])
     expect((await invoke(query)).status).toBe(400);
   mocks.env.CRON_SECRET = undefined;
   expect((await invoke()).status).toBe(503);
@@ -61,12 +70,27 @@ it("publishes one policy-bound source/week and reports failed publication as fai
   expect(mocks.run).toHaveBeenCalledWith(
     expect.anything(),
     { dataSourceId: "source", organizationId: "org" },
-    { weekOffset: 0 }
+    { period: { periodStart: "2026-09-20", periodEnd: "2026-09-26" } }
   );
   mocks.run.mockResolvedValue({ success: false, valuesWritten: 0 });
   expect((await invoke()).status).toBe(503);
   mocks.run.mockRejectedValue(new Error("synthetic failure"));
   expect((await invoke()).status).toBe(503);
+});
+it("keeps the requested dates when asynchronous work crosses Sunday", async () => {
+  vi.setSystemTime(new Date("2026-09-26T23:59:59Z"));
+  mocks.limited.mockImplementation(async () => {
+    vi.setSystemTime(new Date("2026-09-27T00:00:01Z"));
+    return false;
+  });
+  const response = await invoke();
+  expect(await response.json()).toMatchObject({
+    periodStart: "2026-09-20",
+    periodEnd: "2026-09-26",
+  });
+  expect(mocks.run.mock.calls[0]![2]).toEqual({
+    period: { periodStart: "2026-09-20", periodEnd: "2026-09-26" },
+  });
 });
 it("honors source cooldown and never falls back from invalid policy", async () => {
   mocks.limited.mockResolvedValue(true);

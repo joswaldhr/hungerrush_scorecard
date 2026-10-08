@@ -17,8 +17,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Scheduler credential unavailable" }, { status: 503 });
   if (request.headers.get("authorization") !== `Bearer ${env.CRON_SECRET}`)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const value = new URL(request.url).searchParams.get("week");
-  if (value === null || !/^\d+$/.test(value) || Number(value) >= MAX_WEEKS_BACK)
+  const params = new URL(request.url).searchParams;
+  const value = params.get("week");
+  if (
+    params.size !== 1 ||
+    value === null ||
+    !/^[0-3]$/.test(value) ||
+    Number(value) >= MAX_WEEKS_BACK
+  )
     return NextResponse.json({ error: "One valid week offset is required" }, { status: 400 });
   const offset = Number(value);
   try {
@@ -35,7 +41,9 @@ export async function GET(request: Request) {
       });
     if (await isSyncRateLimited(config.dataSourceId))
       return NextResponse.json({ error: "Source is in its sync cooldown" }, { status: 429 });
-    const result = await runSync(createCsatConnector(policy), config, { weekOffset: offset });
+    const result = await runSync(createCsatConnector(policy), config, {
+      period: { periodStart, periodEnd },
+    });
     return NextResponse.json(
       { ...result, periodStart, periodEnd },
       { status: result.success ? 200 : 503 }

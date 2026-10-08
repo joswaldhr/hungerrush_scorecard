@@ -16,6 +16,7 @@ import { assertZendeskAccountBinding } from "./zendesk-account-binding";
 import { csatPolicyForPeriod, type ZendeskCsatPolicy } from "./zendesk-csat-policy";
 import { collectCsatRecords } from "./zendesk-csat-collection";
 import { createBoundedCsatReader } from "./zendesk-csat-reader";
+import { parseSyncPeriod } from "./sync-period";
 import type { ConnectorConfig } from "./types";
 
 /** Validate assignment and source ownership before any vendor request. */
@@ -110,12 +111,14 @@ export async function loadCsatEmployeeBindings(
 export function createCsatConnector(policy: ZendeskCsatPolicy) {
   const connector = new ZendeskConnector();
   connector.fetchRecords = async (config, ctx) => {
-    if (ctx.cursor === null || !/^\d+$/.test(ctx.cursor))
-      throw new Error("CSAT sync requires one explicit week offset");
-    const offset = Number(ctx.cursor);
-    if (!Number.isInteger(offset) || offset < 0 || offset >= MAX_WEEKS_BACK)
-      throw new Error("Invalid CSAT week offset");
-    const { periodStart, periodEnd } = weekDates(offset);
+    if (
+      (!ctx.period && ctx.cursor === null) ||
+      (ctx.cursor !== null && (!/^[0-3]$/.test(ctx.cursor) || Number(ctx.cursor) >= MAX_WEEKS_BACK))
+    )
+      throw new Error("CSAT sync requires one reporting week");
+    const { periodStart, periodEnd } = ctx.period
+      ? parseSyncPeriod(ctx.period)
+      : weekDates(Number(ctx.cursor));
     const bindings = await loadCsatEmployeeBindings(policy, config, periodStart);
     const reader = createBoundedCsatReader(
       {
@@ -133,5 +136,5 @@ export function createCsatConnector(policy: ZendeskCsatPolicy) {
       diagnostics: { ...result.diagnostics, ...reader.stats() },
     };
   };
-  return connector;
+  return Object.assign(connector, { supportsFixedPeriod: true });
 }

@@ -4,8 +4,10 @@ const mocks = vi.hoisted(() => ({
   env: {
     CRON_SECRET: "synthetic-secret" as string | undefined,
     ZENDESK_REPORT_RECOVERY: undefined as string | undefined,
+    ZENDESK_CSAT_RECOVERY: undefined as string | undefined,
   },
   recovery: vi.fn(),
+  csat: vi.fn(),
   collection: vi.fn(),
   releases: vi.fn(),
   read: vi.fn(),
@@ -17,6 +19,7 @@ const mocks = vi.hoisted(() => ({
   week: vi.fn(),
 }));
 vi.mock("@/lib/env", () => ({ env: mocks.env }));
+vi.mock("@/lib/connectors/zendesk-csat-config", () => ({ configuredCsatPolicy: mocks.csat }));
 vi.mock("@/lib/connectors/zendesk-solved-config", () => ({
   configuredReportEventCollectionPolicy: mocks.collection,
   configuredSolvedReportReleases: mocks.releases,
@@ -62,6 +65,7 @@ beforeEach(() => {
   vi.resetAllMocks();
   mocks.env.CRON_SECRET = "synthetic-secret";
   mocks.env.ZENDESK_REPORT_RECOVERY = undefined;
+  mocks.env.ZENDESK_CSAT_RECOVERY = undefined;
   mocks.collection.mockReturnValue({ scope, bootstrapStart: 1000 });
   mocks.releases.mockReturnValue([updater, assignee]);
   mocks.read.mockReturnValue("reader");
@@ -124,6 +128,26 @@ it("rejects arbitrary controls and repeated parameters without reading source po
     expect((await invoke(publish, query)).status).toBe(400);
   expect(mocks.collection).not.toHaveBeenCalled();
   expect(mocks.releases).not.toHaveBeenCalled();
+});
+
+it("requires both recovery switches and a qualified CSAT policy before scheduling it", async () => {
+  mocks.env.ZENDESK_CSAT_RECOVERY = "1";
+  expect(await (await invoke(recover, "?slot=0")).json()).toEqual({ enabled: false });
+  expect(mocks.csat).not.toHaveBeenCalled();
+  mocks.env.ZENDESK_REPORT_RECOVERY = "1";
+  mocks.csat.mockReturnValue(null);
+  expect((await invoke(recover, "?slot=0")).status).toBe(503);
+  expect(mocks.recovery).not.toHaveBeenCalled();
+  const csat = { qualified: "synthetic policy" };
+  mocks.csat.mockReturnValue(csat);
+  mocks.recovery.mockResolvedValue({ status: "complete" });
+  expect((await invoke(recover, "?slot=0")).status).toBe(200);
+  expect(mocks.recovery.mock.calls.at(-1)?.[3]).toBe(csat);
+  mocks.env.ZENDESK_CSAT_RECOVERY = undefined;
+  mocks.csat.mockClear();
+  expect((await invoke(recover, "?slot=0")).status).toBe(200);
+  expect(mocks.csat).not.toHaveBeenCalled();
+  expect(mocks.recovery.mock.calls.at(-1)?.[3]).toBeUndefined();
 });
 it("keeps both endpoints inert without their separate explicit policies", async () => {
   mocks.collection.mockReturnValue(null);

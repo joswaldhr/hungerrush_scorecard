@@ -6,6 +6,7 @@ import {
   configuredSolvedReportReleases,
 } from "@/lib/connectors/zendesk-solved-config";
 import { runLiveReportRecovery } from "@/lib/connectors/zendesk-report-recovery";
+import { configuredCsatPolicy } from "@/lib/connectors/zendesk-csat-config";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -29,11 +30,18 @@ export async function GET(request: Request) {
     const collection = configuredReportEventCollectionPolicy(),
       releases = configuredSolvedReportReleases();
     if (!collection || !releases.length) throw Error("Report recovery policies unavailable");
-    const result = await runLiveReportRecovery(collection, releases, {
-      subdomain: env.ZENDESK_SUBDOMAIN ?? "",
-      email: env.ZENDESK_EMAIL ?? "",
-      apiKey: env.ZENDESK_API_KEY ?? "",
-    });
+    const csat = env.ZENDESK_CSAT_RECOVERY === "1" ? configuredCsatPolicy() : undefined;
+    if (csat === null) throw Error("CSAT recovery requires a qualified policy");
+    const result = await runLiveReportRecovery(
+      collection,
+      releases,
+      {
+        subdomain: env.ZENDESK_SUBDOMAIN ?? "",
+        email: env.ZENDESK_EMAIL ?? "",
+        apiKey: env.ZENDESK_API_KEY ?? "",
+      },
+      csat
+    );
     return NextResponse.json(
       { enabled: true, ...result },
       { status: result.status === "failed" ? 503 : result.status === "deferred" ? 202 : 200 }
