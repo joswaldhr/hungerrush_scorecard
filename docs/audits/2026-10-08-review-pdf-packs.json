@@ -1,0 +1,26 @@
+{
+  "packs": [
+    {
+      "team": "Menufy",
+      "employees": 23,
+      "pages": 23,
+      "bookmarks": 23,
+      "allDisplayedMetricLabelsAndValuesChecked": true,
+      "bytes": 53255,
+      "sha256": "c60fdef049c3203b546e6d76f0b03e45674a695ab52963d557520036027ce3ab"
+    },
+    {
+      "team": "POS",
+      "employees": 39,
+      "pages": 39,
+      "bookmarks": 39,
+      "allDisplayedMetricLabelsAndValuesChecked": true,
+      "bytes": 89022,
+      "sha256": "9dec595d413857400c02ab0c1a12a04fdc95338ea1c05d0e24dc63f9eef94d45"
+    }
+  ],
+  "renderedPages": 62,
+  "layoutReview": "All-page rendered contact sheets plus full-size representative Menufy/POS pages passed",
+  "source": "Private direct manager dashboard exports and separately labeled qualified inbound data",
+  "productionWrites": 0
+}
