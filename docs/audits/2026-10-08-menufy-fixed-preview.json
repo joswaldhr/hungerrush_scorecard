@@ -1,0 +1,45 @@
+{
+  "candidateSha": "bd1784bec691cb80f210d1f523226674c56a18a8",
+  "exactCiRun": 37790952102,
+  "exactCiConclusion": "success",
+  "previewSha": "ad24cdc0939838747087e7cde25e15bd71962030",
+  "deploymentId": "dpl_9m8co4p89wB8UPmhn2jxxE9pGxPY",
+  "deploymentState": "READY",
+  "runtimeAndScriptsIdentical": true,
+  "syntheticRehearsal": {
+    "periods": [
+      "2026-09-27/2026-10-03",
+      "2026-10-04/2026-10-10"
+    ],
+    "valuesPerPeriod": 9,
+    "reportedPerPeriod": 8,
+    "unavailablePerPeriod": 1,
+    "unrelatedValuesUnchanged": true,
+    "vendorRequests": 0,
+    "productionWrites": 0,
+    "fixedPeriodPath": "Sync service resolves offset to immutable period before lease acquisition; publisher consumes that period."
+  },
+  "downloadedCsv": [
+    {
+      "mode": "closed",
+      "bytes": 15178,
+      "sha256": "f550cef3d378023fa39b7a2d81075a95a5592c57e9c27204b5509f11eb7dd659",
+      "rows": 28,
+      "columns": 20,
+      "qualifiedValuesMatched": 9
+    },
+    {
+      "mode": "current",
+      "bytes": 14822,
+      "sha256": "244200eb5d0903c869e6a15bc8a7a0bc83f423f497b48e6f1e8aa9ce02184f83",
+      "rows": 28,
+      "columns": 20,
+      "qualifiedValuesMatched": 9
+    }
+  ],
+  "limitations": [
+    "Synthetic UTC rehearsal does not certify production source values or real scheduler execution.",
+    "No visual export implementation changes; prior actual PDF/PNG verification remains separate evidence.",
+    "Automatic PR branch Preview failed for missing branch-specific Entra credentials; designated isolated Preview passed with identical runtime/scripts."
+  ]
+}

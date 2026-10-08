@@ -1,4 +1,62 @@
 # Audit implementation — current checkpoint
+
+**October 8, 14:34 UTC — Menufy correction passes hosted publication and recovery:**
+PR49 runtime `bd1784b` passes exact CI/build `37790952102`. Runtime/script-identical
+isolated Preview `ad24cdc` is READY at `dpl_9m8co4p89wB8UPmhn2jxxE9pGxPY`.
+The real synthetic sync path matches nine inbound values in both closed/current weeks;
+unrelated values are unchanged, with no vendor requests or production writes. Hosted
+scorecard/history and actual CSV bytes match all 18 values, dates and quality/status
+semantics. Missing duration samples remain unavailable and current statuses neutral.
+The PR branch's automatic Preview lacks Entra credentials and fails; the designated
+isolated Preview above is the validated deployment. No branch credentials were broadened.
+Fresh 14:31 encrypted recovery restores all 35 tables / 374,350 rows with exact digests.
+See `2026-10-08-menufy-fixed-release.md` and its receipts. Code release is pending;
+Menufy activation, new schedules and full-scorecard completion are not implied.
+
+**October 8, 14:14 UTC — Menufy publication boundary correction prepared:**
+Active implementation branch is `codex/menufy-fixed-publication` in the existing
+metric-recovery worktree. The pending inbound route now pins its dates before
+asynchronous work and the publisher consumes that exact interval. Publication
+revalidates the retained source capture after configuration locks, rejecting expired
+observations and a progress capture that crosses the source timezone's week end.
+Explicit previous-week publication preserves current-week values in PostgreSQL.
+All 1,209 tests / 151 files, typecheck and scoped lint pass locally, including 13
+focused route/publication checks. The first local test attempt used the config's
+default loopback database and failed authentication before fixture writes; setting
+the explicit `TEST_DATABASE_URL` selected the isolated `cadence_baseline_test` database.
+No shared environment file was loaded. Exact CI and hosted validation remain pending;
+no Menufy policy, assignment, schedule or production value changed in this increment.
+
+**October 8, 14:02 UTC — five POS inbound measures live and independently verified:**
+PR44 and PR48 are merged; production `bc8e26e` passes exact master CI/build
+`37732854918`. Active deployment `dpl_5H9MubkMyqtAbEVjZ3QUbkbyXdbR` is READY
+and owns the production alias. The code-only deployment first verified authenticated
+inactive routes, anonymous rejection and unchanged policy metadata. Activation added
+only the collection and POS release policies; all 16 existing crons are unchanged,
+the recovery queue stays disabled, and no new schedule was installed.
+
+A fresh 13:48 encrypted backup restored 35 tables / 373,526 rows with matching
+digests. An earlier attempt correctly stopped before dispatch because its backup
+was older than one hour. The one controlled canary returned HTTP 200 in 54.567 seconds
+and published 195 current-week values for all 39 POS employees. Independent Python
+reconstruction matches every value, 546 contributing-source sets and 156 duration
+numerator/denominator checks with zero differences. Twelve genuine zeros and 24
+no-sample nulls retain their meaning. Eleven protected digest groups are unchanged;
+170 predecessor value snapshots match at the captured millisecond timestamp precision.
+
+Representative production scorecard and stored history match all five corrected values.
+Fresh actual CSV (11,203 bytes), PDF (785,748) and PNG (1,190,593) downloads pass;
+PDF/PNG decoded pixels match exactly, and the rendered PDF is visually inspected.
+Current statuses stay neutral, incompatible targets/comparisons stay withheld, and
+history returns to the selected week. The administrator's original Barbara preview
+was restored and the temporary tab closed. This is administrator preview evidence,
+not the manager's own login. Native print remains unverified.
+
+See [the production receipt](2026-10-08-pos-inbound-production.json). Closed-week POS
+publication, declined/missed assignments, remaining metric families, roster/access
+and genuine scheduled operation remain open. The full goal still covers both teams.
+The previous deployment/pending-publication descriptions below are historical.
+
 **October 8, 05:24 UTC — fresh POS source qualification passes; publication still gated:**
 PR44 runtime `7403b7821be4abd8779f4221e4529bb1ddff7f56` passes exact CI/build
 `37730891112` and all 1,205 local tests. It adds a separate authenticated, default-off

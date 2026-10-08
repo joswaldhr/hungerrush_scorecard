@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { beforeEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   env: {
     CRON_SECRET: "synthetic-secret" as string | undefined,
@@ -37,6 +37,25 @@ beforeEach(() => {
   mocks.factory.mockReturnValue({ sourceType: "zendesk" });
   mocks.run.mockResolvedValue({ success: true, valuesWritten: 3 });
   mocks.limited.mockResolvedValue(false);
+});
+afterEach(() => vi.useRealTimers());
+it("pins the selected week before asynchronous cooldown work crosses Sunday", async () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-10-10T23:59:59Z"));
+  mocks.env.ZENDESK_INBOUND_REPORT_RELEASE = JSON.stringify(inboundPublicationFixture().release);
+  mocks.limited.mockImplementation(async () => {
+    vi.setSystemTime(new Date("2026-10-11T00:00:01Z"));
+    return false;
+  });
+  const response = await invoke();
+  expect(response.status).toBe(200);
+  expect(mocks.run.mock.calls[0]![2]).toEqual({
+    period: { periodStart: "2026-10-04", periodEnd: "2026-10-10" },
+  });
+  expect(await response.json()).toMatchObject({
+    periodStart: "2026-10-04",
+    periodEnd: "2026-10-10",
+  });
 });
 it("requires authentication and exactly one allowed offset before doing work", async () => {
   expect((await invoke("?week=0", "wrong")).status).toBe(401);
