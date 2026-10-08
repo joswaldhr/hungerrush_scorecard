@@ -1,0 +1,40 @@
+[
+  {
+    "observedAt": "2026-10-08T17:37:42.01Z",
+    "verified": true,
+    "execution": "controlled_retained_observation_canary",
+    "periodStart": "2026-09-27",
+    "periodEnd": "2026-10-03",
+    "employees": 2,
+    "valuesWritten": 10,
+    "independentValueComparisons": 10,
+    "independentPersistedSourceSetChecks": 60,
+    "unexplainedDifferences": 0,
+    "protectedDigestGroups": 8,
+    "protectedDigestsUnchanged": true,
+    "predecessors": 10,
+    "predecessorValuesVerified": 10,
+    "sourceRequests": 0,
+    "scheduledExecution": false,
+    "withheldEmployees": 5
+  },
+  {
+    "observedAt": "2026-10-08T17:39:10.252Z",
+    "verified": true,
+    "execution": "controlled_retained_observation_widen",
+    "periodStart": "2026-09-27",
+    "periodEnd": "2026-10-03",
+    "employees": 55,
+    "valuesWritten": 275,
+    "independentValueComparisons": 275,
+    "independentPersistedSourceSetChecks": 1650,
+    "unexplainedDifferences": 0,
+    "protectedDigestGroups": 8,
+    "protectedDigestsUnchanged": true,
+    "predecessors": 275,
+    "predecessorValuesVerified": 275,
+    "sourceRequests": 0,
+    "scheduledExecution": false,
+    "withheldEmployees": 5
+  }
+]

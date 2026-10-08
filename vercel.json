@@ -1,6 +1,7 @@
 {
   "git": {
     "deploymentEnabled": {
+      "codex/outbound-release-evidence": false,
       "codex/outbound-report-completion": false,
       "codex/csat-fixed-refresh": false,
       "codex/pos-source-projection": false,
