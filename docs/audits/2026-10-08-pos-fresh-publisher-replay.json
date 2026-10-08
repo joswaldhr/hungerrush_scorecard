@@ -1,0 +1,14 @@
+{
+  "employeePeriods": 78,
+  "closedWeekObservations": 39,
+  "inProgressObservations": 39,
+  "valueChecks": 546,
+  "setChecks": 390,
+  "durationChecks": 624,
+  "differences": 0,
+  "elapsedMs": 8828,
+  "sourceRequests": 0,
+  "productionWrites": 0,
+  "publicationEnabled": false,
+  "scope": "Fresh observation replay at current validation time using synthetic Cadence bindings and release wrapper; not production publication evidence."
+}
