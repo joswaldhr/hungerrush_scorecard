@@ -54,6 +54,37 @@ afterAll(async () => {
   await db.delete(organizations).where(eq(organizations.id, organizationId));
 });
 
+it("fences the same absolute period regardless of changing relative offsets", async () => {
+  const period = { periodStart: "2020-12-27", periodEnd: "2021-01-02" };
+  const first = await createLeasedSyncRun(ids[0]!, 0, period);
+  const rollover = await createLeasedSyncRun(ids[0]!, 1, period);
+  expect(first.status).toBe("running");
+  expect(first.metadataJson).toMatchObject({ leaseScope: "period:2020-12-27", period });
+  expect(rollover.status).toBe("skipped");
+  expect(
+    (
+      await createLeasedSyncRun(ids[0]!, undefined, {
+        periodStart: "2021-01-03",
+        periodEnd: "2021-01-09",
+      })
+    ).status
+  ).toBe("running");
+});
+
+it.each([true, false])(
+  "safely interoperates with an older deployment's relative lease (fixed first: %s)",
+  async (fixedFirst) => {
+    const fixed = () =>
+      createLeasedSyncRun(ids[0]!, undefined, {
+        periodStart: "2020-12-27",
+        periodEnd: "2021-01-02",
+      });
+    const relative = () => createLeasedSyncRun(ids[0]!, 1);
+    expect((await (fixedFirst ? fixed() : relative())).status).toBe("running");
+    expect((await (fixedFirst ? relative() : fixed())).status).toBe("skipped");
+  }
+);
+
 it("prevents same-account publishers in any week while report collection owns the lease", async () => {
   const owned = await collect();
   const runs = await Promise.all([

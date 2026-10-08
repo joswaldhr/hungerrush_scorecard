@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { dataSources, syncRuns, syncErrors } from "@/lib/db/schema";
 import { sql } from "drizzle-orm";
 import { isZendeskAccountReference } from "./zendesk-account-binding";
+import { parseSyncPeriod, type SyncPeriod } from "./sync-period";
 
 type Connection = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -9,8 +10,17 @@ type Connection = Parameters<Parameters<typeof db.transaction>[0]>[0];
 // renew between connector pages. Database time owns expiry across instances.
 const expiry = sql`clock_timestamp() + interval '10 minutes'`;
 
-export async function createLeasedSyncRun(dataSourceId: string, weekOffset?: number) {
-  const scope = weekOffset === undefined ? "all" : `week:${weekOffset}`;
+export async function createLeasedSyncRun(
+  dataSourceId: string,
+  weekOffset?: number,
+  period?: SyncPeriod
+) {
+  const fixed = period === undefined ? undefined : parseSyncPeriod(period);
+  const scope = fixed
+    ? `period:${fixed.periodStart}`
+    : weekOffset === undefined
+      ? "all"
+      : `week:${weekOffset}`;
   return db.transaction(async (tx) => {
     // Match the collector's lock order: account first, then source. The account
     // lock also coordinates distinct Cadence sources bound to the same vendor.
@@ -66,7 +76,9 @@ export async function createLeasedSyncRun(dataSourceId: string, weekOffset?: num
       );
     const active = await tx.execute(sql`
       select id from ${syncRuns} where data_source_id = ${dataSourceId} and status = 'running'
-        and (${scope} = 'all' or coalesce(metadata_json->>'leaseScope', 'all') in ('all', ${scope}))
+        and (${scope} = 'all' or coalesce(metadata_json->>'leaseScope', 'all') in ('all', ${scope})
+          or (${scope} like 'period:%' and metadata_json->>'leaseScope' like 'week:%')
+          or (${scope} like 'week:%' and metadata_json->>'leaseScope' like 'period:%'))
       limit 1
     `);
     const skipped = active.length > 0 || reportCollection.length > 0;
@@ -82,8 +94,10 @@ export async function createLeasedSyncRun(dataSourceId: string, weekOffset?: num
                 ? "Report collection owns the account or its request cooldown"
                 : "An overlapping sync is already running",
               leaseScope: scope,
+              ...(fixed ? { period: fixed } : {}),
             }
-          : sql`jsonb_build_object('leaseScope', ${scope}::text, 'leaseExpiresAt', ${expiry})`,
+          : sql`jsonb_build_object('leaseScope', ${scope}::text, 'leaseExpiresAt', ${expiry})
+              || ${JSON.stringify(fixed ? { period: fixed } : {})}::jsonb`,
       })
       .returning();
     if (!run) throw new Error("Failed to create sync run");

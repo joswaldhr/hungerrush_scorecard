@@ -1,4 +1,5 @@
 import type { db } from "@/lib/db";
+import type { SyncPeriod } from "./sync-period";
 
 export interface ConnectorConfig {
   dataSourceId: string;
@@ -10,6 +11,8 @@ export interface SyncContext {
   dataSourceId: string;
   organizationId: string;
   cursor: string | null;
+  /** Exact selection pinned before asynchronous work, supported only by opted-in connectors. */
+  period?: SyncPeriod;
 }
 
 export interface IngestedRecord {
@@ -82,6 +85,7 @@ export interface HealthStatus {
 
 export interface Connector {
   readonly sourceType: string;
+  readonly supportsFixedPeriod?: boolean;
 
   /** Runs under the publication transaction after source locking, before ingestion. */
   validatePublication?(

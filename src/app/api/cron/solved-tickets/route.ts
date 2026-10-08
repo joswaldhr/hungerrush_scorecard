@@ -55,7 +55,7 @@ export async function GET(request: Request) {
     const result = await runSync(
       connector,
       { organizationId: policy.organizationId, dataSourceId: policy.dataSourceId },
-      { weekOffset: offset }
+      { period: { periodStart, periodEnd } }
     );
     return NextResponse.json(
       { ...result, periodStart, periodEnd },

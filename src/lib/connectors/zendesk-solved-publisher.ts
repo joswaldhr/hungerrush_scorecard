@@ -12,6 +12,7 @@ import {
   type SolvedRelease,
 } from "./zendesk-solved-publication-record";
 import type { Connector, ConnectorConfig, IngestedRecord } from "./types";
+import { parseSyncPeriod } from "./sync-period";
 
 const digest = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const bindingDigest = (rows: Array<{ employeeId: string; teamId: string; externalId: string }>) =>
@@ -41,9 +42,14 @@ export function createSolvedPublisher(
   let fetched: { recordsDigest: string; bindings: string; periodStart: string } | null = null;
   connector.fetchRecords = async (config, ctx) => {
     fetched = null;
-    if (ctx.cursor === null || !/^[0-3]$/.test(ctx.cursor) || Number(ctx.cursor) >= MAX_WEEKS_BACK)
+    if (
+      (!ctx.period && ctx.cursor === null) ||
+      (ctx.cursor !== null && (!/^[0-3]$/.test(ctx.cursor) || Number(ctx.cursor) >= MAX_WEEKS_BACK))
+    )
       throw Error("Solved publication requires exactly one week offset");
-    const { periodStart, periodEnd } = weekDates(Number(ctx.cursor));
+    const { periodStart, periodEnd } = ctx.period
+      ? parseSyncPeriod(ctx.period)
+      : weekDates(Number(ctx.cursor));
     const bindings = await loadSolvedReportBindings(policy, config, periodStart, policy.subdomain);
     const loaded = await load(
       config,
@@ -92,6 +98,7 @@ export function createSolvedPublisher(
       normalizeSolvedPublicationRecord(r.payload, employeeId, teamId, start, end)
     );
   return Object.assign(connector, {
+    supportsFixedPeriod: true,
     async validatePublication(
       connection: Parameters<NonNullable<Connector["validatePublication"]>>[0],
       config: ConnectorConfig,
