@@ -44,13 +44,46 @@ agent counting, Central/DST boundaries, exclusions, duplicate/malformed evidence
 unknown acceptance, independent reference parity and reusable-capture isolation.
 The full suite and exact-candidate CI results are recorded in the implementation ledger.
 
+## Replayable employee records
+
+`zendesk-pos-inbound-record.ts` now binds the calculation to an explicit organization,
+source/account, team, employee, external agent, Sunday–Saturday week and prospective
+policy. It retains only that employee's contributing calls/legs, including whole-call
+hold, and recomputes all values and sample counts after serialization. The scope
+fingerprint distinguishes report definitions, agents, groups, lines and timezones.
+Candidate records and their contract are blocked by the central publication guard,
+even if an eligible marker is forged. No source totals are trusted as facts.
+
+Each stream's collection start/end, cycle and event watermark are retained separately.
+A terminal response is not a coverage date: its event watermark may refer to the last
+changed record. For a closed week, both collections must have started after the local
+period end; completing pages after that boundary is insufficient. Current-week records
+remain explicitly in progress, and non-atomic observation windows are never represented
+as an exact point-in-time snapshot or independently certified completeness.
+
+Seven record regressions cover minimized evidence, unknown versus zero samples, closed
+coverage, current/future/stale periods, policy/identity mismatches, incomplete streams,
+missing parents/whole-call hold and the autumn DST boundary. Seventeen focused tests
+pass including the calculator and central publication guard. Typecheck and scoped lint
+pass. Prior calculator candidate `fededf0` passes exact CI/build `37726475078`.
+
+The new serialized-record replay matches all 78 retained employee-periods: 546 values,
+390 source sets and 624 numerator/denominator comparisons, with zero differences.
+There are 39 closed-week observations and 39 in-progress observations. This uses saved
+collection time and synthetic Cadence bindings, not fresh October 8 source coverage or
+historical roster proof. No source requests or production writes occurred. See
+`2026-10-08-pos-inbound-record-replay.json`.
+
 ## Remaining integration and release work
 
-This is an unconnected calculation candidate in PR44. There is no route, producer,
+This is an unconnected calculation/record candidate in PR44. There is no route, producer,
 catalog change, policy activation or deployment in this increment. Publication must
 bind a fresh `pos-call-hold-v1` source snapshot, exact employee/team/period and prospective
 release policy; retain replay evidence and compatible target rules; and pass isolated
 publication, recovery, source reconciliation and actual scheduling gates.
+The guarded publisher still needs live binding checks under the publication transaction,
+a distinct activated contract, immutable reporting dates across retries and fresh
+coverage validation at publication (including a week rollover during collection).
 
 Offered calls remain a separate saved formula/date cohort. The saved abandonment report
 counts IVR/queue/voicemail outcomes, so it is deliberately not published as on-hold

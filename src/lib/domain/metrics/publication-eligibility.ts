@@ -6,7 +6,9 @@ export function assertMetricPublicationEligible(evidence: unknown, recordType?: 
   // Activation requires a reviewed code change; no environment toggle bypasses this.
   if (
     recordType === "inbound_report_candidate" ||
+    recordType === "pos_inbound_report_candidate" ||
     row.sourceContract === "zendesk-inbound-report-v1" ||
+    row.sourceContract === "zendesk-pos-leg-date-inbound-report-v1" ||
     ("publicationEligible" in row && row.publicationEligible !== true)
   )
     throw new Error("Unqualified metric evidence is not eligible for publication");
