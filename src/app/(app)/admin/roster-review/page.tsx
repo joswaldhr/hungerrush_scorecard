@@ -2,6 +2,9 @@ import { requireAdmin } from "@/lib/auth/authorization";
 import { db } from "@/lib/db";
 import { dataSources, rosterSourceTeamMappings, rosterCandidates, teams } from "@/lib/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
+import { DirectoryReview } from "@/components/directory-review";
+import { getDirectoryReview } from "@/lib/domain/roster/directory-check";
+import { directoryBinding } from "@/lib/domain/roster/directory-config";
 import {
   addGroupMapping,
   removeGroupMapping,
@@ -15,6 +18,7 @@ import {
 
 export default async function RosterReviewPage() {
   const admin = await requireAdmin();
+  const directory = await getDirectoryReview(admin.organizationId, "admin", directoryBinding());
 
   const [allSources, allTeams] = await Promise.all([
     db.select().from(dataSources).where(eq(dataSources.organizationId, admin.organizationId)),
@@ -68,6 +72,8 @@ export default async function RosterReviewPage() {
           directory account alone does not establish a departure.
         </p>
       </header>
+
+      <DirectoryReview review={directory} />
 
       <section className="space-y-4">
         <h2 className="text-sm font-semibold text-foreground">Sources &amp; group mappings</h2>

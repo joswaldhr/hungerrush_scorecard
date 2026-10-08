@@ -33,7 +33,7 @@ vi.mock("@/lib/db", () => ({
         where: () =>
           Object.assign(
             Promise.resolve(
-              ["zendesk", "assembled", "entra"].map((type) => ({
+              ["zendesk", "assembled", "entra", "unsupported-synthetic"].map((type) => ({
                 id: type,
                 type,
                 displayName: type,
@@ -76,6 +76,7 @@ it("offers sync only for the shipped connector and labels retired/unsupported so
     ).toEqual(["Sync zendesk"]);
     expect(container.textContent).toContain("Retired");
     expect(container.textContent).toContain("Not supported");
+    expect(container.textContent).toContain("Directory checks are not configured");
     expect(container.textContent).not.toContain("employees checked");
     expect(container.textContent).not.toContain("flagged as disabled");
   } finally {

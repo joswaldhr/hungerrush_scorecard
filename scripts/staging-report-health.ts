@@ -10,6 +10,7 @@ async function main() {
   // tsx's standalone JSX transform uses React; the app build uses Next's transform.
   Object.assign(globalThis, { React });
   const { ReportRecoveryHealth } = await import("../src/components/report-recovery-health");
+  const { DirectoryReview } = await import("../src/components/directory-review");
   const cases = [
     ["complete", "Request completed"],
     ["queued", "Refresh pending"],
@@ -34,7 +35,24 @@ async function main() {
       retryAt: status === "deferred" || status === "failed" ? "2026-10-08T18:15:00.000Z" : null,
     })),
   };
-  const markup = renderToStaticMarkup(React.createElement(ReportRecoveryHealth, { health }));
+  const markup =
+    renderToStaticMarkup(React.createElement(ReportRecoveryHealth, { health })) +
+    renderToStaticMarkup(
+      React.createElement(DirectoryReview, {
+        review: {
+          health: "failed",
+          observedAt: "2026-10-08T18:00:00.000Z",
+          checked: 3,
+          total: 4,
+          rows: [
+            { employeeId: "synthetic-one", name: "Synthetic One", status: "disabled" },
+            { employeeId: "synthetic-two", name: "Synthetic Two", status: "ambiguous" },
+            { employeeId: "synthetic-three", name: "Synthetic Three", status: "not_found" },
+            { employeeId: "synthetic-four", name: "Synthetic Four", status: "not_checked" },
+          ],
+        },
+      })
+    );
   assert(markup.includes("Request completed") && markup.includes("Interrupted; awaiting retry"));
   const css = (await readdir(".next/static", { recursive: true })).filter((f) =>
     f.endsWith(".css")

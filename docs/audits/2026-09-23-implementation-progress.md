@@ -1,5 +1,18 @@
 # Audit implementation — current checkpoint
 
+**October 8 — directory roster conflict candidate:**
+The manager-reported source conflict is independently confirmed in Microsoft Entra:
+the October 5 disabled-account observation remains disabled on October 8 while
+Zendesk still reports the account active in the mapped group. The earlier finding
+was not connected to recurring roster review. A bounded read-only 62-person check
+finds 61 enabled and one disabled account, with no unmatched/ambiguous identities.
+No employment termination date is established. No employee or vendor was changed.
+
+`codex/entra-roster-conflicts` adds tenant-bound retained directory observations,
+independent opt-in scheduling, manager-scoped notices and administrator review.
+No automatic archive or assignment mutation. Candidate validation/release gates are
+in [the release record](2026-10-08-directory-roster-conflicts.md); not yet live.
+
 **October 8 — PR56 reporting health live:**
 Master `cbd8d5d` / `dpl_BzXwfPfMHumJzDgowuhHdMZev6Pe` is READY on the
 production alias. Exact candidate `a20b502` CI/build `37840660871`, 1,236 local

@@ -52,7 +52,11 @@ async function own(): Promise<TalkOwnedScope> {
   return { ...scope, token: lease.token };
 }
 async function records() {
-  return db.select().from(sourceRecords).where(eq(sourceRecords.dataSourceId, dataSourceId));
+  return db
+    .select()
+    .from(sourceRecords)
+    .where(eq(sourceRecords.dataSourceId, dataSourceId))
+    .orderBy(sourceRecords.id);
 }
 beforeAll(async () => {
   await db.insert(organizations).values({ id: organizationId, name: "Synthetic Talk store" });

@@ -15,6 +15,9 @@ import { sourceSupport } from "@/lib/connectors/source-support";
 import { syncRunHealth } from "@/lib/connectors/sync-run-health";
 import { getReportRecoveryHealth } from "@/lib/domain/metrics/report-recovery-health";
 import { ReportRecoveryHealth } from "@/components/report-recovery-health";
+import { DirectoryReview } from "@/components/directory-review";
+import { getDirectoryReview } from "@/lib/domain/roster/directory-check";
+import { directoryBinding } from "@/lib/domain/roster/directory-config";
 
 function syncStatusIcon(status: string) {
   switch (status) {
@@ -45,6 +48,12 @@ export default async function DataHealthPage() {
   const now = new Date();
   const nowTs = now.getTime();
   const recovery = await getReportRecoveryHealth(ctx.organizationId, ctx.assignedTeamIds, now);
+  const directory = await getDirectoryReview(
+    ctx.organizationId,
+    ctx.assignedEmployeeIds,
+    directoryBinding(),
+    now
+  );
 
   const sources = await db
     .select()
@@ -64,25 +73,31 @@ export default async function DataHealthPage() {
   }
 
   const sourceHealth = await Promise.all(
-    sources.map(async (source) => {
-      const [latestRun] = await db
-        .select()
-        .from(syncRuns)
-        .where(eq(syncRuns.dataSourceId, source.id))
-        .orderBy(desc(syncRuns.startedAt))
-        .limit(1);
+    sources
+      .filter((source) => source.type !== "entra")
+      .map(async (source) => {
+        const [latestRun] = await db
+          .select()
+          .from(syncRuns)
+          .where(eq(syncRuns.dataSourceId, source.id))
+          .orderBy(desc(syncRuns.startedAt))
+          .limit(1);
 
-      const errorList = latestRun
-        ? await db.select().from(syncErrors).where(eq(syncErrors.syncRunId, latestRun.id)).limit(5)
-        : [];
+        const errorList = latestRun
+          ? await db
+              .select()
+              .from(syncErrors)
+              .where(eq(syncErrors.syncRunId, latestRun.id))
+              .limit(5)
+          : [];
 
-      return {
-        source,
-        latestRun: latestRun ?? null,
-        errors: errorList,
-        health: syncRunHealth(latestRun ?? null, nowTs),
-      };
-    })
+        return {
+          source,
+          latestRun: latestRun ?? null,
+          errors: errorList,
+          health: syncRunHealth(latestRun ?? null, nowTs),
+        };
+      })
   );
 
   const anySyncing =
@@ -105,6 +120,7 @@ export default async function DataHealthPage() {
       </header>
 
       <ReportRecoveryHealth health={recovery} />
+      <DirectoryReview review={directory} />
       <p className="text-sm text-muted-foreground">
         The source cards below show the latest activity only. A recent successful run does not mean
         all metric families or reporting weeks have refreshed.
