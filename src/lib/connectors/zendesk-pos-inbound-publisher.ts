@@ -24,7 +24,7 @@ const digest = (value: unknown) => createHash("sha256").update(JSON.stringify(va
 const bindingDigest = (rows: Array<{ employeeId: string; teamId: string; externalId: string }>) =>
   digest([...rows].sort((a, b) => a.employeeId.localeCompare(b.employeeId)));
 
-/** Dedicated adapter for the normal atomic sync service; no route or environment enables it. */
+/** Dedicated adapter for the normal atomic sync service; requires an explicit qualified release. */
 export function createPosInboundPublisher(
   input: PosInboundRelease,
   load: (
@@ -122,7 +122,7 @@ export function createPosInboundPublisher(
   });
 }
 
-/** Explicit, bounded POS projection adapter. No environment policy or route selects it yet. */
+/** Explicit, bounded POS projection adapter; the separate POS route is default-off. */
 export function createLivePosInboundPublisher(
   input: PosInboundRelease,
   collection: NonNullable<ReturnType<typeof parseTalkCollectionPolicy>>

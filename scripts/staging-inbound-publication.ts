@@ -28,6 +28,7 @@ async function main() {
     "ZENDESK_CSAT_POLICY",
     "ZENDESK_FIRST_REPLY_POLICY",
     "ZENDESK_INBOUND_REPORT_RELEASE",
+    "ZENDESK_POS_INBOUND_RELEASE",
     "ACTION_SHADOW_SOURCE_ID",
   ])
     assert(!process.env[name], "Vendor access and live publication must be disabled");

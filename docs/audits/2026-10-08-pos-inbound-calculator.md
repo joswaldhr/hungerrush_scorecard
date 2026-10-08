@@ -83,7 +83,10 @@ Its fetched-record digest prevents substitution. Fixed reporting dates survive r
 freshness and closed-week coverage are checked after lock acquisition, including a
 Sunday rollover after fetch. The live adapter explicitly selects `pos-call-hold-v1`,
 shares existing source pacing/leases and uses bounded GET-only collection and identity
-lookups. No environment setting or route invokes this adapter yet.
+lookups. A separate authenticated `/api/cron/pos-inbound?week=0..3` candidate now
+selects this adapter only through `ZENDESK_POS_INBOUND_RELEASE` plus the matching
+collection policy. It defaults off, resolves fixed dates before asynchronous work,
+and adds no schedule. No production policy invokes it yet.
 
 The qualified POS contract is distinct from both its candidate and the existing Menufy
 inbound contract. It replaces only exact legacy `call_stats` contributors for its seven
