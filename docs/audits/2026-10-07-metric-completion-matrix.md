@@ -1,5 +1,15 @@
 # Production metric completion
 
+**October 8, 18:11 UTC — continuation repair live and current acceptance baseline:**
+PR54 (`bf7ea0d`) corrects deleted-ticket pagination; isolated synthetic checks, all
+1,224 tests, exact CI/build and production read checks pass. Fresh parent joins reduce
+Menufy's last-closed-week update differences to one employee / one update among 21
+populated report rows. No update-credit formula or publication changed. Actual manager
+contexts now have a retained domain-reader census for all 62 current employees over
+two closed weeks and current week. Coverage is not certification: unqualified legacy
+numbers and legitimate null cohorts are distinguished in the remaining work.
+See `2026-10-08-manager-visible-coverage.json` and the authoritative ledger.
+
 **October 8, 17:43 UTC — latest verified coverage:** all 62 active employees have
 the five scoped inbound measures refreshed for September 27–October 3 (PR51 ledger
 receipts), and 57 have five outbound measures refreshed (PR52). The outbound fixed-date
@@ -187,7 +197,7 @@ as recorded above, replacing the old human-only solved assignments prospectively
 | Metric / family | Menufy evidence and remaining work | POS evidence and remaining work |
 | --- | --- | --- |
 | Solved tickets | Qualified updater-credit catalog and publication are live from September 27. All 23 active staff independently match 4,106 closed / 1,634 current credits after complete durable collection and fresh joins. UI and actual closed/current CSV plus closed PDF checks pass. Ongoing delta capacity, scheduled publication/revisions and remaining format checks are open. | Qualified current-assignee/solved-date catalog and publication are live from September 27. All 39 active staff independently match 1,410 closed / 733 current tickets. The one-ticket reduction from the earlier saved report is source-explained; second closed-week independent evidence remains 1,464. Representative POS browser/history and ongoing scheduling/revisions remain open. |
-| Update activity | Current 23-person cohort: 19 second-week report rows match, two employees differ by one update each, and two report-absent employees have complete-source verified zeros. First week retains a two-update residual for another current employee. Bounded audit/comment-author checks do not explain the differences. Resolve exact mismatches before publication; see the October 8 cohort and author receipts. | Establish the applicable update-activity report's exact unit, scope and attribution. Do not copy Menufy's updater/group contract or use current-assignee snapshots. |
+| Update activity | Current 23-person cohort, fresh October 8 parent joins: 20 of 21 populated second-week report rows match, one differs by one update; two employees have no report row. A follower-change-only candidate is a hypothesis, not proof of the missing report member. First-week residual, fresh event/identity qualification and separate publication remain required. See the parent-reconciliation receipt. | Establish the applicable update-activity report's exact unit, scope and attribution. Do not copy Menufy's updater/group contract or use current-assignee snapshots. |
 | First response | Qualified business-time policy exists. Verify all current employee cohorts, zero-sample semantics, freshness and actual scheduled execution after the release. | Verify team-specific definition and per-employee source evidence; inherited labels and stored numbers are insufficient. |
 | CSAT score / response rate where assigned | Preserve existing qualified solved-date/current-assignee calculation and its separate rated/offered/cohort denominators. A score without ratings is legitimately unavailable; confirm each blank against its cohort. Close scheduled refresh/recovery checks. | Match team-specific rating cohort and every employee's numerator/denominator. Do not assume Menufy's release policy applies. |
 | Inbound offered / accepted / declined / missed / unreachable / answer rate | Retained comparison covers all 23 active staff over closed/current periods. Qualified publisher remains inactive; new catalog entries are effective October 11. Finish fresh durable collection, scoped canary and scheduled refresh; do not backdate the new assignments silently. | POS source projection has separate weekly and monthly report parity. Reconcile offered components separately, integrate the qualified projection, then complete publication and scheduling. |

@@ -1,0 +1,1706 @@
+{
+  "observedAt": "2026-10-08T18:09:43.492Z",
+  "readOnly": true,
+  "source": "Production domain reader with actual manager scope and visibility",
+  "vendorRequests": 0,
+  "databaseWrites": 0,
+  "coverageIsNotAccuracy": true,
+  "periods": [
+    {
+      "team": "Menufy Support",
+      "periodStart": "2026-09-20",
+      "employees": 23,
+      "visibleCells": 357,
+      "reportedCells": 220,
+      "zeroCells": 69,
+      "unavailableCells": 137,
+      "metrics": [
+        {
+          "key": "tickets_resolved",
+          "visible": 23,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "unverified_attribution": 23
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-27T07:15:35.271Z",
+          "newestObservation": "2026-10-08T07:23:27.567Z"
+        },
+        {
+          "key": "avg_response_time",
+          "visible": 23,
+          "reported": 19,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 4,
+            "complete": 19
+          },
+          "missingReasons": [
+            "No reported first-reply business durations in the created-ticket cohort."
+          ],
+          "sourceContracts": ["zendesk-created-current-assignee-first-reply-business-v1"],
+          "oldestObservation": "2026-10-07T20:34:34.472Z",
+          "newestObservation": "2026-10-07T20:34:34.472Z"
+        },
+        {
+          "key": "csat_score",
+          "visible": 23,
+          "reported": 14,
+          "zero": 2,
+          "qualityCounts": {
+            "missing": 9,
+            "complete": 14
+          },
+          "missingReasons": ["No rated tickets in the solved-ticket cohort."],
+          "sourceContracts": ["zendesk-solved-current-assignee-csat-v1"],
+          "oldestObservation": "2026-10-08T12:47:04.237Z",
+          "newestObservation": "2026-10-08T12:47:04.237Z"
+        },
+        {
+          "key": "tickets_updated",
+          "visible": 23,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "unverified_attribution": 23
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-27T07:15:35.271Z",
+          "newestObservation": "2026-10-08T07:23:27.567Z"
+        },
+        {
+          "key": "worked_elevated_tickets",
+          "visible": 2,
+          "reported": 2,
+          "zero": 2,
+          "qualityCounts": {
+            "complete": 2
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-27T07:15:35.271Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "avoidable_worked_elevated_tickets",
+          "visible": 2,
+          "reported": 2,
+          "zero": 2,
+          "qualityCounts": {
+            "complete": 2
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-27T07:15:35.271Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "inbound_calls_offered",
+          "visible": 23,
+          "reported": 23,
+          "zero": 6,
+          "qualityCounts": {
+            "complete": 23
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "inbound_calls_accepted",
+          "visible": 23,
+          "reported": 23,
+          "zero": 6,
+          "qualityCounts": {
+            "complete": 23
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "inbound_calls_abandoned_on_hold",
+          "visible": 23,
+          "reported": 23,
+          "zero": 21,
+          "qualityCounts": {
+            "complete": 23
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "avg_talk_time_inbound",
+          "visible": 23,
+          "reported": 17,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 6,
+            "complete": 17
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "avg_hold_time_inbound",
+          "visible": 23,
+          "reported": 17,
+          "zero": 3,
+          "qualityCounts": {
+            "missing": 6,
+            "complete": 17
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "avg_call_duration_inbound",
+          "visible": 2,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 2
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": null,
+          "newestObservation": null
+        },
+        {
+          "key": "avg_consultation_time_inbound",
+          "visible": 2,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 2
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": null,
+          "newestObservation": null
+        },
+        {
+          "key": "outbound_calls",
+          "visible": 23,
+          "reported": 23,
+          "zero": 5,
+          "qualityCounts": {
+            "complete": 23
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "outbound_calls_completed",
+          "visible": 2,
+          "reported": 2,
+          "zero": 2,
+          "qualityCounts": {
+            "complete": 2
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-25T02:16:44.046Z"
+        },
+        {
+          "key": "outbound_calls_non_answered",
+          "visible": 2,
+          "reported": 2,
+          "zero": 2,
+          "qualityCounts": {
+            "complete": 2
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-25T02:16:44.046Z"
+        },
+        {
+          "key": "avg_talk_time_outbound",
+          "visible": 23,
+          "reported": 18,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 5,
+            "complete": 18
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "avg_hold_time_outbound",
+          "visible": 23,
+          "reported": 18,
+          "zero": 15,
+          "qualityCounts": {
+            "missing": 5,
+            "complete": 18
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "csat_response_rate",
+          "visible": 23,
+          "reported": 17,
+          "zero": 3,
+          "qualityCounts": {
+            "missing": 6,
+            "complete": 17
+          },
+          "missingReasons": ["No offered or rated surveys in the solved-ticket cohort."],
+          "sourceContracts": ["zendesk-solved-current-assignee-csat-v1"],
+          "oldestObservation": "2026-10-08T12:47:04.237Z",
+          "newestObservation": "2026-10-08T12:47:04.237Z"
+        },
+        {
+          "key": "missed_calls",
+          "visible": 23,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "unsupported": 23
+          },
+          "missingReasons": ["This metric is not connected to historical agent call-leg data."],
+          "sourceContracts": [null],
+          "oldestObservation": null,
+          "newestObservation": null
+        },
+        {
+          "key": "declined_calls",
+          "visible": 23,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "unsupported": 23
+          },
+          "missingReasons": ["This metric is not connected to historical agent call-leg data."],
+          "sourceContracts": [null],
+          "oldestObservation": null,
+          "newestObservation": null
+        }
+      ]
+    },
+    {
+      "team": "Menufy Support",
+      "periodStart": "2026-09-27",
+      "employees": 23,
+      "visibleCells": 357,
+      "reportedCells": 296,
+      "zeroCells": 106,
+      "unavailableCells": 61,
+      "metrics": [
+        {
+          "key": "zendesk_tickets_solved_credits",
+          "visible": 23,
+          "reported": 23,
+          "zero": 2,
+          "qualityCounts": {
+            "complete": 23
+          },
+          "missingReasons": [],
+          "sourceContracts": ["zendesk-qualified-updater-solved-credits-v1"],
+          "oldestObservation": "2026-10-07T18:34:47.846Z",
+          "newestObservation": "2026-10-07T18:34:47.846Z"
+        },
+        {
+          "key": "avg_response_time",
+          "visible": 23,
+          "reported": 20,
+          "zero": 1,
+          "qualityCounts": {
+            "missing": 3,
+            "complete": 20
+          },
+          "missingReasons": [
+            "No reported first-reply business durations in the created-ticket cohort."
+          ],
+          "sourceContracts": ["zendesk-created-current-assignee-first-reply-business-v1"],
+          "oldestObservation": "2026-10-07T18:29:25.471Z",
+          "newestObservation": "2026-10-07T18:29:25.471Z"
+        },
+        {
+          "key": "csat_score",
+          "visible": 23,
+          "reported": 14,
+          "zero": 1,
+          "qualityCounts": {
+            "missing": 9,
+            "complete": 14
+          },
+          "missingReasons": ["No rated tickets in the solved-ticket cohort."],
+          "sourceContracts": ["zendesk-solved-current-assignee-csat-v1"],
+          "oldestObservation": "2026-10-08T10:19:57.610Z",
+          "newestObservation": "2026-10-08T10:19:57.610Z"
+        },
+        {
+          "key": "tickets_updated",
+          "visible": 23,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "unverified_attribution": 23
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-04T07:15:37.481Z",
+          "newestObservation": "2026-10-08T07:14:43.801Z"
+        },
+        {
+          "key": "worked_elevated_tickets",
+          "visible": 2,
+          "reported": 2,
+          "zero": 2,
+          "qualityCounts": {
+            "complete": 2
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-04T07:15:37.481Z",
+          "newestObservation": "2026-10-04T07:15:37.481Z"
+        },
+        {
+          "key": "avoidable_worked_elevated_tickets",
+          "visible": 2,
+          "reported": 2,
+          "zero": 2,
+          "qualityCounts": {
+            "complete": 2
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-04T07:15:37.481Z",
+          "newestObservation": "2026-10-04T07:15:37.481Z"
+        },
+        {
+          "key": "inbound_calls_offered",
+          "visible": 23,
+          "reported": 23,
+          "zero": 4,
+          "qualityCounts": {
+            "complete": 23
+          },
+          "missingReasons": [],
+          "sourceContracts": ["zendesk-call-created-agent-leg-inbound-v1"],
+          "oldestObservation": "2026-10-08T13:49:07.483Z",
+          "newestObservation": "2026-10-08T13:49:07.483Z"
+        },
+        {
+          "key": "inbound_calls_accepted",
+          "visible": 23,
+          "reported": 23,
+          "zero": 5,
+          "qualityCounts": {
+            "complete": 23
+          },
+          "missingReasons": [],
+          "sourceContracts": ["zendesk-call-created-agent-leg-inbound-v1"],
+          "oldestObservation": "2026-10-08T13:49:07.483Z",
+          "newestObservation": "2026-10-08T13:49:07.483Z"
+        },
+        {
+          "key": "inbound_calls_abandoned_on_hold",
+          "visible": 23,
+          "reported": 23,
+          "zero": 19,
+          "qualityCounts": {
+            "complete": 23
+          },
+          "missingReasons": [],
+          "sourceContracts": ["zendesk-call-created-agent-leg-inbound-v1"],
+          "oldestObservation": "2026-10-08T13:49:07.483Z",
+          "newestObservation": "2026-10-08T13:49:07.483Z"
+        },
+        {
+          "key": "avg_talk_time_inbound",
+          "visible": 23,
+          "reported": 18,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 5,
+            "complete": 18
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-02T06:12:47.346Z",
+          "newestObservation": "2026-10-04T07:15:37.481Z"
+        },
+        {
+          "key": "avg_hold_time_inbound",
+          "visible": 23,
+          "reported": 18,
+          "zero": 4,
+          "qualityCounts": {
+            "missing": 5,
+            "complete": 18
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-02T06:12:47.346Z",
+          "newestObservation": "2026-10-04T07:15:37.481Z"
+        },
+        {
+          "key": "avg_call_duration_inbound",
+          "visible": 2,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 2
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": null,
+          "newestObservation": null
+        },
+        {
+          "key": "avg_consultation_time_inbound",
+          "visible": 2,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 2
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": null,
+          "newestObservation": null
+        },
+        {
+          "key": "outbound_calls",
+          "visible": 23,
+          "reported": 23,
+          "zero": 5,
+          "qualityCounts": {
+            "complete": 23
+          },
+          "missingReasons": [],
+          "sourceContracts": ["zendesk-call-created-agent-leg-outbound-v1"],
+          "oldestObservation": "2026-09-28T15:57:10.639Z",
+          "newestObservation": "2026-10-08T17:12:49.239Z"
+        },
+        {
+          "key": "outbound_calls_completed",
+          "visible": 2,
+          "reported": 2,
+          "zero": 2,
+          "qualityCounts": {
+            "complete": 2
+          },
+          "missingReasons": [],
+          "sourceContracts": ["zendesk-call-created-agent-leg-outbound-v1"],
+          "oldestObservation": "2026-10-08T17:12:49.239Z",
+          "newestObservation": "2026-10-08T17:12:49.239Z"
+        },
+        {
+          "key": "outbound_calls_non_answered",
+          "visible": 2,
+          "reported": 2,
+          "zero": 2,
+          "qualityCounts": {
+            "complete": 2
+          },
+          "missingReasons": [],
+          "sourceContracts": ["zendesk-call-created-agent-leg-outbound-v1"],
+          "oldestObservation": "2026-10-08T17:12:49.239Z",
+          "newestObservation": "2026-10-08T17:12:49.239Z"
+        },
+        {
+          "key": "avg_talk_time_outbound",
+          "visible": 23,
+          "reported": 18,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 5,
+            "complete": 18
+          },
+          "missingReasons": ["No reported employee-leg durations in the outbound call cohort."],
+          "sourceContracts": ["zendesk-call-created-agent-leg-outbound-v1"],
+          "oldestObservation": "2026-09-28T15:57:10.639Z",
+          "newestObservation": "2026-10-08T17:12:49.239Z"
+        },
+        {
+          "key": "avg_hold_time_outbound",
+          "visible": 23,
+          "reported": 18,
+          "zero": 14,
+          "qualityCounts": {
+            "missing": 5,
+            "complete": 18
+          },
+          "missingReasons": ["No reported employee-leg durations in the outbound call cohort."],
+          "sourceContracts": ["zendesk-call-created-agent-leg-outbound-v1"],
+          "oldestObservation": "2026-09-28T15:57:10.639Z",
+          "newestObservation": "2026-10-08T17:12:49.239Z"
+        },
+        {
+          "key": "csat_response_rate",
+          "visible": 23,
+          "reported": 21,
+          "zero": 7,
+          "qualityCounts": {
+            "missing": 2,
+            "complete": 21
+          },
+          "missingReasons": ["No offered or rated surveys in the solved-ticket cohort."],
+          "sourceContracts": ["zendesk-solved-current-assignee-csat-v1"],
+          "oldestObservation": "2026-10-08T10:19:57.610Z",
+          "newestObservation": "2026-10-08T10:19:57.610Z"
+        },
+        {
+          "key": "missed_calls",
+          "visible": 23,
+          "reported": 23,
+          "zero": 15,
+          "qualityCounts": {
+            "complete": 23
+          },
+          "missingReasons": [],
+          "sourceContracts": ["zendesk-call-created-agent-leg-inbound-v1"],
+          "oldestObservation": "2026-10-08T13:49:07.483Z",
+          "newestObservation": "2026-10-08T13:49:07.483Z"
+        },
+        {
+          "key": "declined_calls",
+          "visible": 23,
+          "reported": 23,
+          "zero": 21,
+          "qualityCounts": {
+            "complete": 23
+          },
+          "missingReasons": [],
+          "sourceContracts": ["zendesk-call-created-agent-leg-inbound-v1"],
+          "oldestObservation": "2026-10-08T13:49:07.483Z",
+          "newestObservation": "2026-10-08T13:49:07.483Z"
+        }
+      ]
+    },
+    {
+      "team": "Menufy Support",
+      "periodStart": "2026-10-04",
+      "employees": 23,
+      "visibleCells": 357,
+      "reportedCells": 238,
+      "zeroCells": 85,
+      "unavailableCells": 119,
+      "metrics": [
+        {
+          "key": "zendesk_tickets_solved_credits",
+          "visible": 23,
+          "reported": 23,
+          "zero": 3,
+          "qualityCounts": {
+            "complete": 23
+          },
+          "missingReasons": [],
+          "sourceContracts": ["zendesk-qualified-updater-solved-credits-v1"],
+          "oldestObservation": "2026-10-07T20:32:53.000Z",
+          "newestObservation": "2026-10-07T20:32:53.000Z"
+        },
+        {
+          "key": "avg_response_time",
+          "visible": 23,
+          "reported": 20,
+          "zero": 4,
+          "qualityCounts": {
+            "missing": 3,
+            "complete": 20
+          },
+          "missingReasons": [
+            "No reported first-reply business durations in the created-ticket cohort."
+          ],
+          "sourceContracts": ["zendesk-created-current-assignee-first-reply-business-v1"],
+          "oldestObservation": "2026-10-08T16:43:39.217Z",
+          "newestObservation": "2026-10-08T16:43:39.217Z"
+        },
+        {
+          "key": "csat_score",
+          "visible": 23,
+          "reported": 9,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 14,
+            "complete": 9
+          },
+          "missingReasons": ["No rated tickets in the solved-ticket cohort."],
+          "sourceContracts": ["zendesk-solved-current-assignee-csat-v1"],
+          "oldestObservation": "2026-10-08T15:09:14.765Z",
+          "newestObservation": "2026-10-08T15:09:14.765Z"
+        },
+        {
+          "key": "tickets_updated",
+          "visible": 23,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "unverified_attribution": 23
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-04T06:11:03.740Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "worked_elevated_tickets",
+          "visible": 2,
+          "reported": 2,
+          "zero": 2,
+          "qualityCounts": {
+            "complete": 2
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-04T06:11:03.740Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "avoidable_worked_elevated_tickets",
+          "visible": 2,
+          "reported": 2,
+          "zero": 2,
+          "qualityCounts": {
+            "complete": 2
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-04T06:11:03.740Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "inbound_calls_offered",
+          "visible": 23,
+          "reported": 23,
+          "zero": 7,
+          "qualityCounts": {
+            "complete": 23
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-04T06:11:03.740Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "inbound_calls_accepted",
+          "visible": 23,
+          "reported": 23,
+          "zero": 7,
+          "qualityCounts": {
+            "complete": 23
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-04T06:11:03.740Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "inbound_calls_abandoned_on_hold",
+          "visible": 23,
+          "reported": 23,
+          "zero": 23,
+          "qualityCounts": {
+            "complete": 23
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-04T06:11:03.740Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "avg_talk_time_inbound",
+          "visible": 23,
+          "reported": 16,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 7,
+            "complete": 16
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-06T06:11:23.700Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "avg_hold_time_inbound",
+          "visible": 23,
+          "reported": 16,
+          "zero": 3,
+          "qualityCounts": {
+            "missing": 7,
+            "complete": 16
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-06T06:11:23.700Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "avg_call_duration_inbound",
+          "visible": 2,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 2
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": null,
+          "newestObservation": null
+        },
+        {
+          "key": "avg_consultation_time_inbound",
+          "visible": 2,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 2
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": null,
+          "newestObservation": null
+        },
+        {
+          "key": "outbound_calls",
+          "visible": 23,
+          "reported": 23,
+          "zero": 5,
+          "qualityCounts": {
+            "complete": 23
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-04T06:11:03.740Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "outbound_calls_completed",
+          "visible": 2,
+          "reported": 2,
+          "zero": 2,
+          "qualityCounts": {
+            "complete": 2
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-04T06:11:03.740Z",
+          "newestObservation": "2026-10-04T06:11:03.740Z"
+        },
+        {
+          "key": "outbound_calls_non_answered",
+          "visible": 2,
+          "reported": 2,
+          "zero": 2,
+          "qualityCounts": {
+            "complete": 2
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-04T06:11:03.740Z",
+          "newestObservation": "2026-10-04T06:11:03.740Z"
+        },
+        {
+          "key": "avg_talk_time_outbound",
+          "visible": 23,
+          "reported": 18,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 5,
+            "complete": 18
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-05T06:11:11.438Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "avg_hold_time_outbound",
+          "visible": 23,
+          "reported": 18,
+          "zero": 16,
+          "qualityCounts": {
+            "missing": 5,
+            "complete": 18
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-05T06:11:11.438Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "csat_response_rate",
+          "visible": 23,
+          "reported": 18,
+          "zero": 9,
+          "qualityCounts": {
+            "missing": 5,
+            "complete": 18
+          },
+          "missingReasons": ["No offered or rated surveys in the solved-ticket cohort."],
+          "sourceContracts": ["zendesk-solved-current-assignee-csat-v1"],
+          "oldestObservation": "2026-10-08T15:09:14.765Z",
+          "newestObservation": "2026-10-08T15:09:14.765Z"
+        },
+        {
+          "key": "missed_calls",
+          "visible": 23,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "unsupported": 23
+          },
+          "missingReasons": ["This metric is not connected to historical agent call-leg data."],
+          "sourceContracts": [null],
+          "oldestObservation": null,
+          "newestObservation": null
+        },
+        {
+          "key": "declined_calls",
+          "visible": 23,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "unsupported": 23
+          },
+          "missingReasons": ["This metric is not connected to historical agent call-leg data."],
+          "sourceContracts": [null],
+          "oldestObservation": null,
+          "newestObservation": null
+        }
+      ]
+    },
+    {
+      "team": "HungerRush POS Support",
+      "periodStart": "2026-09-20",
+      "employees": 39,
+      "visibleCells": 741,
+      "reportedCells": 545,
+      "zeroCells": 181,
+      "unavailableCells": 196,
+      "metrics": [
+        {
+          "key": "tickets_resolved",
+          "visible": 39,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "unverified_attribution": 39
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-27T07:15:35.271Z",
+          "newestObservation": "2026-10-08T07:23:27.567Z"
+        },
+        {
+          "key": "avg_handle_time",
+          "visible": 39,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "unsupported": 39
+          },
+          "missingReasons": [
+            "Active handling time is unavailable; the current source measures full resolution time."
+          ],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-27T07:15:35.271Z",
+          "newestObservation": "2026-10-08T07:23:27.567Z"
+        },
+        {
+          "key": "csat_score",
+          "visible": 39,
+          "reported": 33,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 6,
+            "complete": 33
+          },
+          "missingReasons": ["No rated tickets in the solved-ticket cohort."],
+          "sourceContracts": ["zendesk-solved-current-assignee-csat-v1"],
+          "oldestObservation": "2026-10-08T12:49:34.106Z",
+          "newestObservation": "2026-10-08T12:49:34.106Z"
+        },
+        {
+          "key": "backlog_count",
+          "visible": 39,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 39
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-27T07:15:35.271Z",
+          "newestObservation": "2026-10-08T07:23:27.567Z"
+        },
+        {
+          "key": "tickets_updated",
+          "visible": 39,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "unverified_attribution": 39
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-27T07:15:35.271Z",
+          "newestObservation": "2026-10-08T07:23:27.567Z"
+        },
+        {
+          "key": "worked_elevated_tickets",
+          "visible": 39,
+          "reported": 39,
+          "zero": 23,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-27T07:15:35.271Z",
+          "newestObservation": "2026-10-08T07:23:27.567Z"
+        },
+        {
+          "key": "avoidable_worked_elevated_tickets",
+          "visible": 39,
+          "reported": 39,
+          "zero": 37,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-27T07:15:35.271Z",
+          "newestObservation": "2026-10-08T07:23:27.567Z"
+        },
+        {
+          "key": "inbound_calls_offered",
+          "visible": 39,
+          "reported": 39,
+          "zero": 3,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "inbound_calls_accepted",
+          "visible": 39,
+          "reported": 39,
+          "zero": 3,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "inbound_calls_abandoned_on_hold",
+          "visible": 39,
+          "reported": 39,
+          "zero": 30,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "avg_talk_time_inbound",
+          "visible": 39,
+          "reported": 36,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 3,
+            "complete": 36
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "avg_hold_time_inbound",
+          "visible": 39,
+          "reported": 36,
+          "zero": 11,
+          "qualityCounts": {
+            "missing": 3,
+            "complete": 36
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "avg_call_duration_inbound",
+          "visible": 39,
+          "reported": 36,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 3,
+            "complete": 36
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "avg_consultation_time_inbound",
+          "visible": 39,
+          "reported": 22,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 17,
+            "complete": 22
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "outbound_calls",
+          "visible": 39,
+          "reported": 39,
+          "zero": 4,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "outbound_calls_completed",
+          "visible": 39,
+          "reported": 39,
+          "zero": 4,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "outbound_calls_non_answered",
+          "visible": 39,
+          "reported": 39,
+          "zero": 39,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "avg_talk_time_outbound",
+          "visible": 39,
+          "reported": 35,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 4,
+            "complete": 35
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        },
+        {
+          "key": "avg_hold_time_outbound",
+          "visible": 39,
+          "reported": 35,
+          "zero": 27,
+          "qualityCounts": {
+            "missing": 4,
+            "complete": 35
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-25T02:16:44.046Z",
+          "newestObservation": "2026-09-27T07:15:35.271Z"
+        }
+      ]
+    },
+    {
+      "team": "HungerRush POS Support",
+      "periodStart": "2026-09-27",
+      "employees": 39,
+      "visibleCells": 741,
+      "reportedCells": 588,
+      "zeroCells": 159,
+      "unavailableCells": 153,
+      "metrics": [
+        {
+          "key": "zendesk_assignee_solved_tickets",
+          "visible": 39,
+          "reported": 39,
+          "zero": 0,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": ["zendesk-qualified-assignee-solved-tickets-v1"],
+          "oldestObservation": "2026-10-07T20:05:49.131Z",
+          "newestObservation": "2026-10-07T20:05:49.131Z"
+        },
+        {
+          "key": "avg_handle_time",
+          "visible": 39,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "unsupported": 39
+          },
+          "missingReasons": [
+            "Active handling time is unavailable; the current source measures full resolution time."
+          ],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-06T07:15:29.573Z",
+          "newestObservation": "2026-10-08T07:14:43.801Z"
+        },
+        {
+          "key": "csat_score",
+          "visible": 39,
+          "reported": 32,
+          "zero": 2,
+          "qualityCounts": {
+            "complete": 32,
+            "missing": 7
+          },
+          "missingReasons": ["No rated tickets in the solved-ticket cohort."],
+          "sourceContracts": ["zendesk-solved-current-assignee-csat-v1"],
+          "oldestObservation": "2026-10-08T10:22:05.270Z",
+          "newestObservation": "2026-10-08T10:22:05.270Z"
+        },
+        {
+          "key": "backlog_count",
+          "visible": 39,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "missing": 39
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-06T07:15:29.573Z",
+          "newestObservation": "2026-10-08T07:14:43.801Z"
+        },
+        {
+          "key": "tickets_updated",
+          "visible": 39,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "unverified_attribution": 39
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-06T07:15:29.573Z",
+          "newestObservation": "2026-10-08T07:14:43.801Z"
+        },
+        {
+          "key": "worked_elevated_tickets",
+          "visible": 39,
+          "reported": 39,
+          "zero": 17,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-06T07:15:29.573Z",
+          "newestObservation": "2026-10-08T07:14:43.801Z"
+        },
+        {
+          "key": "avoidable_worked_elevated_tickets",
+          "visible": 39,
+          "reported": 39,
+          "zero": 38,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-06T07:15:29.573Z",
+          "newestObservation": "2026-10-08T07:14:43.801Z"
+        },
+        {
+          "key": "inbound_calls_offered",
+          "visible": 39,
+          "reported": 39,
+          "zero": 2,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-27T06:11:03.682Z",
+          "newestObservation": "2026-10-04T07:15:37.481Z"
+        },
+        {
+          "key": "inbound_calls_accepted",
+          "visible": 39,
+          "reported": 39,
+          "zero": 2,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": ["zendesk-qualified-pos-leg-date-inbound-v1"],
+          "oldestObservation": "2026-10-08T05:15:41.425Z",
+          "newestObservation": "2026-10-08T05:15:41.425Z"
+        },
+        {
+          "key": "inbound_calls_abandoned_on_hold",
+          "visible": 39,
+          "reported": 39,
+          "zero": 31,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-09-27T06:11:03.682Z",
+          "newestObservation": "2026-10-04T07:15:37.481Z"
+        },
+        {
+          "key": "avg_talk_time_inbound",
+          "visible": 39,
+          "reported": 37,
+          "zero": 0,
+          "qualityCounts": {
+            "complete": 37,
+            "missing": 2
+          },
+          "missingReasons": [
+            "No reported duration measurements in the selected employee-leg cohort."
+          ],
+          "sourceContracts": ["zendesk-qualified-pos-leg-date-inbound-v1"],
+          "oldestObservation": "2026-10-08T05:15:41.425Z",
+          "newestObservation": "2026-10-08T05:15:41.425Z"
+        },
+        {
+          "key": "avg_hold_time_inbound",
+          "visible": 39,
+          "reported": 37,
+          "zero": 6,
+          "qualityCounts": {
+            "complete": 37,
+            "missing": 2
+          },
+          "missingReasons": [
+            "No reported duration measurements in the selected employee-leg cohort."
+          ],
+          "sourceContracts": ["zendesk-qualified-pos-leg-date-inbound-v1"],
+          "oldestObservation": "2026-10-08T05:15:41.425Z",
+          "newestObservation": "2026-10-08T05:15:41.425Z"
+        },
+        {
+          "key": "avg_call_duration_inbound",
+          "visible": 39,
+          "reported": 37,
+          "zero": 0,
+          "qualityCounts": {
+            "complete": 37,
+            "missing": 2
+          },
+          "missingReasons": [
+            "No reported duration measurements in the selected employee-leg cohort."
+          ],
+          "sourceContracts": ["zendesk-qualified-pos-leg-date-inbound-v1"],
+          "oldestObservation": "2026-10-08T05:15:41.425Z",
+          "newestObservation": "2026-10-08T05:15:41.425Z"
+        },
+        {
+          "key": "avg_consultation_time_inbound",
+          "visible": 39,
+          "reported": 24,
+          "zero": 0,
+          "qualityCounts": {
+            "complete": 24,
+            "missing": 15
+          },
+          "missingReasons": [
+            "No reported duration measurements in the selected employee-leg cohort."
+          ],
+          "sourceContracts": ["zendesk-qualified-pos-leg-date-inbound-v1"],
+          "oldestObservation": "2026-10-08T05:15:41.425Z",
+          "newestObservation": "2026-10-08T05:15:41.425Z"
+        },
+        {
+          "key": "outbound_calls",
+          "visible": 39,
+          "reported": 39,
+          "zero": 4,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": ["zendesk-call-created-agent-leg-outbound-v1"],
+          "oldestObservation": "2026-09-28T17:51:03.130Z",
+          "newestObservation": "2026-10-08T17:12:49.239Z"
+        },
+        {
+          "key": "outbound_calls_completed",
+          "visible": 39,
+          "reported": 39,
+          "zero": 4,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": ["zendesk-call-created-agent-leg-outbound-v1"],
+          "oldestObservation": "2026-09-28T17:51:03.130Z",
+          "newestObservation": "2026-10-08T17:12:49.239Z"
+        },
+        {
+          "key": "outbound_calls_non_answered",
+          "visible": 39,
+          "reported": 39,
+          "zero": 26,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": ["zendesk-call-created-agent-leg-outbound-v1"],
+          "oldestObservation": "2026-09-28T17:51:03.130Z",
+          "newestObservation": "2026-10-08T17:12:49.239Z"
+        },
+        {
+          "key": "avg_talk_time_outbound",
+          "visible": 39,
+          "reported": 35,
+          "zero": 0,
+          "qualityCounts": {
+            "complete": 35,
+            "missing": 4
+          },
+          "missingReasons": ["No reported employee-leg durations in the outbound call cohort."],
+          "sourceContracts": ["zendesk-call-created-agent-leg-outbound-v1"],
+          "oldestObservation": "2026-09-28T17:51:03.130Z",
+          "newestObservation": "2026-10-08T17:12:49.239Z"
+        },
+        {
+          "key": "avg_hold_time_outbound",
+          "visible": 39,
+          "reported": 35,
+          "zero": 27,
+          "qualityCounts": {
+            "complete": 35,
+            "missing": 4
+          },
+          "missingReasons": ["No reported employee-leg durations in the outbound call cohort."],
+          "sourceContracts": ["zendesk-call-created-agent-leg-outbound-v1"],
+          "oldestObservation": "2026-09-28T17:51:03.130Z",
+          "newestObservation": "2026-10-08T17:12:49.239Z"
+        }
+      ]
+    },
+    {
+      "team": "HungerRush POS Support",
+      "periodStart": "2026-10-04",
+      "employees": 39,
+      "visibleCells": 741,
+      "reportedCells": 625,
+      "zeroCells": 187,
+      "unavailableCells": 116,
+      "metrics": [
+        {
+          "key": "zendesk_assignee_solved_tickets",
+          "visible": 39,
+          "reported": 39,
+          "zero": 2,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": ["zendesk-qualified-assignee-solved-tickets-v1"],
+          "oldestObservation": "2026-10-07T20:10:54.477Z",
+          "newestObservation": "2026-10-07T20:10:54.477Z"
+        },
+        {
+          "key": "avg_handle_time",
+          "visible": 39,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "unsupported": 39
+          },
+          "missingReasons": [
+            "Active handling time is unavailable; the current source measures full resolution time."
+          ],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-07T06:11:36.192Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "csat_score",
+          "visible": 39,
+          "reported": 33,
+          "zero": 1,
+          "qualityCounts": {
+            "complete": 33,
+            "missing": 6
+          },
+          "missingReasons": ["No rated tickets in the solved-ticket cohort."],
+          "sourceContracts": ["zendesk-solved-current-assignee-csat-v1"],
+          "oldestObservation": "2026-10-08T15:10:29.455Z",
+          "newestObservation": "2026-10-08T15:10:29.455Z"
+        },
+        {
+          "key": "backlog_count",
+          "visible": 39,
+          "reported": 39,
+          "zero": 0,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-07T06:11:36.192Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "tickets_updated",
+          "visible": 39,
+          "reported": 0,
+          "zero": 0,
+          "qualityCounts": {
+            "unverified_attribution": 39
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-07T06:11:36.192Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "worked_elevated_tickets",
+          "visible": 39,
+          "reported": 39,
+          "zero": 20,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-07T06:11:36.192Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "avoidable_worked_elevated_tickets",
+          "visible": 39,
+          "reported": 39,
+          "zero": 37,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-07T06:11:36.192Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "inbound_calls_offered",
+          "visible": 39,
+          "reported": 39,
+          "zero": 3,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-04T06:11:03.740Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "inbound_calls_accepted",
+          "visible": 39,
+          "reported": 39,
+          "zero": 3,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": ["zendesk-qualified-pos-leg-date-inbound-v1"],
+          "oldestObservation": "2026-10-08T13:49:07.483Z",
+          "newestObservation": "2026-10-08T13:49:07.483Z"
+        },
+        {
+          "key": "inbound_calls_abandoned_on_hold",
+          "visible": 39,
+          "reported": 39,
+          "zero": 35,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-04T06:11:03.740Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "avg_talk_time_inbound",
+          "visible": 39,
+          "reported": 36,
+          "zero": 0,
+          "qualityCounts": {
+            "complete": 36,
+            "missing": 3
+          },
+          "missingReasons": [
+            "No reported duration measurements in the selected employee-leg cohort."
+          ],
+          "sourceContracts": ["zendesk-qualified-pos-leg-date-inbound-v1"],
+          "oldestObservation": "2026-10-08T13:49:07.483Z",
+          "newestObservation": "2026-10-08T13:49:07.483Z"
+        },
+        {
+          "key": "avg_hold_time_inbound",
+          "visible": 39,
+          "reported": 36,
+          "zero": 9,
+          "qualityCounts": {
+            "complete": 36,
+            "missing": 3
+          },
+          "missingReasons": [
+            "No reported duration measurements in the selected employee-leg cohort."
+          ],
+          "sourceContracts": ["zendesk-qualified-pos-leg-date-inbound-v1"],
+          "oldestObservation": "2026-10-08T13:49:07.483Z",
+          "newestObservation": "2026-10-08T13:49:07.483Z"
+        },
+        {
+          "key": "avg_call_duration_inbound",
+          "visible": 39,
+          "reported": 36,
+          "zero": 0,
+          "qualityCounts": {
+            "complete": 36,
+            "missing": 3
+          },
+          "missingReasons": [
+            "No reported duration measurements in the selected employee-leg cohort."
+          ],
+          "sourceContracts": ["zendesk-qualified-pos-leg-date-inbound-v1"],
+          "oldestObservation": "2026-10-08T13:49:07.483Z",
+          "newestObservation": "2026-10-08T13:49:07.483Z"
+        },
+        {
+          "key": "avg_consultation_time_inbound",
+          "visible": 39,
+          "reported": 24,
+          "zero": 0,
+          "qualityCounts": {
+            "complete": 24,
+            "missing": 15
+          },
+          "missingReasons": [
+            "No reported duration measurements in the selected employee-leg cohort."
+          ],
+          "sourceContracts": ["zendesk-qualified-pos-leg-date-inbound-v1"],
+          "oldestObservation": "2026-10-08T13:49:07.483Z",
+          "newestObservation": "2026-10-08T13:49:07.483Z"
+        },
+        {
+          "key": "outbound_calls",
+          "visible": 39,
+          "reported": 39,
+          "zero": 4,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-04T06:11:03.740Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "outbound_calls_completed",
+          "visible": 39,
+          "reported": 39,
+          "zero": 4,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-04T06:11:03.740Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "outbound_calls_non_answered",
+          "visible": 39,
+          "reported": 39,
+          "zero": 39,
+          "qualityCounts": {
+            "complete": 39
+          },
+          "missingReasons": [],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-04T06:11:03.740Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "avg_talk_time_outbound",
+          "visible": 39,
+          "reported": 35,
+          "zero": 0,
+          "qualityCounts": {
+            "complete": 35,
+            "missing": 4
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-05T06:11:11.438Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        },
+        {
+          "key": "avg_hold_time_outbound",
+          "visible": 39,
+          "reported": 35,
+          "zero": 30,
+          "qualityCounts": {
+            "complete": 35,
+            "missing": 4
+          },
+          "missingReasons": [null],
+          "sourceContracts": [null],
+          "oldestObservation": "2026-10-05T06:11:11.438Z",
+          "newestObservation": "2026-10-08T06:12:08.394Z"
+        }
+      ]
+    }
+  ]
+}

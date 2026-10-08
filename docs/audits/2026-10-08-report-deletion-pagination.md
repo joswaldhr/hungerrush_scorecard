@@ -1,5 +1,19 @@
 # Report parent refresh continuation
 
+## Production result
+
+PR54 is live as `bf7ea0de2d92c757cb41f3ee0b24493b81ab5251`, deployment
+`dpl_9tJxGRF9S45ad4nsGFKXhzUANDqd`, verified READY on the production alias.
+Final candidate `f95e545` passes exact CI/build `37821453954`. Login, authenticated
+review selection, anonymous cron rejection and authenticated disabled outbound route
+pass. All 22 environment metadata entries and 16 crons are unchanged. No extra sync
+or metric publication was triggered. The fixed transport was already exercised
+against real read-only source continuations in qualification; scheduled execution
+of that corrected path has not been observed. Rollback is `bb3328f` /
+`dpl_4xsKsCFjbxTebpG2VXUtm8KpCSwY`.
+
+## Defect and qualification
+
 A real read-only Menufy parent refresh stopped on the deletion census after 50
 successful parent batches. Zendesk's returned next-page URL retains the page number
 and descending deletion sort but omits `per_page`. The existing account-bound reader
