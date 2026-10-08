@@ -49,6 +49,49 @@ it("stops after a failure and never retries a 429 in the join invocation", async
   await expect(read(tickets)).rejects.toThrow("stopped");
   expect(request).toHaveBeenCalledTimes(1);
 });
+it("follows a source deletion continuation that omits page size using the same bounded GET", async () => {
+  const next =
+    "https://synthetic.zendesk.com/api/v2/deleted_tickets.json?page=2&sort_by=deleted_at&sort_order=desc";
+  const request = vi
+    .fn<typeof fetch>()
+    .mockResolvedValueOnce(Response.json({ deleted_tickets: [{ id: 1 }], next_page: next }))
+    .mockResolvedValueOnce(Response.json({ deleted_tickets: [{ id: 2 }], next_page: null }));
+  const read = createReportJoinReader(credentials, account, {
+    request,
+    spacingMs: 0,
+    requestBudget: 2,
+  });
+  const first = (await read(deletions)) as { next_page: string };
+  await expect(read(first.next_page)).resolves.toMatchObject({ deleted_tickets: [{ id: 2 }] });
+  const requested = new URL(String(request.mock.calls[1]![0]));
+  expect(requested.searchParams.get("per_page")).toBe("100");
+  expect(requested.searchParams.get("page")).toBe("2");
+  expect(request.mock.calls[1]![1]).toMatchObject({ method: "GET", redirect: "error" });
+  await expect(read(next.replace("page=2", "page=3"))).rejects.toThrow("budget");
+  expect(request).toHaveBeenCalledTimes(2);
+});
+it("does not relax deletion continuation scope, size, duplicate parameters or page bounds", async () => {
+  const next =
+    "https://synthetic.zendesk.com/api/v2/deleted_tickets.json?page=2&sort_by=deleted_at&sort_order=desc";
+  const request = vi.fn<typeof fetch>();
+  const read = createReportJoinReader(credentials, account, { request, spacingMs: 0 });
+  for (const path of [
+    next.replace("synthetic.zendesk.com", "other.zendesk.com"),
+    next + "&per_page=50",
+    next + "&page=3",
+    next + "&sort_order=desc",
+    next + "&include=comments",
+    next.replace("page=2", "page=101"),
+    next.replace("page=2", "page=-2"),
+    next.replace("page=2", "page=1"),
+    next.replace("page=2", "page=2.5"),
+    next.replace("page=2&", ""),
+    next.replace("desc", "asc"),
+    next.replace("&sort_by=deleted_at", ""),
+  ])
+    await expect(read(path)).rejects.toThrow("allowlist");
+  expect(request).not.toHaveBeenCalled();
+});
 it("enforces shared request and account quota budgets across endpoints", async () => {
   const request = vi.fn<typeof fetch>().mockResolvedValue(new Response("{}"));
   const read = createReportJoinReader(credentials, account, {

@@ -67,8 +67,12 @@ export function createReportJoinReader(
         throw Error("Report parent query outside allowlist");
     } else if (url.pathname === "/api/v2/deleted_tickets.json") {
       allowed = ["per_page", "page", "sort_by", "sort_order"];
+      // Zendesk can omit per_page from its offset continuation. Preserve our
+      // bounded page size without accepting a different explicit size or scope.
+      const continuationWithoutSize =
+        !q.has("per_page") && /^[0-9]+$/.test(q.get("page") ?? "") && Number(q.get("page")) >= 2;
       if (
-        q.get("per_page") !== "100" ||
+        (q.get("per_page") !== "100" && !continuationWithoutSize) ||
         q.get("sort_by") !== "deleted_at" ||
         q.get("sort_order") !== "desc" ||
         (q.has("page") &&
@@ -77,6 +81,7 @@ export function createReportJoinReader(
             Number(q.get("page")) > 100))
       )
         throw Error("Report deletion query outside allowlist");
+      if (continuationWithoutSize) q.set("per_page", "100");
     } else throw Error("Report join endpoint outside allowlist");
     if (
       [...q.keys()].some(
