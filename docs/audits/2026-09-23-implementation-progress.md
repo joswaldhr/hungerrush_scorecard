@@ -1,5 +1,61 @@
 # Audit implementation — current checkpoint
 
+**October 8, 16:24 UTC — closed review week published for both teams:**
+For September 27–October 3, the released `2a62d53` runtime's normal atomic sync
+service published five existing POS inbound metrics for all 39 active employees
+(195 values), then five existing Menufy inbound counts for all 23 (115 values).
+Each family used a separate, explicitly scoped one-run policy, retained source
+capture, fresh encrypted restore, predecessor baseline and durable dispatch marker.
+There were no Zendesk requests or changes during publication. Deployed policies,
+schedules, targets, employee/metric assignments, demo and disabled repair/recovery
+features remain unchanged. These are controlled runs, not scheduler evidence.
+
+Independent POS reconstruction matches 195 persisted values, 546 source sets and
+156 duration numerator/denominator checks. Eleven unrelated-data digest groups
+and all 174 prior value snapshots are unchanged/matched. Eight genuine zeros and
+21 no-sample nulls retain their meanings. Menufy independently matches all 207
+source-calculated report values and all 171 inbound values present in today's actual
+dashboard export. Its 115 published counts match exactly, including 64 genuine
+zeros; eleven protected digest groups and 69 predecessor snapshots match. An older
+capture's missing parent was resolved by reusing the newer retained capture, not by
+discarding the leg. See the two closed-review manifests and verification receipts.
+
+Authorized manager previews show the correct 39/23 employee lists and representative
+live review scorecards. Actual downloaded POS/Menufy CSV bytes match the five updated
+values, dates, source definitions, Central timezone and withheld historical targets.
+Native print and fresh PDF/PNG bytes are not verified in this increment; export code
+is unchanged. No new deployment was necessary for these scoped data publications.
+
+Private local review packs now include all 62 employees across two files, using the
+managers' actual September 27–October 3 dashboard exports plus the qualified inbound
+results. Employee selection, representative zero/missing behavior and browser layout
+were checked. Raw exports, employee rows and packs remain outside public Git. Source
+rows are absent for some employees and are not inferred as zero. Some POS state totals
+exceed 168 hours; they are explicitly not elapsed working hours or verified adherence.
+The report-export intake candidate remains separate and unpublished to production.
+
+Two private, shareable PDF packs contain exactly one page and a named bookmark per
+employee (23 Menufy / 39 POS). Every displayed metric label/value was checked against
+the prepared report view; all 62 rendered pages were visually inspected in contact
+sheets with full-size representative pages. These are local report-reference PDFs,
+separate from Cadence's hosted PDF/PNG export verification. See the aggregate
+`2026-10-08-review-pdf-packs.json`.
+
+**Remaining limits:** the user requested all review data today; full scorecards are
+still incomplete. Tickets Updated human attribution, POS active handling time, stale
+or differently scoped outbound measures, other unqualified measures and recurring
+operation remain open. No-rating CSAT and empty duration cohorts legitimately have
+no numeric result. Report values are a meeting reference, not certification of these
+remaining fields. Prior-week comparison/target context is not reconstructed by this
+release. The new Menufy keys retain their October 11 prospective assignment date.
+
+**PR50 deployment evidence retained:** master `2a62d53` / production
+`dpl_FjYh9B34SCKicN55KR1pCTRE17JA` was verified READY with exact CI
+`37800104959`; controlled CSAT and independent three-period evidence are recorded in
+`2026-10-08-csat-recovery-release.md` and its receipts. Neither recovery switch is
+enabled. This supersedes older checkpoints that still describe PR50 as pending.
+
+
 **October 8, 15:12 UTC — actual current-week CSAT recovered and independently checked:**
 One controlled request on unchanged production `baca908` returned HTTP 200 and
 published 85 assigned CSAT values for all 62 current staff. Independent Python

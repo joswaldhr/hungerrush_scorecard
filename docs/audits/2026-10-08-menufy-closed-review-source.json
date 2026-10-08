@@ -1,0 +1,22 @@
+{
+  "observedAt": "2026-10-08T16:19:54.083498+00:00",
+  "employees": 23,
+  "periods": [
+    {
+      "periodStart": "2026-09-27",
+      "periodEnd": "2026-10-03",
+      "employeeCases": 23,
+      "valueComparisons": 207,
+      "sourceSetComparisons": 207,
+      "durationEvidenceComparisons": 276,
+      "differences": 0,
+      "blockedCases": 0
+    }
+  ],
+  "sourceCalculationDifferences": 0,
+  "freshExportValuesCompared": 171,
+  "freshExportDifferences": 0,
+  "sourceRequests": 0,
+  "productionWrites": 0,
+  "publicationEnabled": false
+}
