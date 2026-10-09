@@ -1,0 +1,32 @@
+{
+  "observedAt": "2026-10-09T17:53:21Z",
+  "readOnly": true,
+  "invocationLogScope": "Project-wide production across deployment changes, 17:35 through 17:52 UTC; pagination exhausted",
+  "scheduledInvocation": {
+    "at": "2026-10-09T17:45:21.380Z",
+    "route": "/api/cron/report-recovery",
+    "userAgent": "vercel-cron/1.0",
+    "status": 200,
+    "durationMs": 2236,
+    "crashed": false,
+    "deployment": "dpl_713dF7JzVpiA3h2UHZDVC17SQPmx"
+  },
+  "queueReadback": {
+    "jobs": 6,
+    "allComplete": true,
+    "desiredEqualsCompletedThrough": true,
+    "failures": 0,
+    "leases": 0,
+    "pendingDemand": 0,
+    "additionalRosterRuns": 0,
+    "metricSyncRunsSince1735": 0
+  },
+  "scheduledDispatcherDeliveryVerified": true,
+  "scheduledRosterCollectionVerified": false,
+  "scheduledMetricPublicationVerifiedByThisCheck": false,
+  "sourceRunsTriggeredByVerification": 0,
+  "limitations": [
+    "This invocation preceded the PR72 deployment; it is not PR72 scheduler evidence.",
+    "Today roster demand was already satisfied by the controlled canary. Successful idle dispatch does not prove scheduled source work."
+  ]
+}

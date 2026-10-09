@@ -1,0 +1,68 @@
+{
+  "observedAt": "2026-10-09T17:55:53.611Z",
+  "deploymentId": "dpl_8vPWEbf1DscF3NXdZcA2VeyYmTxv",
+  "commit": "170b11f7abb4f0632d2721cf545ea0f31d8043ae",
+  "productionAlias": "hungerrush-scorecard.vercel.app",
+  "readOnly": true,
+  "checks": [
+    {
+      "query": "?probe=health",
+      "httpStatus": 200
+    },
+    {
+      "query": "?health=1",
+      "httpStatus": 400
+    },
+    {
+      "query": "?probe=health&probe=health",
+      "httpStatus": 400
+    },
+    {
+      "query": "?probe=auth&probe=health",
+      "httpStatus": 400
+    }
+  ],
+  "queueUnchanged": true,
+  "rosterRunsUnchanged": true,
+  "rosterObservationsUnchanged": true,
+  "queueRequestsTriggered": 0,
+  "sourceCollectorsTriggered": 0,
+  "diagnosticDatabaseWrites": 0,
+  "vendorCalls": 0,
+  "scheduledEvidence": false,
+  "durationMs": 4855,
+  "release": {
+    "pullRequest": 73,
+    "candidateSha": "bc67516731152a82a0ea520fdde2fb4b1a3d6226",
+    "exactCandidateCi": {
+      "runId": "37969001047",
+      "conclusion": "success"
+    },
+    "independentReviews": [
+      "root",
+      "loading_performance"
+    ],
+    "isolatedPreview": {
+      "deploymentId": "dpl_8YuGWiQSfwdCbE1vLTH5qMrucEQd",
+      "commit": "04a608cd5891c28b381623a79500841543d0ea19",
+      "state": "READY",
+      "isolationGuardPassed": true,
+      "sourcePackageAndLockMatchCandidate": true
+    }
+  },
+  "backup": {
+    "receipt": "docs/audits/2026-10-09-afternoon-release-restore.json",
+    "observedAt": "2026-10-09T17:16:13.943Z",
+    "validUntil": "2026-10-09T18:16:13.943Z",
+    "restoreAndDigestsVerified": true
+  },
+  "rollback": {
+    "deploymentId": "dpl_3fhXwV8qWAgRaLY4EsQ1g2qNaFMi",
+    "sameRecoveryFlags": true
+  },
+  "limits": [
+    "This verifies authenticated roster query handling on the production alias; it does not prove a scheduled discovery execution.",
+    "Only health and intentionally rejected malformed requests were sent; the queryless worker path was not invoked.",
+    "Roster queue, runs and observations were compared before and after this bounded diagnostic window. No metric certification claim is made."
+  ]
+}

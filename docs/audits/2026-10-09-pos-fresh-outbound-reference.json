@@ -1,0 +1,93 @@
+{
+  "verifiedAt": "2026-10-09T17:21:43.213345+00:00",
+  "periodStart": "2026-09-27",
+  "periodEnd": "2026-10-03",
+  "reportingTimeZone": "America/Chicago",
+  "periodEmbeddedInExport": false,
+  "periodProvenance": "Root observed the authorized viewer custom date range immediately before export at approximately 17:18 UTC on October 9; tool history retains the observation.",
+  "viewerRestoredAndClosed": true,
+  "viewerOneTimeDateExceptionUsed": true,
+  "reportEditorOpened": false,
+  "reportSaved": false,
+  "filtersPersisted": false,
+  "datasetRefreshLabelCaptured": false,
+  "exportReceivedAt": "2026-10-09T17:18:28.690739+00:00",
+  "oldArchiveSha256": "6f6401c782dddf5812f1df1020743be491731eb4df5a05d62d53e00602521e20",
+  "freshArchiveSha256": "e3481c0910349240133ed3fb6cb4200c5490b2604b62632a13921f7698f54ae0",
+  "reportChanges": [
+    {
+      "report": "POS Ticket Audit.csv",
+      "previousRows": 83,
+      "freshRows": 83,
+      "addedRows": 0,
+      "removedRows": 0,
+      "changedNumericCells": 14
+    },
+    {
+      "report": "POS Support Status Audit.csv",
+      "previousRows": 48,
+      "freshRows": 48,
+      "addedRows": 0,
+      "removedRows": 0,
+      "changedNumericCells": 1
+    },
+    {
+      "report": "POS IB Audit.csv",
+      "previousRows": 40,
+      "freshRows": 40,
+      "addedRows": 0,
+      "removedRows": 0,
+      "changedNumericCells": 0
+    },
+    {
+      "report": "POS OB Audit.csv",
+      "previousRows": 42,
+      "freshRows": 42,
+      "addedRows": 0,
+      "removedRows": 0,
+      "changedNumericCells": 1
+    }
+  ],
+  "posSourceEmployees": 39,
+  "posReportEmployeesCompared": 35,
+  "posReportRowsAbsent": 4,
+  "posReportRowsOutsideCurrentCohort": 7,
+  "posOutboundCountDifferences": 0,
+  "changedPosOutboundCount": {
+    "previousReport": 34,
+    "freshReport": 31,
+    "retainedSource": 31
+  },
+  "sourceQualificationObservedAt": "2026-10-09T01:24:55.959Z",
+  "independentReplay": {
+    "employees": 62,
+    "independentValueChecks": 310,
+    "sourceSetChecks": 868,
+    "durationNumeratorDenominatorMeanChecks": 372,
+    "sourceReplayDifferences": 0,
+    "reportCellsCompared": 111,
+    "reportEmployeesCompared": 54,
+    "reportCellDifferences": 0,
+    "reportEmployeeDifferences": 0,
+    "reportContributingIdsVerified": false,
+    "sourceFreshnessVerified": false,
+    "publicationAuthorized": false,
+    "vendorRequests": 0,
+    "databaseWrites": 0,
+    "inputSha256": {
+      "candidates": "128d9cc504bdcdebd0831421724ed9b85f68fb3757fb7651f6a41f6ce7599eb1",
+      "snapshot": "af833d73fafeb3d386fddcf1c12b82f45db1e1209792908ccc58c9d34ee79de4",
+      "tickets": "a0ab5d5b0ab4bd24ce0e6ce6a2faf6117de32de137be859872ae99ddb4cefe30",
+      "reportChecks": "e79367f48a8c345d17c21f4e3c7c96b3fffa054601871d5d0f0dc2d4f1ad9edd"
+    }
+  },
+  "limits": [
+    "Fresh POS report compares outbound counts only; completion and duration measures are not present in this CSV.",
+    "Report contributing IDs and original Explore refresh cause remain unverified.",
+    "Source evidence is retained October 9 around 01:24 UTC, not a new simultaneous source capture.",
+    "Four absent POS report rows are not independently verified zero values.",
+    "Menufy comparisons reuse their prior retained export; this is not a fresh Menufy reconciliation.",
+    "Changes in update and state-time reports are separate unqualified observations.",
+    "No metric publication, vendor API calls or database writes were performed by this verification."
+  ]
+}
