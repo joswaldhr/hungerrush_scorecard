@@ -238,4 +238,89 @@ describe.sequential("agent-update atomic publication", () => {
     expect(result.success).toBe(false);
     expect(await values()).toEqual(before);
   });
+  it("commits a bounded assignment and normal publication together", async () => {
+    const cache = globalThis as unknown as { _cadenceDb: typeof db };
+    const connection = cache._cadenceDb;
+    const f = fixture();
+    const endExclusive = new Date(Date.parse(f.periodStart) + 7 * 86400000)
+      .toISOString()
+      .slice(0, 10);
+    try {
+      await connection.transaction(async (tx) => {
+        cache._cadenceDb = tx;
+        await tx
+          .update(metricAssignments)
+          .set({
+            effectiveFrom: f.periodStart,
+            effectiveTo: endExclusive,
+          })
+          .where(eq(metricAssignments.metricDefinitionId, ids[0]!));
+        const result = await runSync(publisher(f), config, {
+          period: { periodStart: f.periodStart, periodEnd: f.periodEnd },
+        });
+        expect(result.success).toBe(true);
+        expect(result.valuesWritten).toBe(1);
+      });
+    } finally {
+      cache._cadenceDb = connection;
+    }
+    expect((await values()).find((v) => v.metricDefinitionId === ids[0])?.numericValue).toBe(1);
+    expect(
+      (
+        await db
+          .select()
+          .from(metricAssignments)
+          .where(eq(metricAssignments.metricDefinitionId, ids[0]!))
+      )[0]
+    ).toMatchObject({ effectiveFrom: f.periodStart, effectiveTo: endExclusive });
+  });
+  it("rolls catalog, successful publication and run evidence back when final verification fails", async () => {
+    const cache = globalThis as unknown as { _cadenceDb: typeof db };
+    const connection = cache._cadenceDb;
+    const before = await values();
+    const assignmentsBefore = await db
+      .select()
+      .from(metricAssignments)
+      .where(inArray(metricAssignments.metricDefinitionId, ids))
+      .orderBy(metricAssignments.id);
+    const runsBefore = await db
+      .select()
+      .from(syncRuns)
+      .where(eq(syncRuns.dataSourceId, source))
+      .orderBy(syncRuns.id);
+    const f = fixture();
+    f.snapshot.events.push({ ...f.snapshot.events[0]!, id: 99, child_events: [] });
+    try {
+      await expect(
+        connection.transaction(async (tx) => {
+          cache._cadenceDb = tx;
+          await tx
+            .update(metricAssignments)
+            .set({ displayOrder: 99 })
+            .where(eq(metricAssignments.metricDefinitionId, ids[0]!));
+          const result = await runSync(publisher(f), config, {
+            period: { periodStart: f.periodStart, periodEnd: f.periodEnd },
+          });
+          expect(result.success).toBe(true);
+          expect((await values()).find((v) => v.metricDefinitionId === ids[0])?.numericValue).toBe(
+            2
+          );
+          throw Error("Final independent verification rejected synthetic publication");
+        })
+      ).rejects.toThrow("Final independent verification rejected synthetic publication");
+    } finally {
+      cache._cadenceDb = connection;
+    }
+    expect(await values()).toEqual(before);
+    expect(
+      await db
+        .select()
+        .from(metricAssignments)
+        .where(inArray(metricAssignments.metricDefinitionId, ids))
+        .orderBy(metricAssignments.id)
+    ).toEqual(assignmentsBefore);
+    expect(
+      await db.select().from(syncRuns).where(eq(syncRuns.dataSourceId, source)).orderBy(syncRuns.id)
+    ).toEqual(runsBefore);
+  });
 });
