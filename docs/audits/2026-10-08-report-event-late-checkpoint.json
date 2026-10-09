@@ -1,0 +1,10 @@
+{
+  "observedAt": "2026-10-08T22:05:26.885Z",
+  "readOnly": true,
+  "cycle": 3,
+  "observationStartedAt": "2026-10-08T18:39:14.679Z",
+  "lastPageAt": "2026-10-08T18:43:27.763Z",
+  "status": "exhausted",
+  "watermark": "2026-10-08T18:42:26.000Z",
+  "pages": 11
+}

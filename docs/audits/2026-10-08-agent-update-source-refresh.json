@@ -1,0 +1,15 @@
+{
+  "observedAt": "2026-10-08T23:50:25.753Z",
+  "controlledSourceRefresh": true,
+  "scheduledEvidence": false,
+  "status": "collected",
+  "pages": 6,
+  "newEvents": 5364,
+  "elapsedMs": 115305,
+  "streamExhausted": true,
+  "joinedMetricCoverageCertified": false,
+  "protectedDigestGroups": 10,
+  "protectedDigestsUnchanged": true,
+  "metricWrites": 0,
+  "vendorWrites": 0
+}

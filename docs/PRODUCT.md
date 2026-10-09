@@ -238,7 +238,7 @@ docs/DATA_MODEL.md's MetricTarget/MetricVisibilityOverride entries.
 
 ### Manager meeting roster
 
-The manager-roster archive candidate adds **1:1s → Manage roster**. A manager can
+The manager-roster archive provides **1:1s → Manage roster**. A manager can
 archive a confirmed former team member from their own active meeting list and
 explicitly restore them later, recording a reason for each decision. This does not
 declare employment termination or revoke existing authorized historical access.

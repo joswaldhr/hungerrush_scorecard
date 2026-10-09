@@ -1,5 +1,32 @@
 # Report-matched ticket credits
 
+## October 8, 22:04 UTC — current closed-week row parity
+
+The unchanged September 27–October 3 Menufy dashboard was exported again at 21:57
+UTC in view mode; the viewer was closed without filters or editor changes. Compared
+with the 17:28 UTC export, 18 cells changed across two update reports. The earlier
+parent observation then differed on four employee rows. A fresh bounded parent
+join (52 GETs, 4,911 parents, 40 explicit tombstones) restores exact agreement on
+all 21 populated current-cohort update rows. Both implementations also agree on all
+23 source counts and contributing event sets. One ticket left the selected scope
+between the two parent observations. No formula or follower-event exclusion changed.
+
+This supersedes the unexplained second-week count residual below for this export
+and observation. It does not establish Explore's contributing update IDs, first-week
+parity, fresh event/identity capture or POS semantics. The event capture used here
+is still the retained October 6 stream. The two employees absent from the export
+retain source-proven zeros, not invented independent report rows. This is the same
+23-person source cohort; a meeting-roster archive does not erase historical activity.
+No update metric was published. See [aggregate comparison](2026-10-08-menufy-update-late-parity.json).
+
+The production event collector's separate read-only checkpoint is exhausted at
+18:43 UTC with an 18:42 UTC watermark. At the 22:05 UTC check this is outside the
+one-hour publication freshness window; it must not be described as a fresh capture.
+Next qualification needs a fresh coordinated stream and identity snapshot, bounded
+parent joins, independent report/source reconciliation across the required periods,
+then a separate tested publication adapter and release. Existing solved publication
+and legacy human-only restrictions are unchanged.
+
 ## October 8 current-cohort update investigation
 
 The current-roster comparison is narrower and more precise than the all-report-row

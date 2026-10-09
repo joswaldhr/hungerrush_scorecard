@@ -1,5 +1,14 @@
 # Report parent refresh continuation
 
+## Later qualification — October 8, 22:04 UTC
+
+Fresh unchanged dashboard export and a second bounded parent observation now match
+all 21 populated current-cohort update rows exactly, with no formula adjustment.
+The residual described below is superseded for that observation only. All 23 source
+counts/event sets independently match; fresh events and multi-period qualification
+remain required. See the [current contract checkpoint](2026-10-06-report-ticket-credit-contract.md)
+and [aggregate receipt](2026-10-08-menufy-update-late-parity.json).
+
 ## Production result
 
 PR54 is live as `bf7ea0de2d92c757cb41f3ee0b24493b81ab5251`, deployment

@@ -1,0 +1,21 @@
+{
+  "observedAt": "2026-10-09T00:08:22.102773+00:00",
+  "sourceObservedAt": "2026-10-09T00:07:35.835Z",
+  "periodStart": "2026-10-04",
+  "periodEnd": "2026-10-10",
+  "reportingTimezone": "America/Chicago",
+  "employees": 23,
+  "sourceCountsAndSetsMatch": 23,
+  "referenceRows": 0,
+  "referenceMatches": 0,
+  "referenceDifferences": 0,
+  "sourceZerosWithoutReference": 2,
+  "oldestDependency": "2026-10-08T23:59:19.000Z",
+  "freshEventIdentityParentJoin": true,
+  "metricWrites": 0,
+  "databaseReadOnly": true,
+  "vendorWrites": 0,
+  "publication": false,
+  "referenceComparisonAvailable": false,
+  "reportingAsOf": "2026-10-08T23:59:19.000Z"
+}

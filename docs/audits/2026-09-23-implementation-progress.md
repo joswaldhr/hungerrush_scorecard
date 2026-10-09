@@ -1,5 +1,59 @@
 # Audit implementation — current checkpoint
 
+**October 8, 23:54 UTC — fresh Menufy update parity and inactive publication candidate:**
+A controlled six-request event refresh completes, preserving all ten protected table
+digests and writing no metrics. Fresh events/identities/parents now independently match
+all 23 source counts and contributing sets for September 27–October 3. All 21 populated
+Menufy update report rows match; the two absent rows have complete-source zero evidence.
+Oldest dependency is 23:48 UTC. This supersedes the retained-event freshness limitation
+of the prior checkpoint for this capture only. It is not scheduler evidence.
+
+`codex/agent-update-publication` adds a separate, unregistered update connector with
+atomic evidence replay, commit-time scope/freshness checks, explicit update units and
+account-attribution labels. Local 1,293 tests / 161 files, typecheck and ESLint pass;
+exact remote CI/build and hosted release checks remain pending. No production update
+definition, assignment, route, environment or publisher was enabled. Older/current
+reference qualification, scoped release and recurring proof remain work. See the
+[candidate and acceptance record](2026-10-08-agent-update-publication.md).
+
+**October 8, 22:05 UTC — metric qualification resumed after the roster release:**
+The 21:57 UTC unchanged Menufy dashboard export and 22:03 UTC parent attributes now
+match all 21 populated September 27–October 3 update rows exactly. Independent replay
+matches all 23 source counts and contributing event sets. No formula was changed;
+no guessed follower-event exclusion was applied. Source reads resolve 4,911 parents
+and 40 tombstones in 52 bounded GETs. Meeting-list archiving does not alter that
+historical source cohort. See [current contract](2026-10-06-report-ticket-credit-contract.md)
+and [aggregate parity](2026-10-08-menufy-update-late-parity.json).
+
+This is qualification, not publication: the comparison retains October 6 events;
+fresh events/identities and required multi-period qualification remain. A separate
+read-only production checkpoint is exhausted at 18:43 UTC, outside the one-hour
+publication window at this check. The fresh export still differs for two Menufy
+outbound rows by one completed call each (seven and 36 talk seconds); those exclusions
+remain. No metric/database/vendor writes occurred in this follow-up. The viewer
+is closed. The permanent archive/restore procedure is now also in the runbook.
+
+**October 8, 21:53 UTC — PR58 manager roster archive live:**
+Master `ea7138b` / `dpl_5BDnKrAqA8LpZfZDDzuaze4iWqWj` is READY on the
+production alias. Candidate `b17594a` and master CI/build `37849269164` /
+`37849675687` pass. Local validation passes 1,275 tests / 158 files, typecheck,
+ESLint and formatting. Isolated hosted synthetic archive/restore, empty-list
+navigation, retained scorecard access, keyboard submission and light/dark checks pass.
+Fresh 21:50 UTC encrypted backup restores all 35 pre-migration tables / 389,063
+rows with matching digests; additive `0018` rehearsal preserves existing data.
+The explicit production migration and one manager-confirmed archive are applied.
+
+The affected manager now has 22 active meeting-roster entries and one archived;
+the other manager remains at 39 active / zero archived. All eight protected
+employee/assignment/metric/target table digests match. Production picker, archive
+record and 22/22 active-roster directory display are verified via administrator
+view-as. Actual manager-own-login acceptance is not implied. Archive/restore retains
+decision history and survives source rediscovery, without declaring termination,
+revoking existing authorized history access or changing vendor/team assignments.
+See [workflow and release](2026-10-08-manager-roster-archive.md) and
+[canary evidence](2026-10-08-manager-archive-canary.json). Metric work resumes next;
+no metric qualification gaps were changed by this release.
+
 **October 8 — manager roster archive candidate (not live):**
 The user authorized completion of the manager-specific removal and ongoing archive
 process before resuming metric work. `codex/manager-roster-archive` adds a durable,
