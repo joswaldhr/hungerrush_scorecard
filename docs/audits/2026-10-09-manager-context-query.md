@@ -36,3 +36,22 @@ Exact full CI/build, hosted acceptance and production phase timing remain releas
 gates. Automatic deployment for this candidate branch is disabled. No production
 data, source calls, metric semantics, scheduler settings or frozen demo changes are
 included.
+
+
+## Review and release preparation
+
+An independent code review found no blocking issue in the scoped query and its
+regression coverage. Implementation commit `4e97516` is integrated with the PR69
+release-evidence update; both candidate branches retain disabled automatic Preview
+deployment. Production deployment and source activation are not implied by this PR.
+
+The [17:16 UTC restore rehearsal](2026-10-09-afternoon-release-restore.json) restores
+36 tables / 404,129 rows with all table digests matching, through migration 0018.
+The encrypted copy requires the originating Windows user profile and is not provider
+PITR. Release must refresh this evidence if its documented freshness window expires.
+
+Rollback reference: deployment `dpl_4KdeynCs81QJznZ5wVTYdHTa6HQx` (PR68 runtime
+`c23d0cd`). This candidate requires no schema, configuration or data migration;
+application rollback restores the prior read implementation. Exact candidate
+CI/build, isolated synthetic hosted checks, production identity and measured
+post-release timings remain the release coordinator's gates.
