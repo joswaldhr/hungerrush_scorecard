@@ -54,6 +54,7 @@ it("keeps auth and health probes separate from discovery", async () => {
     discoveryRequested: false,
   });
   expect(mocks.run).not.toHaveBeenCalled();
+  expect(mocks.requestJobs).not.toHaveBeenCalled();
 });
 it("does not disguise failed or busy discovery as success", async () => {
   mocks.env.ROSTER_DISCOVERY_SOURCE_ID = "synthetic-source";
@@ -98,6 +99,35 @@ it("reads queued roster health without enqueueing or collecting", async () => {
   expect(await (await GET(request("?probe=health"))).json()).toMatchObject({
     recovery: { enabled: true, status: "deferred" },
   });
+  expect(mocks.requestJobs).not.toHaveBeenCalled();
+  expect(mocks.run).not.toHaveBeenCalled();
+});
+
+it.each([
+  "?health=1",
+  "?probe=health&probe=health",
+  "?probe=auth&probe=health",
+  "?probe=health&health=1",
+  "?probe=",
+  "?week=0",
+])("rejects malformed diagnostics before reading health or requesting work: %s", async (query) => {
+  mocks.env.ROSTER_DISCOVERY_SOURCE_ID = "synthetic-source";
+  mocks.recovery.mockReturnValue({ dataSourceId: "synthetic-source" });
+  mocks.plan.mockReturnValue({ requests: [{ definition: { kind: "roster" } }] });
+  expect((await GET(request(query))).status).toBe(400);
+  for (const action of [
+    mocks.recovery,
+    mocks.plan,
+    mocks.requestJobs,
+    mocks.run,
+    mocks.health,
+    mocks.recoveryHealth,
+  ])
+    expect(action).not.toHaveBeenCalled();
+});
+it("rejects unknown parameters even when the source is disabled, after authenticating", async () => {
+  expect((await GET(request("?health=1", false))).status).toBe(401);
+  expect((await GET(request("?health=1"))).status).toBe(400);
   expect(mocks.requestJobs).not.toHaveBeenCalled();
   expect(mocks.run).not.toHaveBeenCalled();
 });
