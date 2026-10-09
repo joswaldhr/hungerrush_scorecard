@@ -1,5 +1,37 @@
 # Audit implementation — current checkpoint
 
+**October 9, 16:24 UTC — coordinated reliability/performance candidates, not yet released:**
+The roster candidate now shares the account lease and retained source cooldown with
+metric collection, fences publication after ownership loss, and records failure even
+when cooldown persistence is rejected. The isolated suite passes 1,309 tests / 162
+files; the subsequently added failure-bookkeeping regression passes in all 13 roster
+tests. Typecheck and scoped lint pass. Exact candidate CI/build and production gates
+remain required. Daily roster deferral has no automatic retry demand yet; neither the
+roster opt-in nor legacy recovery is activated by this change.
+
+Parallel agents have committed separate loading and qualified-import recovery
+candidates. Cross-review caught and corrected a server-refresh loading deadlock.
+These commits still require integration, CI and hosted verification. Retained source
+evidence contains the exact phone-channel labels excluded by the POS update report;
+channel preservation and independent replay are being tested without source requests
+or publication. The remaining POS outbound report discrepancy is still unresolved.
+Production remains the PR63 deployment recorded below; the presentation demo and
+Zendesk remain untouched.
+
+**October 9, 15:25 UTC — bounded legacy recovery code released, activation still off:**
+PR63 `c5d4678` is READY on production deployment `dpl_AET9eYL5gkxAmAnfXkk6breQErsm`
+and owns the live alias. Candidate/master CI `37950446137` / `37950854933` pass,
+including all 1,305 tests / 162 files and the production build. Production metadata
+confirms the new legacy recovery switch is absent. This release does not claim the
+two morning failed runs have recovered.
+
+Independent roster discovery has not yet been activated or scheduled. Its first
+controlled canary stopped before vendor access because a private transport assertion
+required explicit GET; the existing helper relied on fetch's default GET. No candidate,
+employee or metric changes occurred. Its recorded failure/cooldown is preserved.
+The next focused increment makes GET explicit and adds the default-off daily roster
+slot; see [canary, activation and rollback](2026-10-09-independent-roster-schedule.md).
+
 **October 9 morning — Pro confirmed; actual scheduler gaps isolated; recovery candidate:**
 PR62 is live at `2d9ecfa` / `dpl_EHgfXxqauqDvF7iTeLThzskznALH`, exact master
 CI `37947819189` passes; public login and authorization redirects pass. The 14:55 UTC

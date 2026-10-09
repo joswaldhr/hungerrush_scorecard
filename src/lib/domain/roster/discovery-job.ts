@@ -4,6 +4,15 @@ import { dataSources, rosterDiscoveryRuns, rosterSourceTeamMappings } from "@/li
 import type { Connector } from "@/lib/connectors/types";
 import { assertZendeskAccountBinding } from "@/lib/connectors/zendesk-account-binding";
 import { discoverRosterCandidates } from "./reconcile";
+import {
+  assertReportAccountOwnership,
+  claimReportEventCollection,
+  deferReportEventRequests,
+  releaseReportEventCollection,
+  type OwnedReportEventScope,
+} from "@/lib/connectors/zendesk-report-event-store";
+import { SourceRetryLaterError } from "@/lib/connectors/source-retry";
+import { logger } from "@/lib/logger";
 
 /** Independent, review-only work. Never updates metric freshness or employee assignments. */
 export async function runRosterDiscoveryJob(
@@ -60,9 +69,24 @@ export async function runRosterDiscoveryJob(
     return { run: run!, source };
   });
   if (!claim) return { success: false, busy: true };
+  let account: OwnedReportEventScope | undefined;
   try {
+    const scope = {
+      organizationId: claim.source.organizationId,
+      dataSourceId: sourceId,
+      accountReference: claim.source.configurationReference!,
+    };
+    const lease = await claimReportEventCollection(scope);
+    if (!lease.acquired)
+      throw new SourceRetryLaterError(Math.max(1, Date.parse(lease.retryAt) - Date.now()));
+    account = { ...scope, token: lease.token };
+    // Claiming ownership preserves, but does not consume, a prior vendor cooldown.
+    const waitMs = Date.parse(lease.nextAllowedAt) - Date.now();
+    if (waitMs > 0) throw new SourceRetryLaterError(waitMs);
+    const ownedAccount = account;
     const result = await discoverRosterCandidates(connector, sourceId, {
       reviewOnly: true,
+      lockPublication: (tx) => assertReportAccountOwnership(tx, ownedAccount),
       validatePublication: async (tx) => {
         const [source] = await tx.select().from(dataSources).where(eq(dataSources.id, sourceId));
         if (
@@ -96,13 +120,27 @@ export async function runRosterDiscoveryJob(
       },
     });
     return { success: true, reviewOnly: true, ...result };
-  } catch {
+  } catch (error) {
+    const deferred = error instanceof SourceRetryLaterError;
+    let cooldownRecorded = true;
+    if (deferred && account) {
+      try {
+        await deferReportEventRequests(account, error.retryAfterMs);
+      } catch {
+        cooldownRecorded = false;
+        logger.warn("Roster source cooldown could not be persisted; review run health");
+      }
+    }
     await db
       .update(rosterDiscoveryRuns)
       .set({
         status: "failed",
         completedAt: new Date(),
-        failureCode: "discovery_failed",
+        failureCode: !cooldownRecorded
+          ? "cooldown_record_failed"
+          : deferred
+            ? "source_deferred"
+            : "discovery_failed",
       })
       .where(
         and(eq(rosterDiscoveryRuns.id, claim.run.id), eq(rosterDiscoveryRuns.status, "running"))
@@ -110,8 +148,20 @@ export async function runRosterDiscoveryJob(
     return {
       success: false,
       reviewOnly: true,
+      ...(deferred && cooldownRecorded
+        ? { retryAt: new Date(Date.now() + error.retryAfterMs).toISOString() }
+        : {}),
       error: "Roster discovery failed; review run health.",
     };
+  } finally {
+    if (account) {
+      try {
+        await releaseReportEventCollection(account);
+      } catch {
+        // A disabled/rebound source fails closed; its bounded lease can expire.
+        logger.warn("Roster account lease release unavailable; expiry remains enforced");
+      }
+    }
   }
 }
 
