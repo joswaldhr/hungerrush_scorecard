@@ -85,26 +85,25 @@ async function buildManagerContext(user: UserRow): Promise<ManagerContext | null
   if (assignments.length === 0) return null;
 
   const assignedTeamIds = assignments.filter((a) => a.teamId !== null).map((a) => a.teamId!);
-  const scopedTeams = await db
-    .select({ id: teams.id })
+  // Preserve assigned teams even when they have no currently effective members.
+  // Date filters belong in ON; a WHERE membership filter would turn this into
+  // an inner join and silently remove access to empty teams.
+  const scopedMemberships = await db
+    .select({ teamId: teams.id, employeeId: teamMemberships.employeeId })
     .from(teams)
+    .leftJoin(
+      teamMemberships,
+      and(
+        eq(teamMemberships.teamId, teams.id),
+        lte(teamMemberships.effectiveFrom, today),
+        or(isNull(teamMemberships.effectiveTo), gt(teamMemberships.effectiveTo, today))
+      )
+    )
     .where(and(eq(teams.organizationId, user.organizationId), inArray(teams.id, assignedTeamIds)));
-  const teamIds = scopedTeams.map((t) => t.id);
-
-  let teamEmployeeIds: string[] = [];
-  if (teamIds.length > 0) {
-    const memberships = await db
-      .select({ employeeId: teamMemberships.employeeId })
-      .from(teamMemberships)
-      .where(
-        and(
-          inArray(teamMemberships.teamId, teamIds),
-          lte(teamMemberships.effectiveFrom, today),
-          or(isNull(teamMemberships.effectiveTo), gt(teamMemberships.effectiveTo, today))
-        )
-      );
-    teamEmployeeIds = memberships.map((m) => m.employeeId);
-  }
+  const teamIds = [...new Set(scopedMemberships.map((row) => row.teamId))];
+  const teamEmployeeIds = scopedMemberships.flatMap((row) =>
+    row.employeeId ? [row.employeeId] : []
+  );
 
   const directEmployeeIds = assignments
     .filter((a) => a.employeeId !== null)

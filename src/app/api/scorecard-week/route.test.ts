@@ -99,3 +99,36 @@ describe("authorized scorecard week reads", () => {
     expect(await result.text()).not.toContain("private SQL");
   });
 });
+
+it("returns only bounded numeric phase timings for an authenticated request", async () => {
+  const response = await GET(request());
+  const timing = response.headers.get("server-timing")!;
+  expect(timing.split(", ").map((part) => part.split(";")[0])).toEqual([
+    "auth",
+    "context",
+    "employee",
+    "metrics",
+  ]);
+  for (const part of timing.split(", ")) {
+    expect(part).toMatch(/^(auth|context|employee|metrics);dur=\d+\.\d$/);
+    expect(Number(part.split("=")[1])).toBeLessThanOrEqual(30_000);
+  }
+  expect(timing).not.toContain(id);
+  expect(timing).not.toContain("synthetic");
+  expect(response.headers.get("cache-control")).toBe("private, no-store");
+});
+
+it("does not expose timings before authentication and only records phases actually attempted", async () => {
+  mocks.auth.mockResolvedValueOnce(null);
+  const unauthenticated = await GET(request());
+  expect(unauthenticated.headers.has("server-timing")).toBe(false);
+  mocks.context.mockResolvedValueOnce({ ctx: null });
+  const forbidden = await GET(request());
+  expect(forbidden.status).toBe(403);
+  expect(forbidden.headers.get("server-timing")).toMatch(/^auth;dur=\d+\.\d, context;dur=\d+\.\d$/);
+  mocks.metrics.mockRejectedValueOnce(new Error("private driver data"));
+  const failed = await GET(request());
+  expect(failed.status).toBe(500);
+  expect(failed.headers.get("server-timing")).toMatch(/metrics;dur=\d+\.\d$/);
+  expect(failed.headers.get("server-timing")).not.toContain("private driver data");
+});

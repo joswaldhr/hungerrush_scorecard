@@ -448,3 +448,73 @@ describe("getVisibleTeamsForManager", () => {
     expect(await getVisibleTeamsForManager(emptyCtx, [])).toEqual([]);
   });
 });
+
+it("retains an empty assigned team while excluding future and ended memberships", async () => {
+  const team = randomUUID();
+  const assignment = randomUUID();
+  const member = randomUUID();
+  const today = new Date().toISOString().slice(0, 10);
+  try {
+    await db
+      .insert(teams)
+      .values({ id: team, organizationId: ORG_ID, name: "Synthetic empty team", slug: team });
+    await db.insert(managerAssignments).values({
+      id: assignment,
+      managerUserId: OUTSIDER_ID,
+      teamId: team,
+      assignmentType: "team",
+      effectiveFrom: today,
+    });
+    const empty = await getManagerContext(OUTSIDER_EMAIL);
+    expect(empty?.assignedTeamIds).toEqual([team]);
+    expect(empty?.assignedEmployeeIds).toEqual([]);
+    await db.insert(teamMemberships).values({
+      id: member,
+      employeeId: OTHER_EMPLOYEE_ID,
+      teamId: team,
+      effectiveFrom: "2999-01-01",
+    });
+    expect((await getManagerContext(OUTSIDER_EMAIL))?.assignedEmployeeIds).toEqual([]);
+    await db
+      .update(teamMemberships)
+      .set({ effectiveFrom: "2020-01-01", effectiveTo: today })
+      .where(eq(teamMemberships.id, member));
+    const ended = await getManagerContext(OUTSIDER_EMAIL);
+    expect(ended?.assignedTeamIds).toEqual([team]);
+    expect(ended?.assignedEmployeeIds).toEqual([]);
+    await db
+      .update(teamMemberships)
+      .set({ effectiveFrom: today, effectiveTo: "2999-01-01" })
+      .where(eq(teamMemberships.id, member));
+    expect((await getManagerContext(OUTSIDER_EMAIL))?.assignedEmployeeIds).toEqual([
+      OTHER_EMPLOYEE_ID,
+    ]);
+    await db
+      .update(managerAssignments)
+      .set({ effectiveTo: today })
+      .where(eq(managerAssignments.id, assignment));
+    expect(await getManagerContext(OUTSIDER_EMAIL)).toBeNull();
+  } finally {
+    await db.delete(teamMemberships).where(eq(teamMemberships.id, member));
+    await db.delete(managerAssignments).where(eq(managerAssignments.id, assignment));
+    await db.delete(teams).where(eq(teams.id, team));
+  }
+});
+
+it("rejects a foreign team grant without widening a direct employee assignment", async () => {
+  const assignment = randomUUID();
+  try {
+    await db.insert(managerAssignments).values({
+      id: assignment,
+      managerUserId: SUB_MANAGER_ID,
+      teamId: OTHER_ORG_TEAM_ID,
+      assignmentType: "team",
+      effectiveFrom: "2020-01-01",
+    });
+    const ctx = await getManagerContext(SUB_MANAGER_EMAIL);
+    expect(ctx?.assignedTeamIds).toEqual([]);
+    expect(ctx?.assignedEmployeeIds).toEqual([EMPLOYEE_ID]);
+  } finally {
+    await db.delete(managerAssignments).where(eq(managerAssignments.id, assignment));
+  }
+});
