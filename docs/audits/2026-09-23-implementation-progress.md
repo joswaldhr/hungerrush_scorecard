@@ -1,5 +1,16 @@
 # Audit implementation — current checkpoint
 
+**October 9, 00:43 UTC — first directory schedule-slot result observed:**
+Project-wide production logs show `/api/cron/directory` GET 200 at 00:40:46 UTC
+on `dpl_HhewZvRChTKNotoj2CXjvf3F9r5t`. Read-only database verification finds a
+new completed attempt at 00:40:47 and observation at 00:40:48: 62 accounts,
+61 enabled, one disabled, zero unresolved, released lease and exact identity/status
+agreement with the controlled baseline. No manual sync was triggered. This is
+correlated schedule-slot execution and output, separate from the prior canary.
+The CLI omits user agent and platform duration, so direct scheduler identity and
+full invocation duration remain unverified. No employment decision is inferred.
+See the [aggregate receipt](2026-10-09-directory-scheduled-check.json).
+
 **October 9, 00:35 UTC — Menufy update events live for one verified week:**
 PR59 is merged as `87c75f4`; production `dpl_HhewZvRChTKNotoj2CXjvf3F9r5t`
 is READY and owns the live alias. Candidate and master CI/build `37864638984` /

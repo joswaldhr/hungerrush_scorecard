@@ -91,3 +91,16 @@ record changed. Reviewed team-removal overrides remain separate work.
 Rollback: unset `ENTRA_ROSTER_SOURCE_ID` and redeploy or restore the preceding
 production deployment `dpl_BzXwfPfMHumJzDgowuhHdMZev6Pe` (`cbd8d5d`). Retain directory
 evidence; no database restore or employee rollback is required for this feature.
+
+## October 9 scheduled-slot verification
+
+The 00:40 slot now has project-wide production invocation and refreshed database
+proof: GET 200 at 00:40:46 UTC, completed observation at 00:40:48, all 62 accounts
+matching the controlled baseline (61 enabled, one disabled, no unresolved identities).
+The lease is released. No manual sync was triggered. This supersedes the earlier
+unobserved-slot statement. The CLI response omits scheduler user agent and platform
+duration; those fields remain unverified. See the [aggregate receipt](2026-10-09-directory-scheduled-check.json).
+
+PR58 subsequently supplies the manager-specific meeting-roster archive/restore
+workflow with retained history and protection against source rediscovery. Account
+state still does not establish employment or automatically archive team membership.
