@@ -71,26 +71,16 @@ const getActiveUserByEmail = cache(async function getActiveUserByEmail(
 
 async function buildManagerContext(user: UserRow): Promise<ManagerContext | null> {
   const today = new Date().toISOString().slice(0, 10);
-  const assignments = await db
-    .select()
+  // Start from active grants so an active but invalid/cross-organization grant
+  // retains the existing empty-context semantics (including own-grant precedence).
+  // The manager ID comes from the authenticated active user, never the caller.
+  const scopedRows = await db
+    .selectDistinct({ teamId: teams.id, employeeId: employees.id })
     .from(managerAssignments)
-    .where(
-      and(
-        eq(managerAssignments.managerUserId, user.id),
-        lte(managerAssignments.effectiveFrom, today),
-        or(isNull(managerAssignments.effectiveTo), gt(managerAssignments.effectiveTo, today))
-      )
-    );
-
-  if (assignments.length === 0) return null;
-
-  const assignedTeamIds = assignments.filter((a) => a.teamId !== null).map((a) => a.teamId!);
-  // Preserve assigned teams even when they have no currently effective members.
-  // Date filters belong in ON; a WHERE membership filter would turn this into
-  // an inner join and silently remove access to empty teams.
-  const scopedMemberships = await db
-    .select({ teamId: teams.id, employeeId: teamMemberships.employeeId })
-    .from(teams)
+    .leftJoin(
+      teams,
+      and(eq(teams.id, managerAssignments.teamId), eq(teams.organizationId, user.organizationId))
+    )
     .leftJoin(
       teamMemberships,
       and(
@@ -99,26 +89,30 @@ async function buildManagerContext(user: UserRow): Promise<ManagerContext | null
         or(isNull(teamMemberships.effectiveTo), gt(teamMemberships.effectiveTo, today))
       )
     )
-    .where(and(eq(teams.organizationId, user.organizationId), inArray(teams.id, assignedTeamIds)));
-  const teamIds = [...new Set(scopedMemberships.map((row) => row.teamId))];
-  const teamEmployeeIds = scopedMemberships.flatMap((row) =>
-    row.employeeId ? [row.employeeId] : []
-  );
-
-  const directEmployeeIds = assignments
-    .filter((a) => a.employeeId !== null)
-    .map((a) => a.employeeId!);
-
-  const scopedEmployees = await db
-    .select({ id: employees.id })
-    .from(employees)
-    .where(
+    .leftJoin(
+      employees,
       and(
         eq(employees.organizationId, user.organizationId),
-        inArray(employees.id, [...new Set([...teamEmployeeIds, ...directEmployeeIds])])
+        or(
+          eq(employees.id, managerAssignments.employeeId),
+          eq(employees.id, teamMemberships.employeeId)
+        )
+      )
+    )
+    .where(
+      and(
+        eq(managerAssignments.managerUserId, user.id),
+        lte(managerAssignments.effectiveFrom, today),
+        or(isNull(managerAssignments.effectiveTo), gt(managerAssignments.effectiveTo, today))
       )
     );
-  const allEmployeeIds = scopedEmployees.map((e) => e.id);
+  if (scopedRows.length === 0) return null;
+  // LEFT JOIN predicates preserve empty teams; direct grants never expand to
+  // their employee's primary team. Employment status is still filtered on reads.
+  const teamIds = [...new Set(scopedRows.flatMap((row) => (row.teamId ? [row.teamId] : [])))];
+  const allEmployeeIds = [
+    ...new Set(scopedRows.flatMap((row) => (row.employeeId ? [row.employeeId] : []))),
+  ];
 
   return {
     userId: user.id,
