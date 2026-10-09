@@ -18,6 +18,12 @@ is deployed as `8139c51` / `dpl_AgyvN4CFSjoqR2298SBpFwZUVDYu`; master CI/build
 `37867040163` passes and production login returns 200.
 See the [aggregate scheduler and independent-value receipt](2026-10-09-solved-scheduled-verification.json).
 
+Two bounded documented single-call GETs for the missing POS parents both return
+404. No parent is recovered and no metric changes. The standard call object
+lookup does not prove deletion or zero activity in the incremental Talk source;
+those two employees remain excluded pending actual parent evidence.
+
+
 **October 9, 00:43 UTC — first directory schedule-slot result observed:**
 Project-wide production logs show `/api/cron/directory` GET 200 at 00:40:46 UTC
 on `dpl_HhewZvRChTKNotoj2CXjvf3F9r5t`. Read-only database verification finds a

@@ -120,5 +120,19 @@
     "Independent reconstruction uses exact retained publication evidence, not new same-cutoff Explore exports.",
     "Agent update events and outbound recurring publication remain inactive.",
     "No before/after unrelated-row digest comparison claimed for this observational verification."
-  ]
+  ],
+  "sourceGapFollowup": {
+    "family": "outbound",
+    "employeesBlockedByMissingParentCalls": 2,
+    "documentedSingleCallGetRequests": 2,
+    "httpStatuses": [
+      404,
+      404
+    ],
+    "recoveredParentRecords": 0,
+    "vendorWrites": 0,
+    "databaseWrites": 0,
+    "interpretation": "The standard-call-object endpoint did not return these IDs. This does not establish call deletion, zero activity or equivalence between that object store and the incremental Talk source. Missing-parent publication remains blocked.",
+    "documentation": "https://developer.zendesk.com/api-reference/voice/talk-api/calls/#retrieve-a-single-call-by-id"
+  }
 }
