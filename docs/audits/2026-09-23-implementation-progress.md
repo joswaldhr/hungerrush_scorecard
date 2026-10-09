@@ -1,5 +1,29 @@
 # Audit implementation — current checkpoint
 
+**October 9 — solved publication cycle verified on the actual scheduler:**
+The midnight collection and four subsequent publication jobs complete naturally.
+Full project-wide platform records identify `vercel-cron/1.0`, successful responses
+and durations across deployment changes. Each publication is correlated to its
+completed database run, with zero run errors and released queue leases. Independent
+Python reconstruction of retained source evidence matches all 124 saved values:
+23 Menufy and 39 POS for September 27–October 3 and October 4–10, including true
+zeros. No manual sync, vendor request or publication was triggered by verification.
+
+This establishes one daily solved-publication cycle, not a full recurring day,
+induced failure/recovery, fresh Explore parity or complete scorecards. The separate
+agent-update definition remains limited to the one released Menufy week; outbound
+recurrence and the remaining five employee discrepancies stay unresolved. The
+manager archive and genuine directory scheduled check remain live. PR60 documentation
+is deployed as `8139c51` / `dpl_AgyvN4CFSjoqR2298SBpFwZUVDYu`; master CI/build
+`37867040163` passes and production login returns 200.
+See the [aggregate scheduler and independent-value receipt](2026-10-09-solved-scheduled-verification.json).
+
+Two bounded documented single-call GETs for the missing POS parents both return
+404. No parent is recovered and no metric changes. The standard call object
+lookup does not prove deletion or zero activity in the incremental Talk source;
+those two employees remain excluded pending actual parent evidence.
+
+
 **October 9, 00:43 UTC — first directory schedule-slot result observed:**
 Project-wide production logs show `/api/cron/directory` GET 200 at 00:40:46 UTC
 on `dpl_HhewZvRChTKNotoj2CXjvf3F9r5t`. Read-only database verification finds a
