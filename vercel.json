@@ -1,6 +1,7 @@
 {
   "git": {
     "deploymentEnabled": {
+      "codex/first-reply-recovery": false,
       "codex/independent-roster-schedule": false,
       "codex/legacy-sync-recovery": false,
       "codex/agent-update-publication": false,
