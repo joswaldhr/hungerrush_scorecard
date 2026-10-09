@@ -7,8 +7,9 @@ new completed attempt at 00:40:47 and observation at 00:40:48: 62 accounts,
 61 enabled, one disabled, zero unresolved, released lease and exact identity/status
 agreement with the controlled baseline. No manual sync was triggered. This is
 correlated schedule-slot execution and output, separate from the prior canary.
-The CLI omits user agent and platform duration, so direct scheduler identity and
-full invocation duration remain unverified. No employment decision is inferred.
+The full platform record confirms `vercel-cron/1.0`, HTTP 200, 3,245 ms request
+duration / 3,351 ms function duration and no function crash. This closes the first
+scheduler-execution check; it does not prove repeated operation or employment status.
 See the [aggregate receipt](2026-10-09-directory-scheduled-check.json).
 
 **October 9, 00:35 UTC — Menufy update events live for one verified week:**

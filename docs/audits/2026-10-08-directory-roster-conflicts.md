@@ -98,8 +98,8 @@ The 00:40 slot now has project-wide production invocation and refreshed database
 proof: GET 200 at 00:40:46 UTC, completed observation at 00:40:48, all 62 accounts
 matching the controlled baseline (61 enabled, one disabled, no unresolved identities).
 The lease is released. No manual sync was triggered. This supersedes the earlier
-unobserved-slot statement. The CLI response omits scheduler user agent and platform
-duration; those fields remain unverified. See the [aggregate receipt](2026-10-09-directory-scheduled-check.json).
+unobserved-slot statement. The full platform response verifies `vercel-cron/1.0`, 3,245 ms request duration,
+3,351 ms function duration and no crash. See the [aggregate receipt](2026-10-09-directory-scheduled-check.json).
 
 PR58 subsequently supplies the manager-specific meeting-roster archive/restore
 workflow with retained history and protection against source rediscovery. Account
