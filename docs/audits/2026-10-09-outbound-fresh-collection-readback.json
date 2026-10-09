@@ -1,0 +1,15 @@
+{
+  "observedAt": "2026-10-09T01:22:40.283Z",
+  "candidate": "477018989304b7a58f785dcc887bc08c5e580c9c",
+  "sourceRequests": 6,
+  "changedRecords": 2796,
+  "storedStatus": "ready_for_qualification",
+  "calls": 15122,
+  "legs": 30250,
+  "missingParentCalls": 1,
+  "wholeCallHoldFields": 15122,
+  "originalProjectionDigestsUnchanged": true,
+  "protectedApplicationDigestsUnchanged": true,
+  "metricWrites": 0,
+  "publicationEnabled": false
+}
