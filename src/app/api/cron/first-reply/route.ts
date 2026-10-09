@@ -9,6 +9,12 @@ import { weekDates } from "@/lib/utils";
 import { isSyncRateLimited } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 
+import {
+  configuredQualifiedRecovery,
+  planQualifiedRecovery,
+} from "@/lib/connectors/zendesk-qualified-recovery";
+import { requestReportJobs } from "@/lib/connectors/zendesk-report-jobs";
+
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
@@ -17,11 +23,26 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Scheduler credential unavailable" }, { status: 503 });
   if (request.headers.get("authorization") !== `Bearer ${env.CRON_SECRET}`)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const value = new URL(request.url).searchParams.get("week");
-  if (value === null || !/^\d+$/.test(value) || Number(value) >= MAX_WEEKS_BACK)
+  const params = new URL(request.url).searchParams;
+  const value = params.get("week");
+  if (
+    params.size !== 1 ||
+    value === null ||
+    !/^[0-3]$/.test(value) ||
+    Number(value) >= MAX_WEEKS_BACK
+  )
     return NextResponse.json({ error: "One valid week offset is required" }, { status: 400 });
   const offset = Number(value);
   try {
+    const recovery = configuredQualifiedRecovery("first-reply");
+    if (recovery) {
+      const plan = planQualifiedRecovery("first-reply", recovery.policy);
+      if (plan.requests.length) await requestReportJobs(recovery.scope, plan.requests);
+      return NextResponse.json(
+        { enabled: true, delegated: true, completed: false },
+        { status: 202 }
+      );
+    }
     const policy = configuredFirstReplyPolicy();
     if (!policy) return NextResponse.json({ enabled: false });
     const { periodStart, periodEnd } = weekDates(offset);
@@ -35,7 +56,9 @@ export async function GET(request: Request) {
       });
     if (await isSyncRateLimited(config.dataSourceId))
       return NextResponse.json({ error: "Source is in its sync cooldown" }, { status: 429 });
-    const result = await runSync(createFirstReplyConnector(policy), config, { weekOffset: offset });
+    const result = await runSync(createFirstReplyConnector(policy), config, {
+      period: { periodStart, periodEnd },
+    });
     return NextResponse.json(
       { ...result, periodStart, periodEnd },
       { status: result.success ? 200 : 503 }

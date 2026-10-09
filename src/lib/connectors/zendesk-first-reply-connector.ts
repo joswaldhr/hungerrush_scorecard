@@ -19,6 +19,7 @@ import {
 } from "./zendesk-first-reply-policy";
 import { collectFirstReplyRecords } from "./zendesk-first-reply-collection";
 import { createBoundedCsatReader } from "./zendesk-csat-reader";
+import { parseSyncPeriod } from "./sync-period";
 import type { ConnectorConfig } from "./types";
 
 /** Validate assignment and source ownership before any vendor request. */
@@ -118,12 +119,14 @@ export async function loadFirstReplyEmployeeBindings(
 export function createFirstReplyConnector(policy: ZendeskFirstReplyPolicy) {
   const connector = new ZendeskConnector();
   connector.fetchRecords = async (config, ctx) => {
-    if (ctx.cursor === null || !/^\d+$/.test(ctx.cursor))
-      throw new Error("First-reply sync requires one explicit week offset");
-    const offset = Number(ctx.cursor);
-    if (!Number.isInteger(offset) || offset < 0 || offset >= MAX_WEEKS_BACK)
-      throw new Error("Invalid First-reply week offset");
-    const { periodStart, periodEnd } = weekDates(offset);
+    if (
+      (!ctx.period && ctx.cursor === null) ||
+      (ctx.cursor !== null && (!/^[0-3]$/.test(ctx.cursor) || Number(ctx.cursor) >= MAX_WEEKS_BACK))
+    )
+      throw new Error("First-reply sync requires one reporting week");
+    const { periodStart, periodEnd } = ctx.period
+      ? parseSyncPeriod(ctx.period)
+      : weekDates(Number(ctx.cursor));
     const bindings = await loadFirstReplyEmployeeBindings(policy, config, periodStart);
     const reader = createBoundedCsatReader({
       subdomain: env.ZENDESK_SUBDOMAIN ?? "",
@@ -144,5 +147,5 @@ export function createFirstReplyConnector(policy: ZendeskFirstReplyPolicy) {
       diagnostics: { ...result.diagnostics, ...reader.stats() },
     };
   };
-  return connector;
+  return Object.assign(connector, { supportsFixedPeriod: true });
 }
