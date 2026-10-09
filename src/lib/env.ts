@@ -23,6 +23,8 @@ const envSchema = z.object({
   ZENDESK_POS_INBOUND_RELEASE: z.string().min(1).optional(),
   // Report-credit collection and solved-only publication are separate opt-ins.
   ZENDESK_REPORT_EVENT_COLLECTION_POLICY: z.string().min(1).optional(),
+  // Additive channel evidence only; enable after scoped storage/duration rehearsal.
+  ZENDESK_REPORT_EVENT_CHANNEL_RETENTION: z.literal("1").optional(),
   ZENDESK_SOLVED_REPORT_RELEASES: z.string().min(1).optional(),
   // Separately gated durable recovery; installing code never activates source work.
   ZENDESK_REPORT_RECOVERY: z.literal("1").optional(),

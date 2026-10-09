@@ -1,0 +1,13 @@
+{
+  "retainedObservation": "2026-10-06T21:43:20.794Z",
+  "events": 1000,
+  "recognizedChannels": 1000,
+  "distinctLabels": 13,
+  "phoneInbound": 120,
+  "phoneOutbound": 5,
+  "unchangedBaseEventHashes": 1000,
+  "completePeriod": false,
+  "metricPublication": false,
+  "vendorRequests": 0,
+  "databaseWrites": 0
+}

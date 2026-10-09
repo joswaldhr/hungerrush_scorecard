@@ -1,5 +1,35 @@
 # Audit implementation — current checkpoint
 
+**October 9 — roster coordination released; loading and metric verification advance:**
+PR64 is live at `4fae046` / `dpl_FVVqoaamXW8fqzr3YjppuzUMybKy`. Candidate/master
+CI `37958940057` / `37959728015` pass. All 24 production environment entries and
+18 prior cron definitions are unchanged; the added daily roster slot is inactive.
+Login returns 200 and anonymous roster/recovery requests return 401. The 16:26 UTC
+encrypted restore matches all 36 tables / 404,127 rows. No roster activation,
+controlled source read, metric publication or new scheduled-roster evidence is
+claimed. See the [aggregate release receipt](2026-10-09-roster-code-release.json).
+
+PR65 loading changes pass exact CI `37959391145` and isolated Preview deployment
+`dpl_3YAtUVLKbVunndeWmyRdu1poR4PV`, with the main Preview isolation build guard.
+Its application tree matches the reviewed candidate. Authenticated synthetic checks
+cover default last week, older/current selection, rapid selection, Back/Forward,
+loading/export exclusion and neutral progress. Actual current-week CSV/PNG/PDF and
+closed-week CSV were downloaded and inspected: current CSV has 14 reported progress
+rows / 15 unavailable; closed CSV has 15 no-target / 14 unavailable. PDF rendering
+and PNG match the progress snapshot. Copied text produced a success notice but this
+browser returned no clipboard bytes; native print and production timing comparison
+remain unverified. PR65 is merged as `12a2d84`; live verification is pending.
+
+Separate PR66 adds inactive qualified-import recovery and scoped health. Its first
+full CI run exposed an outdated source-binding fixture, now corrected with added
+mismatch regressions; final CI/release remain pending. The retained metric candidate
+preserves channel evidence behind a separate default-off flag and independently
+replays 310 outbound values. Cross-review strengthened the verifier to reject missing
+required source fields and reconstruct publication evidence itself; its 11 Python
+regressions now run in CI. Full historical POS channel coverage, one outbound report
+discrepancy and recurring-family qualifications remain open. No Zendesk or frozen
+demo changes were made.
+
 **October 9, 16:24 UTC — coordinated reliability/performance candidates, not yet released:**
 The roster candidate now shares the account lease and retained source cooldown with
 metric collection, fences publication after ownership loss, and records failure even

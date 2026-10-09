@@ -19,6 +19,7 @@ describe("hosting environment overrides", () => {
       "ZENDESK_SUBDOMAIN",
       "ZENDESK_EMAIL",
       "ZENDESK_API_KEY",
+      "ZENDESK_REPORT_EVENT_CHANNEL_RETENTION",
       "ASSEMBLED_API_KEY",
       "AUTH_MICROSOFT_ENTRA_ID_ID",
       "AUTH_MICROSOFT_ENTRA_ID_SECRET",
@@ -29,6 +30,7 @@ describe("hosting environment overrides", () => {
     }
     const { env } = await import("./env");
     expect(env.ZENDESK_API_KEY).toBeUndefined();
+    expect(env.ZENDESK_REPORT_EVENT_CHANNEL_RETENTION).toBeUndefined();
     expect(env.ASSEMBLED_API_KEY).toBeUndefined();
     expect(env.AUTH_MICROSOFT_ENTRA_ID_ID).toBeUndefined();
     expect(env.AUTH_MICROSOFT_ENTRA_ID_SECRET).toBeUndefined();
@@ -43,6 +45,13 @@ describe("hosting environment overrides", () => {
   it("still rejects malformed optional URLs", async () => {
     vi.stubEnv("SYNC_HEARTBEAT_URL", "not-a-url");
     await expect(import("./env")).rejects.toThrow("SYNC_HEARTBEAT_URL");
+  });
+  it("requires an explicit valid channel-retention opt-in", async () => {
+    vi.stubEnv("ZENDESK_REPORT_EVENT_CHANNEL_RETENTION", "true");
+    await expect(import("./env")).rejects.toThrow("ZENDESK_REPORT_EVENT_CHANNEL_RETENTION");
+    vi.resetModules();
+    vi.stubEnv("ZENDESK_REPORT_EVENT_CHANNEL_RETENTION", "1");
+    expect((await import("./env")).env.ZENDESK_REPORT_EVENT_CHANNEL_RETENTION).toBe("1");
   });
 
   it("refuses production sign-in startup when SSO overrides are empty", async () => {
