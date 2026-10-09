@@ -25,8 +25,8 @@ Those measurements motivate reducing round trips; they are not a post-change ben
 
 ## Validation and release limits
 
-45 focused tests pass across six files: navigation/races/retries, cache/focus,
-rollover, keyboard controls, presentation, date resolution, endpoint authorization,
+46 focused tests pass across six files: navigation/races/retries, cache/focus,
+rollover, server-prop refresh during a pending selection, keyboard controls, presentation, date resolution, endpoint authorization,
 team derivation, zero/date serialization, no-store behavior and browser cancellation.
 Typecheck, scoped ESLint, modified-source Prettier and diff whitespace checks pass. Tests use an explicit isolated loopback test database configuration;
 these focused cases mock readers and perform no vendor/production reads or writes.

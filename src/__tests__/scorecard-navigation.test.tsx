@@ -206,6 +206,36 @@ describe("scorecard period snapshot", () => {
     await act(async () => pending.resolve(rows(115)));
   });
 
+  it("finishes the selected week after same-employee server props refresh", async () => {
+    const pending = deferred();
+    fetchMetrics.mockReturnValue(pending.promise);
+    await click("Previous week");
+    const signal = fetchMetrics.mock.calls[0]![2] as AbortSignal;
+    await act(async () =>
+      root.render(
+        <ScorecardBody
+          employeeId="person"
+          employeeName="Test Person"
+          employeeJobTitle={null}
+          teamName="Team"
+          managerName={null}
+          initialPeriodStart="2026-09-20"
+          initialRows={rows(67)}
+        />
+      )
+    );
+    expect(signal.aborted).toBe(false);
+    await act(async () => window.dispatchEvent(new Event("focus")));
+    expect(fetchMetrics).toHaveBeenCalledTimes(1);
+    expect(container.querySelector("[data-export]")).toBeNull();
+    await act(async () => pending.resolve(rows(115)));
+    expect(container.querySelector("[data-metrics]")?.textContent).toContain("Sep 13–19: 115");
+    expect(container.querySelector("[data-export]")?.textContent).toContain("Sep 13");
+    await click("Next week");
+    expect(container.querySelector("[data-metrics]")?.textContent).toContain("Sep 20–26: 67");
+    expect(fetchMetrics).toHaveBeenCalledTimes(1);
+  });
+
   it("shows a retryable failure instead of stale values or export", async () => {
     fetchMetrics.mockRejectedValueOnce(new Error("failed")).mockResolvedValueOnce(rows(115));
     await click("Previous week");

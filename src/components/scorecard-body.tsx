@@ -103,15 +103,22 @@ export function ScorecardBody({
     [employeeId]
   );
 
-  // Seed the cache from the server snapshot; invalidate pending work on unmount.
+  // A server refresh may replace these props while another selected week is
+  // loading. Updating the cache must not cancel that independent request.
+  useEffect(() => {
+    cacheRef.current.set(initialPeriodStart, { rows: initialRows, loadedAt: Date.now() });
+  }, [initialPeriodStart, initialRows]);
+
+  // Only unmount invalidates all pending work (employee changes remount via key).
   useEffect(() => {
     const requests = requestRef;
-    cacheRef.current.set(initialPeriodStart, { rows: initialRows, loadedAt: Date.now() });
     return () => {
       requests.current++;
       controllerRef.current?.abort();
+      controllerRef.current = null;
+      pendingWeekRef.current = null;
     };
-  }, [initialPeriodStart, initialRows]);
+  }, []);
 
   // Browser Back/Forward: history.pushState below doesn't reload the page,
   // so we need our own popstate handling to stay in sync with it.
