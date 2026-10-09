@@ -42,6 +42,39 @@ prove its exact contributing IDs. Preserve the filter and withheld publication
 for that discrepancy. The next comparison needs the same weekly interval and
 known observation context, not the dashboard's different monthly interval.
 
+### Retained export cutoff check
+
+The POS export used in this comparison was received locally on October 8 at
+16:08:22.540 UTC and last written at 16:08:24.975 UTC, after both ticket-group
+transfers. Its archive members carry an unzoned 16:08:12 timestamp; the filename
+and retained review-pack description identify 11:08 a.m. Central. These are
+export/retrieval observations, not proof of the underlying dataset cutoff.
+
+The CSV contains only agent names and outbound counts, with no contributing IDs
+or dataset refresh metadata. A later report-definition inspection at
+17:01:18.523 UTC recorded "18 minutes ago" for the dataset update label. That
+rounded label refers approximately to 16:43 UTC, after the retained export, and
+cannot establish which ticket-group versions the earlier export used. Thus the
+34-versus-31 difference remains unresolved; dataset lag is plausible but unproven.
+
+The smallest next check is a fresh export of the existing POS outbound report
+for September 27–October 3, preserving the saved 11-group filter and recording
+the contemporaneous refresh label and retrieval time. First verify the viewer
+already shows that interval: retained files do not establish its current state
+or provide an exact POS outbound viewer URL. If the report still differs,
+read-only contributing call/ticket IDs and their report group dimensions are
+needed before attributing the difference to snapshot or historical semantics.
+No filter change, source request, report edit or publication was performed for
+this retained-metadata check.
+
+The subsequent October 9 viewer-only check found the existing POS Support Audit
+dashboard set to Last 30 days, September 9–October 9, 2026, Central Time, with
+the POS outbound report visible. This differs from the required weekly interval
+and cannot serve as its replacement reference. No filters or reports were changed;
+the viewer tab was closed immediately. The next weekly reference requires an
+existing manager-provided export or explicit authorization for viewer-only filter
+use under the guardrails; the monthly view does not close the discrepancy.
+
 An exit code of zero means the source replay checks passed; report differences
 remain explicit in the aggregate output. It is not authorization to publish or a
 freshness/completeness certification. Inputs are SHA-256 bound in the receipt;
