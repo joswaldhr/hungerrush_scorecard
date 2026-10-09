@@ -1,5 +1,35 @@
 # Audit implementation — current checkpoint
 
+**October 9, 01:31 UTC — four remaining outbound exceptions corrected in production:**
+Two previously missing POS parents are recovered by the bounded incremental source;
+fresh joined evidence now passes for all 62 scoped employee records. Independent
+reconstruction matches 310 candidate values, 868 source-set comparisons and 372
+duration numerator/denominator/mean checks. The separate fresh Menufy export matches
+all 76 compared cells. Two former Menufy discrepancies resolve because fresh linked
+ticket groups changed; unchanged call fields and exact contributing-set differences
+explain the correction. No formula, report or filter was changed.
+
+Two controlled transactions publish two POS and two Menufy records for September
+27–October 3: 20 values/facts, four source summaries and retained predecessors. Each
+transaction verifies 12 protected digest groups before commit; independent read-only
+readback confirms the values, 120 persisted source sets and 20 numeric predecessors.
+Together with the October 8 publication, 61 employees have this scoped outbound
+refresh. One POS report discrepancy remains excluded. Recurring outbound is inactive.
+
+The representative live administrator view-as and actual downloaded CSV match the
+corrected rows, selected week, source observation and timezone; historical targets
+remain withheld. Current PDF/PNG bytes, native print and manager-own-login acceptance
+are unverified. The POS viewer currently defaults to a different monthly interval;
+it was closed without changes and provides no fresh weekly comparison.
+
+Runtime is unchanged at PR61 `4770189`, exact master CI/build `37868465720` passed;
+the 01:21 UTC encrypted restore matches all 36 tables / 395,027 rows. Demo, rosters,
+assignments, targets, other metric families and disabled publishers are unchanged.
+See [scope, outcome and rollback](2026-10-09-outbound-parent-recovery.md) and the
+[aggregate publication receipt](2026-10-09-outbound-recovery-publication.json).
+The five-exception statements in older checkpoints below are superseded by this
+four-exception recovery; none of these checks certify a complete recurring scorecard.
+
 **October 9 — solved publication cycle verified on the actual scheduler:**
 The midnight collection and four subsequent publication jobs complete naturally.
 Full project-wide platform records identify `vercel-cron/1.0`, successful responses
