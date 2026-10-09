@@ -8,6 +8,7 @@ import * as schema from "../src/lib/db/schema";
 import { weekDates } from "../src/lib/utils";
 import { solvedPublicationFixture } from "../src/__tests__/fixtures/solved-publication";
 
+let stage = "arguments";
 async function main() {
   assert.equal(process.argv[2], "--apply");
   assert.equal(process.argv.length, 3);
@@ -21,6 +22,7 @@ async function main() {
   const source = "50000000-0000-4000-8000-000000000059";
   const key = "zendesk_agent_update_events";
   try {
+    stage = "synthetic ownership";
     const orgs =
       await connection`select id from organizations where name='Synthetic staging rehearsal'`;
     assert.equal(orgs.length, 1);
@@ -41,6 +43,7 @@ async function main() {
       return createHash("sha256").update(JSON.stringify(rows)).digest("hex");
     };
     const before = await fingerprint();
+    stage = "synthetic catalog";
     await connection.begin(async (tx) => {
       const sources =
         await tx`select organization_id,configuration_reference,display_name from data_sources where id=${source}`;
@@ -87,6 +90,7 @@ async function main() {
         assert.equal(assignments[0]!.effective_to, null);
       }
     });
+    stage = "load publisher";
     const { createAgentUpdatePublisher } =
       await import("../src/lib/connectors/zendesk-agent-update-publisher");
     const { runSync } = await import("../src/lib/connectors/sync-engine");
@@ -131,11 +135,13 @@ async function main() {
           observationStartedAt: f.identity.observationStartedAt,
         }));
       for (let replay = 0; replay < 2; replay++) {
+        stage = `publish offset ${offset} replay ${replay}`;
         const result = await runSync(makePublisher(), config, {
           period: { periodStart, periodEnd },
         });
         assert.equal(result.success, true, "Synthetic update publication failed");
       }
+      stage = `readback offset ${offset}`;
       const values =
         await connection`select v.numeric_value,v.quality_status,v.provenance_json from metric_values v join metric_definitions d on d.id=v.metric_definition_id
         where v.employee_id=${employee} and d.key=${key} and v.period_start=${periodStart} and v.period_end=${periodEnd}`;
@@ -155,6 +161,7 @@ async function main() {
         currentCutoff: offset === 0 ? cutoff : null,
       });
     }
+    stage = "unrelated value protection";
     assert.equal(await fingerprint(), before, "Unrelated synthetic metric values changed");
     console.log(
       JSON.stringify({
@@ -170,7 +177,22 @@ async function main() {
     delete cache._cadenceDb;
   }
 }
-main().catch(() => {
-  console.error("Synthetic agent-update rehearsal failed; no production access.");
+main().catch((error: unknown) => {
+  console.error(
+    JSON.stringify({
+      syntheticRehearsalFailedAt: stage,
+      errorName: error instanceof Error ? error.name : "Unknown",
+      databaseCode:
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        /^[0-9A-Z]{5}$/.test(String(error.code))
+          ? String(error.code)
+          : undefined,
+      // Only assertion text is emitted; connection and SQL error messages remain private.
+      assertion: error instanceof assert.AssertionError ? error.message.slice(0, 200) : undefined,
+      productionAccess: false,
+    })
+  );
   process.exitCode = 1;
 });
