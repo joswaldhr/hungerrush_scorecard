@@ -28,6 +28,7 @@ const envSchema = z.object({
   ZENDESK_SOLVED_REPORT_RELEASES: z.string().min(1).optional(),
   // Separately gated durable recovery; installing code never activates source work.
   ZENDESK_REPORT_RECOVERY: z.literal("1").optional(),
+  ZENDESK_FIRST_REPLY_RECOVERY: z.literal("1").optional(),
   ZENDESK_CSAT_RECOVERY: z.literal("1").optional(),
   ZENDESK_LEGACY_SYNC_RECOVERY: z.literal("1").optional(),
 

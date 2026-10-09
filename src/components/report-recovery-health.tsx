@@ -12,7 +12,7 @@ export function ReportRecoveryHealth({ health }: { health: RecoveryHealth }) {
       className="rounded-xl border border-border p-5 space-y-3"
     >
       <h2 id="recovery-heading" className="font-semibold">
-        Solved-ticket refresh by week
+        Metric refresh by week
       </h2>
       <p className="text-sm text-muted-foreground">
         {health.state === "enabled"
@@ -20,13 +20,14 @@ export function ReportRecoveryHealth({ health }: { health: RecoveryHealth }) {
           : health.state === "disabled"
             ? "Automatic recovery is disabled; retained requests are shown below."
             : "Recovery status is unavailable. Reload to try again."}{" "}
-        Request completion does not certify metric accuracy or every employee’s coverage. Call
-        metrics, CSAT, first reply, and roster updates have separate refresh paths.
+        Request completion does not certify metric accuracy or every employee’s coverage. Enabled
+        import families appear below; shared imports can serve multiple teams. Roster discovery and
+        families without recovery have separate refresh paths.
       </p>
       {health.rows.length > 0 && (
         <div
           role="region"
-          aria-label="Solved-ticket recovery requests"
+          aria-label="Metric recovery requests"
           tabIndex={0}
           className="overflow-x-auto"
         >

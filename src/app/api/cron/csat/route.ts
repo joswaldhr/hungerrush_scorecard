@@ -9,6 +9,12 @@ import { weekDates } from "@/lib/utils";
 import { isSyncRateLimited } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 
+import {
+  configuredQualifiedRecovery,
+  planQualifiedRecovery,
+} from "@/lib/connectors/zendesk-qualified-recovery";
+import { requestReportJobs } from "@/lib/connectors/zendesk-report-jobs";
+
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
@@ -28,6 +34,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "One valid week offset is required" }, { status: 400 });
   const offset = Number(value);
   try {
+    const recovery = configuredQualifiedRecovery("csat");
+    if (recovery) {
+      const plan = planQualifiedRecovery("csat", recovery.policy);
+      if (plan.requests.length) await requestReportJobs(recovery.scope, plan.requests);
+      return NextResponse.json(
+        { enabled: true, delegated: true, completed: false },
+        { status: 202 }
+      );
+    }
     const policy = configuredCsatPolicy();
     if (!policy) return NextResponse.json({ enabled: false });
     const { periodStart, periodEnd } = weekDates(offset);

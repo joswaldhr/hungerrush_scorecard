@@ -6,7 +6,9 @@ import {
   configuredSolvedReportReleases,
 } from "@/lib/connectors/zendesk-solved-config";
 import { runLiveReportRecovery } from "@/lib/connectors/zendesk-report-recovery";
-import { configuredCsatPolicy } from "@/lib/connectors/zendesk-csat-config";
+import { configuredQualifiedRecovery } from "@/lib/connectors/zendesk-qualified-recovery";
+import type { ZendeskCsatPolicy } from "@/lib/connectors/zendesk-csat-policy";
+import type { ZendeskFirstReplyPolicy } from "@/lib/connectors/zendesk-first-reply-policy";
 import { configuredLegacySyncRecovery } from "@/lib/connectors/zendesk-legacy-sync-recovery";
 
 export const dynamic = "force-dynamic";
@@ -31,8 +33,9 @@ export async function GET(request: Request) {
     const collection = configuredReportEventCollectionPolicy(),
       releases = configuredSolvedReportReleases();
     if (!collection || !releases.length) throw Error("Report recovery policies unavailable");
-    const csat = env.ZENDESK_CSAT_RECOVERY === "1" ? configuredCsatPolicy() : undefined;
-    if (csat === null) throw Error("CSAT recovery requires a qualified policy");
+    const csat = configuredQualifiedRecovery("csat")?.policy as ZendeskCsatPolicy | undefined;
+    const firstReply = configuredQualifiedRecovery("first-reply")?.policy as
+      ZendeskFirstReplyPolicy | undefined;
     const result = await runLiveReportRecovery(
       collection,
       releases,
@@ -42,7 +45,8 @@ export async function GET(request: Request) {
         apiKey: env.ZENDESK_API_KEY ?? "",
       },
       csat,
-      configuredLegacySyncRecovery()
+      configuredLegacySyncRecovery(),
+      firstReply
     );
     return NextResponse.json(
       { enabled: true, ...result },

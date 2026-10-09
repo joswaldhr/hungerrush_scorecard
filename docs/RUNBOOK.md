@@ -30,15 +30,19 @@ shared `.env` database.
 
 ### Data Health interpretation
 
-Data Health's solved-ticket panel reads the persisted recovery requests for the
+Data Health's recovery panel reads the persisted recovery requests for the
 manager's assigned teams and current policy's permitted week horizon. It performs
 no source calls, enqueues or writes. Missing requests, pending work, retry cooldowns,
 failed attempts and expired leases remain distinct. “Request completed” means the
 queue acknowledged the requested generation; it does not certify metric accuracy,
 employee coverage or source-observation freshness. Collection is requested every
 six hours and solved publication daily; the dispatcher wakes every 15 minutes.
-Other metric families have separate paths. A disabled recovery switch is shown
-separately from retained queue state; configuration/read failures show unavailable.
+Enabled optional CSAT, first-reply and legacy recovery jobs appear with shared-import
+labels; a shared job is not an independent run for each displayed team. Team names remain
+limited to the caller's authorized teams. Disabled optional families are not represented
+as active queued work. A disabled dispatcher is shown separately from retained queue
+state; invalid configuration/read failures show unavailable. This bounded view covers
+the current planned horizon; inspect retained jobs for older outstanding demand.
 
 Legacy weekly recovery has a separate, default-off `ZENDESK_LEGACY_SYNC_RECOVERY=1`
 switch. It requires `ZENDESK_REPORT_RECOVERY=1`, a valid source collection policy and
@@ -46,9 +50,31 @@ switch. It requires `ZENDESK_REPORT_RECOVERY=1`, a valid source collection polic
 legacy cron enqueues its fixed week and reports acceptance with `completed: false`;
 publication happens through the bounded dispatcher. Source retry delays and saved
 dates survive later invocations. Only acknowledged successful publication heartbeats.
-This does not enable any new metric definition. The solved-only Data Health panel
-does not summarize legacy recovery; inspect retained jobs/runs for that family.
+This does not enable any new metric definition. Data Health includes the enabled legacy
+family as "Legacy metrics (shared import)".
 See [activation and rollback gates](audits/2026-10-09-legacy-sync-recovery.md).
+
+First-reply recovery has its own default-off `ZENDESK_FIRST_REPLY_RECOVERY=1` switch.
+It requires an active `ZENDESK_REPORT_RECOVERY=1` dispatcher, collection and solved policies,
+and a qualified first-reply policy bound to the same organization, source and account.
+CSAT uses the equivalent independent `ZENDESK_CSAT_RECOVERY=1` opt-in. When enabled,
+the existing family cron routes enqueue due fixed-period demand and return 202 with
+`completed: false`; they do not also invoke a direct collector. Invalid configuration
+or enqueue failure cannot fall back to direct collection.
+
+Original UTC demand slots remain CSAT 08/10/12/14 and first reply 16/18/20/22. Each
+slot retains the Sunday-Saturday dates selected for that demand even if the attempt
+retries after Sunday. Prospective cutovers still apply. Before a slot is reached, the
+previous day's demand remains eligible; activation may catch up those saved periods.
+Both direct and queued first-reply execution consume dates pinned before asynchronous
+checks. No source timezone, metric formula or certification policy changes.
+
+Before activation, pass exact code/build and backup gates, recalculate capacity including
+continuations/retries and vendor cooldowns, qualify a fixed-period canary, and observe
+actual scheduled completion. The existing conservative model has no spare ticks when
+first reply is simply added; eliminating delegated collectors' collision allowances
+produces only a conditional bound, not activation evidence. See the
+[qualified recovery manifest](audits/2026-10-09-qualified-recovery-candidate.md).
 
 The source cards summarize only the latest source run, which may belong to another
 metric family or week. Their success timestamp must not be used as an all-metrics
