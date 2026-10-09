@@ -111,6 +111,37 @@ it("resumes a new process at its saved cursor without returning partial results"
   expect(JSON.stringify(await rows())).not.toContain("never retain");
 });
 
+it("retains a fixed-week cursor and source cooldown when a resumed page is throttled", async () => {
+  const owner = await own();
+  const initial = await beginLegacyTalkCycle(owner, start, end);
+  const current = await commitLegacyTalkPage(owner, start, end, initial.expectedHash, page());
+  await releaseTalkCollection(owner);
+  const before = (await rows()).filter((r) => r.externalRecordType.includes("legacy_talk"));
+  const read = vi.fn<Parameters<typeof fetchCoordinatedTalkWeek>[3]>(async () => ({
+    rateLimited: true as const,
+    retryAfterMs: 7200000,
+  }));
+  await expect(
+    fetchCoordinatedTalkWeek(scope, start, end, read, { resumable: true })
+  ).rejects.toMatchObject({ name: "SourceRetryLaterError", retryAfterMs: 7200000 });
+  expect(read).toHaveBeenCalledTimes(1);
+  expect(read.mock.calls[0]?.[0]).toBe(current.state.cursor.path);
+  expect((await rows()).filter((r) => r.externalRecordType.includes("legacy_talk"))).toEqual(
+    before
+  );
+  const blockedRead = vi.fn();
+  await expect(
+    fetchCoordinatedTalkWeek(scope, start, end, blockedRead, { resumable: true })
+  ).rejects.toMatchObject({ name: "SourceRetryLaterError" });
+  expect(blockedRead).not.toHaveBeenCalled();
+  const lease = (await rows()).find(
+    (r) => r.externalRecordType === "zendesk_talk_collection_lease_v1"
+  );
+  expect(
+    Date.parse((lease?.payloadJson as { nextAllowedAt: string }).nextAllowedAt)
+  ).toBeGreaterThan(Date.now() + 7100000);
+});
+
 it("refreshes a completed cycle with overlap, retaining late corrections and nulls", async () => {
   const owner = await own();
   let current = await beginLegacyTalkCycle(owner, start, end);

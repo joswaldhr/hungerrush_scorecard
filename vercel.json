@@ -1,6 +1,8 @@
 {
   "git": {
     "deploymentEnabled": {
+      "codex/legacy-talk-recovery": false,
+      "codex/oct09-final-reconciliation": false,
       "codex/roster-probe-validation": false,
       "codex/metric-read-batching": false,
       "codex/manager-context-query": false,

@@ -19,6 +19,8 @@ export function configuredLegacySyncRecovery(): ReportEventScope | undefined {
     !configuredSolvedReportReleases().length
   )
     throw Error("Legacy sync recovery requires an active dispatcher and separate roster discovery");
+  if (env.ZENDESK_LEGACY_TALK_RESUME !== "1")
+    throw Error("Legacy sync recovery requires separately enabled resumable Talk collection");
   return collection.scope;
 }
 

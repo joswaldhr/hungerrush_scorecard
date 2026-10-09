@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   env: {
     ZENDESK_LEGACY_SYNC_RECOVERY: undefined as string | undefined,
     ZENDESK_REPORT_RECOVERY: undefined as string | undefined,
+    ZENDESK_LEGACY_TALK_RESUME: undefined as string | undefined,
     ROSTER_DISCOVERY_SOURCE_ID: undefined as string | undefined,
   },
   collection: vi.fn(),
@@ -27,6 +28,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.env.ZENDESK_LEGACY_SYNC_RECOVERY = undefined;
   mocks.env.ZENDESK_REPORT_RECOVERY = undefined;
+  mocks.env.ZENDESK_LEGACY_TALK_RESUME = undefined;
   mocks.env.ROSTER_DISCOVERY_SOURCE_ID = undefined;
   mocks.collection.mockReturnValue({ scope });
   mocks.releases.mockReturnValue([{ kind: "updater" }]);
@@ -39,6 +41,8 @@ it("is inert unless separately enabled and never removes roster work without its
   mocks.env.ZENDESK_REPORT_RECOVERY = "1";
   expect(() => configuredLegacySyncRecovery()).toThrow("separate roster");
   mocks.env.ROSTER_DISCOVERY_SOURCE_ID = scope.dataSourceId;
+  expect(() => configuredLegacySyncRecovery()).toThrow("resumable Talk");
+  mocks.env.ZENDESK_LEGACY_TALK_RESUME = "1";
   expect(configuredLegacySyncRecovery()).toEqual(scope);
   mocks.releases.mockReturnValue([]);
   expect(() => configuredLegacySyncRecovery()).toThrow();

@@ -1,0 +1,118 @@
+{
+  "observedAt": "2026-10-09T17:45:07.434Z",
+  "deployment": {
+    "id": "dpl_713dF7JzVpiA3h2UHZDVC17SQPmx",
+    "commit": "0adc5fbb29ed935c50aeeb0f5d0b5296c2b584a7",
+    "state": "READY",
+    "productionAlias": "hungerrush-scorecard.vercel.app",
+    "aliasVerified": true
+  },
+  "activation": {
+    "rosterRecoveryEnabled": true,
+    "rosterSourceConfigured": true,
+    "reportDispatcherPreviouslyEnabled": true,
+    "otherOptionalRecoveryFlagsAbsent": [
+      "ZENDESK_CSAT_RECOVERY",
+      "ZENDESK_FIRST_REPLY_RECOVERY",
+      "ZENDESK_LEGACY_SYNC_RECOVERY"
+    ],
+    "runtimeVerification": "Authenticated roster health reports both source and recovery enabled. Encrypted environment values are not interpreted as plaintext."
+  },
+  "controlledQueuedCanary": {
+    "observedAt": "2026-10-09T17:37:43.290Z",
+    "sourceSha": "73c1e99ea6b023c92b7350df333b73f3260eca16",
+    "releasedSha": "0adc5fbb29ed935c50aeeb0f5d0b5296c2b584a7",
+    "success": true,
+    "reviewOnly": true,
+    "requests": 8,
+    "vendorHttp200": 8,
+    "canaryHarnessDurationMs": 68269,
+    "rosterRunStartedAt": "2026-10-09T17:34:50.921Z",
+    "rosterRunCompletedAt": "2026-10-09T17:35:31.773Z",
+    "observedMembers": 80,
+    "newCandidates": 0,
+    "departedCandidates": 0,
+    "autoApproved": 0,
+    "observations": 1,
+    "queuedKinds": [
+      "roster"
+    ],
+    "acknowledgedDesiredAt": "2026-10-09T16:10:00.000Z",
+    "otherMetricJobsUnchanged": true,
+    "independentIdentityTeamLineDifferences": 0,
+    "protectedDigestGroups": 14,
+    "protectedDigestsMatch": true,
+    "committedProtectedTransactions": 7,
+    "independentCheckedBeforeCommit": true,
+    "metricWrites": 0,
+    "employeeAssignmentChanges": 0,
+    "vendorWrites": 0
+  },
+  "readOnlyHealth": {
+    "observedAt": "2026-10-09T17:45:07.434Z",
+    "probe": "health",
+    "httpStatus": 200,
+    "enabled": true,
+    "discoveryRequested": false,
+    "recoveryEnabled": true,
+    "status": "complete",
+    "latestRunStatus": "completed",
+    "desiredAt": "2026-10-09T16:10:00.000Z",
+    "sourceSyncsTriggered": 0,
+    "queueRequestsTriggered": 0
+  },
+  "healthHelperIncident": {
+    "observedAt": "2026-10-09T17:44:37.327Z",
+    "readOnly": true,
+    "incident": "Health helper used health=1 instead of probe=health; authenticated route returned 202 queued response.",
+    "responseWasReadOnly": false,
+    "queueRequestExecuted": true,
+    "actualQueueStateChanged": false,
+    "fullQueuePayloadUnchanged": true,
+    "desiredAt": "2026-10-09T16:10:00.000Z",
+    "completedThrough": "2026-10-09T16:10:00.000Z",
+    "queueOutcome": "complete",
+    "queueAttempts": 1,
+    "queueLease": null,
+    "newRosterRuns": 0,
+    "newRosterObservations": 0,
+    "collectionReopened": false,
+    "vendorReadsFromMisroutedRequest": 0,
+    "extraSourceRunTriggered": false,
+    "diagnosticDatabaseWrites": 0,
+    "diagnosticVendorCalls": 0,
+    "durationMs": 1902
+  },
+  "incidentCorrection": {
+    "query": "probe=health",
+    "originalResponsePreserved": true,
+    "helperCorrected": true,
+    "correctedHttpStatus": 200,
+    "correctedProbeRequestedDiscovery": false,
+    "completedCanaryNotRepeated": true
+  },
+  "capacity": {
+    "stressedBaseDailyWork": 18,
+    "additionalRosterAttemptLowerBound": 1,
+    "stressedDailyWorkBeforeExtraRetries": 19,
+    "retainedModeledOpportunities": 30,
+    "arithmeticSpare": 11,
+    "observedThroughputQualified": false
+  },
+  "backup": {
+    "receipt": "2026-10-09-afternoon-release-restore.json",
+    "observedAt": "2026-10-09T17:16:13.943Z",
+    "sha256": "5bc022633557b2693383d87aee6f84c9020547fe49a3f6db561b43f748da2253",
+    "encryptedRestoreMatched": true
+  },
+  "scheduledRosterExecutionVerified": false,
+  "nextDailyDemand": "2026-10-10T16:10:00.000Z",
+  "limits": [
+    "Controlled canary success and read-only runtime health do not prove a later scheduled roster execution.",
+    "The next daily demand is October 10 at 16:10 UTC; today's completed request must not be reopened to manufacture proof.",
+    "Missed days coalesce to a fresh observation; historical membership is not reconstructed.",
+    "Group membership evidence is not authoritative employment status.",
+    "The helper initially invoked the enqueue route by using an unsupported health parameter; duplicate demand coalesced without changing the complete queue payload or creating another run/observation.",
+    "Unrelated metric accuracy and optional recovery activation are separate work."
+  ]
+}

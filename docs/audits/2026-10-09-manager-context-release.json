@@ -1,0 +1,66 @@
+{
+  "newOptionalFlagsAbsent": true,
+  "livePeriods": [
+    "2026-09-20",
+    "2026-09-27",
+    "2026-10-04"
+  ],
+  "priorPR68RequestMs": [
+    3236,
+    3408
+  ],
+  "aliasVerified": true,
+  "anonymous": {
+    "login": 200,
+    "scorecardWeek": 307,
+    "roster": 401,
+    "timingLeaked": false
+  },
+  "backup": "2026-10-09-afternoon-release-restore.json",
+  "requestTimings": [
+    {
+      "prefetch": false,
+      "durationMs": 2886,
+      "status": 200
+    },
+    {
+      "prefetch": false,
+      "durationMs": 3097,
+      "status": 200
+    }
+  ],
+  "previewApplicationTreeMatches": true,
+  "deployment": "dpl_HFA6QENQbW7cngidoUe7oVQbPkeL",
+  "previewSource": "7649dec",
+  "previewDeployment": "dpl_94p1DXUA31jDG7Eua6dxjWCKZeth",
+  "productionEnvCount": 24,
+  "liveReadScope": "existing administrator view-as manager",
+  "merge": "955ad8bd3820fe98fb0d9b5ce1ea7c054affdc0c",
+  "syntheticRosterAndWeeksVerified": true,
+  "candidateCI": 37965524931,
+  "rollback": "dpl_CuGSTfD4EVkrHMPuzietEegnH7Zc",
+  "phaseTimings": [
+    {
+      "timings": {
+        "auth": 39,
+        "context": 1001.6,
+        "employee": 131.1,
+        "metrics": 1410.5
+      },
+      "status": 200
+    },
+    {
+      "timings": {
+        "auth": 48.3,
+        "context": 1108.6,
+        "employee": 142.1,
+        "metrics": 1366.2
+      },
+      "status": 200
+    }
+  ],
+  "candidate": "7213a15d67cdc5f8864f401dc1b5cae0975a595e",
+  "observedAt": "2026-10-09T17:27:21.0782710Z",
+  "limitation": "Two requests per deployment, not a benchmark. Reads still take about three seconds. Manager-own-login not observed.",
+  "masterCI": 37965942876
+}

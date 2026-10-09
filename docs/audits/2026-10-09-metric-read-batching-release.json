@@ -1,0 +1,43 @@
+{
+  "observedAt": "2026-10-09T17:49:05Z",
+  "candidate": "75bd1126a5cc8f793bb96a0d374da08b319dbf53",
+  "candidateCI": 37968050958,
+  "masterCI": 37968522574,
+  "bothCIPassed": true,
+  "merge": "71036cb6b93992cc2f878278edf2c506525b42f7",
+  "productionDeployment": "dpl_3fhXwV8qWAgRaLY4EsQ1g2qNaFMi",
+  "productionAliasVerified": true,
+  "productionEnvironmentEntries": 26,
+  "productionEnvironmentUnchangedFromRosterActivation": true,
+  "previewCommit": "d3f1c13ffa2b8d63587a6dea4bf589c4ac4396c5",
+  "previewDeployment": "dpl_Gc6vX9TpSSx7NmmtDjGEiec6N6s7",
+  "previewApplicationTreeMatches": true,
+  "previewIsolationBuildPassed": true,
+  "syntheticChecks": {
+    "historicalZeroVersusMissingPreserved": true,
+    "historicalTargetsWithheld": true,
+    "currentWeekProgressRows": 14,
+    "currentWeekPerformanceJudgments": false,
+    "closedWeekNoTargetRows": 15,
+    "selectedAndComparisonDatesCorrect": true,
+    "loadingExcludesExportAndPriorValues": true
+  },
+  "liveReadScope": "Existing administrator view-as manager; native manager login not observed",
+  "livePeriods": ["2026-09-20", "2026-09-27", "2026-10-04"],
+  "liveWarningsTargetsAndLoadingPreserved": true,
+  "nonPrefetchHttp200RequestMs": [2370, 3327],
+  "phaseSamples": [
+    {"auth": 59.3, "context": 1075.3, "employee": 142, "metrics": 867.1},
+    {"auth": 36, "context": 1134.9, "employee": 148.5, "metrics": 1437.7}
+  ],
+  "priorPR70NonPrefetchHttp200RequestMs": [2886, 3097],
+  "anonymousChecks": {"login": 200, "scorecardWeek": 307, "rosterHealth": 401, "serverTimingLeaked": false},
+  "backup": "2026-10-09-afternoon-release-restore.json",
+  "codeRollbackDeployment": "dpl_713dF7JzVpiA3h2UHZDVC17SQPmx",
+  "rollbackPreservesActivatedRosterConfiguration": true,
+  "limits": [
+    "Two requests per comparison are not a controlled benchmark; variable latency remains.",
+    "Fewer SQL statements are verified, but no consistent end-to-end speedup is claimed.",
+    "Metric calculations, coverage policies, source ingestion and employee assignments are unchanged."
+  ]
+}
