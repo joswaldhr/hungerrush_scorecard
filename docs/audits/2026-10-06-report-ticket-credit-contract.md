@@ -1,5 +1,14 @@
 # Report-matched ticket credits
 
+## October 9 — one-week Menufy update publication
+
+PR59 and its controlled publication establish the separate agent-update definition
+for September 27–October 3 only. All 23 source counts/sets and 21 populated report rows
+match; two source-proven zeros complete this cohort. The assignment is bounded to that
+week, with no copied targets and no recurring activation. Current-week source replay
+matches 23 counts/sets but lacks a matching report export; the first retained week's
+residual and POS definition remain open. See the [release receipt and limits](2026-10-09-agent-update-scoped-release.md).
+
 ## October 8, 22:04 UTC — current closed-week row parity
 
 The unchanged September 27–October 3 Menufy dashboard was exported again at 21:57

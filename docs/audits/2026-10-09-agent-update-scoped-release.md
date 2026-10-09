@@ -52,4 +52,30 @@ general historical repair, other metrics, employee memberships and the demo stay
 
 ## Outcome
 
-Pending; this manifest is not proof of production publication.
+Released in PR59 as `87c75f4bd047a57270c88248e701cd22ff53c3aa`, production
+`dpl_HhewZvRChTKNotoj2CXjvf3F9r5t`; alias and login verified. Final candidate CI
+`37864638984` and master CI `37864915692` pass, including 1,295 tests / 161 files.
+Runtime matches the hosted candidate; later changes add two PostgreSQL release tests
+and documentation only. The [fresh restore](2026-10-09-agent-update-release-restore.json)
+at 00:20 UTC matches 36 tables / 394,647 rows.
+
+First dispatch stops at the table-lock check before catalog creation. A separate
+read-only check confirms zero new definitions and the untouched original assignment.
+No blocking worker remains at that inspection. The retry succeeds at 00:32 UTC:
+23 source summaries/facts/values publish atomically with the bounded assignment switch.
+All 23 source sets and counts match before commit. Read-only post-commit verification
+at 00:33 UTC again matches all 23 values and all 11 protected digests; two values are
+verified zero. No vendor requests, target copies, policy or scheduler changes occurred.
+See [publication receipt](2026-10-09-agent-update-publication.json).
+
+Live administrator view-as shows the new labeled count and removes the old update
+placeholder only for the selected week. The downloaded production CSV's 20-column
+contract, value, unit, America/Chicago timezone, source contract and No Target status
+agree with the screen. This is not the manager's own authenticated acceptance. The
+synthetic stored-history interval form also shows 7 for the closed week, 0 for the
+current week with its source cutoff, and preserves the scorecard return week.
+
+This closes the selected-week publication gap only. The initial synthetic rehearsal
+failure's cause remains unknown; its repeat passes are recorded above. Ongoing update
+activation, other-period report comparisons, POS definition qualification, current-week
+image bytes, native print and the separate outbound discrepancies are not claimed done.

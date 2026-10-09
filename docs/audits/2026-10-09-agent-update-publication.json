@@ -1,0 +1,18 @@
+{
+  "observedAt": "2026-10-09T00:33:32.857Z",
+  "controlledPublication": true,
+  "periodStart": "2026-09-27",
+  "periodEnd": "2026-10-03",
+  "employees": 23,
+  "valuesWritten": 23,
+  "matchingIndependentValues": 23,
+  "sourceSetsVerifiedBeforeCommit": 23,
+  "zeroValues": 2,
+  "protectedTableDigestsMatch": 11,
+  "assignmentBoundedToOneWeek": true,
+  "targetsCopied": 0,
+  "productionCode": "87c75f4bd047a57270c88248e701cd22ff53c3aa",
+  "recurringEnabled": false,
+  "vendorRequests": 0,
+  "sourceOldestDependency": "2026-10-08T23:48:30.152Z"
+}
