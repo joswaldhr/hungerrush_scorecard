@@ -21,12 +21,17 @@ async function main() {
     ["waiting", "Awaiting scheduler"],
     ["unknown", "Status unavailable"],
   ] as const;
+  const families = [
+    { team: "Synthetic support team", metric: "Tickets solved (Zendesk credit)" },
+    { team: "Synthetic support team", metric: "CSAT (shared import)" },
+    { team: "Synthetic support team", metric: "First reply (shared import)" },
+    { team: "Shared source import", metric: "Legacy metrics (shared import)" },
+  ];
   const health: RecoveryHealth = {
     state: "enabled",
     rows: cases.map(([status, label], index) => ({
       key: `synthetic-${index}`,
-      team: "Synthetic support team",
-      metric: "Tickets solved (Zendesk credit)",
+      ...families[index % families.length]!,
       periodStart: "2026-09-27",
       periodEnd: "2026-10-03",
       status,
@@ -54,6 +59,7 @@ async function main() {
       })
     );
   assert(markup.includes("Request completed") && markup.includes("Interrupted; awaiting retry"));
+  for (const family of families) assert(markup.includes(family.metric));
   const css = (await readdir(".next/static", { recursive: true })).filter((f) =>
     f.endsWith(".css")
   );

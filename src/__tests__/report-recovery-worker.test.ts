@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   updater: vi.fn(),
   assignee: vi.fn(),
   csat: vi.fn(),
+  firstReply: vi.fn(),
   heartbeat: vi.fn(),
 }));
 vi.mock("@/lib/connectors/zendesk-report-jobs", () => ({
@@ -29,6 +30,9 @@ vi.mock("@/lib/connectors/zendesk", () => ({
   ZendeskConnector: class {
     sourceType = "zendesk";
   },
+}));
+vi.mock("@/lib/connectors/zendesk-first-reply-connector", () => ({
+  createFirstReplyConnector: mocks.firstReply,
 }));
 vi.mock("@/lib/connectors/zendesk-csat-connector", () => ({ createCsatConnector: mocks.csat }));
 vi.mock("@/lib/connectors/zendesk-updater-solved-publisher", () => ({
@@ -70,6 +74,7 @@ beforeEach(() => {
   mocks.updater.mockReturnValue("updater");
   mocks.assignee.mockReturnValue("assignee");
   mocks.csat.mockReturnValue("csat");
+  mocks.firstReply.mockReturnValue("first-reply");
   mocks.reader.mockReturnValue("GET-only reader");
   mocks.collect.mockResolvedValue({ status: "collected", streamExhausted: true });
   mocks.sync.mockResolvedValue({ success: true });
@@ -329,4 +334,55 @@ it("also preserves vendor Retry-After for solved publication", async () => {
     expect.anything(),
     expect.objectContaining({ status: "failed", retryAt })
   );
+});
+
+it("first-reply retries saved dates, respects cooldown and keeps vendor retry-after", async () => {
+  const firstReply = {
+    ...csat,
+    teams: csat.teams.map((t) => ({
+      ...t,
+      metricKeys: ["avg_response_time"] as ["avg_response_time"],
+    })),
+  };
+  const p = planReportRecovery(collection, [policy], undefined, undefined, undefined, firstReply);
+  const selected = {
+    kind: "first-reply",
+    policyHash: p.firstReplyPolicy!.policyHash,
+    periodStart: "2021-01-03",
+    periodEnd: "2021-01-09",
+  };
+  mocks.claim.mockResolvedValue({
+    definition: selected,
+    token: "owned",
+    desiredAt: "2021-01-10T16:00:00.000Z",
+  });
+  const runFirst = () =>
+    runLiveReportRecovery(collection, [policy], credentials, undefined, undefined, firstReply);
+  mocks.cooldown.mockResolvedValueOnce(true);
+  expect(await runFirst()).toMatchObject({ status: "deferred" });
+  expect(mocks.sync).not.toHaveBeenCalled();
+  const retryAt = new Date(Date.now() + 7200000).toISOString();
+  mocks.sync.mockResolvedValueOnce({ success: false, retryAt });
+  expect(await runFirst()).toMatchObject({
+    status: "failed",
+    kind: "first-reply",
+    periodStart: selected.periodStart,
+  });
+  expect(mocks.sync).toHaveBeenCalledWith("first-reply", collection.scope, {
+    period: { periodStart: selected.periodStart, periodEnd: selected.periodEnd },
+  });
+  expect(mocks.finish).toHaveBeenLastCalledWith(
+    collection.scope,
+    expect.anything(),
+    expect.objectContaining({ retryAt })
+  );
+  mocks.sync.mockClear();
+  expect(await run()).toMatchObject({ status: "failed" });
+  expect(mocks.sync).not.toHaveBeenCalled();
+  expect(() =>
+    planReportRecovery(collection, [policy], undefined, undefined, undefined, {
+      ...firstReply,
+      organizationId: "20000000-0000-4000-8000-000000000002",
+    })
+  ).toThrow("share");
 });

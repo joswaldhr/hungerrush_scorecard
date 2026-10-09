@@ -1,6 +1,7 @@
 {
   "git": {
     "deploymentEnabled": {
+      "codex/first-reply-recovery": false,
       "codex/scorecard-load-performance": false,
       "codex/metric-coverage-verification": false,
       "codex/independent-roster-schedule": false,

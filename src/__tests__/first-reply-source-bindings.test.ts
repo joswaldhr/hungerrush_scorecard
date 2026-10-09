@@ -12,8 +12,21 @@ import {
   metricDefinitions,
   metricAssignments,
 } from "@/lib/db/schema";
-vi.mock("@/lib/env", () => ({ env: { ZENDESK_SUBDOMAIN: "synthetic" } }));
-import { loadFirstReplyEmployeeBindings } from "@/lib/connectors/zendesk-first-reply-connector";
+vi.mock("@/lib/env", () => ({
+  env: {
+    ZENDESK_SUBDOMAIN: "synthetic",
+    ZENDESK_EMAIL: "synthetic@example.invalid",
+    ZENDESK_API_KEY: "synthetic-only",
+  },
+}));
+const collector = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/connectors/zendesk-first-reply-collection", () => ({
+  collectFirstReplyRecords: collector,
+}));
+import {
+  createFirstReplyConnector,
+  loadFirstReplyEmployeeBindings,
+} from "@/lib/connectors/zendesk-first-reply-connector";
 import { parseZendeskFirstReplyPolicy } from "@/lib/connectors/zendesk-first-reply-policy";
 const org = randomUUID(),
   team = randomUUID(),
@@ -174,4 +187,33 @@ it("rejects incompatible duration definition units before fetching", async () =>
   } finally {
     await db.update(metricDefinitions).set({ unit: "min" }).where(eq(metricDefinitions.id, score));
   }
+});
+
+it("passes the saved period to collection instead of recomputing today's offset", async () => {
+  collector.mockResolvedValue({ records: [], diagnostics: {} });
+  const connector = createFirstReplyConnector(policy);
+  expect(connector.supportsFixedPeriod).toBe(true);
+  await connector.fetchRecords(config, {
+    ...config,
+    syncRunId: randomUUID(),
+    cursor: null,
+    period: { periodStart: "2026-09-20", periodEnd: "2026-09-26" },
+  });
+  expect(collector).toHaveBeenCalledWith(
+    policy,
+    "2026-09-20",
+    "2026-09-26",
+    expect.any(Array),
+    expect.any(Function)
+  );
+  collector.mockClear();
+  await expect(
+    connector.fetchRecords(config, {
+      ...config,
+      syncRunId: randomUUID(),
+      cursor: null,
+      period: { periodStart: "2026-09-20", periodEnd: "2026-09-25" },
+    })
+  ).rejects.toThrow();
+  expect(collector).not.toHaveBeenCalled();
 });

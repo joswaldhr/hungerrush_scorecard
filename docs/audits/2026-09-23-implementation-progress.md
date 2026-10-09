@@ -17,18 +17,24 @@ loading/export exclusion and neutral progress. Actual current-week CSV/PNG/PDF a
 closed-week CSV were downloaded and inspected: current CSV has 14 reported progress
 rows / 15 unavailable; closed CSV has 15 no-target / 14 unavailable. PDF rendering
 and PNG match the progress snapshot. Copied text produced a success notice but this
-browser returned no clipboard bytes; native print and production timing comparison
-remain unverified. PR65 is merged as `12a2d84`; live verification is pending.
+browser returned no clipboard bytes; native print remains unverified. PR65 is live
+at `12a2d84` / `dpl_ChTAjyFn1oP6N7u6m47QvFnEXpsN`, with master CI
+`37960661419` passing. Authenticated production week reads work, but two warmed
+uncached requests still take 3,514/3,590 ms. No latency improvement is claimed; a
+separate scoped query-batching/timing candidate is being reviewed.
 
 Separate PR66 adds inactive qualified-import recovery and scoped health. Its first
 full CI run exposed an outdated source-binding fixture, now corrected with added
-mismatch regressions; final CI/release remain pending. The retained metric candidate
-preserves channel evidence behind a separate default-off flag and independently
+mismatch regressions; final integrated CI/release remain pending. PR67 is live at
+`72ec4c4` / `dpl_Cj5K8yX9mxhkW2K1Bi2MzSW1G9iM`, with exact candidate/master CI
+`37960893511` / `37961333072` passing. Its code preserves channel evidence behind a separate default-off flag and independently
 replays 310 outbound values. Cross-review strengthened the verifier to reject missing
 required source fields and reconstruct publication evidence itself; its 11 Python
 regressions now run in CI. Full historical POS channel coverage, one outbound report
 discrepancy and recurring-family qualifications remain open. No Zendesk or frozen
-demo changes were made.
+demo changes were made. Production metadata confirms channel retention and all new
+optional recovery/roster flags remain absent. See the aggregate
+[loading/export and verification receipt](2026-10-09-loading-verification-release.json).
 
 **October 9, 16:24 UTC — coordinated reliability/performance candidates, not yet released:**
 The roster candidate now shares the account lease and retained source cooldown with
