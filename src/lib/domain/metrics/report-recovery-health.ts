@@ -10,6 +10,11 @@ import { planReportRecovery } from "@/lib/connectors/zendesk-report-recovery";
 import { REPORT_JOB_RECORD } from "@/lib/connectors/zendesk-report-jobs";
 import { reportJobHealth, type ReportJobHealth } from "@/lib/connectors/report-job-health";
 
+import { configuredQualifiedRecovery } from "@/lib/connectors/zendesk-qualified-recovery";
+import { configuredLegacySyncRecovery } from "@/lib/connectors/zendesk-legacy-sync-recovery";
+import type { ZendeskCsatPolicy } from "@/lib/connectors/zendesk-csat-policy";
+import type { ZendeskFirstReplyPolicy } from "@/lib/connectors/zendesk-first-reply-policy";
+
 export type RecoveryHealth = {
   state: "enabled" | "disabled" | "unavailable" | "not_configured";
   rows: Array<
@@ -53,9 +58,37 @@ export async function getReportRecoveryHealth(
       .select({ id: teams.id, name: teams.name })
       .from(teams)
       .where(and(eq(teams.organizationId, organizationId), inArray(teams.id, assignedTeamIds)));
-    const visible = releases.filter((r) => allowedTeams.some((t) => t.id === r.teamId));
-    if (!visible.length) return { state: "not_configured", rows: [] };
-    const plan = planReportRecovery(collection, visible, now);
+    const csat = configuredQualifiedRecovery("csat")?.policy as ZendeskCsatPolicy | undefined;
+    const firstReply = configuredQualifiedRecovery("first-reply")?.policy as
+      ZendeskFirstReplyPolicy | undefined;
+    const plan = planReportRecovery(
+      collection,
+      releases,
+      now,
+      csat,
+      configuredLegacySyncRecovery(),
+      firstReply
+    );
+    const authorizedNames = (ids: string[]) =>
+      allowedTeams.filter((t) => ids.includes(t.id)).map((t) => t.name);
+    const visibleSolved = releases.some((r) => authorizedNames([r.teamId]).length);
+    const namesFor = (kind: string, hash: string) => {
+      if (kind === "csat") return authorizedNames(csat?.teams.map((t) => t.teamId) ?? []);
+      if (kind === "first-reply")
+        return authorizedNames(firstReply?.teams.map((t) => t.teamId) ?? []);
+      const policy = plan.publicationPolicies.find((p) => p.policyHash === hash)?.release;
+      return policy ? authorizedNames([policy.teamId]) : [];
+    };
+    const hasVisiblePolicy =
+      visibleSolved ||
+      authorizedNames(csat?.teams.map((t) => t.teamId) ?? []).length ||
+      authorizedNames(firstReply?.teams.map((t) => t.teamId) ?? []).length;
+    if (!hasVisiblePolicy) return { state: "not_configured", rows: [] };
+    const visibleRequests = plan.requests.filter(
+      ({ definition: d }) =>
+        d.kind === "collection" ||
+        (d.kind === "legacy-sync" ? visibleSolved : namesFor(d.kind, d.policyHash).length > 0)
+    );
     const records = await db
       .select({ payload: sourceRecords.payloadJson })
       .from(sourceRecords)
@@ -64,7 +97,7 @@ export async function getReportRecoveryHealth(
           eq(sourceRecords.dataSourceId, source.id),
           eq(sourceRecords.externalRecordType, REPORT_JOB_RECORD),
           or(
-            ...plan.requests.map(
+            ...visibleRequests.map(
               ({ definition }) =>
                 sql`${sourceRecords.payloadJson}->'definition' = ${JSON.stringify(definition)}::jsonb`
             )
@@ -72,7 +105,7 @@ export async function getReportRecoveryHealth(
         )
       )
       .limit(100);
-    const rows = plan.requests.map((request) => {
+    const rows = visibleRequests.map((request) => {
       const d = request.definition;
       const matches = records.filter(({ payload }) => {
         const p = payload as {
@@ -90,18 +123,26 @@ export async function getReportRecoveryHealth(
             (p.definition.periodStart === d.periodStart && p.definition.periodEnd === d.periodEnd))
         );
       });
-      const policy = plan.publicationPolicies.find((p) => p.policyHash === d.policyHash)?.release;
       return {
         key: `${d.policyHash}:${d.kind === "collection" ? "collection" : d.periodStart}`,
-        team: policy
-          ? allowedTeams.find((t) => t.id === policy.teamId)!.name
-          : "Shared source collection",
+        team:
+          d.kind === "collection"
+            ? "Shared source collection"
+            : d.kind === "legacy-sync"
+              ? "Shared source import"
+              : namesFor(d.kind, d.policyHash).join(", "),
         metric:
           d.kind === "collection"
             ? "Ticket events"
             : d.kind === "updater"
               ? "Tickets solved (Zendesk credit)"
-              : "Tickets solved (assigned)",
+              : d.kind === "assignee-solved"
+                ? "Tickets solved (assigned)"
+                : d.kind === "csat"
+                  ? "CSAT (shared import)"
+                  : d.kind === "first-reply"
+                    ? "First reply (shared import)"
+                    : "Legacy metrics (shared import)",
         periodStart: d.kind === "collection" ? null : d.periodStart,
         periodEnd: d.kind === "collection" ? null : d.periodEnd,
         ...reportJobHealth(

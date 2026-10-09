@@ -23,6 +23,13 @@ import type { ReportEventScope } from "./zendesk-report-event-store";
 import { ZendeskConnector } from "./zendesk";
 import { pingSyncHeartbeat } from "./sync-heartbeat";
 
+import { createFirstReplyConnector } from "./zendesk-first-reply-connector";
+import {
+  parseZendeskFirstReplyPolicy,
+  type ZendeskFirstReplyPolicy,
+} from "./zendesk-first-reply-policy";
+import { planQualifiedRecovery } from "./zendesk-qualified-recovery";
+
 type Collection = NonNullable<ReturnType<typeof parseReportEventCollectionPolicy>>;
 const digest = (v: unknown) => createHash("sha256").update(JSON.stringify(v)).digest("hex");
 export function planReportRecovery(
@@ -30,7 +37,8 @@ export function planReportRecovery(
   input: SolvedRelease[],
   now = new Date(),
   csatInput?: ZendeskCsatPolicy,
-  legacyInput?: ReportEventScope
+  legacyInput?: ReportEventScope,
+  firstReplyInput?: ZendeskFirstReplyPolicy
 ) {
   if (!input.length || input.length > 2)
     throw Error("Report recovery requires qualified solved policies");
@@ -57,7 +65,22 @@ export function planReportRecovery(
       csat.organizationId !== collection.scope.organizationId)
   )
     throw Error("CSAT recovery must share the configured source/account");
-  const csatPolicy = csat ? { release: csat, policyHash: digest({ kind: "csat", ...csat }) } : null;
+  const csatPolicy = csat ? planQualifiedRecovery("csat", csat, now) : null;
+  const firstReply = firstReplyInput
+    ? parseZendeskFirstReplyPolicy(
+        JSON.stringify(firstReplyInput),
+        collection.scope.accountReference.replace(/^zendesk-account:/, "")
+      )
+    : null;
+  if (
+    firstReply &&
+    (firstReply.dataSourceId !== collection.scope.dataSourceId ||
+      firstReply.organizationId !== collection.scope.organizationId)
+  )
+    throw Error("First-reply recovery must share the configured source/account");
+  const firstReplyPolicy = firstReply
+    ? planQualifiedRecovery("first-reply", firstReply, now)
+    : null;
   if (
     legacyInput &&
     (legacyInput.organizationId !== collection.scope.organizationId ||
@@ -88,31 +111,21 @@ export function planReportRecovery(
       });
     }
   }
-  if (csatPolicy) {
-    for (let offset = 0; offset < 4; offset++) {
-      const periodStart = shiftWeekStart(currentWeek, -offset);
-      if (periodStart < csatPolicy.release.effectivePeriodStart) continue;
-      requests.push({
-        definition: {
-          kind: "csat",
-          policyHash: csatPolicy.policyHash,
-          ...weekBoundsForDate(periodStart),
-        },
-        desiredAt: daily.toISOString(),
-      });
-    }
-  }
+  if (csatPolicy) requests.push(...csatPolicy.requests);
+  if (firstReplyPolicy) requests.push(...firstReplyPolicy.requests);
   if (legacyPolicy) requests.push(...legacyPolicy.requests);
   return {
     collection,
     publicationPolicies,
     csatPolicy,
+    firstReplyPolicy,
     legacyPolicy,
     requests,
     currentPolicyHashes: [
       collectionHash,
       ...publicationPolicies.map((p) => p.policyHash),
       ...(csatPolicy ? [csatPolicy.policyHash] : []),
+      ...(firstReplyPolicy ? [firstReplyPolicy.policyHash] : []),
       ...(legacyPolicy ? [legacyPolicy.policyHash] : []),
     ],
   };
@@ -156,9 +169,17 @@ export async function runLiveReportRecovery(
   releases: SolvedRelease[],
   credentials: { subdomain: string; email: string; apiKey: string },
   csatPolicy?: ZendeskCsatPolicy,
-  legacyPolicy?: ReportEventScope
+  legacyPolicy?: ReportEventScope,
+  firstReplyPolicy?: ZendeskFirstReplyPolicy
 ) {
-  const plan = planReportRecovery(collection, releases, new Date(), csatPolicy, legacyPolicy);
+  const plan = planReportRecovery(
+    collection,
+    releases,
+    new Date(),
+    csatPolicy,
+    legacyPolicy,
+    firstReplyPolicy
+  );
   const result = await dispatchReportRecovery(plan, async (job) => {
     // Preserve source pacing on every attempt, including a previously interrupted job.
     if (await isSyncRateLimited(collection.scope.dataSourceId))
@@ -189,6 +210,20 @@ export async function runLiveReportRecovery(
       const result = await runSync(new ZendeskConnector(), collection.scope, {
         period: { periodStart: selected.periodStart, periodEnd: selected.periodEnd },
       });
+      return {
+        status: result.success ? "complete" : result.skipped ? "deferred" : "failed",
+        syncRunId: result.syncRunId,
+        ...(!result.success && result.retryAt ? { retryAt: result.retryAt } : {}),
+      };
+    }
+    if (selected.kind === "first-reply") {
+      if (!plan.firstReplyPolicy || plan.firstReplyPolicy.policyHash !== selected.policyHash)
+        throw Error("Queued first-reply policy no longer active");
+      const result = await runSync(
+        createFirstReplyConnector(plan.firstReplyPolicy.release),
+        collection.scope,
+        { period: { periodStart: selected.periodStart, periodEnd: selected.periodEnd } }
+      );
       return {
         status: result.success ? "complete" : result.skipped ? "deferred" : "failed",
         syncRunId: result.syncRunId,

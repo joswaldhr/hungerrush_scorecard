@@ -1,0 +1,67 @@
+{
+  "observedAt": "2026-10-09T16:50:16.500Z",
+  "loading": {
+    "pullRequest": 65,
+    "sha": "12a2d8435e19f37161e2d8f8701830af436d3fed",
+    "deploymentId": "dpl_ChTAjyFn1oP6N7u6m47QvFnEXpsN",
+    "productionAliasVerified": true,
+    "candidateCI": 37959391145,
+    "masterCI": 37960661419,
+    "previewDeploymentId": "dpl_3YAtUVLKbVunndeWmyRdu1poR4PV",
+    "checks": [
+      "isolated synthetic authenticated week navigation",
+      "rapid selection and Back/Forward",
+      "loading blocks stale exports",
+      "zero values and neutral current-week statuses",
+      "historical targets withheld",
+      "actual CSV, PDF and PNG bytes inspected"
+    ],
+    "exports": [
+      {
+        "kind": "currentCSV",
+        "bytes": 15599,
+        "sha256": "3ff6aa7ddbd78c3313f64574addf829aa189cf43a4d436d36582f0c1877ed2cf"
+      },
+      {
+        "kind": "closedCSV",
+        "bytes": 15847,
+        "sha256": "c0d7398f55fa00dd5c9cfee30785e3afcd32bd9015fe559b3f9a9d8bf7310fb0"
+      },
+      {
+        "kind": "currentPNG",
+        "bytes": 1830692,
+        "sha256": "b19963b2787c769c96fbd9502974981bfe00461bf87b88386aef0b954475f537"
+      },
+      {
+        "kind": "currentPDF",
+        "bytes": 1209213,
+        "sha256": "28f7dae01b695ed7d773a0535bd2eabb3a11d7e9b60b6fcff14229cb4462dcee"
+      }
+    ],
+    "unverified": [
+      "clipboard bytes",
+      "native print"
+    ],
+    "uncachedProductionRequestMilliseconds": [
+      3514,
+      3590
+    ],
+    "performanceLimit": "Two warmed production reads still take about 3.5 seconds; not a benchmark or demonstrated latency improvement."
+  },
+  "metricVerification": {
+    "pullRequest": 67,
+    "sha": "72ec4c417fda97bbff75b4852b578a0296a372bb",
+    "deploymentId": "dpl_Cj5K8yX9mxhkW2K1Bi2MzSW1G9iM",
+    "state": "READY",
+    "productionAliasVerified": true,
+    "candidateCI": 37960893511,
+    "masterCI": 37961333072,
+    "channelRetentionEnabled": false,
+    "newRecoveryFlagsEnabled": false,
+    "independentOutboundValues": 310,
+    "unresolvedPOSReportDiscrepancies": 1,
+    "wholeWeekPOSChannelCoverageVerified": false,
+    "sourceCallsTriggered": 0,
+    "metricPublicationsTriggered": 0
+  }
+}

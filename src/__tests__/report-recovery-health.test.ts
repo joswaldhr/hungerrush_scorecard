@@ -9,12 +9,22 @@ import { planReportRecovery } from "@/lib/connectors/zendesk-report-recovery";
 import type { SolvedRelease } from "@/lib/connectors/zendesk-solved-publication-record";
 const mocks = vi.hoisted(() => ({
   collection: vi.fn(),
+  qualified: vi.fn(),
+  legacy: vi.fn(),
   releases: vi.fn(),
   env: { ZENDESK_REPORT_RECOVERY: "1" },
 }));
 vi.mock("@/lib/connectors/zendesk-solved-config", () => ({
   configuredReportEventCollectionPolicy: mocks.collection,
   configuredSolvedReportReleases: mocks.releases,
+}));
+vi.mock("@/lib/connectors/zendesk-qualified-recovery", async (original) => ({
+  ...(await original<object>()),
+  configuredQualifiedRecovery: mocks.qualified,
+}));
+vi.mock("@/lib/connectors/zendesk-legacy-sync-recovery", async (original) => ({
+  ...(await original<object>()),
+  configuredLegacySyncRecovery: mocks.legacy,
 }));
 vi.mock("@/lib/env", () => ({ env: mocks.env }));
 import { getReportRecoveryHealth } from "@/lib/domain/metrics/report-recovery-health";
@@ -75,6 +85,8 @@ beforeAll(async () => {
     .where(eq(sourceRecords.dataSourceId, source));
 });
 beforeEach(async () => {
+  mocks.qualified.mockReset();
+  mocks.legacy.mockReset();
   mocks.collection.mockReturnValue(collection);
   mocks.releases.mockReturnValue(releases);
   mocks.env.ZENDESK_REPORT_RECOVERY = "1";
@@ -161,4 +173,56 @@ it("ignores historical jobs outside the planned horizon rather than exhausting t
   );
   const result = await getReportRecoveryHealth(org, [teamA], now);
   expect(result.rows.every((r) => r.status === "queued")).toBe(true);
+});
+
+it("shows all enabled optional imports with only authorized team labels and no data mutation", async () => {
+  const base = {
+    ...collection.scope,
+    schemaVersion: 1,
+    reportingTimeZone: "UTC",
+    effectivePeriodStart: "2026-09-27",
+  };
+  mocks.qualified.mockImplementation((kind: string) => ({
+    scope: collection.scope,
+    policy: {
+      ...base,
+      teams: [teamA, teamB].map((teamId) => ({
+        teamId,
+        groupIds: [10],
+        brandIds: null,
+        metricKeys: [kind === "csat" ? "csat_score" : "avg_response_time"],
+      })),
+    },
+  }));
+  mocks.legacy.mockReturnValue(collection.scope);
+  const before = await db
+    .select()
+    .from(sourceRecords)
+    .where(eq(sourceRecords.dataSourceId, source));
+  const result = await getReportRecoveryHealth(org, [teamA], now);
+  expect(result.state).toBe("enabled");
+  expect(result.rows).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        team: "Synthetic A",
+        metric: "CSAT (shared import)",
+        status: "waiting",
+      }),
+      expect.objectContaining({
+        team: "Synthetic A",
+        metric: "First reply (shared import)",
+        status: "waiting",
+      }),
+      expect.objectContaining({
+        team: "Shared source import",
+        metric: "Legacy metrics (shared import)",
+        status: "waiting",
+      }),
+    ])
+  );
+  expect(JSON.stringify(result)).not.toContain("Synthetic B");
+  expect(
+    await db.select().from(sourceRecords).where(eq(sourceRecords.dataSourceId, source))
+  ).toEqual(before);
+  expect((await getReportRecoveryHealth(org, [], now)).rows).toEqual([]);
 });
