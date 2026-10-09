@@ -46,7 +46,10 @@ the current planned horizon; inspect retained jobs for older outstanding demand.
 
 Legacy weekly recovery has a separate, default-off `ZENDESK_LEGACY_SYNC_RECOVERY=1`
 switch. It requires `ZENDESK_REPORT_RECOVERY=1`, a valid source collection policy and
-`ROSTER_DISCOVERY_SOURCE_ID` matching that source. When enabled, the existing daily
+`ROSTER_DISCOVERY_SOURCE_ID` matching that source and separately qualified
+`ZENDESK_LEGACY_TALK_RESUME=1`. Missing resume configuration fails closed before
+enqueue; queue retries must not restart a full Talk scan on every attempt.
+When enabled, the existing daily
 legacy cron enqueues its fixed week and reports acceptance with `completed: false`;
 publication happens through the bounded dispatcher. Source retry delays and saved
 dates survive later invocations. Only acknowledged successful publication heartbeats.
