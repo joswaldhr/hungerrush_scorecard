@@ -11,10 +11,11 @@ def fixture():
              "timeZone": "America/Chicago", "agentId": 7, "ticketGroupIds": [2]}
     call = {"id": 1, "created_at": "2026-09-27T05:00:00Z", "updated_at": "2026-09-27T06:00:00Z",
             "direction": "outbound", "ticket_id": 3, "completion_status": "completed",
-            "talk_time": 30, "voicemail": False}
+            "talk_time": 30, "voicemail": False, "phone_number": None, "call_group_id": None}
     leg = {"id": 4, "call_id": 1, "created_at": call["created_at"], "updated_at": call["updated_at"],
-           "agent_id": 7, "type": "agent", "talk_time": 0, "hold_time": None}
-    tickets = [{"id": 3, "group_id": 2}]
+           "agent_id": 7, "type": "agent", "talk_time": 0, "hold_time": None,
+           "completion_status": "completed", "duration": 30, "consultation_time": 0}
+    tickets = [{"id": 3, "group_id": 2, "updated_at": call["updated_at"]}]
     return {"calls": [call], "legs": [leg]}, tickets, scope
 
 
@@ -85,6 +86,28 @@ class OutboundVerifierTests(unittest.TestCase):
         c["cases"][0]["record"]["payload"]["sourceEvidence"]["legs"][0]["talk_time"] = 99
         with self.assertRaisesRegex(ValueError, "record_source_content_mismatch"):
             verify(c, s, tickets)
+
+    def test_rejects_every_missing_record_field_even_when_candidate_totals_match(self):
+        s, tickets, scope = fixture()
+        valid = candidates(s, tickets, scope)
+        for kind in ("calls", "legs", "tickets"):
+            for field in valid["cases"][0]["record"]["payload"]["sourceEvidence"][kind][0]:
+                with self.subTest(kind=kind, field=field):
+                    c = copy.deepcopy(valid)
+                    del c["cases"][0]["record"]["payload"]["sourceEvidence"][kind][0][field]
+                    with self.assertRaisesRegex(ValueError, "invalid_record_source_fields"):
+                        verify(c, s, tickets)
+
+    def test_rejects_unexpected_fields_and_missing_source_population(self):
+        s, tickets, scope = fixture()
+        for kind in ("calls", "legs", "tickets"):
+            c = candidates(s, tickets, scope)
+            c["cases"][0]["record"]["payload"]["sourceEvidence"][kind][0]["private_body"] = "SYNTHETIC"
+            with self.assertRaisesRegex(ValueError, "invalid_record_source_fields"):
+                verify(c, s, tickets)
+            del c["cases"][0]["record"]["payload"]["sourceEvidence"][kind]
+            with self.assertRaisesRegex(ValueError, "missing_record_source_population"):
+                verify(c, s, tickets)
 
     def test_rejects_wrong_employee_scope_and_foreign_record_ticket(self):
         s, tickets, scope = fixture()

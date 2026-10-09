@@ -11,7 +11,9 @@ reconstruction without importing the application calculator. It verifies distinc
 calls, local call-created dates, current linked-ticket group scope, classification,
 leg sample sets, zero/null semantics, duration sums and denominators. It also
 compares minimized publication-record contents against the full retained source,
-instead of trusting matching IDs or precomputed totals alone.
+instead of trusting matching IDs or precomputed totals alone. Every minimized
+record must contain exactly the required source fields, and its own evidence is
+independently recalculated; omitted nullable fields cannot masquerade as null.
 
 Run it against a private manifest whose `candidates`, `snapshot`, `tickets`, and
 optional `reportChecks` paths identify retained JSON files. Relative paths resolve
@@ -104,7 +106,7 @@ Assembled, recurring outbound, or recurring update-event publication.
 
 TypeScript and scoped ESLint pass. All 41 focused TypeScript checks pass: channel
 labels/coverage (4), unchanged cursor behavior (7), worker behavior (11), environment
-validation (6), and real isolated PostgreSQL storage/rollback (13). Nine independent Python verifier tests
+validation (6), and real isolated PostgreSQL storage/rollback (13). Eleven independent Python verifier tests
 pass. PostgreSQL checks include old-row/hash preservation, idempotent enrichment,
 channel conflicts, channel-plus-checkpoint rollback, and tampered-sidecar rejection.
 The two committed JSON receipts bind the retained replay checks only. Full exact

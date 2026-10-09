@@ -16,6 +16,18 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 
+# Exact minimized publication-record fields, independently specified from the
+# versioned outbound source contract. Missing fields are not equivalent to null;
+# unexpected fields must not expand the retained private-data surface.
+RECORD_FIELDS = {
+    "calls": {"id", "created_at", "updated_at", "direction", "call_group_id", "phone_number",
+              "completion_status", "ticket_id", "talk_time", "voicemail"},
+    "legs": {"id", "call_id", "agent_id", "type", "completion_status", "created_at", "updated_at",
+             "talk_time", "hold_time", "duration", "consultation_time"},
+    "tickets": {"id", "group_id", "updated_at"},
+}
+
+
 def require(condition, code):
     if not condition:
         raise ValueError(code)
@@ -121,6 +133,10 @@ def verify(candidates, snapshot, tickets, report_checks=()):
         for key, expected in result.items():
             require(key in case["result"] and case["result"][key] == expected, "candidate_source_replay_mismatch")
         evidence = case["record"]["payload"]["sourceEvidence"]
+        for kind, fields in RECORD_FIELDS.items():
+            require(kind in evidence and isinstance(evidence[kind], list), "missing_record_source_population")
+            for row in evidence[kind]:
+                require(isinstance(row, dict) and set(row) == fields, "invalid_record_source_fields")
         require(case["record"]["payload"]["employeeContext"]["employeeId"] == employee,
                 "record_employee_mismatch")
         require(all(evidence["scope"].get(k) == v for k, v in case["scope"].items() if k != "accountReference"),
@@ -140,8 +156,10 @@ def verify(candidates, snapshot, tickets, report_checks=()):
                 # this contract uses linked-ticket groups, never call-group scope.
                 omitted = {"phone_number", "call_group_id"} if kind == "calls" else set()
                 require(all(row.get(k) is None for k in omitted), "record_retains_unneeded_call_metadata")
-                require(row["id"] in original and all(original[row["id"]].get(k) == v for k, v in row.items() if k not in omitted),
+                require(row["id"] in original and all(k in original[row["id"]] and original[row["id"]][k] == v for k, v in row.items() if k not in omitted),
                         "record_source_content_mismatch")
+        require(rebuild(evidence["calls"], evidence["legs"], evidence["tickets"], evidence["scope"]) == result,
+                "record_source_replay_mismatch")
         employees[employee] = result
         values += 5
         sets += 14
