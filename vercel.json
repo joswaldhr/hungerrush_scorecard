@@ -21,6 +21,7 @@
       "codex/pro-recovery-scheduler": false,
       "codex/report-deletion-pagination": false,
       "codex/outbound-release-evidence": false,
+      "codex/report-deletion-pagination": false,
       "codex/outbound-report-completion": false,
       "codex/csat-fixed-refresh": false,
       "codex/pos-source-projection": false,
