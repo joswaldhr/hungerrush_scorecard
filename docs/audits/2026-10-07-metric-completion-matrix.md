@@ -1,5 +1,56 @@
 # Production metric completion
 
+## Current readiness and next work — October 9, 01:31 UTC
+
+This table supersedes older status paragraphs below. A published number, successful
+job or reported-value count is not a whole-scorecard accuracy claim.
+
+| Workstream | Verified state | Next acceptance check |
+|---|---|---|
+| Solved report credits | One actual daily scheduler cycle is correlated across collection plus four publications. Independent retained-source reconstruction matches all 124 values for both teams and both September 27 / October 4 weeks, with zero differences. | Observe repeated collection/publication over a full recurring day and bounded failure/recovery. Fresh same-cutoff Explore parity is separate. |
+| Ticket updates | PR59 and a controlled Menufy publication are live for September 27–October 3: 23 independently verified values/sets, 21 matching populated report rows and two source-proven zeros. Hosted/live export checks pass for that closed week. Current source replay matches but its report comparison is unavailable. | Older/current reference qualification, POS's own definition and recurring operation. Assignment is bounded to the one published week; no recurring publisher is active. Explore contributing-event IDs remain unverified. |
+| Inbound and outbound | Four former outbound exceptions are now corrected for September 27–October 3: recovered POS parents and independently reconciled Menufy ticket-group observations. Twenty values commit with protected-data/revision checks; 61 employees now have the scoped outbound refresh. One POS report discrepancy remains. Some legacy numeric measures still lack qualified contracts. | Obtain matching-period evidence for the last POS difference; qualify additional periods and each remaining measure, then verify genuine recurring publication and recovery. Outbound recurrence remains inactive. |
+| CSAT and first reply | Separate qualified policies exist. No-rating cohorts remain null. Optional CSAT recovery is not enabled. | Verify repeated scheduling, bounded recovery, sample denominators and observation freshness independently. |
+| Roster lifecycle | PR57 checks directory account state. PR58 adds durable manager-specific archive/restore; one confirmed removal is live (22 active / one archived for that manager; other manager 39 unchanged). Historical data and source assignments are preserved. | First directory cron is verified: scheduler user agent, HTTP 200, duration and refreshed 62-account observation. Observe repeated operation. Decouple group discovery and establish company/team roster authority. Manager meeting-list archive is not employment termination or source-assignment removal. |
+| Manager experience | Administrator view-as and prior export bytes were checked. | Each manager's own sign-in and normal meeting/export workflow; native print remains unverified. |
+
+**Source roster discrepancy, now handled in the meeting list:** a manager-reported former team member remains an
+active, unsuspended Zendesk agent in the mapped group. Today's 06:12 UTC Cadence
+observation and 20:30 UTC bounded source read agree; no departure proposal exists.
+This is a source-authority gap, not evidence of company employment. Zendesk's
+`active` means not deleted, not employed. Do not archive employment from this flag.
+PR58 now provides the dated, reviewed manager meeting-list archive with retained
+history and protection against automatic re-addition. Actual source team membership
+and company employment still need an agreed authority. Keep personnel details private;
+no Zendesk or employee records were changed.
+
+The account is independently disabled in Entra, first observed October 5 and confirmed
+October 8. PR57 now surfaces that conflict to the scoped manager and administrators.
+PR58 subsequently closes the meeting-list removal gap; HR/source authority remains open.
+
+**Execution order:** the focused Data Health release is live in PR56; address roster authority
+and discovery visibility; finish one metric family at a time using independent
+report/source comparisons, then prove recurring operation. Keep a single owner for
+integration and releases. Parallel research, when requested, must have disjoint
+scopes and cannot mutate vendors or production independently.
+
+**Completion standard:** every expected employee/metric/period has a correctly
+defined value or a truthful, explained no-sample/not-applicable state; unexplained
+gaps are zero, source sets and denominators reconcile, and refresh/retry/access/export
+behavior is observed. Never replace missing evidence with zero to improve coverage.
+
+Earlier dated sections below are historical evidence, not the current checklist.
+
+**October 8, 18:11 UTC — continuation repair live and current acceptance baseline:**
+PR54 (`bf7ea0d`) corrects deleted-ticket pagination; isolated synthetic checks, all
+1,224 tests, exact CI/build and production read checks pass. Fresh parent joins reduce
+Menufy's last-closed-week update differences to one employee / one update among 21
+populated report rows. No update-credit formula or publication changed. Actual manager
+contexts now have a retained domain-reader census for all 62 current employees over
+two closed weeks and current week. Coverage is not certification: unqualified legacy
+numbers and legitimate null cohorts are distinguished in the remaining work.
+See `2026-10-08-manager-visible-coverage.json` and the authoritative ledger.
+
 **October 8, 17:43 UTC — latest verified coverage:** all 62 active employees have
 the five scoped inbound measures refreshed for September 27–October 3 (PR51 ledger
 receipts), and 57 have five outbound measures refreshed (PR52). The outbound fixed-date
@@ -187,7 +238,7 @@ as recorded above, replacing the old human-only solved assignments prospectively
 | Metric / family | Menufy evidence and remaining work | POS evidence and remaining work |
 | --- | --- | --- |
 | Solved tickets | Qualified updater-credit catalog and publication are live from September 27. All 23 active staff independently match 4,106 closed / 1,634 current credits after complete durable collection and fresh joins. UI and actual closed/current CSV plus closed PDF checks pass. Ongoing delta capacity, scheduled publication/revisions and remaining format checks are open. | Qualified current-assignee/solved-date catalog and publication are live from September 27. All 39 active staff independently match 1,410 closed / 733 current tickets. The one-ticket reduction from the earlier saved report is source-explained; second closed-week independent evidence remains 1,464. Representative POS browser/history and ongoing scheduling/revisions remain open. |
-| Update activity | Current 23-person cohort: 19 second-week report rows match, two employees differ by one update each, and two report-absent employees have complete-source verified zeros. First week retains a two-update residual for another current employee. Bounded audit/comment-author checks do not explain the differences. Resolve exact mismatches before publication; see the October 8 cohort and author receipts. | Establish the applicable update-activity report's exact unit, scope and attribution. Do not copy Menufy's updater/group contract or use current-assignee snapshots. |
+| Update activity | Current 23-person cohort, fresh October 8 parent joins: 20 of 21 populated second-week report rows match, one differs by one update; two employees have no report row. A follower-change-only candidate is a hypothesis, not proof of the missing report member. First-week residual, fresh event/identity qualification and separate publication remain required. See the parent-reconciliation receipt. | Establish the applicable update-activity report's exact unit, scope and attribution. Do not copy Menufy's updater/group contract or use current-assignee snapshots. |
 | First response | Qualified business-time policy exists. Verify all current employee cohorts, zero-sample semantics, freshness and actual scheduled execution after the release. | Verify team-specific definition and per-employee source evidence; inherited labels and stored numbers are insufficient. |
 | CSAT score / response rate where assigned | Preserve existing qualified solved-date/current-assignee calculation and its separate rated/offered/cohort denominators. A score without ratings is legitimately unavailable; confirm each blank against its cohort. Close scheduled refresh/recovery checks. | Match team-specific rating cohort and every employee's numerator/denominator. Do not assume Menufy's release policy applies. |
 | Inbound offered / accepted / declined / missed / unreachable / answer rate | Retained comparison covers all 23 active staff over closed/current periods. Qualified publisher remains inactive; new catalog entries are effective October 11. Finish fresh durable collection, scoped canary and scheduled refresh; do not backdate the new assignments silently. | POS source projection has separate weekly and monthly report parity. Reconcile offered components separately, integrate the qualified projection, then complete publication and scheduling. |

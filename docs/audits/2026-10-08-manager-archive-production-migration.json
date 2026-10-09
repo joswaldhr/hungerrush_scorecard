@@ -1,0 +1,9 @@
+{
+  "observedAt": "2026-10-08T21:51:19.384Z",
+  "target": "production",
+  "migration": "0018_manager_roster_archives",
+  "applied": true,
+  "alreadyApplied": false,
+  "existingApplicationRowsWritten": 0,
+  "vendorRequests": 0
+}

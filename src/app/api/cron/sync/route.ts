@@ -7,6 +7,12 @@ import { isSyncRateLimited } from "@/lib/rate-limit";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import { NextResponse } from "next/server";
+import {
+  configuredLegacySyncRecovery,
+  planLegacySyncRecovery,
+} from "@/lib/connectors/zendesk-legacy-sync-recovery";
+import { requestReportJobs } from "@/lib/connectors/zendesk-report-jobs";
+import { pingSyncHeartbeat } from "@/lib/connectors/sync-heartbeat";
 
 // This route is hit by Vercel Cron once a day and does real work (network
 // calls + DB writes) every time — it must never be served from a cached
@@ -48,12 +54,44 @@ export async function GET(request: Request) {
     weekOffset = parsed;
   }
 
+  let legacyScope: ReturnType<typeof configuredLegacySyncRecovery>;
+  try {
+    legacyScope = configuredLegacySyncRecovery();
+  } catch {
+    return NextResponse.json(
+      { error: "Legacy recovery configuration unavailable" },
+      { status: 503 }
+    );
+  }
   const sources = await db.select().from(dataSources).where(eq(dataSources.type, "zendesk"));
   const results = [];
 
   for (const source of sources) {
     if (source.status !== "configured") {
       results.push({ dataSourceId: source.id, type: source.type, skipped: "source_not_enabled" });
+      continue;
+    }
+    if (legacyScope?.dataSourceId === source.id) {
+      try {
+        const plan = planLegacySyncRecovery(legacyScope);
+        await requestReportJobs(
+          legacyScope,
+          weekOffset === undefined ? plan.requests : [plan.requests[weekOffset]!]
+        );
+        results.push({
+          dataSourceId: source.id,
+          type: source.type,
+          delegated: true,
+          completed: false,
+        });
+      } catch (error) {
+        logger.error("Cron legacy recovery enqueue failed", { error });
+        results.push({
+          dataSourceId: source.id,
+          type: source.type,
+          error: "Recovery enqueue failed",
+        });
+      }
       continue;
     }
     if (await isSyncRateLimited(source.id)) {
@@ -127,16 +165,13 @@ export async function GET(request: Request) {
   // response this route returns to Vercel's cron caller.
   const success =
     results.length > 0 &&
-    results.every((result) => "sync" in result && result.sync?.success && !result.rosterError);
-  if (success && env.SYNC_HEARTBEAT_URL) {
-    try {
-      await fetch(env.SYNC_HEARTBEAT_URL, { method: "GET", signal: AbortSignal.timeout(5000) });
-    } catch (err) {
-      logger.warn("Sync heartbeat ping failed", {
-        error: err instanceof Error ? err.message : String(err),
-      });
-    }
-  }
+    results.every(
+      (result) =>
+        ("sync" in result && result.sync?.success && !result.rosterError) ||
+        ("delegated" in result && result.delegated)
+    );
+  const completed = success && results.every((result) => "sync" in result && result.sync?.success);
+  if (completed) await pingSyncHeartbeat();
 
-  return NextResponse.json({ success, results }, { status: success ? 200 : 503 });
+  return NextResponse.json({ success, completed, results }, { status: success ? 200 : 503 });
 }

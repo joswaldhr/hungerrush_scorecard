@@ -27,9 +27,16 @@ const envSchema = z.object({
   // Separately gated durable recovery; installing code never activates source work.
   ZENDESK_REPORT_RECOVERY: z.literal("1").optional(),
   ZENDESK_CSAT_RECOVERY: z.literal("1").optional(),
+  ZENDESK_LEGACY_SYNC_RECOVERY: z.literal("1").optional(),
 
   // Assembled connector (optional)
   ASSEMBLED_API_KEY: z.string().min(1).optional(),
+
+  // Read-only directory conflict checks; credentials alone never activate a worker.
+  ENTRA_TENANT_ID: z.string().min(1).optional(),
+  ENTRA_CLIENT_ID: z.string().min(1).optional(),
+  ENTRA_CLIENT_SECRET: z.string().min(1).optional(),
+  ENTRA_ROSTER_SOURCE_ID: z.string().uuid().optional(),
 
   // Microsoft Entra ID interactive sign-in (SSO) — a separate app registration
   // from the Graph app-only credentials above; optional until configured.

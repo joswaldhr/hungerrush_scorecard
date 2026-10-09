@@ -1,0 +1,12 @@
+{
+  "observedAt": "2026-10-08T18:33:50.882Z",
+  "controlledManualCanary": true,
+  "scheduledEvidence": false,
+  "status": "deferred",
+  "kind": "collection",
+  "protectedDigestGroups": 10,
+  "protectedDigestsUnchanged": true,
+  "metricWrites": 0,
+  "queuedJobs": 5,
+  "vendorWrites": 0
+}

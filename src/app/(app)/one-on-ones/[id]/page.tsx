@@ -10,6 +10,7 @@ import { db } from "@/lib/db";
 import { teams, users } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { resolveReportingWeek, shiftWeekStart } from "@/lib/utils";
+import { getManagerArchives } from "@/lib/domain/roster/manager-archive";
 
 export default async function OneOnOnePage({
   params,
@@ -45,21 +46,25 @@ export default async function OneOnOnePage({
     );
   }
 
-  const team = await db
-    .select()
-    .from(teams)
-    .where(and(eq(teams.id, teamId), eq(teams.organizationId, ctx.organizationId)))
-    .then((r) => r[0]);
-  const managerUser = ctx.userId
-    ? await db
-        .select({ displayName: users.displayName })
-        .from(users)
-        .where(and(eq(users.id, ctx.userId), eq(users.organizationId, ctx.organizationId)))
-        .then((r) => r[0])
-    : null;
-
+  // These reads share the already verified employee scope but not each other's results.
   const previousPeriodStart = shiftWeekStart(periodStart, -1);
-  const rows = await getEmployeeMetrics(ctx, employee.id, teamId, periodStart, previousPeriodStart);
+  const [team, managerUser, rows, archives] = await Promise.all([
+    db
+      .select()
+      .from(teams)
+      .where(and(eq(teams.id, teamId), eq(teams.organizationId, ctx.organizationId)))
+      .then((r) => r[0]),
+    ctx.userId
+      ? db
+          .select({ displayName: users.displayName })
+          .from(users)
+          .where(and(eq(users.id, ctx.userId), eq(users.organizationId, ctx.organizationId)))
+          .then((r) => r[0])
+      : Promise.resolve(null),
+    getEmployeeMetrics(ctx, employee.id, teamId, periodStart, previousPeriodStart),
+    getManagerArchives(ctx),
+  ]);
+  const archive = archives.find((a) => a.employeeId === id);
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 print:space-y-2 pb-12">
@@ -73,6 +78,15 @@ export default async function OneOnOnePage({
         </Link>
       </div>
 
+      {archive && (
+        <p className="rounded-lg border border-border p-3 text-sm print:hidden">
+          Archived from this manager’s active 1:1 roster on {archive.effectiveFrom} (UTC). Saved
+          scorecards remain available.{" "}
+          <Link className="text-accent underline" href="/one-on-ones/roster">
+            Manage roster
+          </Link>
+        </p>
+      )}
       {rows.length === 0 ? (
         <EmptyState
           icon={Users}

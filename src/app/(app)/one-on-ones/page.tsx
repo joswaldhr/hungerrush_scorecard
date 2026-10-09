@@ -8,6 +8,10 @@ import {
 import { EmptyState } from "@/components/empty-state";
 import { OneOnOnesPicker } from "@/components/one-on-ones-picker";
 import { ShieldAlert, Users } from "lucide-react";
+import Link from "next/link";
+import { getDirectoryReview } from "@/lib/domain/roster/directory-check";
+import { directoryBinding } from "@/lib/domain/roster/directory-config";
+import { getManagerArchives } from "@/lib/domain/roster/manager-archive";
 
 export default async function OneOnOnesPage() {
   const session = await auth();
@@ -25,11 +29,34 @@ export default async function OneOnOnesPage() {
     );
   }
 
-  const employees = await getAssignedEmployees(ctx);
-  const teams = await getVisibleTeamsForManager(ctx, employees);
+  const [archives, assignedEmployees] = await Promise.all([
+    getManagerArchives(ctx),
+    getAssignedEmployees(ctx),
+  ]);
+  const employees = assignedEmployees.filter((e) => !archives.some((a) => a.employeeId === e.id));
   if (employees.length === 0) {
-    return <EmptyState icon={Users} title="No employees" description="No employees assigned." />;
+    return (
+      <div className="space-y-4">
+        <EmptyState
+          icon={Users}
+          title="No active employees"
+          description="No employees in your active 1:1 roster."
+        />
+        <Link href="/one-on-ones/roster" className="text-accent underline">
+          Manage roster and archived employees
+        </Link>
+      </div>
+    );
   }
+
+  const [teams, directory] = await Promise.all([
+    getVisibleTeamsForManager(ctx, employees),
+    getDirectoryReview(
+      ctx.organizationId,
+      employees.map((e) => e.id),
+      directoryBinding()
+    ),
+  ]);
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-12">
@@ -55,6 +82,20 @@ export default async function OneOnOnesPage() {
         </div>
       </header>
 
+      {directory.health !== "not_configured" &&
+        (directory.rows.length > 0 || directory.health !== "current") && (
+          <p className="rounded-lg border border-border p-4 text-sm">
+            {directory.rows.length > 0
+              ? "Employee directory discrepancies need review."
+              : "Employee directory checks need attention."}{" "}
+            <Link href="/data-health" className="text-accent underline">
+              Review roster status
+            </Link>
+          </p>
+        )}
+      <Link href="/one-on-ones/roster" className="inline-block text-sm text-accent underline">
+        Manage roster{archives.length ? ` · ${archives.length} archived` : ""}
+      </Link>
       <OneOnOnesPicker teams={teams} employees={employees} />
     </div>
   );

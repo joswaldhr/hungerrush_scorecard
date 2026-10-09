@@ -18,6 +18,10 @@ import { createLiveAssigneeSolvedPublisher } from "./zendesk-assignee-solved-pub
 import { runSync } from "./sync-engine";
 import { createCsatConnector } from "./zendesk-csat-connector";
 import { parseZendeskCsatPolicy, type ZendeskCsatPolicy } from "./zendesk-csat-policy";
+import { planLegacySyncRecovery } from "./zendesk-legacy-sync-recovery";
+import type { ReportEventScope } from "./zendesk-report-event-store";
+import { ZendeskConnector } from "./zendesk";
+import { pingSyncHeartbeat } from "./sync-heartbeat";
 
 type Collection = NonNullable<ReturnType<typeof parseReportEventCollectionPolicy>>;
 const digest = (v: unknown) => createHash("sha256").update(JSON.stringify(v)).digest("hex");
@@ -25,7 +29,8 @@ export function planReportRecovery(
   collection: Collection,
   input: SolvedRelease[],
   now = new Date(),
-  csatInput?: ZendeskCsatPolicy
+  csatInput?: ZendeskCsatPolicy,
+  legacyInput?: ReportEventScope
 ) {
   if (!input.length || input.length > 2)
     throw Error("Report recovery requires qualified solved policies");
@@ -53,6 +58,14 @@ export function planReportRecovery(
   )
     throw Error("CSAT recovery must share the configured source/account");
   const csatPolicy = csat ? { release: csat, policyHash: digest({ kind: "csat", ...csat }) } : null;
+  if (
+    legacyInput &&
+    (legacyInput.organizationId !== collection.scope.organizationId ||
+      legacyInput.dataSourceId !== collection.scope.dataSourceId ||
+      legacyInput.accountReference !== collection.scope.accountReference)
+  )
+    throw Error("Legacy recovery must share the configured source/account");
+  const legacyPolicy = legacyInput ? planLegacySyncRecovery(legacyInput, now) : null;
   const daily = new Date(now);
   daily.setUTCHours(0, 0, 0, 0);
   const sixHourly = new Date(Math.floor(now.getTime() / 21600000) * 21600000);
@@ -89,15 +102,18 @@ export function planReportRecovery(
       });
     }
   }
+  if (legacyPolicy) requests.push(...legacyPolicy.requests);
   return {
     collection,
     publicationPolicies,
     csatPolicy,
+    legacyPolicy,
     requests,
     currentPolicyHashes: [
       collectionHash,
       ...publicationPolicies.map((p) => p.policyHash),
       ...(csatPolicy ? [csatPolicy.policyHash] : []),
+      ...(legacyPolicy ? [legacyPolicy.policyHash] : []),
     ],
   };
 }
@@ -139,10 +155,11 @@ export async function runLiveReportRecovery(
   collection: Collection,
   releases: SolvedRelease[],
   credentials: { subdomain: string; email: string; apiKey: string },
-  csatPolicy?: ZendeskCsatPolicy
+  csatPolicy?: ZendeskCsatPolicy,
+  legacyPolicy?: ReportEventScope
 ) {
-  const plan = planReportRecovery(collection, releases, new Date(), csatPolicy);
-  return dispatchReportRecovery(plan, async (job) => {
+  const plan = planReportRecovery(collection, releases, new Date(), csatPolicy, legacyPolicy);
+  const result = await dispatchReportRecovery(plan, async (job) => {
     // Preserve source pacing on every attempt, including a previously interrupted job.
     if (await isSyncRateLimited(collection.scope.dataSourceId))
       return { status: "deferred", retryAt: new Date(Date.now() + 300000).toISOString() };
@@ -164,6 +181,18 @@ export async function runLiveReportRecovery(
             : new Date(
                 Date.now() + ("waitMs" in result ? (result.waitMs ?? 30000) : 30000)
               ).toISOString(),
+      };
+    }
+    if (selected.kind === "legacy-sync") {
+      if (!plan.legacyPolicy || plan.legacyPolicy.policyHash !== selected.policyHash)
+        throw Error("Queued legacy sync policy no longer active");
+      const result = await runSync(new ZendeskConnector(), collection.scope, {
+        period: { periodStart: selected.periodStart, periodEnd: selected.periodEnd },
+      });
+      return {
+        status: result.success ? "complete" : result.skipped ? "deferred" : "failed",
+        syncRunId: result.syncRunId,
+        ...(!result.success && result.retryAt ? { retryAt: result.retryAt } : {}),
       };
     }
     if (selected.kind === "csat") {
@@ -193,6 +222,9 @@ export async function runLiveReportRecovery(
     return {
       status: result.success ? "complete" : result.skipped ? "deferred" : "failed",
       syncRunId: result.syncRunId,
+      ...(!result.success && result.retryAt ? { retryAt: result.retryAt } : {}),
     };
   });
+  if (result.status === "complete" && result.kind === "legacy-sync") await pingSyncHeartbeat();
+  return result;
 }

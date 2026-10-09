@@ -1,0 +1,79 @@
+{
+  "observedAt": "2026-10-08T20:25:41.934Z",
+  "databaseWrites": 0,
+  "zendeskWrites": 0,
+  "queueJobs": 5,
+  "pendingJobs": 0,
+  "queueFailures": 0,
+  "comparisons": [
+    {
+      "kind": "updater",
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-10",
+      "employees": 23,
+      "valuesCompared": 23,
+      "contributingIds": 2104,
+      "differences": 0,
+      "numericZeros": 3,
+      "databaseWrites": 0,
+      "limit": "Independent calculation of the exact retained publication evidence; not a same-cutoff Explore export."
+    },
+    {
+      "kind": "assignee-solved",
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-10",
+      "employees": 39,
+      "valuesCompared": 39,
+      "contributingIds": 911,
+      "differences": 0,
+      "numericZeros": 2,
+      "databaseWrites": 0,
+      "limit": "Independent calculation of the exact retained publication evidence; not a same-cutoff Explore export."
+    }
+  ],
+  "invocations": [
+    {
+      "at": "2026-10-08T19:30:21.203Z",
+      "path": "/api/cron/report-recovery",
+      "status": 200,
+      "deploymentId": "dpl_D4Ff1Txjjnqn2ue7KALjn8nLDgde"
+    },
+    {
+      "at": "2026-10-08T19:15:21.383Z",
+      "path": "/api/cron/report-recovery",
+      "status": 200,
+      "deploymentId": "dpl_D4Ff1Txjjnqn2ue7KALjn8nLDgde"
+    }
+  ],
+  "limits": [
+    "Exact retained-source recalculation, not a same-cutoff Explore export.",
+    "Current roster includes a manager-reported team departure still present in the source group.",
+    "New invocation records do not expose scheduler user agent in this CLI response; no new manual sync was issued.",
+    "Next six-hour collection and full recurring day remain unobserved."
+  ],
+  "revisions": {
+    "results": [
+      {
+        "kind": "updater",
+        "periodStart": "2026-10-04",
+        "predecessorRevisionsCompared": {
+          "metric_value": 23,
+          "normalized_fact": 23,
+          "source_record": 23
+        },
+        "differences": 0
+      },
+      {
+        "kind": "assignee-solved",
+        "periodStart": "2026-10-04",
+        "predecessorRevisionsCompared": {
+          "metric_value": 39,
+          "normalized_fact": 39,
+          "source_record": 39
+        },
+        "differences": 0
+      }
+    ],
+    "limit": "Selected predecessor fields compared; unrelated digests span other permitted scheduled publications and are not claimed unchanged."
+  }
+}

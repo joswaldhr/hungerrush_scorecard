@@ -1,0 +1,62 @@
+{
+  "modelVersion": 2,
+  "sourceEvidenceObservedAt": "2026-10-07T21:30:27.205Z",
+  "productionChanges": false,
+  "existingDailyJobs": 16,
+  "occupiedHours": [
+    0,
+    1,
+    2,
+    3,
+    6,
+    8,
+    10,
+    12,
+    14,
+    16,
+    18,
+    20,
+    22
+  ],
+  "proposedHourlyHobby": {
+    "dailyTicks": 24,
+    "minimumDailyWork": 12,
+    "successfulOpportunitiesInAdmissibleCollisionPattern": 11,
+    "dailyShortfall": 1,
+    "qualified": false,
+    "reason": "A permitted recurring collision pattern cannot service even minimum full-horizon demand."
+  },
+  "stressAssumptions": {
+    "observedBatchEvents": 9988,
+    "lateArrivalAndOverlapAllowance": 0.25,
+    "sixHourStressEvents": 10267,
+    "stressedCollectionBatches": 8,
+    "missedWindowBatches": 2,
+    "stressedDailyWork": 18
+  },
+  "preciseFifteenMinuteCandidate": {
+    "path": "/api/cron/report-recovery?slot=0",
+    "schedule": "*/15 * * * *",
+    "dailyTicks": 96,
+    "ticksAfterModeledCollisionsAndSixHourOutage": 40,
+    "modeledSpareTicks": 22,
+    "capacityArithmeticPasses": true,
+    "scheduledOperationVerified": false,
+    "requiresPreciseSchedulerPlan": true
+  },
+  "optionalCsatRecovery": {
+    "additionalDailyPublications": 4,
+    "stressedDailyWork": 22,
+    "modeledSpareTicks": 18,
+    "capacityArithmeticPasses": true,
+    "activationVerified": false
+  },
+  "limits": [
+    "A 15-minute wake-up is not a promise that every metric refreshes every 15 minutes.",
+    "This model covers report-event collection, solved credits and optional CSAT only; other metric families need separate recovery qualification.",
+    "Creation-time density does not prove source delivery timing or future quota.",
+    "25 percent overlap/late-arrival allowance is an explicit stress assumption.",
+    "Existing jobs conservatively treated as conflicting source work; this is not a log-derived collision count.",
+    "A scheduler with adequate cadence and actual ongoing operation must be verified before activation."
+  ]
+}

@@ -1,5 +1,12 @@
 # Scoped outbound review refresh
 
+**October 9 supplement:** four of the five excluded employees are subsequently
+corrected using recovered parent calls and fresh report-matched linked-ticket
+observations. Twenty values commit and independently verify; 61 employees now have
+the September 27–October 3 refresh. One POS report discrepancy remains and recurrence
+is inactive. See [the separate correction manifest and receipt](2026-10-09-outbound-parent-recovery.md).
+The original October 8 scope and evidence below remain historical.
+
 ## Verified result — October 8, 17:43 UTC
 
 Both controlled publications completed: the two-employee canary wrote 10 values,

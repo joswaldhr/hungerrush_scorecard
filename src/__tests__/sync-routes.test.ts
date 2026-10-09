@@ -4,11 +4,16 @@ const mocks = vi.hoisted(() => ({
   limited: vi.fn(),
   fetch: vi.fn(),
   roster: vi.fn(),
+  enqueue: vi.fn(),
   sources: [] as unknown[],
   env: {
     CRON_SECRET: "test",
     SYNC_HEARTBEAT_URL: "https://heartbeat.test.invalid",
     ROSTER_DISCOVERY_SOURCE_ID: undefined as string | undefined,
+    ZENDESK_LEGACY_SYNC_RECOVERY: undefined as string | undefined,
+    ZENDESK_REPORT_RECOVERY: undefined as string | undefined,
+    ZENDESK_SUBDOMAIN: "synthetic",
+    ZENDESK_REPORT_EVENT_COLLECTION_POLICY: undefined as string | undefined,
   },
 }));
 vi.mock("@/lib/db", () => ({
@@ -22,6 +27,11 @@ vi.mock("@/lib/db", () => ({
   },
 }));
 vi.mock("@/lib/domain/roster/reconcile", () => ({ discoverRosterCandidates: mocks.roster }));
+vi.mock("@/lib/connectors/zendesk-report-jobs", () => ({ requestReportJobs: mocks.enqueue }));
+vi.mock("@/lib/connectors/zendesk-solved-config", async (original) => ({
+  ...(await original<object>()),
+  configuredSolvedReportReleases: () => [{ kind: "updater" }],
+}));
 vi.mock("@/lib/auth", () => ({ auth: async () => ({ user: { email: "manager@test.invalid" } }) }));
 vi.mock("@/lib/auth/authorization", () => ({
   getEffectiveManagerContext: async () => ({ ctx: { organizationId: "org" } }),
@@ -40,6 +50,10 @@ import { POST } from "@/app/api/sync/run/route";
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.env.ROSTER_DISCOVERY_SOURCE_ID = undefined;
+  mocks.env.ZENDESK_LEGACY_SYNC_RECOVERY = undefined;
+  mocks.env.ZENDESK_REPORT_RECOVERY = undefined;
+  mocks.env.ZENDESK_REPORT_EVENT_COLLECTION_POLICY = undefined;
+  mocks.enqueue.mockReset();
   mocks.sources = [{ id: "source", organizationId: "org", status: "configured", type: "zendesk" }];
   mocks.limited.mockResolvedValue(false);
   mocks.run.mockResolvedValue({ success: false, syncRunId: "run", valuesWritten: 0 });
@@ -54,6 +68,51 @@ const cron = (week = 1) =>
     })
   );
 describe("sync API failure reporting", () => {
+  it("persists delegated work even during cooldown without claiming publication or pinging success", async () => {
+    const scope = {
+      organizationId: "10000000-0000-4000-8000-000000000001",
+      dataSourceId: "10000000-0000-4000-8000-000000000002",
+      accountReference: "zendesk-account:synthetic",
+    };
+    mocks.env.ZENDESK_LEGACY_SYNC_RECOVERY = "1";
+    mocks.env.ZENDESK_REPORT_RECOVERY = "1";
+    mocks.env.ROSTER_DISCOVERY_SOURCE_ID = scope.dataSourceId;
+    mocks.env.ZENDESK_REPORT_EVENT_COLLECTION_POLICY = JSON.stringify({
+      schemaVersion: 1,
+      ...scope,
+      bootstrapDate: "2020-01-05",
+    });
+    mocks.sources = [
+      {
+        id: scope.dataSourceId,
+        organizationId: scope.organizationId,
+        type: "zendesk",
+        status: "configured",
+      },
+    ];
+    mocks.limited.mockResolvedValue(true);
+    const response = await cron(1);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      success: true,
+      completed: false,
+      results: [{ delegated: true, completed: false }],
+    });
+    expect(mocks.enqueue).toHaveBeenCalledWith(scope, [
+      expect.objectContaining({
+        definition: expect.objectContaining({ kind: "legacy-sync" }),
+      }),
+    ]);
+    expect(mocks.run).not.toHaveBeenCalled();
+    expect(mocks.limited).not.toHaveBeenCalled();
+    expect(mocks.fetch).not.toHaveBeenCalled();
+    expect(mocks.roster).not.toHaveBeenCalled();
+    mocks.enqueue.mockRejectedValueOnce(Error("Synthetic queue failure"));
+    expect((await cron(1)).status).toBe(503);
+    mocks.env.ZENDESK_REPORT_RECOVERY = undefined;
+    expect((await cron(1)).status).toBe(503);
+    expect(mocks.run).not.toHaveBeenCalled();
+  });
   it.each(["Roster conflict", ""])(
     "preserves published metric results but withholds a healthy heartbeat on roster failure (%s)",
     async (error) => {

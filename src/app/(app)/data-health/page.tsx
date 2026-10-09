@@ -13,6 +13,13 @@ import { SyncNowButton } from "./actions";
 import { AutoRefresh } from "./auto-refresh";
 import { sourceSupport } from "@/lib/connectors/source-support";
 import { syncRunHealth } from "@/lib/connectors/sync-run-health";
+import { getReportRecoveryHealth } from "@/lib/domain/metrics/report-recovery-health";
+import { ReportRecoveryHealth } from "@/components/report-recovery-health";
+import { DirectoryReview } from "@/components/directory-review";
+import { getDirectoryReview } from "@/lib/domain/roster/directory-check";
+import { directoryBinding } from "@/lib/domain/roster/directory-config";
+import { getManagerArchives } from "@/lib/domain/roster/manager-archive";
+import Link from "next/link";
 
 function syncStatusIcon(status: string) {
   switch (status) {
@@ -42,6 +49,14 @@ export default async function DataHealthPage() {
 
   const now = new Date();
   const nowTs = now.getTime();
+  const recovery = await getReportRecoveryHealth(ctx.organizationId, ctx.assignedTeamIds, now);
+  const archives = await getManagerArchives(ctx);
+  const directory = await getDirectoryReview(
+    ctx.organizationId,
+    ctx.assignedEmployeeIds.filter((id) => !archives.some((a) => a.employeeId === id)),
+    directoryBinding(),
+    now
+  );
 
   const sources = await db
     .select()
@@ -61,36 +76,44 @@ export default async function DataHealthPage() {
   }
 
   const sourceHealth = await Promise.all(
-    sources.map(async (source) => {
-      const [latestRun] = await db
-        .select()
-        .from(syncRuns)
-        .where(eq(syncRuns.dataSourceId, source.id))
-        .orderBy(desc(syncRuns.startedAt))
-        .limit(1);
+    sources
+      .filter((source) => source.type !== "entra")
+      .map(async (source) => {
+        const [latestRun] = await db
+          .select()
+          .from(syncRuns)
+          .where(eq(syncRuns.dataSourceId, source.id))
+          .orderBy(desc(syncRuns.startedAt))
+          .limit(1);
 
-      const errorList = latestRun
-        ? await db.select().from(syncErrors).where(eq(syncErrors.syncRunId, latestRun.id)).limit(5)
-        : [];
+        const errorList = latestRun
+          ? await db
+              .select()
+              .from(syncErrors)
+              .where(eq(syncErrors.syncRunId, latestRun.id))
+              .limit(5)
+          : [];
 
-      return {
-        source,
-        latestRun: latestRun ?? null,
-        errors: errorList,
-        health: syncRunHealth(latestRun ?? null, nowTs),
-      };
-    })
+        return {
+          source,
+          latestRun: latestRun ?? null,
+          errors: errorList,
+          health: syncRunHealth(latestRun ?? null, nowTs),
+        };
+      })
   );
 
-  const anySyncing = sourceHealth.some(
-    (s) =>
-      sourceSupport(s.source.type) === "supported" &&
-      s.source.status === "configured" &&
-      s.health.status === "running"
-  );
+  const anySyncing =
+    recovery.rows.some((row) => row.status === "running") ||
+    sourceHealth.some(
+      (s) =>
+        sourceSupport(s.source.type) === "supported" &&
+        s.source.status === "configured" &&
+        s.health.status === "running"
+    );
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="max-w-5xl space-y-6">
       <AutoRefresh active={anySyncing} />
       <header>
         <h1 className="text-xl font-semibold text-foreground">Data Health</h1>
@@ -98,6 +121,20 @@ export default async function DataHealthPage() {
           Status of external data sources and recent sync activity
         </p>
       </header>
+
+      <ReportRecoveryHealth health={recovery} />
+      <DirectoryReview review={directory} />
+      <p className="text-sm text-muted-foreground">
+        Directory warnings cover your active meeting roster. {archives.length} archived from this
+        manager’s list.{" "}
+        <Link className="text-accent underline" href="/one-on-ones/roster">
+          Manage roster and review archives
+        </Link>
+      </p>
+      <p className="text-sm text-muted-foreground">
+        The source cards below show the latest activity only. A recent successful run does not mean
+        all metric families or reporting weeks have refreshed.
+      </p>
 
       <div className="space-y-3">
         {sourceHealth.map(({ source, latestRun, errors, health }) => {
@@ -138,7 +175,7 @@ export default async function DataHealthPage() {
                             ? source.status === "disabled"
                               ? "Disabled"
                               : "Not enabled"
-                            : health.label}
+                            : `Latest run: ${health.label}`}
                     </Badge>
                     {support === "supported" && enabled && (
                       <SyncNowButton dataSourceType={source.type} />

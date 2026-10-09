@@ -18,11 +18,12 @@ const deletionSchema = z.object({
 });
 
 /** Fresh parent attributes and explicit tombstones; a missing parent is never zero. */
-export async function joinUpdaterSolvedReport(
+async function joinUpdaterReport(
   input: unknown,
   scope: TicketReportCreditScope,
   read: (path: string) => Promise<unknown>,
-  now: () => Date = () => new Date()
+  now: () => Date,
+  measure: "solved" | "updates"
 ) {
   const base = ticketReportCreditSnapshotSchema
     .pick({ events: true, identities: true, coverage: true })
@@ -75,7 +76,30 @@ export async function joinUpdaterSolvedReport(
     observedAt: now().toISOString(),
   });
   const candidate = calculateTicketReportCredits(snapshot, scope);
-  if (candidate.agents.some((a) => a.ticketsSolvedCredits === null))
-    throw Error("Updater solved report lacks complete qualified evidence");
+  if (
+    candidate.agents.some(
+      (a) => (measure === "solved" ? a.ticketsSolvedCredits : a.agentUpdateEvents) === null
+    )
+  )
+    throw Error(`Updater ${measure} report lacks complete qualified evidence`);
   return snapshot;
+}
+
+export function joinUpdaterSolvedReport(
+  input: unknown,
+  scope: TicketReportCreditScope,
+  read: (path: string) => Promise<unknown>,
+  now: () => Date = () => new Date()
+) {
+  return joinUpdaterReport(input, scope, read, now, "solved");
+}
+
+/** Update-role evidence is required; unrelated solved-transition evidence is not. */
+export function joinAgentUpdateReport(
+  input: unknown,
+  scope: TicketReportCreditScope,
+  read: (path: string) => Promise<unknown>,
+  now: () => Date = () => new Date()
+) {
+  return joinUpdaterReport(input, scope, read, now, "updates");
 }

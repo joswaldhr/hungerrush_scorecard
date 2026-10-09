@@ -28,6 +28,40 @@ shared `.env` database.
 
 ## Preview and scheduler
 
+### Data Health interpretation
+
+Data Health's solved-ticket panel reads the persisted recovery requests for the
+manager's assigned teams and current policy's permitted week horizon. It performs
+no source calls, enqueues or writes. Missing requests, pending work, retry cooldowns,
+failed attempts and expired leases remain distinct. “Request completed” means the
+queue acknowledged the requested generation; it does not certify metric accuracy,
+employee coverage or source-observation freshness. Collection is requested every
+six hours and solved publication daily; the dispatcher wakes every 15 minutes.
+Other metric families have separate paths. A disabled recovery switch is shown
+separately from retained queue state; configuration/read failures show unavailable.
+
+Legacy weekly recovery has a separate, default-off `ZENDESK_LEGACY_SYNC_RECOVERY=1`
+switch. It requires `ZENDESK_REPORT_RECOVERY=1`, a valid source collection policy and
+`ROSTER_DISCOVERY_SOURCE_ID` matching that source. When enabled, the existing daily
+legacy cron enqueues its fixed week and reports acceptance with `completed: false`;
+publication happens through the bounded dispatcher. Source retry delays and saved
+dates survive later invocations. Only acknowledged successful publication heartbeats.
+This does not enable any new metric definition. The solved-only Data Health panel
+does not summarize legacy recovery; inspect retained jobs/runs for that family.
+See [activation and rollback gates](audits/2026-10-09-legacy-sync-recovery.md).
+
+The source cards summarize only the latest source run, which may belong to another
+metric family or week. Their success timestamp must not be used as an all-metrics
+freshness indicator. “Run standard weekly sync” invokes the existing current-week
+legacy connector only; it does not run separate solved-ticket, CSAT, first-reply or
+qualified call refreshes. Do not trigger it to manufacture scheduled evidence.
+
+For the isolated UI rehearsal, run `scripts/staging-report-health.ts` after the
+Next build with the approved main Preview configuration. It emits an explicitly
+synthetic static display at `/__rehearsal/report-recovery.html`; no database/vendor
+work occurs. This generated file is not committed or generated in production.
+The protected Data Health page still requires separate authenticated verification.
+
 ### Independent roster discovery candidate
 
 Lifecycle candidate migration 0017 adds observation/proposal evidence without changing
@@ -41,7 +75,8 @@ authority, consecutive-observation/grace-period policy and anomaly gates.
 
 `/api/cron/roster` is disabled unless `ROSTER_DISCOVERY_SOURCE_ID` selects one configured,
 account-bound Zendesk source with group mappings. Deploy migration 0016 first after a
-fresh recovery rehearsal. No schedule is installed by this change. Keep the variable unset
+fresh recovery rehearsal. The October 9 schedule candidate adds one daily 16:10 UTC
+invocation; the worker remains inert without this opt-in. Keep the variable unset
 in synthetic Preview and production until activation gates pass. Authentication uses the
 existing environment-specific `CRON_SECRET`; `?probe=auth` performs no source/database work,
 and `?probe=health` only reads the latest independent run. Probe success does not establish
@@ -281,3 +316,48 @@ the independently qualified solved/CSAT/first-reply policies. Check in-flight wo
 Unresolved source meaning must remain unavailable in the product. A release containing
 containment is not certification of historical totals. Keep production rollout, metric-version
 activation and historical repair as distinct, evidenced operations.
+
+## Manager meeting-roster archive and restore
+
+Use **1:1s → Manage roster** for a manager-confirmed departure from that manager's
+meeting list. Record a concise confirmation reason, then select **Archive from my
+roster**. Verify the person moved to Archived and disappeared from that manager's
+active picker. An administrator can perform this through the existing view-as
+context; confirm the displayed manager before submitting.
+
+The archive retains its actor, reason and recorded date. It survives source
+rediscovery and does not affect another manager's list. Existing authorized
+scorecard/history access remains. If the person returns, use **Restore to my
+roster**, record a reason and verify the active picker. If a stale-form error
+appears, refresh and review the current decision before retrying.
+
+At weekly meeting preparation, review Data Health for directory conflicts and
+confirm roster changes with the manager. A disabled account alone must not become
+an employment-termination decision. Source membership, HR employment status and
+access revocation require their own authoritative confirmation and process; this
+archive does not perform them. Do not change Zendesk to resolve a Cadence roster
+discrepancy. Organization-level directory review retains unresolved conflicts.
+
+When diagnosing a repeated appearance, check the manager context and open archive
+first. Do not delete historical employee data or erase a decision to repair a
+source mismatch. A code rollback to a version before PR58 retains the additive
+table but stops honoring the archive in the active picker; record that consequence.
+See the [verified release and process](audits/2026-10-08-manager-roster-archive.md).
+
+## Directory roster review
+
+Directory checks use a dedicated `entra` data source whose configuration reference
+is `entra-tenant:<tenant UUID>`, plus `ENTRA_ROSTER_SOURCE_ID` and the existing separate
+Graph app credentials. `/api/cron/directory` authenticates with `CRON_SECRET`;
+`?probe=auth` never collects. Unset source opt-in means no work. The six-hour schedule
+is independent of metric collection. Never use interactive SSO credentials for Graph.
+
+Roster Review and manager-scoped Data Health show retained account observations,
+their timestamp, coverage and failure/staleness. Disabled accounts need manager/HR
+review, unmatched accounts need identity review. Neither means employment termination.
+No employee is automatically archived. Failed checks preserve prior observations;
+the reader has a 100-employee cap and fails closed if exceeded. Directory source
+records never establish metric freshness or certified employment status.
+
+For activation and rollback gates see
+[directory conflict release record](audits/2026-10-08-directory-roster-conflicts.md).

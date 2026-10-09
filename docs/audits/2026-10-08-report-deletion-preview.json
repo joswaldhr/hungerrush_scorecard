@@ -1,0 +1,16 @@
+{
+  "observedAt": "2026-10-08T18:00:46.775Z",
+  "candidateRuntime": "b336d8557203714b2408493f832c1624dde652a3",
+  "previewSha": "9fe44d6cab324fff45216a4fd8dc9d602096c8cf",
+  "deploymentId": "dpl_48nZFZ4QTB5V5o4mT5z9qM14dwxm",
+  "ready": true,
+  "sourceAndScriptsIdentical": true,
+  "verified": true,
+  "synthetic": true,
+  "simulatedRequests": 3,
+  "vendorRequests": 0,
+  "databaseWrites": 0,
+  "verifiedValues": 4,
+  "explicitDeletionTombstones": 1,
+  "unknownParentsDiscarded": 0
+}

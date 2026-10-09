@@ -18,7 +18,7 @@ const definitionSchema = z.discriminatedUnion("kind", [
     .strict(),
   z
     .object({
-      kind: z.enum(["updater", "assignee-solved", "csat"]),
+      kind: z.enum(["updater", "assignee-solved", "csat", "legacy-sync"]),
       policyHash: z.string().regex(/^[a-f0-9]{64}$/),
       periodStart: z.iso.date(),
       periodEnd: z.iso.date(),
@@ -26,7 +26,7 @@ const definitionSchema = z.discriminatedUnion("kind", [
     .strict(),
 ]);
 export type ReportJobDefinition = z.infer<typeof definitionSchema>;
-const stateSchema = z
+export const reportJobStateSchema = z
   .object({
     version: z.literal(1),
     accountReference: z.string(),
@@ -46,7 +46,7 @@ const stateSchema = z
       .nullable(),
   })
   .strict();
-type State = z.infer<typeof stateSchema>;
+type State = z.infer<typeof reportJobStateSchema>;
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 const selector = (scope: ReportEventScope) =>
   and(
@@ -108,7 +108,7 @@ async function put(tx: Tx, scope: ReportEventScope, state: State) {
     });
 }
 function readState(payload: unknown, scope: ReportEventScope) {
-  const state = stateSchema.parse(payload);
+  const state = reportJobStateSchema.parse(payload);
   if (state.accountReference !== scope.accountReference) throw Error("Report job account changed");
   return state;
 }
@@ -118,7 +118,7 @@ export async function requestReportJobs(
   scope: ReportEventScope,
   requests: Array<{ definition: ReportJobDefinition; desiredAt: string }>
 ) {
-  if (!requests.length || requests.length > 16) throw Error("Invalid report job request budget");
+  if (!requests.length || requests.length > 20) throw Error("Invalid report job request budget");
   return db.transaction(async (tx) => {
     const now = await lock(tx, scope);
     const parsed = requests.map((request) => {
@@ -176,7 +176,7 @@ export async function claimReportJob(
 ): Promise<ClaimedReportJob | null> {
   if (
     !currentPolicyHashes.length ||
-    currentPolicyHashes.length > 4 ||
+    currentPolicyHashes.length > 5 ||
     currentPolicyHashes.some((h) => !/^[a-f0-9]{64}$/.test(h))
   )
     throw Error("Invalid job policy allowlist");

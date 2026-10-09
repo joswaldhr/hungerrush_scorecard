@@ -5,11 +5,14 @@ import {
   SOLVED_CSAT_CONTRACT,
   UPDATER_SOLVED_CONTRACT,
   ASSIGNEE_SOLVED_CONTRACT,
+  AGENT_UPDATE_CONTRACT,
   POS_INBOUND_CONTRACT,
   type MetricSourceContext,
 } from "./source-context";
 
 export function metricSourceName(name: string, key: string, context?: MetricSourceContext | null) {
+  if (key === "zendesk_agent_update_events" && context?.sourceContract === AGENT_UPDATE_CONTRACT)
+    return "Agent update events";
   if (
     key === "zendesk_tickets_solved_credits" &&
     context?.sourceContract === UPDATER_SOLVED_CONTRACT
@@ -31,6 +34,12 @@ export function metricSourceDescription(
   sourceStrategy: string | null,
   context?: MetricSourceContext | null
 ) {
+  if (key === "zendesk_agent_update_events" && context?.sourceContract === AGENT_UPDATE_CONTRACT) {
+    const cutoff = context.reportingAsOf
+      ? ` Current-week progress; captured source data before ${context.reportingAsOf}.`
+      : "";
+    return `Distinct update IDs credited to this agent account, selected by update date and observed ticket group/brand scope. Multiple updates to one ticket count separately. Integration activity credited to the account can be included; this does not establish manual human activity. Reporting timezone: ${context.reportingTimeZone}. Later ticket scope changes can revise the report.${cutoff}`;
+  }
   if (
     (key === "zendesk_tickets_solved_credits" &&
       context?.sourceContract === UPDATER_SOLVED_CONTRACT) ||

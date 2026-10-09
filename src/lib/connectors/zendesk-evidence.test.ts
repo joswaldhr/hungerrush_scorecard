@@ -316,3 +316,44 @@ it("rejects cyclic rating pagination", async () => {
   ).rejects.toThrow("pagination stalled");
   expect(get).toHaveBeenCalledTimes(2);
 });
+
+it.each([
+  ["2026-09-27", "2026-10-03", false],
+  ["2026-10-04", "2026-10-10", true],
+])(
+  "pins legacy reads to %s and observes backlog only for the actual current week",
+  async (start, end, backlog) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-04T01:00:00Z"));
+    get.mockImplementation(async (path: string) => {
+      if (path.startsWith("/satisfaction_ratings"))
+        return { satisfaction_ratings: [], next_page: null };
+      if (path.startsWith("/channels/voice"))
+        return { calls: [], count: 0, end_time: 1791075600, next_page: null };
+      if (path.startsWith("/search/export"))
+        return { results: [], meta: { has_more: false }, links: { next: null } };
+      if (path.startsWith("/users/search")) return { users: [{ id: 7, email }] };
+      throw Error("Unexpected synthetic endpoint");
+    });
+    const config = { dataSourceId: "source", organizationId: "org" };
+    const result = await new ZendeskConnector().fetchRecords(config, {
+      ...config,
+      syncRunId: "run",
+      cursor: null,
+      period: { periodStart: start, periodEnd: end },
+    });
+    expect(result.hasMore).toBe(false);
+    expect(result.cursor).toBeNull();
+    expect(result.records.every((r) => r.periodStart === start && r.periodEnd === end)).toBe(true);
+    const search = get.mock.calls
+      .map(([path]) => decodeURIComponent(path))
+      .filter((p) => p.startsWith("/search/export"));
+    expect(
+      search.some((p) => p.includes(`updated>=${start}`) && p.includes(`updated<=${end}`))
+    ).toBe(true);
+    expect(search.some((p) => p.includes("status<solved"))).toBe(backlog);
+    expect(
+      result.records.find((r) => r.externalRecordType === "agent_stats")!.payload.backlogCount
+    ).toBe(backlog ? 0 : null);
+  }
+);

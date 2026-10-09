@@ -6,7 +6,7 @@ import { ScorecardBody } from "@/components/scorecard-body";
 import { resolveReportingWeek } from "@/lib/utils";
 
 const fetchMetrics = vi.hoisted(() => vi.fn());
-vi.mock("@/app/(app)/one-on-ones/[id]/actions", () => ({ getWeekMetrics: fetchMetrics }));
+vi.mock("@/lib/scorecard-week-client", () => ({ fetchScorecardWeek: fetchMetrics }));
 vi.mock("@/components/scorecard-export", () => ({
   SCORECARD_CAPTURE_ID: "scorecard-capture",
   ScorecardExport: ({ periodLabel }: { periodLabel: string }) => (
@@ -153,11 +153,11 @@ describe("scorecard period snapshot", () => {
     fetchMetrics.mockResolvedValue(rows(82));
     vi.setSystemTime(new Date("2026-09-28T12:00:00Z"));
     await act(async () => window.dispatchEvent(new Event("focus")));
-    expect(fetchMetrics).toHaveBeenLastCalledWith("person", "2026-09-20");
+    expect(fetchMetrics).toHaveBeenLastCalledWith("person", "2026-09-20", expect.any(AbortSignal));
     await click("This week · In progress");
     vi.setSystemTime(new Date("2026-10-05T12:00:00Z"));
     await act(async () => window.dispatchEvent(new Event("focus")));
-    expect(fetchMetrics).toHaveBeenLastCalledWith("person", "2026-09-27");
+    expect(fetchMetrics).toHaveBeenLastCalledWith("person", "2026-09-27", expect.any(AbortSignal));
     expect(container.querySelector("[data-export]")?.textContent).not.toContain("In progress");
   });
   it("hides prior rows and exports until the requested week resolves", async () => {
@@ -187,11 +187,53 @@ describe("scorecard period snapshot", () => {
     const second = deferred();
     fetchMetrics.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
     await click("Previous week");
+    const firstSignal = fetchMetrics.mock.calls[0]![2] as AbortSignal;
     await click("Previous week");
+    expect(firstSignal.aborted).toBe(true);
     await act(async () => second.resolve(rows(81)));
     await act(async () => first.resolve(rows(115)));
     expect(container.querySelector("[data-metrics]")?.textContent).toContain("Sep 6–12: 81");
     expect(container.querySelector("[data-export]")?.textContent).toContain("Sep 6");
+  });
+
+  it("does not restart an in-flight selection when focus returns", async () => {
+    const pending = deferred();
+    fetchMetrics.mockReturnValue(pending.promise);
+    await click("Previous week");
+    await act(async () => window.dispatchEvent(new Event("focus")));
+    expect(fetchMetrics).toHaveBeenCalledTimes(1);
+    expect((fetchMetrics.mock.calls[0]![2] as AbortSignal).aborted).toBe(false);
+    await act(async () => pending.resolve(rows(115)));
+  });
+
+  it("finishes the selected week after same-employee server props refresh", async () => {
+    const pending = deferred();
+    fetchMetrics.mockReturnValue(pending.promise);
+    await click("Previous week");
+    const signal = fetchMetrics.mock.calls[0]![2] as AbortSignal;
+    await act(async () =>
+      root.render(
+        <ScorecardBody
+          employeeId="person"
+          employeeName="Test Person"
+          employeeJobTitle={null}
+          teamName="Team"
+          managerName={null}
+          initialPeriodStart="2026-09-20"
+          initialRows={rows(67)}
+        />
+      )
+    );
+    expect(signal.aborted).toBe(false);
+    await act(async () => window.dispatchEvent(new Event("focus")));
+    expect(fetchMetrics).toHaveBeenCalledTimes(1);
+    expect(container.querySelector("[data-export]")).toBeNull();
+    await act(async () => pending.resolve(rows(115)));
+    expect(container.querySelector("[data-metrics]")?.textContent).toContain("Sep 13–19: 115");
+    expect(container.querySelector("[data-export]")?.textContent).toContain("Sep 13");
+    await click("Next week");
+    expect(container.querySelector("[data-metrics]")?.textContent).toContain("Sep 20–26: 67");
+    expect(fetchMetrics).toHaveBeenCalledTimes(1);
   });
 
   it("shows a retryable failure instead of stale values or export", async () => {
@@ -205,7 +247,7 @@ describe("scorecard period snapshot", () => {
     expect(container.querySelector("[data-metrics]")?.textContent).toContain("115");
   });
 
-  it("refreshes cached data after its lifetime and on window focus", async () => {
+  it("keeps fresh snapshots on focus and refreshes after the cache lifetime", async () => {
     fetchMetrics
       .mockResolvedValueOnce(rows(115))
       .mockResolvedValueOnce(rows(116))
@@ -215,6 +257,10 @@ describe("scorecard period snapshot", () => {
     vi.setSystemTime(new Date("2026-09-23T12:02:00Z"));
     await click("Previous week");
     expect(container.querySelector("[data-metrics]")?.textContent).toContain("116");
+    await act(async () => window.dispatchEvent(new Event("focus")));
+    expect(container.querySelector("[data-metrics]")?.textContent).toContain("116");
+    expect(fetchMetrics).toHaveBeenCalledTimes(2);
+    vi.setSystemTime(new Date("2026-09-23T12:04:00Z"));
     await act(async () => window.dispatchEvent(new Event("focus")));
     expect(container.querySelector("[data-metrics]")?.textContent).toContain("117");
   });

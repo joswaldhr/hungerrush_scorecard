@@ -29,6 +29,7 @@ import { normalizeOutboundRecord } from "./zendesk-outbound-record";
 import { configuredCsatPolicy } from "./zendesk-csat-config";
 import { csatPolicyForPeriod } from "./zendesk-csat-policy";
 import { mapWithConcurrency, weekDates } from "@/lib/utils";
+import { parseSyncPeriod } from "./sync-period";
 
 // Real timing data (2026-09-10, see FOLLOWUPS.md) showed the per-employee
 // ticket-search and identity-resolution loops -- not the Talk calls fetch --
@@ -283,6 +284,7 @@ function isAvoidableElevation(tags: string[]): boolean {
 }
 
 export class ZendeskConnector implements Connector {
+  readonly supportsFixedPeriod = true;
   readonly sourceType = "zendesk";
   private emailToId = new Map<string, number>();
 
@@ -350,12 +352,17 @@ export class ZendeskConnector implements Connector {
     hasMore: boolean;
     diagnostics?: Record<string, unknown>;
   }> {
-    const weekOffset = ctx.cursor ? parseInt(ctx.cursor, 10) : 0;
-    if (weekOffset >= MAX_WEEKS_BACK) {
+    const weekOffset = ctx.cursor ? Number(ctx.cursor) : 0;
+    if (!Number.isInteger(weekOffset) || weekOffset < 0) throw Error("Invalid Zendesk week cursor");
+    if (!ctx.period && weekOffset >= MAX_WEEKS_BACK) {
       return { records: [], cursor: null, hasMore: false };
     }
 
-    const { periodStart, periodEnd } = weekOf(weekOffset);
+    const { periodStart, periodEnd } = ctx.period
+      ? parseSyncPeriod(ctx.period)
+      : weekOf(weekOffset);
+    // A retry after Sunday must not attach today's backlog snapshot to last week's dates.
+    const observeBacklog = periodStart === weekOf(0).periodStart;
     const csatPolicy = csatPolicyForPeriod(configuredCsatPolicy(), config, periodStart);
     // Only active employees -- a departed employee's external_identities row
     // stays in the DB (roster departure never deletes it, just marks the
@@ -414,7 +421,7 @@ export class ZendeskConnector implements Connector {
         const tickets = await searchAllPages(updatedQuery);
 
         let openTickets: ZendeskTicket[] | null = null;
-        if (weekOffset === 0) {
+        if (observeBacklog) {
           const openQuery = `type:ticket assignee:${email} status<solved`;
           openTickets = await searchAllPages(openQuery);
         }
@@ -470,7 +477,7 @@ export class ZendeskConnector implements Connector {
         createdInPeriod.map((t) => businessMinutes(metricSets.get(t.id)?.reply_time_in_minutes))
       );
 
-      const backlogCount = weekOffset === 0 ? (perEmployeeOpen.get(email)?.length ?? 0) : null;
+      const backlogCount = observeBacklog ? (perEmployeeOpen.get(email)?.length ?? 0) : null;
 
       const workedElevatedTickets = tickets.filter((t) => isElevatedTicket(t.tags)).length;
       const avoidableWorkedElevatedTickets = tickets.filter((t) =>
@@ -494,7 +501,7 @@ export class ZendeskConnector implements Connector {
               tickets.filter((t) => t.status === "solved" || t.status === "closed")
             ),
             createdCohortIds: sourceIds(createdInPeriod),
-            backlogTicketIds: weekOffset === 0 ? sourceIds(perEmployeeOpen.get(email) ?? []) : null,
+            backlogTicketIds: observeBacklog ? sourceIds(perEmployeeOpen.get(email) ?? []) : null,
             fullResolutionBusinessMinutes: averageEvidence(
               createdInPeriod.map((t) =>
                 businessMinutes(metricSets.get(t.id)?.full_resolution_time_in_minutes)
@@ -597,8 +604,8 @@ export class ZendeskConnector implements Connector {
 
     return {
       records,
-      cursor: String(weekOffset + 1),
-      hasMore: weekOffset + 1 < MAX_WEEKS_BACK,
+      cursor: ctx.period ? null : String(weekOffset + 1),
+      hasMore: !ctx.period && weekOffset + 1 < MAX_WEEKS_BACK,
       diagnostics: {
         callsFetch: callDiagnostics,
         identityCount: identities.length,

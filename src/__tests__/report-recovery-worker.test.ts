@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   updater: vi.fn(),
   assignee: vi.fn(),
   csat: vi.fn(),
+  heartbeat: vi.fn(),
 }));
 vi.mock("@/lib/connectors/zendesk-report-jobs", () => ({
   requestReportJobs: mocks.request,
@@ -18,11 +19,17 @@ vi.mock("@/lib/connectors/zendesk-report-jobs", () => ({
   finishReportJob: mocks.finish,
 }));
 vi.mock("@/lib/rate-limit", () => ({ isSyncRateLimited: mocks.cooldown }));
+vi.mock("@/lib/connectors/sync-heartbeat", () => ({ pingSyncHeartbeat: mocks.heartbeat }));
 vi.mock("@/lib/connectors/zendesk-report-event-worker", () => ({
   runReportEventBatch: mocks.collect,
   createReportEventReader: mocks.reader,
 }));
 vi.mock("@/lib/connectors/sync-engine", () => ({ runSync: mocks.sync }));
+vi.mock("@/lib/connectors/zendesk", () => ({
+  ZendeskConnector: class {
+    sourceType = "zendesk";
+  },
+}));
 vi.mock("@/lib/connectors/zendesk-csat-connector", () => ({ createCsatConnector: mocks.csat }));
 vi.mock("@/lib/connectors/zendesk-updater-solved-publisher", () => ({
   createLiveUpdaterSolvedPublisher: mocks.updater,
@@ -127,6 +134,26 @@ it.each([
   mocks.collect.mockResolvedValue(result);
   expect(await run()).toMatchObject({ status: "deferred" });
   expect(mocks.sync).not.toHaveBeenCalled();
+});
+
+it("heartbeats a legacy publication only after durable acknowledgment", async () => {
+  const p = planReportRecovery(collection, [policy], undefined, undefined, collection.scope);
+  mocks.claim.mockResolvedValue({
+    definition: p.legacyPolicy!.requests[0]!.definition,
+    token: "owned",
+    desiredAt: p.legacyPolicy!.requests[0]!.desiredAt,
+  });
+  const legacyRun = () =>
+    runLiveReportRecovery(collection, [policy], credentials, undefined, collection.scope);
+  expect(await legacyRun()).toMatchObject({ status: "complete" });
+  expect(mocks.heartbeat).toHaveBeenCalledOnce();
+  mocks.heartbeat.mockClear();
+  mocks.sync.mockResolvedValueOnce({ success: false, skipped: true });
+  await legacyRun();
+  expect(mocks.heartbeat).not.toHaveBeenCalled();
+  mocks.finish.mockRejectedValueOnce(Error("Synthetic lost acknowledgment"));
+  await expect(legacyRun()).rejects.toThrow("lost acknowledgment");
+  expect(mocks.heartbeat).not.toHaveBeenCalled();
 });
 
 it("acknowledges exhaustion, while a thrown collector failure stays queued", async () => {
@@ -238,4 +265,68 @@ it("resumes CSAT's saved interval after rollover and retains source retry-after"
   mocks.sync.mockClear();
   expect(await run()).toMatchObject({ status: "failed" });
   expect(mocks.sync).not.toHaveBeenCalled();
+});
+
+it("adds legacy daily demand only for the bound opt-in and rejects a foreign source", () => {
+  expect(plan().requests.some((r) => r.definition.kind === "legacy-sync")).toBe(false);
+  const enabled = planReportRecovery(collection, [policy], undefined, undefined, collection.scope);
+  expect(enabled.requests.filter((r) => r.definition.kind === "legacy-sync")).toHaveLength(4);
+  expect(enabled.currentPolicyHashes).toContain(enabled.legacyPolicy!.policyHash);
+  expect(() =>
+    planReportRecovery(collection, [policy], undefined, undefined, {
+      ...collection.scope,
+      accountReference: "zendesk-account:foreign",
+    })
+  ).toThrow("share");
+});
+
+it("retries legacy saved dates, retains long vendor cooldowns, and stops after disabling the policy", async () => {
+  const p = planReportRecovery(collection, [policy], undefined, undefined, collection.scope);
+  mocks.claim.mockResolvedValue({
+    definition: {
+      kind: "legacy-sync",
+      policyHash: p.legacyPolicy!.policyHash,
+      periodStart: "2021-01-03",
+      periodEnd: "2021-01-09",
+    },
+    token: "owned",
+    desiredAt: "2021-01-10T06:00:00.000Z",
+  });
+  const retryAt = new Date(Date.now() + 7200000).toISOString();
+  mocks.sync.mockResolvedValueOnce({ success: false, retryAt });
+  expect(
+    await runLiveReportRecovery(collection, [policy], credentials, undefined, collection.scope)
+  ).toMatchObject({ status: "failed", kind: "legacy-sync", periodStart: "2021-01-03" });
+  expect(mocks.sync).toHaveBeenCalledWith(
+    expect.objectContaining({ sourceType: "zendesk" }),
+    collection.scope,
+    {
+      period: { periodStart: "2021-01-03", periodEnd: "2021-01-09" },
+    }
+  );
+  expect(mocks.finish).toHaveBeenLastCalledWith(
+    collection.scope,
+    expect.anything(),
+    expect.objectContaining({ status: "failed", retryAt })
+  );
+  mocks.sync.mockClear();
+  expect(await run()).toMatchObject({ status: "failed" });
+  expect(mocks.sync).not.toHaveBeenCalled();
+});
+
+it("also preserves vendor Retry-After for solved publication", async () => {
+  const p = plan();
+  mocks.claim.mockResolvedValue({
+    definition: p.requests[1]!.definition,
+    token: "owned",
+    desiredAt: p.requests[1]!.desiredAt,
+  });
+  const retryAt = new Date(Date.now() + 7200000).toISOString();
+  mocks.sync.mockResolvedValueOnce({ success: false, retryAt });
+  await run();
+  expect(mocks.finish).toHaveBeenLastCalledWith(
+    collection.scope,
+    expect.anything(),
+    expect.objectContaining({ status: "failed", retryAt })
+  );
 });

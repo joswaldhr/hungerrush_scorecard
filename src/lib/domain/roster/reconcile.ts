@@ -24,6 +24,7 @@ export async function discoverRosterCandidates(
   dataSourceId: string,
   options: {
     reviewOnly?: boolean;
+    lockPublication?: (tx: Parameters<Parameters<typeof db.transaction>[0]>[0]) => Promise<void>;
     validatePublication?: (
       tx: Parameters<Parameters<typeof db.transaction>[0]>[0]
     ) => Promise<void>;
@@ -78,6 +79,7 @@ export async function discoverRosterCandidates(
 
   // Fetch externally before taking a database lock. Recheck configuration before writing.
   return db.transaction(async (tx) => {
+    await options.lockPublication?.(tx);
     const [currentSource] = await tx
       .select()
       .from(dataSources)

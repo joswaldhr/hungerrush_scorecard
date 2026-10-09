@@ -1,0 +1,23 @@
+{
+  "observedAt": "2026-10-08T18:55:36.066Z",
+  "sha": "ba965977ac6ee4411a0650470876b69a68af01f6",
+  "deploymentId": "dpl_D4Ff1Txjjnqn2ue7KALjn8nLDgde",
+  "ready": true,
+  "productionAliasVerified": true,
+  "cronsUnchanged": 17,
+  "priorEnvironmentMetadataUnchanged": 22,
+  "addedProductionFlag": "ZENDESK_REPORT_RECOVERY",
+  "recoveryEnabled": true,
+  "optionalCsatRecoveryEnabled": false,
+  "manualSyncTriggered": false,
+  "checks": [
+    {
+      "path": "/login",
+      "status": 200
+    },
+    {
+      "path": "/api/cron/report-recovery?slot=0",
+      "status": 401
+    }
+  ]
+}

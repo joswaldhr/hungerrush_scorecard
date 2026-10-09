@@ -1,0 +1,47 @@
+{
+  "controlledManual": true,
+  "scheduledEvidence": false,
+  "totalCollectedPages": 11,
+  "attempts": [
+    {
+      "observedAt": "2026-10-08T18:33:50.882Z",
+      "controlledManualCanary": true,
+      "scheduledEvidence": false,
+      "status": "deferred",
+      "kind": "collection",
+      "protectedDigestGroups": 10,
+      "protectedDigestsUnchanged": true,
+      "metricWrites": 0,
+      "queuedJobs": 5,
+      "vendorWrites": 0
+    },
+    {
+      "observedAt": "2026-10-08T18:42:38.740Z",
+      "controlledManualCanary": true,
+      "scheduledEvidence": false,
+      "status": "deferred",
+      "kind": "collection",
+      "collectedPages": 10,
+      "protectedDigestGroups": 10,
+      "protectedDigestsUnchanged": true,
+      "metricWrites": 0,
+      "queuedJobs": 5,
+      "vendorWrites": 0
+    },
+    {
+      "observedAt": "2026-10-08T18:43:35.389Z",
+      "controlledManualCanary": true,
+      "scheduledEvidence": false,
+      "status": "complete",
+      "kind": "collection",
+      "collectedPages": 1,
+      "protectedDigestGroups": 10,
+      "protectedDigestsUnchanged": true,
+      "metricWrites": 0,
+      "queuedJobs": 5,
+      "vendorWrites": 0
+    }
+  ],
+  "metricWrites": 0,
+  "vendorWrites": 0
+}

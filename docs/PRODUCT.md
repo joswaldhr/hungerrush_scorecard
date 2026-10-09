@@ -236,6 +236,15 @@ docs/DATA_MODEL.md's MetricTarget/MetricVisibilityOverride entries.
 - **Assembled** --- evaluated and dropped. Connector code removed. `schedule_adherence` metric definition still exists (unassigned). Residual `ASSEMBLED_API_KEY` env var reference in `env.ts`.
 - **Rippling** --- no connector built. A "Open Rippling" link-out exists on the 1:1 page via `RIPPLING_MANAGER_URL`. Residual env var reference in `env.ts`.
 
+### Manager meeting roster
+
+The manager-roster archive provides **1:1s → Manage roster**. A manager can
+archive a confirmed former team member from their own active meeting list and
+explicitly restore them later, recording a reason for each decision. This does not
+declare employment termination or revoke existing authorized historical access.
+Source discovery cannot overwrite the decision. See the implementation ledger for
+release status and the [archive process](audits/2026-10-08-manager-roster-archive.md).
+
 ### What Ships
 
 - One core screen (1:1s, including its employee picker) working from normalized Cadence-owned data

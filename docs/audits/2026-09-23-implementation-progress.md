@@ -1,5 +1,385 @@
 # Audit implementation — current checkpoint
 
+**October 9, 16:24 UTC — coordinated reliability/performance candidates, not yet released:**
+The roster candidate now shares the account lease and retained source cooldown with
+metric collection, fences publication after ownership loss, and records failure even
+when cooldown persistence is rejected. The isolated suite passes 1,309 tests / 162
+files; the subsequently added failure-bookkeeping regression passes in all 13 roster
+tests. Typecheck and scoped lint pass. Exact candidate CI/build and production gates
+remain required. Daily roster deferral has no automatic retry demand yet; neither the
+roster opt-in nor legacy recovery is activated by this change.
+
+Parallel agents have committed separate loading and qualified-import recovery
+candidates. Cross-review caught and corrected a server-refresh loading deadlock.
+These commits still require integration, CI and hosted verification. Retained source
+evidence contains the exact phone-channel labels excluded by the POS update report;
+channel preservation and independent replay are being tested without source requests
+or publication. The remaining POS outbound report discrepancy is still unresolved.
+Production remains the PR63 deployment recorded below; the presentation demo and
+Zendesk remain untouched.
+
+**October 9, 15:25 UTC — bounded legacy recovery code released, activation still off:**
+PR63 `c5d4678` is READY on production deployment `dpl_AET9eYL5gkxAmAnfXkk6breQErsm`
+and owns the live alias. Candidate/master CI `37950446137` / `37950854933` pass,
+including all 1,305 tests / 162 files and the production build. Production metadata
+confirms the new legacy recovery switch is absent. This release does not claim the
+two morning failed runs have recovered.
+
+Independent roster discovery has not yet been activated or scheduled. Its first
+controlled canary stopped before vendor access because a private transport assertion
+required explicit GET; the existing helper relied on fetch's default GET. No candidate,
+employee or metric changes occurred. Its recorded failure/cooldown is preserved.
+The next focused increment makes GET explicit and adds the default-off daily roster
+slot; see [canary, activation and rollback](2026-10-09-independent-roster-schedule.md).
+
+**October 9 morning — Pro confirmed; actual scheduler gaps isolated; recovery candidate:**
+PR62 is live at `2d9ecfa` / `dpl_EHgfXxqauqDvF7iTeLThzskznALH`, exact master
+CI `37947819189` passes; public login and authorization redirects pass. The 14:55 UTC
+encrypted restore matches all 36 tables / 404,056 rows. Project-wide read-only logs
+identify 100 actual scheduler requests, including 81 recovery ticks and three directory
+checks. Two daily legacy syncs failed or skipped with zero metric writes: current-week
+collection contention and oldest-week source throttling. They are not recovered yet.
+
+A separate default-off legacy recovery candidate retains daily demand, exact periods,
+vendor retry delays and completion-only heartbeats. Tests and release evidence belong
+to the [recovery manifest](2026-10-09-legacy-sync-recovery.md); activation remains a
+separate gate. The corrected capacity model includes directory's four daily slots.
+
+Essential read-only POS definition inspection confirms distinct update events, ten
+selected groups and two excluded phone channels; the editor was promptly closed and
+closure verified. Existing retained event data lacks channel metadata, so POS update
+counts cannot yet inherit the Menufy definition. No Zendesk edits, demo changes or
+new metric publication occurred in this increment.
+
+**October 9, 01:31 UTC — four remaining outbound exceptions corrected in production:**
+Two previously missing POS parents are recovered by the bounded incremental source;
+fresh joined evidence now passes for all 62 scoped employee records. Independent
+reconstruction matches 310 candidate values, 868 source-set comparisons and 372
+duration numerator/denominator/mean checks. The separate fresh Menufy export matches
+all 76 compared cells. Two former Menufy discrepancies resolve because fresh linked
+ticket groups changed; unchanged call fields and exact contributing-set differences
+explain the correction. No formula, report or filter was changed.
+
+Two controlled transactions publish two POS and two Menufy records for September
+27–October 3: 20 values/facts, four source summaries and retained predecessors. Each
+transaction verifies 12 protected digest groups before commit; independent read-only
+readback confirms the values, 120 persisted source sets and 20 numeric predecessors.
+Together with the October 8 publication, 61 employees have this scoped outbound
+refresh. One POS report discrepancy remains excluded. Recurring outbound is inactive.
+
+The representative live administrator view-as and actual downloaded CSV match the
+corrected rows, selected week, source observation and timezone; historical targets
+remain withheld. Current PDF/PNG bytes, native print and manager-own-login acceptance
+are unverified. The POS viewer currently defaults to a different monthly interval;
+it was closed without changes and provides no fresh weekly comparison.
+
+Runtime is unchanged at PR61 `4770189`, exact master CI/build `37868465720` passed;
+the 01:21 UTC encrypted restore matches all 36 tables / 395,027 rows. Demo, rosters,
+assignments, targets, other metric families and disabled publishers are unchanged.
+See [scope, outcome and rollback](2026-10-09-outbound-parent-recovery.md) and the
+[aggregate publication receipt](2026-10-09-outbound-recovery-publication.json).
+The five-exception statements in older checkpoints below are superseded by this
+four-exception recovery; none of these checks certify a complete recurring scorecard.
+
+**October 9 — solved publication cycle verified on the actual scheduler:**
+The midnight collection and four subsequent publication jobs complete naturally.
+Full project-wide platform records identify `vercel-cron/1.0`, successful responses
+and durations across deployment changes. Each publication is correlated to its
+completed database run, with zero run errors and released queue leases. Independent
+Python reconstruction of retained source evidence matches all 124 saved values:
+23 Menufy and 39 POS for September 27–October 3 and October 4–10, including true
+zeros. No manual sync, vendor request or publication was triggered by verification.
+
+This establishes one daily solved-publication cycle, not a full recurring day,
+induced failure/recovery, fresh Explore parity or complete scorecards. The separate
+agent-update definition remains limited to the one released Menufy week; outbound
+recurrence and the remaining five employee discrepancies stay unresolved. The
+manager archive and genuine directory scheduled check remain live. PR60 documentation
+is deployed as `8139c51` / `dpl_AgyvN4CFSjoqR2298SBpFwZUVDYu`; master CI/build
+`37867040163` passes and production login returns 200.
+See the [aggregate scheduler and independent-value receipt](2026-10-09-solved-scheduled-verification.json).
+
+Two bounded documented single-call GETs for the missing POS parents both return
+404. No parent is recovered and no metric changes. The standard call object
+lookup does not prove deletion or zero activity in the incremental Talk source;
+those two employees remain excluded pending actual parent evidence.
+
+
+**October 9, 00:43 UTC — first directory schedule-slot result observed:**
+Project-wide production logs show `/api/cron/directory` GET 200 at 00:40:46 UTC
+on `dpl_HhewZvRChTKNotoj2CXjvf3F9r5t`. Read-only database verification finds a
+new completed attempt at 00:40:47 and observation at 00:40:48: 62 accounts,
+61 enabled, one disabled, zero unresolved, released lease and exact identity/status
+agreement with the controlled baseline. No manual sync was triggered. This is
+correlated schedule-slot execution and output, separate from the prior canary.
+The full platform record confirms `vercel-cron/1.0`, HTTP 200, 3,245 ms request
+duration / 3,351 ms function duration and no function crash. This closes the first
+scheduler-execution check; it does not prove repeated operation or employment status.
+See the [aggregate receipt](2026-10-09-directory-scheduled-check.json).
+
+**October 9, 00:35 UTC — Menufy update events live for one verified week:**
+PR59 is merged as `87c75f4`; production `dpl_HhewZvRChTKNotoj2CXjvf3F9r5t`
+is READY and owns the live alias. Candidate and master CI/build `37864638984` /
+`37864915692` pass. The suite now contains 1,295 tests / 161 files, including atomic
+catalog/publication commit and full rollback after final verification rejection.
+
+A controlled publication writes 23 `zendesk_agent_update_events` values for
+September 27–October 3 only, matching every independent source count/set; 21 populated
+report rows match and two zeros have complete-source evidence. All 11 protected
+unrelated-data digests match. The new definition uses **updates**, not tickets or
+verified-human actions. Only Menufy's assignment for that week changes; older/current
+weeks retain the original definition and POS is unchanged. No target was copied.
+One initial lock rejection rolls back before catalog creation; read-only inspection
+confirms no partial change before the successful retry. No vendor calls in publication.
+
+Isolated synthetic Preview passes three periods and repeat publication, with closed
+CSV/PDF/PNG bytes and rendering verified. Current UI/CSV/copied text show neutral
+progress and a source cutoff; current PDF/PNG bytes and native print remain unverified.
+Live administrator view-as and downloaded CSV agree on the released metric, source
+description and withheld historical targets. This is not manager-own-login acceptance.
+The 00:20 UTC encrypted restore matches all 36 tables / 394,647 rows.
+
+The publisher has no route, environment opt-in or recurring schedule. Other periods,
+POS update meaning, remaining outbound discrepancies and recurring qualification are
+still open. Current-week independent source reconstruction matches 23 counts/sets but
+does not supply a matching report export. See the [release and rollback record](2026-10-09-agent-update-scoped-release.md)
+and [independent production receipt](2026-10-09-agent-update-publication.json).
+
+**October 8, 23:54 UTC — fresh Menufy update parity and inactive publication candidate:**
+A controlled six-request event refresh completes, preserving all ten protected table
+digests and writing no metrics. Fresh events/identities/parents now independently match
+all 23 source counts and contributing sets for September 27–October 3. All 21 populated
+Menufy update report rows match; the two absent rows have complete-source zero evidence.
+Oldest dependency is 23:48 UTC. This supersedes the retained-event freshness limitation
+of the prior checkpoint for this capture only. It is not scheduler evidence.
+
+`codex/agent-update-publication` adds a separate, unregistered update connector with
+atomic evidence replay, commit-time scope/freshness checks, explicit update units and
+account-attribution labels. Local 1,293 tests / 161 files, typecheck and ESLint pass;
+exact remote CI/build and hosted release checks remain pending. No production update
+definition, assignment, route, environment or publisher was enabled. Older/current
+reference qualification, scoped release and recurring proof remain work. See the
+[candidate and acceptance record](2026-10-08-agent-update-publication.md).
+
+**October 8, 22:05 UTC — metric qualification resumed after the roster release:**
+The 21:57 UTC unchanged Menufy dashboard export and 22:03 UTC parent attributes now
+match all 21 populated September 27–October 3 update rows exactly. Independent replay
+matches all 23 source counts and contributing event sets. No formula was changed;
+no guessed follower-event exclusion was applied. Source reads resolve 4,911 parents
+and 40 tombstones in 52 bounded GETs. Meeting-list archiving does not alter that
+historical source cohort. See [current contract](2026-10-06-report-ticket-credit-contract.md)
+and [aggregate parity](2026-10-08-menufy-update-late-parity.json).
+
+This is qualification, not publication: the comparison retains October 6 events;
+fresh events/identities and required multi-period qualification remain. A separate
+read-only production checkpoint is exhausted at 18:43 UTC, outside the one-hour
+publication window at this check. The fresh export still differs for two Menufy
+outbound rows by one completed call each (seven and 36 talk seconds); those exclusions
+remain. No metric/database/vendor writes occurred in this follow-up. The viewer
+is closed. The permanent archive/restore procedure is now also in the runbook.
+
+**October 8, 21:53 UTC — PR58 manager roster archive live:**
+Master `ea7138b` / `dpl_5BDnKrAqA8LpZfZDDzuaze4iWqWj` is READY on the
+production alias. Candidate `b17594a` and master CI/build `37849269164` /
+`37849675687` pass. Local validation passes 1,275 tests / 158 files, typecheck,
+ESLint and formatting. Isolated hosted synthetic archive/restore, empty-list
+navigation, retained scorecard access, keyboard submission and light/dark checks pass.
+Fresh 21:50 UTC encrypted backup restores all 35 pre-migration tables / 389,063
+rows with matching digests; additive `0018` rehearsal preserves existing data.
+The explicit production migration and one manager-confirmed archive are applied.
+
+The affected manager now has 22 active meeting-roster entries and one archived;
+the other manager remains at 39 active / zero archived. All eight protected
+employee/assignment/metric/target table digests match. Production picker, archive
+record and 22/22 active-roster directory display are verified via administrator
+view-as. Actual manager-own-login acceptance is not implied. Archive/restore retains
+decision history and survives source rediscovery, without declaring termination,
+revoking existing authorized history access or changing vendor/team assignments.
+See [workflow and release](2026-10-08-manager-roster-archive.md) and
+[canary evidence](2026-10-08-manager-archive-canary.json). Metric work resumes next;
+no metric qualification gaps were changed by this release.
+
+**October 8 — manager roster archive candidate (not live):**
+The user authorized completion of the manager-specific removal and ongoing archive
+process before resuming metric work. `codex/manager-roster-archive` adds a durable,
+reasoned manager/employee archive with explicit restore and retained decision history.
+It affects the active 1:1 list only; employment, source/team assignments, metrics and
+other managers stay unchanged. Current authorization still governs history access.
+Migration `0018` is additive. Local/Preview/recovery/release checks are in progress;
+no production archive or migration has been applied. See the
+[contract and release manifest](2026-10-08-manager-roster-archive.md).
+
+**October 8, 21:21 UTC — PR57 directory conflict checks live:**
+Master `98eff5e` / `dpl_A7HW5tczZATxgN3V3PmvkowbmqoL` is READY on production.
+Candidate `fd51a6e` and merged-master CI/build `37845343990` / `37845937548`
+pass. Local validation passes 1,265 tests across 157 files, typecheck and ESLint;
+isolated hosted synthetic display and protected manager-page checks pass.
+Fresh 21:13 UTC encrypted restore matches all 35 tables / 389,060 rows.
+
+A dedicated tenant-bound Entra source and production-only source opt-in are enabled.
+One controlled directory check returns 200, checking 62 employees (61 enabled,
+one disabled; no unresolved identities), matching the prior bounded read-only
+source rehearsal. Eight protected employee/assignment/metric table digests match.
+Existing 23 environment entries and 17 metric schedules are unchanged; one separate
+six-hour directory schedule is installed. Its first real scheduled execution is
+not yet observed. No Zendesk/directory, employment or assignment mutation occurred.
+
+Administrator view-as verifies the 23-person Menufy result and flagged account;
+the POS domain reader verifies 39 checked and no conflicts. Admin Roster Review
+shows 62 checked; the 1:1 picker links to roster status. The synthetic fixture is
+absent from authenticated production. No manager-own-login acceptance is implied.
+Reviewed dated team removal and HR employment confirmation remain separate work.
+See [release evidence](2026-10-08-directory-roster-conflicts.md) and
+[controlled-check receipt](2026-10-08-directory-canary.json).
+The candidate-only status below is superseded.
+
+**October 8 — directory roster conflict candidate:**
+The manager-reported source conflict is independently confirmed in Microsoft Entra:
+the October 5 disabled-account observation remains disabled on October 8 while
+Zendesk still reports the account active in the mapped group. The earlier finding
+was not connected to recurring roster review. A bounded read-only 62-person check
+finds 61 enabled and one disabled account, with no unmatched/ambiguous identities.
+No employment termination date is established. No employee or vendor was changed.
+
+`codex/entra-roster-conflicts` adds tenant-bound retained directory observations,
+independent opt-in scheduling, manager-scoped notices and administrator review.
+No automatic archive or assignment mutation. Candidate validation/release gates are
+in [the release record](2026-10-08-directory-roster-conflicts.md); not yet live.
+
+**October 8 — PR56 reporting health live:**
+Master `cbd8d5d` / `dpl_BzXwfPfMHumJzDgowuhHdMZev6Pe` is READY on the
+production alias. Exact candidate `a20b502` CI/build `37840660871`, 1,236 local
+tests, hosted synthetic states/themes/keyboard checks and authenticated Preview
+reads pass. Fresh 20:43 UTC restore matches all 35 tables / 389,060 rows. Production
+Data Health shows only the viewed manager's solved-recovery weeks; sign-in, scorecard,
+anonymous recovery denial and absence of the synthetic fixture are verified. All 23
+production environment metadata entries and 17 schedules are unchanged. No source,
+metric or assignment mutation was part of this release. See the
+[release receipt](2026-10-08-reporting-readiness-release.md).
+Exact merged-master CI/build `37841640765` also passes.
+
+Both current-week solved publications independently match the retained source sets;
+Selected fields across 186 predecessor revisions also match. Platform request records at
+19:15 and 19:30 UTC return 200 on the expected deployment. Those CLI records do not
+expose the scheduler user agent, so that last attribution check remains explicit.
+See [aggregate evidence](2026-10-08-recovery-current-week-verification.json).
+The full recurring day, other metric-family gaps, manager-own-login acceptance and
+the manager-reported roster/source conflict remain open. The candidate-pending
+description below is superseded by this release.
+
+**October 8, 20:30 UTC — recovery queue drained; reporting-readiness candidate:**
+Read-only production checks show both current-week solved jobs completed (23 Menufy
+values at 19:15 and 39 POS values at 19:30 UTC), with no job failures or active leases.
+Independent retained-source reconstruction matches all 62 values, 2,104 Menufy event
+contributions and 911 POS ticket contributions, including five numeric zeros. These
+two runs still require their own platform-log correlation; no manual sync was issued.
+The next collection window and full recurring day remain unobserved.
+
+The focused `codex/reporting-readiness` candidate adds organization/team-scoped,
+read-only recovery status by period, distinguishes latest source activity from
+completed requests, and explains the legacy manual button's limited refresh scope.
+Local full tests pass (1,236 / 153 files); hosted verification/release remain pending.
+It changes no metrics, assignments, source configuration, schedules or demo behavior.
+
+A separate manager-reported roster discrepancy was traced: the person is still
+present in Zendesk's mapped group as an active, unsuspended agent, matching today's
+Cadence observation. No departure proposal exists. This does not verify employment;
+no employee/vendor mutation was made. The roster authority/removal workflow is an
+explicit open requirement. See the current table in the
+[completion matrix](2026-10-07-metric-completion-matrix.md), which supersedes its
+older historical status paragraphs.
+
+**October 8, 19:02 UTC - Pro recovery live and actual scheduled publication verified:**
+Production remains `ba96597` / `dpl_D4Ff1Txjjnqn2ue7KALjn8nLDgde` with the
+15-minute dispatcher enabled for the qualified solved-report policies only.
+The real 19:00 UTC request (`vercel-cron/1.0`, HTTP 200, 74.1 seconds) refreshed
+39 POS employee values for September 27 through October 3. Independent calculation
+matches all 1,410 contributing tickets and 39 values; 117 predecessor revisions
+and 12 unrelated-row digest groups verify. No sync errors or queue failures.
+Menufy's 23 last-week solved values separately passed the controlled refresh.
+Two current-week jobs remain queued; the next collection window and full recurring
+day remain unobserved. A 15-minute wake-up is not a 15-minute freshness guarantee.
+The existing 16 schedules, other environment entries, demo, assignments, targets,
+Zendesk configuration and disabled human-only/shadow/action-v2/repair paths remain
+unchanged. Other metric-family and acceptance gaps listed below remain open.
+See [rollout](2026-10-08-pro-recovery-rollout.md) and
+[actual scheduled evidence](2026-10-08-pro-recovery-first-enabled-tick.json).
+The pending-tick checkpoints below are superseded by this result.
+
+**October 8, 18:55 UTC - Pro recovery activated; first enabled tick pending:**
+Production `dpl_D4Ff1Txjjnqn2ue7KALjn8nLDgde` is READY on unchanged master
+`ba96597`. Only the qualified report-recovery opt-in was added; optional CSAT
+recovery remains disabled. All 17 schedules and 22 prior environment metadata
+entries match. Login, anonymous rejection and authenticated scorecard reload pass.
+The 18:45 disabled scheduled tick is verified (`vercel-cron/1.0`, HTTP 200,
+372 ms). Controlled collection completed 11 pages with restart progress retained.
+A controlled Menufy last-week solved-credit refresh matches all 23 independently
+reconstructed values; 69 predecessor revisions and unrelated-row digests verify.
+Its initial private test expected the other permitted team first; the durable-key
+ordering assumption was corrected and the actual job fully checked before activation.
+This does not certify other metric families or establish a full recurring cycle.
+See [rollout evidence](2026-10-08-pro-recovery-rollout.md). The next genuine
+enabled request is due at 19:00 UTC; no manual active-route request was issued.
+
+**October 8, 18:34 UTC — Pro schedule deployed; recovery still guarded:**
+PR55 is live as `ba96597` / `dpl_3zibofMBLEZUEqKTpbTWW76ndAbt`. One 15-minute
+dispatcher entry is installed alongside the unchanged 16 schedules. Both recovery
+switches remain absent; authenticated route verification returns `enabled:false`.
+Exact candidate CI/build and master CI pass. Fresh 18:32 UTC backup/restore matches
+all 35 tables. A separately labeled controlled dispatcher canary persisted five
+scoped jobs and correctly deferred at the existing source cooldown; all ten checked
+catalog/value/fact digests stayed unchanged. Actual scheduled delivery, resumed
+collection and enabled recurring recovery remain to verify. See the
+[rollout record](2026-10-08-pro-recovery-rollout.md).
+
+**October 8 — Pro upgrade verified; scheduler candidate prepared:**
+The user approved and completed the quoted $20/month Pro upgrade. The authenticated
+billing page confirms Pro Plan / Active, October 8–November 8 and a $20 upcoming
+invoice. A prepared
+15-minute recovery schedule and expanded capacity model now include optional
+CSAT demand (22 modeled jobs versus 40 remaining opportunities). This is offline
+capacity evidence, not installed scheduling or full metric refresh coverage.
+See [rollout and remaining activation gates](2026-10-08-pro-recovery-rollout.md).
+The branch adds one 15-minute cron entry for initial disabled-route verification;
+it is not deployed yet. No production switch, metric value or Zendesk state changed.
+
+**October 8, 18:11 UTC — PR54 live; full manager-visible census retained:**
+PR54 merged as `bf7ea0d`; production `dpl_9tJxGRF9S45ad4nsGFKXhzUANDqd` is
+READY and owns the live alias. Exact final candidate `f95e545` CI/build
+`37821453954` passes. Authenticated scorecard selection, login, anonymous cron
+rejection and the inactive outbound route are verified. All 22 production environment
+metadata entries and 16 cron definitions are unchanged; no smoke-triggered sync.
+See [production verification](2026-10-08-report-deletion-production.json).
+
+The read-only production domain reader, using each actual manager's access context
+and visibility settings, checks 23 Menufy and 39 POS employees for September 20,
+September 27 and October 4. This establishes current manager access and displayed
+coverage, not a historical roster reconstruction or accuracy percentage. September
+27 has 296 reported / 61 unavailable Menufy cells and 588 / 153 POS cells. Some
+unavailable results are genuine no-rating/no-duration cohorts; some numeric legacy
+values still lack qualified source definitions. Neither filling blanks nor counting
+numeric cells certifies those values. See the aggregate manager-visible coverage file.
+
+Next work stays explicit: close Menufy's remaining one-update report-membership
+discrepancy and qualify fresh report-credit publication; establish POS's own update
+measure; qualify remaining legacy inbound/handling/escalation/backlog measures;
+finish multi-period replay and recurring collection/publication/recovery; complete
+roster lifecycle, manager-own-login and export acceptance. Zendesk and the demo
+remain unchanged. The candidate/pending-deployment description below is superseded.
+
+**October 8, 18:05 UTC — report refresh fix qualified, update residual narrowed:**
+PR54 fixes a real deleted-ticket continuation rejection without changing formulas
+or enabling a producer. The corrected GET-only diagnostic joins all 4,951 parent
+references (4,911 present / 40 explicitly deleted) for 23 Menufy employees. Against
+the latest unchanged closed-week report, 20 of 21 populated rows now match; one
+differs by one update. Independent reconstruction matches all 23 source counts and
+sets. Retained October 6 events are not relabeled fresh by today's parent lookup.
+No update metric is published. The candidate passes 1,224 tests, exact CI/build and
+the isolated synthetic hosted continuation rehearsal; deployment is pending.
+See [the fix and evidence](2026-10-08-report-deletion-pagination.md). Source-report
+membership for one unusual update, fresh event qualification, POS update meaning and
+the remaining families/ongoing operation are still open.
+
 **October 8, 17:43 UTC — outbound code and scoped review refresh live:**
 PR52 is merged as `e05014d`; production `dpl_7H7P3nGE9kLCr9FhdgrowrtCwBE1`
 is READY and owns the live alias. Exact candidate and master CI/build pass. The
