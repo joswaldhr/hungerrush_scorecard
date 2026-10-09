@@ -137,6 +137,103 @@ it("caps an explicitly requested progress read at the retained watermark", async
     ).status
   ).toBe("collecting");
 });
+it("adds channel evidence on old overlap without rewriting immutable base events", async () => {
+  const worker = await own(),
+    begun = await beginReportEventCycle(worker, start);
+  const first = await commitReportEventPage(worker, begun.expectedHash, page([event()], 200));
+  const baseBefore = (await records()).find(
+    (r) => r.externalRecordType === "zendesk_report_event_v1"
+  );
+  const done = await commitReportEventPage(
+    worker,
+    first.expectedHash,
+    page(
+      [{ ...event(), via: "Phone call inbound" } as ReturnType<typeof event>, event(2)],
+      400,
+      true
+    )
+  );
+  expect(done.newEvents).toBe(1);
+  const baseAfter = (await records()).find(
+    (r) => r.externalRecordType === "zendesk_report_event_v1" && r.externalRecordId === "1"
+  );
+  expect(baseAfter).toEqual(baseBefore);
+  const read = () =>
+    readReportEventSnapshot(scope, new Date(100000), new Date(400000), [42], {
+      includeChannels: true,
+    });
+  expect((await read()).snapshot?.channels).toMatchObject({
+    complete: false,
+    missingEventIds: [2],
+    records: [{ channel: "Phone call inbound" }],
+  });
+  expect(
+    (await readReportEventSnapshot(scope, new Date(100000), new Date(400000), [42])).snapshot
+  ).not.toHaveProperty("channels");
+  const before = (await records()).filter(
+    (r) => r.externalRecordType === "zendesk_report_event_channel_v1"
+  );
+  const refresh = await beginReportEventCycle(worker, start);
+  await commitReportEventPage(
+    worker,
+    refresh.expectedHash,
+    page([{ ...event(), via: "Phone call inbound" } as ReturnType<typeof event>], 500, true)
+  );
+  expect(
+    (await records()).filter((r) => r.externalRecordType === "zendesk_report_event_channel_v1")
+  ).toEqual(before);
+});
+it("rolls back base events, channels and checkpoint on changed channel overlap", async () => {
+  const worker = await own(),
+    begun = await beginReportEventCycle(worker, start);
+  const first = await commitReportEventPage(
+    worker,
+    begun.expectedHash,
+    page([{ ...event(), via: "Phone call inbound" } as ReturnType<typeof event>])
+  );
+  const before = await records();
+  await expect(
+    commitReportEventPage(
+      worker,
+      first.expectedHash,
+      page(
+        [
+          { ...event(2), via: "Web form" } as ReturnType<typeof event>,
+          { ...event(), via: "Phone call outbound" } as ReturnType<typeof event>,
+        ],
+        400,
+        true
+      )
+    )
+  ).rejects.toThrow("channel changed");
+  expect(await records()).toEqual(before);
+});
+it("rejects tampered retained channel payloads without changing solved reads", async () => {
+  const worker = await own(),
+    begun = await beginReportEventCycle(worker, start);
+  await commitReportEventPage(
+    worker,
+    begun.expectedHash,
+    page([{ ...event(), via: "Phone call inbound" } as ReturnType<typeof event>], 400, true)
+  );
+  await db
+    .update(sourceRecords)
+    .set({ payloadHash: "0".repeat(64) })
+    .where(
+      and(
+        eq(sourceRecords.dataSourceId, dataSourceId),
+        eq(sourceRecords.externalRecordType, "zendesk_report_event_channel_v1")
+      )
+    );
+  await expect(
+    readReportEventSnapshot(scope, new Date(100000), new Date(400000), [42], {
+      includeChannels: true,
+    })
+  ).rejects.toThrow("channel identity or digest");
+  expect(
+    (await readReportEventSnapshot(scope, new Date(100000), new Date(400000), [42])).status
+  ).toBe("ready");
+});
 it("rolls back all events and the cursor when a retained ID conflicts", async () => {
   const worker = await own(),
     begun = await beginReportEventCycle(worker, start);
@@ -162,7 +259,13 @@ it("rolls back event inserts when the checkpoint cannot commit", async () => {
     )
   );
   try {
-    await expect(commitReportEventPage(worker, begun.expectedHash, page())).rejects.toThrow();
+    await expect(
+      commitReportEventPage(
+        worker,
+        begun.expectedHash,
+        page([{ ...event(), via: "Web form" } as ReturnType<typeof event>])
+      )
+    ).rejects.toThrow();
     expect(await records()).toEqual(before);
   } finally {
     await db.execute(sql.raw(`alter table source_records drop constraint ${name}`));

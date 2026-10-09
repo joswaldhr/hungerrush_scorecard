@@ -5,6 +5,11 @@ import { db } from "@/lib/db";
 import { dataSources, sourceRecords } from "@/lib/db/schema";
 import { isZendeskAccountReference } from "./zendesk-account-binding";
 import {
+  reportEventChannels,
+  reportChannelCoverage,
+  reportEventChannelSchema,
+} from "./zendesk-report-event-channels";
+import {
   advanceReportEventCursor,
   initialReportEventCursor,
   parseReportEventPage,
@@ -17,7 +22,8 @@ import {
 // Separate from every shadow/v2 namespace; these records cannot publish metric facts.
 const LEASE = "zendesk_report_event_lease_v1",
   CHECKPOINT = "zendesk_report_event_checkpoint_v1",
-  EVENT = "zendesk_report_event_v1";
+  EVENT = "zendesk_report_event_v1",
+  CHANNEL = "zendesk_report_event_channel_v1";
 // Incremental export quota is shared with the account's other integrations.
 // Production's eleven-second spacing still received 429s; reserve more headroom.
 export const REPORT_EVENT_SPACING_MS = 20000;
@@ -288,6 +294,41 @@ export async function commitReportEventPage(
           payloadHash: reportEventDigest(r),
         }))
       );
+    // Preserve v1 event bytes/digests. An overlapping old event may gain separately
+    // bound channel evidence; a changed known channel must never silently overwrite it.
+    const channels = reportEventChannels(response);
+    const retainedChannels = keys.length
+      ? await tx
+          .select()
+          .from(sourceRecords)
+          .where(
+            and(
+              eq(sourceRecords.dataSourceId, scope.dataSourceId),
+              eq(sourceRecords.externalRecordType, CHANNEL),
+              inArray(sourceRecords.externalRecordId, keys)
+            )
+          )
+      : [];
+    const channelHashes = new Map(
+      retainedChannels.map((record) => [record.externalRecordId, record.payloadHash])
+    );
+    for (const record of channels)
+      if (
+        channelHashes.has(String(record.eventId)) &&
+        channelHashes.get(String(record.eventId)) !== reportEventDigest(record)
+      )
+        throw Error("Retained report channel changed; publication requires reconciliation");
+    const freshChannels = channels.filter((record) => !channelHashes.has(String(record.eventId)));
+    for (let n = 0; n < freshChannels.length; n += 200)
+      await tx.insert(sourceRecords).values(
+        freshChannels.slice(n, n + 200).map((record) => ({
+          dataSourceId: scope.dataSourceId,
+          externalRecordType: CHANNEL,
+          externalRecordId: String(record.eventId),
+          payloadJson: record,
+          payloadHash: reportEventDigest(record),
+        }))
+      );
     const state = { ...before, cursor: next.cursor, lastPageAt: new Date(now).toISOString() };
     await put(tx, scope, CHECKPOINT, "stream", state);
     await owned(tx, scope);
@@ -300,7 +341,7 @@ export async function readReportEventSnapshot(
   start: Date,
   endExclusive: Date,
   agentIds: number[],
-  options: { capAtWatermark?: boolean } = {}
+  options: { capAtWatermark?: boolean; includeChannels?: boolean } = {}
 ) {
   if (
     !Number.isFinite(start.getTime()) ||
@@ -366,10 +407,38 @@ export async function readReportEventSnapshot(
           throw Error("Invalid retained report event identity or digest");
         events.push(event);
       }
+      // Existing solved readers do not need channels and incur no extra query.
+      let channels;
+      if (options.includeChannels) {
+        const channelRows = events.length
+          ? await tx
+              .select()
+              .from(sourceRecords)
+              .where(
+                and(
+                  eq(sourceRecords.dataSourceId, scope.dataSourceId),
+                  eq(sourceRecords.externalRecordType, CHANNEL),
+                  sql`${sourceRecords.externalRecordId} in (select jsonb_array_elements_text(${JSON.stringify(events.map((event) => String(event.id)))}::jsonb))`
+                )
+              )
+              .limit(100001)
+          : [];
+        const evidence = channelRows.map((record) => {
+          const value = reportEventChannelSchema.parse(record.payloadJson);
+          if (
+            String(value.eventId) !== record.externalRecordId ||
+            reportEventDigest(value) !== record.payloadHash
+          )
+            throw Error("Invalid retained report channel identity or digest");
+          return value;
+        });
+        channels = reportChannelCoverage(events, evidence);
+      }
       return {
         status: "ready" as const,
         snapshot: {
           events,
+          ...(channels ? { channels } : {}),
           state,
           coverage: {
             start: start.toISOString(),

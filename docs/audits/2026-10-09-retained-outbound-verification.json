@@ -1,0 +1,22 @@
+{
+  "employees": 62,
+  "independentValueChecks": 310,
+  "sourceSetChecks": 868,
+  "durationNumeratorDenominatorMeanChecks": 372,
+  "sourceReplayDifferences": 0,
+  "reportCellsCompared": 111,
+  "reportEmployeesCompared": 54,
+  "reportCellDifferences": 1,
+  "reportEmployeeDifferences": 1,
+  "reportContributingIdsVerified": false,
+  "sourceFreshnessVerified": false,
+  "publicationAuthorized": false,
+  "vendorRequests": 0,
+  "databaseWrites": 0,
+  "inputSha256": {
+    "candidates": "128d9cc504bdcdebd0831421724ed9b85f68fb3757fb7651f6a41f6ce7599eb1",
+    "snapshot": "af833d73fafeb3d386fddcf1c12b82f45db1e1209792908ccc58c9d34ee79de4",
+    "tickets": "a0ab5d5b0ab4bd24ce0e6ce6a2faf6117de32de137be859872ae99ddb4cefe30",
+    "reportChecks": "ef039044276ea09fcfff1259a36df06c50758867b7c06e6e06b1d0b8b411ad60"
+  }
+}
