@@ -57,6 +57,11 @@ and `2026-10-09-roster-activation.json`. Actual scheduled roster collection rema
 unverified until the next daily demand, October 10 at 16:10 UTC. Group membership
 does not prove employment status. All-family recovery capacity still fails; other
 optional recovery flags remain off. The frozen demo is unchanged.
+Project-wide invocation logs show the genuine 17:45:21 UTC dispatcher request on
+that activation deployment: `vercel-cron/1.0`, HTTP 200, 2,236 ms, no crash. At
+17:53, all six jobs are complete with no pending demand or lease, and no additional
+roster/metric run occurred. This proves scheduler delivery with satisfied demand,
+not scheduled collection or publication. See `2026-10-09-afternoon-dispatcher-verification.json`.
 
 **October 9, 17:10 UTC — controlled roster discovery verified:**
 The corrected released worker completed eight GET requests and one review-only

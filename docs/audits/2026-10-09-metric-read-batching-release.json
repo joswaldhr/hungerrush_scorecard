@@ -7,6 +7,8 @@
   "merge": "71036cb6b93992cc2f878278edf2c506525b42f7",
   "productionDeployment": "dpl_3fhXwV8qWAgRaLY4EsQ1g2qNaFMi",
   "productionAliasVerified": true,
+  "productionEnvironmentEntries": 26,
+  "productionEnvironmentUnchangedFromRosterActivation": true,
   "previewCommit": "d3f1c13ffa2b8d63587a6dea4bf589c4ac4396c5",
   "previewDeployment": "dpl_Gc6vX9TpSSx7NmmtDjGEiec6N6s7",
   "previewApplicationTreeMatches": true,
