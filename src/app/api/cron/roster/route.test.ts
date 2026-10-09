@@ -2,6 +2,10 @@ import { beforeEach, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   run: vi.fn(),
   health: vi.fn(),
+  recovery: vi.fn(),
+  recoveryHealth: vi.fn(),
+  plan: vi.fn(),
+  requestJobs: vi.fn(),
   env: {
     CRON_SECRET: "synthetic-secret",
     ROSTER_DISCOVERY_SOURCE_ID: "",
@@ -16,13 +20,19 @@ vi.mock("@/lib/domain/roster/discovery-job", () => ({
   runRosterDiscoveryJob: mocks.run,
   getRosterDiscoveryHealth: mocks.health,
 }));
+vi.mock("@/lib/connectors/zendesk-roster-recovery", () => ({
+  configuredRosterRecovery: mocks.recovery,
+  getRosterRecoveryHealth: mocks.recoveryHealth,
+  planRosterRecovery: mocks.plan,
+}));
+vi.mock("@/lib/connectors/zendesk-report-jobs", () => ({ requestReportJobs: mocks.requestJobs }));
 import { GET } from "./route";
 const request = (query = "", auth = true) =>
   new Request(`https://synthetic.invalid/api/cron/roster${query}`, {
     headers: auth ? { authorization: "Bearer synthetic-secret" } : {},
   });
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   mocks.env.ROSTER_DISCOVERY_SOURCE_ID = "";
 });
 it("requires authentication even when disabled", async () => {
@@ -55,5 +65,39 @@ it("does not disguise failed or busy discovery as success", async () => {
 it("rejects unknown probes before invoking the worker", async () => {
   mocks.env.ROSTER_DISCOVERY_SOURCE_ID = "synthetic-source";
   expect((await GET(request("?probe=unexpected"))).status).toBe(400);
+  expect(mocks.run).not.toHaveBeenCalled();
+});
+
+it("delegates daily discovery without performing a second collection", async () => {
+  mocks.env.ROSTER_DISCOVERY_SOURCE_ID = "synthetic-source";
+  const scope = { dataSourceId: "synthetic-source" };
+  const requests = [{ definition: { kind: "roster" }, desiredAt: "2026-10-09T16:10:00.000Z" }];
+  mocks.recovery.mockReturnValue(scope);
+  mocks.plan.mockReturnValue({ requests });
+  const response = await GET(request());
+  expect(response.status).toBe(202);
+  expect(await response.json()).toMatchObject({ queued: true, completed: false, reviewOnly: true });
+  expect(mocks.requestJobs).toHaveBeenCalledWith(scope, requests);
+  expect(mocks.run).not.toHaveBeenCalled();
+});
+it("does not fall back to direct work when opted-in configuration or enqueue fails", async () => {
+  mocks.env.ROSTER_DISCOVERY_SOURCE_ID = "synthetic-source";
+  mocks.recovery.mockImplementation(() => {
+    throw Error("Inactive dispatcher");
+  });
+  expect((await GET(request())).status).toBe(503);
+  mocks.recovery.mockReturnValue({ dataSourceId: "synthetic-source" });
+  mocks.plan.mockReturnValue({ requests: [] });
+  mocks.requestJobs.mockRejectedValue(Error("Unavailable"));
+  expect((await GET(request())).status).toBe(503);
+  expect(mocks.run).not.toHaveBeenCalled();
+});
+it("reads queued roster health without enqueueing or collecting", async () => {
+  mocks.env.ROSTER_DISCOVERY_SOURCE_ID = "synthetic-source";
+  mocks.recoveryHealth.mockResolvedValue({ enabled: true, status: "deferred" });
+  expect(await (await GET(request("?probe=health"))).json()).toMatchObject({
+    recovery: { enabled: true, status: "deferred" },
+  });
+  expect(mocks.requestJobs).not.toHaveBeenCalled();
   expect(mocks.run).not.toHaveBeenCalled();
 });

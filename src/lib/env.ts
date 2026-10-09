@@ -63,6 +63,7 @@ const envSchema = z.object({
   ACTION_SHADOW_SECRET: z.string().min(32).optional(),
   // Independent review-only roster worker. Absent until source/rollout validation.
   ROSTER_DISCOVERY_SOURCE_ID: z.string().uuid().optional(),
+  ROSTER_DISCOVERY_RECOVERY: z.literal("1").optional(),
 
   // Optional dead-man's-switch URL (e.g. a Healthchecks.io or Cronitor check
   // URL) pinged after /api/cron/sync completes its real work. Left unset,

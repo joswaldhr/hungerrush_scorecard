@@ -355,3 +355,16 @@ it("rolls candidate writes back when atomic run bookkeeping fails", async () => 
     await db.select().from(rosterCandidates).where(eq(rosterCandidates.dataSourceId, source))
   ).toEqual(before);
 });
+
+it("rejects a queued roster's changed organization before creating a run or fetching", async () => {
+  await clearRuns();
+  const fetch = vi.fn(async () => []);
+  await expect(
+    runRosterDiscoveryJob(source, "synthetic", connector(fetch), {
+      ...accountScope,
+      organizationId: randomUUID(),
+    })
+  ).rejects.toThrow("binding");
+  expect(fetch).not.toHaveBeenCalled();
+  expect(await getRosterDiscoveryHealth(source)).toBeNull();
+});

@@ -119,12 +119,12 @@ export async function getReportRecoveryHealth(
         return (
           p?.definition?.kind === d.kind &&
           p.definition.policyHash === d.policyHash &&
-          (d.kind === "collection" ||
+          (!("periodStart" in d) ||
             (p.definition.periodStart === d.periodStart && p.definition.periodEnd === d.periodEnd))
         );
       });
       return {
-        key: `${d.policyHash}:${d.kind === "collection" ? "collection" : d.periodStart}`,
+        key: `${d.policyHash}:${"periodStart" in d ? d.periodStart : d.kind}`,
         team:
           d.kind === "collection"
             ? "Shared source collection"
@@ -143,8 +143,8 @@ export async function getReportRecoveryHealth(
                   : d.kind === "first-reply"
                     ? "First reply (shared import)"
                     : "Legacy metrics (shared import)",
-        periodStart: d.kind === "collection" ? null : d.periodStart,
-        periodEnd: d.kind === "collection" ? null : d.periodEnd,
+        periodStart: "periodStart" in d ? d.periodStart : null,
+        periodEnd: "periodEnd" in d ? d.periodEnd : null,
         ...reportJobHealth(
           request,
           records.length === 100 || matches.length > 1 ? null : matches[0]?.payload,

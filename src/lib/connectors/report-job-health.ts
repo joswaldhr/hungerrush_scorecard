@@ -38,8 +38,8 @@ export function reportJobHealth(
     state.accountReference !== accountReference ||
     state.definition.kind !== request.definition.kind ||
     state.definition.policyHash !== request.definition.policyHash ||
-    (state.definition.kind !== "collection" &&
-      request.definition.kind !== "collection" &&
+    ("periodStart" in state.definition &&
+      "periodStart" in request.definition &&
       (state.definition.periodStart !== request.definition.periodStart ||
         state.definition.periodEnd !== request.definition.periodEnd))
   )
