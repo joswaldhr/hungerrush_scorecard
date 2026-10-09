@@ -58,6 +58,7 @@ export async function zendeskGet<T>(
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     if (stats) stats.requests++;
     const res = await fetch(url, {
+      method: "GET",
       headers: { Authorization: authHeader() },
       redirect: "error",
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),

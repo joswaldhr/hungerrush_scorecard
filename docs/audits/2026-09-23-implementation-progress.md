@@ -1,5 +1,19 @@
 # Audit implementation — current checkpoint
 
+**October 9, 15:25 UTC — bounded legacy recovery code released, activation still off:**
+PR63 `c5d4678` is READY on production deployment `dpl_AET9eYL5gkxAmAnfXkk6breQErsm`
+and owns the live alias. Candidate/master CI `37950446137` / `37950854933` pass,
+including all 1,305 tests / 162 files and the production build. Production metadata
+confirms the new legacy recovery switch is absent. This release does not claim the
+two morning failed runs have recovered.
+
+Independent roster discovery has not yet been activated or scheduled. Its first
+controlled canary stopped before vendor access because a private transport assertion
+required explicit GET; the existing helper relied on fetch's default GET. No candidate,
+employee or metric changes occurred. Its recorded failure/cooldown is preserved.
+The next focused increment makes GET explicit and adds the default-off daily roster
+slot; see [canary, activation and rollback](2026-10-09-independent-roster-schedule.md).
+
 **October 9 morning — Pro confirmed; actual scheduler gaps isolated; recovery candidate:**
 PR62 is live at `2d9ecfa` / `dpl_EHgfXxqauqDvF7iTeLThzskznALH`, exact master
 CI `37947819189` passes; public login and authorization redirects pass. The 14:55 UTC

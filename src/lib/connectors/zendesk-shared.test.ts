@@ -77,7 +77,7 @@ describe("Zendesk credential destination", () => {
         .mockResolvedValue({ ok: true, status: 200, json: async () => ({ tickets: [] }) });
       vi.stubGlobal("fetch", fetch);
       expect(await zendeskGet(url)).toEqual({ tickets: [] });
-      expect(fetch.mock.calls[0]![1]).toMatchObject({ redirect: "error" });
+      expect(fetch.mock.calls[0]![1]).toMatchObject({ method: "GET", redirect: "error" });
     }
   );
 });

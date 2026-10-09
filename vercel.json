@@ -1,6 +1,7 @@
 {
   "git": {
     "deploymentEnabled": {
+      "codex/independent-roster-schedule": false,
       "codex/legacy-sync-recovery": false,
       "codex/agent-update-publication": false,
       "codex/manager-roster-archive": false,
@@ -21,6 +22,10 @@
     }
   },
   "crons": [
+    {
+      "path": "/api/cron/roster",
+      "schedule": "10 16 * * *"
+    },
     {
       "path": "/api/cron/directory",
       "schedule": "40 */6 * * *"

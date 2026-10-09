@@ -75,7 +75,8 @@ authority, consecutive-observation/grace-period policy and anomaly gates.
 
 `/api/cron/roster` is disabled unless `ROSTER_DISCOVERY_SOURCE_ID` selects one configured,
 account-bound Zendesk source with group mappings. Deploy migration 0016 first after a
-fresh recovery rehearsal. No schedule is installed by this change. Keep the variable unset
+fresh recovery rehearsal. The October 9 schedule candidate adds one daily 16:10 UTC
+invocation; the worker remains inert without this opt-in. Keep the variable unset
 in synthetic Preview and production until activation gates pass. Authentication uses the
 existing environment-specific `CRON_SECRET`; `?probe=auth` performs no source/database work,
 and `?probe=health` only reads the latest independent run. Probe success does not establish
