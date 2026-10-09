@@ -30,6 +30,7 @@ for (const name of [
   "ZENDESK_FIRST_REPLY_POLICY",
   "ACTION_SHADOW_SOURCE_ID",
   "ROSTER_DISCOVERY_SOURCE_ID",
+  "ROSTER_DISCOVERY_RECOVERY",
   "ENTRA_ROSTER_SOURCE_ID",
 ]) {
   assert(!process.env[name], "Source work must be disabled for main UI rehearsal");

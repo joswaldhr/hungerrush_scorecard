@@ -13,6 +13,7 @@ export const REPORT_JOB_RECORD = "zendesk_report_job_v1";
 const hash = (input: unknown) => createHash("sha256").update(JSON.stringify(input)).digest("hex");
 const dateTime = z.iso.datetime();
 const definitionSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("roster"), policyHash: z.string().regex(/^[a-f0-9]{64}$/) }).strict(),
   z
     .object({ kind: z.literal("collection"), policyHash: z.string().regex(/^[a-f0-9]{64}$/) })
     .strict(),
@@ -56,7 +57,7 @@ const selector = (scope: ReportEventScope) =>
 
 function definition(input: unknown, now: Date) {
   const parsed = definitionSchema.parse(input);
-  if (parsed.kind !== "collection")
+  if ("periodStart" in parsed)
     parseSyncPeriod({ periodStart: parsed.periodStart, periodEnd: parsed.periodEnd }, now);
   return parsed;
 }
@@ -176,7 +177,7 @@ export async function claimReportJob(
 ): Promise<ClaimedReportJob | null> {
   if (
     !currentPolicyHashes.length ||
-    currentPolicyHashes.length > 6 ||
+    currentPolicyHashes.length > 7 ||
     currentPolicyHashes.some((h) => !/^[a-f0-9]{64}$/.test(h))
   )
     throw Error("Invalid job policy allowlist");
@@ -216,7 +217,7 @@ export async function claimReportJob(
     const thisWeek = weekBoundsForDate(now.toISOString().slice(0, 10)).periodStart;
     const lastWeek = shiftWeekStart(thisWeek, -1);
     const reviewPriority = (s: State) =>
-      s.definition.kind === "collection"
+      !("periodStart" in s.definition)
         ? 0
         : s.definition.periodStart === lastWeek
           ? 0

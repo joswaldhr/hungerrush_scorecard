@@ -387,3 +387,32 @@ records never establish metric freshness or certified employment status.
 
 For activation and rollback gates see
 [directory conflict release record](audits/2026-10-08-directory-roster-conflicts.md).
+
+### Durable daily roster retries (default off)
+
+`ROSTER_DISCOVERY_RECOVERY=1` delegates the existing 16:10 UTC daily roster request
+to the active `ZENDESK_REPORT_RECOVERY` dispatcher. It requires the same configured
+organization, source and Zendesk account, including `ROSTER_DISCOVERY_SOURCE_ID`.
+The direct daily route returns 202 for queued work and never runs a second collector.
+Without this separate flag, the existing direct daily behavior is unchanged.
+
+Dispatcher ticks coalesce one daily observation demand and retry only unfinished work;
+they do not fetch every roster every 15 minutes. Before 16:10 UTC the latest demand
+is yesterday's slot. Missed days coalesce to the latest demand: this does not reconstruct
+historical rosters. Queue ownership lasts ten minutes; interruptions retry after expiry,
+source Retry-After is retained, and only a completed review-only worker acknowledges
+its claimed daily demand. A newer request arriving during execution remains pending.
+A lost acknowledgment can cause a later repeat observation; shared account ownership
+and the roster worker's recent-run guard prevent concurrent collection.
+
+`/api/cron/roster?probe=health` reports the latest run plus queue status and retry time
+under cron authentication. Roster work is excluded from manager metric-recovery rows.
+Review candidates do not change employee employment status, memberships or metric values.
+
+Activation still requires exact CI/release gates, a fresh validated backup, a bounded
+source canary and measured dispatcher capacity. Roster adds one daily job plus retries;
+all optional families require seven policy hashes and 22 current planned requests.
+Do not infer available retry capacity from that request count. Clear only
+`ROSTER_DISCOVERY_RECOVERY` to return to direct daily discovery; queued evidence remains
+retained and the dispatcher no longer claims that policy. Observe genuine scheduled
+completion separately before claiming unattended recovery works.

@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   csat: vi.fn(),
   firstReply: vi.fn(),
   heartbeat: vi.fn(),
+  roster: vi.fn(),
 }));
 vi.mock("@/lib/connectors/zendesk-report-jobs", () => ({
   requestReportJobs: mocks.request,
@@ -41,6 +42,7 @@ vi.mock("@/lib/connectors/zendesk-updater-solved-publisher", () => ({
 vi.mock("@/lib/connectors/zendesk-assignee-solved-publisher", () => ({
   createLiveAssigneeSolvedPublisher: mocks.assignee,
 }));
+vi.mock("@/lib/domain/roster/discovery-job", () => ({ runRosterDiscoveryJob: mocks.roster }));
 import {
   planReportRecovery,
   runLiveReportRecovery,
@@ -89,9 +91,7 @@ it("plans exact four-week periods, skips pre-cutover dates and keeps policy hash
   const before = planReportRecovery(collection, [policy], new Date("2026-10-03T23:59:59Z"));
   const after = planReportRecovery(collection, [policy], new Date("2026-10-04T00:00:01Z"));
   expect(
-    before.requests
-      .slice(1)
-      .map((r) => r.definition.kind !== "collection" && r.definition.periodStart)
+    before.requests.slice(1).map((r) => "periodStart" in r.definition && r.definition.periodStart)
   ).toEqual(["2026-09-27", "2026-09-20", "2026-09-13", "2026-09-06"]);
   expect(after.requests[1]?.definition).toMatchObject({
     periodStart: "2026-10-04",
@@ -385,4 +385,123 @@ it("first-reply retries saved dates, respects cooldown and keeps vendor retry-af
       organizationId: "20000000-0000-4000-8000-000000000002",
     })
   ).toThrow("share");
+});
+
+it("adds one daily roster demand, separately bound and without metric periods", () => {
+  const before = planReportRecovery(
+    collection,
+    [policy],
+    new Date("2026-10-04T16:09:59Z"),
+    undefined,
+    undefined,
+    undefined,
+    collection.scope
+  );
+  const after = planReportRecovery(
+    collection,
+    [policy],
+    new Date("2026-10-04T16:10:00Z"),
+    undefined,
+    undefined,
+    undefined,
+    collection.scope
+  );
+  expect(before.rosterPolicy!.requests).toEqual([
+    {
+      definition: { kind: "roster", policyHash: before.rosterPolicy!.policyHash },
+      desiredAt: "2026-10-03T16:10:00.000Z",
+    },
+  ]);
+  expect(after.rosterPolicy!.requests[0]!.desiredAt).toBe("2026-10-04T16:10:00.000Z");
+  expect(before.rosterPolicy!.policyHash).toBe(after.rosterPolicy!.policyHash);
+  expect(plan().rosterPolicy).toBeNull();
+  expect(() =>
+    planReportRecovery(collection, [policy], undefined, undefined, undefined, undefined, {
+      ...collection.scope,
+      organizationId: "different",
+    })
+  ).toThrow("share");
+});
+it.each([
+  [{ success: true, reviewOnly: true, autoApproved: 0 }, "complete"],
+  [{ success: false, busy: true }, "deferred"],
+  [{ success: false, retryAt: "2099-01-01T00:00:00.000Z" }, "deferred"],
+  [{ success: false, error: "cooldown recording failed" }, "failed"],
+] as const)("only acknowledges actual roster completion: %j", async (result, status) => {
+  const p = planReportRecovery(
+    collection,
+    [policy],
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    collection.scope
+  );
+  mocks.claim.mockResolvedValue({
+    definition: p.rosterPolicy!.requests[0]!.definition,
+    token: "owned",
+    desiredAt: p.rosterPolicy!.requests[0]!.desiredAt,
+  });
+  mocks.roster.mockResolvedValue(result);
+  expect(
+    await runLiveReportRecovery(
+      collection,
+      [policy],
+      credentials,
+      undefined,
+      undefined,
+      undefined,
+      collection.scope
+    )
+  ).toEqual({ status, kind: "roster" });
+  expect(mocks.roster).toHaveBeenCalledOnce();
+  expect(mocks.sync).not.toHaveBeenCalled();
+  expect(mocks.collect).not.toHaveBeenCalled();
+  expect(mocks.heartbeat).not.toHaveBeenCalled();
+  if ("retryAt" in result)
+    expect(mocks.finish).toHaveBeenCalledWith(collection.scope, expect.anything(), {
+      status,
+      retryAt: result.retryAt,
+    });
+});
+it("does not execute a queued roster job after its policy is disabled", async () => {
+  const p = planReportRecovery(
+    collection,
+    [policy],
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    collection.scope
+  );
+  mocks.claim.mockResolvedValue({
+    definition: p.rosterPolicy!.requests[0]!.definition,
+    token: "owned",
+    desiredAt: "2026-10-09T16:10:00.000Z",
+  });
+  expect(await run()).toMatchObject({ status: "failed" });
+  expect(mocks.roster).not.toHaveBeenCalled();
+});
+
+it("plans all seven families within the 24-request bound", () => {
+  const firstReply = {
+    ...csat,
+    teams: csat.teams.map((t) => ({
+      ...t,
+      metricKeys: ["avg_response_time"] as ["avg_response_time"],
+    })),
+  };
+  const assignee = { ...policy, kind: "assignee-solved" as const };
+  const p = planReportRecovery(
+    collection,
+    [policy, assignee],
+    new Date("2026-10-09T23:00:00Z"),
+    csat,
+    collection.scope,
+    firstReply,
+    collection.scope
+  );
+  expect(p.currentPolicyHashes).toHaveLength(7);
+  expect(p.requests).toHaveLength(22);
+  expect(p.requests.filter((r) => r.definition.kind === "roster")).toHaveLength(1);
 });

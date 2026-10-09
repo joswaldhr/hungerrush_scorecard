@@ -10,6 +10,7 @@ import {
   deferReportEventRequests,
   releaseReportEventCollection,
   type OwnedReportEventScope,
+  type ReportEventScope,
 } from "@/lib/connectors/zendesk-report-event-store";
 import { SourceRetryLaterError } from "@/lib/connectors/source-retry";
 import { logger } from "@/lib/logger";
@@ -18,7 +19,8 @@ import { logger } from "@/lib/logger";
 export async function runRosterDiscoveryJob(
   sourceId: string,
   subdomain: string,
-  connector: Connector
+  connector: Connector,
+  expectedScope?: ReportEventScope
 ) {
   const claim = await db.transaction(async (tx) => {
     const [source] = await tx
@@ -29,6 +31,13 @@ export async function runRosterDiscoveryJob(
     if (!source || source.type !== "zendesk" || source.status !== "configured")
       throw new Error("Roster source is not configured");
     assertZendeskAccountBinding(source.configurationReference, subdomain);
+    if (
+      expectedScope &&
+      (source.id !== expectedScope.dataSourceId ||
+        source.organizationId !== expectedScope.organizationId ||
+        source.configurationReference !== expectedScope.accountReference)
+    )
+      throw new Error("Roster recovery source binding changed");
     const [mapping] = await tx
       .select({ id: rosterSourceTeamMappings.id })
       .from(rosterSourceTeamMappings)

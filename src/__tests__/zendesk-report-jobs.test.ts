@@ -257,3 +257,65 @@ it.each(["legacy-sync", "first-reply"] as const)(
     expect(await claimReportJob(scope, [policyHash])).toBeNull();
   }
 );
+
+it("durably retries one roster demand, fences interruption and retains a newer day", async () => {
+  const roster: ReportJobDefinition = { kind: "roster", policyHash };
+  const day = "2021-01-03T16:10:00.000Z",
+    nextDay = "2021-01-04T16:10:00.000Z";
+  await Promise.all([
+    requestReportJobs(scope, [request(roster, day)]),
+    requestReportJobs(scope, [request(roster, day)]),
+  ]);
+  expect(await rows()).toHaveLength(1);
+  const first = await claim();
+  const retryAt = new Date(Date.now() + 172800000).toISOString();
+  await finishReportJob(scope, first, { status: "deferred", retryAt });
+  expect(await claimReportJob(scope, [policyHash])).toBeNull();
+  expect((await rows())[0]!.payloadJson).toMatchObject({
+    desiredAt: day,
+    completedThrough: null,
+    notBefore: retryAt,
+  });
+  await db.execute(
+    sql`update source_records set payload_json=jsonb_set(payload_json,'{notBefore}',to_jsonb('2021-01-01T00:00:00.000Z'::text)) where data_source_id=${source}`
+  );
+  const lost = await claim();
+  await db.execute(
+    sql`update source_records set payload_json=jsonb_set(payload_json,'{lease,expiresAt}',to_jsonb('2021-01-01T00:00:00.000Z'::text)) where data_source_id=${source}`
+  );
+  const recovered = await claim();
+  expect(recovered.definition).toEqual(roster);
+  expect(recovered.desiredAt).toBe(day);
+  await expect(finishReportJob(scope, lost, { status: "complete" })).rejects.toThrow("ownership");
+  await requestReportJobs(scope, [request(roster, nextDay)]);
+  await finishReportJob(scope, recovered, { status: "complete" });
+  expect((await rows())[0]!.payloadJson).toMatchObject({
+    completedThrough: day,
+    desiredAt: nextDay,
+  });
+  const next = await claim();
+  expect(next.desiredAt).toBe(nextDay);
+  await finishReportJob(scope, next, { status: "complete" });
+  await requestReportJobs(scope, [request(roster, nextDay)]);
+  expect(await claimReportJob(scope, [policyHash])).toBeNull();
+});
+it("accepts all seven family hashes while keeping account-wide ownership", async () => {
+  const hashes = "abcdef0".split("").map((c) => c.repeat(64));
+  await requestReportJobs(scope, [request({ kind: "roster", policyHash: hashes[6]! })]);
+  const owned = await claimReportJob(scope, hashes);
+  expect(owned?.definition.kind).toBe("roster");
+  expect(await claimReportJob(scope, hashes)).toBeNull();
+  await expect(claimReportJob(scope, [...hashes, "1".repeat(64)])).rejects.toThrow("allowlist");
+});
+it.each(["organizationId", "accountReference"] as const)(
+  "rejects queued roster access under a foreign %s",
+  async (key) => {
+    await requestReportJobs(scope, [request({ kind: "roster", policyHash })]);
+    await expect(
+      claimReportJob(
+        { ...scope, [key]: key === "organizationId" ? randomUUID() : "zendesk-account:foreign" },
+        [policyHash]
+      )
+    ).rejects.toThrow("binding");
+  }
+);
