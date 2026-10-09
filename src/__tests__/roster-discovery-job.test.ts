@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   dataSources,
@@ -12,10 +12,17 @@ import {
   rosterDiscoveryRuns,
   rosterSourceTeamMappings,
   teams,
+  sourceRecords,
 } from "@/lib/db/schema";
 import { runRosterDiscoveryJob, getRosterDiscoveryHealth } from "@/lib/domain/roster/discovery-job";
 import { discoverRosterCandidates } from "@/lib/domain/roster/reconcile";
 import type { Connector } from "@/lib/connectors/types";
+import {
+  claimReportEventCollection,
+  deferReportEventRequests,
+  releaseReportEventCollection,
+} from "@/lib/connectors/zendesk-report-event-store";
+import { SourceRetryLaterError } from "@/lib/connectors/source-retry";
 
 const org = randomUUID(),
   source = randomUUID(),
@@ -38,6 +45,7 @@ beforeAll(async () => {
   });
 });
 afterAll(async () => {
+  await db.delete(sourceRecords).where(eq(sourceRecords.dataSourceId, source));
   await db.delete(rosterDiscoveryRuns).where(eq(rosterDiscoveryRuns.dataSourceId, source));
   await db.delete(rosterCandidates).where(eq(rosterCandidates.dataSourceId, source));
   await db.delete(rosterObservations).where(eq(rosterObservations.dataSourceId, source));
@@ -52,9 +60,114 @@ const connector = (discoverRoster: Connector["discoverRoster"]) =>
   ({ discoverRoster }) as Connector;
 async function clearRuns() {
   await db.delete(rosterDiscoveryRuns).where(eq(rosterDiscoveryRuns.dataSourceId, source));
+  await db.delete(sourceRecords).where(eq(sourceRecords.dataSourceId, source));
 }
 
+const accountScope = {
+  organizationId: org,
+  dataSourceId: source,
+  accountReference: "zendesk-account:synthetic",
+};
+
+it("does not read Zendesk while another collector owns the account", async () => {
+  await clearRuns();
+  const lease = await claimReportEventCollection(accountScope);
+  expect(lease.acquired).toBe(true);
+  const fetch = vi.fn(async () => []);
+  const result = await runRosterDiscoveryJob(source, "synthetic", connector(fetch));
+  expect(result).toMatchObject({ success: false, retryAt: expect.any(String) });
+  expect(fetch).not.toHaveBeenCalled();
+  expect(await getRosterDiscoveryHealth(source)).toMatchObject({ failureCode: "source_deferred" });
+});
+
+it("preserves a released collector's cooldown without issuing a vendor request", async () => {
+  await clearRuns();
+  const lease = await claimReportEventCollection(accountScope);
+  if (!lease.acquired) throw Error("Fixture lease unavailable");
+  const scope = { ...accountScope, token: lease.token };
+  await deferReportEventRequests(scope, 900000);
+  await releaseReportEventCollection(scope);
+  const fetch = vi.fn(async () => []);
+  expect(await runRosterDiscoveryJob(source, "synthetic", connector(fetch))).toMatchObject({
+    success: false,
+    retryAt: expect.any(String),
+  });
+  expect(fetch).not.toHaveBeenCalled();
+  const [saved] = await db
+    .select()
+    .from(sourceRecords)
+    .where(eq(sourceRecords.dataSourceId, source));
+  expect(
+    Date.parse((saved!.payloadJson as { nextAllowedAt: string }).nextAllowedAt)
+  ).toBeGreaterThan(Date.now() + 890000);
+});
+
+it("persists roster throttling for the metric collector and releases ownership", async () => {
+  await clearRuns();
+  const result = await runRosterDiscoveryJob(
+    source,
+    "synthetic",
+    connector(async () => {
+      throw new SourceRetryLaterError(900000);
+    })
+  );
+  expect(result).toMatchObject({ success: false, retryAt: expect.any(String) });
+  const lease = await claimReportEventCollection(accountScope);
+  expect(lease.acquired).toBe(true);
+  if (!lease.acquired) throw Error("Roster did not release ownership");
+  expect(Date.parse(lease.nextAllowedAt)).toBeGreaterThan(Date.now() + 890000);
+});
+
+it("rejects roster publication after account ownership expires", async () => {
+  await clearRuns();
+  const before = await db
+    .select()
+    .from(rosterObservations)
+    .where(eq(rosterObservations.dataSourceId, source));
+  const result = await runRosterDiscoveryJob(
+    source,
+    "synthetic",
+    connector(async () => {
+      await db
+        .update(sourceRecords)
+        .set({
+          payloadJson: sql`jsonb_set(payload_json, '{expiresAt}', to_jsonb('2000-01-01T00:00:00.000Z'::text))`,
+        })
+        .where(eq(sourceRecords.dataSourceId, source));
+      return [];
+    })
+  );
+  expect(result.success).toBe(false);
+  expect(
+    await db.select().from(rosterObservations).where(eq(rosterObservations.dataSourceId, source))
+  ).toEqual(before);
+});
+
+it("records a failed run even when ownership loss prevents saving source cooldown", async () => {
+  await clearRuns();
+  const result = await runRosterDiscoveryJob(
+    source,
+    "synthetic",
+    connector(async () => {
+      await db
+        .update(sourceRecords)
+        .set({
+          payloadJson: sql`jsonb_set(payload_json, '{expiresAt}', to_jsonb('2000-01-01T00:00:00.000Z'::text))`,
+        })
+        .where(eq(sourceRecords.dataSourceId, source));
+      throw new SourceRetryLaterError(900000);
+    })
+  );
+  expect(result.success).toBe(false);
+  expect(result).not.toHaveProperty("retryAt");
+  expect(await getRosterDiscoveryHealth(source)).toMatchObject({
+    status: "failed",
+    failureCode: "cooldown_record_failed",
+  });
+});
+
 it("records a review candidate and run atomically without adding employees or freshening metrics", async () => {
+  await clearRuns();
   const result = await runRosterDiscoveryJob(
     source,
     "synthetic",

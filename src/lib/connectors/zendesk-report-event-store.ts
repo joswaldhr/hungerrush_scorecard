@@ -116,6 +116,10 @@ async function owned(tx: Tx, scope: OwnedReportEventScope) {
     throw Error("Report collection lease is no longer owned");
   return { lease: lease.data, now };
 }
+/** Acquire account then source locks before a consumer publishes its bounded read. */
+export async function assertReportAccountOwnership(tx: Tx, scope: OwnedReportEventScope) {
+  await owned(tx, scope);
+}
 export async function claimReportEventCollection(scope: ReportEventScope) {
   return db.transaction(async (tx) => {
     await lockSource(tx, scope);

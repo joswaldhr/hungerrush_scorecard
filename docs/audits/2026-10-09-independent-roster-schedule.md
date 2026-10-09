@@ -18,6 +18,19 @@ before any vendor request because the private safety harness rejected the client
 previous implicit GET. The worker recorded failure and retained its cooldown. No
 candidate, employee or metric change occurred; the retry must respect that cooldown.
 
+The review found that spacing the schedule alone did not prevent contention with
+metric readers. The worker now acquires the same account lease, respects a retained
+source cooldown before reading, persists throttling, and rechecks ownership within
+the atomic observation transaction. Publication locks the account before the source.
+Failure bookkeeping still completes if lost ownership prevents cooldown persistence;
+that condition is reported separately instead of leaving the run marked running.
+
+Focused PostgreSQL regressions cover competing ownership, inherited cooldown,
+throttling propagation, expired ownership and failure bookkeeping. No employee
+assignment or metric publication is added. A deferred daily run still waits for a
+later invocation: this route does not itself enqueue automatic retries. Do not treat
+the new schedule as durable roster recovery or activate legacy recovery on that basis.
+
 Before activation: pass exact CI/build and fresh encrypted restore, complete a
 review-only production canary with protected-data digests and independent source-to-
 observation set comparison, then bind the production-only source and redeploy. Keep
