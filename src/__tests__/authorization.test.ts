@@ -518,3 +518,135 @@ it("rejects a foreign team grant without widening a direct employee assignment",
     await db.delete(managerAssignments).where(eq(managerAssignments.id, assignment));
   }
 });
+
+it("keeps an active foreign-only own context empty instead of falling through to view-as", async () => {
+  const assignment = randomUUID();
+  const today = new Date().toISOString().slice(0, 10);
+  mockViewAsCookie = MANAGER_ID;
+  try {
+    await db.insert(managerAssignments).values({
+      id: assignment,
+      managerUserId: ADMIN_ID,
+      teamId: OTHER_ORG_TEAM_ID,
+      assignmentType: "team",
+      effectiveFrom: today,
+    });
+    const result = await getEffectiveManagerContext(ADMIN_EMAIL);
+    expect(result.ctx).toEqual({
+      userId: ADMIN_ID,
+      organizationId: ORG_ID,
+      assignedTeamIds: [],
+      assignedEmployeeIds: [],
+    });
+    expect(result.viewingAs).toBeNull();
+    await db
+      .update(managerAssignments)
+      .set({ effectiveTo: today })
+      .where(eq(managerAssignments.id, assignment));
+    expect(await getManagerContext(ADMIN_EMAIL)).toBeNull();
+    expect((await getEffectiveManagerContext(ADMIN_EMAIL)).ctx?.userId).toBe(MANAGER_ID);
+    await db
+      .update(managerAssignments)
+      .set({ effectiveFrom: "2999-01-01", effectiveTo: null })
+      .where(eq(managerAssignments.id, assignment));
+    expect(await getManagerContext(ADMIN_EMAIL)).toBeNull();
+    await db
+      .update(managerAssignments)
+      .set({ teamId: null, effectiveFrom: today })
+      .where(eq(managerAssignments.id, assignment));
+    expect((await getManagerContext(ADMIN_EMAIL))?.assignedEmployeeIds).toEqual([]);
+  } finally {
+    mockViewAsCookie = undefined;
+    await db.delete(managerAssignments).where(eq(managerAssignments.id, assignment));
+  }
+});
+
+it("unions mixed direct/team grants, deduplicates members and excludes foreign employees", async () => {
+  const grantIds = Array.from({ length: 6 }, () => randomUUID());
+  const membershipIds = Array.from({ length: 3 }, () => randomUUID());
+  const foreignEmployee = randomUUID();
+  try {
+    await db.insert(employees).values({
+      id: foreignEmployee,
+      organizationId: OTHER_ORG_ID,
+      displayName: "Synthetic foreign member",
+    });
+    await db.insert(managerAssignments).values([
+      {
+        id: grantIds[0]!,
+        managerUserId: OUTSIDER_ID,
+        teamId: TEAM_ID,
+        assignmentType: "team",
+        effectiveFrom: "2020-01-01",
+      },
+      {
+        id: grantIds[1]!,
+        managerUserId: OUTSIDER_ID,
+        teamId: TEAM_ID,
+        assignmentType: "team",
+        effectiveFrom: "2020-01-01",
+      },
+      {
+        id: grantIds[2]!,
+        managerUserId: OUTSIDER_ID,
+        employeeId: OTHER_EMPLOYEE_ID,
+        assignmentType: "employee",
+        effectiveFrom: "2020-01-01",
+      },
+      {
+        id: grantIds[3]!,
+        managerUserId: OUTSIDER_ID,
+        teamId: TEAM_ID,
+        employeeId: OTHER_EMPLOYEE_ID,
+        assignmentType: "team",
+        effectiveFrom: "2020-01-01",
+      },
+      {
+        id: grantIds[4]!,
+        managerUserId: OUTSIDER_ID,
+        employeeId: foreignEmployee,
+        assignmentType: "employee",
+        effectiveFrom: "2020-01-01",
+      },
+      {
+        id: grantIds[5]!,
+        managerUserId: OUTSIDER_ID,
+        teamId: OTHER_TEAM_ID,
+        assignmentType: "team",
+        effectiveFrom: "2999-01-01",
+      },
+    ]);
+    await db.insert(teamMemberships).values([
+      {
+        id: membershipIds[0]!,
+        teamId: TEAM_ID,
+        employeeId: EMPLOYEE_ID,
+        effectiveFrom: "2020-01-01",
+      },
+      {
+        id: membershipIds[1]!,
+        teamId: TEAM_ID,
+        employeeId: EMPLOYEE_ID,
+        effectiveFrom: "2020-01-01",
+      },
+      {
+        id: membershipIds[2]!,
+        teamId: TEAM_ID,
+        employeeId: foreignEmployee,
+        effectiveFrom: "2020-01-01",
+      },
+    ]);
+    const ctx = await getManagerContext(OUTSIDER_EMAIL);
+    expect(ctx?.assignedTeamIds).toEqual([TEAM_ID]);
+    expect(ctx?.assignedEmployeeIds.slice().sort()).toEqual(
+      [EMPLOYEE_ID, OTHER_EMPLOYEE_ID].sort()
+    );
+    expect(ctx?.assignedTeamIds).not.toContain(OTHER_TEAM_ID);
+    // The directly granted employee's own team must never expand the grant.
+    expect(ctx?.assignedEmployeeIds).not.toContain(foreignEmployee);
+  } finally {
+    await db.delete(teamMemberships).where(inArray(teamMemberships.id, membershipIds));
+    await db.delete(managerAssignments).where(inArray(managerAssignments.id, grantIds));
+    await db.delete(employees).where(eq(employees.id, foreignEmployee));
+  }
+});
