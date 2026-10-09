@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
     SYNC_HEARTBEAT_URL: "https://heartbeat.test.invalid",
     ROSTER_DISCOVERY_SOURCE_ID: undefined as string | undefined,
     ZENDESK_LEGACY_SYNC_RECOVERY: undefined as string | undefined,
+    ZENDESK_LEGACY_TALK_RESUME: undefined as string | undefined,
     ZENDESK_REPORT_RECOVERY: undefined as string | undefined,
     ZENDESK_SUBDOMAIN: "synthetic",
     ZENDESK_REPORT_EVENT_COLLECTION_POLICY: undefined as string | undefined,
@@ -51,6 +52,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.env.ROSTER_DISCOVERY_SOURCE_ID = undefined;
   mocks.env.ZENDESK_LEGACY_SYNC_RECOVERY = undefined;
+  mocks.env.ZENDESK_LEGACY_TALK_RESUME = undefined;
   mocks.env.ZENDESK_REPORT_RECOVERY = undefined;
   mocks.env.ZENDESK_REPORT_EVENT_COLLECTION_POLICY = undefined;
   mocks.enqueue.mockReset();
@@ -91,6 +93,10 @@ describe("sync API failure reporting", () => {
       },
     ];
     mocks.limited.mockResolvedValue(true);
+    expect((await cron(1)).status).toBe(503);
+    expect(mocks.enqueue).not.toHaveBeenCalled();
+    expect(mocks.run).not.toHaveBeenCalled();
+    mocks.env.ZENDESK_LEGACY_TALK_RESUME = "1";
     const response = await cron(1);
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({

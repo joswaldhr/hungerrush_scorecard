@@ -21,6 +21,7 @@ import { parseSyncPeriod, type SyncPeriod } from "./sync-period";
 import { completeSnapshotVersion } from "@/lib/domain/metrics/source-context";
 import { assertMetricPublicationEligible } from "@/lib/domain/metrics/publication-eligibility";
 import { sourceFailureDiagnostics } from "./source-fetch-error";
+import { SourceRetryLaterError } from "./source-retry";
 
 function payloadHash(payload: Record<string, unknown>): string {
   return createHash("sha256").update(JSON.stringify(payload)).digest("hex");
@@ -141,9 +142,15 @@ export async function runSync(
     success = false;
     const failure = sourceFailureDiagnostics(err);
     fetchDiagnostics = failure ?? fetchDiagnostics;
-    if (failure?.httpStatus === 429 && typeof failure.retryAfterMs === "number") {
+    const retryAfterMs =
+      err instanceof SourceRetryLaterError
+        ? err.retryAfterMs
+        : failure?.httpStatus === 429
+          ? failure.retryAfterMs
+          : undefined;
+    if (typeof retryAfterMs === "number") {
       // Preserve vendor throttling across host invocations, not just in-memory retries.
-      const retryTime = new Date(Date.now() + failure.retryAfterMs);
+      const retryTime = new Date(Date.now() + retryAfterMs);
       if (Number.isFinite(retryTime.getTime())) retryAt = retryTime.toISOString();
     }
     fetchErrors.push({ message: safeErrorMessage(err) });
