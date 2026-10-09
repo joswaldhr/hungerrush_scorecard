@@ -1,4 +1,4 @@
-# Qualified import recovery candidate â€” October 9
+# Qualified import recovery candidate — October 9
 
 Local candidate only. No source requests, publication, environment changes, schedule changes,
 or deployment were performed for this increment.
