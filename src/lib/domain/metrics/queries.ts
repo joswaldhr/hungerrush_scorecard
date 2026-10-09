@@ -6,6 +6,7 @@ import {
   metricTargets,
   metricVisibilityOverrides,
   employees,
+  teams,
 } from "@/lib/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import type { ManagerContext } from "@/lib/auth/authorization";
@@ -96,7 +97,7 @@ export async function getEmployeeMetricsBatch(
   const historicalTargetContext =
     sevenDayPeriodEnd(periodStart) < new Date().toISOString().slice(0, 10);
 
-  const [, employeeRows] = await Promise.all([
+  const [, employeeRows, assignmentRows] = await Promise.all([
     assertOrganizationResource(ctx.organizationId, "team", teamId),
     db
       .select({ id: employees.id, line: employees.line })
@@ -104,14 +105,18 @@ export async function getEmployeeMetricsBatch(
       .where(
         and(inArray(employees.id, employeeIds), eq(employees.organizationId, ctx.organizationId))
       ),
+    db
+      .select({ assignment: metricAssignments })
+      .from(metricAssignments)
+      .innerJoin(teams, eq(metricAssignments.teamId, teams.id))
+      .where(
+        and(eq(metricAssignments.teamId, teamId), eq(teams.organizationId, ctx.organizationId))
+      ),
   ]);
   if (employeeRows.length !== new Set(employeeIds).size)
     throw new Error("Employee not found or not permitted");
 
-  const allAssignments = await db
-    .select()
-    .from(metricAssignments)
-    .where(eq(metricAssignments.teamId, teamId));
+  const allAssignments = assignmentRows.map((row) => row.assignment);
   const assignments = allAssignments.filter((assignment) => isEffectiveOn(assignment, periodStart));
 
   if (assignments.length === 0) {
