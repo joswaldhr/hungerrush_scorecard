@@ -1,5 +1,10 @@
 # Agent update publication candidate
 
+**Superseded release status, October 9:** PR59 is live and a controlled Menufy-only
+September 27–October 3 publication is verified. No recurring activation or wider-period
+qualification is implied. See [scoped release](2026-10-09-agent-update-scoped-release.md).
+The candidate-stage statements below record the preceding qualification state.
+
 ## Fresh source qualification
 
 The September 27–October 3 Menufy comparison now uses fresh durable events,

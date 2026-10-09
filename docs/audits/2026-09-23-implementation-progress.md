@@ -1,5 +1,45 @@
 # Audit implementation — current checkpoint
 
+**October 9, 00:43 UTC — first directory schedule-slot result observed:**
+Project-wide production logs show `/api/cron/directory` GET 200 at 00:40:46 UTC
+on `dpl_HhewZvRChTKNotoj2CXjvf3F9r5t`. Read-only database verification finds a
+new completed attempt at 00:40:47 and observation at 00:40:48: 62 accounts,
+61 enabled, one disabled, zero unresolved, released lease and exact identity/status
+agreement with the controlled baseline. No manual sync was triggered. This is
+correlated schedule-slot execution and output, separate from the prior canary.
+The full platform record confirms `vercel-cron/1.0`, HTTP 200, 3,245 ms request
+duration / 3,351 ms function duration and no function crash. This closes the first
+scheduler-execution check; it does not prove repeated operation or employment status.
+See the [aggregate receipt](2026-10-09-directory-scheduled-check.json).
+
+**October 9, 00:35 UTC — Menufy update events live for one verified week:**
+PR59 is merged as `87c75f4`; production `dpl_HhewZvRChTKNotoj2CXjvf3F9r5t`
+is READY and owns the live alias. Candidate and master CI/build `37864638984` /
+`37864915692` pass. The suite now contains 1,295 tests / 161 files, including atomic
+catalog/publication commit and full rollback after final verification rejection.
+
+A controlled publication writes 23 `zendesk_agent_update_events` values for
+September 27–October 3 only, matching every independent source count/set; 21 populated
+report rows match and two zeros have complete-source evidence. All 11 protected
+unrelated-data digests match. The new definition uses **updates**, not tickets or
+verified-human actions. Only Menufy's assignment for that week changes; older/current
+weeks retain the original definition and POS is unchanged. No target was copied.
+One initial lock rejection rolls back before catalog creation; read-only inspection
+confirms no partial change before the successful retry. No vendor calls in publication.
+
+Isolated synthetic Preview passes three periods and repeat publication, with closed
+CSV/PDF/PNG bytes and rendering verified. Current UI/CSV/copied text show neutral
+progress and a source cutoff; current PDF/PNG bytes and native print remain unverified.
+Live administrator view-as and downloaded CSV agree on the released metric, source
+description and withheld historical targets. This is not manager-own-login acceptance.
+The 00:20 UTC encrypted restore matches all 36 tables / 394,647 rows.
+
+The publisher has no route, environment opt-in or recurring schedule. Other periods,
+POS update meaning, remaining outbound discrepancies and recurring qualification are
+still open. Current-week independent source reconstruction matches 23 counts/sets but
+does not supply a matching report export. See the [release and rollback record](2026-10-09-agent-update-scoped-release.md)
+and [independent production receipt](2026-10-09-agent-update-publication.json).
+
 **October 8, 23:54 UTC — fresh Menufy update parity and inactive publication candidate:**
 A controlled six-request event refresh completes, preserving all ten protected table
 digests and writing no metrics. Fresh events/identities/parents now independently match
