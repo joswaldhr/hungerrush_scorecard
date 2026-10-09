@@ -2,6 +2,7 @@
   "git": {
     "deploymentEnabled": {
       "codex/oct09-final-reconciliation": false,
+      "codex/roster-probe-validation": false,
       "codex/metric-read-batching": false,
       "codex/manager-context-query": false,
       "codex/oct09-release-evidence": false,

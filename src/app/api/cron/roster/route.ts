@@ -19,9 +19,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Worker authentication missing" }, { status: 503 });
   if (request.headers.get("authorization") !== `Bearer ${env.CRON_SECRET}`)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const probe = new URL(request.url).searchParams.get("probe");
-  if (probe !== null && probe !== "auth" && probe !== "health")
-    return NextResponse.json({ error: "Unknown probe" }, { status: 400 });
+  const query = new URL(request.url).searchParams;
+  const probe = query.get("probe");
+  // A misspelled diagnostic request must never fall through to source work.
+  if (
+    [...query.keys()].some((key) => key !== "probe") ||
+    query.getAll("probe").length > 1 ||
+    (probe !== null && probe !== "auth" && probe !== "health")
+  )
+    return NextResponse.json({ error: "Invalid roster query" }, { status: 400 });
   if (probe === "auth")
     return NextResponse.json({ authenticated: true, discoveryRequested: false });
   if (!env.ROSTER_DISCOVERY_SOURCE_ID) return NextResponse.json({ enabled: false });
