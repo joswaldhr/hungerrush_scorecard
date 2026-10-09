@@ -232,6 +232,120 @@ function ctxFor(employeeIds: string[]): ManagerContext {
 }
 
 describe("getEmployeeMetricsBatch", () => {
+  it.each([
+    ["2026-09-20T23:59:59Z", 7, 1, "current"],
+    ["2026-09-21T00:00:00Z", 6, 0, "historical_unverified"],
+  ] as const)(
+    "bounds database reads at the closed-week boundary %s",
+    async (at, count, targetReads, context) => {
+      // Observe real executed statements, not query-builder calls: a lazy query
+      // constructed but never awaited must not count as a database round trip.
+      const session = (
+        db as unknown as {
+          session: { logger: { logQuery: (query: string, params: unknown[]) => void } };
+        }
+      ).session;
+      const logged = vi.spyOn(session.logger, "logQuery");
+      vi.setSystemTime(new Date(at));
+      try {
+        const result = await getEmployeeMetricsBatch(
+          ctxFor([RESTAURANT_EMP_ID]),
+          [RESTAURANT_EMP_ID],
+          MENUFY_TEAM_ID,
+          PERIOD_START,
+          PREVIOUS_PERIOD_START
+        );
+        const statements = logged.mock.calls.map(([query]) => query);
+        expect(statements).toHaveLength(count);
+        expect(statements.filter((query) => query.includes('from "metric_values"'))).toHaveLength(
+          1
+        );
+        expect(statements.filter((query) => query.includes('from "metric_targets"'))).toHaveLength(
+          targetReads
+        );
+        const row = result
+          .get(RESTAURANT_EMP_ID)!
+          .find((value) => value.definitionId === RANGE_DEF_ID)!;
+        expect(row.currentValue).toBe(15);
+        expect(row.targetContextStatus).toBe(context);
+        if (targetReads) expect(row.target?.targetMin).toBe(10);
+        else expect(row.target).toBeNull();
+      } finally {
+        logged.mockRestore();
+        vi.setSystemTime(new Date("2026-09-16T12:00:00Z"));
+      }
+    }
+  );
+
+  it("batches exact interval pairs without mixing employees, zero, missing or identical periods", async () => {
+    const added = await db
+      .insert(metricValues)
+      .values([
+        {
+          metricDefinitionId: RANGE_DEF_ID,
+          employeeId: RESTAURANT_EMP_ID,
+          teamId: MENUFY_TEAM_ID,
+          periodStart: PREVIOUS_PERIOD_START,
+          periodEnd: "2026-09-13",
+          numericValue: 0,
+        },
+        {
+          metricDefinitionId: RANGE_DEF_ID,
+          employeeId: RESTAURANT_EMP_ID,
+          teamId: MENUFY_TEAM_ID,
+          periodStart: PERIOD_START,
+          periodEnd: "2026-09-13",
+          numericValue: 901,
+        },
+        {
+          metricDefinitionId: RANGE_DEF_ID,
+          employeeId: RESTAURANT_EMP_ID,
+          teamId: MENUFY_TEAM_ID,
+          periodStart: PREVIOUS_PERIOD_START,
+          periodEnd: "2026-09-20",
+          numericValue: 902,
+        },
+      ])
+      .returning();
+    try {
+      const employeeIds = [RESTAURANT_EMP_ID, CONSUMER_EMP_ID];
+      const read = (current: string, previous: string) =>
+        getEmployeeMetricsBatch(
+          ctxFor(employeeIds),
+          employeeIds,
+          MENUFY_TEAM_ID,
+          current,
+          previous
+        );
+      const row = (result: Awaited<ReturnType<typeof read>>, employeeId: string) =>
+        result.get(employeeId)!.find((value) => value.definitionId === RANGE_DEF_ID)!;
+      const different = await read(PERIOD_START, PREVIOUS_PERIOD_START);
+      expect(row(different, RESTAURANT_EMP_ID)).toMatchObject({
+        currentValue: 15,
+        previousValue: 0,
+      });
+      expect(row(different, CONSUMER_EMP_ID)).toMatchObject({
+        currentValue: 15,
+        previousValue: null,
+      });
+      const same = await read(PERIOD_START, PERIOD_START);
+      expect(row(same, RESTAURANT_EMP_ID)).toMatchObject({ currentValue: 15, previousValue: 15 });
+      const sameZero = await read(PREVIOUS_PERIOD_START, PREVIOUS_PERIOD_START);
+      expect(row(sameZero, RESTAURANT_EMP_ID)).toMatchObject({ currentValue: 0, previousValue: 0 });
+      expect(row(sameZero, CONSUMER_EMP_ID)).toMatchObject({
+        currentValue: null,
+        previousValue: null,
+      });
+    } finally {
+      await db.delete(metricValues).where(
+        inArray(
+          metricValues.id,
+          added.map((value) => value.id)
+        )
+      );
+    }
+  });
+
   it("keeps replacement CSAT context in current/history and withholds incompatible comparisons and targets", async () => {
     const context = { sourceContract: SOLVED_CSAT_CONTRACT, reportingTimeZone: "America/Chicago" };
     const currentScope = and(
