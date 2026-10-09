@@ -1,6 +1,7 @@
 {
   "git": {
     "deploymentEnabled": {
+      "codex/oct09-release-evidence": false,
       "codex/scorecard-query-batching": false,
       "codex/first-reply-recovery": false,
       "codex/roster-durable-retry": false,
