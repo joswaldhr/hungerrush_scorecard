@@ -1,6 +1,7 @@
 {
   "git": {
     "deploymentEnabled": {
+      "codex/scorecard-load-performance": false,
       "codex/independent-roster-schedule": false,
       "codex/legacy-sync-recovery": false,
       "codex/agent-update-publication": false,
