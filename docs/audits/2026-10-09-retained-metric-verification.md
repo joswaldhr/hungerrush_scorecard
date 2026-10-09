@@ -27,10 +27,11 @@ python scripts/verify_retained_outbound.py --manifest <private-manifest.json>
 python -m unittest discover -s scripts -p test_verify_retained_outbound.py -v
 ```
 
-The retained September 27–October 3 replay matches all 62 candidate employees,
+The initial retained September 27–October 3 replay matches all 62 candidate employees,
 310 values, 868 contributing-set comparisons, and 372 duration sum/sample/mean
 checks. Of 111 retained report cells across 54 populated employee rows, one POS
-count still differs. Eight candidates lack a populated export row; this replay
+count still differs in that original reference (superseded by the fresh export below).
+Eight candidates lack a populated export row; this replay
 does not turn those absent report rows into independent zero comparisons.
 
 The differing POS row has 34 source outbound participating calls, of which 31
@@ -74,6 +75,46 @@ and cannot serve as its replacement reference. No filters or reports were change
 the viewer tab was closed immediately. The next weekly reference requires an
 existing manager-provided export or explicit authorization for viewer-only filter
 use under the guardrails; the monthly view does not close the discrepancy.
+
+### Fresh weekly reference — October 9, 17:18 UTC
+
+The user subsequently approved a one-time viewer-only date selection. The root
+agent observed September 27–October 3, 2026 in Central Time immediately before
+exporting, then restored Last 30 days and closed the viewer. No report editor was
+opened and no report was saved. The downloaded CSV files contain no period or
+dataset-refresh metadata, so their period binding relies on that observed viewer
+state in the tool history, not on the filenames or CSV contents.
+
+The fresh POS outbound export changes exactly one of its 42 count cells, from
+34 to 31. All 35 rows matching the retained 39-employee POS cohort now agree with
+the independent source calculation. Four cohort employees have no report row;
+seven export rows are outside that cohort. Missing rows remain unverified, not
+zero. This resolves the reported count discrepancy for the observed weekly
+reference without changing the saved 11-group filter or calculator. It does not
+prove the original Explore refresh cutoff or cause of the earlier disagreement.
+
+Replaying all retained source evidence with the fresh POS references and the
+unchanged prior Menufy references verifies 310 candidate values, 868 source-set
+checks and 372 duration checks, with zero source replay differences. All 111
+available report cells across 54 matched employees now agree. Only outbound
+counts are present in the fresh POS CSV; the other four calculated outbound
+measures do not gain new independent report comparisons from this export.
+
+The source evidence remains the October 9 collection qualified around 01:24 UTC,
+not a simultaneous fresh API snapshot. Report contributing IDs, absent-row zeros,
+multi-period qualification and recurring publication/recovery still require their
+own evidence. The remaining employee's source observation began at 01:21:43 UTC,
+outside the existing one-hour controlled-publication freshness gate. That gate
+remains unchanged: a bounded fresh joined-source collection and independent replay
+are required before publishing the employee's five scoped outbound values. No
+metric publication or database writes were performed here.
+The other three exported reports were compared only for changes: updates changed
+14 cells, agent state time changed one, and inbound counts changed none. Those
+observations do not qualify their metric definitions or explain their changes.
+
+The [aggregate receipt](2026-10-09-pos-fresh-outbound-reference.json) binds both
+archives and the replay inputs by SHA-256. Raw exports, employee mappings and the
+reproducible comparison script remain private outside tracked files.
 
 An exit code of zero means the source replay checks passed; report differences
 remain explicit in the aggregate output. It is not authorization to publish or a
