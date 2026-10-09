@@ -1,5 +1,47 @@
 # Audit implementation — current checkpoint
 
+**October 9, 17:10 UTC — controlled roster discovery verified:**
+The corrected released worker completed eight GET requests and one review-only
+observation of 80 members. Independent identity/team/line comparison passed before
+commit and during readback; all 14 protected table digests match the baseline.
+There are zero new/departed candidates, approvals, employee-assignment changes or
+metric writes. Recurring roster discovery remains off; daily deferrals still need
+durable retry before legacy-recovery activation. This is controlled evidence, not
+scheduler evidence or proof of employment status.
+
+The first diagnostic attempt stopped before worker/source access on an invalid
+read-only transaction option. The corrected worker succeeded; a post-read Date
+serialization failure and a 363 ms local/database timestamp discrepancy were
+resolved using separate read-only verification, without another worker run. The
+[aggregate receipt](2026-10-09-roster-controlled-verification.json) retains those limits.
+
+**October 9, 17:02 UTC — recovery safeguards and measured scorecard reads live:**
+PR66 is live at 4563f1f / dpl_735PKwgEC9JupBEvf8EgDTPX3YpN; candidate/master CI
+37962218942 / 37962664357 pass. Saved periods now survive first-reply retries,
+optional qualified imports have scoped health rows, and inactive recovery switches
+remain absent. Actual authenticated production Data Health and synthetic optional-family
+rendering pass. All 24 production environment entries remain unchanged.
+
+PR68 is live at c23d0cd / dpl_4KdeynCs81QJznZ5wVTYdHTa6HQx; exact candidate CI
+37962724711, master CI 37963134785 and final isolated Preview pass (1,355 tests /
+166 files, plus independent verifier checks). Two production week requests take
+3,236/3,408 ms, compared with earlier 3,514/3,590 ms. This small sample is not a
+benchmark or a claim that slow loading is solved. Safe numeric phase timings locate
+roughly 1.3–1.4 seconds in access context and 1.4 seconds in metric reads. No cache,
+permissions, metric calculation or source-policy changes were used to obtain this.
+See the [release evidence](2026-10-09-recovery-performance-release.json).
+A separate 24-statement read-only desktop diagnostic finds 0.237 ms SQL execution,
+37.6 KB representative response and 105–135 ms trivial round trips. It does not
+reproduce Vercel pooling; the [aggregate diagnostic](2026-10-09-scorecard-read-diagnostics.json)
+supports measuring connection setup/reuse next, not speculative indexing or caching.
+
+Two morning legacy sync failures remain unresolved. Existing successful legacy runs
+were not using resumable Talk collection; recovery activation alone would still
+restart those reads. The independent roster canary/retry gap and scoped recovery
+qualification remain separate work. A read-only POS dashboard visit found a saved
+September 9–October 9 range, unsuitable for the September 27–October 3 outbound
+discrepancy; it was closed without edits. The retained export cutoff remains unknown.
+
 **October 9 — roster coordination released; loading and metric verification advance:**
 PR64 is live at `4fae046` / `dpl_FVVqoaamXW8fqzr3YjppuzUMybKy`. Candidate/master
 CI `37958940057` / `37959728015` pass. All 24 production environment entries and

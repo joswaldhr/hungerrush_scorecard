@@ -1,0 +1,79 @@
+{
+  "observedAt": "2026-10-09T17:02:53.493Z",
+  "recovery": {
+    "pullRequest": 66,
+    "sha": "4563f1fc57ecf4671bda4965e7265c99aa9af805",
+    "deploymentId": "dpl_735PKwgEC9JupBEvf8EgDTPX3YpN",
+    "state": "READY",
+    "productionAliasVerified": true,
+    "candidateCI": 37962218942,
+    "masterCI": 37962664357,
+    "previewDeploymentId": "dpl_HFkCwqaFQVdEwbwWVw3qakBMDN8A",
+    "checks": [
+      "authenticated synthetic health page",
+      "optional family rendering and status labels in isolated synthetic fixture",
+      "light and dark layout",
+      "authenticated production health under existing administrator view-as",
+      "anonymous CSAT and first reply cron return401"
+    ],
+    "productionEnvironmentEntries": 24,
+    "environmentMetadataUnchanged": true,
+    "newRecoveryActivated": false
+  },
+  "performance": {
+    "pullRequest": 68,
+    "sha": "c23d0cd06a6f8507cf66ae943e811b898763df2d",
+    "deploymentId": "dpl_4KdeynCs81QJznZ5wVTYdHTa6HQx",
+    "state": "READY",
+    "productionAliasVerified": true,
+    "candidateCI": 37962724711,
+    "previewDeploymentId": "dpl_3DhFjJkBpndaSVK3hjqj4rp3zJMj",
+    "checks": [
+      "final Preview application tree matches release candidate",
+      "synthetic selected-week reads",
+      "authenticated production current and historical week reads",
+      "fresh cache selection preserved"
+    ],
+    "slowReadPhases": [
+      {
+        "observedAt": "2026-10-09T17:01:19.846Z",
+        "timings": {
+          "auth": 57.5,
+          "context": 1427.9,
+          "employee": 146,
+          "metrics": 1396.3
+        },
+        "status": 200
+      },
+      {
+        "observedAt": "2026-10-09T17:01:04.801Z",
+        "timings": {
+          "auth": 42.4,
+          "context": 1301.5,
+          "employee": 129.6,
+          "metrics": 1423.4
+        },
+        "status": 200
+      }
+    ],
+    "requests": [
+      {
+        "durationMs": 3236,
+        "status": 200
+      },
+      {
+        "durationMs": 3408,
+        "status": 200
+      }
+    ],
+    "limit": "Two production requests only, not a benchmark. Backend latency remains; authorization/context and metric reads dominate measured phases.",
+    "masterCI": 37963134785
+  },
+  "rollback": {
+    "recovery": "dpl_Cj5K8yX9mxhkW2K1Bi2MzSW1G9iM",
+    "performance": "dpl_735PKwgEC9JupBEvf8EgDTPX3YpN",
+    "backup": "2026-10-09-roster-release-restore.json"
+  },
+  "noZendeskEdits": true,
+  "frozenDemoUnchanged": true
+}

@@ -1,0 +1,75 @@
+{
+  "measuredAt": "2026-10-09T17:04:47.391Z",
+  "location": "Windows desktop; not the Vercel function network/pool",
+  "productionDestinationVerified": true,
+  "tls": "require",
+  "maxConnections": 1,
+  "readOnly": true,
+  "statementTimeoutMs": 10000,
+  "queryTimingsMs": {
+    "select1Repeat1": 109.31,
+    "select1Repeat2": 105.68,
+    "select1Repeat3": 106.17,
+    "twoWeekPayloadSizes": 252.7,
+    "representativeFullRows": 305.88,
+    "representativeJsonStringify": 1.08,
+    "representativeFullRowsRepeat1": 233.45,
+    "representativeFullRowsRepeat2": 122.26,
+    "representativeFullRowsRepeat3": 120.61,
+    "representativeExplainAnalyze": 213.74,
+    "initialReadOnlyTransactionIncludingAssertionsThreeProbesAndCommit": 1660.4
+  },
+  "aggregate": {
+    "payload": {
+      "rows": 2623,
+      "full_bytes": "2249588",
+      "provenance_bytes": "811210",
+      "context_bytes": "265366",
+      "largest_provenance_bytes": 506,
+      "median_provenance_bytes": 233,
+      "p95_provenance_bytes": 489
+    },
+    "representative": {
+      "rows": 46,
+      "fullJsonBytes": 37564,
+      "provenanceJsonBytes": 13072
+    },
+    "plan": {
+      "planningMs": 0.133,
+      "executionMs": 0.237,
+      "actualRows": 46,
+      "sharedHitBlocks": 198,
+      "sharedReadBlocks": 0,
+      "nodeType": "Bitmap Heap Scan"
+    }
+  },
+  "periods": [
+    {
+      "start": "2026-10-04",
+      "end": "2026-10-10"
+    },
+    {
+      "start": "2026-09-27",
+      "end": "2026-10-03"
+    }
+  ],
+  "statementsIncludingTransactionControlAndTypeDiscovery": 17,
+  "measurementNotes": [
+    "Initial transaction duration includes setup, read-only assertions, three SELECT1 probes and commit; it is not pure connect time.",
+    "Representative query uses exact two-week boundaries but one combined employee query, not the deployed five-query fan-out.",
+    "Provenance context size includes six display context keys plus availability; serialized estimates are not network packet bytes."
+  ],
+  "supplementalConnectionProbe": {
+    "measuredAt": "2026-10-09T17:05:19.161Z",
+    "location": "Windows desktop; separate new single-connection pool; not Vercel",
+    "timingsMs": {
+      "connectBeginAndReadOnlyAssertion": 1281.34,
+      "select1_1": 129.42,
+      "select1_2": 132.16,
+      "select1_3": 134.85,
+      "wholeTransaction": 1803.37
+    },
+    "statements": 7
+  },
+  "totalStatementsAcrossBothRuns": 24
+}
