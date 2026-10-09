@@ -29,16 +29,11 @@ export default async function OneOnOnesPage() {
     );
   }
 
-  const archives = await getManagerArchives(ctx);
-  const employees = (await getAssignedEmployees(ctx)).filter(
-    (e) => !archives.some((a) => a.employeeId === e.id)
-  );
-  const teams = await getVisibleTeamsForManager(ctx, employees);
-  const directory = await getDirectoryReview(
-    ctx.organizationId,
-    employees.map((e) => e.id),
-    directoryBinding()
-  );
+  const [archives, assignedEmployees] = await Promise.all([
+    getManagerArchives(ctx),
+    getAssignedEmployees(ctx),
+  ]);
+  const employees = assignedEmployees.filter((e) => !archives.some((a) => a.employeeId === e.id));
   if (employees.length === 0) {
     return (
       <div className="space-y-4">
@@ -53,6 +48,15 @@ export default async function OneOnOnesPage() {
       </div>
     );
   }
+
+  const [teams, directory] = await Promise.all([
+    getVisibleTeamsForManager(ctx, employees),
+    getDirectoryReview(
+      ctx.organizationId,
+      employees.map((e) => e.id),
+      directoryBinding()
+    ),
+  ]);
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-12">
