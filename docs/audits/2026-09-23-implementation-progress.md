@@ -1,5 +1,24 @@
 # Audit implementation — current checkpoint
 
+**October 9 morning — Pro confirmed; actual scheduler gaps isolated; recovery candidate:**
+PR62 is live at `2d9ecfa` / `dpl_EHgfXxqauqDvF7iTeLThzskznALH`, exact master
+CI `37947819189` passes; public login and authorization redirects pass. The 14:55 UTC
+encrypted restore matches all 36 tables / 404,056 rows. Project-wide read-only logs
+identify 100 actual scheduler requests, including 81 recovery ticks and three directory
+checks. Two daily legacy syncs failed or skipped with zero metric writes: current-week
+collection contention and oldest-week source throttling. They are not recovered yet.
+
+A separate default-off legacy recovery candidate retains daily demand, exact periods,
+vendor retry delays and completion-only heartbeats. Tests and release evidence belong
+to the [recovery manifest](2026-10-09-legacy-sync-recovery.md); activation remains a
+separate gate. The corrected capacity model includes directory's four daily slots.
+
+Essential read-only POS definition inspection confirms distinct update events, ten
+selected groups and two excluded phone channels; the editor was promptly closed and
+closure verified. Existing retained event data lacks channel metadata, so POS update
+counts cannot yet inherit the Menufy definition. No Zendesk edits, demo changes or
+new metric publication occurred in this increment.
+
 **October 9, 01:31 UTC — four remaining outbound exceptions corrected in production:**
 Two previously missing POS parents are recovered by the bounded incremental source;
 fresh joined evidence now passes for all 62 scoped employee records. Independent

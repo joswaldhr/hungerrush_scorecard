@@ -223,3 +223,32 @@ it("rechecks source authorization on both claim and completion", async () => {
   await expect(finishReportJob(scope, owned, { status: "complete" })).rejects.toThrow("binding");
   expect((await rows())[0]?.payloadJson).toMatchObject({ completedThrough: null });
 });
+
+it("persists a legacy retry and its original period through cooldown and a new worker", async () => {
+  const legacy: ReportJobDefinition = { ...definition, kind: "legacy-sync" };
+  await requestReportJobs(scope, [request(legacy)]);
+  const first = await claim();
+  const retryAt = new Date(Date.now() + 7200000).toISOString();
+  await finishReportJob(scope, first, { status: "failed", retryAt });
+  expect(await claimReportJob(scope, [policyHash])).toBeNull();
+  expect((await rows())[0]!.payloadJson).toMatchObject({
+    definition: legacy,
+    completedThrough: null,
+    failures: 1,
+    notBefore: retryAt,
+    lease: null,
+  });
+  // Simulate elapsed database time, without an actual two-hour wait or source request.
+  await db.execute(
+    sql`update source_records set payload_json=jsonb_set(payload_json,'{notBefore}',to_jsonb('2021-01-01T00:00:00.000Z'::text)) where data_source_id=${source}`
+  );
+  const next = await claim();
+  expect(next.definition).toEqual(legacy);
+  await expect(finishReportJob(scope, first, { status: "complete" })).rejects.toThrow("ownership");
+  await finishReportJob(scope, next, { status: "complete" });
+  expect((await rows())[0]!.payloadJson).toMatchObject({
+    completedThrough: desiredAt,
+    failures: 0,
+  });
+  expect(await claimReportJob(scope, [policyHash])).toBeNull();
+});

@@ -18,7 +18,7 @@ const definitionSchema = z.discriminatedUnion("kind", [
     .strict(),
   z
     .object({
-      kind: z.enum(["updater", "assignee-solved", "csat"]),
+      kind: z.enum(["updater", "assignee-solved", "csat", "legacy-sync"]),
       policyHash: z.string().regex(/^[a-f0-9]{64}$/),
       periodStart: z.iso.date(),
       periodEnd: z.iso.date(),
@@ -118,7 +118,7 @@ export async function requestReportJobs(
   scope: ReportEventScope,
   requests: Array<{ definition: ReportJobDefinition; desiredAt: string }>
 ) {
-  if (!requests.length || requests.length > 16) throw Error("Invalid report job request budget");
+  if (!requests.length || requests.length > 20) throw Error("Invalid report job request budget");
   return db.transaction(async (tx) => {
     const now = await lock(tx, scope);
     const parsed = requests.map((request) => {
@@ -176,7 +176,7 @@ export async function claimReportJob(
 ): Promise<ClaimedReportJob | null> {
   if (
     !currentPolicyHashes.length ||
-    currentPolicyHashes.length > 4 ||
+    currentPolicyHashes.length > 5 ||
     currentPolicyHashes.some((h) => !/^[a-f0-9]{64}$/.test(h))
   )
     throw Error("Invalid job policy allowlist");
