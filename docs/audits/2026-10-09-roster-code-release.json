@@ -1,0 +1,35 @@
+{
+  "observedAt": "2026-10-09T16:40:25.303Z",
+  "pullRequest": 64,
+  "sha": "4fae0467ab2ebfb8b292dad4b9707c45e1da1f31",
+  "deploymentId": "dpl_FVVqoaamXW8fqzr3YjppuzUMybKy",
+  "state": "READY",
+  "productionAliasVerified": true,
+  "candidateCI": 37958940057,
+  "masterCI": 37959728015,
+  "unchangedProductionEnvironmentEntries": 24,
+  "unchangedPriorCronDefinitions": 18,
+  "addedInactiveCron": {
+    "path": "/api/cron/roster",
+    "schedule": "10 16 * * *"
+  },
+  "rosterActivated": false,
+  "legacyRecoveryActivated": false,
+  "scheduledRosterExecutionVerified": false,
+  "sourceCallsTriggered": 0,
+  "metricWrites": 0,
+  "checks": [
+    {
+      "path": "/login",
+      "status": 200
+    },
+    {
+      "path": "/api/cron/roster",
+      "status": 401
+    },
+    {
+      "path": "/api/cron/report-recovery?slot=0",
+      "status": 401
+    }
+  ]
+}
