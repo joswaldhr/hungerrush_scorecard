@@ -41,3 +41,14 @@ interrupted ownership, new daily demand during an older run, disabled/rebound so
 stale mappings/assignments, review-only publication and exclusion from manager metric rows.
 TypeScript, scoped ESLint and `git diff --check` pass. Tests use only the explicit
 loopback `cadence_test` database and synthetic fixtures; no shared `.env` is loaded.
+
+Release preparation (not activation): the October 9 17:16:13 UTC encrypted backup
+restored 36 tables / 404,129 rows with matching digests; see
+`2026-10-09-afternoon-release-restore.json`. Its SHA-256 is
+`5bc022633557b2693383d87aee6f84c9020547fe49a3f6db561b43f748da2253`.
+Revalidate freshness at the actual production change. The compatible current production
+rollback is `c23d0cd06a6f8507cf66ae943e811b898763df2d`, deployment
+`dpl_4KdeynCs81QJznZ5wVTYdHTa6HQx`. Initial activation, after remaining gates, is roster
+recovery only; the other optional recovery families stay off. The controlled PR64 worker
+canary in `2026-10-09-roster-controlled-verification.json` establishes the underlying
+review-only worker's source comparison, not this new queue's scheduled operation.
