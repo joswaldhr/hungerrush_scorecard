@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 import { getEffectiveManagerContext, getAssignedEmployees } from "@/lib/auth/authorization";
 import { getEmployeeMetrics } from "@/lib/domain/metrics/queries";
 import { resolveReportingWeek, shiftWeekStart } from "@/lib/utils";
@@ -9,27 +10,41 @@ const headers = { "Cache-Control": "private, no-store", "X-Content-Type-Options"
 
 /** One authorized employee and one week; no source ingestion or shared response cache. */
 export async function GET(request: Request) {
-  const timings: string[] = [];
+  type Phase = "auth" | "context" | "employee" | "metrics";
+  const timings: Partial<Record<Phase, number>> = {};
   let authenticated = false;
-  const phase = async <T>(
-    name: "auth" | "context" | "employee" | "metrics",
-    read: () => Promise<T>
-  ): Promise<T> => {
+  const phase = async <T>(name: Phase, read: () => Promise<T>): Promise<T> => {
     const started = performance.now();
     try {
       return await read();
     } finally {
       const elapsed = performance.now() - started;
-      timings.push(
-        `${name};dur=${Math.min(30_000, Math.max(0, Number.isFinite(elapsed) ? elapsed : 0)).toFixed(1)}`
+      timings[name] = Number(
+        Math.min(30_000, Math.max(0, Number.isFinite(elapsed) ? elapsed : 0)).toFixed(1)
       );
     }
   };
-  const reply = (body: unknown, status = 200) =>
-    Response.json(body, {
+  const reply = (body: unknown, status = 200) => {
+    if (
+      authenticated &&
+      Object.values(timings).reduce((total, duration) => total + duration, 0) >= 1_000
+    ) {
+      logger.info("Slow scorecard week read", { timings, status });
+    }
+    return Response.json(body, {
       status,
-      headers: { ...headers, ...(authenticated ? { "Server-Timing": timings.join(", ") } : {}) },
+      headers: {
+        ...headers,
+        ...(authenticated
+          ? {
+              "Server-Timing": Object.entries(timings)
+                .map(([name, duration]) => `${name};dur=${duration.toFixed(1)}`)
+                .join(", "),
+            }
+          : {}),
+      },
     });
+  };
   try {
     const session = await phase("auth", () => auth());
     if (!session?.user?.email) return reply({ error: "Not authenticated" }, 401);

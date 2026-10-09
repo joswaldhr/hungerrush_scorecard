@@ -20,6 +20,10 @@ navigation correctness but did not establish acceptable backend latency.
   to 0–30,000 and rounded to one decimal. No identity, payload, SQL, error detail or
   dynamic label enters the header. Unauthenticated responses omit it. Private,
   no-store behavior remains unchanged; no server cache or pool settings are added.
+  Authenticated reads with a measured phase sum of at least 1,000 ms emit one
+  `Slow scorecard week read` info entry containing only those numeric timings and
+  HTTP status. Fast and unauthenticated reads emit no timing log. This enables
+  request-log diagnostics when the browser cannot expose response headers.
 
 The ordinary team-assigned manager path removes one SQL statement and two sequential
 database phases (approximately nine to seven phases; administrator view-as eleven to
@@ -35,6 +39,9 @@ Added regressions preserve empty teams, inclusive membership starts, exclusive e
 future-membership exclusion and organization boundaries for direct employee grants.
 Existing tests retain same-organization administrator view-as, metric scope, historical
 targets, source compatibility, visibility and effective metric assignments.
+
+The follow-up logging extension passes all 14 endpoint tests, including mocked-clock
+slow/fast/unauthenticated/error cases; these tests perform no database access.
 
 The candidate still requires exact full CI/build, synthetic hosted verification and
 post-release measurements. Automatic deployment of this candidate branch is disabled.
