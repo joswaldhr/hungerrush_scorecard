@@ -8,7 +8,7 @@ import {
   employees,
   teams,
 } from "@/lib/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, or } from "drizzle-orm";
 import type { ManagerContext } from "@/lib/auth/authorization";
 import { assertCanAccessEmployee } from "@/lib/auth/authorization";
 import { assertOrganizationResource } from "@/lib/auth/organization-scope";
@@ -126,50 +126,53 @@ export async function getEmployeeMetricsBatch(
 
   const defIds = assignments.map((a) => a.metricDefinitionId);
 
-  const [definitions, currentValues, previousValues, targets, visibilityOverrides] =
-    await Promise.all([
-      db
-        .select()
-        .from(metricDefinitions)
-        .where(
-          and(
-            inArray(metricDefinitions.id, defIds),
-            eq(metricDefinitions.organizationId, ctx.organizationId)
+  const [definitions, periodValues, targets, visibilityOverrides] = await Promise.all([
+    db
+      .select()
+      .from(metricDefinitions)
+      .where(
+        and(
+          inArray(metricDefinitions.id, defIds),
+          eq(metricDefinitions.organizationId, ctx.organizationId)
+        )
+      ),
+    db
+      .select()
+      .from(metricValues)
+      .where(
+        and(
+          inArray(metricValues.employeeId, employeeIds),
+          inArray(metricValues.metricDefinitionId, defIds),
+          // Preserve the exact stored intervals; separate IN lists would admit
+          // mismatched start/end pairs and broaden the scorecard's data.
+          or(
+            and(
+              eq(metricValues.periodStart, periodStart),
+              eq(metricValues.periodEnd, sevenDayPeriodEnd(periodStart))
+            ),
+            and(
+              eq(metricValues.periodStart, previousPeriodStart),
+              eq(metricValues.periodEnd, sevenDayPeriodEnd(previousPeriodStart))
+            )
           )
-        ),
-      db
-        .select()
-        .from(metricValues)
-        .where(
-          and(
-            inArray(metricValues.employeeId, employeeIds),
-            inArray(metricValues.metricDefinitionId, defIds),
-            eq(metricValues.periodStart, periodStart),
-            eq(metricValues.periodEnd, sevenDayPeriodEnd(periodStart))
-          )
-        ),
-      db
-        .select()
-        .from(metricValues)
-        .where(
-          and(
-            inArray(metricValues.employeeId, employeeIds),
-            inArray(metricValues.metricDefinitionId, defIds),
-            eq(metricValues.periodStart, previousPeriodStart),
-            eq(metricValues.periodEnd, sevenDayPeriodEnd(previousPeriodStart))
-          )
-        ),
-      db.select().from(metricTargets).where(inArray(metricTargets.metricDefinitionId, defIds)),
-      db
-        .select()
-        .from(metricVisibilityOverrides)
-        .where(inArray(metricVisibilityOverrides.metricDefinitionId, defIds)),
-    ]);
+        )
+      ),
+    historicalTargetContext
+      ? Promise.resolve([])
+      : db.select().from(metricTargets).where(inArray(metricTargets.metricDefinitionId, defIds)),
+    db
+      .select()
+      .from(metricVisibilityOverrides)
+      .where(inArray(metricVisibilityOverrides.metricDefinitionId, defIds)),
+  ]);
 
   const defMap = new Map(definitions.map((d) => [d.id, d]));
   const assignMap = new Map(assignments.map((a) => [a.metricDefinitionId, a]));
   const employeeLineMap = new Map(employeeRows.map((e) => [e.id, e.line]));
 
+  // Filter independently so identical requested periods populate both columns.
+  const currentValues = periodValues.filter((value) => value.periodStart === periodStart);
+  const previousValues = periodValues.filter((value) => value.periodStart === previousPeriodStart);
   const currentByEmployee = new Map<string, Map<string, (typeof currentValues)[number]>>();
   for (const v of currentValues) {
     const forEmployee = currentByEmployee.get(v.employeeId) ?? new Map();
