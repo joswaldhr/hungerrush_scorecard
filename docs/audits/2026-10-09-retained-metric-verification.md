@@ -1,8 +1,9 @@
 # Retained metric verification and channel evidence
 
-This increment uses retained private source evidence only. It makes no vendor
-requests, production writes, report changes or metric publication. The current
-implementation ledger remains the authority for deployed state.
+The initial increment uses retained private source evidence only, without vendor
+requests or production writes. The later scoped outbound collection, publication
+and hosted verification are recorded separately below. The current implementation
+ledger remains the authority for deployed state.
 
 ## Outbound independent replay
 
@@ -37,11 +38,12 @@ does not turn those absent report rows into independent zero comparisons.
 The differing POS row has 34 source outbound participating calls, of which 31
 remain inside the saved 11-group filter. The three excluded calls belong to two
 tickets. Retained ticket audits establish changes out of the selected groups at
-13:53:59 and 14:02:01 UTC on October 8. This confirms the existing scope-change
-explanation; it does not establish Explore's ticket-dimension refresh cutoff or
-prove its exact contributing IDs. Preserve the filter and withheld publication
-for that discrepancy. The next comparison needs the same weekly interval and
-known observation context, not the dashboard's different monthly interval.
+13:53:59 and 14:02:01 UTC on October 8. This confirms a source scope difference;
+it does not establish Explore's ticket-dimension refresh cutoff
+or prove its exact contributing IDs. Publication was withheld at this checkpoint
+pending a same-week comparison with known observation context. The fresh reference
+and subsequent scoped publication below supersede that withheld state while
+preserving the saved filter.
 
 ### Retained export cutoff check
 
@@ -56,15 +58,17 @@ or dataset refresh metadata. A later report-definition inspection at
 17:01:18.523 UTC recorded "18 minutes ago" for the dataset update label. That
 rounded label refers approximately to 16:43 UTC, after the retained export, and
 cannot establish which ticket-group versions the earlier export used. Thus the
-34-versus-31 difference remains unresolved; dataset lag is plausible but unproven.
+34-versus-31 difference was unresolved at this checkpoint; dataset lag was
+plausible but unproven. The later fresh export resolves the count difference,
+without establishing the original refresh cause.
 
-The smallest next check is a fresh export of the existing POS outbound report
+The smallest next check identified then was a fresh export of the POS outbound report
 for September 27–October 3, preserving the saved 11-group filter and recording
-the contemporaneous refresh label and retrieval time. First verify the viewer
-already shows that interval: retained files do not establish its current state
-or provide an exact POS outbound viewer URL. If the report still differs,
-read-only contributing call/ticket IDs and their report group dimensions are
-needed before attributing the difference to snapshot or historical semantics.
+the contemporaneous refresh label and retrieval time. The viewer interval first
+needed verification: retained files did not establish its state or provide an
+exact POS outbound viewer URL. A persisting difference would require read-only
+contributing call/ticket IDs and report group dimensions before attributing it to
+snapshot or historical semantics.
 No filter change, source request, report edit or publication was performed for
 this retained-metadata check.
 
@@ -72,7 +76,7 @@ The subsequent October 9 viewer-only check found the existing POS Support Audit
 dashboard set to Last 30 days, September 9–October 9, 2026, Central Time, with
 the POS outbound report visible. This differs from the required weekly interval
 and cannot serve as its replacement reference. No filters or reports were changed;
-the viewer tab was closed immediately. The next weekly reference requires an
+the viewer tab was closed immediately. A weekly reference then required an
 existing manager-provided export or explicit authorization for viewer-only filter
 use under the guardrails; the monthly view does not close the discrepancy.
 
@@ -100,14 +104,11 @@ available report cells across 54 matched employees now agree. Only outbound
 counts are present in the fresh POS CSV; the other four calculated outbound
 measures do not gain new independent report comparisons from this export.
 
-The source evidence remains the October 9 collection qualified around 01:24 UTC,
-not a simultaneous fresh API snapshot. Report contributing IDs, absent-row zeros,
-multi-period qualification and recurring publication/recovery still require their
-own evidence. The remaining employee's source observation began at 01:21:43 UTC,
-outside the existing one-hour controlled-publication freshness gate. That gate
-remains unchanged: a bounded fresh joined-source collection and independent replay
-are required before publishing the employee's five scoped outbound values. No
-metric publication or database writes were performed here.
+That whole-cohort replay uses the October 9 collection qualified around 01:24 UTC,
+not a simultaneous fresh API snapshot. The remaining employee's source observation
+began at 01:21:43 UTC and was outside the one-hour controlled-publication freshness
+gate. The subsequent bounded collection below satisfied that unchanged gate for
+this employee's five scoped values; it did not refresh the entire cohort.
 The other three exported reports were compared only for changes: updates changed
 14 cells, agent state time changed one, and inbound counts changed none. Those
 observations do not qualify their metric definitions or explain their changes.
@@ -115,6 +116,32 @@ observations do not qualify their metric definitions or explain their changes.
 The [aggregate receipt](2026-10-09-pos-fresh-outbound-reference.json) binds both
 archives and the replay inputs by SHA-256. Raw exports, employee mappings and the
 reproducible comparison script remain private outside tracked files.
+
+### Final scoped outbound publication — October 9, 17:34 UTC
+
+A bounded fresh source collection made 22 GET requests (six Talk and 16 linked
+ticket requests), with observations from 17:28:30.932 to 17:30:18.263 UTC. Independent
+replay reproduced the final employee's five outbound values, 14 source-set checks
+and six duration checks without differences. The fresh report count also agreed.
+See the [qualification receipt](2026-10-09-pos-final-outbound-qualification.json).
+The offline replay's freshness/publication flags remain false by design: those
+decisions belong to the separate controlled publication gates.
+
+After fresh backup and source/identity/assignment checks, the scoped publication
+wrote only this employee's five September 27–October 3 outbound values. Its
+[read-only postcheck](2026-10-09-pos-final-outbound-publication.json), completed at
+17:34:57.438 UTC, verified five values, 36 persisted fact source sets, two persisted
+source-record sets, six duration checks, five predecessor revisions and 12 protected
+digest groups, with zero differences and no vendor requests. The sole withheld
+POS outbound exception is therefore released for this week.
+
+The [hosted receipt](2026-10-09-pos-final-outbound-hosted.json) confirms those five
+outbound values and selected dates in production UI and an actual downloaded CSV,
+using administrator view-as. Historical targets remained withheld. Native manager
+login was not observed. Fresh report parity independently covers its outbound
+count, not the other four outbound measures or report contributing IDs. Absent-row
+zeros, the original refresh cause, multi-period qualification and recurring
+publication/recovery remain unproven; recurring outbound publication stays off.
 
 An exit code of zero means the source replay checks passed; report differences
 remain explicit in the aggregate output. It is not authorization to publish or a
@@ -168,7 +195,7 @@ historical metric repair.
 | Menufy update events            | Only September 27–October 3 is released. Current source replay has no matching report export; the first retained week still has a residual. Resolve observation-specific references and add a guarded recurring adapter with fixed dates, fresh dependencies and replay before widening. |
 | POS update events               | Preserve exact source channel labels, establish complete channel coverage and report parity, then qualify a separate publisher. Do not copy Menufy's six-group/brand scope or treat account credit as manual-human attribution.                                                          |
 | Solved credits                  | Continue actual scheduled collection/publication and bounded failure/recovery evidence. Existing source replay is not a fresh same-cutoff Explore comparison.                                                                                                                            |
-| Qualified inbound/outbound      | Complete multi-period comparisons and scheduled publication/recovery. Outbound's sole POS discrepancy remains withheld; new inbound catalog assignments have their recorded prospective dates.                                                                                           |
+| Qualified inbound/outbound      | The final five-value POS exception for September 27–October 3 is published and checked. Complete multi-period comparisons and scheduled publication/recovery; fresh POS report parity covers counts only. Missing report rows remain unverified, and new inbound assignments retain their prospective dates. |
 | CSAT / first reply              | Verify recurring refresh, durable recovery and every numerator/denominator. No ratings or reply samples legitimately produce null, not zero. POS first-response meaning/assignment must be independently established if requested.                                                       |
 | Other displayed legacy measures | Offered/abandonment/consultation/duration semantics, elevated-work attribution, active handling time and snapshot backlog need their own contracts. Numeric legacy output is not automatically qualified. Historical away/transfer-only measures require a historical source.            |
 | Access and exports              | Manager-own-login workflows, remaining actual PDF/PNG bytes and native print are distinct from administrator preview and CSV checks.                                                                                                                                                     |
@@ -183,6 +210,7 @@ labels/coverage (4), unchanged cursor behavior (7), worker behavior (11), enviro
 validation (6), and real isolated PostgreSQL storage/rollback (13). Eleven independent Python verifier tests
 pass. PostgreSQL checks include old-row/hash preservation, idempotent enrichment,
 channel conflicts, channel-plus-checkpoint rollback, and tampered-sidecar rejection.
-The two committed JSON receipts bind the retained replay checks only. Full exact
-candidate CI/build, release/backup checks and actual deployed capture remain the
-integrator's gates; no hosted or production result is claimed here.
+The initial JSON receipts bind retained replay checks only; the later final
+outbound receipts above separately record scoped collection, publication and
+hosted verification. These results do not qualify other periods, activate channel
+retention, or establish recurring publication.

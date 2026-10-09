@@ -1,0 +1,16 @@
+{
+  "csvSha256": "0db683de69706bfd4e29407f6ed657c4fc74aa2c102d0e807f6285381b24ffb2",
+  "productionDeployment": "dpl_AQUSKkMzeVu7FpSKyGKktvfTLrbM",
+  "browserScope": "existing administrator view-as POS manager",
+  "csvRows": 19,
+  "selectedPeriodStart": "2026-09-27",
+  "allDisplayedOutboundValuesMatch": true,
+  "selectedPeriodEnd": "2026-10-03",
+  "historicalTargetsWithheld": true,
+  "csvBytes": 12073,
+  "nativeManagerLoginObserved": false,
+  "csvValuesAndDatesMatch": true,
+  "csvOutboundRows": 5,
+  "verifiedOutboundRows": 5,
+  "observedAt": "2026-10-09T17:38:27.3496603Z"
+}

@@ -1,6 +1,7 @@
 {
   "git": {
     "deploymentEnabled": {
+      "codex/oct09-final-reconciliation": false,
       "codex/manager-context-query": false,
       "codex/oct09-release-evidence": false,
       "codex/scorecard-query-batching": false,

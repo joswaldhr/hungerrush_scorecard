@@ -1,5 +1,63 @@
 # Audit implementation — current checkpoint
 
+**October 9, afternoon — final POS outbound correction and roster recovery live:**
+PR72 metric-read batching is live at `71036cb` /
+`dpl_3fhXwV8qWAgRaLY4EsQ1g2qNaFMi`. Exact candidate CI `37968050958`, master CI
+`37968522574`, independent review and isolated Preview pass. Closed-week reads use
+six rather than eight SQL statements; current-week reads use seven rather than eight.
+Synthetic and production checks preserve dates, zero/missing distinctions, current-week
+progress, historical-target withholding and loading/export exclusion. Two live requests
+took 2,370/3,327 ms versus the preceding 2,886/3,097 ms. This variable small sample
+does not establish a consistent speedup; it does verify fewer database requests with
+unchanged semantics. See `2026-10-09-metric-read-batching-release.json`.
+
+The user authorized a one-time temporary viewer date selection for September 27–
+October 3. The downloaded POS dashboard export changes the sole outstanding outbound
+count from 34 to 31, matching retained source reconstruction. All 35 matched POS count
+rows agree; four current employees have no export row and are not verified zeros.
+Combined with retained Menufy evidence, all 111 compared report cells agree. The ZIP
+does not embed its period; the receipt explicitly records the observed viewer dates
+and Central timezone. Last 30 days was restored and the viewer closed; no editor or
+save was used. See `2026-10-09-pos-fresh-outbound-reference.json`. This resolves the
+reference discrepancy. Fresh bounded collection then completed 22 GETs between
+17:28 and 17:30 UTC and independently reproduced the final employee's five outbound
+values. Scoped publication passed a read-only 17:34:57 postcheck: five values,
+14 independent source-set checks, 36 persisted fact-set checks, six duration checks,
+five predecessor revisions and 12 protected digest groups, with zero differences.
+Production UI and an actual CSV matched those five values and dates through an
+administrator's manager view; native manager sign-in was not observed. See the
+`2026-10-09-pos-final-outbound-qualification.json`, `-publication.json` and
+`-hosted.json` receipts. Report parity independently covers its count, not the other
+four outbound measures or Explore contributing IDs. Multi-period qualification,
+the original refresh cause and recurring outbound publication remain unresolved.
+
+PR70 is live at `955ad8b` / `dpl_HFA6QENQbW7cngidoUe7oVQbPkeL`. Exact candidate
+CI `37965524931` and master CI `37965942876` pass. The isolated Preview application
+tree matches the reviewed candidate, and authenticated synthetic roster/scorecard
+navigation preserves dates, warnings and loading exclusion. Two production week
+requests took 2,886 and 3,097 ms, compared with the earlier 3,236/3,408 ms observations;
+manager-context phases fell to 1,002/1,109 ms. This small sample is not a benchmark;
+reads still take about three seconds. All 24 production environment entries remain,
+with new optional flags absent. See `2026-10-09-manager-context-release.json`.
+
+PR71 durable roster retry code is live at `0adc5fb` /
+`dpl_AQUSKkMzeVu7FpSKyGKktvfTLrbM`, following exact candidate CI `37966027388`,
+independent review and isolated Preview `dpl_4YJ2aqVsggkbr3b4cX8mnGVtS972`.
+Master CI `37966533451` passes. The 17:16 UTC encrypted restore matches 36 tables /
+404,129 rows. A controlled queued canary then completed eight GETs, independently
+matched 80 observed members and preserved 14 protected table groups, with no metric
+or employee-assignment changes. Only roster source/retry configuration was enabled;
+deployment `dpl_713dF7JzVpiA3h2UHZDVC17SQPmx` is READY on the production alias.
+Corrected read-only health confirms recovery enabled and today's demand complete.
+The initial diagnostic used `health=1` instead of `probe=health` and reached enqueue
+handling. Independent readback confirms the complete queue payload stayed unchanged,
+with one attempt and no new source run/observation. The mistaken response is retained;
+it is not called a read-only request. See `2026-10-09-roster-queued-verification.json`
+and `2026-10-09-roster-activation.json`. Actual scheduled roster collection remains
+unverified until the next daily demand, October 10 at 16:10 UTC. Group membership
+does not prove employment status. All-family recovery capacity still fails; other
+optional recovery flags remain off. The frozen demo is unchanged.
+
 **October 9, 17:10 UTC — controlled roster discovery verified:**
 The corrected released worker completed eight GET requests and one review-only
 observation of 80 members. Independent identity/team/line comparison passed before
