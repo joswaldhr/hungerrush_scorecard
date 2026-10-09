@@ -40,6 +40,16 @@ six hours and solved publication daily; the dispatcher wakes every 15 minutes.
 Other metric families have separate paths. A disabled recovery switch is shown
 separately from retained queue state; configuration/read failures show unavailable.
 
+Legacy weekly recovery has a separate, default-off `ZENDESK_LEGACY_SYNC_RECOVERY=1`
+switch. It requires `ZENDESK_REPORT_RECOVERY=1`, a valid source collection policy and
+`ROSTER_DISCOVERY_SOURCE_ID` matching that source. When enabled, the existing daily
+legacy cron enqueues its fixed week and reports acceptance with `completed: false`;
+publication happens through the bounded dispatcher. Source retry delays and saved
+dates survive later invocations. Only acknowledged successful publication heartbeats.
+This does not enable any new metric definition. The solved-only Data Health panel
+does not summarize legacy recovery; inspect retained jobs/runs for that family.
+See [activation and rollback gates](audits/2026-10-09-legacy-sync-recovery.md).
+
 The source cards summarize only the latest source run, which may belong to another
 metric family or week. Their success timestamp must not be used as an all-metrics
 freshness indicator. “Run standard weekly sync” invokes the existing current-week

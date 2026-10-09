@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "windowStart": "2026-10-08T14:54:00.000Z",
+  "windowEnd": "2026-10-09T14:54:00.000Z",
+  "readOnly": true,
+  "verificationTriggeredSyncs": 0,
+  "scope": "Project-wide production invocations across deployments",
+  "scheduledUserAgent": "vercel-cron/1.0",
+  "scheduledRequests": 100,
+  "routes": {
+    "/api/cron/report-recovery": {
+      "scheduledRequests": 81,
+      "httpFailures": 0,
+      "maxRequestDurationMs": 138744
+    },
+    "/api/cron/first-reply": {
+      "scheduledRequests": 4,
+      "httpFailures": 0,
+      "maxRequestDurationMs": 166330
+    },
+    "/api/cron/outbound": {
+      "scheduledRequests": 4,
+      "httpFailures": 0,
+      "maxRequestDurationMs": 424
+    },
+    "/api/cron/directory": {
+      "scheduledRequests": 3,
+      "httpFailures": 0,
+      "maxRequestDurationMs": 4037
+    },
+    "/api/cron/csat": {
+      "scheduledRequests": 4,
+      "httpFailures": 0,
+      "maxRequestDurationMs": 225524
+    },
+    "/api/cron/sync": {
+      "scheduledRequests": 4,
+      "httpFailures": 2,
+      "maxRequestDurationMs": 256504
+    }
+  },
+  "manualAndOtherRequestsExcluded": 20,
+  "failures": [
+    {
+      "route": "/api/cron/sync",
+      "weekOffset": 0,
+      "status": 503,
+      "startedAt": "2026-10-09T06:00:32Z",
+      "outcome": "skipped",
+      "reason": "Report collection account ownership or request cooldown",
+      "valuesWritten": 0
+    },
+    {
+      "route": "/api/cron/sync",
+      "weekOffset": 3,
+      "status": 503,
+      "startedAt": "2026-10-09T06:45:42Z",
+      "outcome": "failed",
+      "reason": "Source rate limit requires a later attempt",
+      "valuesWritten": 0
+    }
+  ],
+  "directory": {
+    "checkedAt": "2026-10-09T14:53:13.946Z",
+    "lastAttemptAt": "2026-10-09T12:40:47.412Z",
+    "observedAt": "2026-10-09T12:40:49.113Z",
+    "outcome": "completed",
+    "leaseReleased": true,
+    "employeeCount": 62,
+    "enabled": 61,
+    "disabled": 1,
+    "unresolved": 0,
+    "sourceBaselineMatches": true,
+    "diagnosticWrites": 0
+  },
+  "release": {
+    "pullRequest": 62,
+    "commit": "2d9ecfad1c11d4a3c483b49cd274433d76c1bfac",
+    "deploymentId": "dpl_EHgfXxqauqDvF7iTeLThzskznALH",
+    "state": "READY",
+    "ownsProductionAlias": true,
+    "masterCi": "37947819189",
+    "masterCiConclusion": "success",
+    "loginHttpStatus": 200,
+    "anonymousScorecardsHttpStatus": 307,
+    "anonymousScorecardsRedirect": "/login"
+  },
+  "limits": [
+    "HTTP success does not establish publication or independent metric accuracy.",
+    "Two failed daily legacy runs have no active automatic recovery at this observation.",
+    "This is not an authenticated manager-login acceptance or a PDF/PNG byte check.",
+    "Recurring outbound and optional CSAT recovery remain inactive."
+  ]
+}

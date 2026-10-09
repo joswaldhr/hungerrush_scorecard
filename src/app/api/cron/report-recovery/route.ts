@@ -7,6 +7,7 @@ import {
 } from "@/lib/connectors/zendesk-solved-config";
 import { runLiveReportRecovery } from "@/lib/connectors/zendesk-report-recovery";
 import { configuredCsatPolicy } from "@/lib/connectors/zendesk-csat-config";
+import { configuredLegacySyncRecovery } from "@/lib/connectors/zendesk-legacy-sync-recovery";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -40,7 +41,8 @@ export async function GET(request: Request) {
         email: env.ZENDESK_EMAIL ?? "",
         apiKey: env.ZENDESK_API_KEY ?? "",
       },
-      csat
+      csat,
+      configuredLegacySyncRecovery()
     );
     return NextResponse.json(
       { enabled: true, ...result },
