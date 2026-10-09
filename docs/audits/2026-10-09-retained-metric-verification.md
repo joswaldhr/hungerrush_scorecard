@@ -62,6 +62,14 @@ rejects the entire page, including new base records and checkpoint advancement.
 Identical overlaps are idempotent. The thirteen labels are exact observed values;
 unknown strings, numeric codes, objects and missing fields stay unavailable.
 
+Retention is default-off behind the independently validated
+`ZENDESK_REPORT_EVENT_CHANNEL_RETENTION=1` opt-in. Unset/empty retains the old
+worker, request and persistence behavior; invalid nonempty values fail startup.
+The main Preview source-work blocker includes this flag, and the candidate branch
+cannot automatically deploy. A code release does not enable source retention.
+Activation requires a scoped storage/duration canary: each recognized event adds
+one small immutable sidecar and each enabled page has a batched overlap lookup.
+
 Snapshot readers must explicitly request `includeChannels: true` to receive
 validated channel evidence and missing-event IDs. Existing solved readers incur
 no additional channel query. A complete base stream does not imply complete
@@ -94,9 +102,9 @@ Assembled, recurring outbound, or recurring update-event publication.
 
 ## Candidate validation
 
-TypeScript and scoped ESLint pass. The 34 focused TypeScript tests pass: channel
-labels/coverage (4), unchanged cursor behavior (7), worker behavior (11), and real
-isolated PostgreSQL storage/rollback (12). Nine independent Python verifier tests
+TypeScript and scoped ESLint pass. All 41 focused TypeScript checks pass: channel
+labels/coverage (4), unchanged cursor behavior (7), worker behavior (11), environment
+validation (6), and real isolated PostgreSQL storage/rollback (13). Nine independent Python verifier tests
 pass. PostgreSQL checks include old-row/hash preservation, idempotent enrichment,
 channel conflicts, channel-plus-checkpoint rollback, and tampered-sidecar rejection.
 The two committed JSON receipts bind the retained replay checks only. Full exact

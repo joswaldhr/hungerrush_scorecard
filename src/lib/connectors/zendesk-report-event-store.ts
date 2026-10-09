@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { env } from "@/lib/env";
 import { dataSources, sourceRecords } from "@/lib/db/schema";
 import { isZendeskAccountReference } from "./zendesk-account-binding";
 import {
@@ -296,8 +297,9 @@ export async function commitReportEventPage(
       );
     // Preserve v1 event bytes/digests. An overlapping old event may gain separately
     // bound channel evidence; a changed known channel must never silently overwrite it.
-    const channels = reportEventChannels(response);
-    const retainedChannels = keys.length
+    const channels =
+      env.ZENDESK_REPORT_EVENT_CHANNEL_RETENTION === "1" ? reportEventChannels(response) : [];
+    const retainedChannels = channels.length
       ? await tx
           .select()
           .from(sourceRecords)
@@ -305,7 +307,10 @@ export async function commitReportEventPage(
             and(
               eq(sourceRecords.dataSourceId, scope.dataSourceId),
               eq(sourceRecords.externalRecordType, CHANNEL),
-              inArray(sourceRecords.externalRecordId, keys)
+              inArray(
+                sourceRecords.externalRecordId,
+                channels.map((record) => String(record.eventId))
+              )
             )
           )
       : [];

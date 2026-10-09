@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, beforeEach, expect, it } from "vitest";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { env } from "@/lib/env";
 import { organizations, dataSources, sourceRecords } from "@/lib/db/schema";
 import {
   beginReportEventCycle,
@@ -61,6 +62,7 @@ beforeAll(async () => {
   );
 });
 beforeEach(async () => {
+  delete env.ZENDESK_REPORT_EVENT_CHANNEL_RETENTION;
   await db
     .delete(sourceRecords)
     .where(inArray(sourceRecords.dataSourceId, [dataSourceId, secondSourceId]));
@@ -70,6 +72,7 @@ beforeEach(async () => {
     .where(inArray(dataSources.id, [dataSourceId, secondSourceId]));
 });
 afterAll(async () => {
+  delete env.ZENDESK_REPORT_EVENT_CHANNEL_RETENTION;
   await db
     .delete(sourceRecords)
     .where(inArray(sourceRecords.dataSourceId, [dataSourceId, secondSourceId]));
@@ -137,7 +140,28 @@ it("caps an explicitly requested progress read at the retained watermark", async
     ).status
   ).toBe("collecting");
 });
+it("keeps channel retention disabled without its independent opt-in", async () => {
+  const worker = await own(),
+    begun = await beginReportEventCycle(worker, start);
+  await commitReportEventPage(
+    worker,
+    begun.expectedHash,
+    page([{ ...event(), via: "Phone call inbound" } as ReturnType<typeof event>], 400, true)
+  );
+  expect(
+    (await records()).filter((r) => r.externalRecordType === "zendesk_report_event_channel_v1")
+  ).toEqual([]);
+  const snapshot = await readReportEventSnapshot(scope, new Date(100000), new Date(400000), [42], {
+    includeChannels: true,
+  });
+  expect(snapshot.snapshot?.channels).toEqual({
+    complete: false,
+    records: [],
+    missingEventIds: [1],
+  });
+});
 it("adds channel evidence on old overlap without rewriting immutable base events", async () => {
+  env.ZENDESK_REPORT_EVENT_CHANNEL_RETENTION = "1";
   const worker = await own(),
     begun = await beginReportEventCycle(worker, start);
   const first = await commitReportEventPage(worker, begun.expectedHash, page([event()], 200));
@@ -184,6 +208,7 @@ it("adds channel evidence on old overlap without rewriting immutable base events
   ).toEqual(before);
 });
 it("rolls back base events, channels and checkpoint on changed channel overlap", async () => {
+  env.ZENDESK_REPORT_EVENT_CHANNEL_RETENTION = "1";
   const worker = await own(),
     begun = await beginReportEventCycle(worker, start);
   const first = await commitReportEventPage(
@@ -209,6 +234,7 @@ it("rolls back base events, channels and checkpoint on changed channel overlap",
   expect(await records()).toEqual(before);
 });
 it("rejects tampered retained channel payloads without changing solved reads", async () => {
+  env.ZENDESK_REPORT_EVENT_CHANNEL_RETENTION = "1";
   const worker = await own(),
     begun = await beginReportEventCycle(worker, start);
   await commitReportEventPage(
@@ -249,6 +275,7 @@ it("rolls back all events and the cursor when a retained ID conflicts", async ()
   expect(await records()).toEqual(before);
 });
 it("rolls back event inserts when the checkpoint cannot commit", async () => {
+  env.ZENDESK_REPORT_EVENT_CHANNEL_RETENTION = "1";
   const worker = await own(),
     begun = await beginReportEventCycle(worker, start);
   const before = await records();
