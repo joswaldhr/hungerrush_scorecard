@@ -30,6 +30,9 @@ import {
 } from "./zendesk-first-reply-policy";
 import { planQualifiedRecovery } from "./zendesk-qualified-recovery";
 
+import { planRosterRecovery } from "./zendesk-roster-recovery";
+import { runRosterDiscoveryJob } from "@/lib/domain/roster/discovery-job";
+
 type Collection = NonNullable<ReturnType<typeof parseReportEventCollectionPolicy>>;
 const digest = (v: unknown) => createHash("sha256").update(JSON.stringify(v)).digest("hex");
 export function planReportRecovery(
@@ -38,7 +41,8 @@ export function planReportRecovery(
   now = new Date(),
   csatInput?: ZendeskCsatPolicy,
   legacyInput?: ReportEventScope,
-  firstReplyInput?: ZendeskFirstReplyPolicy
+  firstReplyInput?: ZendeskFirstReplyPolicy,
+  rosterInput?: ReportEventScope
 ) {
   if (!input.length || input.length > 2)
     throw Error("Report recovery requires qualified solved policies");
@@ -89,6 +93,14 @@ export function planReportRecovery(
   )
     throw Error("Legacy recovery must share the configured source/account");
   const legacyPolicy = legacyInput ? planLegacySyncRecovery(legacyInput, now) : null;
+  if (
+    rosterInput &&
+    (rosterInput.organizationId !== collection.scope.organizationId ||
+      rosterInput.dataSourceId !== collection.scope.dataSourceId ||
+      rosterInput.accountReference !== collection.scope.accountReference)
+  )
+    throw Error("Roster recovery must share the configured source/account");
+  const rosterPolicy = rosterInput ? planRosterRecovery(rosterInput, now) : null;
   const daily = new Date(now);
   daily.setUTCHours(0, 0, 0, 0);
   const sixHourly = new Date(Math.floor(now.getTime() / 21600000) * 21600000);
@@ -111,6 +123,7 @@ export function planReportRecovery(
       });
     }
   }
+  if (rosterPolicy) requests.push(...rosterPolicy.requests);
   if (csatPolicy) requests.push(...csatPolicy.requests);
   if (firstReplyPolicy) requests.push(...firstReplyPolicy.requests);
   if (legacyPolicy) requests.push(...legacyPolicy.requests);
@@ -120,6 +133,7 @@ export function planReportRecovery(
     csatPolicy,
     firstReplyPolicy,
     legacyPolicy,
+    rosterPolicy,
     requests,
     currentPolicyHashes: [
       collectionHash,
@@ -127,6 +141,7 @@ export function planReportRecovery(
       ...(csatPolicy ? [csatPolicy.policyHash] : []),
       ...(firstReplyPolicy ? [firstReplyPolicy.policyHash] : []),
       ...(legacyPolicy ? [legacyPolicy.policyHash] : []),
+      ...(rosterPolicy ? [rosterPolicy.policyHash] : []),
     ],
   };
 }
@@ -155,7 +170,7 @@ export async function dispatchReportRecovery(
     kind: job.definition.kind,
     ...(outcome.syncRunId ? { syncRunId: outcome.syncRunId } : {}),
     ...(outcome.collectedPages !== undefined ? { collectedPages: outcome.collectedPages } : {}),
-    ...(job.definition.kind === "collection"
+    ...(!("periodStart" in job.definition)
       ? {}
       : {
           periodStart: job.definition.periodStart,
@@ -170,7 +185,8 @@ export async function runLiveReportRecovery(
   credentials: { subdomain: string; email: string; apiKey: string },
   csatPolicy?: ZendeskCsatPolicy,
   legacyPolicy?: ReportEventScope,
-  firstReplyPolicy?: ZendeskFirstReplyPolicy
+  firstReplyPolicy?: ZendeskFirstReplyPolicy,
+  rosterPolicy?: ReportEventScope
 ) {
   const plan = planReportRecovery(
     collection,
@@ -178,13 +194,29 @@ export async function runLiveReportRecovery(
     new Date(),
     csatPolicy,
     legacyPolicy,
-    firstReplyPolicy
+    firstReplyPolicy,
+    rosterPolicy
   );
   const result = await dispatchReportRecovery(plan, async (job) => {
     // Preserve source pacing on every attempt, including a previously interrupted job.
     if (await isSyncRateLimited(collection.scope.dataSourceId))
       return { status: "deferred", retryAt: new Date(Date.now() + 300000).toISOString() };
     const selected = job.definition;
+    if (selected.kind === "roster") {
+      if (!plan.rosterPolicy || plan.rosterPolicy.policyHash !== selected.policyHash)
+        throw Error("Queued roster policy no longer active");
+      const result = await runRosterDiscoveryJob(
+        collection.scope.dataSourceId,
+        credentials.subdomain,
+        new ZendeskConnector(),
+        collection.scope
+      );
+      if (result.success) return { status: "complete" };
+      return {
+        status: "busy" in result || "retryAt" in result ? "deferred" : "failed",
+        retryAt: "retryAt" in result ? result.retryAt : new Date(Date.now() + 600000).toISOString(),
+      };
+    }
     if (selected.kind === "collection") {
       const result = await runReportEventBatch(
         collection.scope,

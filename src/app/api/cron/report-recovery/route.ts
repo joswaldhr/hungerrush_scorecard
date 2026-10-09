@@ -11,6 +11,8 @@ import type { ZendeskCsatPolicy } from "@/lib/connectors/zendesk-csat-policy";
 import type { ZendeskFirstReplyPolicy } from "@/lib/connectors/zendesk-first-reply-policy";
 import { configuredLegacySyncRecovery } from "@/lib/connectors/zendesk-legacy-sync-recovery";
 
+import { configuredRosterRecovery } from "@/lib/connectors/zendesk-roster-recovery";
+
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 export async function GET(request: Request) {
@@ -46,7 +48,8 @@ export async function GET(request: Request) {
       },
       csat,
       configuredLegacySyncRecovery(),
-      firstReply
+      firstReply,
+      configuredRosterRecovery()
     );
     return NextResponse.json(
       { enabled: true, ...result },

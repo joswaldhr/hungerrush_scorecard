@@ -12,7 +12,11 @@ const mocks = vi.hoisted(() => ({
   qualified: vi.fn(),
   legacy: vi.fn(),
   releases: vi.fn(),
-  env: { ZENDESK_REPORT_RECOVERY: "1" },
+  env: {
+    ZENDESK_REPORT_RECOVERY: "1",
+    ROSTER_DISCOVERY_RECOVERY: undefined as string | undefined,
+    ROSTER_DISCOVERY_SOURCE_ID: undefined as string | undefined,
+  },
 }));
 vi.mock("@/lib/connectors/zendesk-solved-config", () => ({
   configuredReportEventCollectionPolicy: mocks.collection,
@@ -27,6 +31,10 @@ vi.mock("@/lib/connectors/zendesk-legacy-sync-recovery", async (original) => ({
   configuredLegacySyncRecovery: mocks.legacy,
 }));
 vi.mock("@/lib/env", () => ({ env: mocks.env }));
+import {
+  getRosterRecoveryHealth,
+  planRosterRecovery,
+} from "@/lib/connectors/zendesk-roster-recovery";
 import { getReportRecoveryHealth } from "@/lib/domain/metrics/report-recovery-health";
 const org = randomUUID(),
   foreignOrg = randomUUID(),
@@ -90,6 +98,8 @@ beforeEach(async () => {
   mocks.collection.mockReturnValue(collection);
   mocks.releases.mockReturnValue(releases);
   mocks.env.ZENDESK_REPORT_RECOVERY = "1";
+  mocks.env.ROSTER_DISCOVERY_RECOVERY = undefined;
+  mocks.env.ROSTER_DISCOVERY_SOURCE_ID = undefined;
   await db
     .update(dataSources)
     .set({ configurationReference: collection.scope.accountReference })
@@ -225,4 +235,48 @@ it("shows all enabled optional imports with only authorized team labels and no d
     await db.select().from(sourceRecords).where(eq(sourceRecords.dataSourceId, source))
   ).toEqual(before);
   expect((await getReportRecoveryHealth(org, [], now)).rows).toEqual([]);
+});
+
+it("never presents an operational roster request as a manager metric row", async () => {
+  const rosterPlan = planReportRecovery(
+    collection,
+    releases,
+    now,
+    undefined,
+    undefined,
+    undefined,
+    collection.scope
+  );
+  await requestReportJobs(collection.scope, rosterPlan.rosterPolicy!.requests);
+  const result = await getReportRecoveryHealth(org, [teamA], now);
+  expect(result.rows).toHaveLength(3);
+  expect(result.rows.every((row) => !row.metric.toLowerCase().includes("roster"))).toBe(true);
+});
+
+it("reads only scoped operational roster queue health without creating requests", async () => {
+  mocks.env.ROSTER_DISCOVERY_RECOVERY = "1";
+  mocks.env.ROSTER_DISCOVERY_SOURCE_ID = source;
+  await requestReportJobs(collection.scope, planRosterRecovery(collection.scope, now).requests);
+  const before = await db
+    .select()
+    .from(sourceRecords)
+    .where(eq(sourceRecords.dataSourceId, source));
+  const result = await getRosterRecoveryHealth(now);
+  expect(result).toMatchObject({ enabled: true, desiredAt: "2026-10-08T16:10:00.000Z" });
+  expect(Object.keys(result).sort()).toEqual([
+    "desiredAt",
+    "enabled",
+    "label",
+    "lastAttemptAt",
+    "retryAt",
+    "status",
+  ]);
+  expect(
+    await db.select().from(sourceRecords).where(eq(sourceRecords.dataSourceId, source))
+  ).toEqual(before);
+  await db
+    .update(dataSources)
+    .set({ configurationReference: "zendesk-account:foreign" })
+    .where(eq(dataSources.id, source));
+  await expect(getRosterRecoveryHealth(now)).rejects.toThrow("binding");
 });
