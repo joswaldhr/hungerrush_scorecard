@@ -24,7 +24,7 @@ import {
   formatWeekRangeShort,
   formatWeekRangeLong,
 } from "@/lib/utils";
-import { getWeekMetrics } from "@/app/(app)/one-on-ones/[id]/actions";
+import { fetchScorecardWeek } from "@/lib/scorecard-week-client";
 import { HISTORICAL_TARGET_REASON } from "@/lib/domain/metrics/availability";
 import { DURATION_CLOCK_NOTE, DURATION_FORMAT_LABEL } from "@/lib/domain/metrics/types";
 
@@ -36,7 +36,6 @@ interface ScorecardBodyProps {
   managerName: string | null;
   initialPeriodStart: string;
   initialRows: EmployeeMetricRow[];
-  loadWeekAction?: (employeeId: string, periodStart: string) => Promise<EmployeeMetricRow[]>;
   basePath?: "/one-on-ones" | "/demo/one-on-ones";
 }
 
@@ -50,7 +49,6 @@ export function ScorecardBody({
   managerName,
   initialPeriodStart,
   initialRows,
-  loadWeekAction = getWeekMetrics,
   basePath = "/one-on-ones",
 }: ScorecardBodyProps) {
   const [presentationMode, setPresentationMode] = useState(false);
@@ -61,10 +59,16 @@ export function ScorecardBody({
   const [error, setError] = useState<string | null>(null);
   const cacheRef = useRef(new Map<string, { rows: EmployeeMetricRow[]; loadedAt: number }>());
   const requestRef = useRef(0);
+  const controllerRef = useRef<AbortController | null>(null);
+  const pendingWeekRef = useRef<string | null>(null);
 
   const fetchWeek = useCallback(
     async (ps: string, force = false) => {
+      if (!force && pendingWeekRef.current === ps) return;
+      pendingWeekRef.current = null;
       const request = ++requestRef.current;
+      controllerRef.current?.abort();
+      controllerRef.current = null;
       setPeriodStart(ps);
       setError(null);
       const cached = cacheRef.current.get(ps);
@@ -74,8 +78,11 @@ export function ScorecardBody({
         return;
       }
       setLoading(true);
+      const controller = new AbortController();
+      controllerRef.current = controller;
+      pendingWeekRef.current = ps;
       try {
-        const rows = await loadWeekAction(employeeId, ps);
+        const rows = await fetchScorecardWeek(employeeId, ps, controller.signal);
         // A slow response may never replace a more recently requested period.
         if (request !== requestRef.current) return;
         if (cacheRef.current.size >= 8) cacheRef.current.clear();
@@ -86,10 +93,14 @@ export function ScorecardBody({
           setError("Unable to load this week. Please try again.");
         }
       } finally {
-        if (request === requestRef.current) setLoading(false);
+        if (request === requestRef.current) {
+          controllerRef.current = null;
+          pendingWeekRef.current = null;
+          setLoading(false);
+        }
       }
     },
-    [employeeId, loadWeekAction]
+    [employeeId]
   );
 
   // Seed the cache from the server snapshot; invalidate pending work on unmount.
@@ -98,6 +109,7 @@ export function ScorecardBody({
     cacheRef.current.set(initialPeriodStart, { rows: initialRows, loadedAt: Date.now() });
     return () => {
       requests.current++;
+      controllerRef.current?.abort();
     };
   }, [initialPeriodStart, initialRows]);
 
@@ -111,7 +123,7 @@ export function ScorecardBody({
     function onFocus() {
       // An unpinned entry follows last week after rollover; explicit links stay fixed.
       const params = new URLSearchParams(window.location.search);
-      void fetchWeek(resolveReportingWeek(params.get("week")), true);
+      void fetchWeek(resolveReportingWeek(params.get("week")));
     }
     window.addEventListener("popstate", onPopState);
     window.addEventListener("focus", onFocus);
