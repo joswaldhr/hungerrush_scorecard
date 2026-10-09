@@ -1,6 +1,14 @@
 # Audit implementation — current checkpoint
 
 **October 9, afternoon — final POS outbound correction and roster recovery live:**
+PR73 adds a guard against the diagnostic mistake described below. It is live at
+`170b11f` / `dpl_8vPWEbf1DscF3NXdZcA2VeyYmTxv`, after exact candidate CI
+`37969001047`, independent review and isolated Preview. Authenticated production
+checks return 200 for the valid health probe and 400 for misspelled/duplicate probes,
+with the entire roster queue/run/observation state unchanged and no source work.
+The normal no-query scheduled route is preserved. Barb's manager-view roster still
+shows 22 active and one archived employee. See `2026-10-09-roster-probe-release.json`.
+
 PR72 metric-read batching is live at `71036cb` /
 `dpl_3fhXwV8qWAgRaLY4EsQ1g2qNaFMi`. Exact candidate CI `37968050958`, master CI
 `37968522574`, independent review and isolated Preview pass. Closed-week reads use
