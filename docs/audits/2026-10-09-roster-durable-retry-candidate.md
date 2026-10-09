@@ -52,3 +52,12 @@ rollback is `c23d0cd06a6f8507cf66ae943e811b898763df2d`, deployment
 recovery only; the other optional recovery families stay off. The controlled PR64 worker
 canary in `2026-10-09-roster-controlled-verification.json` establishes the underlying
 review-only worker's source comparison, not this new queue's scheduled operation.
+
+Independent review: the loading/performance agent reviewed `cb16c85` against `c23d0cd`
+and found no actionable code issues in default-off behavior, source binding, shared
+ownership, cooldown/new-day acknowledgment, health scope or capacity guards. The final
+branch also merges PR70 (`955ad8bd3820fe98fb0d9b5ce1ea7c054affdc0c`), retaining both
+branches' disabled automatic-deployment entries. That integration changes no roster
+semantics; exact integrated CI and isolated Preview are still separate release gates.
+The 17:16 backup receipt must remain fresh at the actual release (18:16 UTC expiry).
+No recovery policy has been activated by this branch update.
